@@ -1,0 +1,3 @@
+services:
+  radius:
+    build: radius/docker
