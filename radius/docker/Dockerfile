@@ -37,6 +37,9 @@ RUN apk update \
 RUN rm /etc/raddb/sites-available/inner-tunnel
 
 COPY docker-entrypoint.sh /
+COPY raddb/sites-enabled/default /etc/raddb/sites-enabled/default
+COPY raddb/mods-enabled/eap /etc/raddb/mods-enabled/eap
+COPY raddb/mods-enabled/rest /etc/raddb/mods-enabled/rest
 RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 1812/udp 1813/udp
