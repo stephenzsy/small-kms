@@ -1,0 +1,15 @@
+{
+  "name": "small-kms-tools",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": "true",
+  "license": "MIT",
+  "dependencies": {
+    "@openapitools/openapi-generator-cli": "^2.7.0"
+  },
+  "scripts": {
+    "genclient": "openapi-generator-cli generate",
+    "genserver": "openapi-generator-cli generate -i ../swagger.yaml -g go-gin-server -c ./gen-server-config.yaml -o ../backend --git-user-id stephenzsy --git-repo-id small-kms/backend",
+    "gencli": "openapi-generator-cli"
+  }
+}

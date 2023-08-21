@@ -1,0 +1,16 @@
+{
+  "name": "small-kms",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/stephenzsy/small-kms.git",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "tools"
+  ],
+  "scripts": {
+    "genclient": "yarn workspace small-kms-tools genclient",
+    "genserver": "yarn workspace small-kms-tools genserver",
+    "gencli": "yarn workspace small-kms-tools gencli"
+  }
+}

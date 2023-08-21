@@ -1,0 +1,3 @@
+additionalProperties:
+  packageName: smallkms
+  serverPort: "9000"
