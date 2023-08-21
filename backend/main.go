@@ -16,12 +16,15 @@ import (
 	// Pass --git-repo-id and --git-user-id properties when generating the code
 	//
 	sw "github.com/stephenzsy/small-kms/backend/go"
+	"github.com/stephenzsy/small-kms/backend/go/config"
 )
 
 func main() {
 	log.Printf("Server started")
 
+	config.Initialize()
+
 	router := sw.NewRouter()
 
-	log.Fatal(router.Run(":9000"))
+	log.Fatal(router.Run("localhost:9000"))
 }
