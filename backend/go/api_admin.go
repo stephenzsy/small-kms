@@ -10,6 +10,7 @@
 package smallkms
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,5 +18,6 @@ import (
 
 // AdminGetCAMetadata - Get CA Metadata
 func AdminGetCAMetadata(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	log.Println(c.Request.Header["Authorization"])
+	c.JSON(http.StatusOK, CertificateMetadata{})
 }

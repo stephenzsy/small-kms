@@ -26,6 +26,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 export function LoginProvider(props: PropsWithChildren<{}>) {
   useRequest(async () => {
     await msalInstance.initialize();
+    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
   });
 
   return (
