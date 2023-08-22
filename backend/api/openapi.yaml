@@ -5,6 +5,8 @@ info:
 servers:
 - description: Local server
   url: http://localhost:9000
+security:
+- bearerAuth: []
 paths:
   /v1/admin/ca/{id}:
     get:
@@ -41,3 +43,7 @@ components:
       - id
       title: CertificateMetadata
       type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: bearer
+      type: http

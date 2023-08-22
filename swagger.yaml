@@ -33,3 +33,10 @@ paths:
                     type: string
                 required:
                   - id
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
