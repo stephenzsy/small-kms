@@ -11,10 +11,9 @@ package main
 
 import (
 	"log"
+	"time"
 
-	// WARNING!
-	// Pass --git-repo-id and --git-user-id properties when generating the code
-	//
+	"github.com/gin-contrib/cors"
 	sw "github.com/stephenzsy/small-kms/backend/go"
 )
 
@@ -22,6 +21,17 @@ func main() {
 	log.Printf("Server started")
 
 	router := sw.NewRouter()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST"},
+		AllowHeaders:     []string{"Origin", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "https://github.com"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 
-	log.Fatal(router.Run(":9000"))
+	log.Fatal(router.Run("localhost:9000"))
 }

@@ -6,11 +6,13 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
+    "frontend",
     "tools"
   ],
   "scripts": {
     "genclient": "yarn workspace small-kms-tools genclient",
     "genserver": "yarn workspace small-kms-tools genserver",
-    "gencli": "yarn workspace small-kms-tools gencli"
+    "gencli": "yarn workspace small-kms-tools gencli",
+    "dev": "yarn workspace small-kms-frontend dev"
   }
 }
