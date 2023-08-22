@@ -12,7 +12,6 @@ package main
 import (
 	"log"
 
-	"github.com/gin-contrib/cors"
 	sw "github.com/stephenzsy/small-kms/backend/go"
 )
 
@@ -21,15 +20,5 @@ func main() {
 
 	router := sw.NewRouter()
 
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AddAllowHeaders("Authorization")
-	corsConfig.AllowMethods = []string{"GET", "POST", "OPTIONS"}
-	corsConfig.AllowOriginFunc = func(_ string) bool {
-		return true
-	}
-	corsConfig.AllowCredentials = true
-
-	router.Use(cors.New(corsConfig))
-
-	log.Fatal(router.Run("localhost:9000"))
+	log.Fatal(router.Run(":9000"))
 }

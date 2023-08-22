@@ -1,11 +1,26 @@
 services:
 
   krakend:
-    image: devopsfaith/krakend
+    build:
+      context: ./krakend      
     ports:
       - "8080:8080"
+    links: 
+      - backend:backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dev.dockerfile
     volumes:
-      - ./krakend/dev-config:/etc/krakend
+      - ./backend:/usr/src/app
+
+      # frontend:
+      #   build:
+      #     context: ./frontend
+      #     dockerfile: dev.dockerfile
+      #   volumes:
+      #     - ./frontend:/app
 
   radius:
     build: radius/docker

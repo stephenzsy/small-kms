@@ -18,6 +18,8 @@ import (
 
 // AdminGetCAMetadata - Get CA Metadata
 func AdminGetCAMetadata(c *gin.Context) {
-	log.Println(c.Request.Header["Authorization"])
-	c.JSON(http.StatusOK, CertificateMetadata{})
+	log.Println(c.Request.Header["X-User"])
+	log.Println(c.Request.Header["X-User-Unique-Name"])
+	log.Println(c.Request.Header["X-Roles"])
+	c.JSON(http.StatusOK, CertificateMetadata{Id: "root"})
 }

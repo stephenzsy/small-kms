@@ -1,7 +1,0 @@
-.openapi-generator-ignore
-apis/AdminApi.ts
-apis/index.ts
-index.ts
-models/CertificateMetadata.ts
-models/index.ts
-runtime.ts

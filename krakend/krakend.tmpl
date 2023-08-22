@@ -1,0 +1,49 @@
+{
+  "version": 3,
+  "name": "My lovely gateway",
+  "port": 8080,
+  "cache_ttl": "3600s",
+  "timeout": "3s",
+  "extra_config": {
+    "telemetry/logging": {
+      "level": "DEBUG",
+      "prefix": "[KRAKEND]",
+      "syslog": false,
+      "stdout": true
+    },
+    "telemetry/metrics": {
+      "collection_time": "60s",
+      "proxy_disabled": false,
+      "router_disabled": false,
+      "backend_disabled": false,
+      "endpoint_disabled": false,
+      "listen_address": ":8090"
+    },
+    "security/cors": {
+      "allow_origins": ["http://localhost:5173"],
+      "allow_methods": ["POST", "GET"],
+      "allow_headers": ["Origin", "Authorization", "Content-Type"],
+      "expose_headers": ["Content-Length"],
+      "max_age": "12h"
+    }
+  },
+  "endpoints": [
+    {
+      "endpoint": "/v1/admin/ca/{id}",
+      "method": "GET",
+      "input_headers": ["Authorization", "X-User", "X-Roles", "X-User-Unique-Name"],
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "host": ["http://backend:9000"],
+          "method": "GET",
+          "url_pattern": "/v1/admin/ca/{id}",
+          "encoding": "no-op"
+        }
+      ],
+      "extra_config": {
+        {{ template "admin_auth.tmpl" . }}
+      }
+    }
+  ]
+}

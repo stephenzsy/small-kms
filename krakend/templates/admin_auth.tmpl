@@ -1,0 +1,13 @@
+"auth/validator": {
+    "cache": true,
+    "cache_duration": 3600,
+    "alg": "RS256",
+    "jwk_url": "{{ .auth.jwk_url }}",
+    "audience": [ "{{ .auth.audience }}" ],
+    "roles": ["App.Admin"],
+    "propagate_claims": [
+        ["sub", "x-user"],
+        ["roles", "x-roles"],
+        ["unique_name", "x-user-unique-name"]
+    ]
+}
