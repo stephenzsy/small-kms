@@ -1,3 +1,5 @@
 additionalProperties:
   packageName: smallkms
   serverPort: "9000"
+  outputAsLibrary: true
+  onlyInterfaces: true

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "genclient": "openapi-generator-cli generate -i ../swagger.yaml -g typescript-fetch -o ../frontend/src/generated",
-    "genserver": "openapi-generator-cli generate -i ../swagger.yaml -g go-gin-server -c ./gen-server-config.yaml -o ../backend --git-user-id stephenzsy --git-repo-id small-kms/backend",
+    "genserver": "openapi-generator-cli generate -i ../swagger.yaml -g go-gin-server -c ./gen-server-config.yaml -o ../backend --git-user-id stephenzsy --git-repo-id small-kms/backend --only-interfaces",
     "gencli": "openapi-generator-cli"
   }
 }
