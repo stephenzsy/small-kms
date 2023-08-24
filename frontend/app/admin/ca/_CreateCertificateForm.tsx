@@ -33,6 +33,9 @@ export function CreateCeritificateForm() {
           subject: {
             commonName,
           },
+          options: {
+            keepKeyVersion: true,
+          },
         };
         sendRequest(params);
       }}

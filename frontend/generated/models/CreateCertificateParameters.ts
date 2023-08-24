@@ -19,6 +19,12 @@ import {
     CertificateSubjectFromJSONTyped,
     CertificateSubjectToJSON,
 } from './CertificateSubject';
+import type { CreateCertificateOptions } from './CreateCertificateOptions';
+import {
+    CreateCertificateOptionsFromJSON,
+    CreateCertificateOptionsFromJSONTyped,
+    CreateCertificateOptionsToJSON,
+} from './CreateCertificateOptions';
 
 /**
  * 
@@ -76,10 +82,10 @@ export interface CreateCertificateParameters {
     issuer?: string;
     /**
      * 
-     * @type {boolean}
+     * @type {CreateCertificateOptions}
      * @memberof CreateCertificateParameters
      */
-    newKeyEntry?: boolean;
+    options?: CreateCertificateOptions;
 }
 
 
@@ -153,7 +159,7 @@ export function CreateCertificateParametersFromJSONTyped(json: any, ignoreDiscri
         'size': !exists(json, 'size') ? undefined : json['size'],
         'curve': !exists(json, 'curve') ? undefined : json['curve'],
         'issuer': !exists(json, 'issuer') ? undefined : json['issuer'],
-        'newKeyEntry': !exists(json, 'newKeyEntry') ? undefined : json['newKeyEntry'],
+        'options': !exists(json, 'options') ? undefined : CreateCertificateOptionsFromJSON(json['options']),
     };
 }
 
@@ -174,7 +180,7 @@ export function CreateCertificateParametersToJSON(value?: CreateCertificateParam
         'size': value.size,
         'curve': value.curve,
         'issuer': value.issuer,
-        'newKeyEntry': value.newKeyEntry,
+        'options': CreateCertificateOptionsToJSON(value.options),
     };
 }
 

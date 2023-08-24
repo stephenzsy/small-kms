@@ -119,6 +119,13 @@ components:
         - notBefore
         - notAfter
         - issuerId
+    CreateCertificateOptions:
+      type: object
+      properties:
+        newKeyName:
+          type: boolean
+        keepKeyVersion:
+          type: boolean
     CreateCertificateParameters:
       type: object
       properties:
@@ -157,9 +164,8 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerID
-        newKeyEntry:
-          type: boolean
-          default: false
+        options:
+          $ref: "#/components/schemas/CreateCertificateOptions"
       required:
         - category
         - name

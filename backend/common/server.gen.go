@@ -71,17 +71,23 @@ type CertificateSubject struct {
 	OrganizationUnit *string `json:"organizationUnit,omitempty"`
 }
 
+// CreateCertificateOptions defines model for CreateCertificateOptions.
+type CreateCertificateOptions struct {
+	KeepKeyVersion *bool `json:"keepKeyVersion,omitempty"`
+	NewKeyName     *bool `json:"newKeyName,omitempty"`
+}
+
 // CreateCertificateParameters defines model for CreateCertificateParameters.
 type CreateCertificateParameters struct {
-	Category    CreateCertificateParametersCategory `json:"category"`
-	Curve       *CreateCertificateParametersCurve   `json:"curve,omitempty"`
-	IssuerID    *openapi_types.UUID                 `json:"issuer,omitempty"`
-	Kty         *CreateCertificateParametersKty     `json:"kty,omitempty"`
-	Name        string                              `json:"name"`
-	NewKeyEntry *bool                               `json:"newKeyEntry,omitempty"`
-	Size        *CreateCertificateParametersSize    `json:"size,omitempty"`
-	Subject     CertificateSubject                  `json:"subject"`
-	Validity    *string                             `json:"validity,omitempty"`
+	Category CreateCertificateParametersCategory `json:"category"`
+	Curve    *CreateCertificateParametersCurve   `json:"curve,omitempty"`
+	IssuerID *openapi_types.UUID                 `json:"issuer,omitempty"`
+	Kty      *CreateCertificateParametersKty     `json:"kty,omitempty"`
+	Name     string                              `json:"name"`
+	Options  *CreateCertificateOptions           `json:"options,omitempty"`
+	Size     *CreateCertificateParametersSize    `json:"size,omitempty"`
+	Subject  CertificateSubject                  `json:"subject"`
+	Validity *string                             `json:"validity,omitempty"`
 }
 
 // CreateCertificateParametersCategory defines model for CreateCertificateParameters.Category.
@@ -356,21 +362,22 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"DAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
