@@ -1,24 +1,22 @@
 DROP TABLE IF EXISTS `cert_owner`;
-CREATE TABLE `cert_owner` (
-    `id` SERIAL,
-    `principal_id` TEXT UNIQUE,
+CREATE TABLE `cert_owner` (    
+    `id` TEXT PRIMARY KEY,
     `principal_name` TEXT
 );
 
 DROP TABLE IF EXISTS `cert_metadata`;
 CREATE TABLE `cert_metadata` (
-    `id` SERIAL,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `uuid` TEXT NOT NULL UNIQUE,
     `category` TEXT NOT NULL,
     `name` TEXT NOT NULL,
-    `version` TEXT NOT NULL,
     `revoked` INTEGER NOT NULL DEFAULT 0,
-    `not_before` TEXT NOT NULL,
-    `not_after` TEXT NOT NULL,
+    `not_before` TEXT,
+    `not_after` TEXT,
     `cert_store` TEXT,
     `key_store` TEXT,
     `issuer` INTEGER,
-    `owner` INTEGER NOT NULL,
+    `owner` TEXT,
     `common_name` TEXT NOT NULL,
     FOREIGN KEY (`owner`) REFERENCES `cert_owner`(`id`)
 );
@@ -31,7 +29,7 @@ CREATE INDEX `issued_by` ON `cert_metadata`(`owner`, `revoked`, `not_after`);
 
 DROP TABLE IF EXISTS `cert_log`;
 CREATE TABLE `cert_log` (
-    `id` SERIAL,
+    `id` TEXT PRIMARY KEY,
     `timestamp` TEXT,
     `operator` INTEGER,
     `action` TEXT,

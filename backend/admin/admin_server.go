@@ -8,7 +8,7 @@ import (
 
 type AdminServerInterface interface {
 	ListCACertificates(c *gin.Context, params common.ListCACertificatesParams)
-	CreateCACertificate(c *gin.Context, id string, params common.CreateCACertificateParams)
+	CreateCertificate(c *gin.Context, params common.CreateCertificateParams)
 }
 
 type adminServer struct {

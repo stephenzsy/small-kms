@@ -63,16 +63,25 @@ type CertificateRef struct {
 // CertificateRefs defines model for CertificateRefs.
 type CertificateRefs = []CertificateRef
 
+// CertificateSubject defines model for CertificateSubject.
+type CertificateSubject struct {
+	CommonName       string  `json:"commonName"`
+	Country          *string `json:"country,omitempty"`
+	Organization     *string `json:"organization,omitempty"`
+	OrganizationUnit *string `json:"organizationUnit,omitempty"`
+}
+
 // CreateCertificateParameters defines model for CreateCertificateParameters.
 type CreateCertificateParameters struct {
-	Category CreateCertificateParametersCategory `json:"category"`
-	Curve    *CreateCertificateParametersCurve   `json:"curve,omitempty"`
-	IssuerID *openapi_types.UUID                 `json:"issuer,omitempty"`
-	Kty      *CreateCertificateParametersKty     `json:"kty,omitempty"`
-	Name     string                              `json:"name"`
-	Size     *CreateCertificateParametersSize    `json:"size,omitempty"`
-	Subject  string                              `json:"subject"`
-	Validity *string                             `json:"validity,omitempty"`
+	Category    CreateCertificateParametersCategory `json:"category"`
+	Curve       *CreateCertificateParametersCurve   `json:"curve,omitempty"`
+	IssuerID    *openapi_types.UUID                 `json:"issuer,omitempty"`
+	Kty         *CreateCertificateParametersKty     `json:"kty,omitempty"`
+	Name        string                              `json:"name"`
+	NewKeyEntry *bool                               `json:"newKeyEntry,omitempty"`
+	Size        *CreateCertificateParametersSize    `json:"size,omitempty"`
+	Subject     CertificateSubject                  `json:"subject"`
+	Validity    *string                             `json:"validity,omitempty"`
 }
 
 // CreateCertificateParametersCategory defines model for CreateCertificateParameters.Category.
@@ -103,25 +112,25 @@ type ListCACertificatesParams struct {
 	XMsClientRoles         MsClientRoles         `json:"X-Ms-Client-Roles"`
 }
 
-// CreateCACertificateParams defines parameters for CreateCACertificate.
-type CreateCACertificateParams struct {
+// CreateCertificateParams defines parameters for CreateCertificate.
+type CreateCertificateParams struct {
 	Force                  *bool                 `form:"force,omitempty" json:"force,omitempty"`
 	XMsClientPrincipalName MsClientPrincipalName `json:"X-Ms-Client-Principal-Name"`
 	XMsClientPrincipalId   MsClientPrincipalId   `json:"X-Ms-Client-Principal-Id"`
 	XMsClientRoles         MsClientRoles         `json:"X-Ms-Client-Roles"`
 }
 
-// CreateCACertificateJSONRequestBody defines body for CreateCACertificate for application/json ContentType.
-type CreateCACertificateJSONRequestBody = CreateCertificateParameters
+// CreateCertificateJSONRequestBody defines body for CreateCertificate for application/json ContentType.
+type CreateCertificateJSONRequestBody = CreateCertificateParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List CA Certificates
 	// (GET /admin/ca)
 	ListCACertificates(c *gin.Context, params ListCACertificatesParams)
-	// Create CA Certificate
-	// (POST /admin/ca/{id})
-	CreateCACertificate(c *gin.Context, id string, params CreateCACertificateParams)
+	// Create Certificate
+	// (POST /admin/certificate)
+	CreateCertificate(c *gin.Context, params CreateCertificateParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -219,22 +228,13 @@ func (siw *ServerInterfaceWrapper) ListCACertificates(c *gin.Context) {
 	siw.Handler.ListCACertificates(c, params)
 }
 
-// CreateCACertificate operation middleware
-func (siw *ServerInterfaceWrapper) CreateCACertificate(c *gin.Context) {
+// CreateCertificate operation middleware
+func (siw *ServerInterfaceWrapper) CreateCertificate(c *gin.Context) {
 
 	var err error
 
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", c.Param("id"), &id)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
-		return
-	}
-
 	// Parameter object where we will unmarshal all parameters from the context
-	var params CreateCACertificateParams
+	var params CreateCertificateParams
 
 	// ------------- Optional query parameter "force" -------------
 
@@ -319,7 +319,7 @@ func (siw *ServerInterfaceWrapper) CreateCACertificate(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.CreateCACertificate(c, id, params)
+	siw.Handler.CreateCertificate(c, params)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -350,26 +350,27 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/admin/ca", wrapper.ListCACertificates)
-	router.POST(options.BaseURL+"/admin/ca/:id", wrapper.CreateCACertificate)
+	router.POST(options.BaseURL+"/admin/certificate", wrapper.CreateCertificate)
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTW/jNhD9K8K0RylS7XS7q5vX24PbTWokKFBg4QMjjW1uRVIhR8Gmhv57MaRj0bLb",
-	"xm1RoDeZnDdf783QO6iMao1GTQ7KHbTCCoWE1v+6cfNGoqallbqSrWgWNR9LDSVsUdRoIQUtFEIJv2Q3",
-	"Lgvm2cE+W9SQgsXHTlqsoSTbYQqu2qIS7ImeW8Y6slJvoO/T05C33v1FQT3k74W9Mw26V4ULlpdE6V8u",
-	"fYA5WpJrWQnCO1z73lvT8mFIoDJKGf1S/chXCqjFQ4N1dPdgTINC86X05zW6ysqWpOFaftbyscNk8SEx",
-	"64S2mFRDApDC2lglCEroOsmcHQdM4Uu2Mdm+DYsPPohzHdqgiIvQAed9aEOzNaE98lELwoyk5/Ckbm3o",
-	"Pa6NxddDHFopmttOPYwCbfHLqX0fU/oJfDkRFyN3cUJROVF3VocI5uEzVsQZHXMf9Eao/MfXltUAX+XD",
-	"YOZ72eQjzfQH18Ja8ew9WxSEkd3yaKBHEhOEG2Of+Rt1p7heawxlleAKNKFVWEvurT9xaJ98cZUfgai0",
-	"odlVZ58wdrjMJt++gRSW2fTt9VlIaNU/kdGvdFTD3f0MUvh+fjaa/qOJcvK3OPFJcf02nRbfTdLr4t2b",
-	"VTQhUtN0MmTHfdqg9S66QPE590+ikbUMiQ667azw8/lXMjxQtS9giHWqL8ZKvTY+DUkN390r0TTJjzf3",
-	"yaxWUiez5QJSeELrwnYorr65KjhN06IWrYQSplfF1RRSaAVtvVxywdC88sttg75MlpOvgPcAfJSO5rNI",
-	"fc7jBwV+Oq/vwSQ/v//79HLgor4EFtZ5v+K2u9ZoF0ZkUhRhGWtixZc7EG3bcG3S6Pyz4+btop3/+ul1",
-	"gajjJT1Lfrj/6Tbx48x7OoIkewwzr5TgqfX9TuazZNRxEhvuNXi+YMWYA3f5Tta9XwXGnWFwvz9iDv9v",
-	"FKb7x/uxw2FeSp65ys/N+H0+vJsHJCt+AMrL/sKsgjE6em/q539PPH+y2Ps+rIv/RLfnZBvLVCGJWpAY",
-	"STXkPxLrOa32L+9M0NpxoI+mEk1yeIc62/AzTtSWed7w3dY4Kt8VRQH9qv89AAD//4duPY/dCgAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

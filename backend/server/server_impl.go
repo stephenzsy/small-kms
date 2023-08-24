@@ -18,11 +18,11 @@ func (s *serverImpl) ListCACertificates(c *gin.Context, params common.ListCACert
 	s.admin.ListCACertificates(c, params)
 }
 
-func (s *serverImpl) CreateCACertificate(c *gin.Context, id string, params common.CreateCACertificateParams) {
+func (s *serverImpl) CreateCertificate(c *gin.Context, params common.CreateCertificateParams) {
 	if s.admin == nil {
 		c.JSON(404, gin.H{"error": "Not allowed"})
 	}
-	s.admin.CreateCACertificate(c, id, params)
+	s.admin.CreateCertificate(c, params)
 }
 
 func NewServerImpl() common.ServerInterface {

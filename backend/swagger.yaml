@@ -23,12 +23,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRefs"
-  /admin/ca/{id}:
+  /admin/certificate:
     post:
       tags:
         - admin
-      summary: Create CA Certificate
-      operationId: CreateCACertificate
+      summary: Create Certificate
+      operationId: CreateCertificate
       parameters:
         - $ref: "#/components/parameters/MsClientPrincipalName"
         - $ref: "#/components/parameters/MsClientPrincipalId"
@@ -37,11 +37,6 @@ paths:
           name: force
           schema:
             type: boolean
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
       requestBody:
         content:
           application/json:
@@ -79,6 +74,19 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/CertificateRef"
+    CertificateSubject:
+      type: object
+      properties:
+        commonName:
+          type: string
+        organizationUnit:
+          type: string
+        organization:
+          type: string
+        country:
+          type: string
+      required:
+        - commonName
     CertificateRef:
       type: object
       properties:
@@ -124,7 +132,7 @@ components:
         name:
           type: string
         subject:
-          type: string
+          $ref: "#/components/schemas/CertificateSubject"
         validity:
           type: string
           format: duration
@@ -149,6 +157,9 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerID
+        newKeyEntry:
+          type: boolean
+          default: false
       required:
         - category
         - name

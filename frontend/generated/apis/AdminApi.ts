@@ -16,11 +16,22 @@
 import * as runtime from '../runtime';
 import type {
   CertificateRef,
+  CreateCertificateParameters,
 } from '../models';
 import {
     CertificateRefFromJSON,
     CertificateRefToJSON,
+    CreateCertificateParametersFromJSON,
+    CreateCertificateParametersToJSON,
 } from '../models';
+
+export interface CreateCertificateRequest {
+    xMsClientPrincipalName: string;
+    xMsClientPrincipalId: string;
+    xMsClientRoles: string;
+    force?: boolean;
+    createCertificateParameters?: CreateCertificateParameters;
+}
 
 export interface ListCACertificatesRequest {
     xMsClientPrincipalName: string;
@@ -32,6 +43,63 @@ export interface ListCACertificatesRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Create Certificate
+     */
+    async createCertificateRaw(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRef>> {
+        if (requestParameters.xMsClientPrincipalName === null || requestParameters.xMsClientPrincipalName === undefined) {
+            throw new runtime.RequiredError('xMsClientPrincipalName','Required parameter requestParameters.xMsClientPrincipalName was null or undefined when calling createCertificate.');
+        }
+
+        if (requestParameters.xMsClientPrincipalId === null || requestParameters.xMsClientPrincipalId === undefined) {
+            throw new runtime.RequiredError('xMsClientPrincipalId','Required parameter requestParameters.xMsClientPrincipalId was null or undefined when calling createCertificate.');
+        }
+
+        if (requestParameters.xMsClientRoles === null || requestParameters.xMsClientRoles === undefined) {
+            throw new runtime.RequiredError('xMsClientRoles','Required parameter requestParameters.xMsClientRoles was null or undefined when calling createCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.force !== undefined) {
+            queryParameters['force'] = requestParameters.force;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters.xMsClientPrincipalName !== undefined && requestParameters.xMsClientPrincipalName !== null) {
+            headerParameters['X-Ms-Client-Principal-Name'] = String(requestParameters.xMsClientPrincipalName);
+        }
+
+        if (requestParameters.xMsClientPrincipalId !== undefined && requestParameters.xMsClientPrincipalId !== null) {
+            headerParameters['X-Ms-Client-Principal-Id'] = String(requestParameters.xMsClientPrincipalId);
+        }
+
+        if (requestParameters.xMsClientRoles !== undefined && requestParameters.xMsClientRoles !== null) {
+            headerParameters['X-Ms-Client-Roles'] = String(requestParameters.xMsClientRoles);
+        }
+
+        const response = await this.request({
+            path: `/admin/certificate`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateCertificateParametersToJSON(requestParameters.createCertificateParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Create Certificate
+     */
+    async createCertificate(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRef> {
+        const response = await this.createCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * List CA Certificates
