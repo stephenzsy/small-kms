@@ -1,9 +1,8 @@
-FROM golang:1.10 AS build
+FROM golang:1.21 AS build
 WORKDIR /go/src
-COPY go ./go
-COPY main.go .
+COPY ./* .
 
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=1
 RUN go get -d -v ./...
 
 RUN go build -a -installsuffix cgo -o smallkms .
@@ -11,5 +10,5 @@ RUN go build -a -installsuffix cgo -o smallkms .
 FROM scratch AS runtime
 ENV GIN_MODE=release
 COPY --from=build /go/src/smallkms ./
-EXPOSE 8080/tcp
+EXPOSE 9000/tcp
 ENTRYPOINT ["./smallkms"]

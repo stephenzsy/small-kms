@@ -1,34 +1,38 @@
 services:
-
-  krakend:
-    build:
-      context: ./krakend      
-    ports:
-      - "8080:8080"
-    links: 
-      - backend:backend
+  # #  krakend:
+  # #    build:
+  # ##      context: ./krakend
+  #     ports:
+  #       - "8080:8080"
+  #     links:
+  #       - backend:backend
 
   backend:
     build:
       context: ./backend
-      dockerfile: dev.dockerfile
+      dockerfile: dev.Dockerfile
+    ports:
+      - 19000:9000
     volumes:
       - ./backend:/usr/src/app
 
-      # frontend:
-      #   build:
-      #     context: ./frontend
-      #     dockerfile: dev.dockerfile
-      #   volumes:
-      #     - ./frontend:/app
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: dev.Dockerfile
+  #   volumes:
+  #     - ./frontend:/app
+  #   ports:
+  #     - 3000:3000
+  #   links:
+  #     - backend:backend
 
-  radius:
-    build: radius/docker
-    volumes:
-      - ./radius/log:/opt/var/log/radius
-    links:
-      - krakend:krakend
-    #tty: true
-    #stdin_open: true
-    #command: /bin/sh
-
+  # radius:
+  #   build: radius/docker
+  #   volumes:
+  #     - ./radius/log:/opt/var/log/radius
+  #   links:
+  #     - krakend:krakend
+  #   #tty: true
+  #   #stdin_open: true
+  #   #command: /bin/sh

@@ -1,0 +1,7 @@
+/Dockerfile
+/*.Dockerfile
+*.exe
+*.env
+*.ps1
+swagger.yaml
+.dockerignore

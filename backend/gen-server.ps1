@@ -1,0 +1,1 @@
+ oapi-codegen.exe --package common -generate types,spec,gin-server ./swagger.yaml  > common/server.gen.go

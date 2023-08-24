@@ -1,76 +1,129 @@
 openapi: 3.0.3
 info:
-  title: Small KMS API
+  title: Small KMS Admin API
   version: 0.1.0
 servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /v1/admin/ca/{id}:
+  /admin/ca:
     get:
       tags:
         - admin
-      summary: Get CA Certificate Suite
-      description: Get CA Certificate Suite
-      operationId: AdminGetCACertificateSuite
+      summary: List CA Certificates
+      operationId: ListCACertificates
       parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: Identifier of the CA certificate (e.g. root)
+        - $ref: "#/components/parameters/MsClientPrincipalName"
+        - $ref: "#/components/parameters/MsClientPrincipalId"
+        - $ref: "#/components/parameters/MsClientRoles"
       responses:
         "200":
-          description: A JSON array of user names
+          description: A JSON array of Certificate Refs
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateSuite"
+                $ref: "#/components/schemas/CertificateRefs"
+  /admin/ca/{id}:
     post:
       tags:
         - admin
-      summary: Create CA Certificate Suite
-      description: Create CA Certificate Suite
-      operationId: AdminCreateCACertificateSuite
+      summary: Create CA Certificate
+      operationId: CreateCACertificate
       parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: Identifier of the CA certificate (e.g. root)
+        - $ref: "#/components/parameters/MsClientPrincipalName"
+        - $ref: "#/components/parameters/MsClientPrincipalId"
+        - $ref: "#/components/parameters/MsClientRoles"
         - in: query
           name: force
           schema:
             type: boolean
-            default: false
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
       requestBody:
         content:
-          appliction/json:
+          application/json:
             schema:
-              $ref: "#/components/schemas/CreateCertificateRequest"
+              $ref: "#/components/schemas/CreateCertificateParameters"
       responses:
         "200":
-          description: A JSON array of user names
+          description: Certificate metadata
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateSuite"
+                $ref: "#/components/schemas/CertificateRef"
 components:
+  parameters:
+    MsClientPrincipalName:
+      in: header
+      name: X-Ms-Client-Principal-Name
+      schema:
+        type: string
+      required: true
+    MsClientPrincipalId:
+      in: header
+      name: X-Ms-Client-Principal-Id
+      schema:
+        type: string
+      required: true
+    MsClientRoles:
+      in: header
+      name: X-Ms-Client-Roles
+      schema:
+        type: string
+      required: true
   schemas:
-    CertificateSuite:
+    CertificateRefs:
+      type: array
+      items:
+        $ref: "#/components/schemas/CertificateRef"
+    CertificateRef:
       type: object
       properties:
         id:
+          description: Unique ID of the certificate
           type: string
+          format: uuid
           x-go-name: ID
+        commonName:
+          type: string
+        serialNumber:
+          type: string
+          format: hex
+        enabled:
+          type: boolean
+        notBefore:
+          type: string
+          format: date-time
+        notAfter:
+          type: string
+          format: date-time
+        issuerId:
+          type: string
+          format: uuid
+          x-go-name: IssuerID
       required:
         - id
-    CreateCertificateRequest:
+        - commonName
+        - serialNumber
+        - notBefore
+        - notAfter
+        - issuerId
+    CreateCertificateParameters:
       type: object
       properties:
-        commonName:
+        category:
+          type: string
+          enum:
+            - root-ca
+            - intermediate-ca
+            - server
+            - client
+        name:
+          type: string
+        subject:
           type: string
         validity:
           type: string
@@ -79,10 +132,24 @@ components:
           type: string
           enum:
             - RSA
+            - EC
         size:
-          type: number
+          type: integer
+          format: int32
           enum:
+            - 2048
+            - 3072
             - 4096
+        curve:
+          type: string
+          enum:
+            - P-256
+            - P-384
+        issuer:
+          type: string
+          format: uuid
+          x-go-name: IssuerID
       required:
-        - cn
-        - validity
+        - category
+        - name
+        - subject

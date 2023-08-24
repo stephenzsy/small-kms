@@ -1,0 +1,1 @@
+migrate -path ./migrations -database sqlite3://./data/smallkms.db -verbose up
