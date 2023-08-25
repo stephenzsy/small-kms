@@ -30,14 +30,7 @@ jobs:
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }}
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:latest
         working-directory: backend
-      
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          acrName: ${{ secrets.ACR_NAME }}
-          containerAppName: ${{ secrets.CONTAINER_APP_NAME }}
-          resourceGroup: ${{ secrets.RESOURCE_GROUP_NAME }}
-          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }}
+
+      - name: "Deploy to Azure Container Apps"
+        run: |
+          az containerapp update --name  ${{ secrets.CONTAINER_APP_NAME }} --resource-group  ${{ secrets.RESOURCE_GROUP_NAME }} --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }}
