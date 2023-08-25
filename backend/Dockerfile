@@ -24,6 +24,7 @@ COPY *.go ./
 
 # Build
 RUN CGO_ENABLED=1 GOOS=linux go build -o /smallkms
+RUN mkdir /app/data
 VOLUME /app/data
 
 # Optional:
