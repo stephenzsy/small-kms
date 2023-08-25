@@ -20,12 +20,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Defines values for CreateCertificateParametersCategory.
+// Defines values for CertificateCategory.
 const (
-	Client         CreateCertificateParametersCategory = "client"
-	IntermediateCa CreateCertificateParametersCategory = "intermediate-ca"
-	RootCa         CreateCertificateParametersCategory = "root-ca"
-	Server         CreateCertificateParametersCategory = "server"
+	Client         CertificateCategory = "client"
+	IntermediateCa CertificateCategory = "intermediate-ca"
+	RootCa         CertificateCategory = "root-ca"
+	Server         CertificateCategory = "server"
+)
+
+// Defines values for CertificateFileFormat.
+const (
+	Der CertificateFileFormat = "der"
+	Pem CertificateFileFormat = "pem"
 )
 
 // Defines values for CreateCertificateParametersCurve.
@@ -46,6 +52,12 @@ const (
 	N3072 CreateCertificateParametersSize = 3072
 	N4096 CreateCertificateParametersSize = 4096
 )
+
+// CertificateCategory defines model for CertificateCategory.
+type CertificateCategory string
+
+// CertificateFileFormat defines model for CertificateFileFormat.
+type CertificateFileFormat string
 
 // CertificateRef defines model for CertificateRef.
 type CertificateRef struct {
@@ -79,19 +91,16 @@ type CreateCertificateOptions struct {
 
 // CreateCertificateParameters defines model for CreateCertificateParameters.
 type CreateCertificateParameters struct {
-	Category CreateCertificateParametersCategory `json:"category"`
-	Curve    *CreateCertificateParametersCurve   `json:"curve,omitempty"`
-	IssuerID *openapi_types.UUID                 `json:"issuer,omitempty"`
-	Kty      *CreateCertificateParametersKty     `json:"kty,omitempty"`
-	Name     string                              `json:"name"`
-	Options  *CreateCertificateOptions           `json:"options,omitempty"`
-	Size     *CreateCertificateParametersSize    `json:"size,omitempty"`
-	Subject  CertificateSubject                  `json:"subject"`
-	Validity *string                             `json:"validity,omitempty"`
+	Category CertificateCategory               `json:"category"`
+	Curve    *CreateCertificateParametersCurve `json:"curve,omitempty"`
+	IssuerID *openapi_types.UUID               `json:"issuer,omitempty"`
+	Kty      *CreateCertificateParametersKty   `json:"kty,omitempty"`
+	Name     string                            `json:"name"`
+	Options  *CreateCertificateOptions         `json:"options,omitempty"`
+	Size     *CreateCertificateParametersSize  `json:"size,omitempty"`
+	Subject  CertificateSubject                `json:"subject"`
+	Validity *string                           `json:"validity,omitempty"`
 }
-
-// CreateCertificateParametersCategory defines model for CreateCertificateParameters.Category.
-type CreateCertificateParametersCategory string
 
 // CreateCertificateParametersCurve defines model for CreateCertificateParameters.Curve.
 type CreateCertificateParametersCurve string
@@ -111,16 +120,24 @@ type MsClientPrincipalName = string
 // MsClientRoles defines model for MsClientRoles.
 type MsClientRoles = string
 
-// ListCACertificatesParams defines parameters for ListCACertificates.
-type ListCACertificatesParams struct {
+// CreateCertificateParams defines parameters for CreateCertificate.
+type CreateCertificateParams struct {
+	Force                  *bool                 `form:"force,omitempty" json:"force,omitempty"`
 	XMsClientPrincipalName MsClientPrincipalName `json:"X-Ms-Client-Principal-Name"`
 	XMsClientPrincipalId   MsClientPrincipalId   `json:"X-Ms-Client-Principal-Id"`
 	XMsClientRoles         MsClientRoles         `json:"X-Ms-Client-Roles"`
 }
 
-// CreateCertificateParams defines parameters for CreateCertificate.
-type CreateCertificateParams struct {
-	Force                  *bool                 `form:"force,omitempty" json:"force,omitempty"`
+// DownloadCertificateParams defines parameters for DownloadCertificate.
+type DownloadCertificateParams struct {
+	Format                 *CertificateFileFormat `form:"format,omitempty" json:"format,omitempty"`
+	XMsClientPrincipalName MsClientPrincipalName  `json:"X-Ms-Client-Principal-Name"`
+	XMsClientPrincipalId   MsClientPrincipalId    `json:"X-Ms-Client-Principal-Id"`
+	XMsClientRoles         MsClientRoles          `json:"X-Ms-Client-Roles"`
+}
+
+// ListCertificatesParams defines parameters for ListCertificates.
+type ListCertificatesParams struct {
 	XMsClientPrincipalName MsClientPrincipalName `json:"X-Ms-Client-Principal-Name"`
 	XMsClientPrincipalId   MsClientPrincipalId   `json:"X-Ms-Client-Principal-Id"`
 	XMsClientRoles         MsClientRoles         `json:"X-Ms-Client-Roles"`
@@ -131,12 +148,15 @@ type CreateCertificateJSONRequestBody = CreateCertificateParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List CA Certificates
-	// (GET /admin/ca)
-	ListCACertificates(c *gin.Context, params ListCACertificatesParams)
-	// Create Certificate
+	// Create certificate
 	// (POST /admin/certificate)
 	CreateCertificate(c *gin.Context, params CreateCertificateParams)
+	// Download certificate
+	// (GET /admin/certificate/{id}/download)
+	DownloadCertificate(c *gin.Context, id openapi_types.UUID, params DownloadCertificateParams)
+	// List certificates
+	// (GET /admin/certificates/{category})
+	ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -147,92 +167,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// ListCACertificates operation middleware
-func (siw *ServerInterfaceWrapper) ListCACertificates(c *gin.Context) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListCACertificatesParams
-
-	headers := c.Request.Header
-
-	// ------------- Required header parameter "X-Ms-Client-Principal-Name" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Name")]; found {
-		var XMsClientPrincipalName MsClientPrincipalName
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Name, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalName)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Name: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XMsClientPrincipalName = XMsClientPrincipalName
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Name is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Required header parameter "X-Ms-Client-Principal-Id" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Id")]; found {
-		var XMsClientPrincipalId MsClientPrincipalId
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Id, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalId)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Id: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XMsClientPrincipalId = XMsClientPrincipalId
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Id is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Required header parameter "X-Ms-Client-Roles" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Roles")]; found {
-		var XMsClientRoles MsClientRoles
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Roles, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Roles", runtime.ParamLocationHeader, valueList[0], &XMsClientRoles)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Roles: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XMsClientRoles = XMsClientRoles
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Roles is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListCACertificates(c, params)
-}
 
 // CreateCertificate operation middleware
 func (siw *ServerInterfaceWrapper) CreateCertificate(c *gin.Context) {
@@ -328,6 +262,204 @@ func (siw *ServerInterfaceWrapper) CreateCertificate(c *gin.Context) {
 	siw.Handler.CreateCertificate(c, params)
 }
 
+// DownloadCertificate operation middleware
+func (siw *ServerInterfaceWrapper) DownloadCertificate(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "id", c.Param("id"), &id)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DownloadCertificateParams
+
+	// ------------- Optional query parameter "format" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "format", c.Request.URL.Query(), &params.Format)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter format: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Ms-Client-Principal-Name" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Name")]; found {
+		var XMsClientPrincipalName MsClientPrincipalName
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Name, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalName)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Name: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientPrincipalName = XMsClientPrincipalName
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Name is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required header parameter "X-Ms-Client-Principal-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Id")]; found {
+		var XMsClientPrincipalId MsClientPrincipalId
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Id, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalId)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Id: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientPrincipalId = XMsClientPrincipalId
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Id is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required header parameter "X-Ms-Client-Roles" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Roles")]; found {
+		var XMsClientRoles MsClientRoles
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Roles, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Roles", runtime.ParamLocationHeader, valueList[0], &XMsClientRoles)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Roles: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientRoles = XMsClientRoles
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Roles is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DownloadCertificate(c, id, params)
+}
+
+// ListCertificates operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificates(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "category" -------------
+	var category CertificateCategory
+
+	err = runtime.BindStyledParameter("simple", false, "category", c.Param("category"), &category)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter category: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCertificatesParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Ms-Client-Principal-Name" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Name")]; found {
+		var XMsClientPrincipalName MsClientPrincipalName
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Name, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalName)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Name: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientPrincipalName = XMsClientPrincipalName
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Name is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required header parameter "X-Ms-Client-Principal-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Principal-Id")]; found {
+		var XMsClientPrincipalId MsClientPrincipalId
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Principal-Id, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XMsClientPrincipalId)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Principal-Id: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientPrincipalId = XMsClientPrincipalId
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Principal-Id is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required header parameter "X-Ms-Client-Roles" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Ms-Client-Roles")]; found {
+		var XMsClientRoles MsClientRoles
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Ms-Client-Roles, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Ms-Client-Roles", runtime.ParamLocationHeader, valueList[0], &XMsClientRoles)
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Ms-Client-Roles: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XMsClientRoles = XMsClientRoles
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Ms-Client-Roles is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCertificates(c, category, params)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -355,29 +487,32 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/admin/ca", wrapper.ListCACertificates)
 	router.POST(options.BaseURL+"/admin/certificate", wrapper.CreateCertificate)
+	router.GET(options.BaseURL+"/admin/certificate/:id/download", wrapper.DownloadCertificate)
+	router.GET(options.BaseURL+"/admin/certificates/:category", wrapper.ListCertificates)
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTY/bNhD9K8K0R2ml2ts00c1xenA3uzHWSFEg8IGWxjYTidSSIzfOQv+9IGlblKwk",
-	"dlsU6M0mOV9v3pvRM2SyrKRAQRrSZ6iYYiUSKvvvXk8LjoLmiouMV6yY5eaYC0hhiyxHBSEIViKk8Ed0",
-	"ryP3PDq9j2Y5hKDwqeYKc0hJ1RiCzrZYMuOJ9pWx1aS42EDThOchH6z7q4Jak78X9lEWqC8K515eE6U5",
-	"XtoAU1TE1zxjhI+4ttgrWZlDl0Amy1KKY/U9XyGgYKsCc+9uJWWBTJhLbs9z1JniFXFpankv+FONwexN",
-	"INcBbTHI2gQghLVUJSNIoa656Vk3YAifo42MDjDM3tggWteoHCOusnZ21oeQNFkTqo6PnBFGxG0Pz+oW",
-	"kl7jWiq83ESj4qx4qMtVL9AWP5+/b/yWfgBbjteLnjs/Ia8cD53lKYJcfcSMTEbd3ju+EZb2x4/KsAF+",
-	"iFthxgfaxD3ONCfXTCm273le1C7etczKZC1I7QfvpNowwb8wx6nvPHgvOA2rzQfYy2YQKoWM0CvrnSW0",
-	"Pi/rE2J1h/vfUeludp4wBP55h/te6af75pL4886E7CHLCDfSYYeiLk19SkqKMmYoIQhViTk3ZLUnGtXO",
-	"siWzM8UDwGtHrXboO5xHo59fQAjzaPzydtDEce+f6PITdWp4XEwghF+ng9HE14gk2059k9Rf67CRLv/i",
-	"1z5Kbl+G4+SXUXibvHqx9KYWFzQetQUaqDeorItWBhdK6yicJoQdK3jOHRjtsKmVE8D3ZseJDgeQ2mTO",
-	"mW5suVhLiySnwtwtSlYUwd39IpjkJRfBZD6DEHZHgkNy89NN4pBGwSoOKYxvkpsxhFAx2lrkY2ZM48xu",
-	"pA1aHAxlbQVmeMNbrmk68erX1r5l+Ydh5Non8fDSbsLrDWf5NWZuBzdLA7uupNBOhqMkcXNOkFFV+gys",
-	"qgpTG5ci/qjddGgX9eUjV7tGdTfrJPht8e4hsDPYLFfPJDjYmM6XJTOTweIdTCdBD3FiG4M12H7B0tgc",
-	"e+ctajNypB7o4pmK/m9NDA/fXE81topJjeoyq5z+Z1U7tZdOdajptcz3/17nvzH5m8Zp/T8h3RDnfI6V",
-	"SCxnxHo8c/kHXUqcsaw5biHHkW6UtzJjRXDaUrUqzFcTUZXGcWHutlJT+ipJEmiWzV8BAAD//wRD7XlM",
-	"DAAA",
+	"H4sIAAAAAAAC/9yXwW7bOBPHX0WY7ztSkTZJu41ubrIFvGlSI0YXCwQ+0NLYZiuRCkmlcQ29+4KkbVGS",
+	"k1htT70lJGeGM/PjX+MNpKIoBUeuFSQbKKmkBWqU9r8bdZkz5HoiGU9ZSfNxZpYZhwRWSDOUQIDTAiGB",
+	"f8MbFbrj4f58OM6AgMSHiknMINGyQgIqXWFBjSe9Lo2t0pLxJdQ16Ye8te4HBbUmPxb2TuSojgrnTg6J",
+	"Uu82bYBLlJotWEo1XlKNSyHXZhl5VUByD1IIHaYUCDCuURaYMarRrSiUj/Zaqb0KzEg3FvHdf2A5fhCy",
+	"oNoPUGIBBEx6r5jf4cKSIUVpFl15UlEUgu960zNHTuc5Zt7eXIgcKTebzK5nqFLJSs2EqfRnzh4qDMZX",
+	"gVgEeoVB2lwACCy214eqYoaodkACT+FShNsmja9sEKUqlI7XQdbOzvrgQo8WGmXLR2baoJklrJc3F/o9",
+	"LoTE400USkbz26qYdwKt8Kl/vvaBuwebjteLjjv/Ql46XnWa3ov5F0x1v/fuNWgs7B//l4YG+F/UyEa0",
+	"hTrqMFPvXVMp6brjeVq5eEPJSkXFtXsqvT0hl5Sz79Qx9cqBz5zpw1rgF9i7zcFSSTTvt0nrkwVa9dP6",
+	"ilhe4/oflKp9O+9hcPx2jetO6vv9+pj4k5Z+dyrrycyRfdwrk6l8JR/RV5BJePrmLRCYhGfvzg+qiMPs",
+	"Z57gV91SxbvpCAj8dXkwGn+OGdE05cW8n2umeaXsu5/7aXz+jpzFf56S8/ji7cwTKMb12WmToBHvJUrr",
+	"oiH+yOrv3khN4JHmLGOuGI2uVNKx/ppM7Du/LVJzmT7UxpbxhbCVZDo3e9OC5nlwfTMNRlnBeDCajIHA",
+	"445liE/+OIldpZHTkkECZyfxyRkQKKle2cpH1JhGvq4bQoWyFTGc2lyMYvexto4asu8Pl7A5Eh0eI2oy",
+	"3HCcDTFzU4ExsAPEQ4VN1RPTudRWvzsjNI985jqHSr8X2doJItfmK59sgJZlburBBI++KCcjja9BbHtC",
+	"UdeOF1UKrpxUnMbxrwvd+SyYYO2Pv3ciKFDTjGpqGVZVUVAjWFsiOlOBpksDA1iyYGYs+pRFG5bVUSa+",
+	"8VxQOw4s8QByV9sDvwF05sk1zLGXJ/CXhbl+gWRjRoYz4E2jW9qP5u4pLLEIFyzHNn37HOaMU3vLvhy2",
+	"/Ty9iS/ClIaGk6G+eviOgr+nn24DO+WY8dXH2Q5QbZR3pP0IzCra7LS8fhblj0xp7w7q9+DY+4Y9T/Pg",
+	"sWYggT+jfOoXsGNa63OjDoFT734huma3A34UKc2D/S/ISubmp4bWZRJFudlbCaWTiziOoZ7V/wUAAP//",
+	"D19TkR8QAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

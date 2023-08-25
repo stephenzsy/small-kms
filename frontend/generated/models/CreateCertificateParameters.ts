@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateCategory } from './CertificateCategory';
+import {
+    CertificateCategoryFromJSON,
+    CertificateCategoryFromJSONTyped,
+    CertificateCategoryToJSON,
+} from './CertificateCategory';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -34,10 +40,10 @@ import {
 export interface CreateCertificateParameters {
     /**
      * 
-     * @type {string}
+     * @type {CertificateCategory}
      * @memberof CreateCertificateParameters
      */
-    category: CreateCertificateParametersCategoryEnum;
+    category: CertificateCategory;
     /**
      * 
      * @type {string}
@@ -92,17 +98,6 @@ export interface CreateCertificateParameters {
 /**
  * @export
  */
-export const CreateCertificateParametersCategoryEnum = {
-    RootCa: 'root-ca',
-    IntermediateCa: 'intermediate-ca',
-    Server: 'server',
-    Client: 'client'
-} as const;
-export type CreateCertificateParametersCategoryEnum = typeof CreateCertificateParametersCategoryEnum[keyof typeof CreateCertificateParametersCategoryEnum];
-
-/**
- * @export
- */
 export const CreateCertificateParametersKtyEnum = {
     Rsa: 'RSA',
     Ec: 'EC'
@@ -151,7 +146,7 @@ export function CreateCertificateParametersFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'category': json['category'],
+        'category': CertificateCategoryFromJSON(json['category']),
         'name': json['name'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'validity': !exists(json, 'validity') ? undefined : json['validity'],
@@ -172,7 +167,7 @@ export function CreateCertificateParametersToJSON(value?: CreateCertificateParam
     }
     return {
         
-        'category': value.category,
+        'category': CertificateCategoryToJSON(value.category),
         'name': value.name,
         'subject': CertificateSubjectToJSON(value.subject),
         'validity': value.validity,

@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/joho/godotenv"
 )
 
@@ -21,15 +21,20 @@ type ServerConfig interface {
 	GetServerRole() ServerRole
 	GetDB() *sql.DB
 	GetAzKeysClient() *azkeys.Client
+	GetAzBlobClient() *azblob.Client
+	GetAzBlobContainerName() string
 }
 
 type serverConfig struct {
-	role               string
-	azKeyVaultEndpoint string
+	role                  string
+	azKeyVaultEndpoint    string
+	azBlobServiceEndpoint string
+	azBlobContainerName   string
 
 	db           *sql.DB
 	azCredential *azidentity.DefaultAzureCredential
 	azKeysClient *azkeys.Client
+	azBlobClient *azblob.Client
 }
 
 func (c *serverConfig) GetDB() *sql.DB {
@@ -42,6 +47,14 @@ func (c *serverConfig) GetServerRole() ServerRole {
 
 func (c *serverConfig) GetAzKeysClient() *azkeys.Client {
 	return c.azKeysClient
+}
+
+func (c *serverConfig) GetAzBlobClient() *azblob.Client {
+	return c.azBlobClient
+}
+
+func (c *serverConfig) GetAzBlobContainerName() string {
+	return c.azBlobContainerName
 }
 
 func mustGetenv(name string) (value string) {
@@ -74,10 +87,14 @@ func NewServerConfig() serverConfig {
 		log.Panicf("Failed to initialize azure credential: %s", err.Error())
 	}
 	config.azKeyVaultEndpoint = mustGetenv("AZURE_KEY_VAULT_ENDPOINT")
-	if config.azKeysClient, err = azkeys.NewClient(config.azKeyVaultEndpoint, config.azCredential, &azkeys.ClientOptions{
-		ClientOptions: policy.ClientOptions{Logging: policy.LogOptions{IncludeBody: true}}}); err != nil {
+	if config.azKeysClient, err = azkeys.NewClient(config.azKeyVaultEndpoint, config.azCredential, nil); err != nil {
 		log.Panicf("Failed to initialize key vault client: %s", err.Error())
 	}
+	config.azBlobServiceEndpoint = mustGetenv("AZURE_BLOB_SERVICE_ENDPOINT")
+	if config.azBlobClient, err = azblob.NewClient(config.azBlobServiceEndpoint, config.azCredential, nil); err != nil {
+		log.Panicf("Failed to initialize blob client: %s", err.Error())
+	}
+	config.azBlobContainerName = mustGetenv("AZURE_BLOB_CONTAINER_NAME")
 
 	return config
 }

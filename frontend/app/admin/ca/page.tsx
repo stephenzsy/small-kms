@@ -14,11 +14,12 @@ export default async function CAIndex() {
   const api = new AdminApi(
     new Configuration({ basePath: process.env.BACKEND_URL_BASE })
   );
-  const certs = await api.listCACertificates(
+  const certs = await api.listCertificates(
     {
       xMsClientPrincipalName: auth.principalName!,
       xMsClientPrincipalId: auth.principalId!,
       xMsClientRoles: auth.isAdmin ? "App.Admin" : "",
+      category: "root-ca",
     },
     { cache: "no-cache" }
   );
@@ -75,11 +76,48 @@ export default async function CAIndex() {
           </div>
         </div>
       )}
-      <ul>
-        {certs.map((cert) => (
-          <li key={cert.id}>{JSON.stringify(cert, undefined, 2)}</li>
-        ))}
-      </ul>
+      <div className="overflow-hidden rounded-md bg-white shadow mt-6 border-gray-900 border">
+        <div className="border-b border-gray-200 bg-white px-4 py-5 sm:px-6">
+          <h3 className="text-base font-semibold leading-6 text-gray-900">
+            Root CAs
+          </h3>
+        </div>
+        <ul role="list" className="divide-y divide-gray-200">
+          {certs.map((cert) => (
+            <li key={cert.id} className="px-6 py-4">
+              <dl>
+                <div className="flex gap-x-2">
+                  <dt className="font-medium">Common name</dt>
+                  <dd>{cert.commonName}</dd>
+                </div>
+                <div className="flex gap-x-2">
+                  <dt className="font-medium">Expires</dt>
+                  <dd>{cert.notAfter.toLocaleString()}</dd>
+                </div>
+              </dl>
+              <div className="mt-4 text-sm">
+                These files should have been deployed through MDM
+              </div>
+              <div className="flex gap-4 mt-4">
+                <a
+                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  href={`/api/admin/certificate/${cert.id}/download?format=pem`}
+                  download={`root-ca-${cert.serialNumber}.pem`}
+                >
+                  Download .PEM file
+                </a>
+                <a
+                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  href={`/api/admin/certificate/${cert.id}/download?format=der`}
+                  download={`root-ca-${cert.serialNumber}.der`}
+                >
+                  Download .DER file
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

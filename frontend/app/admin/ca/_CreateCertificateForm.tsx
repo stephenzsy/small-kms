@@ -9,8 +9,48 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
+function TextField({
+  value,
+  onChange,
+  id,
+  label,
+}: {
+  value: string | undefined;
+  onChange: (nextValue: string) => void;
+  id: string;
+  label: React.ReactNode;
+}) {
+  return (
+    <div className="sm:col-span-4">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium leading-6 text-gray-900"
+      >
+        {label}
+      </label>
+      <div className="mt-2">
+        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
+          <input
+            id={id}
+            type="text"
+            className="block flex-1 border-0 bg-transparent py-1.5 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+            placeholder="Sample Internal Root CA"
+            onChange={(e) => {
+              onChange(e.target.value);
+            }}
+            value={value}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CreateCeritificateForm() {
-  const [commonName, setCommonName] = useState("");
+  const [subjectCN, setSubjectCN] = useState<string>();
+  const [subjectOU, setSubjectOU] = useState<string>();
+  const [subjectO, setSubjectO] = useState<string>();
+  const [subjectC, setSubjectC] = useState<string>();
 
   const { run: sendRequest } = useRequest(
     async (params: CreateCertificateParameters) => {
@@ -27,11 +67,17 @@ export function CreateCeritificateForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!subjectCN) {
+          return;
+        }
         const params: CreateCertificateParameters = {
           category: "root-ca",
           name: "root",
           subject: {
-            commonName,
+            commonName: subjectCN,
+            organizationUnit: subjectOU,
+            organization: subjectO,
+            country: subjectC,
           },
           options: {
             keepKeyVersion: true,
@@ -52,30 +98,30 @@ export function CreateCeritificateForm() {
             </h3>
 
             <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <div className="sm:col-span-4">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Common name
-                </label>
-                <div className="mt-2">
-                  <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                    <input
-                      type="text"
-                      name="username"
-                      id="username"
-                      autoComplete="username"
-                      className="block flex-1 border-0 bg-transparent py-1.5 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                      placeholder="CN=Sample Root CA, O=Sample Organization"
-                      onChange={(e) => {
-                        setCommonName(e.target.value);
-                      }}
-                      value={commonName}
-                    />
-                  </div>
-                </div>
-              </div>
+              <TextField
+                value={subjectCN}
+                label="Common name"
+                onChange={setSubjectCN}
+                id="cn"
+              />
+              <TextField
+                value={subjectOU}
+                label="Organization unit"
+                onChange={setSubjectOU}
+                id="ou"
+              />
+              <TextField
+                value={subjectO}
+                label="Organization"
+                onChange={setSubjectO}
+                id="o"
+              />
+              <TextField
+                value={subjectC}
+                label="Country"
+                onChange={setSubjectC}
+                id="c"
+              />
             </div>
           </div>
         </div>

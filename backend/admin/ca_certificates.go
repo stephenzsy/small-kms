@@ -1,24 +1,31 @@
 package admin
 
 import (
+	"bytes"
+	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"database/sql"
+	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/rand"
+	"io"
+	"math/big"
+	mrand "math/rand"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/labstack/gommon/log"
 
 	"github.com/stephenzsy/small-kms/backend/common"
 )
-
-func (s *adminServer) ListCACertificates(c *gin.Context, params common.ListCACertificatesParams) {
-	c.JSON(200, &common.CertificateRefs{})
-}
 
 type certificateMetadataRow struct {
 	id         int
@@ -38,7 +45,7 @@ type certificateMetadataRow struct {
 type certificateMetadataDto struct {
 	id         int
 	uuid       uuid.UUID
-	category   common.CreateCertificateParametersCategory
+	category   common.CertificateCategory
 	name       string
 	revoked    int
 	notBefore  time.Time
@@ -48,6 +55,73 @@ type certificateMetadataDto struct {
 	issuer     int
 	owner      string
 	commonName string
+}
+
+func (s *adminServer) ListCertificates(c *gin.Context, category common.CertificateCategory, params common.ListCertificatesParams) {
+	db := s.config.GetDB()
+	rows, err := db.QueryContext(c, `SELECT 
+		id,
+		uuid,
+		category,
+		name,
+		revoked,
+		not_before,
+		not_after,
+		cert_store,
+		key_store,
+		issuer,
+		owner,
+		common_name
+		FROM cert_metadata WHERE category = ? AND revoked = 0
+		ORDER BY not_after DESC`, category)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(200, &common.CertificateRefs{})
+			return
+		}
+		log.Errorf("Faild to get list of certificates: %w", err)
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+	l := make([]common.CertificateRef, 0)
+	for rows.Next() {
+		dao := certificateMetadataRow{}
+		err = rows.Scan(
+			&dao.id,
+			&dao.uuid,
+			&dao.category,
+			&dao.name,
+			&dao.revoked,
+			&dao.notBefore,
+			&dao.notAfter,
+			&dao.certStore,
+			&dao.keyStore,
+			&dao.issuer,
+			&dao.owner,
+			&dao.commonName)
+		if err != nil {
+			log.Errorf("Faild to get list of certificates: %w", err)
+			c.JSON(500, gin.H{"error": "internal error"})
+			return
+		}
+		dto := certificateMetadataDto{}
+		err = dao.toDTO(&dto)
+		if err != nil {
+			log.Errorf("Faild to get list of certificates: %w", err)
+			c.JSON(500, gin.H{"error": "internal error"})
+			return
+		}
+		l = append(l, common.CertificateRef{
+			SerialNumber: fmt.Sprintf("%d", dto.id),
+			ID:           dto.uuid,
+			IssuerID:     dto.uuid,
+			NotAfter:     dto.notAfter,
+			NotBefore:    dto.notBefore,
+			CommonName:   dto.commonName,
+		})
+	}
+	c.JSON(200, l)
 }
 
 func (dao *certificateMetadataRow) toDTO(dto *certificateMetadataDto) (err error) {
@@ -94,7 +168,7 @@ func (dao *certificateMetadataRow) toDTO(dto *certificateMetadataDto) (err error
 }
 
 type createCertificateInternalParameters struct {
-	category           common.CreateCertificateParametersCategory
+	category           common.CertificateCategory
 	name               string
 	kty                common.CreateCertificateParametersKty
 	size               common.CreateCertificateParametersSize
@@ -104,18 +178,14 @@ type createCertificateInternalParameters struct {
 	subject            common.CertificateSubject
 }
 
-func getKeyStoreString(keyId *azkeys.ID) string {
-	return fmt.Sprintf("%s/%s", keyId.Name(), keyId.Version())
-}
-
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var seededRand *mrand.Rand = mrand.New(mrand.NewSource(time.Now().UnixNano()))
 
 func generateRandomHexSuffix(prefix string) string {
 	n := seededRand.Int31() % 0x10000
 	return fmt.Sprintf("%s%04x", prefix, n)
 }
 
-func (s *adminServer) findLatestCertificate(category common.CreateCertificateParametersCategory, name string) (dto certificateMetadataDto, err error) {
+func (s *adminServer) findLatestCertificate(category common.CertificateCategory, name string) (dto certificateMetadataDto, err error) {
 	db := s.config.GetDB()
 	row := db.QueryRow(`SELECT 
 		id,
@@ -157,6 +227,47 @@ func (s *adminServer) findLatestCertificate(category common.CreateCertificatePar
 	return
 }
 
+func toPublicRSA(key *azkeys.JSONWebKey) (*rsa.PublicKey, error) {
+	res := &rsa.PublicKey{}
+
+	// N = modulus
+	if len(key.N) == 0 {
+		return nil, errors.New("property N is empty")
+	}
+	res.N = &big.Int{}
+	res.N.SetBytes(key.N)
+
+	// e = public exponent
+	if len(key.E) == 0 {
+		return nil, errors.New("property e is empty")
+	}
+	res.E = int(big.NewInt(0).SetBytes(key.E).Uint64())
+	return res, nil
+}
+
+type keyVaultSigner struct {
+	ctx        context.Context
+	keysClient *azkeys.Client
+	webKey     *azkeys.JSONWebKey
+	publicKey  crypto.PublicKey
+}
+
+func (s *keyVaultSigner) Public() crypto.PublicKey {
+	return s.publicKey
+}
+
+func (s *keyVaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	resp, err := s.keysClient.Sign(s.ctx, s.webKey.KID.Name(), s.webKey.KID.Version(), azkeys.SignParameters{
+		Algorithm: to.Ptr(azkeys.SignatureAlgorithmRS384),
+		Value:     digest,
+	}, nil)
+	if err != nil {
+		return
+	}
+	signature = resp.Result
+	return
+}
+
 func (s *adminServer) createCACertificate(c *gin.Context, params createCertificateInternalParameters) (result common.CertificateRef, err error) {
 	certUuid := uuid.New()
 	// create entry
@@ -176,16 +287,16 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 
 	// first create new version of key in keyvault
 	keysClient := s.config.GetAzKeysClient()
-	var keyid azkeys.ID
+	var webKey *azkeys.JSONWebKey
 	if len(params.keyVaultKeyVersion) != 0 {
 		keyResp, err := keysClient.GetKey(c, params.keyVaultKeyName, params.keyVaultKeyVersion, nil)
 		if err != nil {
 			log.Error(err)
 			return result, err
 		}
-		keyid = *keyResp.Key.KID
+		webKey = keyResp.Key
 	}
-	if len(keyid) == 0 {
+	if webKey == nil {
 		ckp := azkeys.CreateKeyParameters{}
 		switch params.kty {
 		case common.RSA:
@@ -197,7 +308,8 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 			}
 		}
 		keyResp, err := keysClient.CreateKey(c, params.keyVaultKeyName, ckp, nil)
-		keyid = *keyResp.Key.KID
+		webKey = keyResp.Key
+
 		if err != nil {
 			log.Error(err)
 			return result, err
@@ -205,7 +317,92 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	}
 	_, err = db.ExecContext(c, `UPDATE cert_metadata
 	SET key_store = ?
-	WHERE id = ?`, keyid, recordId)
+	WHERE id = ?`, webKey.KID, recordId)
+	if err != nil {
+		return
+	}
+
+	// self-sign
+
+	caSubjectOU := []string{}
+	caSubjectO := []string{}
+	caSubjectC := []string{}
+	if params.subject.OrganizationUnit != nil && len(*params.subject.OrganizationUnit) > 0 {
+		caSubjectOU = append(caSubjectOU, *params.subject.OrganizationUnit)
+	}
+	if params.subject.Organization != nil && len(*params.subject.Organization) > 0 {
+		caSubjectO = append(caSubjectO, *params.subject.Organization)
+	}
+	if params.subject.Country != nil && len(*params.subject.Country) > 0 {
+		caSubjectC = append(caSubjectC, *params.subject.Country)
+	}
+	ca := x509.Certificate{
+		SerialNumber: big.NewInt(recordId),
+		Subject: pkix.Name{
+			CommonName:         params.subject.CommonName,
+			OrganizationalUnit: caSubjectOU,
+			Organization:       caSubjectO,
+			Country:            caSubjectC,
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		IsCA:                  true,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		MaxPathLen:            1,
+		BasicConstraintsValid: true,
+		SignatureAlgorithm:    x509.SHA384WithRSA,
+	}
+
+	// public key
+	pubKey, err := toPublicRSA(webKey)
+	if err != nil {
+		return
+	}
+
+	signer := keyVaultSigner{
+		ctx:        c,
+		keysClient: keysClient,
+		webKey:     webKey,
+		publicKey:  pubKey,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, &ca, &ca, pubKey, &signer)
+	if err != nil {
+		return
+	}
+
+	caPEM := new(bytes.Buffer)
+	err = pem.Encode(caPEM, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certBytes,
+	})
+	if err != nil {
+		return
+	}
+
+	blobKey := fmt.Sprintf("%s/%d", params.keyVaultKeyName, recordId)
+	// upload to blob storage
+	blobClient := s.config.GetAzBlobClient()
+	_, err = blobClient.UploadBuffer(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.der"), certBytes, nil)
+	if err != nil {
+		return
+	}
+	_, err = blobClient.UploadBuffer(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.pem"), caPEM.Bytes(), nil)
+	if err != nil {
+		return
+	}
+
+	parsed, err := x509.ParseCertificate(certBytes)
+	if err != nil {
+		return
+	}
+
+	// update record
+	_, err = db.ExecContext(c, `UPDATE cert_metadata
+	SET cert_store = ?,
+		not_before = ?,
+		not_after = ?
+	WHERE id = ?`, blobKey, parsed.NotBefore.UTC().Format(time.RFC3339), parsed.NotAfter.UTC().Format(time.RFC3339), recordId)
 	if err != nil {
 		return
 	}
@@ -268,4 +465,64 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params common.CreateCert
 		c.JSON(400, gin.H{"message": "Category not supported", "category": body.Category})
 		return
 	}
+}
+
+func (s *adminServer) DownloadCertificate(c *gin.Context, id uuid.UUID, params common.DownloadCertificateParams) {
+	db := s.config.GetDB()
+	row := db.QueryRow(`SELECT 
+		cert_store
+	FROM cert_metadata WHERE uuid = ?`, id)
+	var certStore string
+	err := row.Scan(&certStore)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+		log.Errorf("Faild to get certificates certificate metadata: %w", err)
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+	if len(certStore) == 0 {
+		c.JSON(404, gin.H{"error": "not found"})
+		return
+	}
+
+	filename := "cert.pem"
+	contentType := "application/x-pem-file"
+	if params.Format != nil {
+		switch *params.Format {
+		case common.Der:
+			filename = "cert.der"
+			contentType = "application/x-x509-ca-cert"
+		default:
+		}
+	}
+
+	blobClient := s.config.GetAzBlobClient()
+
+	get, err := blobClient.DownloadStream(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", certStore, filename), nil)
+	if err != nil {
+		log.Errorf("Faild to get download stream for certificate: %w", err)
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+
+	downloadedData := bytes.Buffer{}
+	retryReader := get.NewRetryReader(c, &azblob.RetryReaderOptions{})
+	_, err = downloadedData.ReadFrom(retryReader)
+	if err != nil {
+		log.Errorf("Faild to get download stream for certificate: %w", err)
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+
+	err = retryReader.Close()
+	if err != nil {
+		log.Errorf("Faild to get download stream for certificate: %w", err)
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+
+	c.Data(200, contentType, downloadedData.Bytes())
 }

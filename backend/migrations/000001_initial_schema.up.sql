@@ -26,13 +26,3 @@ DROP INDEX IF EXISTS `issued_by`;
 
 CREATE INDEX `name_ind` ON `cert_metadata`(`category`, `name`, `revoked`, `not_after`);
 CREATE INDEX `issued_by` ON `cert_metadata`(`owner`, `revoked`, `not_after`);
-
-DROP TABLE IF EXISTS `cert_log`;
-CREATE TABLE `cert_log` (
-    `id` TEXT PRIMARY KEY,
-    `timestamp` TEXT,
-    `operator` INTEGER,
-    `action` TEXT,
-    `parameters`, TEXT,
-    FOREIGN KEY (`operator`) REFERENCES `cert_owner`(`id`)
-);

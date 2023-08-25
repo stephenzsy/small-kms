@@ -6,16 +6,21 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /admin/ca:
+  /admin/certificates/{category}:
     get:
       tags:
         - admin
-      summary: List CA Certificates
-      operationId: ListCACertificates
+      summary: List certificates
+      operationId: ListCertificates
       parameters:
         - $ref: "#/components/parameters/MsClientPrincipalName"
         - $ref: "#/components/parameters/MsClientPrincipalId"
         - $ref: "#/components/parameters/MsClientRoles"
+        - in: path
+          name: category
+          schema:
+            $ref: "#/components/schemas/CertificateCategory"
+          required: true
       responses:
         "200":
           description: A JSON array of Certificate Refs
@@ -23,11 +28,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRefs"
+  /admin/certificate/{id}/download:
+    get:
+      tags:
+        - admin
+      summary: Download certificate
+      operationId: Download certificate
+      parameters:
+        - $ref: "#/components/parameters/MsClientPrincipalName"
+        - $ref: "#/components/parameters/MsClientPrincipalId"
+        - $ref: "#/components/parameters/MsClientRoles"
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: query
+          name: format
+          schema:
+            $ref: "#/components/schemas/CertificateFileFormat"
+          required: false
+      responses:
+        "200":
+          description: A JSON array of Certificate Refs
+          content:
+            application/x-pem-file:
+              schema:
+                type: string
+                format: binary
+            application/x-x509-ca-cert:
+              schema:
+                type: string
+                format: binary
   /admin/certificate:
     post:
       tags:
         - admin
-      summary: Create Certificate
+      summary: Create certificate
       operationId: CreateCertificate
       parameters:
         - $ref: "#/components/parameters/MsClientPrincipalName"
@@ -70,6 +108,11 @@ components:
         type: string
       required: true
   schemas:
+    CertificateFileFormat:
+      type: string
+      enum:
+        - pem
+        - der
     CertificateRefs:
       type: array
       items:
@@ -126,16 +169,18 @@ components:
           type: boolean
         keepKeyVersion:
           type: boolean
+    CertificateCategory:
+      type: string
+      enum:
+        - root-ca
+        - intermediate-ca
+        - server
+        - client
     CreateCertificateParameters:
       type: object
       properties:
         category:
-          type: string
-          enum:
-            - root-ca
-            - intermediate-ca
-            - server
-            - client
+          $ref: "#/components/schemas/CertificateCategory"
         name:
           type: string
         subject:
