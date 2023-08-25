@@ -2,8 +2,12 @@ name: Backend Build and Publish
 on:
   push:
     tags:
-        - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
