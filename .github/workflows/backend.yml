@@ -1,8 +1,8 @@
 name: Backend Build and Publish
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - "backend-release"
   workflow_dispatch:
 
 permissions:
