@@ -1,11 +1,9 @@
+import { getMsAuth } from "@/utils/aadAuthUtils";
 import classNames from "classnames";
-import _ from "lodash";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { headers } from "next/headers";
 import LayoutDisclosure from "./_layoutDisclosure";
 import "./globals.css";
-import { getMsAuth } from "@/utils/aadAuthUtils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +17,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const headerEntries = _.toArray(headers().entries());
   const auth = getMsAuth();
   return (
     <html lang="en" className="h-full">

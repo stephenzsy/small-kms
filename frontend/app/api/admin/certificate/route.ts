@@ -9,11 +9,7 @@ export async function POST(request: NextRequest) {
     {
       method: "POST",
       body: forward,
-      headers: {
-        "X-Ms-Client-Principal-Name": auth.principalName!,
-        "X-Ms-Client-Principal-Id": auth.principalId!,
-        "X-Ms-Client-Roles": auth.isAdmin ? "App.Admin" : "",
-      },
+      headers: await auth.getAuthHeaders(),
     }
   );
   return NextResponse.json(await resp.json(), {

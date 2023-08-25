@@ -58,6 +58,7 @@ func main() {
 		authedPrincipalId := c.Request.Header.Get("X-Ms-Client-Principal-Id")
 		if !serverConfig.IsPrincipalIdTrusted(authedPrincipalId) {
 			c.JSON(403, gin.H{"error": fmt.Sprintf("Principal ID is not trusted: %s", authedPrincipalId)})
+			c.Abort()
 			return
 		}
 

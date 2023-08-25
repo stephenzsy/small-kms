@@ -32,25 +32,22 @@ import {
 } from '../models';
 
 export interface CreateCertificateRequest {
-    xMsClientPrincipalName: string;
-    xMsClientPrincipalId: string;
-    xMsClientRoles: string;
+    xCallerPrincipalName: string;
+    xCallerPrincipalId: string;
     force?: boolean;
     createCertificateParameters?: CreateCertificateParameters;
 }
 
 export interface DownloadCertificateRequest {
-    xMsClientPrincipalName: string;
-    xMsClientPrincipalId: string;
-    xMsClientRoles: string;
+    xCallerPrincipalName: string;
+    xCallerPrincipalId: string;
     id: string;
     format?: CertificateFileFormat;
 }
 
 export interface ListCertificatesRequest {
-    xMsClientPrincipalName: string;
-    xMsClientPrincipalId: string;
-    xMsClientRoles: string;
+    xCallerPrincipalName: string;
+    xCallerPrincipalId: string;
     category: CertificateCategory;
 }
 
@@ -63,16 +60,12 @@ export class AdminApi extends runtime.BaseAPI {
      * Create certificate
      */
     async createCertificateRaw(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRef>> {
-        if (requestParameters.xMsClientPrincipalName === null || requestParameters.xMsClientPrincipalName === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalName','Required parameter requestParameters.xMsClientPrincipalName was null or undefined when calling createCertificate.');
+        if (requestParameters.xCallerPrincipalName === null || requestParameters.xCallerPrincipalName === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalName','Required parameter requestParameters.xCallerPrincipalName was null or undefined when calling createCertificate.');
         }
 
-        if (requestParameters.xMsClientPrincipalId === null || requestParameters.xMsClientPrincipalId === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalId','Required parameter requestParameters.xMsClientPrincipalId was null or undefined when calling createCertificate.');
-        }
-
-        if (requestParameters.xMsClientRoles === null || requestParameters.xMsClientRoles === undefined) {
-            throw new runtime.RequiredError('xMsClientRoles','Required parameter requestParameters.xMsClientRoles was null or undefined when calling createCertificate.');
+        if (requestParameters.xCallerPrincipalId === null || requestParameters.xCallerPrincipalId === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalId','Required parameter requestParameters.xCallerPrincipalId was null or undefined when calling createCertificate.');
         }
 
         const queryParameters: any = {};
@@ -85,18 +78,22 @@ export class AdminApi extends runtime.BaseAPI {
 
         headerParameters['Content-Type'] = 'application/json';
 
-        if (requestParameters.xMsClientPrincipalName !== undefined && requestParameters.xMsClientPrincipalName !== null) {
-            headerParameters['X-Ms-Client-Principal-Name'] = String(requestParameters.xMsClientPrincipalName);
+        if (requestParameters.xCallerPrincipalName !== undefined && requestParameters.xCallerPrincipalName !== null) {
+            headerParameters['X-Caller-Principal-Name'] = String(requestParameters.xCallerPrincipalName);
         }
 
-        if (requestParameters.xMsClientPrincipalId !== undefined && requestParameters.xMsClientPrincipalId !== null) {
-            headerParameters['X-Ms-Client-Principal-Id'] = String(requestParameters.xMsClientPrincipalId);
+        if (requestParameters.xCallerPrincipalId !== undefined && requestParameters.xCallerPrincipalId !== null) {
+            headerParameters['X-Caller-Principal-Id'] = String(requestParameters.xCallerPrincipalId);
         }
 
-        if (requestParameters.xMsClientRoles !== undefined && requestParameters.xMsClientRoles !== null) {
-            headerParameters['X-Ms-Client-Roles'] = String(requestParameters.xMsClientRoles);
-        }
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
 
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
         const response = await this.request({
             path: `/admin/certificate`,
             method: 'POST',
@@ -120,16 +117,12 @@ export class AdminApi extends runtime.BaseAPI {
      * Download certificate
      */
     async downloadCertificateRaw(requestParameters: DownloadCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
-        if (requestParameters.xMsClientPrincipalName === null || requestParameters.xMsClientPrincipalName === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalName','Required parameter requestParameters.xMsClientPrincipalName was null or undefined when calling downloadCertificate.');
+        if (requestParameters.xCallerPrincipalName === null || requestParameters.xCallerPrincipalName === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalName','Required parameter requestParameters.xCallerPrincipalName was null or undefined when calling downloadCertificate.');
         }
 
-        if (requestParameters.xMsClientPrincipalId === null || requestParameters.xMsClientPrincipalId === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalId','Required parameter requestParameters.xMsClientPrincipalId was null or undefined when calling downloadCertificate.');
-        }
-
-        if (requestParameters.xMsClientRoles === null || requestParameters.xMsClientRoles === undefined) {
-            throw new runtime.RequiredError('xMsClientRoles','Required parameter requestParameters.xMsClientRoles was null or undefined when calling downloadCertificate.');
+        if (requestParameters.xCallerPrincipalId === null || requestParameters.xCallerPrincipalId === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalId','Required parameter requestParameters.xCallerPrincipalId was null or undefined when calling downloadCertificate.');
         }
 
         if (requestParameters.id === null || requestParameters.id === undefined) {
@@ -144,18 +137,22 @@ export class AdminApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-        if (requestParameters.xMsClientPrincipalName !== undefined && requestParameters.xMsClientPrincipalName !== null) {
-            headerParameters['X-Ms-Client-Principal-Name'] = String(requestParameters.xMsClientPrincipalName);
+        if (requestParameters.xCallerPrincipalName !== undefined && requestParameters.xCallerPrincipalName !== null) {
+            headerParameters['X-Caller-Principal-Name'] = String(requestParameters.xCallerPrincipalName);
         }
 
-        if (requestParameters.xMsClientPrincipalId !== undefined && requestParameters.xMsClientPrincipalId !== null) {
-            headerParameters['X-Ms-Client-Principal-Id'] = String(requestParameters.xMsClientPrincipalId);
+        if (requestParameters.xCallerPrincipalId !== undefined && requestParameters.xCallerPrincipalId !== null) {
+            headerParameters['X-Caller-Principal-Id'] = String(requestParameters.xCallerPrincipalId);
         }
 
-        if (requestParameters.xMsClientRoles !== undefined && requestParameters.xMsClientRoles !== null) {
-            headerParameters['X-Ms-Client-Roles'] = String(requestParameters.xMsClientRoles);
-        }
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
 
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
         const response = await this.request({
             path: `/admin/certificate/{id}/download`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
             method: 'GET',
@@ -178,16 +175,12 @@ export class AdminApi extends runtime.BaseAPI {
      * List certificates
      */
     async listCertificatesRaw(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
-        if (requestParameters.xMsClientPrincipalName === null || requestParameters.xMsClientPrincipalName === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalName','Required parameter requestParameters.xMsClientPrincipalName was null or undefined when calling listCertificates.');
+        if (requestParameters.xCallerPrincipalName === null || requestParameters.xCallerPrincipalName === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalName','Required parameter requestParameters.xCallerPrincipalName was null or undefined when calling listCertificates.');
         }
 
-        if (requestParameters.xMsClientPrincipalId === null || requestParameters.xMsClientPrincipalId === undefined) {
-            throw new runtime.RequiredError('xMsClientPrincipalId','Required parameter requestParameters.xMsClientPrincipalId was null or undefined when calling listCertificates.');
-        }
-
-        if (requestParameters.xMsClientRoles === null || requestParameters.xMsClientRoles === undefined) {
-            throw new runtime.RequiredError('xMsClientRoles','Required parameter requestParameters.xMsClientRoles was null or undefined when calling listCertificates.');
+        if (requestParameters.xCallerPrincipalId === null || requestParameters.xCallerPrincipalId === undefined) {
+            throw new runtime.RequiredError('xCallerPrincipalId','Required parameter requestParameters.xCallerPrincipalId was null or undefined when calling listCertificates.');
         }
 
         if (requestParameters.category === null || requestParameters.category === undefined) {
@@ -198,18 +191,22 @@ export class AdminApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-        if (requestParameters.xMsClientPrincipalName !== undefined && requestParameters.xMsClientPrincipalName !== null) {
-            headerParameters['X-Ms-Client-Principal-Name'] = String(requestParameters.xMsClientPrincipalName);
+        if (requestParameters.xCallerPrincipalName !== undefined && requestParameters.xCallerPrincipalName !== null) {
+            headerParameters['X-Caller-Principal-Name'] = String(requestParameters.xCallerPrincipalName);
         }
 
-        if (requestParameters.xMsClientPrincipalId !== undefined && requestParameters.xMsClientPrincipalId !== null) {
-            headerParameters['X-Ms-Client-Principal-Id'] = String(requestParameters.xMsClientPrincipalId);
+        if (requestParameters.xCallerPrincipalId !== undefined && requestParameters.xCallerPrincipalId !== null) {
+            headerParameters['X-Caller-Principal-Id'] = String(requestParameters.xCallerPrincipalId);
         }
 
-        if (requestParameters.xMsClientRoles !== undefined && requestParameters.xMsClientRoles !== null) {
-            headerParameters['X-Ms-Client-Roles'] = String(requestParameters.xMsClientRoles);
-        }
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
 
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
         const response = await this.request({
             path: `/admin/certificates/{category}`.replace(`{${"category"}}`, encodeURIComponent(String(requestParameters.category))),
             method: 'GET',

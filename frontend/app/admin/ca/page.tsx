@@ -1,4 +1,9 @@
-import { AdminApi, Configuration } from "@/generated";
+import {
+  AdminApi,
+  CertificateRef,
+  Configuration,
+  ResponseError,
+} from "@/generated";
 import { getMsAuth } from "@/utils/aadAuthUtils";
 import { ChevronRightIcon, HomeIcon } from "@heroicons/react/20/solid";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -12,17 +17,25 @@ const pages = [
 export default async function CAIndex() {
   const auth = getMsAuth();
   const api = new AdminApi(
-    new Configuration({ basePath: process.env.BACKEND_URL_BASE })
+    new Configuration({
+      basePath: process.env.BACKEND_URL_BASE,
+      accessToken: auth.accessToken,
+    })
   );
-  const certs = await api.listCertificates(
-    {
-      xMsClientPrincipalName: auth.principalName!,
-      xMsClientPrincipalId: auth.principalId!,
-      xMsClientRoles: auth.isAdmin ? "App.Admin" : "",
-      category: "root-ca",
-    },
-    { cache: "no-cache" }
-  );
+  let certs: Array<CertificateRef> | undefined = undefined;
+  try {
+    certs = await api.listCertificates(
+      {
+        xCallerPrincipalName: auth.principalName!,
+        xCallerPrincipalId: auth.principalId!,
+        category: "root-ca",
+      },
+      { cache: "no-cache" }
+    );
+  } catch (e) {
+    return <pre>{(e as ResponseError).message}</pre>;
+  }
+
   return (
     <main>
       <nav className="flex" aria-label="Breadcrumb">

@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { DefaultAzureCredential } from "@azure/identity";
 
 type XMsClientPrincipalEntry = {
   readonly typ: "roles";
@@ -22,6 +23,8 @@ export interface MsAuthClient {
 }
 
 export class MsAuthServer {
+  private readonly azCredential = new DefaultAzureCredential();
+
   public constructor(private readonly config: XMsClient) {}
 
   public get isAdmin(): boolean {
@@ -47,6 +50,20 @@ export class MsAuthServer {
 
   public get principal(): string | undefined {
     return this.config.principal;
+  }
+
+  public readonly accessToken = async (): Promise<string> => {
+    const resp = await this.azCredential.getToken(process.env.API_SCOPE!);
+    return resp.token;
+  };
+
+  public async getAuthHeaders(): Promise<Record<string, string>> {
+    const token = await this.accessToken();
+    return {
+      Authorization: `Bearer ${token}`,
+      "X-Caller-Principal-Name": this.principalName!,
+      "X-Caller-Principal-Id": this.principalId!,
+    };
   }
 }
 
