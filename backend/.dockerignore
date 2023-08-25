@@ -5,3 +5,5 @@
 *.ps1
 swagger.yaml
 .dockerignore
+.gitignore
+data

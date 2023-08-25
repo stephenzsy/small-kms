@@ -13,9 +13,8 @@ paths:
       summary: List certificates
       operationId: ListCertificates
       parameters:
-        - $ref: "#/components/parameters/MsClientPrincipalName"
-        - $ref: "#/components/parameters/MsClientPrincipalId"
-        - $ref: "#/components/parameters/MsClientRoles"
+        - $ref: "#/components/parameters/CallerPrincipalName"
+        - $ref: "#/components/parameters/CallerPrincipalId"
         - in: path
           name: category
           schema:
@@ -35,9 +34,8 @@ paths:
       summary: Download certificate
       operationId: Download certificate
       parameters:
-        - $ref: "#/components/parameters/MsClientPrincipalName"
-        - $ref: "#/components/parameters/MsClientPrincipalId"
-        - $ref: "#/components/parameters/MsClientRoles"
+        - $ref: "#/components/parameters/CallerPrincipalName"
+        - $ref: "#/components/parameters/CallerPrincipalId"
         - in: path
           name: id
           schema:
@@ -68,9 +66,8 @@ paths:
       summary: Create certificate
       operationId: CreateCertificate
       parameters:
-        - $ref: "#/components/parameters/MsClientPrincipalName"
-        - $ref: "#/components/parameters/MsClientPrincipalId"
-        - $ref: "#/components/parameters/MsClientRoles"
+        - $ref: "#/components/parameters/CallerPrincipalName"
+        - $ref: "#/components/parameters/CallerPrincipalId"
         - in: query
           name: force
           schema:
@@ -87,26 +84,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRef"
+security:
+  - BearerAuth: []
 components:
   parameters:
-    MsClientPrincipalName:
+    CallerPrincipalName:
       in: header
-      name: X-Ms-Client-Principal-Name
+      name: X-Caller-Principal-Name
       schema:
         type: string
       required: true
-    MsClientPrincipalId:
+    CallerPrincipalId:
       in: header
-      name: X-Ms-Client-Principal-Id
+      name: X-Caller-Principal-Id
       schema:
         type: string
       required: true
-    MsClientRoles:
-      in: header
-      name: X-Ms-Client-Roles
-      schema:
-        type: string
-      required: true
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     CertificateFileFormat:
       type: string

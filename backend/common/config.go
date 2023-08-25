@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -23,6 +25,7 @@ type ServerConfig interface {
 	GetAzKeysClient() *azkeys.Client
 	GetAzBlobClient() *azblob.Client
 	GetAzBlobContainerName() string
+	IsPrincipalIdTrusted(principalId string) bool
 }
 
 type serverConfig struct {
@@ -31,10 +34,12 @@ type serverConfig struct {
 	azBlobServiceEndpoint string
 	azBlobContainerName   string
 
-	db           *sql.DB
-	azCredential *azidentity.DefaultAzureCredential
-	azKeysClient *azkeys.Client
-	azBlobClient *azblob.Client
+	db                  *sql.DB
+	azCredential        *azidentity.DefaultAzureCredential
+	azKeysClient        *azkeys.Client
+	azBlobClient        *azblob.Client
+	trustedPrincipalIds map[string]bool
+	skipTrustFilter     bool
 }
 
 func (c *serverConfig) GetDB() *sql.DB {
@@ -55,6 +60,16 @@ func (c *serverConfig) GetAzBlobClient() *azblob.Client {
 
 func (c *serverConfig) GetAzBlobContainerName() string {
 	return c.azBlobContainerName
+}
+
+func (c *serverConfig) IsPrincipalIdTrusted(principalId string) bool {
+	if c.skipTrustFilter {
+		return true
+	}
+	if len(principalId) == 0 {
+		return false
+	}
+	return c.trustedPrincipalIds[principalId]
 }
 
 func mustGetenv(name string) (value string) {
@@ -96,11 +111,28 @@ func NewServerConfig() serverConfig {
 	}
 	config.azBlobContainerName = mustGetenv("AZURE_BLOB_CONTAINER_NAME")
 
+	config.trustedPrincipalIds = make(map[string]bool)
+	trustedIdsEnv := os.Getenv("TRUSTED_SERVICE_PRINCIPAL_IDS")
+	if trustedIdsEnv == "disabled" {
+		config.skipTrustFilter = true
+	} else {
+		for _, s := range strings.Split(trustedIdsEnv, ",") {
+			if len(s) > 0 {
+				parsed, err := uuid.Parse(s)
+				if err != nil {
+					log.Panicf("Failed to parse trusted principal ID: %s", s)
+
+				}
+				config.trustedPrincipalIds[parsed.String()] = true
+			}
+		}
+	}
+
 	return config
 }
 
 func (config *serverConfig) initDB() (err error) {
 	log.Println("Initialize DB")
-	config.db, err = sql.Open("sqlite3", "data/smallkms.db")
+	config.db, err = sql.Open("sqlite3", "/app/data/smallkms.db")
 	return
 }

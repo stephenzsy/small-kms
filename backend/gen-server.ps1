@@ -1,1 +1,1 @@
- oapi-codegen.exe --package common -generate types,spec,gin-server ./swagger.yaml  > common/server.gen.go
+ oapi-codegen.exe --package admin -generate types,spec,gin-server ./swagger.yaml  > admin/admin_server.gen.go

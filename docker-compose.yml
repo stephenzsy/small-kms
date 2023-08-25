@@ -10,11 +10,16 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile
     ports:
       - 19000:9000
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend/data:/app/data
+    environment:
+      - APP_ROLE=admin
+    tty: true
+    stdin_open: true
+  #  command: "sh"
 
   # frontend:
   #   build:
