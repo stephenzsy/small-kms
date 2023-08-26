@@ -22,6 +22,14 @@ export interface MsAuthClient {
   readonly isAdmin: boolean;
 }
 
+class ServiceCredential {
+  private static readonly azCredential = new DefaultAzureCredential();
+
+  public static readonly accessToken = async (): Promise<string> => {
+    return (await this.azCredential.getToken(process.env.API_SCOPE!)).token;
+  };
+}
+
 export class MsAuthServer {
   private readonly azCredential = new DefaultAzureCredential();
 
@@ -52,18 +60,19 @@ export class MsAuthServer {
     return this.config.principal;
   }
 
-  public readonly accessToken = async (): Promise<string> => {
-    const resp = await this.azCredential.getToken(process.env.API_SCOPE!);
-    return resp.token;
-  };
+  public readonly accessToken = ServiceCredential.accessToken;
 
-  public async getAuthHeaders(): Promise<Record<string, string>> {
-    const token = await this.accessToken();
-    return {
-      Authorization: `Bearer ${token}`,
-      "X-Caller-Principal-Name": this.principalName!,
-      "X-Caller-Principal-Id": this.principalId!,
-    };
+  public async getAuthHeaders(
+    allowNonAdmin: boolean = false
+  ): Promise<Record<string, string>> {
+    if (allowNonAdmin || this.isAdmin) {
+      return {
+        Authorization: `Bearer ${await ServiceCredential.accessToken()}`,
+        "X-Caller-Principal-Name": this.principalName!,
+        "X-Caller-Principal-Id": this.principalId!,
+      };
+    }
+    return {};
   }
 }
 

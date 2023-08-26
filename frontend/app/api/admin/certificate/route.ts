@@ -1,6 +1,7 @@
 import { getMsAuth } from "@/utils/aadAuthUtils";
 import { NextRequest, NextResponse } from "next/server";
 
+// create certificate
 export async function POST(request: NextRequest) {
   const auth = getMsAuth();
   const forward = await request.blob();

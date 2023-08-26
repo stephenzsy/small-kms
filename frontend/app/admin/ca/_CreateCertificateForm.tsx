@@ -14,11 +14,13 @@ function TextField({
   onChange,
   id,
   label,
+  placeholder
 }: {
   value: string | undefined;
   onChange: (nextValue: string) => void;
   id: string;
   label: React.ReactNode;
+  placeholder?: string
 }) {
   return (
     <div className="sm:col-span-4">
@@ -34,7 +36,7 @@ function TextField({
             id={id}
             type="text"
             className="block flex-1 border-0 bg-transparent py-1.5 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-            placeholder="Sample Internal Root CA"
+            placeholder={placeholder}
             onChange={(e) => {
               onChange(e.target.value);
             }}
@@ -103,6 +105,7 @@ export function CreateCeritificateForm() {
                 label="Common name"
                 onChange={setSubjectCN}
                 id="cn"
+                placeholder="Sample Internal Root CA"
               />
               <TextField
                 value={subjectOU}
