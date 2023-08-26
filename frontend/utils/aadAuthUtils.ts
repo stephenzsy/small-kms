@@ -1,5 +1,5 @@
-import { headers } from "next/headers";
 import { DefaultAzureCredential } from "@azure/identity";
+import { headers } from "next/headers";
 
 type XMsClientPrincipalEntry = {
   readonly typ: "roles";
@@ -26,13 +26,11 @@ class ServiceCredential {
   private static readonly azCredential = new DefaultAzureCredential();
 
   public static readonly accessToken = async (): Promise<string> => {
-    return (await this.azCredential.getToken(process.env.API_SCOPE!)).token;
+    return (await ServiceCredential.azCredential.getToken(process.env.API_SCOPE!)).token;
   };
 }
 
 export class MsAuthServer {
-  private readonly azCredential = new DefaultAzureCredential();
-
   public constructor(private readonly config: XMsClient) {}
 
   public get isAdmin(): boolean {

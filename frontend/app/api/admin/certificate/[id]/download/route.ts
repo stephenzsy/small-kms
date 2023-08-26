@@ -1,5 +1,4 @@
 import { getMsAuth } from "@/utils/aadAuthUtils";
-import { DefaultAzureCredential } from "@azure/identity";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
