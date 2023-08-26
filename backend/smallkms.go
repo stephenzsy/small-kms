@@ -49,6 +49,7 @@ func main() {
 		if err != nil {
 			log.Panicf("Failed to perform DB migration: %s", err.Error())
 		}
+		m.Close()
 	}
 	serverConfig := common.NewServerConfig()
 	router := gin.Default()

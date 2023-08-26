@@ -16,6 +16,8 @@ const pages = [
 
 export default async function CAIndex() {
   const auth = getMsAuth();
+  console.log(await auth.accessToken());
+
   const api = new AdminApi(
     new Configuration({
       basePath: process.env.BACKEND_URL_BASE,
