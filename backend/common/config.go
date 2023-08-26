@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -37,7 +38,7 @@ type serverConfig struct {
 	azCosmosDatabaseId       string
 	azCosmosCertsContainerId string
 
-	azCredential            *azidentity.DefaultAzureCredential
+	azCredential            azcore.TokenCredential
 	azKeysClient            *azkeys.Client
 	azBlobClient            *azblob.Client
 	azCosmosClient          *azcosmos.Client
@@ -100,7 +101,14 @@ func NewServerConfig() serverConfig {
 	}
 
 	var err error = nil
-	if config.azCredential, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
+	managedCredentialClientId := os.Getenv("AZURE_MANAGED_IDENTITY_CLIENT_ID")
+	if len(managedCredentialClientId) > 0 {
+		if config.azCredential, err = azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+			ID: azidentity.ClientID(managedCredentialClientId),
+		}); err != nil {
+			log.Panicf("Failed to initialize managed azure credential: %s", err.Error())
+		}
+	} else if config.azCredential, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
 		log.Panicf("Failed to initialize azure credential: %s", err.Error())
 	}
 	config.azKeyVaultEndpoint = mustGetenv("AZURE_KEY_VAULT_ENDPOINT")
