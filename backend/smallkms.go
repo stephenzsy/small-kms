@@ -28,7 +28,7 @@ func main() {
 	log.Println("Server started")
 
 	log.Printf("Server role: %s", os.Getenv("APP_ROLE"))
-	if os.Getenv("APP_ROLE") == "admin" || false {
+	if os.Getenv("APP_ROLE") == "admin" && false {
 		// Perform DB migration
 		// check if file exists
 		if _, err := os.Stat("/app/data/smallkms.db"); err != nil {
