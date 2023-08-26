@@ -29,6 +29,7 @@ func main() {
 		// Intercept the headers here
 		authedPrincipalId := c.Request.Header.Get("X-Ms-Client-Principal-Id")
 		if !serverConfig.IsPrincipalIdTrusted(authedPrincipalId) {
+			log.Printf("Principal ID is not trusted: %s", authedPrincipalId)
 			c.JSON(403, gin.H{"error": fmt.Sprintf("Principal ID is not trusted: %s", authedPrincipalId)})
 			c.Abort()
 			return
