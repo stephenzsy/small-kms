@@ -1,11 +1,4 @@
-FROM golang:1.21-alpine
-
-
-RUN apk add --no-cache \
-    # Important: required for go-sqlite3
-    gcc \
-    # Required for Alpine
-    musl-dev
+FROM golang:1.21-alpine as builder
 
 # Set destination for COPY
 WORKDIR /app
@@ -23,15 +16,13 @@ RUN go mod download
 COPY *.go ./
 
 # Build
-RUN CGO_ENABLED=1 GOOS=linux go build -o /smallkms
-RUN mkdir /app/data
-VOLUME /app/data
+RUN CGO_ENABLED=0 GOOS=linux go build -o /smallkms
 
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/engine/reference/builder/#expose
+FROM scratch
+
+# Copy our static executable.
+COPY --from=builder /smallkms /smallkms
+# Run the hello binary.
 EXPOSE 9000/TCP
 
 # Run

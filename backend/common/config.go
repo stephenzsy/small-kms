@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/google/uuid"
@@ -21,25 +22,33 @@ const (
 
 type ServerConfig interface {
 	GetServerRole() ServerRole
+	// Deprecated: migrating
 	GetDB() *sql.DB
 	GetAzKeysClient() *azkeys.Client
 	GetAzBlobClient() *azblob.Client
 	GetAzBlobContainerName() string
+	AzCosmosContainerClient() *azcosmos.ContainerClient
 	IsPrincipalIdTrusted(principalId string) bool
 }
 
 type serverConfig struct {
-	role                  string
-	azKeyVaultEndpoint    string
-	azBlobServiceEndpoint string
-	azBlobContainerName   string
+	role                     string
+	azKeyVaultEndpoint       string
+	azBlobServiceEndpoint    string
+	azBlobContainerName      string
+	azCosmosEndpoint         string
+	azCosmosDatabaseId       string
+	azCosmosCertsContainerId string
 
-	db                  *sql.DB
-	azCredential        *azidentity.DefaultAzureCredential
-	azKeysClient        *azkeys.Client
-	azBlobClient        *azblob.Client
-	trustedPrincipalIds map[string]bool
-	skipTrustFilter     bool
+	db                      *sql.DB
+	azCredential            *azidentity.DefaultAzureCredential
+	azKeysClient            *azkeys.Client
+	azBlobClient            *azblob.Client
+	azCosmosClient          *azcosmos.Client
+	azCosmosDbClient        *azcosmos.DatabaseClient
+	azCosmosContainerClient *azcosmos.ContainerClient
+	trustedPrincipalIds     map[string]bool
+	skipTrustFilter         bool
 }
 
 func (c *serverConfig) GetDB() *sql.DB {
@@ -60,6 +69,10 @@ func (c *serverConfig) GetAzBlobClient() *azblob.Client {
 
 func (c *serverConfig) GetAzBlobContainerName() string {
 	return c.azBlobContainerName
+}
+
+func (c *serverConfig) AzCosmosContainerClient() *azcosmos.ContainerClient {
+	return c.azCosmosContainerClient
 }
 
 func (c *serverConfig) IsPrincipalIdTrusted(principalId string) bool {
@@ -93,10 +106,6 @@ func NewServerConfig() serverConfig {
 		log.Panicf("Unknown APP_ROLE: %s", config.role)
 	}
 
-	if err := config.initDB(); err != nil {
-		log.Panicf("Failed to initialize DB: %s", err.Error())
-	}
-
 	var err error = nil
 	if config.azCredential, err = azidentity.NewDefaultAzureCredential(nil); err != nil {
 		log.Panicf("Failed to initialize azure credential: %s", err.Error())
@@ -110,6 +119,21 @@ func NewServerConfig() serverConfig {
 		log.Panicf("Failed to initialize blob client: %s", err.Error())
 	}
 	config.azBlobContainerName = mustGetenv("AZURE_BLOB_CONTAINER_NAME")
+	config.azCosmosEndpoint = mustGetenv("AZURE_COSMOS_ENDPOINT")
+	if config.azCosmosClient, err = azcosmos.NewClient(config.azCosmosEndpoint, config.azCredential, nil); err != nil {
+		log.Panicf("Failed to initialize cosmos client: %s", err.Error())
+	}
+	config.azCosmosDatabaseId = mustGetenv("AZURE_COSMOS_DATABASE_ID")
+	if config.azCosmosDbClient, err = config.azCosmosClient.NewDatabase(config.azCosmosDatabaseId); err != nil {
+		log.Panicf("Failed to initialize cosmos database client: %s", err.Error())
+	}
+	config.azCosmosCertsContainerId = os.Getenv("AZURE_COSMOS_CERTS_CONTAINER_ID")
+	if len(config.azCosmosCertsContainerId) == 0 {
+		config.azCosmosCertsContainerId = "Certs"
+	}
+	if config.azCosmosContainerClient, err = config.azCosmosDbClient.NewContainer(config.azCosmosCertsContainerId); err != nil {
+		log.Panicf("Failed to initialize cosmos container client: %s", err.Error())
+	}
 
 	config.trustedPrincipalIds = make(map[string]bool)
 	trustedIdsEnv := os.Getenv("TRUSTED_SERVICE_PRINCIPAL_IDS")
@@ -129,10 +153,4 @@ func NewServerConfig() serverConfig {
 	}
 
 	return config
-}
-
-func (config *serverConfig) initDB() (err error) {
-	log.Println("Initialize DB")
-	config.db, err = sql.Open("sqlite3", "/app/data/smallkms.db")
-	return
 }

@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"database/sql"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
@@ -55,71 +57,63 @@ type certificateMetadataDto struct {
 	commonName string
 }
 
-func (s *adminServer) ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams) {
-	db := s.config.GetDB()
-	rows, err := db.QueryContext(c, `SELECT 
-		id,
-		uuid,
-		category,
-		name,
-		revoked,
-		not_before,
-		not_after,
-		cert_store,
-		key_store,
-		issuer,
-		owner,
-		common_name
-		FROM cert_metadata WHERE category = ? AND revoked = 0
-		ORDER BY not_after DESC`, category)
+type CertItem struct {
+	ID                uuid.UUID           `json:"id"`
+	Category          CertificateCategory `json:"category"`
+	Name              string              `json:"name"`
+	SubjectCommonName string              `json:"subjectCommonName"`
+	OwnerID           uuid.UUID           `json:"ownerId"`
+	KeyStore          string              `json:"keyStore,omitempty"`
+	CertStore         string              `json:"certStore,omitempty"`
+	NotAfter          time.Time           `json:"notAfter,omitempty"`
+}
 
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			c.JSON(200, &CertificateRefs{})
-			return
-		}
-		log.Printf("Faild to get list of certificates: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
-	}
-	l := make([]CertificateRef, 0)
-	for rows.Next() {
-		dao := certificateMetadataRow{}
-		err = rows.Scan(
-			&dao.id,
-			&dao.uuid,
-			&dao.category,
-			&dao.name,
-			&dao.revoked,
-			&dao.notBefore,
-			&dao.notAfter,
-			&dao.certStore,
-			&dao.keyStore,
-			&dao.issuer,
-			&dao.owner,
-			&dao.commonName)
+func (s *adminServer) ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams) {
+	db := s.config.AzCosmosContainerClient()
+	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
+	pager := db.NewQueryItemsPager(`SELECT
+		c.id,
+		c.category,
+		c.name,
+		c.subjectCommonName, 
+		c.ownerId,
+		c.keyStore,
+		c.certStore,
+		c.notAfter
+	 FROM c
+	 WHERE c.category = @category AND c.ownerId = @ownerId
+	 ORDER BY c.notAfter DESC`, partitionKey, &azcosmos.QueryOptions{
+		QueryParameters: []azcosmos.QueryParameter{
+			{Name: "@category", Value: category},
+			{Name: "@ownerId", Value: uuid.Nil.String()},
+		},
+	})
+	results := make([]CertificateRef, 0)
+	for pager.More() {
+		t, err := pager.NextPage(c)
 		if err != nil {
 			log.Printf("Faild to get list of certificates: %s", err.Error())
 			c.JSON(500, gin.H{"error": "internal error"})
 			return
 		}
-		dto := certificateMetadataDto{}
-		err = dao.toDTO(&dto)
-		if err != nil {
-			log.Printf("Faild to get list of certificates: %s", err.Error())
-			c.JSON(500, gin.H{"error": "internal error"})
-			return
+		for _, itemBytes := range t.Items {
+			item := CertItem{}
+			if err = json.Unmarshal(itemBytes, &item); err != nil {
+				log.Printf("Faild to serialize db entry: %s", err.Error())
+				c.JSON(500, gin.H{"error": "internal error"})
+				return
+			}
+
+			results = append(results, CertificateRef{
+				CommonName: item.SubjectCommonName,
+				ID:         item.ID,
+				IssuerID:   item.ID,
+				NotAfter:   item.NotAfter,
+			})
 		}
-		l = append(l, CertificateRef{
-			SerialNumber: fmt.Sprintf("%d", dto.id),
-			ID:           dto.uuid,
-			IssuerID:     dto.uuid,
-			NotAfter:     dto.notAfter,
-			NotBefore:    dto.notBefore,
-			CommonName:   dto.commonName,
-		})
 	}
-	c.JSON(200, l)
+
+	c.JSON(200, results)
 }
 
 func (dao *certificateMetadataRow) toDTO(dto *certificateMetadataDto) (err error) {
@@ -184,6 +178,7 @@ func generateRandomHexSuffix(prefix string) string {
 }
 
 func (s *adminServer) findLatestCertificate(category CertificateCategory, name string) (dto certificateMetadataDto, err error) {
+	return
 	db := s.config.GetDB()
 	row := db.QueryRow(`SELECT 
 		id,
@@ -267,22 +262,25 @@ func (s *keyVaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerO
 }
 
 func (s *adminServer) createCACertificate(c *gin.Context, params createCertificateInternalParameters) (result CertificateRef, err error) {
-	certUuid := uuid.New()
+
 	// create entry
-
-	db := s.config.GetDB()
-	sqlResult, err := db.ExecContext(c, `INSERT INTO cert_metadata(
-		uuid, category, name, common_name) VALUES (?, ?, ?, ?)`, certUuid, params.category, params.name, params.subject.CommonName)
+	db := s.config.AzCosmosContainerClient()
+	item := CertItem{
+		ID:                uuid.New(),
+		Category:          params.category,
+		Name:              params.name,
+		SubjectCommonName: params.subject.CommonName,
+	}
+	itemBytes, err := json.Marshal(item)
 	if err != nil {
 		return
 	}
-
-	recordId, err := sqlResult.LastInsertId()
-	if err != nil {
+	partitionKey := azcosmos.NewPartitionKeyString(item.OwnerID.String())
+	if _, err = db.CreateItem(c, partitionKey, itemBytes, nil); err != nil {
 		return
 	}
-	log.Printf("Created certificate record %d", recordId)
 
+	log.Printf("Created certificate record: %s", item.ID.String())
 	// first create new version of key in keyvault
 	keysClient := s.config.GetAzKeysClient()
 	var webKey *azkeys.JSONWebKey
@@ -313,11 +311,13 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 			return result, err
 		}
 	}
-	_, err = db.ExecContext(c, `UPDATE cert_metadata
-	SET key_store = ?
-	WHERE id = ?`, webKey.KID, recordId)
-	if err != nil {
+
+	patchKeyStoreOps := azcosmos.PatchOperations{}
+	patchKeyStoreOps.AppendSet("/keyStore", string(*webKey.KID))
+	if _, err = db.PatchItem(c, partitionKey, item.ID.String(), patchKeyStoreOps, nil); err != nil {
 		return
+	} else {
+		item.KeyStore = string(*webKey.KID)
 	}
 
 	// self-sign
@@ -334,8 +334,10 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	if params.subject.Country != nil && len(*params.subject.Country) > 0 {
 		caSubjectC = append(caSubjectC, *params.subject.Country)
 	}
+	serialNumber := big.NewInt(0)
+	serialNumber = serialNumber.SetBytes(item.ID[:])
 	ca := x509.Certificate{
-		SerialNumber: big.NewInt(recordId),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName:         params.subject.CommonName,
 			OrganizationalUnit: caSubjectOU,
@@ -378,7 +380,7 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 		return
 	}
 
-	blobKey := fmt.Sprintf("%s/%d", params.keyVaultKeyName, recordId)
+	blobKey := fmt.Sprintf("%s/%s", params.keyVaultKeyName, item.ID)
 	// upload to blob storage
 	blobClient := s.config.GetAzBlobClient()
 	_, err = blobClient.UploadBuffer(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.der"), certBytes, nil)
@@ -395,14 +397,14 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 		return
 	}
 
-	// update record
-	_, err = db.ExecContext(c, `UPDATE cert_metadata
-	SET cert_store = ?,
-		not_before = ?,
-		not_after = ?
-	WHERE id = ?`, blobKey, parsed.NotBefore.UTC().Format(time.RFC3339), parsed.NotAfter.UTC().Format(time.RFC3339), recordId)
-	if err != nil {
+	patchCertDoc := azcosmos.PatchOperations{}
+	patchCertDoc.AppendSet("/certStore", blobKey)
+	patchCertDoc.AppendSet("/notAfter", parsed.NotAfter.UTC().Format(time.RFC3339))
+	if _, err = db.PatchItem(c, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
 		return
+	} else {
+		item.CertStore = blobKey
+		item.NotAfter = parsed.NotAfter.UTC()
 	}
 	return
 }
