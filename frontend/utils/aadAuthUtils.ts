@@ -23,10 +23,14 @@ export interface MsAuthClient {
 }
 
 class ServiceCredential {
-  private static readonly azCredential = new DefaultAzureCredential();
+  private static readonly azCredential = new DefaultAzureCredential({
+    managedIdentityClientId: process.env.MANAGED_IDENTITY_CLIENT_ID,
+  });
 
   public static readonly accessToken = async (): Promise<string> => {
-    return (await ServiceCredential.azCredential.getToken(process.env.API_SCOPE!)).token;
+    return (
+      await ServiceCredential.azCredential.getToken(process.env.API_SCOPE!)
+    ).token;
   };
 }
 
