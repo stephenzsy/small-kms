@@ -2,7 +2,10 @@ name: Frontend Build and Publish
 on:
   push:
     branches:
-      - "frontend-release"
+      - "main"
+    paths:
+      - ".github/workflows/frontend.yml"
+      - "frontend/**"
   workflow_dispatch:
 
 permissions:
@@ -33,4 +36,4 @@ jobs:
 
       - name: "Deploy to Azure Container Apps"
         run: |
-          az containerapp update --name  ${{ secrets.CONTAINER_APP_NAME_FE }} --resource-group  ${{ secrets.RESOURCE_GROUP_NAME }} --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME_FE }}:${{ github.sha }}        
+          az containerapp update --name  ${{ secrets.CONTAINER_APP_NAME_FE }} --resource-group  ${{ secrets.RESOURCE_GROUP_NAME }} --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME_FE }}:${{ github.sha }}
