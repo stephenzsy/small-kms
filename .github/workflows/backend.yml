@@ -2,7 +2,10 @@ name: Backend Build and Publish
 on:
   push:
     branches:
-      - "backend-release"
+      - "main"
+    paths:
+      - ".github/workflows/backend.yml"
+      - "backend/**"
   workflow_dispatch:
 
 permissions:
@@ -20,17 +23,17 @@ jobs:
         uses: azure/login@v1
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: "Build and publish image"
         run: |
           az acr login --name ${{ vars.ACR_NAME }}
-          docker build . -t ${{ vars.ACR_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }} -t ${{ vars.ACR_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:latest
-          docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }}
-          docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:latest
+          docker build . -t ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }} -t ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:latest
+          docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }}
+          docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:latest
         working-directory: backend
 
       - name: "Deploy to Azure Container Apps"
         run: |
-          az containerapp update --name  ${{ secrets.CONTAINER_APP_NAME }} --resource-group  ${{ secrets.RESOURCE_GROUP_NAME }} --image ${{ vars.ACR_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME }}:${{ github.sha }}
+          az containerapp update --name  ${{ vars.CONTAINER_APP_NAME_BE }} --resource-group  ${{ vars.AZURE_RESOURCE_GROUP_NAME }} --image ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }}
