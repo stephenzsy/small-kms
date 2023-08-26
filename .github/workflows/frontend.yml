@@ -30,3 +30,7 @@ jobs:
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME_FE }}:${{ github.sha }}
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME_FE }}:latest
         working-directory: frontend
+
+      - name: "Deploy to Azure Container Apps"
+        run: |
+          az containerapp update --name  ${{ secrets.CONTAINER_APP_NAME_FE }} --resource-group  ${{ secrets.RESOURCE_GROUP_NAME }} --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REGISTRY_REPO_NAME_FE }}:${{ github.sha }}        
