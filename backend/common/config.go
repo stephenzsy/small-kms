@@ -1,7 +1,6 @@
 package common
 
 import (
-	"database/sql"
 	"log"
 	"os"
 	"strings"
@@ -22,8 +21,6 @@ const (
 
 type ServerConfig interface {
 	GetServerRole() ServerRole
-	// Deprecated: migrating
-	GetDB() *sql.DB
 	GetAzKeysClient() *azkeys.Client
 	GetAzBlobClient() *azblob.Client
 	GetAzBlobContainerName() string
@@ -40,19 +37,14 @@ type serverConfig struct {
 	azCosmosDatabaseId       string
 	azCosmosCertsContainerId string
 
-	db                      *sql.DB
 	azCredential            *azidentity.DefaultAzureCredential
 	azKeysClient            *azkeys.Client
 	azBlobClient            *azblob.Client
 	azCosmosClient          *azcosmos.Client
 	azCosmosDbClient        *azcosmos.DatabaseClient
 	azCosmosContainerClient *azcosmos.ContainerClient
-	trustedPrincipalIds     map[string]bool
+	trustedPrincipalIds     map[uuid.UUID]bool
 	skipTrustFilter         bool
-}
-
-func (c *serverConfig) GetDB() *sql.DB {
-	return c.db
 }
 
 func (c *serverConfig) GetServerRole() ServerRole {
@@ -79,10 +71,11 @@ func (c *serverConfig) IsPrincipalIdTrusted(principalId string) bool {
 	if c.skipTrustFilter {
 		return true
 	}
-	if len(principalId) == 0 {
+	parsed, err := uuid.Parse(principalId)
+	if err != nil {
 		return false
 	}
-	return c.trustedPrincipalIds[principalId]
+	return c.trustedPrincipalIds[parsed]
 }
 
 func mustGetenv(name string) (value string) {
@@ -135,7 +128,7 @@ func NewServerConfig() serverConfig {
 		log.Panicf("Failed to initialize cosmos container client: %s", err.Error())
 	}
 
-	config.trustedPrincipalIds = make(map[string]bool)
+	config.trustedPrincipalIds = make(map[uuid.UUID]bool)
 	trustedIdsEnv := os.Getenv("TRUSTED_SERVICE_PRINCIPAL_IDS")
 	if trustedIdsEnv == "disabled" {
 		config.skipTrustFilter = true
@@ -147,7 +140,7 @@ func NewServerConfig() serverConfig {
 					log.Panicf("Failed to parse trusted principal ID: %s", s)
 
 				}
-				config.trustedPrincipalIds[parsed.String()] = true
+				config.trustedPrincipalIds[parsed] = true
 			}
 		}
 	}

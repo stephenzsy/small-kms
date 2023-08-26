@@ -13,7 +13,6 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
-
 )
 
 require (

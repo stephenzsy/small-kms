@@ -8,7 +8,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"database/sql"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -27,36 +26,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type certificateMetadataRow struct {
-	id         int
-	uuid       string
-	category   string
-	name       string
-	revoked    int
-	notBefore  *string
-	notAfter   *string
-	certStore  *string
-	keyStore   *string
-	issuer     *int
-	owner      *string
-	commonName string
-}
-
-type certificateMetadataDto struct {
-	id         int
-	uuid       uuid.UUID
-	category   CertificateCategory
-	name       string
-	revoked    int
-	notBefore  time.Time
-	notAfter   time.Time
-	certStore  string
-	keyStore   string
-	issuer     int
-	owner      string
-	commonName string
-}
-
 type CertItem struct {
 	ID                uuid.UUID           `json:"id"`
 	Category          CertificateCategory `json:"category"`
@@ -71,23 +40,25 @@ type CertItem struct {
 func (s *adminServer) ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams) {
 	db := s.config.AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
-	pager := db.NewQueryItemsPager(`SELECT
-		c.id,
-		c.category,
-		c.name,
-		c.subjectCommonName, 
-		c.ownerId,
-		c.keyStore,
-		c.certStore,
-		c.notAfter
-	 FROM c
-	 WHERE c.category = @category AND c.ownerId = @ownerId
-	 ORDER BY c.notAfter DESC`, partitionKey, &azcosmos.QueryOptions{
-		QueryParameters: []azcosmos.QueryParameter{
-			{Name: "@category", Value: category},
-			{Name: "@ownerId", Value: uuid.Nil.String()},
-		},
-	})
+	pager := db.NewQueryItemsPager(`
+SELECT
+	c.id,
+	c.category,
+	c.name,
+	c.subjectCommonName, 
+	c.ownerId,
+	c.keyStore,
+	c.certStore,
+	c.notAfter
+FROM c
+WHERE c.category = @category AND c.ownerId = @ownerId
+ORDER BY c.notAfter DESC`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@category", Value: category},
+				{Name: "@ownerId", Value: uuid.Nil.String()},
+			},
+		})
 	results := make([]CertificateRef, 0)
 	for pager.More() {
 		t, err := pager.NextPage(c)
@@ -116,49 +87,6 @@ func (s *adminServer) ListCertificates(c *gin.Context, category CertificateCateg
 	c.JSON(200, results)
 }
 
-func (dao *certificateMetadataRow) toDTO(dto *certificateMetadataDto) (err error) {
-	dto.id = dao.id
-	dto.uuid, err = uuid.Parse(dao.uuid)
-	if err != nil {
-		return
-	}
-	switch dao.category {
-	case string(RootCa):
-		dto.category = RootCa
-	default:
-		err = fmt.Errorf("category not supported: %s", dao.category)
-		return
-	}
-	dto.name = dao.name
-	dto.revoked = dao.revoked
-	if dao.notBefore != nil && len(*dao.notBefore) > 0 {
-		dto.notBefore, err = time.Parse(time.RFC3339, *dao.notBefore)
-		if err != nil {
-			return
-		}
-	}
-	if dao.notAfter != nil && len(*dao.notAfter) > 0 {
-		dto.notAfter, err = time.Parse(time.RFC3339, *dao.notAfter)
-		if err != nil {
-			return
-		}
-	}
-	if dao.certStore != nil {
-		dto.certStore = *dao.certStore
-	}
-	if dao.keyStore != nil {
-		dto.keyStore = *dao.keyStore
-	}
-	if dao.issuer != nil {
-		dto.issuer = *dao.issuer
-	}
-	if dao.owner != nil {
-		dto.owner = *dao.owner
-	}
-	dto.commonName = dao.commonName
-	return
-}
-
 type createCertificateInternalParameters struct {
 	category           CertificateCategory
 	name               string
@@ -177,46 +105,35 @@ func generateRandomHexSuffix(prefix string) string {
 	return fmt.Sprintf("%s%04x", prefix, n)
 }
 
-func (s *adminServer) findLatestCertificate(category CertificateCategory, name string) (dto certificateMetadataDto, err error) {
-	return
-	db := s.config.GetDB()
-	row := db.QueryRow(`SELECT 
-		id,
-		uuid,
-		category,
-		name,
-		revoked,
-		not_before,
-		not_after,
-		cert_store,
-		key_store,
-		issuer,
-		owner,
-		common_name
-	FROM cert_metadata WHERE category = ? AND name = ?
-	ORDER BY not_after DESC
-	LIMIT 1`, category, name)
-	dao := certificateMetadataRow{}
-	err = row.Scan(
-		&dao.id,
-		&dao.uuid,
-		&dao.category,
-		&dao.name,
-		&dao.revoked,
-		&dao.notBefore,
-		&dao.notAfter,
-		&dao.certStore,
-		&dao.keyStore,
-		&dao.issuer,
-		&dao.owner,
-		&dao.commonName)
+func (s *adminServer) findLatestCertificate(ctx context.Context, category CertificateCategory, name string) (result CertItem, err error) {
+	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
+	db := s.config.AzCosmosContainerClient()
+	pager := db.NewQueryItemsPager(`
+SELECT TOP 1
+	c.id,
+	c.category,
+	c.name,
+	c.subjectCommonName, 
+	c.ownerId,
+	c.keyStore,
+	c.certStore,
+	c.notAfter
+FROM c
+WHERE c.category = @category AND c.name = @name
+ORDER BY c.notAfter DESC`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@category", Value: category},
+				{Name: "@name", Value: name},
+			},
+		})
+	t, err := pager.NextPage(ctx)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			err = nil
-		}
 		return
 	}
-	err = dao.toDTO(&dto)
+	if len(t.Items) > 0 {
+		err = json.Unmarshal(t.Items[0], &result)
+	}
 	return
 }
 
@@ -420,15 +337,15 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificate
 		name:     body.Name,
 		subject:  body.Subject,
 	}
-	lastCertificate, err := s.findLatestCertificate(p.category, p.name)
+	lastCertificate, err := s.findLatestCertificate(c, p.category, p.name)
 	if err != nil {
 		log.Printf("Error find latest certificate: %s", err.Error())
 		c.JSON(500, gin.H{"message": "internal error"})
 		return
 	}
-	if lastCertificate.id > 0 {
-		if len(lastCertificate.keyStore) > 0 {
-			keyId := azkeys.ID(lastCertificate.keyStore)
+	if lastCertificate.ID != uuid.Nil {
+		if len(lastCertificate.KeyStore) > 0 {
+			keyId := azkeys.ID(lastCertificate.KeyStore)
 			if body.Options != nil && body.Options.KeepKeyVersion != nil && *body.Options.KeepKeyVersion {
 				p.keyVaultKeyName = keyId.Name()
 				p.keyVaultKeyVersion = keyId.Version()
@@ -468,22 +385,19 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificate
 }
 
 func (s *adminServer) DownloadCertificate(c *gin.Context, id uuid.UUID, params DownloadCertificateParams) {
-	db := s.config.GetDB()
-	row := db.QueryRow(`SELECT 
-		cert_store
-	FROM cert_metadata WHERE uuid = ?`, id)
-	var certStore string
-	err := row.Scan(&certStore)
+	db := s.config.AzCosmosContainerClient()
+	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(uuid.Nil.String()), id.String(), nil)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			c.JSON(404, gin.H{"error": "not found"})
-			return
-		}
-		log.Printf("Faild to get certificates certificate metadata: %s", err.Error())
+		log.Printf("Faild to get certificate metadata: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
-		return
 	}
-	if len(certStore) == 0 {
+	result := CertItem{}
+	err = json.Unmarshal(resp.Value, &result)
+	if err != nil {
+		log.Printf("Faild to unmarshall certificate metadata: %s", err.Error())
+		c.JSON(500, gin.H{"error": "internal error"})
+	}
+	if len(result.CertStore) == 0 {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
@@ -501,7 +415,7 @@ func (s *adminServer) DownloadCertificate(c *gin.Context, id uuid.UUID, params D
 
 	blobClient := s.config.GetAzBlobClient()
 
-	get, err := blobClient.DownloadStream(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", certStore, filename), nil)
+	get, err := blobClient.DownloadStream(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", result.CertStore, filename), nil)
 	if err != nil {
 		log.Printf("Faild to get download stream for certificate: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
