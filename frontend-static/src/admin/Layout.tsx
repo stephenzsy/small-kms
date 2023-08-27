@@ -21,5 +21,5 @@ export function AdminLayout(props: PropsWithChildren<{}>) {
       </main>
     );
   }
-  return props.children;
+  return <main className="p-6 max-w-7xl mx-auto space-y-6">{props.children}</main>;
 }

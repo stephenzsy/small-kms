@@ -4,6 +4,9 @@ import { MainPage } from "./MainPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import { RouteIds } from "./route-constants";
 import { AdminLayout } from "./admin/Layout";
+import AdminPage from "./admin/Page";
+import AdminCaPage from "./admin/CaPage";
+import CreateCertPage from "./admin/CreateCertPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,9 +25,14 @@ export const router = createBrowserRouter([
         id: RouteIds.admin,
         element: (
           <AdminLayout>
-            <div>Admin</div>
+            <Outlet />
           </AdminLayout>
         ),
+        children: [
+          { index: true, element: <AdminPage /> },
+          { path: "ca", element: <AdminCaPage /> },
+          { path: "cert/:namespaceId/new", element: <CreateCertPage /> },
+        ],
       },
     ],
   },

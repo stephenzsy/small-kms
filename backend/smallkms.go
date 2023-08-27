@@ -31,7 +31,8 @@ func main() {
 		router.Use(auth.HandleAadAuthMiddleware)
 		corsConfig := cors.DefaultConfig()
 		corsConfig.AllowAllOrigins = true
-		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "X-Ms-Client-Principal", "X-Ms-Client-Principal-Id")
+		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders,
+			"Authorization", "X-Ms-Client-Principal", "X-Ms-Client-Principal-Name", "X-Ms-Client-Principal-Id")
 		corsConfig.AllowCredentials = true
 		router.Use(cors.New(corsConfig))
 	}

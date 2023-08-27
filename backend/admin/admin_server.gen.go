@@ -89,10 +89,17 @@ type CertificateRef struct {
 
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
-	CommonName       string  `json:"commonName"`
-	Country          *string `json:"country,omitempty"`
-	Organization     *string `json:"organization,omitempty"`
-	OrganizationUnit *string `json:"organizationUnit,omitempty"`
+	// C Country or region
+	C *string `json:"c,omitempty"`
+
+	// Cn Common name
+	CN string `json:"cn"`
+
+	// O Organization
+	O *string `json:"o,omitempty"`
+
+	// Ou Organizational unit
+	OU *string `json:"ou,omitempty"`
 }
 
 // CertificateUsage defines model for CertificateUsage.

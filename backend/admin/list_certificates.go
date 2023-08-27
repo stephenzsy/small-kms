@@ -13,9 +13,9 @@ import (
 
 func (s *adminServer) listCertItems(ctx context.Context, namespaceID uuid.UUID) (results []CertDBItem, err error) {
 	db := s.config.AzCosmosContainerClient()
-	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
+	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	pager := db.NewQueryItemsPager(`SELECT * FROM c
-		WHERE AND c.namespaceId = @namespaceId
+		WHERE c.namespaceId = @namespaceId
 		ORDER BY c.notAfter DESC`,
 		partitionKey, &azcosmos.QueryOptions{
 			QueryParameters: []azcosmos.QueryParameter{

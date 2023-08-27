@@ -3,7 +3,7 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import type { PropsWithChildren } from "react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useLayoutEffect } from "react";
 import { Link, useMatches } from "react-router-dom";
 import { RouteIds } from "./route-constants";
 
@@ -11,6 +11,11 @@ export default function Layout(props: PropsWithChildren<{}>) {
   const { accounts, instance } = useMsal();
   const isAuthenticated = accounts.length > 0;
   const authedAccount = accounts[0];
+  useLayoutEffect(() => {
+    if (authedAccount) {
+      instance.setActiveAccount(authedAccount);
+    }
+  }, [authedAccount]);
   const matches = useMatches();
   const isCurrentRouteHome = useMemo(() => {
     return matches.some((match) => match.id === RouteIds.home);

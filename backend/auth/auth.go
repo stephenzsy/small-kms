@@ -51,3 +51,7 @@ SkipClaims:
 func HasAdminAppRole(ctx *gin.Context) bool {
 	return ctx.Request.Context().Value(HasAdminAppRoleContextKey) == true
 }
+
+func GetCallerID(ctx *gin.Context) string {
+	return ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
+}

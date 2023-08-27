@@ -34,6 +34,7 @@ type createCertificateInternalParameters struct {
 	keyVaultKeyName    string
 	keyVaultKeyVersion string
 	subject            CertificateSubject
+	createdBy          string
 }
 
 var seededRand *mrand.Rand = mrand.New(mrand.NewSource(time.Now().UnixNano()))
@@ -44,7 +45,7 @@ func generateRandomHexSuffix(prefix string) string {
 }
 
 func (s *adminServer) findLatestCertificate(ctx context.Context, usage CertificateUsage, name string) (result CertDBItem, err error) {
-	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
+	partitionKey := azcosmos.NewPartitionKeyString(string(WellKnownNamespaceIDStrRootCA))
 	db := s.config.AzCosmosContainerClient()
 	pager := db.NewQueryItemsPager(`
 SELECT TOP 1
@@ -109,24 +110,25 @@ func (s *keyVaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerO
 	return
 }
 
-func (s *adminServer) createRootCACertificate(ctx context.Context, params createCertificateInternalParameters) (result CertificateRef, err error) {
+func (s *adminServer) createRootCACertificate(ctx context.Context, params createCertificateInternalParameters) (item CertDBItem, err error) {
 
 	// create entry
 	db := s.config.AzCosmosContainerClient()
 	certId := uuid.New()
-	item := CertDBItem{
-		CertificateRef: CertificateRef{
-			ID:     certId,
-			Issuer: certId,
-			Usage:  UsageRootCA,
-			Name:   params.subject.CommonName,
-		},
+	item.CertificateRef = CertificateRef{
+		ID:              certId,
+		Issuer:          certId,
+		IssuerNamespace: wellKnownNamespaceIDRootCA,
+		Usage:           UsageRootCA,
+		Name:            params.subject.CN,
+		NamespaceID:     params.namespaceID,
+		CreatedBy:       params.createdBy,
 	}
 	itemBytes, err := json.Marshal(item)
 	if err != nil {
 		return
 	}
-	partitionKey := azcosmos.NewPartitionKeyString(string(WellKnownNamespaceIDStrRootCA))
+	partitionKey := azcosmos.NewPartitionKeyString(wellKnownNamespaceIDRootCA.String())
 	if _, err = db.CreateItem(ctx, partitionKey, itemBytes, nil); err != nil {
 		return
 	}
@@ -139,7 +141,7 @@ func (s *adminServer) createRootCACertificate(ctx context.Context, params create
 		keyResp, err := keysClient.GetKey(ctx, params.keyVaultKeyName, params.keyVaultKeyVersion, nil)
 		if err != nil {
 			log.Printf("Error getting key: %s", err.Error())
-			return result, err
+			return item, err
 		}
 		webKey = keyResp.Key
 	}
@@ -159,7 +161,7 @@ func (s *adminServer) createRootCACertificate(ctx context.Context, params create
 
 		if err != nil {
 			log.Printf("Error getting key: %s", err.Error())
-			return result, err
+			return item, err
 		}
 	}
 
@@ -176,21 +178,21 @@ func (s *adminServer) createRootCACertificate(ctx context.Context, params create
 	caSubjectOU := []string{}
 	caSubjectO := []string{}
 	caSubjectC := []string{}
-	if params.subject.OrganizationUnit != nil && len(*params.subject.OrganizationUnit) > 0 {
-		caSubjectOU = append(caSubjectOU, *params.subject.OrganizationUnit)
+	if params.subject.OU != nil && len(*params.subject.OU) > 0 {
+		caSubjectOU = append(caSubjectOU, *params.subject.OU)
 	}
-	if params.subject.Organization != nil && len(*params.subject.Organization) > 0 {
-		caSubjectO = append(caSubjectO, *params.subject.Organization)
+	if params.subject.O != nil && len(*params.subject.O) > 0 {
+		caSubjectO = append(caSubjectO, *params.subject.O)
 	}
-	if params.subject.Country != nil && len(*params.subject.Country) > 0 {
-		caSubjectC = append(caSubjectC, *params.subject.Country)
+	if params.subject.C != nil && len(*params.subject.C) > 0 {
+		caSubjectC = append(caSubjectC, *params.subject.C)
 	}
 	serialNumber := big.NewInt(0)
 	serialNumber = serialNumber.SetBytes(item.ID[:])
 	ca := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:         params.subject.CommonName,
+			CommonName:         params.subject.CN,
 			OrganizationalUnit: caSubjectOU,
 			Organization:       caSubjectO,
 			Country:            caSubjectC,
@@ -280,8 +282,9 @@ func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID NamespaceI
 		usage:       body.Usage,
 		subject:     body.Subject,
 		namespaceID: namespaceID,
+		createdBy:   auth.GetCallerID(c),
 	}
-	lastCertificate, err := s.findLatestCertificate(c.Request.Context(), p.usage, p.subject.CommonName)
+	lastCertificate, err := s.findLatestCertificate(c.Request.Context(), p.usage, p.subject.CN)
 	if err != nil {
 		log.Printf("Error find latest certificate: %s", err.Error())
 		c.JSON(500, gin.H{"message": "internal error"})
@@ -321,7 +324,7 @@ func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID NamespaceI
 			log.Printf("Failed to create cert: %s", err.Error())
 			return
 		}
-		c.JSON(201, &certCreated)
+		c.JSON(201, &certCreated.CertificateRef)
 	default:
 		c.JSON(400, gin.H{"message": "Usage not supported", "usage": body.Usage})
 		return

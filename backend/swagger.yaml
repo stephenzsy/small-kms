@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Small KMS Admin API
   version: 0.1.0
@@ -50,9 +50,9 @@ paths:
               - Accept_Json
               - Accept_Pem
               - Accept_X509CaCert
-          default: application/json
       responses:
         "200":
+          description: Get certificate response
           content:
             application/json:
               schema:
@@ -78,6 +78,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateCertificateParameters"
+        required: true
       responses:
         "200":
           description: Certificate Reference
@@ -105,16 +106,22 @@ components:
     CertificateSubject:
       type: object
       properties:
-        commonName:
+        cn:
+          description: Common name
           type: string
-        organizationUnit:
+          x-go-name: CN
+        ou:
+          description: Organizational unit
           type: string
-        organization:
+          x-go-name: OU
+        o:
+          description: Organization
           type: string
-        country:
+        c:
+          description: Country or region
           type: string
       required:
-        - commonName
+        - cn
     CreateCertificateOptions:
       type: object
       properties:
