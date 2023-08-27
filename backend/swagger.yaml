@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Small KMS Admin API
   version: 0.1.0
@@ -6,51 +6,57 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /admin/certificates/{category}:
+  /v1/{namespaceId}/certificates:
     get:
       tags:
-        - admin
+        - certs
       summary: List certificates
-      operationId: ListCertificates
+      operationId: ListCertificatesV1
       parameters:
-        - $ref: "#/components/parameters/CallerPrincipalName"
-        - $ref: "#/components/parameters/CallerPrincipalId"
-        - in: path
-          name: category
-          schema:
-            $ref: "#/components/schemas/CertificateCategory"
-          required: true
+        - $ref: "#/components/parameters/namespaceId"
       responses:
         "200":
           description: A JSON array of Certificate Refs
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateRefs"
-  /admin/certificate/{id}/download:
+                title: ListCertificatesResponse
+                type: array
+                items:
+                  $ref: "#/components/schemas/CertificateRef"
+  /v1/{namespaceId}/certificate/{id}:
     get:
       tags:
-        - admin
-      summary: Download certificate
-      operationId: Download certificate
+        - certs
+      summary: Get certificate
+      operationId: GetCertificateV1
       parameters:
-        - $ref: "#/components/parameters/CallerPrincipalName"
-        - $ref: "#/components/parameters/CallerPrincipalId"
+        - $ref: "#/components/parameters/namespaceId"
         - in: path
           name: id
           schema:
             type: string
             format: uuid
           required: true
-        - in: query
-          name: format
+        - in: header
+          name: Accept
           schema:
-            $ref: "#/components/schemas/CertificateFileFormat"
-          required: false
+            type: string
+            enum:
+              - application/json
+              - application/x-pem-file
+              - application/x-x509-ca-cert
+            x-enum-varnames:
+              - Accept_Json
+              - Accept_Pem
+              - Accept_X509CaCert
+          default: application/json
       responses:
         "200":
-          description: A JSON array of Certificate Refs
           content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateRef"
             application/x-pem-file:
               schema:
                 type: string
@@ -59,19 +65,14 @@ paths:
               schema:
                 type: string
                 format: binary
-  /admin/certificate:
+  /v1/{namespaceId}/certificate:
     post:
       tags:
-        - admin
+        - certs
       summary: Create certificate
-      operationId: CreateCertificate
+      operationId: CreateCertificateV1
       parameters:
-        - $ref: "#/components/parameters/CallerPrincipalName"
-        - $ref: "#/components/parameters/CallerPrincipalId"
-        - in: query
-          name: force
-          schema:
-            type: boolean
+        - $ref: "#/components/parameters/namespaceId"
       requestBody:
         content:
           application/json:
@@ -79,7 +80,7 @@ paths:
               $ref: "#/components/schemas/CreateCertificateParameters"
       responses:
         "200":
-          description: Certificate metadata
+          description: Certificate Reference
           content:
             application/json:
               schema:
@@ -88,32 +89,19 @@ security:
   - BearerAuth: []
 components:
   parameters:
-    CallerPrincipalName:
-      in: header
-      name: X-Caller-Principal-Name
+    namespaceId:
+      in: path
+      name: namespaceId
       schema:
         type: string
+        format: uuid
       required: true
-    CallerPrincipalId:
-      in: header
-      name: X-Caller-Principal-Id
-      schema:
-        type: string
-      required: true
+      x-go-name: NamespaceID
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
   schemas:
-    CertificateFileFormat:
-      type: string
-      enum:
-        - pem
-        - der
-    CertificateRefs:
-      type: array
-      items:
-        $ref: "#/components/schemas/CertificateRef"
     CertificateSubject:
       type: object
       properties:
@@ -127,59 +115,20 @@ components:
           type: string
       required:
         - commonName
-    CertificateRef:
-      type: object
-      properties:
-        id:
-          description: Unique ID of the certificate
-          type: string
-          format: uuid
-          x-go-name: ID
-        commonName:
-          type: string
-        serialNumber:
-          type: string
-          format: hex
-        enabled:
-          type: boolean
-        notBefore:
-          type: string
-          format: date-time
-        notAfter:
-          type: string
-          format: date-time
-        issuerId:
-          type: string
-          format: uuid
-          x-go-name: IssuerID
-      required:
-        - id
-        - commonName
-        - serialNumber
-        - notBefore
-        - notAfter
-        - issuerId
     CreateCertificateOptions:
       type: object
       properties:
         newKeyName:
+          description: Create new key name instead of a new version if exists
           type: boolean
         keepKeyVersion:
+          description: Keep using the same key version if exists
           type: boolean
-    CertificateCategory:
-      type: string
-      enum:
-        - root-ca
-        - intermediate-ca
-        - server
-        - client
     CreateCertificateParameters:
       type: object
       properties:
-        category:
-          $ref: "#/components/schemas/CertificateCategory"
-        name:
-          type: string
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
         subject:
           $ref: "#/components/schemas/CertificateSubject"
         validity:
@@ -190,6 +139,9 @@ components:
           enum:
             - RSA
             - EC
+          x-enum-varnames:
+            - Kty_RSA
+            - Kty_EC
         size:
           type: integer
           format: int32
@@ -197,18 +149,104 @@ components:
             - 2048
             - 3072
             - 4096
+          x-enum-varnames:
+            - KeySize_2048
+            - KeySize_3072
+            - KeySize_4096
         curve:
           type: string
           enum:
             - P-256
             - P-384
-        issuer:
+          x-enum-varnames:
+            - EcCurve_P256
+            - EcCurve_P384
+        issuerNamespace:
+          description: Issuer of the certificate
           type: string
           format: uuid
-          x-go-name: IssuerID
+        issuer:
+          description: Issuer of the certificate
+          type: string
+          format: uuid
         options:
           $ref: "#/components/schemas/CreateCertificateOptions"
       required:
-        - category
+        - usage
         - name
         - subject
+        - issuerNamespace
+        - issuer
+    CertificateUsage:
+      type: string
+      enum:
+        - root-ca
+        - intermediate-ca
+        - server
+        - client
+      x-enum-varnames:
+        - Usage_RootCA
+        - Usage_IntCA
+        - Usage_Server
+        - Usage_Client
+    CertificateRef:
+      type: object
+      properties:
+        namespaceId:
+          description: Unique ID of the namespace
+          type: string
+          format: uuid
+          x-go-name: NamespaceID
+        id:
+          description: Unique ID of the certificate, also the serial number of the certificate
+          type: string
+          format: uuid
+          x-go-name: ID
+        name:
+          description: Name of the certificate, also the common name (CN) of the certificate
+          type: string
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        notAfter:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        issuerNamespace:
+          description: Issuer of the certificate
+          type: string
+          format: uuid
+        issuer:
+          description: Issuer of the certificate
+          type: string
+          format: uuid
+        createdBy:
+          description: Unique ID of the user who created the certificate
+          type: string
+      required:
+        - namespaceId
+        - id
+        - name
+        - usage
+        - notAfter
+        - issuerNamespace
+        - issuer
+        - createdBy
+    WellKnownNamespaceId:
+      type: string
+      enum:
+        - 00000000-0000-0000-0000-000000000001
+        - 00000000-0000-0000-0000-000000000010
+        - 00000000-0000-0000-0000-000000000011
+        - 00000000-0000-0000-0000-100000000001
+        - 00000000-0000-0000-0000-100000000002
+        - 00000000-0000-0000-0001-000000000010
+        - 00000000-0000-0000-0001-000000000011
+      x-enum-varnames:
+        - WellKnownNamespaceIDStr_RootCA
+        - WellKnownNamespaceIDStr_IntCAInfra
+        - WellKnownNamespaceIDStr_IntCAService
+        - WellKnownNamespaceIDStr_IntCARadius
+        - WellKnownNamespaceIDStr_IntCAVpn
+        - WellKnownNamespaceIDStr_CertsInfra
+        - WellKnownNamespaceIDStr_CertsService
+      x-go-name: WellKnownNamespaceIDStr

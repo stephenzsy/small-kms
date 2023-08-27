@@ -10,11 +10,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stephenzsy/small-kms/backend/admin"
+	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -25,25 +27,24 @@ func main() {
 	log.Printf("Server role: %s", serverConfig.GetServerRole())
 	router := gin.Default()
 
-	handleAadAuth := func(c *gin.Context) {
-		// Intercept the headers here
-		authedPrincipalId := c.Request.Header.Get("X-Ms-Client-Principal-Id")
-		if !serverConfig.IsPrincipalIdTrusted(authedPrincipalId) {
-			log.Printf("Principal ID is not trusted: %s", authedPrincipalId)
-			c.JSON(403, gin.H{"error": fmt.Sprintf("Principal ID is not trusted: %s", authedPrincipalId)})
-			c.Abort()
-			return
-		}
-
-		c.Next()
+	if os.Getenv("ENABLE_CORS") == "true" {
+		router.Use(auth.HandleAadAuthMiddleware)
+		corsConfig := cors.DefaultConfig()
+		corsConfig.AllowAllOrigins = true
+		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "X-Ms-Client-Principal", "X-Ms-Client-Principal-Id")
+		corsConfig.AllowCredentials = true
+		router.Use(cors.New(corsConfig))
 	}
-
-	router.Use(handleAadAuth)
 
 	switch serverConfig.GetServerRole() {
 	case common.ServerRoleAdmin:
 		admin.RegisterHandlers(router, admin.NewAdminServer(&serverConfig))
 	}
 
-	log.Fatal(router.Run(":9000"))
+	listenerAddress := os.Getenv("LISTENER_ADDRESS")
+	if len(listenerAddress) == 0 {
+		listenerAddress = ":9000"
+	}
+
+	log.Fatal(router.Run(listenerAddress))
 }

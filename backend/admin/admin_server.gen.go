@@ -4,19 +4,12 @@
 package admin
 
 import (
-	"bytes"
-	"compress/gzip"
-	"encoding/base64"
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
-	"strings"
 	"time"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,60 +17,75 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for CertificateCategory.
+// Defines values for CertificateUsage.
 const (
-	Client         CertificateCategory = "client"
-	IntermediateCa CertificateCategory = "intermediate-ca"
-	RootCa         CertificateCategory = "root-ca"
-	Server         CertificateCategory = "server"
-)
-
-// Defines values for CertificateFileFormat.
-const (
-	Der CertificateFileFormat = "der"
-	Pem CertificateFileFormat = "pem"
+	UsageClient CertificateUsage = "client"
+	UsageIntCA  CertificateUsage = "intermediate-ca"
+	UsageRootCA CertificateUsage = "root-ca"
+	UsageServer CertificateUsage = "server"
 )
 
 // Defines values for CreateCertificateParametersCurve.
 const (
-	P256 CreateCertificateParametersCurve = "P-256"
-	P384 CreateCertificateParametersCurve = "P-384"
+	EcCurveP256 CreateCertificateParametersCurve = "P-256"
+	EcCurveP384 CreateCertificateParametersCurve = "P-384"
 )
 
 // Defines values for CreateCertificateParametersKty.
 const (
-	EC  CreateCertificateParametersKty = "EC"
-	RSA CreateCertificateParametersKty = "RSA"
+	KtyEC  CreateCertificateParametersKty = "EC"
+	KtyRSA CreateCertificateParametersKty = "RSA"
 )
 
 // Defines values for CreateCertificateParametersSize.
 const (
-	N2048 CreateCertificateParametersSize = 2048
-	N3072 CreateCertificateParametersSize = 3072
-	N4096 CreateCertificateParametersSize = 4096
+	KeySize2048 CreateCertificateParametersSize = 2048
+	KeySize3072 CreateCertificateParametersSize = 3072
+	KeySize4096 CreateCertificateParametersSize = 4096
 )
 
-// CertificateCategory defines model for CertificateCategory.
-type CertificateCategory string
+// Defines values for WellKnownNamespaceIDStr.
+const (
+	WellKnownNamespaceIDStrCertsInfra   WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000010"
+	WellKnownNamespaceIDStrCertsService WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000011"
+	WellKnownNamespaceIDStrIntCAInfra   WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000010"
+	WellKnownNamespaceIDStrIntCARadius  WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000001"
+	WellKnownNamespaceIDStrIntCAService WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000011"
+	WellKnownNamespaceIDStrIntCAVpn     WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000002"
+	WellKnownNamespaceIDStrRootCA       WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000001"
+)
 
-// CertificateFileFormat defines model for CertificateFileFormat.
-type CertificateFileFormat string
+// Defines values for GetCertificateV1ParamsAccept.
+const (
+	AcceptJson       GetCertificateV1ParamsAccept = "application/json"
+	AcceptPem        GetCertificateV1ParamsAccept = "application/x-pem-file"
+	AcceptX509CaCert GetCertificateV1ParamsAccept = "application/x-x509-ca-cert"
+)
 
 // CertificateRef defines model for CertificateRef.
 type CertificateRef struct {
-	CommonName string `json:"commonName"`
-	Enabled    *bool  `json:"enabled,omitempty"`
+	// CreatedBy Unique ID of the user who created the certificate
+	CreatedBy string `json:"createdBy"`
 
-	// Id Unique ID of the certificate
-	ID           openapi_types.UUID `json:"id"`
-	IssuerID     openapi_types.UUID `json:"issuerId"`
-	NotAfter     time.Time          `json:"notAfter"`
-	NotBefore    time.Time          `json:"notBefore"`
-	SerialNumber string             `json:"serialNumber"`
+	// Id Unique ID of the certificate, also the serial number of the certificate
+	ID openapi_types.UUID `json:"id"`
+
+	// Issuer Issuer of the certificate
+	Issuer openapi_types.UUID `json:"issuer"`
+
+	// IssuerNamespace Issuer of the certificate
+	IssuerNamespace openapi_types.UUID `json:"issuerNamespace"`
+
+	// Name Name of the certificate, also the common name (CN) of the certificate
+	Name string `json:"name"`
+
+	// NamespaceId Unique ID of the namespace
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+
+	// NotAfter Expiration date of the certificate
+	NotAfter time.Time        `json:"notAfter"`
+	Usage    CertificateUsage `json:"usage"`
 }
-
-// CertificateRefs defines model for CertificateRefs.
-type CertificateRefs = []CertificateRef
 
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
@@ -87,23 +95,33 @@ type CertificateSubject struct {
 	OrganizationUnit *string `json:"organizationUnit,omitempty"`
 }
 
+// CertificateUsage defines model for CertificateUsage.
+type CertificateUsage string
+
 // CreateCertificateOptions defines model for CreateCertificateOptions.
 type CreateCertificateOptions struct {
+	// KeepKeyVersion Keep using the same key version if exists
 	KeepKeyVersion *bool `json:"keepKeyVersion,omitempty"`
-	NewKeyName     *bool `json:"newKeyName,omitempty"`
+
+	// NewKeyName Create new key name instead of a new version if exists
+	NewKeyName *bool `json:"newKeyName,omitempty"`
 }
 
 // CreateCertificateParameters defines model for CreateCertificateParameters.
 type CreateCertificateParameters struct {
-	Category CertificateCategory               `json:"category"`
-	Curve    *CreateCertificateParametersCurve `json:"curve,omitempty"`
-	IssuerID *openapi_types.UUID               `json:"issuer,omitempty"`
-	Kty      *CreateCertificateParametersKty   `json:"kty,omitempty"`
-	Name     string                            `json:"name"`
-	Options  *CreateCertificateOptions         `json:"options,omitempty"`
-	Size     *CreateCertificateParametersSize  `json:"size,omitempty"`
-	Subject  CertificateSubject                `json:"subject"`
-	Validity *string                           `json:"validity,omitempty"`
+	Curve *CreateCertificateParametersCurve `json:"curve,omitempty"`
+
+	// Issuer Issuer of the certificate
+	Issuer openapi_types.UUID `json:"issuer"`
+
+	// IssuerNamespace Issuer of the certificate
+	IssuerNamespace openapi_types.UUID               `json:"issuerNamespace"`
+	Kty             *CreateCertificateParametersKty  `json:"kty,omitempty"`
+	Options         *CreateCertificateOptions        `json:"options,omitempty"`
+	Size            *CreateCertificateParametersSize `json:"size,omitempty"`
+	Subject         CertificateSubject               `json:"subject"`
+	Usage           CertificateUsage                 `json:"usage"`
+	Validity        *string                          `json:"validity,omitempty"`
 }
 
 // CreateCertificateParametersCurve defines model for CreateCertificateParameters.Curve.
@@ -115,46 +133,34 @@ type CreateCertificateParametersKty string
 // CreateCertificateParametersSize defines model for CreateCertificateParameters.Size.
 type CreateCertificateParametersSize int32
 
-// CallerPrincipalId defines model for CallerPrincipalId.
-type CallerPrincipalId = string
+// WellKnownNamespaceIDStr defines model for WellKnownNamespaceId.
+type WellKnownNamespaceIDStr string
 
-// CallerPrincipalName defines model for CallerPrincipalName.
-type CallerPrincipalName = string
+// NamespaceID defines model for namespaceId.
+type NamespaceID = openapi_types.UUID
 
-// CreateCertificateParams defines parameters for CreateCertificate.
-type CreateCertificateParams struct {
-	Force                *bool               `form:"force,omitempty" json:"force,omitempty"`
-	XCallerPrincipalName CallerPrincipalName `json:"X-Caller-Principal-Name"`
-	XCallerPrincipalId   CallerPrincipalId   `json:"X-Caller-Principal-Id"`
+// GetCertificateV1Params defines parameters for GetCertificateV1.
+type GetCertificateV1Params struct {
+	Accept *GetCertificateV1ParamsAccept `json:"Accept,omitempty"`
 }
 
-// DownloadCertificateParams defines parameters for DownloadCertificate.
-type DownloadCertificateParams struct {
-	Format               *CertificateFileFormat `form:"format,omitempty" json:"format,omitempty"`
-	XCallerPrincipalName CallerPrincipalName    `json:"X-Caller-Principal-Name"`
-	XCallerPrincipalId   CallerPrincipalId      `json:"X-Caller-Principal-Id"`
-}
+// GetCertificateV1ParamsAccept defines parameters for GetCertificateV1.
+type GetCertificateV1ParamsAccept string
 
-// ListCertificatesParams defines parameters for ListCertificates.
-type ListCertificatesParams struct {
-	XCallerPrincipalName CallerPrincipalName `json:"X-Caller-Principal-Name"`
-	XCallerPrincipalId   CallerPrincipalId   `json:"X-Caller-Principal-Id"`
-}
-
-// CreateCertificateJSONRequestBody defines body for CreateCertificate for application/json ContentType.
-type CreateCertificateJSONRequestBody = CreateCertificateParameters
+// CreateCertificateV1JSONRequestBody defines body for CreateCertificateV1 for application/json ContentType.
+type CreateCertificateV1JSONRequestBody = CreateCertificateParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Create certificate
-	// (POST /admin/certificate)
-	CreateCertificate(c *gin.Context, params CreateCertificateParams)
-	// Download certificate
-	// (GET /admin/certificate/{id}/download)
-	DownloadCertificate(c *gin.Context, id openapi_types.UUID, params DownloadCertificateParams)
+	// (POST /v1/{namespaceId}/certificate)
+	CreateCertificateV1(c *gin.Context, namespaceID NamespaceID)
+	// Get certificate
+	// (GET /v1/{namespaceId}/certificate/{id})
+	GetCertificateV1(c *gin.Context, namespaceID NamespaceID, id openapi_types.UUID, params GetCertificateV1Params)
 	// List certificates
-	// (GET /admin/certificates/{category})
-	ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams)
+	// (GET /v1/{namespaceId}/certificates)
+	ListCertificatesV1(c *gin.Context, namespaceID NamespaceID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -166,69 +172,21 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(c *gin.Context)
 
-// CreateCertificate operation middleware
-func (siw *ServerInterfaceWrapper) CreateCertificate(c *gin.Context) {
+// CreateCertificateV1 operation middleware
+func (siw *ServerInterfaceWrapper) CreateCertificateV1(c *gin.Context) {
 
 	var err error
 
-	c.Set(BearerAuthScopes, []string{})
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceID NamespaceID
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params CreateCertificateParams
-
-	// ------------- Optional query parameter "force" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "force", c.Request.URL.Query(), &params.Force)
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceID)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter force: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	headers := c.Request.Header
-
-	// ------------- Required header parameter "X-Caller-Principal-Name" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Name")]; found {
-		var XCallerPrincipalName CallerPrincipalName
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Name, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalName)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Name: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XCallerPrincipalName = XCallerPrincipalName
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Name is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Required header parameter "X-Caller-Principal-Id" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Id")]; found {
-		var XCallerPrincipalId CallerPrincipalId
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Id, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalId)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Id: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XCallerPrincipalId = XCallerPrincipalId
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Id is required, but not found"), http.StatusBadRequest)
-		return
-	}
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -237,13 +195,22 @@ func (siw *ServerInterfaceWrapper) CreateCertificate(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.CreateCertificate(c, params)
+	siw.Handler.CreateCertificateV1(c, namespaceID)
 }
 
-// DownloadCertificate operation middleware
-func (siw *ServerInterfaceWrapper) DownloadCertificate(c *gin.Context) {
+// GetCertificateV1 operation middleware
+func (siw *ServerInterfaceWrapper) GetCertificateV1(c *gin.Context) {
 
 	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceID NamespaceID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceID)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
 
 	// ------------- Path parameter "id" -------------
 	var id openapi_types.UUID
@@ -257,60 +224,27 @@ func (siw *ServerInterfaceWrapper) DownloadCertificate(c *gin.Context) {
 	c.Set(BearerAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params DownloadCertificateParams
-
-	// ------------- Optional query parameter "format" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "format", c.Request.URL.Query(), &params.Format)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter format: %w", err), http.StatusBadRequest)
-		return
-	}
+	var params GetCertificateV1Params
 
 	headers := c.Request.Header
 
-	// ------------- Required header parameter "X-Caller-Principal-Name" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Name")]; found {
-		var XCallerPrincipalName CallerPrincipalName
+	// ------------- Optional header parameter "Accept" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept")]; found {
+		var Accept GetCertificateV1ParamsAccept
 		n := len(valueList)
 		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Name, got %d", n), http.StatusBadRequest)
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for Accept, got %d", n), http.StatusBadRequest)
 			return
 		}
 
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalName)
+		err = runtime.BindStyledParameterWithLocation("simple", false, "Accept", runtime.ParamLocationHeader, valueList[0], &Accept)
 		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Name: %w", err), http.StatusBadRequest)
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter Accept: %w", err), http.StatusBadRequest)
 			return
 		}
 
-		params.XCallerPrincipalName = XCallerPrincipalName
+		params.Accept = &Accept
 
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Name is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Required header parameter "X-Caller-Principal-Id" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Id")]; found {
-		var XCallerPrincipalId CallerPrincipalId
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Id, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalId)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Id: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XCallerPrincipalId = XCallerPrincipalId
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Id is required, but not found"), http.StatusBadRequest)
-		return
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -320,74 +254,25 @@ func (siw *ServerInterfaceWrapper) DownloadCertificate(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.DownloadCertificate(c, id, params)
+	siw.Handler.GetCertificateV1(c, namespaceID, id, params)
 }
 
-// ListCertificates operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificates(c *gin.Context) {
+// ListCertificatesV1 operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificatesV1(c *gin.Context) {
 
 	var err error
 
-	// ------------- Path parameter "category" -------------
-	var category CertificateCategory
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceID NamespaceID
 
-	err = runtime.BindStyledParameter("simple", false, "category", c.Param("category"), &category)
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceID)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter category: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
 		return
 	}
 
 	c.Set(BearerAuthScopes, []string{})
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListCertificatesParams
-
-	headers := c.Request.Header
-
-	// ------------- Required header parameter "X-Caller-Principal-Name" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Name")]; found {
-		var XCallerPrincipalName CallerPrincipalName
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Name, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Name", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalName)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Name: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XCallerPrincipalName = XCallerPrincipalName
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Name is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Required header parameter "X-Caller-Principal-Id" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Caller-Principal-Id")]; found {
-		var XCallerPrincipalId CallerPrincipalId
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Caller-Principal-Id, got %d", n), http.StatusBadRequest)
-			return
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Caller-Principal-Id", runtime.ParamLocationHeader, valueList[0], &XCallerPrincipalId)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Caller-Principal-Id: %w", err), http.StatusBadRequest)
-			return
-		}
-
-		params.XCallerPrincipalId = XCallerPrincipalId
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Caller-Principal-Id is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -395,7 +280,7 @@ func (siw *ServerInterfaceWrapper) ListCertificates(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ListCertificates(c, category, params)
+	siw.Handler.ListCertificatesV1(c, namespaceID)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -425,102 +310,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.POST(options.BaseURL+"/admin/certificate", wrapper.CreateCertificate)
-	router.GET(options.BaseURL+"/admin/certificate/:id/download", wrapper.DownloadCertificate)
-	router.GET(options.BaseURL+"/admin/certificates/:category", wrapper.ListCertificates)
-}
-
-// Base64 encoded, gzipped, json marshaled Swagger object
-var swaggerSpec = []string{
-
-	"H4sIAAAAAAAC/8xXXW/bNhT9K8LdHqlIs9Ou0ZuTrICXLjVqdBgQ+IGWrm22EqmQVBrX0H8fSNoWJTmJ",
-	"3fYhb4nI+3nOPbzeQCqKUnDkWkGygZJKWqBGaf+7onmOciIZT1lJ83FmPjIOCayQZiiBAKcFQgL/he5u",
-	"uL8cjjMgIPG+YhIzSLSskIBKV1hQ40avS2OotGR8CXVNutFurefj49n7p0Ssd4euVpSaLVhKNV5RjUsh",
-	"1+Yz8qqA5A6kEDpMKRBgXKMsMGNUo/uiUD7Y5NKcIdcwI91YxHf/nuX4XsiCaj9AiQUQMEW+YP4JFxYp",
-	"KUrzEW32qSgKwXct65kjp/McM+9sLkSOlJtDZr9nqFLJSs2E6fdnzu4rDMbXgVgEeoVB2iQABBbb9KGq",
-	"mIG5HZDAY7gU4Raq8bUNolSF0jHoJGtnZ31woUcLjbLlIzMwaGax79XNhb7EhZB4vIlCyWh+WxXzTqAV",
-	"Pvbv1z7h7sCW42HRcecn5JXjdafBXsy/YKr72Fu4mcbC/vG7NGyA36JmjKMtqaMOZ+q9ayolXXc8TysX",
-	"71RmpaLi2o1K70zIJeXsO3WceuHCZ870YV3wG+xlc7BVEs38NmV9tIRW/bK+IpY3uP4XpWpn5w0Gx283",
-	"uO6Uvj+vj4k/aelpp7OezByJ416ZTOcr+YC+gkzCwZu3QGASDt+dH1QRR7OfGcGvuqWKn6YjIPDX1cFo",
-	"/CnOiAaUZ+t+Ckwzpey7X/sgPn9HhvGfA3IeX7ydeQLFuB4OmgKNeC9RWhcN44/s/m5GagIPNGcZc81o",
-	"dKWSjusvycQe+W2TmmT6pLaSlFaS6fXUpOS4c4lUohxVemX+s7lactrPTfyV1qV76RhfCAsG07k5mRY0",
-	"z4Obf6bBKCsYD0aTMRB42I0DxGd/nMUOLOS0ZJDA8Cw+GwKBkuqVTSKixjTynwZDcqFsUw3VbTuM6Pcn",
-	"wzpqhuPuMArNlejQelCTU83GmTWyS8V9hQ0GicExtVh0N4Zm5GcOR1T6UmRrJ49cmzc/2QAty9yUxgSP",
-	"vignKo2vk5juyUZdO/aoUnDlwB/E8a8L3XkkTLD2KuDdCArUNKOaOlpWRUGNfG3B7ewImi4NrmBJAjNj",
-	"0SdMtGFZHWXiG88FtcvBEg+w53p74XXxxwxCQx/2/L77vOLWz5DSmJHT4fTWzC1xj6bQY1hiES5Yjm0i",
-	"7WuYM05tln2da/t5fBNfhCkNDeSn+uoxcRT8Pf14G9j1xeylPjPtZtRm5Y40P8JLFW12Il0/ycoPTGkv",
-	"B/XqKOm9M08T8+TV40Qy/YweqV9AA4OSTwF1iAPeK2uB89/Xu5mp2P3Ic7C28/kgUpoH+x+Blcy3L28S",
-	"Rbk5Wwmlk4s4jqGe1f8HAAD//8B2YtFyDwAA",
-}
-
-// GetSwagger returns the content of the embedded swagger specification file
-// or error if failed to decode
-func decodeSpec() ([]byte, error) {
-	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
-	if err != nil {
-		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
-	}
-	zr, err := gzip.NewReader(bytes.NewReader(zipped))
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(zr)
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
-
-var rawSpec = decodeSpecCached()
-
-// a naive cached of a decoded swagger spec
-func decodeSpecCached() func() ([]byte, error) {
-	data, err := decodeSpec()
-	return func() ([]byte, error) {
-		return data, err
-	}
-}
-
-// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
-func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
-	res := make(map[string]func() ([]byte, error))
-	if len(pathToFile) > 0 {
-		res[pathToFile] = rawSpec
-	}
-
-	return res
-}
-
-// GetSwagger returns the Swagger specification corresponding to the generated code
-// in this file. The external references of Swagger specification are resolved.
-// The logic of resolving external references is tightly connected to "import-mapping" feature.
-// Externally referenced files must be embedded in the corresponding golang packages.
-// Urls can be supported but this task was out of the scope.
-func GetSwagger() (swagger *openapi3.T, err error) {
-	resolvePath := PathToRawSpec("")
-
-	loader := openapi3.NewLoader()
-	loader.IsExternalRefsAllowed = true
-	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
-		pathToFile := url.String()
-		pathToFile = path.Clean(pathToFile)
-		getSpec, ok := resolvePath[pathToFile]
-		if !ok {
-			err1 := fmt.Errorf("path not found: %s", pathToFile)
-			return nil, err1
-		}
-		return getSpec()
-	}
-	var specData []byte
-	specData, err = rawSpec()
-	if err != nil {
-		return
-	}
-	swagger, err = loader.LoadFromData(specData)
-	if err != nil {
-		return
-	}
-	return
+	router.POST(options.BaseURL+"/v1/:namespaceId/certificate", wrapper.CreateCertificateV1)
+	router.GET(options.BaseURL+"/v1/:namespaceId/certificate/:id", wrapper.GetCertificateV1)
+	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 }

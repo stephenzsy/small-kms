@@ -21,78 +21,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
-type CertItem struct {
-	ID                uuid.UUID           `json:"id"`
-	Category          CertificateCategory `json:"category"`
-	Name              string              `json:"name"`
-	SubjectCommonName string              `json:"subjectCommonName"`
-	OwnerID           uuid.UUID           `json:"ownerId"`
-	KeyStore          string              `json:"keyStore,omitempty"`
-	CertStore         string              `json:"certStore,omitempty"`
-	NotAfter          time.Time           `json:"notAfter,omitempty"`
-}
-
-func (s *adminServer) ListCertificates(c *gin.Context, category CertificateCategory, params ListCertificatesParams) {
-	db := s.config.AzCosmosContainerClient()
-	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
-	pager := db.NewQueryItemsPager(`
-SELECT
-	c.id,
-	c.category,
-	c.name,
-	c.subjectCommonName, 
-	c.ownerId,
-	c.keyStore,
-	c.certStore,
-	c.notAfter
-FROM c
-WHERE c.category = @category AND c.ownerId = @ownerId
-ORDER BY c.notAfter DESC`,
-		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@category", Value: category},
-				{Name: "@ownerId", Value: uuid.Nil.String()},
-			},
-		})
-	results := make([]CertificateRef, 0)
-	for pager.More() {
-		t, err := pager.NextPage(c)
-		if err != nil {
-			log.Printf("Faild to get list of certificates: %s", err.Error())
-			c.JSON(500, gin.H{"error": "internal error"})
-			return
-		}
-		for _, itemBytes := range t.Items {
-			item := CertItem{}
-			if err = json.Unmarshal(itemBytes, &item); err != nil {
-				log.Printf("Faild to serialize db entry: %s", err.Error())
-				c.JSON(500, gin.H{"error": "internal error"})
-				return
-			}
-
-			results = append(results, CertificateRef{
-				CommonName: item.SubjectCommonName,
-				ID:         item.ID,
-				IssuerID:   item.ID,
-				NotAfter:   item.NotAfter,
-			})
-		}
-	}
-
-	c.JSON(200, results)
-}
-
 type createCertificateInternalParameters struct {
-	category           CertificateCategory
-	name               string
+	usage              CertificateUsage
 	kty                CreateCertificateParametersKty
 	size               CreateCertificateParametersSize
-	owner              uuid.UUID
+	namespaceID        uuid.UUID
 	keyVaultKeyName    string
 	keyVaultKeyVersion string
 	subject            CertificateSubject
@@ -105,25 +43,18 @@ func generateRandomHexSuffix(prefix string) string {
 	return fmt.Sprintf("%s%04x", prefix, n)
 }
 
-func (s *adminServer) findLatestCertificate(ctx context.Context, category CertificateCategory, name string) (result CertItem, err error) {
+func (s *adminServer) findLatestCertificate(ctx context.Context, usage CertificateUsage, name string) (result CertDBItem, err error) {
 	partitionKey := azcosmos.NewPartitionKeyString(uuid.Nil.String())
 	db := s.config.AzCosmosContainerClient()
 	pager := db.NewQueryItemsPager(`
 SELECT TOP 1
-	c.id,
-	c.category,
-	c.name,
-	c.subjectCommonName, 
-	c.ownerId,
-	c.keyStore,
-	c.certStore,
-	c.notAfter
+	*
 FROM c
-WHERE c.category = @category AND c.name = @name
+WHERE c.usage = @usage AND c.name = @name
 ORDER BY c.notAfter DESC`,
 		partitionKey, &azcosmos.QueryOptions{
 			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@category", Value: category},
+				{Name: "@usage", Value: usage},
 				{Name: "@name", Value: name},
 			},
 		})
@@ -178,31 +109,34 @@ func (s *keyVaultSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerO
 	return
 }
 
-func (s *adminServer) createCACertificate(c *gin.Context, params createCertificateInternalParameters) (result CertificateRef, err error) {
+func (s *adminServer) createRootCACertificate(ctx context.Context, params createCertificateInternalParameters) (result CertificateRef, err error) {
 
 	// create entry
 	db := s.config.AzCosmosContainerClient()
-	item := CertItem{
-		ID:                uuid.New(),
-		Category:          params.category,
-		Name:              params.name,
-		SubjectCommonName: params.subject.CommonName,
+	certId := uuid.New()
+	item := CertDBItem{
+		CertificateRef: CertificateRef{
+			ID:     certId,
+			Issuer: certId,
+			Usage:  UsageRootCA,
+			Name:   params.subject.CommonName,
+		},
 	}
 	itemBytes, err := json.Marshal(item)
 	if err != nil {
 		return
 	}
-	partitionKey := azcosmos.NewPartitionKeyString(item.OwnerID.String())
-	if _, err = db.CreateItem(c, partitionKey, itemBytes, nil); err != nil {
+	partitionKey := azcosmos.NewPartitionKeyString(string(WellKnownNamespaceIDStrRootCA))
+	if _, err = db.CreateItem(ctx, partitionKey, itemBytes, nil); err != nil {
 		return
 	}
-
 	log.Printf("Created certificate record: %s", item.ID.String())
+
 	// first create new version of key in keyvault
 	keysClient := s.config.GetAzKeysClient()
 	var webKey *azkeys.JSONWebKey
 	if len(params.keyVaultKeyVersion) != 0 {
-		keyResp, err := keysClient.GetKey(c, params.keyVaultKeyName, params.keyVaultKeyVersion, nil)
+		keyResp, err := keysClient.GetKey(ctx, params.keyVaultKeyName, params.keyVaultKeyVersion, nil)
 		if err != nil {
 			log.Printf("Error getting key: %s", err.Error())
 			return result, err
@@ -212,15 +146,15 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	if webKey == nil {
 		ckp := azkeys.CreateKeyParameters{}
 		switch params.kty {
-		case RSA:
+		case KtyRSA:
 			ckp.Kty = to.Ptr(azkeys.KeyTypeRSA)
 
 			switch params.size {
-			case N4096:
+			case KeySize4096:
 				ckp.KeySize = to.Ptr(int32(4096))
 			}
 		}
-		keyResp, err := keysClient.CreateKey(c, params.keyVaultKeyName, ckp, nil)
+		keyResp, err := keysClient.CreateKey(ctx, params.keyVaultKeyName, ckp, nil)
 		webKey = keyResp.Key
 
 		if err != nil {
@@ -231,7 +165,7 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 
 	patchKeyStoreOps := azcosmos.PatchOperations{}
 	patchKeyStoreOps.AppendSet("/keyStore", string(*webKey.KID))
-	if _, err = db.PatchItem(c, partitionKey, item.ID.String(), patchKeyStoreOps, nil); err != nil {
+	if _, err = db.PatchItem(ctx, partitionKey, item.ID.String(), patchKeyStoreOps, nil); err != nil {
 		return
 	} else {
 		item.KeyStore = string(*webKey.KID)
@@ -277,7 +211,7 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	}
 
 	signer := keyVaultSigner{
-		ctx:        c,
+		ctx:        ctx,
 		keysClient: keysClient,
 		webKey:     webKey,
 		publicKey:  pubKey,
@@ -300,11 +234,11 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	blobKey := fmt.Sprintf("%s/%s", params.keyVaultKeyName, item.ID)
 	// upload to blob storage
 	blobClient := s.config.GetAzBlobClient()
-	_, err = blobClient.UploadBuffer(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.der"), certBytes, nil)
+	_, err = blobClient.UploadBuffer(ctx, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.der"), certBytes, nil)
 	if err != nil {
 		return
 	}
-	_, err = blobClient.UploadBuffer(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.pem"), caPEM.Bytes(), nil)
+	_, err = blobClient.UploadBuffer(ctx, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.pem"), caPEM.Bytes(), nil)
 	if err != nil {
 		return
 	}
@@ -317,7 +251,7 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	patchCertDoc := azcosmos.PatchOperations{}
 	patchCertDoc.AppendSet("/certStore", blobKey)
 	patchCertDoc.AppendSet("/notAfter", parsed.NotAfter.UTC().Format(time.RFC3339))
-	if _, err = db.PatchItem(c, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
+	if _, err = db.PatchItem(ctx, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
 		return
 	} else {
 		item.CertStore = blobKey
@@ -326,18 +260,28 @@ func (s *adminServer) createCACertificate(c *gin.Context, params createCertifica
 	return
 }
 
-func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificateParams) {
+func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID NamespaceID) {
 	body := CreateCertificateParameters{}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(400, gin.H{"message": "invalid input", "error": err.Error()})
 		return
 	}
-	p := createCertificateInternalParameters{
-		category: body.Category,
-		name:     body.Name,
-		subject:  body.Subject,
+	if namespaceID != wellKnownNamespaceIDRootCA {
+		c.JSON(400, gin.H{"message": "invalid namespace", "namespace": namespaceID})
+		return
 	}
-	lastCertificate, err := s.findLatestCertificate(c, p.category, p.name)
+
+	if !auth.HasAdminAppRole(c) {
+		c.JSON(403, gin.H{"message": "User must have admin role"})
+		return
+	}
+
+	p := createCertificateInternalParameters{
+		usage:       body.Usage,
+		subject:     body.Subject,
+		namespaceID: namespaceID,
+	}
+	lastCertificate, err := s.findLatestCertificate(c.Request.Context(), p.usage, p.subject.CommonName)
 	if err != nil {
 		log.Printf("Error find latest certificate: %s", err.Error())
 		c.JSON(500, gin.H{"message": "internal error"})
@@ -354,12 +298,12 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificate
 			}
 		}
 	}
-	switch body.Category {
-	case RootCa:
-		if body.Kty == nil || len(*body.Kty) == 0 || *body.Kty == RSA {
-			p.kty = RSA
-			if body.Size == nil || *body.Size == 0 || *body.Size == N4096 {
-				p.size = N4096
+	switch body.Usage {
+	case body.Usage:
+		if body.Kty == nil || len(*body.Kty) == 0 || *body.Kty == KtyRSA {
+			p.kty = KtyRSA
+			if body.Size == nil || *body.Size == 0 || *body.Size == KeySize4096 {
+				p.size = KeySize4096
 			} else {
 				c.JSON(400, gin.H{"message": "Size not supported", "size": body.Size})
 				return
@@ -371,7 +315,7 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificate
 		if len(p.keyVaultKeyName) == 0 {
 			p.keyVaultKeyName = generateRandomHexSuffix("root-ca-")
 		}
-		certCreated, err := s.createCACertificate(c, p)
+		certCreated, err := s.createRootCACertificate(c, p)
 		if err != nil {
 			c.JSON(400, gin.H{"message": "Failed to create certificate", "error": err.Error()})
 			log.Printf("Failed to create cert: %s", err.Error())
@@ -379,64 +323,7 @@ func (s *adminServer) CreateCertificate(c *gin.Context, params CreateCertificate
 		}
 		c.JSON(201, &certCreated)
 	default:
-		c.JSON(400, gin.H{"message": "Category not supported", "category": body.Category})
+		c.JSON(400, gin.H{"message": "Usage not supported", "usage": body.Usage})
 		return
 	}
-}
-
-func (s *adminServer) DownloadCertificate(c *gin.Context, id uuid.UUID, params DownloadCertificateParams) {
-	db := s.config.AzCosmosContainerClient()
-	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(uuid.Nil.String()), id.String(), nil)
-	if err != nil {
-		log.Printf("Faild to get certificate metadata: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-	}
-	result := CertItem{}
-	err = json.Unmarshal(resp.Value, &result)
-	if err != nil {
-		log.Printf("Faild to unmarshall certificate metadata: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-	}
-	if len(result.CertStore) == 0 {
-		c.JSON(404, gin.H{"error": "not found"})
-		return
-	}
-
-	filename := "cert.pem"
-	contentType := "application/x-pem-file"
-	if params.Format != nil {
-		switch *params.Format {
-		case Der:
-			filename = "cert.der"
-			contentType = "application/x-x509-ca-cert"
-		default:
-		}
-	}
-
-	blobClient := s.config.GetAzBlobClient()
-
-	get, err := blobClient.DownloadStream(c, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", result.CertStore, filename), nil)
-	if err != nil {
-		log.Printf("Faild to get download stream for certificate: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
-	}
-
-	downloadedData := bytes.Buffer{}
-	retryReader := get.NewRetryReader(c, &azblob.RetryReaderOptions{})
-	_, err = downloadedData.ReadFrom(retryReader)
-	if err != nil {
-		log.Printf("Faild to get download stream for certificate: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
-	}
-
-	err = retryReader.Close()
-	if err != nil {
-		log.Printf("Faild to get download stream for certificate: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
-	}
-
-	c.Data(200, contentType, downloadedData.Bytes())
 }
