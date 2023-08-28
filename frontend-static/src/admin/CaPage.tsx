@@ -29,7 +29,34 @@ export default function AdminCaPage() {
             <ol
               className="divide-y divide-neutral-200"
               aria-labelledby={titleId}
-            ></ol>
+            >
+              {rootCaCerts.map((cert) => (
+                <li className="px-4 py-5 sm:p-6" key={cert.id}>
+                  <dl>
+                    <div className="flex gap-x-2">
+                      <dt className="text-sm font-medium">Common Name</dt>
+                      <dd>{cert.name}</dd>
+                    </div>
+                    <div className="flex gap-x-2">
+                      <dt className="text-sm font-medium">Expiry</dt>
+                      <dd>{cert.notAfter.toLocaleString()}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-1">
+                    <Link
+                      to={generatePath("/admin/cert/:namespaceId/:certId", {
+                        namespaceId:
+                          WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA,
+                        certId: cert.id,
+                      })}
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    >
+                      View details
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
           ) : (
             <div className="px-4 py-5 sm:p-6 text-neutral-600">
               No root CA found

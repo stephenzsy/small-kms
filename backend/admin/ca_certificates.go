@@ -21,6 +21,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/auth"
@@ -233,14 +235,14 @@ func (s *adminServer) createRootCACertificate(ctx context.Context, params create
 		return
 	}
 
-	blobKey := fmt.Sprintf("%s/%s", params.keyVaultKeyName, item.ID)
+	blobName := fmt.Sprintf("%s/%s.pem", params.keyVaultKeyName, item.ID)
 	// upload to blob storage
-	blobClient := s.config.GetAzBlobClient()
-	_, err = blobClient.UploadBuffer(ctx, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.der"), certBytes, nil)
-	if err != nil {
-		return
-	}
-	_, err = blobClient.UploadBuffer(ctx, s.config.GetAzBlobContainerName(), fmt.Sprintf("%s/%s", blobKey, "cert.pem"), caPEM.Bytes(), nil)
+	blobClient := s.config.AzBlobContainerClient()
+	_, err = blobClient.NewBlockBlobClient(blobName).UploadBuffer(ctx, caPEM.Bytes(), &blockblob.UploadBufferOptions{
+		HTTPHeaders: &blob.HTTPHeaders{
+			BlobContentType: to.Ptr("application/x-pem-file"),
+		},
+	})
 	if err != nil {
 		return
 	}
@@ -251,12 +253,12 @@ func (s *adminServer) createRootCACertificate(ctx context.Context, params create
 	}
 
 	patchCertDoc := azcosmos.PatchOperations{}
-	patchCertDoc.AppendSet("/certStore", blobKey)
+	patchCertDoc.AppendSet("/certStore", blobName)
 	patchCertDoc.AppendSet("/notAfter", parsed.NotAfter.UTC().Format(time.RFC3339))
 	if _, err = db.PatchItem(ctx, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
 		return
 	} else {
-		item.CertStore = blobKey
+		item.CertStore = blobName
 		item.NotAfter = parsed.NotAfter.UTC()
 	}
 	return

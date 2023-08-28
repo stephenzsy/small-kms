@@ -26,7 +26,7 @@ export default function Layout(props: PropsWithChildren<{}>) {
   }, [matches]);
 
   const isAdmin = useMemo(
-    () => !!authedAccount.idTokenClaims?.roles?.includes("App.Admin"),
+    () => !!authedAccount?.idTokenClaims?.roles?.includes("App.Admin"),
     [authedAccount]
   );
 

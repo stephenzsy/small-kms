@@ -1,5 +1,5 @@
 import { useCreation } from "ahooks";
-import { CertsApi, Configuration } from "../generated";
+import { BaseAPI, CertsApi, Configuration } from "../generated";
 import { useMsal } from "@azure/msal-react";
 import { IPublicClientApplication } from "@azure/msal-browser";
 
@@ -24,7 +24,9 @@ function getDevAuthHeaders(instance: IPublicClientApplication) {
   };
 }
 
-export function useCertsApi() {
+export function useAuthedClient<T extends BaseAPI>(ClientType: {
+  new (configuration: Configuration): T;
+}): T {
   const { instance } = useMsal();
 
   return useCreation(() => {
@@ -32,7 +34,7 @@ export function useCertsApi() {
       import.meta.env.VITE_USE_DEV_AUTH_HEADERS === "true"
         ? getDevAuthHeaders(instance)
         : undefined;
-    return new CertsApi(
+    return new ClientType(
       new Configuration({
         basePath: import.meta.env.VITE_API_BASE_PATH,
         accessToken: async () => {
@@ -45,4 +47,8 @@ export function useCertsApi() {
       })
     );
   }, [instance]);
+}
+
+export function useCertsApi() {
+  return useAuthedClient(CertsApi);
 }

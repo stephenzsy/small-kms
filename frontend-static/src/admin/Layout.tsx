@@ -6,7 +6,7 @@ export function AdminLayout(props: PropsWithChildren<{}>) {
   const authedAccount = accounts[0];
 
   const isAdmin = useMemo(
-    () => !!authedAccount.idTokenClaims?.roles?.includes("App.Admin"),
+    () => !!authedAccount?.idTokenClaims?.roles?.includes("App.Admin"),
     [authedAccount]
   );
 

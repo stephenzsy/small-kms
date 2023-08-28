@@ -1,12 +1,12 @@
 import {
-  PhotoIcon,
-  UserCircleIcon,
-  XCircleIcon,
+  XCircleIcon
 } from "@heroicons/react/24/solid";
 import { useBoolean, useRequest } from "ahooks";
-import { useEffect, useId, useMemo } from "react";
+import classNames from "classnames";
+import { useId, useMemo } from "react";
 import { useForm, type UseFormRegister } from "react-hook-form";
-import { redirect, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { NIL as uuidNil } from "uuid";
 import {
   CertificateUsage,
   CreateCertificateV1Request,
@@ -18,8 +18,6 @@ import {
   type BreadcrumbPageMetadata,
 } from "./AdminBreadcrumb";
 import { caBreadcrumPages } from "./CaPage";
-import { NIL as uuidNil } from "uuid";
-import classNames from "classnames";
 
 interface CreateReactFormInput {
   subjectCN: string;

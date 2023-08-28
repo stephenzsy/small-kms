@@ -7,6 +7,7 @@ import { AdminLayout } from "./admin/Layout";
 import AdminPage from "./admin/Page";
 import AdminCaPage from "./admin/CaPage";
 import CreateCertPage from "./admin/CreateCertPage";
+import CertViewPage from "./admin/CertViewPage";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
           { index: true, element: <AdminPage /> },
           { path: "ca", element: <AdminCaPage /> },
           { path: "cert/:namespaceId/new", element: <CreateCertPage /> },
+          { path: "cert/:namespaceId/:certId", element: <CertViewPage /> },
         ],
       },
     ],

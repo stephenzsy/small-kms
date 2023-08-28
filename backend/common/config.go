@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
@@ -23,7 +24,7 @@ const (
 type ServerConfig interface {
 	GetServerRole() ServerRole
 	GetAzKeysClient() *azkeys.Client
-	GetAzBlobClient() *azblob.Client
+	AzBlobContainerClient() *container.Client
 	GetAzBlobContainerName() string
 	AzCosmosContainerClient() *azcosmos.ContainerClient
 	IsPrincipalIdTrusted(principalId string) bool
@@ -41,6 +42,7 @@ type serverConfig struct {
 	azCredential            azcore.TokenCredential
 	azKeysClient            *azkeys.Client
 	azBlobClient            *azblob.Client
+	azBlobContainerClient   *container.Client
 	azCosmosClient          *azcosmos.Client
 	azCosmosDbClient        *azcosmos.DatabaseClient
 	azCosmosContainerClient *azcosmos.ContainerClient
@@ -56,8 +58,8 @@ func (c *serverConfig) GetAzKeysClient() *azkeys.Client {
 	return c.azKeysClient
 }
 
-func (c *serverConfig) GetAzBlobClient() *azblob.Client {
-	return c.azBlobClient
+func (c *serverConfig) AzBlobContainerClient() *container.Client {
+	return c.azBlobContainerClient
 }
 
 func (c *serverConfig) GetAzBlobContainerName() string {
@@ -120,6 +122,8 @@ func NewServerConfig() serverConfig {
 		log.Panicf("Failed to initialize blob client: %s", err.Error())
 	}
 	config.azBlobContainerName = mustGetenv("AZURE_BLOB_CONTAINER_NAME")
+	config.azBlobContainerClient = config.azBlobClient.ServiceClient().NewContainerClient(config.azBlobContainerName)
+
 	config.azCosmosEndpoint = mustGetenv("AZURE_COSMOS_ENDPOINT")
 	if config.azCosmosClient, err = azcosmos.NewClient(config.azCosmosEndpoint, config.azCredential, nil); err != nil {
 		log.Panicf("Failed to initialize cosmos client: %s", err.Error())
