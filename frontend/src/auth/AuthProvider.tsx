@@ -66,7 +66,9 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
     if (inProgress !== InteractionStatus.None) {
       return;
     }
-    accountRef.current;
+    if (!accountRef.current) {
+      acquireToken();
+    }
   }, [account, instance]);
   return (
     inProgress !== InteractionStatus.Startup && (
