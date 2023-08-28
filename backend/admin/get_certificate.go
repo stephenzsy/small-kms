@@ -3,11 +3,10 @@ package admin
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"encoding/pem"
 	"log"
+	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -37,22 +36,15 @@ func (s *adminServer) fetchCertificatePEMBlob(ctx context.Context, blobName stri
 }
 
 func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, id uuid.UUID, params GetCertificateV1Params) {
-	db := s.config.AzCosmosContainerClient()
-	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), id.String(), nil)
+	result, err := s.readCertDBItem(c, namespaceID, id)
 	if err != nil {
 		log.Printf("Faild to get certificate metadata: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	result := CertDBItem{}
-	err = json.Unmarshal(resp.Value, &result)
-	if err != nil {
-		log.Printf("Faild to unmarshall certificate metadata: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
-	}
-	if len(result.CertStore) == 0 {
-		c.JSON(404, gin.H{"error": "not found"})
+	if result.ID == uuid.Nil {
+		log.Printf("Faild to get certificate metadata: %s", err.Error())
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
 
@@ -66,6 +58,11 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, 
 
 	if accept == AcceptJson {
 		c.JSON(200, result.CertificateRef)
+		return
+	}
+
+	if len(result.CertStore) == 0 {
+		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
 

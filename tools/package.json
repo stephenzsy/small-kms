@@ -8,7 +8,7 @@
     "@openapitools/openapi-generator-cli": "^2.7.0"
   },
   "scripts": {
-    "genclient": "openapi-generator-cli generate -i ../backend/swagger.yaml -g typescript-fetch -o ../frontend-static/src/generated",
+    "genclient": "openapi-generator-cli generate -i ../backend/swagger.yaml -g typescript-fetch -o ../frontend/src/generated",
     "gencli": "openapi-generator-cli"
   }
 }

@@ -1,13 +1,13 @@
 import { useMsal } from "@azure/msal-react";
 import { useMemo, type PropsWithChildren } from "react";
+import { useAppAuthContext } from "../auth/AuthProvider";
 
 export function AdminLayout(props: PropsWithChildren<{}>) {
-  const { accounts } = useMsal();
-  const authedAccount = accounts[0];
+  const { account } = useAppAuthContext();
 
   const isAdmin = useMemo(
-    () => !!authedAccount?.idTokenClaims?.roles?.includes("App.Admin"),
-    [authedAccount]
+    () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
+    [account]
   );
 
   if (!isAdmin) {
@@ -21,5 +21,7 @@ export function AdminLayout(props: PropsWithChildren<{}>) {
       </main>
     );
   }
-  return <main className="p-6 max-w-7xl mx-auto space-y-6">{props.children}</main>;
+  return (
+    <main className="p-6 max-w-7xl mx-auto space-y-6">{props.children}</main>
+  );
 }
