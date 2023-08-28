@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,14 +29,17 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	p := msClientPrincipal{}
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
 	if len(encodedPrincipal) == 0 {
+		log.Println("No X-Ms-Client-Principal header found")
 		goto SkipClaims
 	}
 	decodedClaims, err = base64.StdEncoding.DecodeString(encodedPrincipal)
 	if err != nil {
+		log.Println("Error decoding X-Ms-Client-Principal header")
 		goto SkipClaims
 	}
 	err = json.Unmarshal(decodedClaims, &p)
 	if err != nil {
+		log.Printf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
 		goto SkipClaims
 	}
 	for _, c := range p.Claims {
