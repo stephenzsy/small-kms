@@ -32,9 +32,6 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 		log.Println("No X-Ms-Client-Principal header found")
 		goto SkipClaims
 	}
-	log.Printf("X-Ms-Client-Principal header: %s", encodedPrincipal)
-	log.Println("No X-Ms-Client-Principal header found")
-
 	decodedClaims, err = base64.StdEncoding.DecodeString(encodedPrincipal)
 	if err != nil {
 		log.Println("Error decoding X-Ms-Client-Principal header")
@@ -46,7 +43,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 		goto SkipClaims
 	}
 	for _, c := range p.Claims {
-		if c.Type == "role" && c.Value == "App.Admin" {
+		if c.Type == "roles" && c.Value == "App.Admin" {
 			ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), HasAdminAppRoleContextKey, true))
 		}
 	}

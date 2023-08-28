@@ -26,9 +26,9 @@ func main() {
 	serverConfig := common.NewServerConfig()
 	log.Printf("Server role: %s", serverConfig.GetServerRole())
 	router := gin.Default()
+	router.Use(auth.HandleAadAuthMiddleware)
 
 	if os.Getenv("ENABLE_CORS") == "true" {
-		router.Use(auth.HandleAadAuthMiddleware)
 		corsConfig := cors.DefaultConfig()
 		corsConfig.AllowAllOrigins = true
 		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders,
