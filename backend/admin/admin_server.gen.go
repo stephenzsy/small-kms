@@ -48,10 +48,9 @@ const (
 const (
 	WellKnownNamespaceIDStrCertsInfra   WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000010"
 	WellKnownNamespaceIDStrCertsService WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000011"
+	WellKnownNamespaceIDStrIntCAClient  WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000012"
 	WellKnownNamespaceIDStrIntCAInfra   WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000010"
-	WellKnownNamespaceIDStrIntCARadius  WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000001"
 	WellKnownNamespaceIDStrIntCAService WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000011"
-	WellKnownNamespaceIDStrIntCAVpn     WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000002"
 	WellKnownNamespaceIDStrRootCA       WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000001"
 )
 

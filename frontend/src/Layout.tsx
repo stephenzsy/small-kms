@@ -1,21 +1,14 @@
-import { useMsal } from "@azure/msal-react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import type { PropsWithChildren } from "react";
-import { Fragment, useMemo, useLayoutEffect } from "react";
+import { Fragment, useMemo } from "react";
 import { Link, useMatches } from "react-router-dom";
+import { useAppAuthContext } from "./auth/AuthProvider";
 import { RouteIds } from "./route-constants";
 
 export default function Layout(props: PropsWithChildren<{}>) {
-  const { accounts, instance } = useMsal();
-  const isAuthenticated = accounts.length > 0;
-  const authedAccount = accounts[0];
-  useLayoutEffect(() => {
-    if (authedAccount) {
-      instance.setActiveAccount(authedAccount);
-    }
-  }, [authedAccount]);
+  const { account, logout } = useAppAuthContext();
   const matches = useMatches();
   const isCurrentRouteHome = useMemo(() => {
     return matches.some((match) => match.id === RouteIds.home);
@@ -26,29 +19,17 @@ export default function Layout(props: PropsWithChildren<{}>) {
   }, [matches]);
 
   const isAdmin = useMemo(
-    () => !!authedAccount?.idTokenClaims?.roles?.includes("App.Admin"),
-    [authedAccount]
+    () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
+    [account]
   );
 
-  if (!isAuthenticated) {
+  if (!account) {
     return (
       <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
         <div className="text-center">
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Log in to continue
+            Loading...
           </h1>
-
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <button
-              type="button"
-              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={() => {
-                instance.loginRedirect();
-              }}
-            >
-              Login with Azure Active Directory
-            </button>
-          </div>
         </div>
       </main>
     );
@@ -115,7 +96,7 @@ export default function Layout(props: PropsWithChildren<{}>) {
                           <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-white">
                             <span className="absolute -inset-1.5" />
                             <span className="sr-only">Open user menu</span>
-                            <span>{authedAccount.username}</span>
+                            <span>{account.username}</span>
                           </Menu.Button>
                         </div>
                         <Transition
@@ -132,9 +113,7 @@ export default function Layout(props: PropsWithChildren<{}>) {
                               {({ active }) => (
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    instance.logoutRedirect();
-                                  }}
+                                  onClick={logout}
                                   className={classNames(
                                     active ? "bg-gray-100" : "",
                                     "block px-4 py-2 text-sm text-gray-700"
@@ -204,18 +183,16 @@ export default function Layout(props: PropsWithChildren<{}>) {
                 <div className="border-t border-gray-700 pb-3 pt-4">
                   <div className="px-5">
                     <div className="text-base font-medium leading-none text-white">
-                      {authedAccount.name}
+                      {account.name}
                     </div>
                     <div className="text-sm mt-4 font-medium leading-none text-gray-400">
-                      {authedAccount.username}
+                      {account.username}
                     </div>
                   </div>
                   <div className="mt-3 space-y-1 px-2">
                     <Disclosure.Button
                       as="button"
-                      onClick={() => {
-                        instance.logoutRedirect();
-                      }}
+                      onClick={logout}
                       className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
                     >
                       Log out

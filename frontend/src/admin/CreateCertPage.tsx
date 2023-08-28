@@ -1,13 +1,12 @@
-import {
-  XCircleIcon
-} from "@heroicons/react/24/solid";
+import { XCircleIcon } from "@heroicons/react/24/solid";
 import { useBoolean, useRequest } from "ahooks";
 import classNames from "classnames";
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState, useEffect } from "react";
 import { useForm, type UseFormRegister } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { NIL as uuidNil } from "uuid";
 import {
+  CertificateRef,
   CertificateUsage,
   CreateCertificateV1Request,
   WellKnownNamespaceId,
@@ -18,6 +17,8 @@ import {
   type BreadcrumbPageMetadata,
 } from "./AdminBreadcrumb";
 import { caBreadcrumPages } from "./CaPage";
+import SelectCA from "./SelectCA";
+import { useCaList } from "./useCaList";
 
 interface CreateReactFormInput {
   subjectCN: string;
@@ -69,6 +70,14 @@ function TextInputField({
   );
 }
 
+const titleDisplayNames: Partial<Record<WellKnownNamespaceId, string>> = {
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA]: "Create root CA",
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
+    "Create services intermediate CA",
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
+    "Create clients intermediate CA",
+};
+
 export default function CreateCertPage() {
   const titleId = useId();
   const client = useCertsApi();
@@ -88,7 +97,7 @@ export default function CreateCertPage() {
   const breadcrumPages: BreadcrumbPageMetadata[] = useMemo(() => {
     switch (namespaceId) {
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
-        return [...caBreadcrumPages, { name: "Create root CA", to: "#" }];
+        return [...caBreadcrumPages, { name: "Create certificate", to: "#" }];
     }
     return [{ name: "Create certificate", to: "#" }];
   }, [namespaceId]);
@@ -96,15 +105,42 @@ export default function CreateCertPage() {
   const [formInvalid, { setTrue: setFormInvalid, setFalse: clearFormInvalid }] =
     useBoolean(false);
 
+  const usage =
+    namespaceId === WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA
+      ? CertificateUsage.Usage_RootCA
+      : CertificateUsage.Usage_IntCA;
+
+  const caNamespace = useMemo(() => {
+    switch (usage) {
+      case CertificateUsage.Usage_IntCA:
+        return WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA;
+    }
+    return undefined;
+  }, [namespaceId]);
+
+  const { data: caCerts } = useCaList(client, caNamespace);
+  const [selectedCa, setSelectedCA] = useState<CertificateRef | null>(null);
+
+  useEffect(() => {
+    setSelectedCA(caCerts?.[0] ?? null);
+  }, [caCerts]);
+
   const onSubmit = async (data: CreateReactFormInput) => {
+    if (
+      namespaceId !== WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA &&
+      !selectedCa
+    ) {
+      setFormInvalid();
+      return;
+    }
     clearFormInvalid();
     try {
       const result = await createCertAsync({
         namespaceId: namespaceId!,
         createCertificateParameters: {
-          usage: CertificateUsage.Usage_RootCA,
-          issuerNamespace: namespaceId!,
-          issuer: uuidNil,
+          usage: usage,
+          issuerNamespace: selectedCa?.namespaceId ?? uuidNil,
+          issuer: selectedCa?.id ?? uuidNil,
           subject: {
             cn: data.subjectCN,
             ou: data.subjectOU,
@@ -119,6 +155,7 @@ export default function CreateCertPage() {
       // do nothing in onSubmit handler
     }
   };
+
   return (
     <>
       <AdminBreadcrumb pages={breadcrumPages} />
@@ -127,12 +164,21 @@ export default function CreateCertPage() {
         onSubmit={handleSubmit(onSubmit, setFormInvalid)}
       >
         <h1 id={titleId} className="px-4 py-5 sm:px-6 text-lg font-semibold">
-          {namespaceId === WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA
-            ? "Create root CA"
-            : "Create certificate"}
+          {titleDisplayNames[namespaceId as WellKnownNamespaceId] ??
+            "Create certificate"}
         </h1>
 
         <div className="px-4 py-5 sm:p-6 space-y-12 [&>*+*]:border-t [&>*+*]:pt-6">
+          {namespaceId !==
+            WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA && (
+            <div className="border-neutral-900/10 space-y-6">
+              <SelectCA
+                caCerts={caCerts}
+                selected={selectedCa}
+                onSelect={setSelectedCA}
+              />
+            </div>
+          )}
           <div className="border-neutral-900/10 space-y-6">
             <h2 className="text-base font-semibold leading-7 text-gray-900">
               Subject

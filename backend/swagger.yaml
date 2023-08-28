@@ -241,19 +241,17 @@ components:
     WellKnownNamespaceId:
       type: string
       enum:
-        - 00000000-0000-0000-0000-000000000001
-        - 00000000-0000-0000-0000-000000000010
-        - 00000000-0000-0000-0000-000000000011
-        - 00000000-0000-0000-0000-100000000001
-        - 00000000-0000-0000-0000-100000000002
-        - 00000000-0000-0000-0001-000000000010
-        - 00000000-0000-0000-0001-000000000011
+        - 00000000-0000-0000-0000-000000000001 # root-ca
+        - 00000000-0000-0000-0000-000000000010 # int-ca infrastructure
+        - 00000000-0000-0000-0000-000000000011 # int-ca internal service
+        - 00000000-0000-0000-0000-000000000012 # int-ca end-user client (shorter expiration 1yr)
+        - 00000000-0000-0000-0001-000000000010 # certs infrastructure
+        - 00000000-0000-0000-0001-000000000011 # certs internal service
       x-enum-varnames:
         - WellKnownNamespaceIDStr_RootCA
         - WellKnownNamespaceIDStr_IntCAInfra
         - WellKnownNamespaceIDStr_IntCAService
-        - WellKnownNamespaceIDStr_IntCARadius
-        - WellKnownNamespaceIDStr_IntCAVpn
+        - WellKnownNamespaceIDStr_IntCAClient
         - WellKnownNamespaceIDStr_CertsInfra
         - WellKnownNamespaceIDStr_CertsService
       x-go-name: WellKnownNamespaceIDStr
