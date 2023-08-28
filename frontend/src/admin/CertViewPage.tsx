@@ -1,6 +1,6 @@
 import { useRequest } from "ahooks";
-import { useEffect, useMemo, type PropsWithChildren, useState } from "react";
-import { Link, generatePath, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { useParams } from "react-router-dom";
 import {
   CertificateRef,
   GetCertificateV1AcceptEnum,
@@ -9,7 +9,6 @@ import {
 import { CertsDownloadApi } from "../utils/CertsDownloadApi";
 import { useAuthedClient, useCertsApi } from "../utils/useCertsApi";
 import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
-import classNames from "classnames";
 
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
@@ -82,9 +81,9 @@ export default function CertViewPage() {
   const breadcrumPages: BreadcrumbPageMetadata[] = useMemo(() => {
     switch (namespaceId) {
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
-        return [...caBreadcrumPages, { name: "Create root CA", to: "#" }];
+        return [...caBreadcrumPages, { name: "View Certificate", to: "#" }];
     }
-    return [{ name: "Create certificate", to: "#" }];
+    return [{ name: "View Certificate", to: "#" }];
   }, [namespaceId]);
 
   return (
