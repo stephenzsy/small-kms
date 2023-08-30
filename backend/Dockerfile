@@ -24,7 +24,5 @@ COPY --from=builder /app/server /server
 
 EXPOSE 9000/TCP
 
-ENTRYPOINT [ "/server" ]
-
 # Run
-CMD ["/server"]
+CMD ["/server", "admin", ":9000"]
