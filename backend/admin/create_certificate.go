@@ -44,7 +44,7 @@ func (s *adminServer) validateCreateCertificateOptions(c context.Context, out *c
 			if p.IssuerNamespace != wellKnownNamespaceID_RootCA {
 				return fmt.Errorf("invalid issuer namespace for intermediate ca: %s", p.IssuerNamespace.String())
 			}
-			out.issuer, err = s.readCertDBItem(c, p.IssuerNamespace, p.Issuer)
+			out.issuer, err = s.ReadCertDBItem(c, p.IssuerNamespace, p.Issuer)
 			if err != nil || out.issuer.ID == uuid.Nil {
 				return fmt.Errorf("invalid issuer: %s/%s", p.IssuerNamespace.String(), p.Issuer.String())
 			}

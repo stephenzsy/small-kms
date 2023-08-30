@@ -43,6 +43,8 @@ export const AppAuthContext = createContext<IAppAuthContext>({
   acquireToken: () => Promise.resolve(undefined),
 });
 
+const redirectUri = window.location.protocol + "//" + window.location.host;
+
 function AuthContextProvider({ children }: PropsWithChildren<{}>) {
   const { instance, inProgress, accounts } = useMsal();
   const account = useAccount(accounts[0] || {}) ?? undefined;
@@ -60,6 +62,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
           })
         : instance.loginRedirect({
             scopes: [import.meta.env.VITE_API_SCOPE],
+            redirectUri,
           });
     }
   );
@@ -68,7 +71,12 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       return;
     }
     if (!accountRef.current) {
-      acquireToken();
+      const t = setTimeout(() => {
+        if (!accountRef.current) {
+          acquireToken();
+        }
+      }, 5000);
+      return () => clearTimeout(t);
     }
   }, [account, inProgress]);
   return (

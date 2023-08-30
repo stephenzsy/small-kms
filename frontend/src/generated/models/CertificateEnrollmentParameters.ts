@@ -31,12 +31,6 @@ export interface CertificateEnrollmentParameters {
      * @type {string}
      * @memberof CertificateEnrollmentParameters
      */
-    issuerNamespace: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateEnrollmentParameters
-     */
     issuerId: string;
     /**
      * RFC3339 duration string
@@ -63,7 +57,6 @@ export interface CertificateEnrollmentParameters {
  */
 export function instanceOfCertificateEnrollmentParameters(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "issuerNamespace" in value;
     isInstance = isInstance && "issuerId" in value;
     isInstance = isInstance && "validity" in value;
     isInstance = isInstance && "keyParameters" in value;
@@ -81,7 +74,6 @@ export function CertificateEnrollmentParametersFromJSONTyped(json: any, ignoreDi
     }
     return {
         
-        'issuerNamespace': json['issuerNamespace'],
         'issuerId': json['issuerId'],
         'validity': json['validity'],
         'keyParameters': KeyParametersFromJSON(json['keyParameters']),
@@ -98,7 +90,6 @@ export function CertificateEnrollmentParametersToJSON(value?: CertificateEnrollm
     }
     return {
         
-        'issuerNamespace': value.issuerNamespace,
         'issuerId': value.issuerId,
         'validity': value.validity,
         'keyParameters': KeyParametersToJSON(value.keyParameters),

@@ -292,8 +292,8 @@ components:
           format: uuid
           x-go-name: NamespaceID
         id:
-          $ref: "#/components/schemas/PolicyId"
           x-go-name: ID
+          $ref: "#/components/schemas/PolicyId"
         updatedBy:
           description: Unique ID of the user who created the policy
           type: string
@@ -309,12 +309,10 @@ components:
     CertificateEnrollmentParameters:
       type: object
       properties:
-        issuerNamespace:
-          type: string
-          format: uuid
         issuerId:
           type: string
           format: uuid
+          x-go-name: IssuerID
         validity:
           description: RFC3339 duration string
           type: string
@@ -324,7 +322,6 @@ components:
         delegatedService:
           type: string
       required:
-        - issuerNamespace
         - issuerId
         - validity
         - keyParameters

@@ -61,12 +61,6 @@ export interface CertificateEnrollmentPolicy {
      * @type {string}
      * @memberof CertificateEnrollmentPolicy
      */
-    issuerNamespace: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateEnrollmentPolicy
-     */
     issuerId: string;
     /**
      * RFC3339 duration string
@@ -97,7 +91,6 @@ export function instanceOfCertificateEnrollmentPolicy(value: object): boolean {
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updatedAt" in value;
-    isInstance = isInstance && "issuerNamespace" in value;
     isInstance = isInstance && "issuerId" in value;
     isInstance = isInstance && "validity" in value;
     isInstance = isInstance && "keyParameters" in value;
@@ -119,7 +112,6 @@ export function CertificateEnrollmentPolicyFromJSONTyped(json: any, ignoreDiscri
         'id': PolicyIdFromJSON(json['id']),
         'updatedBy': json['updatedBy'],
         'updatedAt': (new Date(json['updatedAt'])),
-        'issuerNamespace': json['issuerNamespace'],
         'issuerId': json['issuerId'],
         'validity': json['validity'],
         'keyParameters': KeyParametersFromJSON(json['keyParameters']),
@@ -140,7 +132,6 @@ export function CertificateEnrollmentPolicyToJSON(value?: CertificateEnrollmentP
         'id': PolicyIdToJSON(value.id),
         'updatedBy': value.updatedBy,
         'updatedAt': (value.updatedAt.toISOString()),
-        'issuerNamespace': value.issuerNamespace,
         'issuerId': value.issuerId,
         'validity': value.validity,
         'keyParameters': KeyParametersToJSON(value.keyParameters),

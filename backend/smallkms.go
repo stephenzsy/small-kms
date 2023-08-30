@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
+	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 			corsConfig.AllowCredentials = true
 			router.Use(cors.New(corsConfig))
 		}
+		router.Use(auth.HandleAadAuthMiddleware)
 		admin.RegisterHandlers(router, admin.NewAdminServer())
 	case "scep":
 	}

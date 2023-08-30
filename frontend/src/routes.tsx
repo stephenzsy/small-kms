@@ -8,6 +8,7 @@ import AdminPage from "./admin/Page";
 import AdminCaPage from "./admin/CaPage";
 import CreateCertPage from "./admin/CreateCertPage";
 import CertViewPage from "./admin/CertViewPage";
+import PolicyPage from "./admin/PolicyPage";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { path: "ca", element: <AdminCaPage /> },
           { path: "cert/:namespaceId/new", element: <CreateCertPage /> },
           { path: "cert/:namespaceId/:certId", element: <CertViewPage /> },
+          { path: "policy/:namespaceId/:policyId", element: <PolicyPage /> },
         ],
       },
     ],

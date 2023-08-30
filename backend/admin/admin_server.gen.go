@@ -75,8 +75,7 @@ const (
 // CertificateEnrollmentParameters defines model for CertificateEnrollmentParameters.
 type CertificateEnrollmentParameters struct {
 	DelegatedService *string            `json:"delegatedService,omitempty"`
-	IssuerId         openapi_types.UUID `json:"issuerId"`
-	IssuerNamespace  openapi_types.UUID `json:"issuerNamespace"`
+	IssuerID         openapi_types.UUID `json:"issuerId"`
 	KeyParameters    KeyParameters      `json:"keyParameters"`
 
 	// Validity RFC3339 duration string
@@ -87,8 +86,7 @@ type CertificateEnrollmentParameters struct {
 type CertificateEnrollmentPolicy struct {
 	DelegatedService *string            `json:"delegatedService,omitempty"`
 	PolicyID         PolicyID           `json:"id"`
-	IssuerId         openapi_types.UUID `json:"issuerId"`
-	IssuerNamespace  openapi_types.UUID `json:"issuerNamespace"`
+	IssuerID         openapi_types.UUID `json:"issuerId"`
 	KeyParameters    KeyParameters      `json:"keyParameters"`
 
 	// NamespaceId Unique ID of the namespace

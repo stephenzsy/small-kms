@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
 func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error) {
@@ -36,7 +35,7 @@ func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName stri
 }
 
 func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, id uuid.UUID, params GetCertificateV1Params) {
-	result, err := s.readCertDBItem(c, namespaceID, id)
+	result, err := s.ReadCertDBItem(c, namespaceID, id)
 	if err != nil {
 		log.Printf("Faild to get certificate metadata: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
@@ -80,9 +79,6 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, 
 			log.Printf("Faild to decode certificate blob stored")
 			c.JSON(500, gin.H{"error": "internal error"})
 			return
-		}
-		if auth.CallerHasScepAppRole(c) {
-			c.Header("X-Keyvault-Kid", result.KeyStore)
 		}
 		c.Data(200, "application/x-x509-ca-cert", block.Bytes)
 	default:
