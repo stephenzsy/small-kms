@@ -11,8 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *adminServer) listCertItems(ctx context.Context, namespaceID uuid.UUID) (results []CertDBItem, err error) {
-	db := s.config.AzCosmosContainerClient()
+func (s *adminServer) ListCertItems(ctx context.Context, namespaceID uuid.UUID) (results []CertDBItem, err error) {
+	db := s.azCosmosContainerClientCerts
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	pager := db.NewQueryItemsPager(`SELECT * FROM c
 		WHERE c.namespaceId = @namespaceId
@@ -42,7 +42,7 @@ func (s *adminServer) listCertItems(ctx context.Context, namespaceID uuid.UUID) 
 }
 
 func (s *adminServer) ListCertificatesV1(c *gin.Context, namespaceId uuid.UUID) {
-	items, err := s.listCertItems(c, namespaceId)
+	items, err := s.ListCertItems(c, namespaceId)
 	if err != nil {
 		log.Printf("Faild to get list of certificates: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})

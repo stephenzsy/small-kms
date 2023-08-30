@@ -19,7 +19,7 @@ type CertDBItem struct {
 
 func (s *adminServer) findLatestCertificate(ctx context.Context, namespaceID NamespaceID, name string) (result CertDBItem, err error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
-	db := s.config.AzCosmosContainerClient()
+	db := s.azCosmosContainerClientCerts
 	pager := db.NewQueryItemsPager(`
 SELECT TOP 1
 	*
@@ -44,7 +44,7 @@ ORDER BY c.notAfter DESC`,
 
 // returns result with nil id if not found
 func (s *adminServer) readCertDBItem(c context.Context, namespaceID NamespaceID, id uuid.UUID) (result CertDBItem, err error) {
-	db := s.config.AzCosmosContainerClient()
+	db := s.azCosmosContainerClientCerts
 	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), id.String(), nil)
 	if err != nil {
 		var respErr *azcore.ResponseError

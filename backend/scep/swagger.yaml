@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: Small KMS SCEP Server API, (RFC 8894)
+  version: 0.1.0
+servers:
+  - url: http://localhost:9002
+    description: Local server
+paths:
+  /scep:
+    post:
+      tags:
+        - scep
+      summary: SCEP POST Handler
+      operationId: ScepPost
+      parameters:
+        - in: query
+          name: operation
+          required: true
+          schema:
+            type: string
+            enum:
+              - PKIOperation
+      requestBody:
+        content:
+          application/x-pki-message:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: SCEP Response
+          content:
+            text/plain:
+              schema:
+                type: string
+    get:
+      tags:
+        - scep
+      summary: SCEP GET handler
+      operationId: ScepGet
+      parameters:
+        - in: query
+          name: operation
+          required: true
+          schema:
+            type: string
+            enum:
+              - GetCACaps
+              - GetCaCert
+      responses:
+        "200":
+          description: SCEP GET response
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/x-x509-ca-cert:
+              schema:
+                type: string
+                format: binary

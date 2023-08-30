@@ -1,11 +1,17 @@
 apis/CertsApi.ts
+apis/PolicyApi.ts
 apis/index.ts
 index.ts
+models/CertificateEnrollmentParameters.ts
+models/CertificateEnrollmentPolicy.ts
 models/CertificateRef.ts
 models/CertificateSubject.ts
 models/CertificateUsage.ts
 models/CreateCertificateOptions.ts
 models/CreateCertificateParameters.ts
+models/KeyParameters.ts
+models/PolicyId.ts
+models/PolicyRef.ts
 models/WellKnownNamespaceId.ts
 models/index.ts
 runtime.ts

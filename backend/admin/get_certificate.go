@@ -10,11 +10,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
-func (s *adminServer) fetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error) {
-	blobClient := s.config.AzBlobContainerClient()
-
+func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error) {
+	blobClient := s.azBlobContainerClient
 	get, err := blobClient.NewBlobClient(blobName).DownloadStream(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, 
 		return
 	}
 
-	pemBlob, err := s.fetchCertificatePEMBlob(c, result.CertStore)
+	pemBlob, err := s.FetchCertificatePEMBlob(c, result.CertStore)
 	if err != nil {
 		log.Printf("Faild to fetch certificate blob: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
@@ -80,6 +80,9 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, 
 			log.Printf("Faild to decode certificate blob stored")
 			c.JSON(500, gin.H{"error": "internal error"})
 			return
+		}
+		if auth.CallerHasScepAppRole(c) {
+			c.Header("X-Keyvault-Kid", result.KeyStore)
 		}
 		c.Data(200, "application/x-x509-ca-cert", block.Bytes)
 	default:

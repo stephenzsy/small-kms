@@ -73,9 +73,9 @@ function TextInputField({
 const titleDisplayNames: Partial<Record<WellKnownNamespaceId, string>> = {
   [WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA]: "Create root CA",
   [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
-    "Create services intermediate CA",
-  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
-    "Create clients intermediate CA",
+    "Create intermediate CA - Services",
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet]:
+    "Create intermediate CA - SCEP Intranet",
 };
 
 export default function CreateCertPage() {
@@ -97,7 +97,12 @@ export default function CreateCertPage() {
   const breadcrumPages: BreadcrumbPageMetadata[] = useMemo(() => {
     switch (namespaceId) {
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
-        return [...caBreadcrumPages, { name: "Create certificate", to: "#" }];
+      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService:
+      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet:
+        return [
+          ...caBreadcrumPages,
+          { name: "Create certificate authority", to: "#" },
+        ];
     }
     return [{ name: "Create certificate", to: "#" }];
   }, [namespaceId]);
@@ -149,7 +154,6 @@ export default function CreateCertPage() {
           },
         },
       });
-      console.log(result);
       navigate("/admin/ca", { replace: true });
     } catch {
       // do nothing in onSubmit handler

@@ -130,15 +130,15 @@ export default function AdminCaPage() {
         certsApi={client}
         manageEnabled={manageEnabled}
         namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService}
-        title="Services intermediate CA"
-        createButtonLabel="Create services intermediate CA"
-      />{" "}
+        title="Intermediate CA - Services"
+        createButtonLabel="Create intermediate CA"
+      />
       <CaSection
         certsApi={client}
         manageEnabled={manageEnabled}
-        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAClient}
-        title="Clients intermediate CA"
-        createButtonLabel="Create client sintermediate CA"
+        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet}
+        title="Intermediate CA - SCEP Intranet"
+        createButtonLabel="Create intermediate CA"
       />
     </>
   );

@@ -15,36 +15,41 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
-	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 func main() {
+	if len(os.Args) < 3 {
+		log.Println("Usage: smallkms <role> <listenerAddress>")
+		os.Exit(1)
+	}
+
 	log.Println("Server started")
-
-	serverConfig := common.NewServerConfig()
-	log.Printf("Server role: %s", serverConfig.GetServerRole())
-	router := gin.Default()
-	router.Use(auth.HandleAadAuthMiddleware)
-
-	if os.Getenv("ENABLE_CORS") == "true" {
-		corsConfig := cors.DefaultConfig()
-		corsConfig.AllowAllOrigins = true
-		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders,
-			"Authorization", "X-Ms-Client-Principal", "X-Ms-Client-Principal-Name", "X-Ms-Client-Principal-Id")
-		corsConfig.AllowCredentials = true
-		router.Use(cors.New(corsConfig))
+	if len(os.Args) > 3 {
+		godotenv.Load(os.Args[3])
 	}
-
-	switch serverConfig.GetServerRole() {
-	case common.ServerRoleAdmin:
-		admin.RegisterHandlers(router, admin.NewAdminServer(&serverConfig))
-	}
-
-	listenerAddress := os.Getenv("LISTENER_ADDRESS")
+	role := os.Args[1]
+	listenerAddress := os.Args[2]
 	if len(listenerAddress) == 0 {
-		listenerAddress = ":9000"
+		log.Println("listernerAddress is required")
+		os.Exit(1)
+	}
+
+	router := gin.Default()
+
+	switch role {
+	case "admin":
+		if os.Getenv("ENABLE_CORS") == "true" {
+			corsConfig := cors.DefaultConfig()
+			corsConfig.AllowAllOrigins = true
+			corsConfig.AllowHeaders = append(corsConfig.AllowHeaders,
+				"Authorization", "X-Ms-Client-Principal", "X-Ms-Client-Principal-Name", "X-Ms-Client-Principal-Id")
+			corsConfig.AllowCredentials = true
+			router.Use(cors.New(corsConfig))
+		}
+		admin.RegisterHandlers(router, admin.NewAdminServer())
+	case "scep":
 	}
 
 	log.Fatal(router.Run(listenerAddress))

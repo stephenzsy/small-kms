@@ -21,6 +21,7 @@ type msClientPrincipal struct {
 type ContextKey string
 
 const HasAdminAppRoleContextKey ContextKey = "HasAdminAppRole"
+const HasScepAppRoleContextKey ContextKey = "HasScepAppRole"
 
 func HandleAadAuthMiddleware(ctx *gin.Context) {
 	// Intercept the headers here
@@ -45,6 +46,8 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	for _, c := range p.Claims {
 		if c.Type == "roles" && c.Value == "App.Admin" {
 			ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), HasAdminAppRoleContextKey, true))
+		} else if c.Type == "roles" && c.Value == "App.Scep" {
+			ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), HasScepAppRoleContextKey, true))
 		}
 	}
 
@@ -52,8 +55,12 @@ SkipClaims:
 	ctx.Next()
 }
 
-func HasAdminAppRole(ctx *gin.Context) bool {
+func CallerHasAdminAppRole(ctx *gin.Context) bool {
 	return ctx.Request.Context().Value(HasAdminAppRoleContextKey) == true
+}
+
+func CallerHasScepAppRole(ctx *gin.Context) bool {
+	return ctx.Request.Context().Value(HasScepAppRoleContextKey) == true
 }
 
 func GetCallerID(ctx *gin.Context) string {

@@ -21,7 +21,7 @@ export const WellKnownNamespaceId = {
     WellKnownNamespaceIDStr_RootCA: '00000000-0000-0000-0000-000000000001',
     WellKnownNamespaceIDStr_IntCAInfra: '00000000-0000-0000-0000-000000000010',
     WellKnownNamespaceIDStr_IntCAService: '00000000-0000-0000-0000-000000000011',
-    WellKnownNamespaceIDStr_IntCAClient: '00000000-0000-0000-0000-000000000012',
+    WellKnownNamespaceIDStr_IntCASCEPIntranet: '00000000-0000-0000-0000-100000000001',
     WellKnownNamespaceIDStr_CertsInfra: '00000000-0000-0000-0001-000000000010',
     WellKnownNamespaceIDStr_CertsService: '00000000-0000-0000-0001-000000000011'
 } as const;

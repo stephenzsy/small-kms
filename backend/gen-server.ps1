@@ -1,1 +1,2 @@
- oapi-codegen.exe --package admin -generate types,gin-server,skip-prune ./swagger.yaml  > admin/admin_server.gen.go
+ oapi-codegen.exe --package admin -generate types,gin-server,skip-prune,client ./swagger.yaml  > admin/admin_server.gen.go
+ oapi-codegen.exe --package scep -generate types,gin-server,skip-prune ./scep/swagger.yaml  > scep/scep_server.gen.go

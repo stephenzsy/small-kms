@@ -53,7 +53,7 @@ func toPublicRSA(key *azkeys.JSONWebKey) (*rsa.PublicKey, error) {
 func (s *adminServer) createCACertificate(ctx context.Context, p createCertificateInternalParameters) (item CertDBItem, err error) {
 
 	// create entry
-	db := s.config.AzCosmosContainerClient()
+	db := s.azCosmosContainerClientCerts
 	certId := uuid.New()
 	item.CertificateRef = CertificateRef{
 		ID:              certId,
@@ -79,10 +79,9 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	log.Printf("Created certificate record: %s", item.ID.String())
 
 	// first create new version of key in keyvault
-	keysClient := s.config.GetAzKeysClient()
 	var webKey *azkeys.JSONWebKey
 	if len(p.keyVaultKeyVersion) != 0 {
-		keyResp, err := keysClient.GetKey(ctx, p.keyVaultKeyName, p.keyVaultKeyVersion, nil)
+		keyResp, err := s.azKeysClient.GetKey(ctx, p.keyVaultKeyName, p.keyVaultKeyVersion, nil)
 		if err != nil {
 			log.Printf("Error getting key: %s", err.Error())
 			return item, err
@@ -102,7 +101,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 				ckp.KeySize = to.Ptr(int32(2048))
 			}
 		}
-		keyResp, err := keysClient.CreateKey(ctx, p.keyVaultKeyName, ckp, nil)
+		keyResp, err := s.azKeysClient.CreateKey(ctx, p.keyVaultKeyName, ckp, nil)
 		webKey = keyResp.Key
 
 		if err != nil {
@@ -161,7 +160,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 		signerCert = &ca
 	} else {
 		// load signer
-		pemBlob, err1 := s.fetchCertificatePEMBlob(ctx, p.issuer.CertStore)
+		pemBlob, err1 := s.FetchCertificatePEMBlob(ctx, p.issuer.CertStore)
 		if err1 != nil {
 			err = err1
 			return
@@ -185,7 +184,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 		}
 		if p.namespaceID == wellKnownNamespaceID_IntCAService {
 			ca.NotAfter = ca.NotBefore.AddDate(5, 0, 0)
-		} else if p.namespaceID == wellKnownNamespaceID_IntCAClient {
+		} else if p.namespaceID == wellKnownNamespaceID_IntCaSCEPIntranet {
 			ca.NotAfter = ca.NotBefore.AddDate(1, 0, 0)
 		}
 		if ca.NotAfter.After(signerCert.NotAfter) {
@@ -214,7 +213,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	}
 	signer := keyVaultSigner{
 		ctx:        ctx,
-		keysClient: keysClient,
+		keysClient: s.azKeysClient,
 		kid:        signerKID,
 		publicKey:  signerPubKey,
 	}
@@ -240,8 +239,8 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 
 	blobName := fmt.Sprintf("%s/%s.pem", p.keyVaultKeyName, item.ID)
 	// upload to blob storage
-	blobClient := s.config.AzBlobContainerClient()
-	_, err = blobClient.NewBlockBlobClient(blobName).UploadBuffer(ctx, caPEM.Bytes(), &blockblob.UploadBufferOptions{
+	blobClient := s.azBlobContainerClient.NewBlockBlobClient(blobName)
+	_, err = blobClient.UploadBuffer(ctx, caPEM.Bytes(), &blockblob.UploadBufferOptions{
 		HTTPHeaders: &blob.HTTPHeaders{
 			BlobContentType: to.Ptr("application/x-pem-file"),
 		},
@@ -256,7 +255,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	}
 
 	patchCertDoc := azcosmos.PatchOperations{}
-	patchCertDoc.AppendSet("/certStore", blobName)
+	patchCertDoc.AppendSet("/certStore", blobClient.URL())
 	patchCertDoc.AppendSet("/notAfter", parsed.NotAfter.UTC().Format(time.RFC3339))
 	if _, err = db.PatchItem(ctx, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
 		return
@@ -264,5 +263,6 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 		item.CertStore = blobName
 		item.NotAfter = parsed.NotAfter.UTC()
 	}
+
 	return
 }

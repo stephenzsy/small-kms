@@ -80,12 +80,47 @@ paths:
               $ref: "#/components/schemas/CreateCertificateParameters"
         required: true
       responses:
-        "200":
+        "201":
           description: Certificate Reference
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRef"
+  /v1/{namespaceId}/policy/cert-enrollment:
+    put:
+      tags:
+        - policy
+      summary: Put Certificate Enrollment Policy
+      operationId: PutPolicyCertEnrollV1
+      parameters:
+        - $ref: "#/components/parameters/namespaceId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateEnrollmentParameters"
+        required: true
+      responses:
+        "200":
+          description: Enrollment policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateEnrollmentPolicy"
+    get:
+      tags:
+        - policy
+      summary: Get Certificate Enrollment Policy
+      operationId: GetPolicyCertEnrollV1
+      parameters:
+        - $ref: "#/components/parameters/namespaceId"
+      responses:
+        "200":
+          description: Enrollment policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateEnrollmentPolicy"
 security:
   - BearerAuth: []
 components:
@@ -131,16 +166,9 @@ components:
         keepKeyVersion:
           description: Keep using the same key version if exists
           type: boolean
-    CreateCertificateParameters:
+    KeyParameters:
       type: object
       properties:
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
-        subject:
-          $ref: "#/components/schemas/CertificateSubject"
-        validity:
-          type: string
-          format: duration
         kty:
           type: string
           enum:
@@ -168,6 +196,16 @@ components:
           x-enum-varnames:
             - EcCurve_P256
             - EcCurve_P384
+    CreateCertificateParameters:
+      type: object
+      properties:
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        validity:
+          type: string
+          format: duration
         issuerNamespace:
           description: Issuer of the certificate
           type: string
@@ -238,20 +276,76 @@ components:
         - issuerNamespace
         - issuer
         - createdBy
+    PolicyId:
+      type: string
+      enum:
+        - cert-enrollment
+      x-enum-varnames:
+        - PolicyID_CertEnroll
+      x-go-name: PolicyID
+    PolicyRef:
+      type: object
+      properties:
+        namespaceId:
+          description: Unique ID of the namespace
+          type: string
+          format: uuid
+          x-go-name: NamespaceID
+        id:
+          $ref: "#/components/schemas/PolicyId"
+          x-go-name: ID
+        updatedBy:
+          description: Unique ID of the user who created the policy
+          type: string
+        updatedAt:
+          description: Time when the policy was last updated
+          type: string
+          format: date-time
+      required:
+        - namespaceId
+        - id
+        - updatedBy
+        - updatedAt
+    CertificateEnrollmentParameters:
+      type: object
+      properties:
+        issuerNamespace:
+          type: string
+          format: uuid
+        issuerId:
+          type: string
+          format: uuid
+        validity:
+          description: RFC3339 duration string
+          type: string
+          format: duration
+        keyParameters:
+          $ref: "#/components/schemas/KeyParameters"
+        delegatedService:
+          type: string
+      required:
+        - issuerNamespace
+        - issuerId
+        - validity
+        - keyParameters
+    CertificateEnrollmentPolicy:
+      allOf:
+        - $ref: "#/components/schemas/PolicyRef"
+        - $ref: "#/components/schemas/CertificateEnrollmentParameters"
     WellKnownNamespaceId:
       type: string
       enum:
         - 00000000-0000-0000-0000-000000000001 # root-ca
-        - 00000000-0000-0000-0000-000000000010 # int-ca infrastructure
-        - 00000000-0000-0000-0000-000000000011 # int-ca internal service
-        - 00000000-0000-0000-0000-000000000012 # int-ca end-user client (shorter expiration 1yr)
+        - 00000000-0000-0000-0000-000000000010 # int-ca infrastructure (reserved)
+        - 00000000-0000-0000-0000-000000000011 # int-ca internal service (e.g. mTLS)
+        - 00000000-0000-0000-0000-100000000001 # int-ca SCEP intranet
         - 00000000-0000-0000-0001-000000000010 # certs infrastructure
         - 00000000-0000-0000-0001-000000000011 # certs internal service
       x-enum-varnames:
         - WellKnownNamespaceIDStr_RootCA
         - WellKnownNamespaceIDStr_IntCAInfra
         - WellKnownNamespaceIDStr_IntCAService
-        - WellKnownNamespaceIDStr_IntCAClient
+        - WellKnownNamespaceIDStr_IntCASCEPIntranet
         - WellKnownNamespaceIDStr_CertsInfra
         - WellKnownNamespaceIDStr_CertsService
       x-go-name: WellKnownNamespaceIDStr

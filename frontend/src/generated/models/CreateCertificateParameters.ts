@@ -57,24 +57,6 @@ export interface CreateCertificateParameters {
      */
     validity?: string;
     /**
-     * 
-     * @type {string}
-     * @memberof CreateCertificateParameters
-     */
-    kty?: CreateCertificateParametersKtyEnum;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateCertificateParameters
-     */
-    size?: CreateCertificateParametersSizeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateCertificateParameters
-     */
-    curve?: CreateCertificateParametersCurveEnum;
-    /**
      * Issuer of the certificate
      * @type {string}
      * @memberof CreateCertificateParameters
@@ -93,36 +75,6 @@ export interface CreateCertificateParameters {
      */
     options?: CreateCertificateOptions;
 }
-
-
-/**
- * @export
- */
-export const CreateCertificateParametersKtyEnum = {
-    Kty_RSA: 'RSA',
-    Kty_EC: 'EC'
-} as const;
-export type CreateCertificateParametersKtyEnum = typeof CreateCertificateParametersKtyEnum[keyof typeof CreateCertificateParametersKtyEnum];
-
-/**
- * @export
- */
-export const CreateCertificateParametersSizeEnum = {
-    KeySize_2048: 2048,
-    KeySize_3072: 3072,
-    KeySize_4096: 4096
-} as const;
-export type CreateCertificateParametersSizeEnum = typeof CreateCertificateParametersSizeEnum[keyof typeof CreateCertificateParametersSizeEnum];
-
-/**
- * @export
- */
-export const CreateCertificateParametersCurveEnum = {
-    EcCurve_P256: 'P-256',
-    EcCurve_P384: 'P-384'
-} as const;
-export type CreateCertificateParametersCurveEnum = typeof CreateCertificateParametersCurveEnum[keyof typeof CreateCertificateParametersCurveEnum];
-
 
 /**
  * Check if a given object implements the CreateCertificateParameters interface.
@@ -150,9 +102,6 @@ export function CreateCertificateParametersFromJSONTyped(json: any, ignoreDiscri
         'usage': CertificateUsageFromJSON(json['usage']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'validity': !exists(json, 'validity') ? undefined : json['validity'],
-        'kty': !exists(json, 'kty') ? undefined : json['kty'],
-        'size': !exists(json, 'size') ? undefined : json['size'],
-        'curve': !exists(json, 'curve') ? undefined : json['curve'],
         'issuerNamespace': json['issuerNamespace'],
         'issuer': json['issuer'],
         'options': !exists(json, 'options') ? undefined : CreateCertificateOptionsFromJSON(json['options']),
@@ -171,9 +120,6 @@ export function CreateCertificateParametersToJSON(value?: CreateCertificateParam
         'usage': CertificateUsageToJSON(value.usage),
         'subject': CertificateSubjectToJSON(value.subject),
         'validity': value.validity,
-        'kty': value.kty,
-        'size': value.size,
-        'curve': value.curve,
         'issuerNamespace': value.issuerNamespace,
         'issuer': value.issuer,
         'options': CreateCertificateOptionsToJSON(value.options),

@@ -13,8 +13,8 @@ import (
 
 type createCertificateInternalParameters struct {
 	usage              CertificateUsage
-	kty                CreateCertificateParametersKty
-	size               CreateCertificateParametersSize
+	kty                KeyParametersKty
+	size               KeyParametersSize
 	namespaceID        uuid.UUID
 	keyVaultKeyName    string
 	keyVaultKeyVersion string
@@ -40,7 +40,7 @@ func (s *adminServer) validateCreateCertificateOptions(c context.Context, out *c
 		switch namespaceID {
 		case
 			wellKnownNamespaceID_IntCAService,
-			wellKnownNamespaceID_IntCAClient:
+			wellKnownNamespaceID_IntCaSCEPIntranet:
 			if p.IssuerNamespace != wellKnownNamespaceID_RootCA {
 				return fmt.Errorf("invalid issuer namespace for intermediate ca: %s", p.IssuerNamespace.String())
 			}
@@ -65,7 +65,7 @@ func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID NamespaceI
 		c.JSON(400, gin.H{"message": "invalid input", "error": err.Error()})
 		return
 	}
-	if !auth.HasAdminAppRole(c) {
+	if !auth.CallerHasAdminAppRole(c) {
 		c.JSON(403, gin.H{"message": "User must have admin role"})
 		return
 	}
