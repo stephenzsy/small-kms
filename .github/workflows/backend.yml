@@ -34,7 +34,7 @@ jobs:
           docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:latest
         working-directory: backend
 
-      - name: Build and deploy backend Container App
+      - name: Deploy backend Container App
         uses: azure/container-apps-deploy-action@v1
         with:
           acrName: ${{ vars.ACR_NAME }}
@@ -42,7 +42,7 @@ jobs:
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP_NAME }}
           imageToDeploy: ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }}
 
-      - name: Build and deploy scep Container App
+      - name: Deploy scep Container App
         uses: azure/container-apps-deploy-action@v1
         with:
           acrName: ${{ vars.ACR_NAME }}

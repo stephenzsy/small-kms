@@ -29,6 +29,7 @@ type getCaCertCache struct {
 }
 
 func (s *scepServer) refreshCaCert(ctx context.Context, namespaceID uuid.UUID) (item caCertCachedItem, err error) {
+	log.Printf("Refreshing CA cert for namespace: %s", namespaceID.String())
 	item.status = http.StatusInternalServerError
 	policy, err := s.adminServer.ReadCertEnrollPolicyDBItem(ctx, namespaceID)
 	if err != nil {
@@ -36,6 +37,7 @@ func (s *scepServer) refreshCaCert(ctx context.Context, namespaceID uuid.UUID) (
 	}
 	if len(policy.PolicyID) == 0 {
 		// no policy found
+		log.Printf("Cert policy not found: %s", namespaceID.String())
 		item.status = http.StatusNotFound
 		return
 	}
