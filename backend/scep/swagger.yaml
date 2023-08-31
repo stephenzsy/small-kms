@@ -6,13 +6,20 @@ servers:
   - url: http://localhost:9002
     description: Local server
 paths:
-  /scep:
+  /{namespaceId}/certsrv/mscp/mscp.dll:
     post:
       tags:
         - scep
       summary: SCEP POST Handler
       operationId: ScepPost
       parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          x-go-name: namespaceID
         - in: query
           name: operation
           required: true
@@ -39,6 +46,13 @@ paths:
       summary: SCEP GET handler
       operationId: ScepGet
       parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          x-go-name: namespaceID
         - in: query
           name: operation
           required: true

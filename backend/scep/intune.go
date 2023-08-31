@@ -2,7 +2,6 @@ package scep
 
 import (
 	"context"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/google/uuid"
@@ -48,7 +47,6 @@ func (s *scepServer) refreshServiceMap() error {
 	for _, endpoint := range endpoints {
 		if *endpoint.GetProviderName() == VALIDATION_SERVICE_NAME {
 			s.msIntunesScepEndpoint = *endpoint.GetUri()
-			s.msIntunesScepEndpointRefresh = time.Now()
 		}
 	}
 	_ = khttp.GetDefaultClient()

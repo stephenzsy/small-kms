@@ -1,75 +1,71 @@
 package scep
 
 import (
-	"context"
 	"log"
-	"net/http"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/google/uuid"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	"golang.org/x/time/rate"
 
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
+type scepRateLimits struct {
+	msGraphServiceMapping *rate.Limiter
+
+	getCa *rate.Limiter
+}
+
 type scepServer struct {
-	azCredential        azcore.TokenCredential
-	azKeysClient        *azkeys.Client
-	smallKmsAdminClient *admin.Client
+	adminServer admin.AdminServerInternal
 
-	msGraphClient                *msgraphsdk.GraphServiceClient
-	msIntunesScepEndpoint        string
-	msIntunesScepEndpointRefresh time.Time
+	azCredential azcore.TokenCredential
+	azKeysClient *azkeys.Client
 
-	cachedCaCert   []byte
-	cachedCaTime   time.Time
-	fetchCaCertMtx sync.RWMutex
+	msGraphClient         *msgraphsdk.GraphServiceClient
+	msIntunesScepEndpoint string
+
+	rateLimiters    scepRateLimits
+	getCaCertCaches map[uuid.UUID]*getCaCertCache
 }
 
 const (
-	EnvVarSmallKmsAdminClientID = "SMALLKMS_ADMIN_CLIENTID"
-	EnvVarSmallKmsAdminEndpoint = "SMALLKMS_ADMIN_ENDPOINT"
-	SMALLKMS_API_SCOPE          = "SMALLKMS_API_SCOPE"
+	EnvVarMsGraphClientID = "MSGRAPH_CLIENT_ID"
 )
 
+var intranetNamespaceID = uuid.MustParse(string(admin.WellKnownNamespaceIDStrIntCASCEPIntranet))
+
 func NewScepServer() ServerInterface {
-	s := scepServer{}
+	s := scepServer{
+		adminServer: admin.NewAdminServer(),
+		rateLimiters: scepRateLimits{
+			msGraphServiceMapping: rate.NewLimiter(rate.Every(time.Hour*2), 1),
+			getCa:                 rate.NewLimiter(rate.Every(time.Minute), 2),
+		},
+		getCaCertCaches: make(map[uuid.UUID]*getCaCertCache),
+	}
 
 	var err error
-	s.azCredential, err = common.GetAzCredential(os.Getenv(EnvVarSmallKmsAdminClientID))
+	s.azCredential, err = common.GetAzCredential(os.Getenv(EnvVarMsGraphClientID))
 	if err != nil {
-		log.Panicf("Failed to get az credential: %s", err.Error())
-	}
-	apiScope := common.MustGetenv(SMALLKMS_API_SCOPE)
-	s.smallKmsAdminClient, err = admin.NewClient(common.MustGetenv(EnvVarSmallKmsAdminEndpoint),
-		admin.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-			authHeader := req.Header.Get("Authorization")
-			if len(authHeader) == 0 {
-				token, tokenError := s.azCredential.GetToken(ctx, policy.TokenRequestOptions{Scopes: []string{apiScope}})
-				if tokenError != nil {
-					return tokenError
-				}
-				req.Header.Set("Authorization", "Bearer "+token.Token)
-			}
-			return nil
-		}))
-	if err != nil {
-		log.Panicf("Failed to create admin client: %s", err.Error())
+		log.Panicf("Failed to get az credential: %v", err)
 	}
 
 	s.azKeysClient, err = common.GetAzKeysClient()
 	if err != nil {
-		log.Panicf("Failed to create az keys client: %s", err.Error())
+		log.Panicf("Failed to create az keys client: %v", err)
 	}
 
-	s.msGraphClient, err = msgraphsdk.NewGraphServiceClientWithCredentials(s.azCredential, []string{"Application.Read.All"})
+	// reserve one token for initialization
+	s.msGraphClient, err = msgraphsdk.NewGraphServiceClientWithCredentials(s.azCredential, []string{"https://graph.microsoft.com/.default"})
+	s.rateLimiters.msGraphServiceMapping.Allow()
 	if err := s.refreshServiceMap(); err != nil {
-		log.Panicf("Failed to refresh service map for %s", err.Error())
+		log.Panicf("Failed to refresh service map: %v", err)
 	}
 	return &s
 }

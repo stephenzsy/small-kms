@@ -255,7 +255,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	}
 
 	patchCertDoc := azcosmos.PatchOperations{}
-	patchCertDoc.AppendSet("/certStore", blobClient.URL())
+	patchCertDoc.AppendSet("/certStore", blobName)
 	patchCertDoc.AppendSet("/notAfter", parsed.NotAfter.UTC().Format(time.RFC3339))
 	if _, err = db.PatchItem(ctx, partitionKey, item.ID.String(), patchCertDoc, nil); err != nil {
 		return

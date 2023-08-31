@@ -1,12 +1,14 @@
 package admin
 
 import (
+	"context"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -20,7 +22,13 @@ type adminServer struct {
 	azCosmosContainerClientPolicies *azcosmos.ContainerClient
 }
 
-func NewAdminServer() ServerInterface {
+type AdminServerInternal interface {
+	ReadCertEnrollPolicyDBItem(ctx context.Context, namespaceID uuid.UUID) (result CertificateEnrollmentPolicyDTO, err error)
+	ReadCertDBItem(c context.Context, namespaceID uuid.UUID, id uuid.UUID) (result CertDBItem, err error)
+	FetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error)
+}
+
+func NewAdminServer() *adminServer {
 	common.MustGetenv(common.DefualtEnvVarAzCosmosResourceEndpoint)
 	common.MustGetenv(common.DefualtEnvVarAzKeyvaultResourceEndpoint)
 	common.MustGetenv(common.DefualtEnvVarAzStroageBlobResourceEndpoint)

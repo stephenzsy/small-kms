@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,11 +42,11 @@ type ScepPostParamsOperation string
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// SCEP GET handler
-	// (GET /scep)
-	ScepGet(c *gin.Context, params ScepGetParams)
+	// (GET /{namespaceId}/certsrv/mscp/mscp.dll)
+	ScepGet(c *gin.Context, namespaceID openapi_types.UUID, params ScepGetParams)
 	// SCEP POST Handler
-	// (POST /scep)
-	ScepPost(c *gin.Context, params ScepPostParams)
+	// (POST /{namespaceId}/certsrv/mscp/mscp.dll)
+	ScepPost(c *gin.Context, namespaceID openapi_types.UUID, params ScepPostParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -61,6 +62,15 @@ type MiddlewareFunc func(c *gin.Context)
 func (siw *ServerInterfaceWrapper) ScepGet(c *gin.Context) {
 
 	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceID openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceID)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ScepGetParams
@@ -87,13 +97,22 @@ func (siw *ServerInterfaceWrapper) ScepGet(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ScepGet(c, params)
+	siw.Handler.ScepGet(c, namespaceID, params)
 }
 
 // ScepPost operation middleware
 func (siw *ServerInterfaceWrapper) ScepPost(c *gin.Context) {
 
 	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceID openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceID)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ScepPostParams
@@ -120,7 +139,7 @@ func (siw *ServerInterfaceWrapper) ScepPost(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ScepPost(c, params)
+	siw.Handler.ScepPost(c, namespaceID, params)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -150,6 +169,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/scep", wrapper.ScepGet)
-	router.POST(options.BaseURL+"/scep", wrapper.ScepPost)
+	router.GET(options.BaseURL+"/:namespaceId/certsrv/mscp/mscp.dll", wrapper.ScepGet)
+	router.POST(options.BaseURL+"/:namespaceId/certsrv/mscp/mscp.dll", wrapper.ScepPost)
 }
