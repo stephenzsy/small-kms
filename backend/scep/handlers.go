@@ -19,7 +19,7 @@ func (s *scepServer) ScepGet(c *gin.Context, namespaceID uuid.UUID, params ScepG
 	case GetCACaps:
 		c.Data(200, "text/plain", []byte(defaultCaps))
 		return
-	case GetCaCert:
+	case GetCACert:
 		if !s.rateLimiters.getCa.Allow() {
 			c.Data(http.StatusTooManyRequests, "text/plain", []byte("Too Many Requests"))
 			return
@@ -27,7 +27,7 @@ func (s *scepServer) ScepGet(c *gin.Context, namespaceID uuid.UUID, params ScepG
 		s.HandleGetCaCert(c, namespaceID)
 		return
 	}
-	c.Data(404, "text/plain", []byte("Not Found"))
+	c.Data(404, "text/plain", nil)
 }
 
 func (s *scepServer) ScepPost(c *gin.Context, namespaceID uuid.UUID, params ScepPostParams) {

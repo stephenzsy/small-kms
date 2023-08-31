@@ -15,7 +15,7 @@ import (
 // Defines values for ScepGetParamsOperation.
 const (
 	GetCACaps ScepGetParamsOperation = "GetCACaps"
-	GetCaCert ScepGetParamsOperation = "GetCaCert"
+	GetCACert ScepGetParamsOperation = "GetCACert"
 )
 
 // Defines values for ScepPostParamsOperation.

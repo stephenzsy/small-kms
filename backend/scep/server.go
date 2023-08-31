@@ -63,7 +63,11 @@ func NewScepServer() ServerInterface {
 
 	// reserve one token for initialization
 	s.msGraphClient, err = msgraphsdk.NewGraphServiceClientWithCredentials(s.azCredential, []string{"https://graph.microsoft.com/.default"})
+	if err != nil {
+		log.Panicf("Failed to create ms graph client: %v", err)
+	}
 	s.rateLimiters.msGraphServiceMapping.Allow()
+
 	if err := s.refreshServiceMap(); err != nil {
 		log.Panicf("Failed to refresh service map: %v", err)
 	}

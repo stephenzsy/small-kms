@@ -60,7 +60,7 @@ paths:
             type: string
             enum:
               - GetCACaps
-              - GetCaCert
+              - GetCACert
       responses:
         "200":
           description: SCEP GET response
