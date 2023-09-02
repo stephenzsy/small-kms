@@ -81,7 +81,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	// first create new version of key in keyvault
 	var webKey *azkeys.JSONWebKey
 	if len(p.keyVaultKeyVersion) != 0 {
-		keyResp, err := s.azKeysClient.GetKey(ctx, p.keyVaultKeyName, p.keyVaultKeyVersion, nil)
+		keyResp, err := s.AzKeysClient().GetKey(ctx, p.keyVaultKeyName, p.keyVaultKeyVersion, nil)
 		if err != nil {
 			log.Printf("Error getting key: %s", err.Error())
 			return item, err
@@ -101,7 +101,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 				ckp.KeySize = to.Ptr(int32(2048))
 			}
 		}
-		keyResp, err := s.azKeysClient.CreateKey(ctx, p.keyVaultKeyName, ckp, nil)
+		keyResp, err := s.AzKeysClient().CreateKey(ctx, p.keyVaultKeyName, ckp, nil)
 		webKey = keyResp.Key
 
 		if err != nil {
@@ -213,7 +213,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	}
 	signer := keyVaultSigner{
 		ctx:        ctx,
-		keysClient: s.azKeysClient,
+		keysClient: s.AzKeysClient(),
 		kid:        signerKID,
 		publicKey:  signerPubKey,
 	}

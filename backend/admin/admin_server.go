@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/google/uuid"
@@ -13,7 +12,7 @@ import (
 )
 
 type adminServer struct {
-	azKeysClient                    *azkeys.Client
+	common.CommonConfig
 	azBlobClient                    *azblob.Client
 	azBlobContainerClient           *azblobcontainer.Client
 	azCosmosClient                  *azcosmos.Client
@@ -29,23 +28,23 @@ type AdminServerInternal interface {
 }
 
 func NewAdminServer() *adminServer {
-	common.MustGetenv(common.DefualtEnvVarAzCosmosResourceEndpoint)
-	common.MustGetenv(common.DefualtEnvVarAzKeyvaultResourceEndpoint)
-	common.MustGetenv(common.DefualtEnvVarAzStroageBlobResourceEndpoint)
+	cosmosEndpoint := common.MustGetenv(common.DefualtEnvVarAzCosmosResourceEndpoint)
+	storageBlobEndpoint := common.MustGetenv(common.DefualtEnvVarAzStroageBlobResourceEndpoint)
 
-	s := adminServer{}
-	var err error
-	s.azKeysClient, err = common.GetAzKeysClient()
+	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
-		log.Panic("Failed to get az keys client", err.Error())
+		log.Panic(err.Error())
 	}
-	s.azBlobClient, err = common.GetAzStorageBlobClient()
+	s := adminServer{
+		CommonConfig: commonConfig,
+	}
+	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
 	if err != nil {
 		log.Panicf("Failed to get az blob client: %s", err.Error())
 	}
 	s.azBlobContainerClient = s.azBlobClient.ServiceClient().NewContainerClient(common.GetEnvWithDefault("AZURE_STORAGEBLOB_CONTAINERNAME_CERTS", "certs"))
 
-	s.azCosmosClient, err = common.GetAzCosmosClient()
+	s.azCosmosClient, err = azcosmos.NewClient(cosmosEndpoint, s.DefaultAzCredential(), nil)
 	if err != nil {
 		log.Panicf("Failed to get az cosmos client: %s", err.Error())
 	}

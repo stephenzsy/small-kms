@@ -6,53 +6,42 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 )
 
 type ServerRole string
 
 const (
 	DefualtEnvVarAzCosmosResourceEndpoint      = "AZURE_COSMOS_RESOURCEENDPOINT"
-	DefualtEnvVarAzCosmosClientID              = "AZURE_COSMOS_CLIENTID"
 	DefualtEnvVarAzKeyvaultResourceEndpoint    = "AZURE_KEYVAULT_RESOURCEENDPOINT"
-	DefualtEnvVarAzKeyvaultClientID            = "AZURE_KEYVAULT_CLIENTID"
 	DefualtEnvVarAzStroageBlobResourceEndpoint = "AZURE_STORAGEBLOB_RESOURCEENDPOINT"
-	DefualtEnvVarAzStroageBlobClientID         = "AZURE_STORAGEBLOB_CLIENTID"
 )
 
-func GetAzCredential(clientId string) (azcore.TokenCredential, error) {
-	if len(clientId) > 0 {
-		return azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
-			ID: azidentity.ClientID(clientId),
-		})
-	}
-	return azidentity.NewDefaultAzureCredential(nil)
+type commonConfig struct {
+	defaultAzCerdential azcore.TokenCredential
+	azKeysClient        *azkeys.Client
 }
 
-func GetAzCosmosClient() (*azcosmos.Client, error) {
-	credential, err := GetAzCredential(os.Getenv(DefualtEnvVarAzCosmosClientID))
+func NewCommonConfig() (c *commonConfig, err error) {
+	c.defaultAzCerdential, err = azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return azcosmos.NewClient(os.Getenv(DefualtEnvVarAzCosmosResourceEndpoint), credential, nil)
+	c.azKeysClient, err = azkeys.NewClient(MustGetenv(DefualtEnvVarAzKeyvaultResourceEndpoint), c.defaultAzCerdential, nil)
+	return
 }
 
-func GetAzKeysClient() (*azkeys.Client, error) {
-	credential, err := GetAzCredential(os.Getenv(DefualtEnvVarAzKeyvaultClientID))
-	if err != nil {
-		return nil, err
-	}
-	return azkeys.NewClient(os.Getenv(DefualtEnvVarAzKeyvaultResourceEndpoint), credential, nil)
+type CommonConfig interface {
+	DefaultAzCredential() azcore.TokenCredential
+	AzKeysClient() *azkeys.Client
 }
 
-func GetAzStorageBlobClient() (*azblob.Client, error) {
-	credential, err := GetAzCredential(os.Getenv(DefualtEnvVarAzStroageBlobClientID))
-	if err != nil {
-		return nil, err
-	}
-	return azblob.NewClient(os.Getenv(DefualtEnvVarAzStroageBlobResourceEndpoint), credential, nil)
+func (c *commonConfig) DefaultAzCredential() azcore.TokenCredential {
+	return c.defaultAzCerdential
+}
+
+func (c *commonConfig) AzKeysClient() *azkeys.Client {
+	return c.azKeysClient
 }
 
 func MustGetenv(name string) (value string) {

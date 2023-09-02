@@ -26,8 +26,17 @@ var (
 	oidSignedData    = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 2}
 	oidEnvelopedData = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 3}
 
+	oidSCEPtransactionID = asn1.ObjectIdentifier{2, 16, 840, 1, 113733, 1, 9, 7}
+	oidSCEPmessageType   = asn1.ObjectIdentifier{2, 16, 840, 1, 113733, 1, 9, 2}
+	oidSCEPsenderNonce   = asn1.ObjectIdentifier{2, 16, 840, 1, 113733, 1, 9, 5}
+
 	// Encryption Algorithms
 	oidEncryptionAlgorithmAES128CBC = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 2}
+)
+
+const (
+	MessageTypePKCSReq    = "19"
+	MessageTypeRenewalReq = "17"
 )
 
 // RFC 5652 Section 3
@@ -67,7 +76,7 @@ type signedData struct {
 	DigestAlgorithms asn1.RawValue
 	EncapContentInfo contentInfo
 	Certificates     asn1.RawValue `asn1:"optional,tag:0"`
-	Crls             asn1.RawValue `asn1:"optional"`
+	Crls             asn1.RawValue `asn1:"optional,tag:1"`
 	SignerInfos      []signerInfo  `asn1:"set"`
 }
 type signedDataParsed struct {
@@ -79,6 +88,53 @@ type signedDataParsed struct {
 type SignedData interface {
 	UnmarshalSignedAttribute(attributeType asn1.ObjectIdentifier, out any) error
 	EncapContentInfo() ContentInfo
+}
+
+func (s *signedData) toParsed() (t signedDataParsed, err error) {
+	t.signedData = *s
+	if len(s.Certificates.Bytes) > 0 {
+		if t.certificates, err = x509.ParseCertificates((s.Certificates.Bytes)); err != nil {
+			return
+		}
+	}
+	if len(s.Crls.Bytes) != 0 {
+		if t.crl, err = x509.ParseRevocationList(s.Crls.Bytes); err != nil {
+			return
+		}
+	}
+	if len(s.SignerInfos) == 0 {
+		err = errors.New("pkcs7: no signer infos")
+		return
+	}
+
+	var compound asn1.RawValue
+	var content []byte
+
+	// The Content.Bytes maybe empty on PKI responses.
+	if len(s.EncapContentInfo.Content.Bytes) > 0 {
+		if _, err = asn1.Unmarshal(s.EncapContentInfo.Content.Bytes, &compound); err != nil {
+			return
+		}
+	}
+	// Compound octet string
+	if compound.IsCompound {
+		if compound.Tag == 4 {
+			if _, err = asn1.Unmarshal(compound.Bytes, &content); err != nil {
+				return
+			}
+		} else {
+			content = compound.Bytes
+		}
+	} else {
+		// assuming this is tag 04
+		content = compound.Bytes
+	}
+
+	if t.encapContentInfo, err = ParseCMS(content); err != nil {
+		err = fmt.Errorf("parse inner content:\n%w", err)
+		return
+	}
+	return
 }
 
 func (sd *signedData) UnmarshalSignedAttribute(attributeType asn1.ObjectIdentifier, out any) error {
@@ -147,29 +203,8 @@ func (si *signerInfo) UnmarshalSignedAttribute(attributeType asn1.ObjectIdentifi
 	return fmt.Errorf("cms: attribute type %s not in attributes", attributeType.String())
 }
 
-func (s *signedData) toParsed() (t signedDataParsed, err error) {
-	t.signedData = *s
-	if len(s.Certificates.Bytes) > 0 {
-		if t.certificates, err = x509.ParseCertificates((s.Certificates.Bytes)); err != nil {
-			return
-		}
-	}
-	if len(s.Crls.Bytes) != 0 {
-		if t.crl, err = x509.ParseRevocationList(s.Crls.Bytes); err != nil {
-			return
-		}
-	}
-	if len(s.SignerInfos) == 0 {
-		err = errors.New("pkcs7: no signer infos")
-		return
-	}
-	if t.encapContentInfo, err = ParseCMS(s.EncapContentInfo.Content.Bytes); err != nil {
-		return
-	}
-	return
-}
-
 func (s *envelopedData) toParsed() (t envelopedDataParsed, err error) {
+	t.envelopedData = *s
 	alg := s.EncryptedContentInfo.ContentEncryptionAlgorithm.Algorithm
 	if !alg.Equal(oidEncryptionAlgorithmAES128CBC) {
 		err = fmt.Errorf("unsupported content encryption algorithm: %s", alg)
@@ -193,7 +228,7 @@ func selectRecipientForCertificate(recipients []recipientInfo, cert *x509.Certif
 
 type KeyUnwrapperRSA1_5 func(content []byte) ([]byte, error)
 
-func (s *envelopedData) Decrypt(cert *x509.Certificate, keyUnwrapper KeyUnwrapperRSA1_5) ([]byte, error) {
+func (s *envelopedDataParsed) Decrypt(cert *x509.Certificate, keyUnwrapper KeyUnwrapperRSA1_5) ([]byte, error) {
 	recipient := selectRecipientForCertificate(s.RecipientInfos, cert)
 
 	if recipient.EncryptedKey == nil {
@@ -280,10 +315,50 @@ func unpad(data []byte, blocklen int) ([]byte, error) {
 }
 
 // parse only types related to pki message
-func ParseCMS(raw []byte) (*contentInfoParsed, error) {
+func ParseCMS(raw []byte) (r *contentInfoParsed, err error) {
+	/*
+		r.p7, err = pkcs7.Parse(raw)
+		if err != nil {
+			return
+		}
+
+		// expect p7 is Signed data
+		if err = r.p7.Verify(); err != nil {
+			return
+		}
+
+		if err = r.p7.UnmarshalSignedAttribute(oidSCEPtransactionID, &r.transactionId); err != nil {
+			return
+		}
+
+		if err = r.p7.UnmarshalSignedAttribute(oidSCEPmessageType, &r.messageType); err != nil {
+			return
+		}
+
+		switch r.messageType {
+		case MessageTypePKCSReq, MessageTypeRenewalReq:
+
+			if err = r.p7.UnmarshalSignedAttribute(oidSCEPsenderNonce, &r.senderNonce); err != nil {
+				return
+			}
+			if err = parseEnvelopedData(r.p7.Content, &r.envelope); err != nil {
+				return
+			}
+		default:
+			err = fmt.Errorf("unsupported message type: %s", r.messageType)
+			return
+		}
+		return
+	*/
+
 	var p7 contentInfo
-	if _, err := asn1.Unmarshal(raw, &p7); err != nil {
-		return nil, err
+	der, err := ber2der(raw)
+	if err != nil {
+		return nil, fmt.Errorf("ber2der: %s", err)
+	}
+
+	if _, err := asn1.Unmarshal(der, &p7); err != nil {
+		return nil, fmt.Errorf("ansi unmarshall error:\n%s", err)
 	}
 	cip := contentInfoParsed{}
 	switch {
@@ -296,11 +371,11 @@ func ParseCMS(raw []byte) (*contentInfoParsed, error) {
 	case oidSignedData.Equal(p7.ContentType):
 		signedDataRaw := signedData{}
 		if _, err := asn1.Unmarshal(p7.Content.Bytes, &signedDataRaw); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unmarshal signed data:\n%w", err)
 		}
 		signedData, err := signedDataRaw.toParsed()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("parse signed data:\n%w", err)
 		}
 		cip.signedDataParsed = &signedData
 	case oidEnvelopedData.Equal(p7.ContentType):
@@ -316,6 +391,35 @@ func ParseCMS(raw []byte) (*contentInfoParsed, error) {
 	default:
 		return nil, fmt.Errorf("unsupported content type: %s", p7.ContentType.String())
 	}
-
 	return &cip, nil
+}
+
+type ReqPkiMessage struct {
+	cms           ContentInfo
+	TransactionId string
+	MessageType   string
+	SenderNonce   []byte
+}
+
+// parse only types related to pki message
+func ParsePkiMessage(raw []byte) (r ReqPkiMessage, err error) {
+	r.cms, err = ParseCMS(raw)
+	if err != nil {
+		return
+	}
+	sd := r.cms.SignedData()
+	if err = sd.UnmarshalSignedAttribute(oidSCEPtransactionID, &r.TransactionId); err != nil {
+		return
+	}
+	if err = sd.UnmarshalSignedAttribute(oidSCEPmessageType, &r.MessageType); err != nil {
+		return
+	}
+	if err = sd.UnmarshalSignedAttribute(oidSCEPsenderNonce, &r.SenderNonce); err != nil {
+		return
+	}
+	return
+}
+
+func (r *ReqPkiMessage) Decrypt(cert *x509.Certificate, keyUnwrapper KeyUnwrapperRSA1_5) ([]byte, error) {
+	return r.cms.SignedData().EncapContentInfo().EnvelopedData().Decrypt(cert, keyUnwrapper)
 }

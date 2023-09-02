@@ -2,22 +2,15 @@ import {
   AccountInfo,
   AuthenticationResult,
   InteractionStatus,
-  InteractionType,
   PublicClientApplication,
 } from "@azure/msal-browser";
-import {
-  MsalProvider,
-  useAccount,
-  useMsal,
-  useMsalAuthentication,
-} from "@azure/msal-react";
-import { useLatest, useMemoizedFn, useRequest } from "ahooks";
+import { MsalProvider, useAccount, useMsal } from "@azure/msal-react";
+import { useLatest, useMemoizedFn } from "ahooks";
 import {
   createContext,
   useContext,
-  type PropsWithChildren,
   useEffect,
-  useState,
+  type PropsWithChildren,
 } from "react";
 
 const pca = new PublicClientApplication({
@@ -43,8 +36,6 @@ export const AppAuthContext = createContext<IAppAuthContext>({
   acquireToken: () => Promise.resolve(undefined),
 });
 
-const redirectUri = window.location.protocol + "//" + window.location.host;
-
 function AuthContextProvider({ children }: PropsWithChildren<{}>) {
   const { instance, inProgress, accounts } = useMsal();
   const account = useAccount(accounts[0] || {}) ?? undefined;
@@ -62,7 +53,6 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
           })
         : instance.loginRedirect({
             scopes: [import.meta.env.VITE_API_SCOPE],
-            redirectUri,
           });
     }
   );
