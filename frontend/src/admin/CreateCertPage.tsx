@@ -9,6 +9,7 @@ import {
   CertificateRef,
   CertificateUsage,
   CreateCertificateV1Request,
+  TestNamespaceId,
   WellKnownNamespaceId,
 } from "../generated";
 import { useCertsApi } from "../utils/useCertsApi";
@@ -70,12 +71,15 @@ function TextInputField({
   );
 }
 
-const titleDisplayNames: Partial<Record<WellKnownNamespaceId, string>> = {
+const titleDisplayNames: Partial<
+  Record<WellKnownNamespaceId | TestNamespaceId, string>
+> = {
   [WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA]: "Create root CA",
   [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
     "Create intermediate CA - Services",
-  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet]:
-    "Create intermediate CA - SCEP Intranet",
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet]:
+    "Create intermediate CA - Intranet",
+  [TestNamespaceId.TestNamespaceIDStr_RootCA]: "Create test root CA",
 };
 
 export default function CreateCertPage() {
@@ -98,7 +102,7 @@ export default function CreateCertPage() {
     switch (namespaceId) {
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService:
-      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet:
+      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet:
         return [
           ...caBreadcrumPages,
           { name: "Create certificate authority", to: "#" },
@@ -111,7 +115,8 @@ export default function CreateCertPage() {
     useBoolean(false);
 
   const usage =
-    namespaceId === WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA
+    namespaceId === WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA ||
+    namespaceId === TestNamespaceId.TestNamespaceIDStr_RootCA
       ? CertificateUsage.Usage_RootCA
       : CertificateUsage.Usage_IntCA;
 
@@ -133,6 +138,7 @@ export default function CreateCertPage() {
   const onSubmit = async (data: CreateReactFormInput) => {
     if (
       namespaceId !== WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA &&
+      namespaceId !== TestNamespaceId.TestNamespaceIDStr_RootCA &&
       !selectedCa
     ) {
       setFormInvalid();
@@ -174,15 +180,16 @@ export default function CreateCertPage() {
 
         <div className="px-4 py-5 sm:p-6 space-y-12 [&>*+*]:border-t [&>*+*]:pt-6">
           {namespaceId !==
-            WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA && (
-            <div className="border-neutral-900/10 space-y-6">
-              <SelectCA
-                caCerts={caCerts}
-                selected={selectedCa}
-                onSelect={setSelectedCA}
-              />
-            </div>
-          )}
+            WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA &&
+            namespaceId !== TestNamespaceId.TestNamespaceIDStr_RootCA && (
+              <div className="border-neutral-900/10 space-y-6">
+                <SelectCA
+                  caCerts={caCerts}
+                  selected={selectedCa}
+                  onSelect={setSelectedCA}
+                />
+              </div>
+            )}
           <div className="border-neutral-900/10 space-y-6">
             <h2 className="text-base font-semibold leading-7 text-gray-900">
               Subject

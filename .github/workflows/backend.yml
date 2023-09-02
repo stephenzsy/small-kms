@@ -41,12 +41,3 @@ jobs:
           containerAppName: ${{ vars.CONTAINER_APP_NAME_BE }}
           resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP_NAME }}
           imageToDeploy: ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }}
-
-      - name: Deploy scep Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          acrName: ${{ vars.ACR_NAME }}
-          containerAppName: ${{ vars.CONTAINER_APP_NAME_SCEP }}
-          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP_NAME }}
-          imageToDeploy: ${{ vars.ACR_LOGIN_SERVER }}/${{ vars.REGISTRY_REPO_NAME_BE }}:${{ github.sha }}
-  

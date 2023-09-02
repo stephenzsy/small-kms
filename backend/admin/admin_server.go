@@ -33,10 +33,10 @@ func NewAdminServer() *adminServer {
 
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
-		log.Panic(err.Error())
+		log.Panic(err)
 	}
 	s := adminServer{
-		CommonConfig: commonConfig,
+		CommonConfig: &commonConfig,
 	}
 	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
 	if err != nil {

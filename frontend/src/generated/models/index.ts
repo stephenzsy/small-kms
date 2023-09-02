@@ -10,4 +10,5 @@ export * from './CreateCertificateParameters';
 export * from './KeyParameters';
 export * from './PolicyId';
 export * from './PolicyRef';
+export * from './TestNamespaceId';
 export * from './WellKnownNamespaceId';

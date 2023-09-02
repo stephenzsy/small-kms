@@ -1,15 +1,19 @@
 import { Switch } from "@headlessui/react";
 import { useRequest } from "ahooks";
 import classNames from "classnames";
-import { useId, useState } from "react";
-import { Link, generatePath } from "react-router-dom";
-import { CertsApi, WellKnownNamespaceId } from "../generated";
+import { useId, useMemo, useState } from "react";
+import { Link, generatePath, useMatch, useMatches } from "react-router-dom";
+import { CertsApi, TestNamespaceId, WellKnownNamespaceId } from "../generated";
 import { useCertsApi } from "../utils/useCertsApi";
 import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
 import { useCaList } from "./useCaList";
+import { RouteIds } from "../route-constants";
 
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
+];
+export const testcaBreadcrumPages: BreadcrumbPageMetadata[] = [
+  { name: "Test CA", to: "/admin/testca" },
 ];
 
 function CaSection({
@@ -85,10 +89,17 @@ function CaSection({
 export default function AdminCaPage() {
   const client = useCertsApi();
   const [manageEnabled, setEnabled] = useState(false);
+  const matches = useMatches();
+  const isTest = useMemo(
+    () => matches.some((m) => m.id === RouteIds.adminTestCa),
+    [matches]
+  );
 
   return (
     <>
-      <AdminBreadcrumb pages={caBreadcrumPages} />
+      <AdminBreadcrumb
+        pages={isTest ? testcaBreadcrumPages : caBreadcrumPages}
+      />
       <section className="divide-y divide-neutral-200 overflow-hidden rounded-lg bg-white shadow px-4 py-5 sm:px-6">
         <Switch.Group as="div" className="flex items-center justify-between">
           <span className="flex flex-grow flex-col">
@@ -122,7 +133,11 @@ export default function AdminCaPage() {
       <CaSection
         certsApi={client}
         manageEnabled={manageEnabled}
-        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA}
+        namespaceId={
+          isTest
+            ? TestNamespaceId.TestNamespaceIDStr_RootCA
+            : WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA
+        }
         title="Root CA"
         createButtonLabel="Create root CA"
       />
@@ -136,8 +151,8 @@ export default function AdminCaPage() {
       <CaSection
         certsApi={client}
         manageEnabled={manageEnabled}
-        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet}
-        title="Intermediate CA - SCEP Intranet"
+        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet}
+        title="Intermediate CA - Intranet"
         createButtonLabel="Create intermediate CA"
       />
     </>

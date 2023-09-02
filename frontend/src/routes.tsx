@@ -33,6 +33,11 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminPage /> },
           { path: "ca", element: <AdminCaPage /> },
+          {
+            path: "testca",
+            id: RouteIds.adminTestCa,
+            element: <AdminCaPage />,
+          },
           { path: "cert/:namespaceId/new", element: <CreateCertPage /> },
           { path: "cert/:namespaceId/:certId", element: <CertViewPage /> },
           { path: "policy/:namespaceId/:policyId", element: <PolicyPage /> },

@@ -18,11 +18,11 @@ const (
 )
 
 type commonConfig struct {
-	defaultAzCerdential azcore.TokenCredential
+	defaultAzCerdential *azidentity.DefaultAzureCredential
 	azKeysClient        *azkeys.Client
 }
 
-func NewCommonConfig() (c *commonConfig, err error) {
+func NewCommonConfig() (c commonConfig, err error) {
 	c.defaultAzCerdential, err = azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return

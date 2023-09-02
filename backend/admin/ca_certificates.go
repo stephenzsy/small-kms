@@ -57,7 +57,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 	certId := uuid.New()
 	item.CertificateRef = CertificateRef{
 		ID:              certId,
-		IssuerNamespace: wellKnownNamespaceID_RootCA,
+		IssuerNamespace: p.issuer.IssuerNamespace,
 		Issuer:          p.issuer.ID,
 		Usage:           p.usage,
 		Name:            p.subject.CN,
@@ -184,7 +184,7 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 		}
 		if p.namespaceID == wellKnownNamespaceID_IntCAService {
 			ca.NotAfter = ca.NotBefore.AddDate(5, 0, 0)
-		} else if p.namespaceID == wellKnownNamespaceID_IntCaSCEPIntranet {
+		} else if p.namespaceID == wellKnownNamespaceID_IntCaIntranet {
 			ca.NotAfter = ca.NotBefore.AddDate(1, 0, 0)
 		}
 		if ca.NotAfter.After(signerCert.NotAfter) {

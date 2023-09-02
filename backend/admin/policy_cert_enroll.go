@@ -109,7 +109,7 @@ func (s *adminServer) PutPolicyCertEnrollV1(c *gin.Context, namespaceID Namespac
 	status := 500
 	var err error
 	switch namespaceID {
-	case wellKnownNamespaceID_IntCaSCEPIntranet:
+	case wellKnownNamespaceID_IntCaIntranet:
 		result, status, err = s.putPolicyCertEnroll(c, namespaceID, params)
 	default:
 		c.JSON(400, gin.H{"error": fmt.Sprintf("policy not allowed in the specified namespace : %s", namespaceID.String())})

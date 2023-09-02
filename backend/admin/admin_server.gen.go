@@ -49,14 +49,19 @@ const (
 	PolicyIDCertEnroll PolicyID = "cert-enrollment"
 )
 
+// Defines values for TestNamespaceId.
+const (
+	TestNamespaceIDStrRootCA TestNamespaceId = "00000001-0000-0000-0000-000000000001"
+)
+
 // Defines values for WellKnownNamespaceIDStr.
 const (
-	WellKnownNamespaceIDStrCertsInfra        WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000010"
-	WellKnownNamespaceIDStrCertsService      WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000011"
-	WellKnownNamespaceIDStrIntCAInfra        WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000010"
-	WellKnownNamespaceIDStrIntCASCEPIntranet WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000001"
-	WellKnownNamespaceIDStrIntCAService      WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000011"
-	WellKnownNamespaceIDStrRootCA            WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000001"
+	WellKnownNamespaceIDStrCertsInfra    WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000010"
+	WellKnownNamespaceIDStrCertsService  WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000011"
+	WellKnownNamespaceIDStrIntCAInfra    WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000010"
+	WellKnownNamespaceIDStrIntCAIntranet WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000001"
+	WellKnownNamespaceIDStrIntCAService  WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000011"
+	WellKnownNamespaceIDStrRootCA        WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000001"
 )
 
 // Defines values for GetCertificateV1ParamsAccept.
@@ -193,6 +198,9 @@ type PolicyRef struct {
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy string `json:"updatedBy"`
 }
+
+// TestNamespaceId defines model for TestNamespaceId.
+type TestNamespaceId string
 
 // WellKnownNamespaceIDStr defines model for WellKnownNamespaceId.
 type WellKnownNamespaceIDStr string

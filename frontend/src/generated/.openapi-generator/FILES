@@ -12,6 +12,7 @@ models/CreateCertificateParameters.ts
 models/KeyParameters.ts
 models/PolicyId.ts
 models/PolicyRef.ts
+models/TestNamespaceId.ts
 models/WellKnownNamespaceId.ts
 models/index.ts
 runtime.ts

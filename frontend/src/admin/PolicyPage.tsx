@@ -21,8 +21,8 @@ const titleDisplayNames: Partial<Record<WellKnownNamespaceId, string>> = {
     "Cert enrollment policy: Root CA",
   [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService]:
     "Cert enrollment policy: Intermediate CA - Services",
-  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet]:
-    "Cert enrollment policy: intermediate CA - SCEP Intranet",
+  [WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet]:
+    "Cert enrollment policy: intermediate CA - Intranet",
 };
 
 const sampleParams: CertificateEnrollmentParameters = {
@@ -32,7 +32,6 @@ const sampleParams: CertificateEnrollmentParameters = {
     size: 2048,
   },
   validity: "720h",
-  delegatedService: "scep",
 };
 
 export default function PolicyPage() {
@@ -68,7 +67,7 @@ export default function PolicyPage() {
     switch (namespaceId) {
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
       case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService:
-      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCASCEPIntranet:
+      case WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet:
         return [
           ...caBreadcrumPages,
           { name: "Create certificate authority", to: "#" },

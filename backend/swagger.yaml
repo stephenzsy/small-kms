@@ -335,14 +335,20 @@ components:
         - 00000000-0000-0000-0000-000000000001 # root-ca
         - 00000000-0000-0000-0000-000000000010 # int-ca infrastructure (reserved)
         - 00000000-0000-0000-0000-000000000011 # int-ca internal service (e.g. mTLS)
-        - 00000000-0000-0000-0000-100000000001 # int-ca SCEP intranet
+        - 00000000-0000-0000-0000-100000000001 # int-ca intranet access
         - 00000000-0000-0000-0001-000000000010 # certs infrastructure
         - 00000000-0000-0000-0001-000000000011 # certs internal service
       x-enum-varnames:
         - WellKnownNamespaceIDStr_RootCA
         - WellKnownNamespaceIDStr_IntCAInfra
         - WellKnownNamespaceIDStr_IntCAService
-        - WellKnownNamespaceIDStr_IntCASCEPIntranet
+        - WellKnownNamespaceIDStr_IntCAIntranet
         - WellKnownNamespaceIDStr_CertsInfra
         - WellKnownNamespaceIDStr_CertsService
       x-go-name: WellKnownNamespaceIDStr
+    TestNamespaceId:
+      type: string
+      enum:
+        - 00000001-0000-0000-0000-000000000001 # root-ca test
+      x-enum-varnames:
+        - TestNamespaceIDStr_RootCA

@@ -12,6 +12,12 @@ export default function AdminPage() {
             <ChevronRightIcon className="h-em w-em" />
           </Link>
         </div>
+        <div className="px-4 py-5 sm:p-6">
+          <Link to="./testca" className="inline-flex items-center gap-x-ex">
+            <span>Manage Certificate Authorities (Test)</span>
+            <ChevronRightIcon className="h-em w-em" />
+          </Link>
+        </div>
       </section>
     </>
   );

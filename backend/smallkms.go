@@ -18,7 +18,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/scep"
 )
 
 func main() {
@@ -52,8 +51,6 @@ func main() {
 		}
 		router.Use(auth.HandleAadAuthMiddleware)
 		admin.RegisterHandlers(router, admin.NewAdminServer())
-	case "scep":
-		scep.RegisterHandlers(router, scep.NewScepServer())
 	}
 
 	log.Fatal(router.Run(listenerAddress))
