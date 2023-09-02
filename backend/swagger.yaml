@@ -13,7 +13,12 @@ paths:
       summary: List certificates
       operationId: ListCertificatesV1
       parameters:
-        - $ref: "#/components/parameters/namespaceId"
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
       responses:
         "200":
           description: A JSON array of Certificate Refs
@@ -24,14 +29,44 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateRef"
-  /v1/{namespaceId}/certificate/{id}:
+    post:
+      tags:
+        - certs
+      summary: Create certificate
+      operationId: CreateCertificateV1
+      parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCertificateParameters"
+        required: true
+      responses:
+        "201":
+          description: Certificate Reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateRef"
+  /v1/{namespaceId}/certificates/{id}:
     get:
       tags:
         - certs
       summary: Get certificate
       operationId: GetCertificateV1
       parameters:
-        - $ref: "#/components/parameters/namespaceId"
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
         - in: path
           name: id
           schema:
@@ -65,74 +100,66 @@ paths:
               schema:
                 type: string
                 format: binary
-  /v1/{namespaceId}/certificate:
-    post:
-      tags:
-        - certs
-      summary: Create certificate
-      operationId: CreateCertificateV1
-      parameters:
-        - $ref: "#/components/parameters/namespaceId"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateCertificateParameters"
-        required: true
-      responses:
-        "201":
-          description: Certificate Reference
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRef"
-  /v1/{namespaceId}/policy/cert-enrollment:
+  /v1/{namespaceId}/policies/{policyId}:
     put:
       tags:
         - policy
-      summary: Put Certificate Enrollment Policy
-      operationId: PutPolicyCertEnrollV1
+      summary: Put Policy
+      operationId: PutPolicyV1
       parameters:
-        - $ref: "#/components/parameters/namespaceId"
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: policyId
+          schema:
+            type: string
+            format: uuid
+          required: true
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CertificateEnrollmentParameters"
+              $ref: "#/components/schemas/PolicyParameters"
         required: true
       responses:
         "200":
-          description: Enrollment policy
+          description: Certificate policy
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateEnrollmentPolicy"
+                $ref: "#/components/schemas/Policy"
     get:
       tags:
         - policy
-      summary: Get Certificate Enrollment Policy
-      operationId: GetPolicyCertEnrollV1
+      summary: Get Certificate Policy
+      operationId: GetPolicyV1
       parameters:
-        - $ref: "#/components/parameters/namespaceId"
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: policyId
+          schema:
+            type: string
+            format: uuid
+          required: true
       responses:
         "200":
-          description: Enrollment policy
+          description: Certificate policy
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateEnrollmentPolicy"
+                $ref: "#/components/schemas/Policy"
 security:
   - BearerAuth: []
 components:
-  parameters:
-    namespaceId:
-      in: path
-      name: namespaceId
-      schema:
-        type: string
-        format: uuid
-      required: true
-      x-go-name: NamespaceID
   securitySchemes:
     BearerAuth:
       type: http
@@ -196,6 +223,8 @@ components:
           x-enum-varnames:
             - EcCurve_P256
             - EcCurve_P384
+      required:
+        - kty
     CreateCertificateParameters:
       type: object
       properties:
@@ -276,13 +305,14 @@ components:
         - issuerNamespace
         - issuer
         - createdBy
-    PolicyId:
+    PolicyType:
       type: string
       enum:
-        - cert-enrollment
+        - certIssue
+        - certRequest
       x-enum-varnames:
-        - PolicyID_CertEnroll
-      x-go-name: PolicyID
+        - PolicyType_CertIssue
+        - PolicyType_CertRequest
     PolicyRef:
       type: object
       properties:
@@ -292,8 +322,11 @@ components:
           format: uuid
           x-go-name: NamespaceID
         id:
+          type: string
+          format: uuid
           x-go-name: ID
-          $ref: "#/components/schemas/PolicyId"
+        type:
+          $ref: "#/components/schemas/PolicyType"
         updatedBy:
           description: Unique ID of the user who created the policy
           type: string
@@ -304,31 +337,99 @@ components:
       required:
         - namespaceId
         - id
+        - type
         - updatedBy
         - updatedAt
-    CertificateEnrollmentParameters:
+    CertificateIssurancePolicyParameters:
       type: object
       properties:
         issuerId:
+          description: ID of the current issuer certificate
           type: string
           format: uuid
           x-go-name: IssuerID
-        validity:
-          description: RFC3339 duration string
-          type: string
-          format: duration
-        keyParameters:
-          $ref: "#/components/schemas/KeyParameters"
-        delegatedService:
-          type: string
+        maxValidity:
+          $ref: "#/components/schemas/DurationSpec"
+        allowedKeyTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/KeyParameters"
+        allowedUsages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateUsage"
+        allowedNamespaceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          x-go-name: AllowedNamespaceIDs
       required:
         - issuerId
+        - maxValidity
+        - allowedKeyTypes
+        - allowedUsages
+        - allowedNamespaceIds
+    DurationSpec:
+      type: object
+      properties:
+        years:
+          type: integer
+          format: int32
+          default: 0
+        months:
+          type: integer
+          format: int32
+          default: 0
+        days:
+          type: integer
+          format: int32
+          default: 0
+      required:
+        - years
+        - months
+        - days
+    CertificateRequestPolicyParameters:
+      type: object
+      properties:
+        issuerNamespaceId:
+          description: ID of the issuer namespace
+          type: string
+          format: uuid
+          x-go-name: IssuerNamespaceID
+        validity:
+          $ref: "#/components/schemas/DurationSpec"
+        keyParameters:
+          $ref: "#/components/schemas/KeyParameters"
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        autoRenewalThreshold:
+          description: Number of days left to trigger renewal, (0, 1) range indicates percentage
+          type: number
+          format: float
+          default: 0.2
+      required:
+        - issuerNamespaceId
         - validity
-        - keyParameters
-    CertificateEnrollmentPolicy:
+        - subject
+        - usage
+    PolicyParameters:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/PolicyType"
+        certIssue:
+          $ref: "#/components/schemas/CertificateIssurancePolicyParameters"
+        certRequest:
+          $ref: "#/components/schemas/CertificateRequestPolicyParameters"
+      required:
+        - type
+    Policy:
       allOf:
         - $ref: "#/components/schemas/PolicyRef"
-        - $ref: "#/components/schemas/CertificateEnrollmentParameters"
+        - $ref: "#/components/schemas/PolicyParameters"
     WellKnownNamespaceId:
       type: string
       enum:
@@ -350,5 +451,6 @@ components:
       type: string
       enum:
         - 00000001-0000-0000-0000-000000000001 # root-ca test
+        - 00000001-0000-0000-0000-100000000001 # int-ca test
       x-enum-varnames:
         - TestNamespaceIDStr_RootCA

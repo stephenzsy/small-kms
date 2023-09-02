@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -18,7 +17,7 @@ type CertDBItem struct {
 	CertStore string `json:"certStore,omitempty"`
 }
 
-func (s *adminServer) findLatestCertificate(ctx context.Context, namespaceID NamespaceID, name string) (result CertDBItem, err error) {
+func (s *adminServer) findLatestCertificate(ctx context.Context, namespaceID uuid.UUID, name string) (result CertDBItem, err error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	db := s.azCosmosContainerClientCerts
 	pager := db.NewQueryItemsPager(`
@@ -44,7 +43,7 @@ ORDER BY c.notAfter DESC`,
 }
 
 // returns result with nil id if not found
-func (s *adminServer) ReadCertDBItem(c context.Context, namespaceID NamespaceID, id uuid.UUID) (result CertDBItem, err error) {
+func (s *adminServer) ReadCertDBItem(c context.Context, namespaceID uuid.UUID, id uuid.UUID) (result CertDBItem, err error) {
 	db := s.azCosmosContainerClientCerts
 	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), id.String(), nil)
 	if err != nil {
@@ -62,9 +61,4 @@ func (s *adminServer) ReadCertDBItem(c context.Context, namespaceID NamespaceID,
 		return
 	}
 	return
-}
-
-type CertificateEnrollmentPolicyDTO struct {
-	CertificateEnrollmentPolicy
-	ValidityDuration time.Duration `json:"-"`
 }

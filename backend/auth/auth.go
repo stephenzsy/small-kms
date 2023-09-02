@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type msClientPrincipalClaims struct {
@@ -20,13 +20,18 @@ type msClientPrincipal struct {
 
 type ContextKey string
 
-const HasAdminAppRoleContextKey ContextKey = "HasAdminAppRole"
+const msClientPrincipalHasAdminRole string = "MsClientPrincipalHasAdminRole"
+const msClientPrincipalId string = "MsClientPrincipalId"
 
 func HandleAadAuthMiddleware(ctx *gin.Context) {
 	// Intercept the headers here
 	var err error
 	var decodedClaims []byte
 	p := msClientPrincipal{}
+	callerIdStr := ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
+	if parsedCallerId, err := uuid.Parse(callerIdStr); err != nil {
+		ctx.Set(msClientPrincipalId, parsedCallerId)
+	}
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
 	if len(encodedPrincipal) == 0 {
 		log.Println("No X-Ms-Client-Principal header found")
@@ -44,7 +49,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	}
 	for _, c := range p.Claims {
 		if c.Type == "roles" && c.Value == "App.Admin" {
-			ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), HasAdminAppRoleContextKey, true))
+			ctx.Set(msClientPrincipalHasAdminRole, true)
 		}
 	}
 
@@ -52,10 +57,10 @@ SkipClaims:
 	ctx.Next()
 }
 
-func CallerHasAdminAppRole(ctx *gin.Context) bool {
-	return ctx.Request.Context().Value(HasAdminAppRoleContextKey) == true
+func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
+	return ctx.Value(msClientPrincipalHasAdminRole) == true
 }
 
-func GetCallerID(ctx *gin.Context) string {
-	return ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
+func CallerPrincipalId(c *gin.Context) uuid.UUID {
+	return c.Value(msClientPrincipalId).(uuid.UUID)
 }

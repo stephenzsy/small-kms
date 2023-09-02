@@ -34,7 +34,10 @@ func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName stri
 	return downloadedData.Bytes(), nil
 }
 
-func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID NamespaceID, id uuid.UUID, params GetCertificateV1Params) {
+func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id uuid.UUID, params GetCertificateV1Params) {
+	if _, ok := authNamespaceRead(c, namespaceID); !ok {
+		return
+	}
 	result, err := s.ReadCertDBItem(c, namespaceID, id)
 	if err != nil {
 		log.Printf("Faild to get certificate metadata: %s", err.Error())

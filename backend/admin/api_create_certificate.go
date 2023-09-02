@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
 type createCertificateInternalParameters struct {
@@ -23,7 +22,7 @@ type createCertificateInternalParameters struct {
 	issuer             CertDBItem
 }
 
-func (s *adminServer) validateCreateCertificateOptions(c context.Context, out *createCertificateInternalParameters, namespaceID NamespaceID, p *CreateCertificateParameters) (err error) {
+func (s *adminServer) validateCreateCertificateOptions(c context.Context, out *createCertificateInternalParameters, namespaceID uuid.UUID, p *CreateCertificateParameters) (err error) {
 	// allow root ca
 	out.usage = p.Usage
 	out.subject = p.Subject
@@ -63,18 +62,20 @@ func (s *adminServer) validateCreateCertificateOptions(c context.Context, out *c
 	return
 }
 
-func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID NamespaceID) {
+func (s *adminServer) CreateCertificateV1(c *gin.Context, namespaceID uuid.UUID) {
+	callerID, ok := authNamespaceAdminOrSelf(c, namespaceID)
+	if !ok {
+		return
+	}
+
 	body := CreateCertificateParameters{}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(400, gin.H{"message": "invalid input", "error": err.Error()})
 		return
 	}
-	if !auth.CallerHasAdminAppRole(c) {
-		c.JSON(403, gin.H{"message": "User must have admin role"})
-		return
-	}
+
 	p := createCertificateInternalParameters{
-		createdBy: auth.GetCallerID(c),
+		createdBy: callerID.String(),
 	}
 	if p.usage == UsageRootCA {
 		if namespaceID == wellKnownNamespaceID_RootCA || namespaceID == testNamespaceID_RootCA {

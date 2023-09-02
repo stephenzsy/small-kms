@@ -41,8 +41,11 @@ func (s *adminServer) ListCertItems(ctx context.Context, namespaceID uuid.UUID) 
 	return
 }
 
-func (s *adminServer) ListCertificatesV1(c *gin.Context, namespaceId uuid.UUID) {
-	items, err := s.ListCertItems(c, namespaceId)
+func (s *adminServer) ListCertificatesV1(c *gin.Context, namespaceID uuid.UUID) {
+	if _, ok := authNamespaceRead(c, namespaceID); !ok {
+		return
+	}
+	items, err := s.ListCertItems(c, namespaceID)
 	if err != nil {
 		log.Printf("Faild to get list of certificates: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
