@@ -15,23 +15,25 @@
 
 import * as runtime from '../runtime';
 import type {
-  CertificateEnrollmentParameters,
-  CertificateEnrollmentPolicy,
+  Policy,
+  PolicyParameters,
 } from '../models';
 import {
-    CertificateEnrollmentParametersFromJSON,
-    CertificateEnrollmentParametersToJSON,
-    CertificateEnrollmentPolicyFromJSON,
-    CertificateEnrollmentPolicyToJSON,
+    PolicyFromJSON,
+    PolicyToJSON,
+    PolicyParametersFromJSON,
+    PolicyParametersToJSON,
 } from '../models';
 
-export interface GetPolicyCertEnrollV1Request {
+export interface GetPolicyV1Request {
     namespaceId: string;
+    policyId: string;
 }
 
-export interface PutPolicyCertEnrollV1Request {
+export interface PutPolicyV1Request {
     namespaceId: string;
-    certificateEnrollmentParameters: CertificateEnrollmentParameters;
+    policyId: string;
+    policyParameters: PolicyParameters;
 }
 
 /**
@@ -40,11 +42,15 @@ export interface PutPolicyCertEnrollV1Request {
 export class PolicyApi extends runtime.BaseAPI {
 
     /**
-     * Get Certificate Enrollment Policy
+     * Get Certificate Policy
      */
-    async getPolicyCertEnrollV1Raw(requestParameters: GetPolicyCertEnrollV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateEnrollmentPolicy>> {
+    async getPolicyV1Raw(requestParameters: GetPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Policy>> {
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getPolicyCertEnrollV1.');
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getPolicyV1.');
+        }
+
+        if (requestParameters.policyId === null || requestParameters.policyId === undefined) {
+            throw new runtime.RequiredError('policyId','Required parameter requestParameters.policyId was null or undefined when calling getPolicyV1.');
         }
 
         const queryParameters: any = {};
@@ -60,33 +66,37 @@ export class PolicyApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/policy/cert-enrollment`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v1/{namespaceId}/policies/{policyId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyId"}}`, encodeURIComponent(String(requestParameters.policyId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateEnrollmentPolicyFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => PolicyFromJSON(jsonValue));
     }
 
     /**
-     * Get Certificate Enrollment Policy
+     * Get Certificate Policy
      */
-    async getPolicyCertEnrollV1(requestParameters: GetPolicyCertEnrollV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateEnrollmentPolicy> {
-        const response = await this.getPolicyCertEnrollV1Raw(requestParameters, initOverrides);
+    async getPolicyV1(requestParameters: GetPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Policy> {
+        const response = await this.getPolicyV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Put Certificate Enrollment Policy
+     * Put Policy
      */
-    async putPolicyCertEnrollV1Raw(requestParameters: PutPolicyCertEnrollV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateEnrollmentPolicy>> {
+    async putPolicyV1Raw(requestParameters: PutPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Policy>> {
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putPolicyCertEnrollV1.');
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putPolicyV1.');
         }
 
-        if (requestParameters.certificateEnrollmentParameters === null || requestParameters.certificateEnrollmentParameters === undefined) {
-            throw new runtime.RequiredError('certificateEnrollmentParameters','Required parameter requestParameters.certificateEnrollmentParameters was null or undefined when calling putPolicyCertEnrollV1.');
+        if (requestParameters.policyId === null || requestParameters.policyId === undefined) {
+            throw new runtime.RequiredError('policyId','Required parameter requestParameters.policyId was null or undefined when calling putPolicyV1.');
+        }
+
+        if (requestParameters.policyParameters === null || requestParameters.policyParameters === undefined) {
+            throw new runtime.RequiredError('policyParameters','Required parameter requestParameters.policyParameters was null or undefined when calling putPolicyV1.');
         }
 
         const queryParameters: any = {};
@@ -104,21 +114,21 @@ export class PolicyApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/policy/cert-enrollment`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v1/{namespaceId}/policies/{policyId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyId"}}`, encodeURIComponent(String(requestParameters.policyId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: CertificateEnrollmentParametersToJSON(requestParameters.certificateEnrollmentParameters),
+            body: PolicyParametersToJSON(requestParameters.policyParameters),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateEnrollmentPolicyFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => PolicyFromJSON(jsonValue));
     }
 
     /**
-     * Put Certificate Enrollment Policy
+     * Put Policy
      */
-    async putPolicyCertEnrollV1(requestParameters: PutPolicyCertEnrollV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateEnrollmentPolicy> {
-        const response = await this.putPolicyCertEnrollV1Raw(requestParameters, initOverrides);
+    async putPolicyV1(requestParameters: PutPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Policy> {
+        const response = await this.putPolicyV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

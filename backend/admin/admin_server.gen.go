@@ -25,23 +25,23 @@ const (
 	UsageServer CertificateUsage = "server"
 )
 
-// Defines values for KeyParametersCurve.
+// Defines values for KeyPropertiesCrv.
 const (
-	EcCurveP256 KeyParametersCurve = "P-256"
-	EcCurveP384 KeyParametersCurve = "P-384"
+	EcCurveP256 KeyPropertiesCrv = "P-256"
+	EcCurveP384 KeyPropertiesCrv = "P-384"
 )
 
-// Defines values for KeyParametersKty.
+// Defines values for KeyPropertiesKeySize.
 const (
-	KtyEC  KeyParametersKty = "EC"
-	KtyRSA KeyParametersKty = "RSA"
+	KeySize2048 KeyPropertiesKeySize = 2048
+	KeySize3072 KeyPropertiesKeySize = 3072
+	KeySize4096 KeyPropertiesKeySize = 4096
 )
 
-// Defines values for KeyParametersSize.
+// Defines values for KeyPropertiesKty.
 const (
-	KeySize2048 KeyParametersSize = 2048
-	KeySize3072 KeyParametersSize = 3072
-	KeySize4096 KeyParametersSize = 4096
+	KtyEC  KeyPropertiesKty = "EC"
+	KtyRSA KeyPropertiesKty = "RSA"
 )
 
 // Defines values for PolicyType.
@@ -75,9 +75,9 @@ const (
 
 // CertificateIssurancePolicyParameters defines model for CertificateIssurancePolicyParameters.
 type CertificateIssurancePolicyParameters struct {
-	AllowedKeyTypes     []KeyParameters      `json:"allowedKeyTypes"`
-	AllowedNamespaceIDs []openapi_types.UUID `json:"allowedNamespaceIds"`
-	AllowedUsages       []CertificateUsage   `json:"allowedUsages"`
+	AllowedKeyProperties *[]KeyProperties     `json:"allowedKeyProperties,omitempty"`
+	AllowedNamespaceIDs  []openapi_types.UUID `json:"allowedNamespaceIds"`
+	AllowedUsages        []CertificateUsage   `json:"allowedUsages"`
 
 	// IssuerId ID of the current issuer certificate
 	IssuerID    openapi_types.UUID `json:"issuerId"`
@@ -115,11 +115,13 @@ type CertificateRequestPolicyParameters struct {
 	AutoRenewalThreshold *float32 `json:"autoRenewalThreshold,omitempty"`
 
 	// IssuerNamespaceId ID of the issuer namespace
-	IssuerNamespaceID openapi_types.UUID `json:"issuerNamespaceId"`
-	KeyParameters     *KeyParameters     `json:"keyParameters,omitempty"`
-	Subject           CertificateSubject `json:"subject"`
-	Usage             CertificateUsage   `json:"usage"`
-	Validity          DurationSpec       `json:"validity"`
+	IssuerNamespaceID       openapi_types.UUID                  `json:"issuerNamespaceId"`
+	KeyProperties           *KeyProperties                      `json:"keyProperties,omitempty"`
+	KeyStorePath            string                              `json:"keyStorePath"`
+	Subject                 CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                   CertificateUsage                    `json:"usage"`
+	ValidityInMonths        *int                                `json:"validity_months,omitempty"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -135,6 +137,13 @@ type CertificateSubject struct {
 
 	// Ou Organizational unit
 	OU *string `json:"ou,omitempty"`
+}
+
+// CertificateSubjectAlternativeNames defines model for CertificateSubjectAlternativeNames.
+type CertificateSubjectAlternativeNames struct {
+	DNSNames           *[]string `json:"dns_names,omitempty"`
+	Emails             *[]string `json:"emails,omitempty"`
+	UserPrincipalNames *[]string `json:"upns,omitempty"`
 }
 
 // CertificateUsage defines model for CertificateUsage.
@@ -169,21 +178,24 @@ type DurationSpec struct {
 	Years  int32 `json:"years"`
 }
 
-// KeyParameters defines model for KeyParameters.
-type KeyParameters struct {
-	Curve *KeyParametersCurve `json:"curve,omitempty"`
-	Kty   KeyParametersKty    `json:"kty"`
-	Size  *KeyParametersSize  `json:"size,omitempty"`
+// KeyProperties defines model for KeyProperties.
+type KeyProperties struct {
+	CurveName *KeyPropertiesCrv     `json:"crv,omitempty"`
+	KeySize   *KeyPropertiesKeySize `json:"key_size,omitempty"`
+	KeyType   KeyPropertiesKty      `json:"kty"`
+
+	// ReuseKey Keep using the same key version if exists
+	ReuseKey *bool `json:"reuse_key,omitempty"`
 }
 
-// KeyParametersCurve defines model for KeyParameters.Curve.
-type KeyParametersCurve string
+// KeyPropertiesCrv defines model for KeyProperties.Crv.
+type KeyPropertiesCrv string
 
-// KeyParametersKty defines model for KeyParameters.Kty.
-type KeyParametersKty string
+// KeyPropertiesKeySize defines model for KeyProperties.KeySize.
+type KeyPropertiesKeySize int32
 
-// KeyParametersSize defines model for KeyParameters.Size.
-type KeyParametersSize int32
+// KeyPropertiesKty defines model for KeyProperties.Kty.
+type KeyPropertiesKty string
 
 // Policy defines model for Policy.
 type Policy struct {

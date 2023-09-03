@@ -18,7 +18,8 @@
  * @export
  */
 export const TestNamespaceId = {
-    TestNamespaceIDStr_RootCA: '00000001-0000-0000-0000-000000000001'
+    TestNamespaceIDStr_RootCA: '00000001-0000-0000-0000-000000000001',
+    _100000000001: '00000001-0000-0000-0000-100000000001'
 } as const;
 export type TestNamespaceId = typeof TestNamespaceId[keyof typeof TestNamespaceId];
 

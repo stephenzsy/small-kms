@@ -1,14 +1,12 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
-import Layout from "./Layout";
-import { MainPage } from "./MainPage";
-import { AuthProvider } from "./auth/AuthProvider";
-import { RouteIds } from "./route-constants";
 import { AdminLayout } from "./admin/Layout";
 import AdminPage from "./admin/Page";
-import AdminCaPage from "./admin/CaPage";
-import CreateCertPage from "./admin/CreateCertPage";
-import CertViewPage from "./admin/CertViewPage";
+import PoliciesPage from "./admin/PoliciesPage";
 import PolicyPage from "./admin/PolicyPage";
+import { AuthProvider } from "./auth/AuthProvider";
+import Layout from "./Layout";
+import { MainPage } from "./MainPage";
+import { RouteIds } from "./route-constants";
 
 export const router = createBrowserRouter([
   {
@@ -32,15 +30,13 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <AdminPage /> },
-          { path: "ca", element: <AdminCaPage /> },
           {
-            path: "testca",
-            id: RouteIds.adminTestCa,
-            element: <AdminCaPage />,
+            path: ":namespaceId/policies",
+            children: [
+              { index: true, element: <PoliciesPage /> },
+              { path: ":policyId", element: <PolicyPage /> },
+            ],
           },
-          { path: "cert/:namespaceId/new", element: <CreateCertPage /> },
-          { path: "cert/:namespaceId/:certId", element: <CertViewPage /> },
-          { path: "policy/:namespaceId/:policyId", element: <PolicyPage /> },
         ],
       },
     ],

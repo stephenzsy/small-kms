@@ -61,40 +61,48 @@ func (p *PolicyDBItem) ToCertRequestPolicy() (CertRequestPolicy, error) {
 		*p,
 	}
 	r.CertIssue = nil
-	keyParameters := KeyParameters{
-		Kty:  KtyRSA,
-		Size: ToPtr(KeySize2048),
+	keyProps := KeyProperties{
+		KeyType: KtyRSA,
+		KeySize: ToPtr(KeySize2048),
 	}
+	validityInMonths := 12
 	if IsRootCANamespace(p.NamespaceID) {
 		// override issuer namespace for root ca
 		r.CertRequest.IssuerNamespaceID = p.NamespaceID
-		if p.CertRequest.Validity.Years == 0 && p.CertRequest.Validity.Months == 0 && p.CertRequest.Validity.Days == 0 {
-			r.CertRequest.Validity.Years = 10
+		if p.CertRequest.ValidityInMonths == nil || *p.CertRequest.ValidityInMonths == 0 {
+			validityInMonths = 120
 		}
-		keyParameters.Size = ToPtr(KeySize4096)
+		keyProps.KeySize = ToPtr(KeySize4096)
 		r.CertRequest.Usage = UsageRootCA
 	}
 
 	// validate key spec
-	switch p.CertRequest.KeyParameters.Kty {
-	case KtyEC:
-		keyParameters.Kty = KtyEC
-		keyParameters.Size = nil
-		curve := *p.CertRequest.KeyParameters.Curve
-		switch curve {
-		case EcCurveP256, EcCurveP384:
-			keyParameters.Curve = &curve
-		default:
-			keyParameters.Curve = ToPtr(EcCurveP384)
+	if p.CertRequest.KeyProperties != nil {
+		switch p.CertRequest.KeyProperties.KeyType {
+		case KtyEC:
+			keyProps.KeyType = KtyEC
+			keyProps.KeySize = nil
+			curve := *p.CertRequest.KeyProperties.CurveName
+			switch curve {
+			case EcCurveP256, EcCurveP384:
+				keyProps.CurveName = &curve
+			default:
+				keyProps.CurveName = ToPtr(EcCurveP384)
+			}
+		case KtyRSA:
+			size := *p.CertRequest.KeyProperties.KeySize
+			switch size {
+			case KeySize3072, KeySize4096:
+				keyProps.KeySize = &size
+			}
 		}
-	case KtyRSA:
-		size := *p.CertRequest.KeyParameters.Size
-		switch size {
-		case KeySize3072, KeySize4096:
-			keyParameters.Size = &size
+
+		if p.CertRequest.ValidityInMonths != nil && *p.CertRequest.ValidityInMonths > 0 && *p.CertRequest.ValidityInMonths < 120 {
+			validityInMonths = *p.CertRequest.ValidityInMonths
 		}
 	}
-	r.CertRequest.KeyParameters = &keyParameters
+	r.CertRequest.KeyProperties = &keyProps
+	r.CertRequest.ValidityInMonths = &validityInMonths
 
 	return &r, nil
 }

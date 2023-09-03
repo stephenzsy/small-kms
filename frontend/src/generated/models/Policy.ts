@@ -13,6 +13,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateIssurancePolicyParameters } from './CertificateIssurancePolicyParameters';
+import {
+    CertificateIssurancePolicyParametersFromJSON,
+    CertificateIssurancePolicyParametersFromJSONTyped,
+    CertificateIssurancePolicyParametersToJSON,
+} from './CertificateIssurancePolicyParameters';
+import type { CertificateRequestPolicyParameters } from './CertificateRequestPolicyParameters';
+import {
+    CertificateRequestPolicyParametersFromJSON,
+    CertificateRequestPolicyParametersFromJSONTyped,
+    CertificateRequestPolicyParametersToJSON,
+} from './CertificateRequestPolicyParameters';
 import type { PolicyType } from './PolicyType';
 import {
     PolicyTypeFromJSON,
@@ -23,45 +35,57 @@ import {
 /**
  * 
  * @export
- * @interface PolicyRef
+ * @interface Policy
  */
-export interface PolicyRef {
+export interface Policy {
     /**
      * Unique ID of the namespace
      * @type {string}
-     * @memberof PolicyRef
+     * @memberof Policy
      */
     namespaceId: string;
     /**
      * 
      * @type {string}
-     * @memberof PolicyRef
+     * @memberof Policy
      */
     id: string;
     /**
      * 
      * @type {PolicyType}
-     * @memberof PolicyRef
+     * @memberof Policy
      */
     type: PolicyType;
     /**
      * Unique ID of the user who created the policy
      * @type {string}
-     * @memberof PolicyRef
+     * @memberof Policy
      */
     updatedBy: string;
     /**
      * Time when the policy was last updated
      * @type {Date}
-     * @memberof PolicyRef
+     * @memberof Policy
      */
     updatedAt: Date;
+    /**
+     * 
+     * @type {CertificateIssurancePolicyParameters}
+     * @memberof Policy
+     */
+    certIssue?: CertificateIssurancePolicyParameters;
+    /**
+     * 
+     * @type {CertificateRequestPolicyParameters}
+     * @memberof Policy
+     */
+    certRequest?: CertificateRequestPolicyParameters;
 }
 
 /**
- * Check if a given object implements the PolicyRef interface.
+ * Check if a given object implements the Policy interface.
  */
-export function instanceOfPolicyRef(value: object): boolean {
+export function instanceOfPolicy(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "id" in value;
@@ -72,11 +96,11 @@ export function instanceOfPolicyRef(value: object): boolean {
     return isInstance;
 }
 
-export function PolicyRefFromJSON(json: any): PolicyRef {
-    return PolicyRefFromJSONTyped(json, false);
+export function PolicyFromJSON(json: any): Policy {
+    return PolicyFromJSONTyped(json, false);
 }
 
-export function PolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): PolicyRef {
+export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Policy {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -87,10 +111,12 @@ export function PolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'type': PolicyTypeFromJSON(json['type']),
         'updatedBy': json['updatedBy'],
         'updatedAt': (new Date(json['updatedAt'])),
+        'certIssue': !exists(json, 'certIssue') ? undefined : CertificateIssurancePolicyParametersFromJSON(json['certIssue']),
+        'certRequest': !exists(json, 'certRequest') ? undefined : CertificateRequestPolicyParametersFromJSON(json['certRequest']),
     };
 }
 
-export function PolicyRefToJSON(value?: PolicyRef | null): any {
+export function PolicyToJSON(value?: Policy | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -104,6 +130,8 @@ export function PolicyRefToJSON(value?: PolicyRef | null): any {
         'type': PolicyTypeToJSON(value.type),
         'updatedBy': value.updatedBy,
         'updatedAt': (value.updatedAt.toISOString()),
+        'certIssue': CertificateIssurancePolicyParametersToJSON(value.certIssue),
+        'certRequest': CertificateRequestPolicyParametersToJSON(value.certRequest),
     };
 }
 

@@ -29,7 +29,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	var decodedClaims []byte
 	p := msClientPrincipal{}
 	callerIdStr := ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
-	if parsedCallerId, err := uuid.Parse(callerIdStr); err != nil {
+	if parsedCallerId, err := uuid.Parse(callerIdStr); err == nil {
 		ctx.Set(msClientPrincipalId, parsedCallerId)
 	}
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
@@ -62,5 +62,8 @@ func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
 }
 
 func CallerPrincipalId(c *gin.Context) uuid.UUID {
-	return c.Value(msClientPrincipalId).(uuid.UUID)
+	if value, ok := c.Value(msClientPrincipalId).(uuid.UUID); ok {
+		return value
+	}
+	return uuid.Nil
 }

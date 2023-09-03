@@ -24,7 +24,7 @@ export interface KeyParameters {
      * @type {string}
      * @memberof KeyParameters
      */
-    kty?: KeyParametersKtyEnum;
+    kty: KeyParametersKtyEnum;
     /**
      * 
      * @type {number}
@@ -74,6 +74,7 @@ export type KeyParametersCurveEnum = typeof KeyParametersCurveEnum[keyof typeof 
  */
 export function instanceOfKeyParameters(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "kty" in value;
 
     return isInstance;
 }
@@ -88,7 +89,7 @@ export function KeyParametersFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
-        'kty': !exists(json, 'kty') ? undefined : json['kty'],
+        'kty': json['kty'],
         'size': !exists(json, 'size') ? undefined : json['size'],
         'curve': !exists(json, 'curve') ? undefined : json['curve'],
     };

@@ -193,7 +193,7 @@ components:
         keepKeyVersion:
           description: Keep using the same key version if exists
           type: boolean
-    KeyParameters:
+    KeyProperties:
       type: object
       properties:
         kty:
@@ -204,7 +204,8 @@ components:
           x-enum-varnames:
             - Kty_RSA
             - Kty_EC
-        size:
+          x-go-name: KeyType
+        key_size:
           type: integer
           format: int32
           enum:
@@ -215,7 +216,8 @@ components:
             - KeySize_2048
             - KeySize_3072
             - KeySize_4096
-        curve:
+          x-go-name: KeySize
+        crv:
           type: string
           enum:
             - P-256
@@ -223,6 +225,11 @@ components:
           x-enum-varnames:
             - EcCurve_P256
             - EcCurve_P384
+          x-go-name: CurveName
+        reuse_key:
+          description: Keep using the same key version if exists
+          type: boolean
+          x-go-name: ReuseKey
       required:
         - kty
     CreateCertificateParameters:
@@ -350,10 +357,10 @@ components:
           x-go-name: IssuerID
         maxValidity:
           $ref: "#/components/schemas/DurationSpec"
-        allowedKeyTypes:
+        allowedKeyProperties:
           type: array
           items:
-            $ref: "#/components/schemas/KeyParameters"
+            $ref: "#/components/schemas/KeyProperties"
         allowedUsages:
           type: array
           items:
@@ -389,6 +396,24 @@ components:
         - years
         - months
         - days
+    CertificateSubjectAlternativeNames:
+      type: object
+      properties:
+        dns_names:
+          x-go-name: DNSNames
+          type: array
+          items:
+            type: string
+        emails:
+          x-go-name: Emails
+          type: array
+          items:
+            type: string
+        upns:
+          x-go-name: UserPrincipalNames
+          type: array
+          items:
+            type: string
     CertificateRequestPolicyParameters:
       type: object
       properties:
@@ -397,12 +422,15 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerNamespaceID
-        validity:
-          $ref: "#/components/schemas/DurationSpec"
-        keyParameters:
-          $ref: "#/components/schemas/KeyParameters"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+        keyProperties:
+          $ref: "#/components/schemas/KeyProperties"
         subject:
           $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
         usage:
           $ref: "#/components/schemas/CertificateUsage"
         autoRenewalThreshold:
@@ -410,11 +438,13 @@ components:
           type: number
           format: float
           default: 0.2
+        keyStorePath:
+          type: string
       required:
         - issuerNamespaceId
-        - validity
         - subject
         - usage
+        - keyStorePath
     PolicyParameters:
       type: object
       properties:

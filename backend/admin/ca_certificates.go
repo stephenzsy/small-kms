@@ -77,7 +77,18 @@ func (s *adminServer) createCACertificate(ctx context.Context, p createCertifica
 		return
 	}
 	log.Printf("Created certificate record: %s", item.ID.String())
+	/*
+		s.AzCertificatesClient().CreateCertificate(ctx, p.keyVaultKeyName, azcertificates.CreateCertificateParameters{
+			CertificatePolicy: &azcertificates.CertificatePolicy{
+				Attributes: &azcertificates.CertificateAttributes{},
+				KeyProperties: &azcertificates.KeyProperties{
+					Exportable: to.Ptr(false),
+				},
 
+				X509CertificateProperties: &azcertificates.X509CertificateProperties{},
+			},
+		}, nil)
+	*/
 	// first create new version of key in keyvault
 	var webKey *azkeys.JSONWebKey
 	if len(p.keyVaultKeyVersion) != 0 {

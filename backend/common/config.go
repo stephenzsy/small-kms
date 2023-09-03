@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 )
 
@@ -18,8 +19,10 @@ const (
 )
 
 type commonConfig struct {
-	defaultAzCerdential *azidentity.DefaultAzureCredential
-	azKeysClient        *azkeys.Client
+	defaultAzCerdential  *azidentity.DefaultAzureCredential
+	keyvaultEndpoint     string
+	azKeysClient         *azkeys.Client
+	azCertificatesClient *azcertificates.Client
 }
 
 func NewCommonConfig() (c commonConfig, err error) {
@@ -27,13 +30,19 @@ func NewCommonConfig() (c commonConfig, err error) {
 	if err != nil {
 		return
 	}
-	c.azKeysClient, err = azkeys.NewClient(MustGetenv(DefualtEnvVarAzKeyvaultResourceEndpoint), c.defaultAzCerdential, nil)
+	c.keyvaultEndpoint = (DefualtEnvVarAzKeyvaultResourceEndpoint)
+	c.azKeysClient, err = azkeys.NewClient(c.keyvaultEndpoint, c.defaultAzCerdential, nil)
+	if err != nil {
+		return
+	}
+	c.azCertificatesClient, err = azcertificates.NewClient(c.keyvaultEndpoint, c.defaultAzCerdential, nil)
 	return
 }
 
 type CommonConfig interface {
 	DefaultAzCredential() azcore.TokenCredential
 	AzKeysClient() *azkeys.Client
+	AzCertificatesClient() *azcertificates.Client
 }
 
 func (c *commonConfig) DefaultAzCredential() azcore.TokenCredential {
@@ -42,6 +51,10 @@ func (c *commonConfig) DefaultAzCredential() azcore.TokenCredential {
 
 func (c *commonConfig) AzKeysClient() *azkeys.Client {
 	return c.azKeysClient
+}
+
+func (c *commonConfig) AzCertificatesClient() *azcertificates.Client {
+	return c.azCertificatesClient
 }
 
 func MustGetenv(name string) (value string) {

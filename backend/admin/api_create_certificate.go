@@ -12,8 +12,8 @@ import (
 
 type createCertificateInternalParameters struct {
 	usage              CertificateUsage
-	kty                KeyParametersKty
-	size               KeyParametersSize
+	kty                KeyPropertiesKty
+	size               KeyPropertiesKeySize
 	namespaceID        uuid.UUID
 	keyVaultKeyName    string
 	keyVaultKeyVersion string

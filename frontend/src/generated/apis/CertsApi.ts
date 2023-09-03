@@ -72,7 +72,7 @@ export class CertsApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/certificate`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v1/{namespaceId}/certificates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -119,7 +119,7 @@ export class CertsApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/certificate/{id}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            path: `/v1/{namespaceId}/certificates/{id}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
