@@ -1,87 +1,61 @@
 package admin
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
-
-// returns result with nil id if not found
-func (s *adminServer) readPolicyDBItem(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDBItem, error) {
-	db := s.azCosmosContainerClientPolicies
-	resp, err := db.ReadItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), policyID.String(), nil)
-	if err != nil {
-		var respErr *azcore.ResponseError
-		if errors.As(err, &respErr) {
-			// Handle Error
-			if respErr.StatusCode == http.StatusNotFound {
-				return nil, nil
-			}
-		}
-		return nil, err
-	}
-	result := new(PolicyDBItem)
-	err = json.Unmarshal(resp.Value, result)
-	return result, err
-}
-
-// returns result with nil id if not found
-func (s *adminServer) persistPolicyDBItem(c context.Context, policy *PolicyDBItem) (*PolicyDBItem, error) {
-	db := s.azCosmosContainerClientPolicies
-	content, err := json.Marshal(policy)
-	if err != nil {
-		return nil, err
-	}
-	_, err = db.UpsertItem(c, azcosmos.NewPartitionKeyString(policy.NamespaceID.String()), content, nil)
-	return policy, err
-}
 
 func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
 	// validate
-	callerID, ok := authNamespaceAdminOrSelf(c, namespaceID)
+	_, ok := authNamespaceAdminOrSelf(c, namespaceID)
 	if !ok {
 		return
 	}
 
-	p := PolicyDBItem{}
+	p := PolicyParameters{}
+
 	if err := c.BindJSON(&p); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
-	p.NamespaceID = namespaceID
-	p.ID = policyID
-	p.UpdatedBy = callerID.String()
-	p.UpdatedAt = time.Now().UTC()
-
-	// currently only allow root cert request policy
-	if p.Type != PolicyTypeCertRequest || !IsRootCANamespace(namespaceID) {
+	policyDoc := new(PolicyDoc)
+	switch p.PolicyType {
+	case PolicyTypeCertRequest:
+		switch {
+		case IsRootCANamespace(namespaceID):
+			if namespaceID != policyID {
+				c.JSON(400, gin.H{"error": "root namespace must have policy name as the same as the namespace id"})
+				return
+			}
+		default:
+			c.JSON(400, gin.H{"error": "namespace not supported yet"})
+			return
+		}
+		docSection := new(PolicyCertRequestDocSection)
+		if err := docSection.validateAndFillWithParameters(p.CertRequest, namespaceID); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		policyDoc.CertRequest = docSection
+	default:
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
-
-	policy, err := p.ToCertRequestPolicy()
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
+	policyDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID)
+	policyDoc.NamespaceID = namespaceID
+	policyDoc.PolicyType = p.PolicyType
 
 	// write to DB
-	policy, err = s.persistPolicyDBItem(c, policy.DBItem())
-	if err != nil {
+	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, policyDoc); err != nil {
 		log.Printf("Internal error: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
 		return
 	}
-
-	c.JSON(http.StatusOK, policy)
+	c.JSON(http.StatusOK, policyDoc.ToPolicy())
 }
 
 func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
@@ -90,15 +64,15 @@ func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	if !ok {
 		return
 	}
-	result, err := s.readPolicyDBItem(c, namespaceID, policyID)
+	pd, err := s.GetPolicyDoc(c, namespaceID, policyID)
 	if err != nil {
-		log.Printf("Internal error: %s", err.Error())
-		c.JSON(500, gin.H{"error": "internal error"})
-		return
+		if kmsdoc.IsNotFound(err) {
+			c.JSON(404, gin.H{"error": "not found"})
+		} else {
+			log.Printf("Internal error: %s", err.Error())
+			c.JSON(500, gin.H{"error": "internal error"})
+		}
 	}
-	if result == nil {
-		c.JSON(404, gin.H{"error": "not found"})
-		return
-	}
-	c.JSON(200, result)
+
+	c.JSON(200, pd.ToPolicy())
 }

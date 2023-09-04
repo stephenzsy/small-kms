@@ -30,7 +30,7 @@ func NewCommonConfig() (c commonConfig, err error) {
 	if err != nil {
 		return
 	}
-	c.keyvaultEndpoint = (DefualtEnvVarAzKeyvaultResourceEndpoint)
+	c.keyvaultEndpoint = MustGetenv(DefualtEnvVarAzKeyvaultResourceEndpoint)
 	c.azKeysClient, err = azkeys.NewClient(c.keyvaultEndpoint, c.defaultAzCerdential, nil)
 	if err != nil {
 		return

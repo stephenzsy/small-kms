@@ -1,19 +1,16 @@
 package admin
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
+)
 
-var wellKnownNamespaceID_RootCA uuid.UUID = uuid.MustParse(string(WellKnownNamespaceIDStrRootCA))
-var wellKnownNamespaceID_IntCAService uuid.UUID = uuid.MustParse(string(WellKnownNamespaceIDStrIntCAService))
-var wellKnownNamespaceID_IntCaIntranet uuid.UUID = uuid.MustParse(string(WellKnownNamespaceIDStrIntCAIntranet))
+var wellKnownNamespaceID_RootCA = common.GetID(common.IdentifierRootCA)
+var wellKnownNamespaceID_IntCAService = common.GetID(common.IdentifierIntCAService)
+var wellKnownNamespaceID_IntCaIntranet uuid.UUID = common.GetID(common.IdentifierIntCAIntranet)
 
-var namespacePrefixMapping = map[uuid.UUID]string{
-	wellKnownNamespaceID_RootCA:        "root-ca-",
-	wellKnownNamespaceID_IntCAService:  "int-ca-service-",
-	wellKnownNamespaceID_IntCaIntranet: "int-ca-intranet-",
-	testNamespaceID_RootCA:             "test-root-ca-",
-}
-
-var testNamespaceID_RootCA uuid.UUID = uuid.MustParse(string(TestNamespaceIDStrRootCA))
+var testNamespaceID_RootCA = common.GetID(common.IdentifierTestRootCA)
+var testNamespaceID_IntCA = common.GetID(common.IdentifierTestIntCA)
 
 func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	switch namespaceID {
@@ -46,4 +43,12 @@ func IsIntCANamespace(namespaceID uuid.UUID) bool {
 
 func IsCANamespace(namespaceID uuid.UUID) bool {
 	return IsRootCANamespace(namespaceID) || IsIntCANamespace(namespaceID)
+}
+
+func IsTestCA(namespaceID uuid.UUID) bool {
+	switch namespaceID {
+	case testNamespaceID_RootCA, testNamespaceID_IntCA:
+		return true
+	}
+	return false
 }

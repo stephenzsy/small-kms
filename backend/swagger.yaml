@@ -29,31 +29,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateRef"
-    post:
-      tags:
-        - certs
-      summary: Create certificate
-      operationId: CreateCertificateV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateCertificateParameters"
-        required: true
-      responses:
-        "201":
-          description: Certificate Reference
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRef"
   /v1/{namespaceId}/certificates/{id}:
     get:
       tags:
@@ -157,6 +132,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Policy"
+  /v1/{namespaceId}/policies/{policyId}/apply:
+    post:
+      tags:
+        - policy
+      summary: Apply policy
+      operationId: ApplyPolicyV1
+      parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: policyId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyPolicyRequest"
+        required: false
+      responses:
+        "200":
+          description: Create certificate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyState"
 security:
   - BearerAuth: []
 components:
@@ -165,6 +172,15 @@ components:
       type: http
       scheme: bearer
   schemas:
+    ApplyPolicyRequest:
+      type: object
+      properties:
+        checkConsistency:
+          description: Check consistency of the policy
+          type: boolean
+        forceRenewCertificate:
+          description: Force certificate renewal
+          type: boolean
     CertificateSubject:
       type: object
       properties:
@@ -232,44 +248,20 @@ components:
           x-go-name: ReuseKey
       required:
         - kty
-    CreateCertificateParameters:
-      type: object
-      properties:
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
-        subject:
-          $ref: "#/components/schemas/CertificateSubject"
-        validity:
-          type: string
-          format: duration
-        issuerNamespace:
-          description: Issuer of the certificate
-          type: string
-          format: uuid
-        issuer:
-          description: Issuer of the certificate
-          type: string
-          format: uuid
-        options:
-          $ref: "#/components/schemas/CreateCertificateOptions"
-      required:
-        - usage
-        - name
-        - subject
-        - issuerNamespace
-        - issuer
     CertificateUsage:
       type: string
       enum:
         - root-ca
         - intermediate-ca
-        - server
-        - client
+        - server-and-client
+        - server-only
+        - client-only
       x-enum-varnames:
         - Usage_RootCA
         - Usage_IntCA
-        - Usage_Server
-        - Usage_Client
+        - Usage_ServerAndClient
+        - Usage_ServerOnly
+        - Usage_ClientOnly
     CertificateRef:
       type: object
       properties:
@@ -320,7 +312,7 @@ components:
       x-enum-varnames:
         - PolicyType_CertIssue
         - PolicyType_CertRequest
-    PolicyRef:
+    ResourceRef:
       type: object
       properties:
         namespaceId:
@@ -332,21 +324,55 @@ components:
           type: string
           format: uuid
           x-go-name: ID
-        type:
-          $ref: "#/components/schemas/PolicyType"
         updatedBy:
           description: Unique ID of the user who created the policy
           type: string
-        updatedAt:
+        updated:
           description: Time when the policy was last updated
           type: string
           format: date-time
       required:
         - namespaceId
         - id
-        - type
         - updatedBy
-        - updatedAt
+        - updated
+    PolicyStateCertRequest:
+      type: object
+      properties:
+        lastCertId:
+          type: string
+          format: uuid
+          x-go-name: LastCertID
+        lastCertIssued:
+          type: string
+          format: date-time
+        lastCertExpires:
+          type: string
+          format: date-time
+        lastAction:
+          type: string
+      required:
+        - lastCertId
+        - lastCertIssued
+        - lastCertExpires
+        - lastAction
+    PolicyState:
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - type: object
+          properties:
+            policyType:
+              $ref: "#/components/schemas/PolicyType"
+            status:
+              type: string
+            message:
+              type: string
+            certRequest:
+              $ref: "#/components/schemas/PolicyStateCertRequest"
+          required:
+            - policyType
+            - string
+            - message
     CertificateIssurancePolicyParameters:
       type: object
       properties:
@@ -355,8 +381,6 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerID
-        maxValidity:
-          $ref: "#/components/schemas/DurationSpec"
         allowedKeyProperties:
           type: array
           items:
@@ -377,25 +401,17 @@ components:
         - allowedKeyTypes
         - allowedUsages
         - allowedNamespaceIds
-    DurationSpec:
+    CertificateLifetimeTrigger:
       type: object
       properties:
-        years:
+        days_before_expiry:
+          x-go-name: DaysBeforeExpiry
           type: integer
           format: int32
-          default: 0
-        months:
+        lifetime_percentage:
+          x-go-name: LifetimePercentage
           type: integer
           format: int32
-          default: 0
-        days:
-          type: integer
-          format: int32
-          default: 0
-      required:
-        - years
-        - months
-        - days
     CertificateSubjectAlternativeNames:
       type: object
       properties:
@@ -425,6 +441,9 @@ components:
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
+          format: int32
+        keyStorePath:
+          type: string
         keyProperties:
           $ref: "#/components/schemas/KeyProperties"
         subject:
@@ -433,13 +452,8 @@ components:
           $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
         usage:
           $ref: "#/components/schemas/CertificateUsage"
-        autoRenewalThreshold:
-          description: Number of days left to trigger renewal, (0, 1) range indicates percentage
-          type: number
-          format: float
-          default: 0.2
-        keyStorePath:
-          type: string
+        lifetimeTrigger:
+          $ref: "#/components/schemas/CertificateLifetimeTrigger"
       required:
         - issuerNamespaceId
         - subject
@@ -448,39 +462,15 @@ components:
     PolicyParameters:
       type: object
       properties:
-        type:
+        policyType:
           $ref: "#/components/schemas/PolicyType"
         certIssue:
           $ref: "#/components/schemas/CertificateIssurancePolicyParameters"
         certRequest:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
       required:
-        - type
+        - policyType
     Policy:
       allOf:
-        - $ref: "#/components/schemas/PolicyRef"
+        - $ref: "#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/PolicyParameters"
-    WellKnownNamespaceId:
-      type: string
-      enum:
-        - 00000000-0000-0000-0000-000000000001 # root-ca
-        - 00000000-0000-0000-0000-000000000010 # int-ca infrastructure (reserved)
-        - 00000000-0000-0000-0000-000000000011 # int-ca internal service (e.g. mTLS)
-        - 00000000-0000-0000-0000-100000000001 # int-ca intranet access
-        - 00000000-0000-0000-0001-000000000010 # certs infrastructure
-        - 00000000-0000-0000-0001-000000000011 # certs internal service
-      x-enum-varnames:
-        - WellKnownNamespaceIDStr_RootCA
-        - WellKnownNamespaceIDStr_IntCAInfra
-        - WellKnownNamespaceIDStr_IntCAService
-        - WellKnownNamespaceIDStr_IntCAIntranet
-        - WellKnownNamespaceIDStr_CertsInfra
-        - WellKnownNamespaceIDStr_CertsService
-      x-go-name: WellKnownNamespaceIDStr
-    TestNamespaceId:
-      type: string
-      enum:
-        - 00000001-0000-0000-0000-000000000001 # root-ca test
-        - 00000001-0000-0000-0000-100000000001 # int-ca test
-      x-enum-varnames:
-        - TestNamespaceIDStr_RootCA

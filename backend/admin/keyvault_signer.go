@@ -12,7 +12,7 @@ import (
 type keyVaultSigner struct {
 	ctx        context.Context
 	keysClient *azkeys.Client
-	kid        azkeys.ID
+	kid        *azkeys.ID
 	publicKey  crypto.PublicKey
 }
 

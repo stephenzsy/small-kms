@@ -19,10 +19,11 @@ const (
 
 // Defines values for CertificateUsage.
 const (
-	UsageClient CertificateUsage = "client"
-	UsageIntCA  CertificateUsage = "intermediate-ca"
-	UsageRootCA CertificateUsage = "root-ca"
-	UsageServer CertificateUsage = "server"
+	UsageClientOnly      CertificateUsage = "client-only"
+	UsageIntCA           CertificateUsage = "intermediate-ca"
+	UsageRootCA          CertificateUsage = "root-ca"
+	UsageServerAndClient CertificateUsage = "server-and-client"
+	UsageServerOnly      CertificateUsage = "server-only"
 )
 
 // Defines values for KeyPropertiesCrv.
@@ -50,28 +51,21 @@ const (
 	PolicyTypeCertRequest PolicyType = "certRequest"
 )
 
-// Defines values for TestNamespaceId.
-const (
-	N00000001000000000000100000000001 TestNamespaceId = "00000001-0000-0000-0000-100000000001"
-	TestNamespaceIDStrRootCA          TestNamespaceId = "00000001-0000-0000-0000-000000000001"
-)
-
-// Defines values for WellKnownNamespaceIDStr.
-const (
-	WellKnownNamespaceIDStrCertsInfra    WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000010"
-	WellKnownNamespaceIDStrCertsService  WellKnownNamespaceIDStr = "00000000-0000-0000-0001-000000000011"
-	WellKnownNamespaceIDStrIntCAInfra    WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000010"
-	WellKnownNamespaceIDStrIntCAIntranet WellKnownNamespaceIDStr = "00000000-0000-0000-0000-100000000001"
-	WellKnownNamespaceIDStrIntCAService  WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000011"
-	WellKnownNamespaceIDStrRootCA        WellKnownNamespaceIDStr = "00000000-0000-0000-0000-000000000001"
-)
-
 // Defines values for GetCertificateV1ParamsAccept.
 const (
 	AcceptJson       GetCertificateV1ParamsAccept = "application/json"
 	AcceptPem        GetCertificateV1ParamsAccept = "application/x-pem-file"
 	AcceptX509CaCert GetCertificateV1ParamsAccept = "application/x-x509-ca-cert"
 )
+
+// ApplyPolicyRequest defines model for ApplyPolicyRequest.
+type ApplyPolicyRequest struct {
+	// CheckConsistency Check consistency of the policy
+	CheckConsistency *bool `json:"checkConsistency,omitempty"`
+
+	// ForceRenewCertificate Force certificate renewal
+	ForceRenewCertificate *bool `json:"forceRenewCertificate,omitempty"`
+}
 
 // CertificateIssurancePolicyParameters defines model for CertificateIssurancePolicyParameters.
 type CertificateIssurancePolicyParameters struct {
@@ -80,8 +74,13 @@ type CertificateIssurancePolicyParameters struct {
 	AllowedUsages        []CertificateUsage   `json:"allowedUsages"`
 
 	// IssuerId ID of the current issuer certificate
-	IssuerID    openapi_types.UUID `json:"issuerId"`
-	MaxValidity DurationSpec       `json:"maxValidity"`
+	IssuerID openapi_types.UUID `json:"issuerId"`
+}
+
+// CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
+type CertificateLifetimeTrigger struct {
+	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
+	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
 // CertificateRef defines model for CertificateRef.
@@ -111,17 +110,15 @@ type CertificateRef struct {
 
 // CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
 type CertificateRequestPolicyParameters struct {
-	// AutoRenewalThreshold Number of days left to trigger renewal, (0, 1) range indicates percentage
-	AutoRenewalThreshold *float32 `json:"autoRenewalThreshold,omitempty"`
-
 	// IssuerNamespaceId ID of the issuer namespace
 	IssuerNamespaceID       openapi_types.UUID                  `json:"issuerNamespaceId"`
 	KeyProperties           *KeyProperties                      `json:"keyProperties,omitempty"`
 	KeyStorePath            string                              `json:"keyStorePath"`
+	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
 	Subject                 CertificateSubject                  `json:"subject"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        *int                                `json:"validity_months,omitempty"`
+	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -158,26 +155,6 @@ type CreateCertificateOptions struct {
 	NewKeyName *bool `json:"newKeyName,omitempty"`
 }
 
-// CreateCertificateParameters defines model for CreateCertificateParameters.
-type CreateCertificateParameters struct {
-	// Issuer Issuer of the certificate
-	Issuer openapi_types.UUID `json:"issuer"`
-
-	// IssuerNamespace Issuer of the certificate
-	IssuerNamespace openapi_types.UUID        `json:"issuerNamespace"`
-	Options         *CreateCertificateOptions `json:"options,omitempty"`
-	Subject         CertificateSubject        `json:"subject"`
-	Usage           CertificateUsage          `json:"usage"`
-	Validity        *string                   `json:"validity,omitempty"`
-}
-
-// DurationSpec defines model for DurationSpec.
-type DurationSpec struct {
-	Days   int32 `json:"days"`
-	Months int32 `json:"months"`
-	Years  int32 `json:"years"`
-}
-
 // KeyProperties defines model for KeyProperties.
 type KeyProperties struct {
 	CurveName *KeyPropertiesCrv     `json:"crv,omitempty"`
@@ -205,10 +182,10 @@ type Policy struct {
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	Type        PolicyType         `json:"type"`
+	PolicyType  PolicyType         `json:"policyType"`
 
-	// UpdatedAt Time when the policy was last updated
-	UpdatedAt time.Time `json:"updatedAt"`
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
 
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy string `json:"updatedBy"`
@@ -218,32 +195,51 @@ type Policy struct {
 type PolicyParameters struct {
 	CertIssue   *CertificateIssurancePolicyParameters `json:"certIssue,omitempty"`
 	CertRequest *CertificateRequestPolicyParameters   `json:"certRequest,omitempty"`
-	Type        PolicyType                            `json:"type"`
+	PolicyType  PolicyType                            `json:"policyType"`
 }
 
-// PolicyRef defines model for PolicyRef.
-type PolicyRef struct {
-	ID openapi_types.UUID `json:"id"`
+// PolicyState defines model for PolicyState.
+type PolicyState struct {
+	CertRequest *PolicyStateCertRequest `json:"certRequest,omitempty"`
+	ID          openapi_types.UUID      `json:"id"`
+	Message     string                  `json:"message"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	Type        PolicyType         `json:"type"`
+	PolicyType  PolicyType         `json:"policyType"`
+	Status      *string            `json:"status,omitempty"`
 
-	// UpdatedAt Time when the policy was last updated
-	UpdatedAt time.Time `json:"updatedAt"`
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
 
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy string `json:"updatedBy"`
 }
 
+// PolicyStateCertRequest defines model for PolicyStateCertRequest.
+type PolicyStateCertRequest struct {
+	LastAction      string             `json:"lastAction"`
+	LastCertExpires time.Time          `json:"lastCertExpires"`
+	LastCertID      openapi_types.UUID `json:"lastCertId"`
+	LastCertIssued  time.Time          `json:"lastCertIssued"`
+}
+
 // PolicyType defines model for PolicyType.
 type PolicyType string
 
-// TestNamespaceId defines model for TestNamespaceId.
-type TestNamespaceId string
+// ResourceRef defines model for ResourceRef.
+type ResourceRef struct {
+	ID openapi_types.UUID `json:"id"`
 
-// WellKnownNamespaceIDStr defines model for WellKnownNamespaceId.
-type WellKnownNamespaceIDStr string
+	// NamespaceId Unique ID of the namespace
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
+
+	// UpdatedBy Unique ID of the user who created the policy
+	UpdatedBy string `json:"updatedBy"`
+}
 
 // GetCertificateV1Params defines parameters for GetCertificateV1.
 type GetCertificateV1Params struct {
@@ -253,20 +249,17 @@ type GetCertificateV1Params struct {
 // GetCertificateV1ParamsAccept defines parameters for GetCertificateV1.
 type GetCertificateV1ParamsAccept string
 
-// CreateCertificateV1JSONRequestBody defines body for CreateCertificateV1 for application/json ContentType.
-type CreateCertificateV1JSONRequestBody = CreateCertificateParameters
-
 // PutPolicyV1JSONRequestBody defines body for PutPolicyV1 for application/json ContentType.
 type PutPolicyV1JSONRequestBody = PolicyParameters
+
+// ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
+type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List certificates
 	// (GET /v1/{namespaceId}/certificates)
 	ListCertificatesV1(c *gin.Context, namespaceId openapi_types.UUID)
-	// Create certificate
-	// (POST /v1/{namespaceId}/certificates)
-	CreateCertificateV1(c *gin.Context, namespaceId openapi_types.UUID)
 	// Get certificate
 	// (GET /v1/{namespaceId}/certificates/{id})
 	GetCertificateV1(c *gin.Context, namespaceId openapi_types.UUID, id openapi_types.UUID, params GetCertificateV1Params)
@@ -276,6 +269,9 @@ type ServerInterface interface {
 	// Put Policy
 	// (PUT /v1/{namespaceId}/policies/{policyId})
 	PutPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
+	// Apply policy
+	// (POST /v1/{namespaceId}/policies/{policyId}/apply)
+	ApplyPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -311,32 +307,6 @@ func (siw *ServerInterfaceWrapper) ListCertificatesV1(c *gin.Context) {
 	}
 
 	siw.Handler.ListCertificatesV1(c, namespaceId)
-}
-
-// CreateCertificateV1 operation middleware
-func (siw *ServerInterfaceWrapper) CreateCertificateV1(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.CreateCertificateV1(c, namespaceId)
 }
 
 // GetCertificateV1 operation middleware
@@ -468,6 +438,41 @@ func (siw *ServerInterfaceWrapper) PutPolicyV1(c *gin.Context) {
 	siw.Handler.PutPolicyV1(c, namespaceId, policyId)
 }
 
+// ApplyPolicyV1 operation middleware
+func (siw *ServerInterfaceWrapper) ApplyPolicyV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "policyId" -------------
+	var policyId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "policyId", c.Param("policyId"), &policyId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter policyId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ApplyPolicyV1(c, namespaceId, policyId)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -496,8 +501,8 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
-	router.POST(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.CreateCertificateV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.GetPolicyV1)
 	router.PUT(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.PutPolicyV1)
+	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
 }

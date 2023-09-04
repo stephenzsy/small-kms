@@ -22,12 +22,14 @@ type ContextKey string
 
 const msClientPrincipalHasAdminRole string = "MsClientPrincipalHasAdminRole"
 const msClientPrincipalId string = "MsClientPrincipalId"
+const msClientPrincipalName string = "MsClientPrincipalName"
 
 func HandleAadAuthMiddleware(ctx *gin.Context) {
 	// Intercept the headers here
 	var err error
 	var decodedClaims []byte
 	p := msClientPrincipal{}
+	ctx.Set(msClientPrincipalName, ctx.Request.Header.Get("X-Ms-Client-Principal-Name"))
 	callerIdStr := ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
 	if parsedCallerId, err := uuid.Parse(callerIdStr); err == nil {
 		ctx.Set(msClientPrincipalId, parsedCallerId)
@@ -66,4 +68,11 @@ func CallerPrincipalId(c *gin.Context) uuid.UUID {
 		return value
 	}
 	return uuid.Nil
+}
+
+func CallerPrincipalName(c *gin.Context) string {
+	if value, ok := c.Value(msClientPrincipalId).(string); ok {
+		return value
+	}
+	return ""
 }
