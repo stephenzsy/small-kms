@@ -1,18 +1,15 @@
-import {
-  PolicyType,
-  TestNamespaceId,
-  WellKnownNamespaceId,
-} from "../generated";
+import { WellknownId } from "../constants";
+import { PolicyType } from "../generated";
 
-export const namespaceFriendlierNames: Record<string, string> = {
-  [WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA]: "Root CA",
-  [TestNamespaceId.TestNamespaceIDStr_RootCA]: "Test Root CA",
+export const nsDisplayNames: Record<string, string> = {
+  [WellknownId.nsRootCa]: "Root CA",
+  [WellknownId.nsTestRootCa]: "Test Root CA",
 };
 
 export function isRootCANamespace(namespaceId: string) {
   switch (namespaceId) {
-    case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
-    case TestNamespaceId.TestNamespaceIDStr_RootCA:
+    case WellknownId.nsRootCa:
+    case WellknownId.nsTestRootCa:
       return true;
   }
   return false;

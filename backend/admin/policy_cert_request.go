@@ -1,12 +1,11 @@
 package admin
 
 import (
+	"bytes"
 	"context"
 	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"math/big"
@@ -16,10 +15,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -82,11 +84,14 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 	t.Usage = p.Usage
 
 	// key store path to store certificate in keyvault is required except for client only certificates
+	t.KeyStorePath = p.KeyStorePath
 	if p.Usage == UsageClientOnly {
 		t.KeyStorePath = ""
 	} else if len(t.KeyStorePath) == 0 {
 		t.KeyStorePath = strings.TrimSpace(p.KeyStorePath)
-		return fmt.Errorf("missing KeyStorePath for usage: %s", p.Usage)
+		if len(t.KeyStorePath) == 0 {
+			return fmt.Errorf("missing KeyStorePath for usage: %s", p.Usage)
+		}
 	}
 
 	t.Subject = p.Subject
@@ -171,34 +176,50 @@ type PolicyStateCertRequestDocSection struct {
 	LastAction      PolicyCertRequestAction `json:"lastAction"`
 }
 
-func (p *PolicyCertRequestDocSection) evaluateForAction(ctx context.Context, s *adminServer, namespaceID uuid.UUID, policyDoc *PolicyDoc, forceFlag *bool) (bool, string, error) {
+func (p *PolicyCertRequestDocSection) evaluateForAction(ctx context.Context, s *adminServer, namespaceID uuid.UUID, policyDoc *PolicyDoc, forceFlag *bool) (
+	shouldTrigger bool, ps *PolicyStateDoc, msg string, err error) {
+	shouldTrigger = false
+	msg = "unknown"
 	if forceFlag != nil && *forceFlag {
-		return true, "forced", nil
+		shouldTrigger = true
+		msg = "forced"
+		return
 	}
 	// read policy state
-	ps, err := s.GetPolicyStateDoc(ctx, namespaceID, policyDoc.GetUUID())
+	ps, err = s.GetPolicyStateDoc(ctx, namespaceID, policyDoc.GetUUID())
 	if err != nil {
-		if kmsdoc.IsNotFound(err) {
-			return true, "initial policy run", nil
+		if common.IsAzNotFound(err) {
+			shouldTrigger = true
+			msg = "no previous run"
+			err = nil
+			return
+		} else {
+			msg = "error reaing state"
+			return
 		}
-		return true, "error reading state", err
 	}
 	if p.LifetimeTrigger == nil {
-		return false, "no renewal configured", nil
+		msg = "no renewal configured"
+		return
 	}
 	if p.LifetimeTrigger.DaysBeforeExpiry != nil {
 		testExpireAfter := time.Now().AddDate(0, 0, int(*p.LifetimeTrigger.DaysBeforeExpiry))
 		if ps.CertRequest.LastCertExpires.Before(testExpireAfter) {
-			return true, fmt.Sprintf("renew before %d days till expiry", *p.LifetimeTrigger.DaysBeforeExpiry), nil
+			shouldTrigger = true
+			msg = fmt.Sprintf("renew before %d days till expiry", *p.LifetimeTrigger.DaysBeforeExpiry)
+			return
 		}
 	} else if p.LifetimeTrigger.LifetimePercentage != nil {
 		testCutoff := ps.CertRequest.LastCertIssued.Add(ps.CertRequest.LastCertExpires.Sub(ps.CertRequest.LastCertIssued) *
 			time.Duration(*p.LifetimeTrigger.LifetimePercentage) / 100)
 		if testCutoff.Before(time.Now()) {
-			return true, fmt.Sprintf("renew after lifetime percentage %d%%", *p.LifetimeTrigger.LifetimePercentage), nil
+			shouldTrigger = true
+			msg = fmt.Sprintf("renew after lifetime percentage %d%%", *p.LifetimeTrigger.LifetimePercentage)
+			return
 		}
 	}
-	return false, "no renewal needed", nil
+	msg = "no renewal needed"
+	return
 }
 
 func (p *KeyProperties) ToAzCertificatesKeyProperties() (r azcertificates.KeyProperties) {
@@ -217,11 +238,40 @@ func (p *KeyProperties) ToAzCertificatesKeyProperties() (r azcertificates.KeyPro
 		}
 	case KtyEC:
 		r.KeyType = ToPtr(azcertificates.KeyTypeEC)
+		r.KeySize = nil
 		r.Curve = ToPtr(azcertificates.CurveNameP256)
 		if p.CurveName != nil {
 			switch *p.CurveName {
 			case EcCurveP384:
 				r.Curve = ToPtr(azcertificates.CurveNameP384)
+			}
+		}
+	}
+	return
+
+}
+
+func (p *KeyProperties) ToAzKeysCreateKeyParameters() (r azkeys.CreateKeyParameters) {
+	r.Kty = to.Ptr(azkeys.KeyTypeRSA)
+	r.KeySize = to.Ptr(int32(2048))
+	switch p.KeyType {
+	case KtyRSA:
+		if p.KeySize != nil {
+			switch *p.KeySize {
+			case KeySize3072:
+				r.KeySize = ToPtr(int32(3072))
+			case KeySize4096:
+				r.KeySize = ToPtr(int32(4096))
+			}
+		}
+	case KtyEC:
+		r.Kty = to.Ptr(azkeys.KeyTypeEC)
+		r.KeySize = nil
+		r.Curve = to.Ptr(azkeys.CurveNameP256)
+		if p.CurveName != nil {
+			switch *p.CurveName {
+			case EcCurveP384:
+				r.Curve = to.Ptr(azkeys.CurveNameP384)
 			}
 		}
 	}
@@ -237,28 +287,19 @@ func (san *CertificateSubjectAlternativeNames) ToAzCertificatesSubjectAlternativ
 		if r != nil {
 			r = new(azcertificates.SubjectAlternativeNames)
 		}
-		r.DNSNames = make([]*string, len(*san.DNSNames))
-		for i, v := range *san.DNSNames {
-			r.DNSNames[i] = ToPtr(v)
-		}
+		r.DNSNames = to.SliceOfPtrs(*san.DNSNames...)
 	}
 	if san.Emails != nil && len(*san.Emails) > 0 {
 		if r != nil {
 			r = new(azcertificates.SubjectAlternativeNames)
 		}
-		r.Emails = make([]*string, len(*san.Emails))
-		for i, v := range *san.Emails {
-			r.Emails[i] = ToPtr(v)
-		}
+		r.Emails = to.SliceOfPtrs(*san.Emails...)
 	}
 	if san.UserPrincipalNames != nil && len(*san.UserPrincipalNames) > 0 {
 		if r != nil {
 			r = new(azcertificates.SubjectAlternativeNames)
 		}
-		r.UserPrincipalNames = make([]*string, len(*san.UserPrincipalNames))
-		for i, v := range *san.UserPrincipalNames {
-			r.UserPrincipalNames[i] = ToPtr(v)
-		}
+		r.UserPrincipalNames = to.SliceOfPtrs(*san.UserPrincipalNames...)
 	}
 	return r
 }
@@ -302,19 +343,13 @@ func (p *PolicyCertRequestDocSection) ToKeyvaultCreateCertificateParameters(name
 	return
 }
 
-func (p *PolicyCertRequestDocSection) Fillx509(c *x509.Certificate, certId uuid.UUID, namespaceID uuid.UUID, csr *x509.CertificateRequest) error {
+func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, certId uuid.UUID, csr *x509.CertificateRequest) (c x509.Certificate, err error) {
 	// use certificate ID
 	serialNumber := big.NewInt(0)
 	serialNumber = serialNumber.SetBytes(certId[:])
 	c.SerialNumber = serialNumber
-	c.Subject = csr.Subject
 	c.NotBefore = time.Now()
 	c.NotAfter = time.Now().AddDate(0, int(p.ValidityInMonths), 0)
-	c.Extensions = csr.Extensions
-	c.EmailAddresses = csr.EmailAddresses
-	c.DNSNames = csr.DNSNames
-	c.IPAddresses = csr.IPAddresses
-	c.URIs = csr.URIs
 
 	if IsRootCANamespace(namespaceID) {
 		c.IsCA = true
@@ -323,64 +358,60 @@ func (p *PolicyCertRequestDocSection) Fillx509(c *x509.Certificate, certId uuid.
 		c.MaxPathLenZero = false
 		c.BasicConstraintsValid = true
 	} else {
-		return fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
+		err = fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
+		return
 	}
 
-	switch p.KeyProperties.KeyType {
-	case KtyRSA:
-		c.SignatureAlgorithm = x509.SHA384WithRSA
-	case KtyEC:
-		c.SignatureAlgorithm = x509.ECDSAWithSHA384
-	default:
-		return fmt.Errorf("unsupported key type: %s", p.KeyProperties.KeyType)
+	if csr != nil {
+		c.Subject = csr.Subject
+		c.Extensions = csr.Extensions
+		c.EmailAddresses = csr.EmailAddresses
+		c.DNSNames = csr.DNSNames
+		c.IPAddresses = csr.IPAddresses
+		c.URIs = csr.URIs
+	} else {
+		c.Subject = p.Subject.ToPkixName()
 	}
-	return nil
+
+	return
 }
 
-func toPublicKey(key *azkeys.JSONWebKey) (crypto.PublicKey, error) {
-	if *key.Kty == azkeys.KeyTypeRSA {
-		k := &rsa.PublicKey{}
-
-		// N = modulus
-		if len(key.N) == 0 {
-			return nil, errors.New("property N is empty")
-		}
-		k.N = &big.Int{}
-		k.N.SetBytes(key.N)
-
-		// e = public exponent
-		if len(key.E) == 0 {
-			return nil, errors.New("property e is empty")
-		}
-		k.E = int(big.NewInt(0).SetBytes(key.E).Uint64())
-		return k, nil
-	} else if *key.Kty == azkeys.KeyTypeEC {
-		k := &ecdsa.PublicKey{}
-
-		switch *key.Crv {
-		case azkeys.CurveNameP256:
-			k.Curve = elliptic.P256()
-		case azkeys.CurveNameP384:
-			k.Curve = elliptic.P384()
-		default:
-			return nil, fmt.Errorf("unsupported curve: %s", *key.Crv)
-		}
-
-		if len(key.X) == 0 {
-			return nil, errors.New("property X is empty")
-		}
-		k.X = &big.Int{}
-		k.X.SetBytes(key.X)
-
-		if len(key.Y) == 0 {
-			return nil, errors.New("property Y is empty")
-		}
-		k.Y = &big.Int{}
-		k.Y.SetBytes(key.Y)
-
-		return k, nil
+func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, expires time.Time, p *PolicyCertRequestDocSection) (crypto.Signer, string, error) {
+	var signerKey *azkeys.JSONWebKey = nil
+	reuseKey := false
+	if p.KeyProperties.ReuseKey != nil {
+		reuseKey = *p.KeyProperties.ReuseKey
 	}
-	return nil, fmt.Errorf("unsupported key type: %s", *key.Kty)
+	if reuseKey {
+		getKeyResp, err := s.AzKeysClient().GetKey(ctx, keyStorePath, "", nil)
+		if err != nil {
+			if !common.IsAzNotFound(err) {
+				return nil, "", err
+			}
+		} else if getKeyResp.Attributes.Expires != nil && getKeyResp.Attributes.Expires.After(expires) {
+			signerKey = getKeyResp.Key
+		}
+		log.Info().Msgf("Using existing existing key: %s", *signerKey.KID)
+	}
+
+	if signerKey == nil {
+		// creating key
+		params := p.KeyProperties.ToAzKeysCreateKeyParameters()
+		params.KeyOps = to.SliceOfPtrs(azkeys.KeyOperationSign, azkeys.KeyOperationVerify)
+		if !reuseKey {
+			params.KeyAttributes = &azkeys.KeyAttributes{
+				Expires: &expires,
+			}
+		}
+		resp, err := s.AzKeysClient().CreateKey(ctx, keyStorePath, params, nil)
+		if err != nil {
+			return nil, "", err
+		}
+		signerKey = resp.Key
+	}
+
+	signer, err := newKeyVaultSigner(ctx, s.AzKeysClient(), signerKey)
+	return signer, string(*signerKey.KID), err
 }
 
 func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, namespaceID uuid.UUID, policyDoc *PolicyDoc) (resultDoc *PolicyStateDoc, err error) {
@@ -395,50 +426,99 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	keyName := p.KeyStorePath
 	log.Info().Msgf("Certificate keyStorePath: %s", keyName)
 
-	azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
-	azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
-	if err != nil {
-		return
+	isRootNS := IsRootCANamespace(namespaceID)
+
+	// prepare certificate
+	var csr *x509.CertificateRequest
+	var certPubKey crypto.PublicKey
+	var certKeyIdentifier string
+	if !isRootNS {
+		azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
+		azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
+		if err != nil {
+			return nil, err
+		}
+		log.Info().Msgf("Created certificate in KeyVault: %s", *azcCcResp.ID)
+		csr, err = x509.ParseCertificateRequest(azcCcResp.CSR)
+		if err != nil {
+			return nil, err
+		}
+		certPubKey = csr.PublicKey
 	}
-	log.Info().Msgf("Created certificate in KeyVault: %s", *azcCcResp.ID)
-	csr, err := x509.ParseCertificateRequest(azcCcResp.CSR)
+	certificate, err := prepareCertificate(p, namespaceID, certID, csr)
 	if err != nil {
 		return
 	}
 
-	certificate := x509.Certificate{}
-	p.Fillx509(&certificate, certID, namespaceID, csr)
+	// get signer
+	var signer crypto.Signer
+	if isRootNS {
+		signer, certKeyIdentifier, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
+		if err != nil {
+			return nil, err
+		}
+		certPubKey = signer.Public()
+	} else {
+		// TODO
+		return nil, fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
+	}
 
-	// TODO non root CA signers
-	signerKeyResp, err := s.AzKeysClient().GetKey(ctx, keyName, "", nil)
-	if err != nil {
-		return
-	}
-	signerKey := signerKeyResp.Key
-	log.Info().Msgf("Using signer key: %s", *signerKey.KID)
-	signerPubkey, err := toPublicKey(signerKey)
-	if err != nil {
-		return
-	}
-	signer := keyVaultSigner{
-		ctx:        ctx,
-		keysClient: s.AzKeysClient(),
-		kid:        signerKey.KID,
-		publicKey:  signerPubkey,
+	switch p.KeyProperties.KeyType {
+	case KtyRSA:
+		certificate.SignatureAlgorithm = x509.SHA384WithRSA
+	case KtyEC:
+		switch *p.KeyProperties.CurveName {
+		case EcCurveP384:
+			certificate.SignatureAlgorithm = x509.ECDSAWithSHA384
+		case EcCurveP256:
+			certificate.SignatureAlgorithm = x509.ECDSAWithSHA256
+		default:
+			return nil, fmt.Errorf("unsupported curve: %s", *p.KeyProperties.CurveName)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported key type: %s", p.KeyProperties.KeyType)
 	}
 
 	// Sign cert
-	certSigned, err := x509.CreateCertificate(nil, &certificate, &certificate, csr.PublicKey, &signer)
+	certSigned, err := x509.CreateCertificate(nil, &certificate, &certificate, certPubKey, signer)
 	if err != nil {
 		return
 	}
-	azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, keyName, azcertificates.MergeCertificateParameters{
-		X509Certificates: [][]byte{certSigned},
-	}, nil)
+
+	log.Info().Msgf("Certificate signed and validated, prepare to upload")
+	// encode to pem
+	pemBlock := pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certSigned,
+	}
+	bb := bytes.Buffer{}
+	err = pem.Encode(&bb, &pemBlock)
 	if err != nil {
 		return
 	}
-	log.Info().Msgf("Certificate signed by: %s, merged to keyvault: %s", *signerKey.KID, *azcMcResp.ID)
+	// upload to certificate storage only
+	blobName := fmt.Sprintf("%s/%s.pem", namespaceID, certID)
+	_, err = s.azBlobContainerClient.NewBlockBlobClient(blobName).UploadBuffer(ctx, bb.Bytes(), &blockblob.UploadBufferOptions{
+		HTTPHeaders: &blob.HTTPHeaders{
+			BlobContentType: to.Ptr("application/x-pem-file"),
+		},
+	})
+	if err != nil {
+		return
+	}
+	log.Info().Msgf("Certificate uploaded to blob")
+
+	/*
+		if !isRootNS {
+			azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, keyName, azcertificates.MergeCertificateParameters{
+				X509Certificates: [][]byte{certSigned},
+			}, nil)
+			if err != nil {
+				return
+			}
+			log.Info().Msgf("Certificate signed by: %s, merged to keyvault: %s", *signerKID, *azcMcResp.ID)
+		}
+	*/
 
 	// record certdoc
 	certDoc := CertDoc{
@@ -449,9 +529,10 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		PolicyID: policyID,
 		Expires:  certificate.NotAfter,
 		Usage:    p.Usage,
-		CID:      string(*azcMcResp.ID),
-		KID:      string(*azcMcResp.KID),
-		SID:      string(*azcMcResp.SID),
+		//		CID:           string(*azcMcResp.ID),
+		KID: certKeyIdentifier,
+		//		SID:           string(*azcMcResp.SID),
+		CertStorePath: blobName,
 	}
 	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, &certDoc)
 	if err != nil {

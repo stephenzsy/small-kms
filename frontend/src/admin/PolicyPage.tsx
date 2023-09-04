@@ -1,8 +1,10 @@
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { useBoolean, useRequest } from "ahooks";
+import classNames from "classnames";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
+import { WellknownId } from "../constants";
 import {
   CertificateUsage,
   Policy,
@@ -10,17 +12,14 @@ import {
   PolicyParameters,
   PolicyType,
   ResponseError,
-  TestNamespaceId,
-  WellKnownNamespaceId,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./FormComponents";
 import {
   certRequestPolicyNames,
   isRootCANamespace,
-  namespaceFriendlierNames,
+  nsDisplayNames,
 } from "./displayConstants";
-import classNames from "classnames";
 
 interface CertCreatePolicyFormInput {
   subjectCN: string;
@@ -46,10 +45,10 @@ function CertCreatePolicyForm({
     const id = crypto.randomUUID();
     let prefix = "cert-";
     switch (namespaceId) {
-      case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
+      case WellknownId.nsRootCa:
         prefix = "root-ca-";
         break;
-      case TestNamespaceId.TestNamespaceIDStr_RootCA:
+      case WellknownId.nsTestRootCa:
         prefix = "test-root-ca-";
     }
     return prefix + id.substring(0, 6);
@@ -93,7 +92,7 @@ function CertCreatePolicyForm({
       validityMonths = undefined;
     }
     updatePolicy({
-      type: PolicyType.PolicyType_CertRequest,
+      policyType: PolicyType.PolicyType_CertRequest,
       certRequest: {
         issuerNamespaceId: policyId,
         subject: {
@@ -104,7 +103,7 @@ function CertCreatePolicyForm({
         },
         usage: isRootCANamespace(namespaceId)
           ? CertificateUsage.Usage_RootCA
-          : CertificateUsage.Usage_Client,
+          : CertificateUsage.Usage_ClientOnly,
         validityMonths,
         keyStorePath: input.keyStorePath,
       },
@@ -225,13 +224,24 @@ export default function PolicyPage() {
     { refreshDeps: [] }
   );
 
+  const { run: applyPolicy } = useRequest(
+    async () => {
+      await client.applyPolicyV1({
+        namespaceId: namespaceId!,
+        policyId: policyId!,
+        applyPolicyRequest: {},
+      });
+    },
+    { manual: true }
+  );
+
   const [formOpen, { toggle: toggleForm, setFalse: closeForm }] =
     useBoolean(false);
 
   return (
     <>
       <h1 className="text-4xl font-semibold">Policy</h1>
-      <div>{namespaceFriendlierNames[namespaceId!] ?? namespaceId}</div>
+      <div>{nsDisplayNames[namespaceId!] ?? namespaceId}</div>
       <div>{certRequestPolicyNames[certCategory]}</div>
       {fetchedPolicy !== undefined && fetchedPolicy ? (
         <div>
@@ -242,7 +252,7 @@ export default function PolicyPage() {
       ) : (
         <div>No policy</div>
       )}
-      <div>
+      <div className="flex flex-row items-center gap-x-6">
         <button
           type="button"
           className={classNames(
@@ -253,6 +263,18 @@ export default function PolicyPage() {
         >
           {formOpen ? "Candel" : "Update"}
         </button>
+        {fetchedPolicy && (
+          <button
+            type="button"
+            className={classNames(
+              "rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+              "disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none"
+            )}
+            onClick={applyPolicy}
+          >
+            Apply policy
+          </button>
+        )}
       </div>
       {formOpen && certCategory === PolicyType.PolicyType_CertRequest && (
         <CertCreatePolicyForm

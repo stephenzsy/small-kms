@@ -13,18 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { CertificateIssurancePolicyParameters } from './CertificateIssurancePolicyParameters';
+import type { PolicyStateCertRequest } from './PolicyStateCertRequest';
 import {
-    CertificateIssurancePolicyParametersFromJSON,
-    CertificateIssurancePolicyParametersFromJSONTyped,
-    CertificateIssurancePolicyParametersToJSON,
-} from './CertificateIssurancePolicyParameters';
-import type { CertificateRequestPolicyParameters } from './CertificateRequestPolicyParameters';
-import {
-    CertificateRequestPolicyParametersFromJSON,
-    CertificateRequestPolicyParametersFromJSONTyped,
-    CertificateRequestPolicyParametersToJSON,
-} from './CertificateRequestPolicyParameters';
+    PolicyStateCertRequestFromJSON,
+    PolicyStateCertRequestFromJSONTyped,
+    PolicyStateCertRequestToJSON,
+} from './PolicyStateCertRequest';
 import type { PolicyType } from './PolicyType';
 import {
     PolicyTypeFromJSON,
@@ -35,72 +29,79 @@ import {
 /**
  * 
  * @export
- * @interface Policy
+ * @interface PolicyState
  */
-export interface Policy {
+export interface PolicyState {
     /**
      * Unique ID of the namespace
      * @type {string}
-     * @memberof Policy
+     * @memberof PolicyState
      */
     namespaceId: string;
     /**
      * 
      * @type {string}
-     * @memberof Policy
+     * @memberof PolicyState
      */
     id: string;
     /**
      * Unique ID of the user who created the policy
      * @type {string}
-     * @memberof Policy
+     * @memberof PolicyState
      */
     updatedBy: string;
     /**
      * Time when the policy was last updated
      * @type {Date}
-     * @memberof Policy
+     * @memberof PolicyState
      */
     updated: Date;
     /**
      * 
      * @type {PolicyType}
-     * @memberof Policy
+     * @memberof PolicyState
      */
     policyType: PolicyType;
     /**
      * 
-     * @type {CertificateIssurancePolicyParameters}
-     * @memberof Policy
+     * @type {string}
+     * @memberof PolicyState
      */
-    certIssue?: CertificateIssurancePolicyParameters;
+    status?: string;
     /**
      * 
-     * @type {CertificateRequestPolicyParameters}
-     * @memberof Policy
+     * @type {string}
+     * @memberof PolicyState
      */
-    certRequest?: CertificateRequestPolicyParameters;
+    message: string;
+    /**
+     * 
+     * @type {PolicyStateCertRequest}
+     * @memberof PolicyState
+     */
+    certRequest?: PolicyStateCertRequest;
 }
 
 /**
- * Check if a given object implements the Policy interface.
+ * Check if a given object implements the PolicyState interface.
  */
-export function instanceOfPolicy(value: object): boolean {
+export function instanceOfPolicyState(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "policyType" in value;
+    isInstance = isInstance && "message" in value;
 
     return isInstance;
 }
 
-export function PolicyFromJSON(json: any): Policy {
-    return PolicyFromJSONTyped(json, false);
+export function PolicyStateFromJSON(json: any): PolicyState {
+    return PolicyStateFromJSONTyped(json, false);
 }
 
-export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Policy {
+export function PolicyStateFromJSONTyped(json: any, ignoreDiscriminator: boolean): PolicyState {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -111,12 +112,13 @@ export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Po
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
         'policyType': PolicyTypeFromJSON(json['policyType']),
-        'certIssue': !exists(json, 'certIssue') ? undefined : CertificateIssurancePolicyParametersFromJSON(json['certIssue']),
-        'certRequest': !exists(json, 'certRequest') ? undefined : CertificateRequestPolicyParametersFromJSON(json['certRequest']),
+        'status': !exists(json, 'status') ? undefined : json['status'],
+        'message': json['message'],
+        'certRequest': !exists(json, 'certRequest') ? undefined : PolicyStateCertRequestFromJSON(json['certRequest']),
     };
 }
 
-export function PolicyToJSON(value?: Policy | null): any {
+export function PolicyStateToJSON(value?: PolicyState | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -130,8 +132,9 @@ export function PolicyToJSON(value?: Policy | null): any {
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
         'policyType': PolicyTypeToJSON(value.policyType),
-        'certIssue': CertificateIssurancePolicyParametersToJSON(value.certIssue),
-        'certRequest': CertificateRequestPolicyParametersToJSON(value.certRequest),
+        'status': value.status,
+        'message': value.message,
+        'certRequest': PolicyStateCertRequestToJSON(value.certRequest),
     };
 }
 

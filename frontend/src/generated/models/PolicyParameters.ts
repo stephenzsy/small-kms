@@ -43,7 +43,7 @@ export interface PolicyParameters {
      * @type {PolicyType}
      * @memberof PolicyParameters
      */
-    type: PolicyType;
+    policyType: PolicyType;
     /**
      * 
      * @type {CertificateIssurancePolicyParameters}
@@ -63,7 +63,7 @@ export interface PolicyParameters {
  */
 export function instanceOfPolicyParameters(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "policyType" in value;
 
     return isInstance;
 }
@@ -78,7 +78,7 @@ export function PolicyParametersFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'type': PolicyTypeFromJSON(json['type']),
+        'policyType': PolicyTypeFromJSON(json['policyType']),
         'certIssue': !exists(json, 'certIssue') ? undefined : CertificateIssurancePolicyParametersFromJSON(json['certIssue']),
         'certRequest': !exists(json, 'certRequest') ? undefined : CertificateRequestPolicyParametersFromJSON(json['certRequest']),
     };
@@ -93,7 +93,7 @@ export function PolicyParametersToJSON(value?: PolicyParameters | null): any {
     }
     return {
         
-        'type': PolicyTypeToJSON(value.type),
+        'policyType': PolicyTypeToJSON(value.policyType),
         'certIssue': CertificateIssurancePolicyParametersToJSON(value.certIssue),
         'certRequest': CertificateRequestPolicyParametersToJSON(value.certRequest),
     };

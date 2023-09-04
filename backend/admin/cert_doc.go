@@ -24,4 +24,6 @@ type CertDoc struct {
 	KID string `json:"kid"`
 	// keyvault certificate secret id
 	SID string `json:"sid"`
+	// certificate storage path in blob storage
+	CertStorePath string `json:"certStorePath"`
 }

@@ -17,6 +17,7 @@ type CertDBItem struct {
 	CertStore string `json:"certStore,omitempty"`
 }
 
+/*
 func (s *adminServer) findLatestCertificate(ctx context.Context, namespaceID uuid.UUID, name string) (result CertDBItem, err error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	db := s.azCosmosContainerClientCerts
@@ -41,7 +42,7 @@ ORDER BY c.notAfter DESC`,
 	}
 	return
 }
-
+*/
 // returns result with nil id if not found
 func (s *adminServer) ReadCertDBItem(c context.Context, namespaceID uuid.UUID, id uuid.UUID) (result CertDBItem, err error) {
 	db := s.azCosmosContainerClientCerts

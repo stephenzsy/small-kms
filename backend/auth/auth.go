@@ -71,7 +71,7 @@ func CallerPrincipalId(c *gin.Context) uuid.UUID {
 }
 
 func CallerPrincipalName(c *gin.Context) string {
-	if value, ok := c.Value(msClientPrincipalId).(string); ok {
+	if value, ok := c.Value(msClientPrincipalName).(string); ok {
 		return value
 	}
 	return ""

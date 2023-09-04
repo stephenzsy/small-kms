@@ -19,12 +19,6 @@ import {
     CertificateUsageFromJSONTyped,
     CertificateUsageToJSON,
 } from './CertificateUsage';
-import type { DurationSpec } from './DurationSpec';
-import {
-    DurationSpecFromJSON,
-    DurationSpecFromJSONTyped,
-    DurationSpecToJSON,
-} from './DurationSpec';
 import type { KeyProperties } from './KeyProperties';
 import {
     KeyPropertiesFromJSON,
@@ -44,12 +38,6 @@ export interface CertificateIssurancePolicyParameters {
      * @memberof CertificateIssurancePolicyParameters
      */
     issuerId: string;
-    /**
-     * 
-     * @type {DurationSpec}
-     * @memberof CertificateIssurancePolicyParameters
-     */
-    maxValidity: DurationSpec;
     /**
      * 
      * @type {Array<KeyProperties>}
@@ -76,7 +64,6 @@ export interface CertificateIssurancePolicyParameters {
 export function instanceOfCertificateIssurancePolicyParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "issuerId" in value;
-    isInstance = isInstance && "maxValidity" in value;
     isInstance = isInstance && "allowedUsages" in value;
     isInstance = isInstance && "allowedNamespaceIds" in value;
 
@@ -94,7 +81,6 @@ export function CertificateIssurancePolicyParametersFromJSONTyped(json: any, ign
     return {
         
         'issuerId': json['issuerId'],
-        'maxValidity': DurationSpecFromJSON(json['maxValidity']),
         'allowedKeyProperties': !exists(json, 'allowedKeyProperties') ? undefined : ((json['allowedKeyProperties'] as Array<any>).map(KeyPropertiesFromJSON)),
         'allowedUsages': ((json['allowedUsages'] as Array<any>).map(CertificateUsageFromJSON)),
         'allowedNamespaceIds': json['allowedNamespaceIds'],
@@ -111,7 +97,6 @@ export function CertificateIssurancePolicyParametersToJSON(value?: CertificateIs
     return {
         
         'issuerId': value.issuerId,
-        'maxValidity': DurationSpecToJSON(value.maxValidity),
         'allowedKeyProperties': value.allowedKeyProperties === undefined ? undefined : ((value.allowedKeyProperties as Array<any>).map(KeyPropertiesToJSON)),
         'allowedUsages': ((value.allowedUsages as Array<any>).map(CertificateUsageToJSON)),
         'allowedNamespaceIds': value.allowedNamespaceIds,

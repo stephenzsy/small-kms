@@ -1,14 +1,11 @@
 import { useRequest } from "ahooks";
 import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { useParams } from "react-router-dom";
-import {
-  CertificateRef,
-  GetCertificateV1AcceptEnum,
-  WellKnownNamespaceId,
-} from "../generated";
+import { CertificateRef, GetCertificateV1AcceptEnum } from "../generated";
 import { CertsDownloadApi } from "../utils/CertsDownloadApi";
 import { useAuthedClient, useCertsApi } from "../utils/useCertsApi";
 import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
+import { WellknownId } from "../constants";
 
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
@@ -80,7 +77,7 @@ export default function CertViewPage() {
 
   const breadcrumPages: BreadcrumbPageMetadata[] = useMemo(() => {
     switch (namespaceId) {
-      case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
+      case WellknownId.nsRootCa:
         return [...caBreadcrumPages, { name: "View Certificate", to: "#" }];
     }
     return [{ name: "View Certificate", to: "#" }];

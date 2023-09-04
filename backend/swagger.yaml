@@ -107,6 +107,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Policy"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
     get:
       tags:
         - policy
@@ -132,6 +134,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Policy"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v1/{namespaceId}/policies/{policyId}/apply:
     post:
       tags:
@@ -474,3 +478,16 @@ components:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/PolicyParameters"
+  responses:
+    ErrorResponse:
+      description: error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+            additionalProperties: true

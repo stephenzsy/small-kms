@@ -1,13 +1,13 @@
 import { Switch } from "@headlessui/react";
-import { useRequest } from "ahooks";
 import classNames from "classnames";
 import { useId, useMemo, useState } from "react";
-import { Link, generatePath, useMatch, useMatches } from "react-router-dom";
-import { CertsApi, TestNamespaceId, WellKnownNamespaceId } from "../generated";
+import { Link, generatePath, useMatches } from "react-router-dom";
+import { WellknownId } from "../constants";
+import { CertsApi } from "../generated";
+import { RouteIds } from "../route-constants";
 import { useCertsApi } from "../utils/useCertsApi";
 import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
 import { useCaList } from "./useCaList";
-import { RouteIds } from "../route-constants";
 
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
@@ -133,18 +133,15 @@ export default function AdminCaPage() {
       <CaSection
         certsApi={client}
         manageEnabled={manageEnabled}
-        namespaceId={
-          isTest
-            ? TestNamespaceId.TestNamespaceIDStr_RootCA
-            : WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA
-        }
+        namespaceId={isTest ? WellknownId.nsTestRootCa : WellknownId.nsRootCa}
         title="Root CA"
         createButtonLabel="Create root CA"
       />
+      {/*
       <CaSection
         certsApi={client}
         manageEnabled={manageEnabled}
-        namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAService}
+        namespaceId={WellknownId.WellKnownNamespaceIDStr_IntCAService}
         title="Intermediate CA - Services"
         createButtonLabel="Create intermediate CA"
       />
@@ -154,7 +151,7 @@ export default function AdminCaPage() {
         namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet}
         title="Intermediate CA - Intranet"
         createButtonLabel="Create intermediate CA"
-      />
+              />*/}
     </>
   );
 }

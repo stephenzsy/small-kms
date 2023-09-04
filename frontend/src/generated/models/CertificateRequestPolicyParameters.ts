@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateLifetimeTrigger } from './CertificateLifetimeTrigger';
+import {
+    CertificateLifetimeTriggerFromJSON,
+    CertificateLifetimeTriggerFromJSONTyped,
+    CertificateLifetimeTriggerToJSON,
+} from './CertificateLifetimeTrigger';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -58,6 +64,12 @@ export interface CertificateRequestPolicyParameters {
     validityMonths?: number;
     /**
      * 
+     * @type {string}
+     * @memberof CertificateRequestPolicyParameters
+     */
+    keyStorePath: string;
+    /**
+     * 
      * @type {KeyProperties}
      * @memberof CertificateRequestPolicyParameters
      */
@@ -81,17 +93,11 @@ export interface CertificateRequestPolicyParameters {
      */
     usage: CertificateUsage;
     /**
-     * Number of days left to trigger renewal, (0, 1) range indicates percentage
-     * @type {number}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    autoRenewalThreshold?: number;
-    /**
      * 
-     * @type {string}
+     * @type {CertificateLifetimeTrigger}
      * @memberof CertificateRequestPolicyParameters
      */
-    keyStorePath: string;
+    lifetimeTrigger?: CertificateLifetimeTrigger;
 }
 
 /**
@@ -100,9 +106,9 @@ export interface CertificateRequestPolicyParameters {
 export function instanceOfCertificateRequestPolicyParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "issuerNamespaceId" in value;
+    isInstance = isInstance && "keyStorePath" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
-    isInstance = isInstance && "keyStorePath" in value;
 
     return isInstance;
 }
@@ -119,12 +125,12 @@ export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignor
         
         'issuerNamespaceId': json['issuerNamespaceId'],
         'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
+        'keyStorePath': json['keyStorePath'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : KeyPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usage': CertificateUsageFromJSON(json['usage']),
-        'autoRenewalThreshold': !exists(json, 'autoRenewalThreshold') ? undefined : json['autoRenewalThreshold'],
-        'keyStorePath': json['keyStorePath'],
+        'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
     };
 }
 
@@ -139,12 +145,12 @@ export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequ
         
         'issuerNamespaceId': value.issuerNamespaceId,
         'validity_months': value.validityMonths,
+        'keyStorePath': value.keyStorePath,
         'keyProperties': KeyPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usage': CertificateUsageToJSON(value.usage),
-        'autoRenewalThreshold': value.autoRenewalThreshold,
-        'keyStorePath': value.keyStorePath,
+        'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
     };
 }
 

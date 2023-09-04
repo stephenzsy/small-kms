@@ -94,6 +94,8 @@ type KmsDocument interface {
 	GetNamespaceID() uuid.UUID
 	StampUpdatedWithAuth(c *gin.Context)
 	GetUUID() uuid.UUID
+
+	fillTypeName()
 }
 
 func (k *BaseDoc) GetUUID() uuid.UUID {
@@ -114,7 +116,7 @@ func (doc *BaseDoc) StampUpdatedWithAuth(c *gin.Context) {
 	doc.StampUpdated(auth.CallerPrincipalId(c).String(), auth.CallerPrincipalName(c))
 }
 
-func (doc *BaseDoc) MarshalJSON() ([]byte, error) {
+func (doc *BaseDoc) fillTypeName() {
 	switch doc.ID.typeByte {
 	case DocTypeCert:
 		doc.TypeName = DocTypeNameCert
@@ -127,11 +129,11 @@ func (doc *BaseDoc) MarshalJSON() ([]byte, error) {
 	default:
 		doc.TypeName = DocTypeNameUnknown
 	}
-	return json.Marshal(doc)
 }
 
 func AzCosmosUpsert[D KmsDocument](ctx *gin.Context, cc *azcosmos.ContainerClient, doc D) error {
 	doc.StampUpdatedWithAuth(ctx)
+	doc.fillTypeName()
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err

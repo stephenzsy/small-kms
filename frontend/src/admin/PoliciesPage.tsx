@@ -1,33 +1,32 @@
-import { Link, useParams } from "react-router-dom";
-import { useAuthedClient } from "../utils/useCertsApi";
-import {
-  Policy,
-  PolicyApi,
-  PolicyType,
-  ResponseError,
-  TestNamespaceId,
-  WellKnownNamespaceId,
-} from "../generated";
-import { useMemo } from "react";
 import { useRequest } from "ahooks";
+import { useMemo } from "react";
+import { Link, useParams } from "react-router-dom";
+import { WellknownId } from "../constants";
+import { Policy, PolicyApi, PolicyType, ResponseError } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import {
   certRequestPolicyNames,
   isRootCANamespace,
-  namespaceFriendlierNames,
+  nsDisplayNames,
 } from "./displayConstants";
+import { ErrorAlert } from "../components/ErrorAlert";
 
 export default function PoliciesPage() {
   const { namespaceId } = useParams();
   const client = useAuthedClient(PolicyApi);
   const [fetchPolicyIds, catLabels] = useMemo<[string[], PolicyType[]]>(() => {
     switch (namespaceId) {
-      case WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA:
-      case TestNamespaceId.TestNamespaceIDStr_RootCA:
+      case WellknownId.nsRootCa:
+      case WellknownId.nsTestRootCa:
         return [[namespaceId], [PolicyType.PolicyType_CertRequest]];
     }
     return [[], []];
   }, [namespaceId]);
-  const { data: fetchedPolicies, run: refresh } = useRequest(
+  const {
+    data: fetchedPolicies,
+    error: fetchPoliciesError,
+    run: refresh,
+  } = useRequest(
     () => {
       return Promise.all(
         fetchPolicyIds.map(async (policyId): Promise<Policy | undefined> => {
@@ -51,8 +50,9 @@ export default function PoliciesPage() {
     <>
       <h1 className="font-semibold text-4xl">Policies</h1>
       <div className="font-medium text-xl">
-        {namespaceFriendlierNames[namespaceId!] || namespaceId}
+        {nsDisplayNames[namespaceId!] || namespaceId}
       </div>
+      {fetchPoliciesError && <ErrorAlert error={fetchPoliciesError} />}
       {catLabels.map((catLabel, i) => {
         return (
           <div
@@ -67,7 +67,7 @@ export default function PoliciesPage() {
                 <dl>
                   <div>
                     <dt>CA Issuer Namespace</dt>
-                    <dd>{namespaceFriendlierNames[catLabel]}</dd>
+                    <dd>{nsDisplayNames[catLabel]}</dd>
                   </div>
                 </dl>
               )}

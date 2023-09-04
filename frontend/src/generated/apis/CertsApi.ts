@@ -16,19 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   CertificateRef,
-  CreateCertificateParameters,
 } from '../models';
 import {
     CertificateRefFromJSON,
     CertificateRefToJSON,
-    CreateCertificateParametersFromJSON,
-    CreateCertificateParametersToJSON,
 } from '../models';
-
-export interface CreateCertificateV1Request {
-    namespaceId: string;
-    createCertificateParameters: CreateCertificateParameters;
-}
 
 export interface GetCertificateV1Request {
     namespaceId: string;
@@ -44,51 +36,6 @@ export interface ListCertificatesV1Request {
  * 
  */
 export class CertsApi extends runtime.BaseAPI {
-
-    /**
-     * Create certificate
-     */
-    async createCertificateV1Raw(requestParameters: CreateCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRef>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createCertificateV1.');
-        }
-
-        if (requestParameters.createCertificateParameters === null || requestParameters.createCertificateParameters === undefined) {
-            throw new runtime.RequiredError('createCertificateParameters','Required parameter requestParameters.createCertificateParameters was null or undefined when calling createCertificateV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceId}/certificates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateCertificateParametersToJSON(requestParameters.createCertificateParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRefFromJSON(jsonValue));
-    }
-
-    /**
-     * Create certificate
-     */
-    async createCertificateV1(requestParameters: CreateCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRef> {
-        const response = await this.createCertificateV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
 
     /**
      * Get certificate

@@ -1,7 +1,6 @@
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
-import { TestNamespaceId, WellKnownNamespaceId } from "../generated";
-import { namespaceFriendlierNames } from "./displayConstants";
+import { WellknownId } from "../constants";
+import { nsDisplayNames } from "./displayConstants";
 
 interface NamespaceProp {
   title: string;
@@ -11,10 +10,7 @@ interface NamespaceProp {
 const namespaces = {
   rootCa: {
     title: "Root Certificate Authorities",
-    ids: [
-      WellKnownNamespaceId.WellKnownNamespaceIDStr_RootCA,
-      TestNamespaceId.TestNamespaceIDStr_RootCA,
-    ],
+    ids: [WellknownId.nsRootCa, WellknownId.nsTestRootCa],
   },
 };
 
@@ -54,7 +50,7 @@ function PolicySection(props: { namespace: NamespaceProp }) {
                       {id}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {namespaceFriendlierNames[id] ?? ""}
+                      {nsDisplayNames[id] ?? ""}
                     </td>
                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">
                       <Link

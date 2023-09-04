@@ -11,12 +11,11 @@ import (
 
 type adminServer struct {
 	common.CommonConfig
-	azBlobClient                    *azblob.Client
-	azBlobContainerClient           *azblobcontainer.Client
-	azCosmosClient                  *azcosmos.Client
-	azCosmosDatabaseClient          *azcosmos.DatabaseClient
-	azCosmosContainerClientCerts    *azcosmos.ContainerClient
-	azCosmosContainerClientPolicies *azcosmos.ContainerClient
+	azBlobClient                 *azblob.Client
+	azBlobContainerClient        *azblobcontainer.Client
+	azCosmosClient               *azcosmos.Client
+	azCosmosDatabaseClient       *azcosmos.DatabaseClient
+	azCosmosContainerClientCerts *azcosmos.ContainerClient
 }
 
 func NewAdminServer() *adminServer {
@@ -47,10 +46,6 @@ func NewAdminServer() *adminServer {
 	s.azCosmosContainerClientCerts, err = s.azCosmosDatabaseClient.NewContainer(common.GetEnvWithDefault("AZURE_COSMOS_CONTAINERNAME_CERTS", "Certs"))
 	if err != nil {
 		log.Panicf("Failed to get az cosmos container client for Certs: %s", err.Error())
-	}
-	s.azCosmosContainerClientPolicies, err = s.azCosmosDatabaseClient.NewContainer(common.GetEnvWithDefault("AZURE_COSMOS_CONTAINERNAME_POLICIES", "Policies"))
-	if err != nil {
-		log.Panicf("Failed to get az cosmos container client for Policies: %s", err.Error())
 	}
 	return &s
 }

@@ -20,8 +20,9 @@
 export const CertificateUsage = {
     Usage_RootCA: 'root-ca',
     Usage_IntCA: 'intermediate-ca',
-    Usage_Server: 'server',
-    Usage_Client: 'client'
+    Usage_ServerAndClient: 'server-and-client',
+    Usage_ServerOnly: 'server-only',
+    Usage_ClientOnly: 'client-only'
 } as const;
 export type CertificateUsage = typeof CertificateUsage[keyof typeof CertificateUsage];
 

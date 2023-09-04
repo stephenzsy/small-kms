@@ -15,15 +15,30 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApplyPolicyRequest,
+  GetPolicyV1404Response,
   Policy,
   PolicyParameters,
+  PolicyState,
 } from '../models';
 import {
+    ApplyPolicyRequestFromJSON,
+    ApplyPolicyRequestToJSON,
+    GetPolicyV1404ResponseFromJSON,
+    GetPolicyV1404ResponseToJSON,
     PolicyFromJSON,
     PolicyToJSON,
     PolicyParametersFromJSON,
     PolicyParametersToJSON,
+    PolicyStateFromJSON,
+    PolicyStateToJSON,
 } from '../models';
+
+export interface ApplyPolicyV1Request {
+    namespaceId: string;
+    policyId: string;
+    applyPolicyRequest?: ApplyPolicyRequest;
+}
 
 export interface GetPolicyV1Request {
     namespaceId: string;
@@ -40,6 +55,51 @@ export interface PutPolicyV1Request {
  * 
  */
 export class PolicyApi extends runtime.BaseAPI {
+
+    /**
+     * Apply policy
+     */
+    async applyPolicyV1Raw(requestParameters: ApplyPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PolicyState>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling applyPolicyV1.');
+        }
+
+        if (requestParameters.policyId === null || requestParameters.policyId === undefined) {
+            throw new runtime.RequiredError('policyId','Required parameter requestParameters.policyId was null or undefined when calling applyPolicyV1.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceId}/policies/{policyId}/apply`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyId"}}`, encodeURIComponent(String(requestParameters.policyId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ApplyPolicyRequestToJSON(requestParameters.applyPolicyRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PolicyStateFromJSON(jsonValue));
+    }
+
+    /**
+     * Apply policy
+     */
+    async applyPolicyV1(requestParameters: ApplyPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PolicyState> {
+        const response = await this.applyPolicyV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get Certificate Policy
