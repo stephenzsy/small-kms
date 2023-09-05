@@ -35,7 +35,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 			}
 		case IsIntCANamespace(namespaceID):
 			if IsTestCA(namespaceID) {
-				if policyID != testNamespaceID_IntCA {
+				if policyID != testNamespaceID_RootCA {
 					c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
 					return
 				}

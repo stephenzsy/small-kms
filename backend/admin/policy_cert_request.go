@@ -438,7 +438,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	// prepare certificate
 	var csr *x509.CertificateRequest
 	var certPubKey crypto.PublicKey
-	var certKeyIdentifier string
+	var kid string
 	if !isRootNS {
 		azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
 		azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
@@ -462,13 +462,13 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	var signer crypto.Signer
 	var signerPemBytes []byte
 	if isRootNS {
-		signer, certKeyIdentifier, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
+		signer, kid, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
 		if err != nil {
 			return nil, err
 		}
 		certPubKey = signer.Public()
 		signerCert = &certificate
-	} else if IsIntCANamespace(policyID) {
+	} else if IsIntCANamespace(namespaceID) {
 		// load certificate
 		crtDoc, err := s.GetLatestCertDocForPolicy(ctx, policyID, policyID)
 		if err != nil {
@@ -565,7 +565,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			return nil, err
 		}
 		cid = string(*azcMcResp.ID)
-		//sid = string(*azcMcResp.ID)
+		kid = string(*azcMcResp.KID)
 		log.Info().Msgf("Certificate merged to keyvault: %s", cid)
 	}
 
@@ -579,7 +579,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		Expires:  certificate.NotAfter,
 		Usage:    p.Usage,
 		CID:      cid,
-		KID:      certKeyIdentifier,
+		KID:      kid,
 		//		SID:           string(*azcMcResp.SID),
 		CertStorePath: blobName,
 	}

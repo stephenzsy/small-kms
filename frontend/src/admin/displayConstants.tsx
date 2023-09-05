@@ -4,12 +4,23 @@ import { PolicyType } from "../generated";
 export const nsDisplayNames: Record<string, string> = {
   [WellknownId.nsRootCa]: "Root CA",
   [WellknownId.nsTestRootCa]: "Test Root CA",
+  [WellknownId.nsIntCaIntranet]: "Intranet CA",
+  [WellknownId.nsTestIntCa]: "Test Intermediate CA",
 };
 
-export function isRootCANamespace(namespaceId: string) {
+export function isRootCaNamespace(namespaceId: string) {
   switch (namespaceId) {
     case WellknownId.nsRootCa:
     case WellknownId.nsTestRootCa:
+      return true;
+  }
+  return false;
+}
+
+export function IsIntCaNamespace(namespaceId: string) {
+  switch (namespaceId) {
+    case WellknownId.nsIntCaIntranet:
+    case WellknownId.nsTestIntCa:
       return true;
   }
   return false;

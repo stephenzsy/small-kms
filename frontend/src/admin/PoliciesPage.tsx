@@ -6,7 +6,7 @@ import { Policy, PolicyApi, PolicyType, ResponseError } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import {
   certRequestPolicyNames,
-  isRootCANamespace,
+  isRootCaNamespace,
   nsDisplayNames,
 } from "./displayConstants";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -19,6 +19,13 @@ export default function PoliciesPage() {
       case WellknownId.nsRootCa:
       case WellknownId.nsTestRootCa:
         return [[namespaceId], [PolicyType.PolicyType_CertRequest]];
+      case WellknownId.nsIntCaIntranet:
+        return [[WellknownId.nsRootCa], [PolicyType.PolicyType_CertRequest]];
+      case WellknownId.nsTestIntCa:
+        return [
+          [WellknownId.nsTestRootCa],
+          [PolicyType.PolicyType_CertRequest],
+        ];
     }
     return [[], []];
   }, [namespaceId]);
@@ -54,6 +61,7 @@ export default function PoliciesPage() {
       </div>
       {fetchPoliciesError && <ErrorAlert error={fetchPoliciesError} />}
       {catLabels.map((catLabel, i) => {
+        const policyId = fetchPolicyIds[i]
         return (
           <div
             key={i}
@@ -63,11 +71,11 @@ export default function PoliciesPage() {
               <h2 className="text-lg font-semibold mb-6">
                 {certRequestPolicyNames[catLabel]}
               </h2>
-              {!isRootCANamespace(namespaceId!) && (
+              {!isRootCaNamespace(namespaceId!) && (
                 <dl>
                   <div>
                     <dt>CA Issuer Namespace</dt>
-                    <dd>{nsDisplayNames[catLabel]}</dd>
+                    <dd>{nsDisplayNames[policyId]?? policyId}</dd>
                   </div>
                 </dl>
               )}
@@ -77,10 +85,10 @@ export default function PoliciesPage() {
             )}
             <div className="pt-4">
               <Link
-                to={`/admin/${namespaceId}/policies/${fetchPolicyIds[i]}`}
+                to={`/admin/${namespaceId}/policies/${policyId}`}
                 className="text-indigo-600 hover:text-indigo-900 font-semibold"
               >
-                Modify<span className="sr-only">, {fetchPolicyIds[i]}</span>
+                Modify<span className="sr-only">, {policyId}</span>
               </Link>
             </div>
           </div>

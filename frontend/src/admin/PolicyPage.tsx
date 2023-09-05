@@ -16,8 +16,9 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./FormComponents";
 import {
+  IsIntCaNamespace,
   certRequestPolicyNames,
-  isRootCANamespace,
+  isRootCaNamespace,
   nsDisplayNames,
 } from "./displayConstants";
 
@@ -50,6 +51,13 @@ function CertCreatePolicyForm({
         break;
       case WellknownId.nsTestRootCa:
         prefix = "test-root-ca-";
+        break;
+      case WellknownId.nsIntCaIntranet:
+        prefix = "int-ca-intranet-";
+        break;
+      case WellknownId.nsTestIntCa:
+        prefix = "test-int-ca-";
+        break;
     }
     return prefix + id.substring(0, 6);
   }, [namespaceId]);
@@ -77,7 +85,7 @@ function CertCreatePolicyForm({
   );
 
   const defaultValidityPlaceholder = useMemo(() => {
-    if (isRootCANamespace(namespaceId)) {
+    if (isRootCaNamespace(namespaceId)) {
       return 120;
     }
     return 12;
@@ -101,8 +109,10 @@ function CertCreatePolicyForm({
           o: input.subjectO?.trim() || undefined,
           c: input.subjectC?.trim() || undefined,
         },
-        usage: isRootCANamespace(namespaceId)
+        usage: isRootCaNamespace(namespaceId)
           ? CertificateUsage.Usage_RootCA
+          : IsIntCaNamespace(namespaceId)
+          ? CertificateUsage.Usage_IntCA
           : CertificateUsage.Usage_ClientOnly,
         validityMonths,
         keyStorePath: input.keyStorePath,

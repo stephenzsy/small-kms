@@ -12,6 +12,10 @@ const namespaces = {
     title: "Root Certificate Authorities",
     ids: [WellknownId.nsRootCa, WellknownId.nsTestRootCa],
   },
+  intCa: {
+    title: "Intermediate Certificate Authorities",
+    ids: [WellknownId.nsIntCaIntranet, WellknownId.nsTestIntCa],
+  },
 };
 
 function PolicySection(props: { namespace: NamespaceProp }) {
@@ -81,6 +85,7 @@ export default function AdminPage() {
   return (
     <>
       <PolicySection namespace={namespaces.rootCa} />
+      <PolicySection namespace={namespaces.intCa} />
     </>
   );
 }
