@@ -26,7 +26,7 @@ var (
 
 	// root CA --1 ~ --f
 	idRootCA     = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-000000000001"))
-	idTestRootCA = WellKnownID(uuid.MustParse("00000001-0000-0000-0000-00000000000f"))
+	idTestRootCA = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-00000000000f"))
 
 	// intermediate CAs --10 ~ --ff
 	idIntCAService  = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-000000000011"))
