@@ -385,26 +385,21 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerID
-        allowedKeyProperties:
-          type: array
-          items:
-            $ref: "#/components/schemas/KeyProperties"
-        allowedUsages:
-          type: array
-          items:
-            $ref: "#/components/schemas/CertificateUsage"
-        allowedNamespaceIds:
+        allowedRequesters:
           type: array
           items:
             type: string
             format: uuid
-          x-go-name: AllowedNamespaceIDs
+        allowedUsages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateUsage"
+        max_validity_months:
+          type: integer
+          format: int32
+          x-go-name: MaxValidityInMonths
       required:
         - issuerId
-        - maxValidity
-        - allowedKeyTypes
-        - allowedUsages
-        - allowedNamespaceIds
     CertificateLifetimeTrigger:
       type: object
       properties:

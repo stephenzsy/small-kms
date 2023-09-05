@@ -35,7 +35,8 @@ func IsRootCANamespace(namespaceID uuid.UUID) bool {
 func IsIntCANamespace(namespaceID uuid.UUID) bool {
 	switch namespaceID {
 	case wellKnownNamespaceID_IntCAService,
-		wellKnownNamespaceID_IntCaIntranet:
+		wellKnownNamespaceID_IntCaIntranet,
+		testNamespaceID_IntCA:
 		return true
 	}
 	return false

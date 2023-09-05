@@ -70,12 +70,12 @@ type ApplyPolicyRequest struct {
 
 // CertificateIssurancePolicyParameters defines model for CertificateIssurancePolicyParameters.
 type CertificateIssurancePolicyParameters struct {
-	AllowedKeyProperties *[]KeyProperties     `json:"allowedKeyProperties,omitempty"`
-	AllowedNamespaceIDs  []openapi_types.UUID `json:"allowedNamespaceIds"`
-	AllowedUsages        []CertificateUsage   `json:"allowedUsages"`
+	AllowedRequesters *[]openapi_types.UUID `json:"allowedRequesters,omitempty"`
+	AllowedUsages     *[]CertificateUsage   `json:"allowedUsages,omitempty"`
 
 	// IssuerId ID of the current issuer certificate
-	IssuerID openapi_types.UUID `json:"issuerId"`
+	IssuerID            openapi_types.UUID `json:"issuerId"`
+	MaxValidityInMonths *int32             `json:"max_validity_months,omitempty"`
 }
 
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.

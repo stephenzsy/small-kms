@@ -1,58 +1,19 @@
 package admin
 
 import (
-	"bytes"
-	"context"
-	"crypto"
-	"crypto/x509"
-	"encoding/pem"
-	"errors"
-	"fmt"
-	"math/big"
-	"strings"
-	"time"
-
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-type PolicyCertRequestDocSection struct {
-	IssuerNamespaceID       uuid.UUID                           `json:"issuerNamespaceId"`
-	KeyProperties           KeyProperties                       `json:"keyProperties"`
-	KeyStorePath            string                              `json:"keyStorePath"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        int32                               `json:"validity_months"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+type PolicyCertIssueDocSection struct {
+	IssuerID            kmsdoc.KmsDocID    `json:"issuerID"`
+	AllowedRequesters   []uuid.UUID        `json:"allowedRequesters"`
+	AllowedUsages       []CertificateUsage `json:"allowedUsages"`
+	MaxValidityInMonths int32              `json:"max_validity_months"`
 }
 
-const maxValidityInMonths = 120
-const defaultValidityInMonths = 12
-
-func getDefaultKeyProperties(namespaceID uuid.UUID) (kp KeyProperties) {
-	kp.KeyType = KtyRSA
-	kp.KeySize = ToPtr(KeySize2048)
-	if IsCANamespace(namespaceID) {
-		kp.KeySize = ToPtr(KeySize4096)
-	}
-	if IsTestCA(namespaceID) {
-		kp.KeyType = KtyEC
-		kp.KeySize = nil
-		kp.CurveName = ToPtr(EcCurveP384)
-	}
-	return
-}
-
+/*
 func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *CertificateRequestPolicyParameters, namespaceID uuid.UUID) error {
 	if p == nil {
 		return errors.New("missing CertRequest property")
@@ -351,33 +312,26 @@ func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, c
 	c.NotBefore = time.Now()
 	c.NotAfter = time.Now().AddDate(0, int(p.ValidityInMonths), 0)
 
-	if csr != nil {
-		c.Subject = csr.Subject
-		if !IsCANamespace(namespaceID) {
-			c.Extensions = csr.Extensions
-		}
-		c.EmailAddresses = csr.EmailAddresses
-		c.DNSNames = csr.DNSNames
-		c.IPAddresses = csr.IPAddresses
-		c.URIs = csr.URIs
-	} else {
-		c.Subject = p.Subject.ToPkixName()
-	}
-
 	if IsRootCANamespace(namespaceID) {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
 		c.MaxPathLen = 1
 		c.MaxPathLenZero = false
 		c.BasicConstraintsValid = true
-	} else if IsIntCANamespace(namespaceID) {
-		c.IsCA = true
-		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
-		c.MaxPathLenZero = true
-		c.BasicConstraintsValid = true
 	} else {
 		err = fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
 		return
+	}
+
+	if csr != nil {
+		c.Subject = csr.Subject
+		c.Extensions = csr.Extensions
+		c.EmailAddresses = csr.EmailAddresses
+		c.DNSNames = csr.DNSNames
+		c.IPAddresses = csr.IPAddresses
+		c.URIs = csr.URIs
+	} else {
+		c.Subject = p.Subject.ToPkixName()
 	}
 
 	return
@@ -421,208 +375,6 @@ func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, 
 	return signer, string(*signerKey.KID), err
 }
 
-func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, namespaceID uuid.UUID, policyDoc *PolicyDoc) (resultDoc *PolicyStateDoc, err error) {
-
-	policyID := policyDoc.GetUUID()
-
-	// request for new certifiate
-	// read policy state
-	log.Info().Msgf("Start CertRequest action for policy %s/%s", namespaceID, policyID)
-	certID := uuid.New()
-	log.Info().Msgf("Certificate ID %s", certID)
-	keyName := p.KeyStorePath
-	log.Info().Msgf("Certificate keyStorePath: %s", keyName)
-
-	isRootNS := IsRootCANamespace(namespaceID)
-
-	// prepare certificate
-	var csr *x509.CertificateRequest
-	var certPubKey crypto.PublicKey
-	var certKeyIdentifier string
-	if !isRootNS {
-		azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
-		azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
-		if err != nil {
-			return nil, err
-		}
-		log.Info().Msgf("Created certificate in KeyVault: %s", *azcCcResp.ID)
-		csr, err = x509.ParseCertificateRequest(azcCcResp.CSR)
-		if err != nil {
-			return nil, err
-		}
-		certPubKey = csr.PublicKey
-	}
-	certificate, err := prepareCertificate(p, namespaceID, certID, csr)
-	if err != nil {
-		return
-	}
-
-	// get signer, and signer certificate
-	var signerCert *x509.Certificate
-	var signer crypto.Signer
-	var signerPemBytes []byte
-	if isRootNS {
-		signer, certKeyIdentifier, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
-		if err != nil {
-			return nil, err
-		}
-		certPubKey = signer.Public()
-		signerCert = &certificate
-	} else if IsIntCANamespace(policyID) {
-		// load certificate
-		crtDoc, err := s.GetLatestCertDocForPolicy(ctx, policyID, policyID)
-		if err != nil {
-			return nil, err
-		}
-		if len(crtDoc.KID) == 0 {
-			return nil, errors.New("issuer certificate key not found")
-		}
-		keyId := azkeys.ID(crtDoc.KID)
-		resp, err := s.AzKeysClient().GetKey(ctx, keyId.Name(), keyId.Version(), nil)
-		if err != nil {
-			return nil, err
-		}
-		signer, err = newKeyVaultSigner(ctx, s.AzKeysClient(), resp.Key)
-		if err != nil {
-			return nil, err
-		}
-		signerBlobName := crtDoc.CertStorePath
-		if len(signerBlobName) == 0 {
-			return nil, errors.New("issuer certificate missing")
-		}
-		signerPemBytes, err := s.FetchCertificatePEMBlob(ctx, signerBlobName)
-		if err != nil {
-			return nil, err
-		}
-		pemBlock, _ := pem.Decode(signerPemBytes)
-		signerCert, err = x509.ParseCertificate(pemBlock.Bytes)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// TODO
-		return nil, fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
-	}
-
-	switch p.KeyProperties.KeyType {
-	case KtyRSA:
-		certificate.SignatureAlgorithm = x509.SHA384WithRSA
-	case KtyEC:
-		switch *p.KeyProperties.CurveName {
-		case EcCurveP384:
-			certificate.SignatureAlgorithm = x509.ECDSAWithSHA384
-		case EcCurveP256:
-			certificate.SignatureAlgorithm = x509.ECDSAWithSHA256
-		default:
-			return nil, fmt.Errorf("unsupported curve: %s", *p.KeyProperties.CurveName)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported key type: %s", p.KeyProperties.KeyType)
-	}
-
-	// Sign cert
-	certSigned, err := x509.CreateCertificate(nil, &certificate, signerCert, certPubKey, signer)
-	if err != nil {
-		return
-	}
-
-	log.Info().Msgf("Certificate signed and validated, prepare to upload")
-	// encode to pem
-	pemBlock := pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: certSigned,
-	}
-	bb := bytes.Buffer{}
-	err = pem.Encode(&bb, &pemBlock)
-	if err != nil {
-		return
-	}
-	if !isRootNS {
-		// attach chain
-		_, err = bb.Write(signerPemBytes)
-		if err != nil {
-			return nil, err
-		}
-	}
-	// upload to certificate storage only
-	blobName := fmt.Sprintf("%s/%s.pem", namespaceID, certID)
-	_, err = s.azBlobContainerClient.NewBlockBlobClient(blobName).UploadBuffer(ctx, bb.Bytes(), &blockblob.UploadBufferOptions{
-		HTTPHeaders: &blob.HTTPHeaders{
-			BlobContentType: to.Ptr("application/x-pem-file"),
-		},
-	})
-	if err != nil {
-		return
-	}
-	log.Info().Msgf("Certificate uploaded to blob")
-
-	var cid string
-	if !isRootNS && IsIntCANamespace(namespaceID) && len(keyName) > 0 {
-		azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, keyName, azcertificates.MergeCertificateParameters{
-			X509Certificates: [][]byte{certSigned, signerCert.Raw},
-		}, nil)
-		if err != nil {
-			return nil, err
-		}
-		cid = string(*azcMcResp.ID)
-		//sid = string(*azcMcResp.ID)
-		log.Info().Msgf("Certificate merged to keyvault: %s", cid)
-	}
-
-	// record certdoc
-	certDoc := CertDoc{
-		BaseDoc: kmsdoc.BaseDoc{
-			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, certID),
-			NamespaceID: namespaceID,
-		},
-		PolicyID: policyID,
-		Expires:  certificate.NotAfter,
-		Usage:    p.Usage,
-		CID:      cid,
-		KID:      certKeyIdentifier,
-		//		SID:           string(*azcMcResp.SID),
-		CertStorePath: blobName,
-	}
-	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, &certDoc)
-	if err != nil {
-		return
-	}
-	log.Info().Msgf("Created certificate: %s/%s", namespaceID, certDoc.ID.String())
-
-	// record latest cert doc
-	certDocL := certDoc
-	certDocL.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, policyID)
-	certDocL.AliasID = &certDoc.ID
-	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, &certDocL)
-	if err != nil {
-		return
-	}
-	log.Info().Msgf("Set certificate as latest for policy(%s): %s/%s", policyID, namespaceID, certDoc.ID.String())
-
-	// record policy state
-	resultDoc = &PolicyStateDoc{
-		BaseDoc: kmsdoc.BaseDoc{
-			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicyState, policyID),
-			NamespaceID: namespaceID,
-		},
-		PolicyType: PolicyTypeCertRequest,
-		Status:     PolicyStateStatusSuccess,
-		Message:    fmt.Sprintf("certificate issued: %s/%s[%s]", namespaceID, certID, policyID),
-		CertRequest: &PolicyStateCertRequestDocSection{
-			LastCertCUID:    certDoc.ID,
-			LastCertIssued:  certificate.NotBefore,
-			LastCertExpires: certificate.NotAfter,
-			LastAction:      PolicyCertRequestActionIssue,
-		},
-	}
-	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, resultDoc)
-	if err != nil {
-		return
-	}
-	log.Info().Msgf("CertRequest completed for %s/%s", namespaceID, policyID)
-	return
-}
-
 func (s *PolicyCertRequestDocSection) ToCertificateRequestPolicyParameters() *CertificateRequestPolicyParameters {
 	if s == nil {
 		return nil
@@ -650,3 +402,4 @@ func (s *PolicyStateCertRequestDocSection) ToPolicyStateCertRequest() *PolicySta
 		LastAction:      string(s.LastAction),
 	}
 }
+*/

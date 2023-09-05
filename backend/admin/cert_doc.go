@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,4 +27,11 @@ type CertDoc struct {
 	SID string `json:"sid"`
 	// certificate storage path in blob storage
 	CertStorePath string `json:"certStorePath"`
+}
+
+func (s *adminServer) GetLatestCertDocForPolicy(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*CertDoc, error) {
+	pd := new(CertDoc)
+	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
+		kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, policyID), pd)
+	return pd, err
 }

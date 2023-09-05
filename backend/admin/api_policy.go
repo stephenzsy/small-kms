@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -29,8 +30,20 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 		switch {
 		case IsRootCANamespace(namespaceID):
 			if namespaceID != policyID {
-				c.JSON(http.StatusBadRequest, gin.H{"message": "root namespace must have policy name as the same as the namespace id"})
+				c.JSON(http.StatusForbidden, gin.H{"message": "root namespace must have policy name as the same as the namespace id"})
 				return
+			}
+		case IsIntCANamespace(namespaceID):
+			if IsTestCA(namespaceID) {
+				if policyID != testNamespaceID_IntCA {
+					c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
+					return
+				}
+			} else {
+				if policyID != wellKnownNamespaceID_RootCA {
+					c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
+					return
+				}
 			}
 		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
