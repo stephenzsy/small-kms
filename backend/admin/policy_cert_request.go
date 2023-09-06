@@ -172,7 +172,7 @@ const (
 type PolicyStateCertRequestDocSection struct {
 	LastCertCUID    kmsdoc.KmsDocID         `json:"lastCertId"`
 	LastCertIssued  time.Time               `json:"lastCertIssued"`
-	LastCertExpires time.Time               `json:"lastCertExpired"`
+	LastCertExpires time.Time               `json:"lastCertExpires"`
 	LastAction      PolicyCertRequestAction `json:"lastAction"`
 }
 
