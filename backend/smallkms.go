@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/auth"
 )
@@ -27,9 +26,6 @@ func main() {
 	}
 
 	log.Println("Server started")
-	if len(os.Args) > 3 {
-		godotenv.Load(os.Args[3])
-	}
 	role := os.Args[1]
 	listenerAddress := os.Args[2]
 	if len(listenerAddress) == 0 {

@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -16,6 +17,7 @@ type adminServer struct {
 	azCosmosClient               *azcosmos.Client
 	azCosmosDatabaseClient       *azcosmos.DatabaseClient
 	azCosmosContainerClientCerts *azcosmos.ContainerClient
+	msGraphClient                *msgraph.GraphServiceClient
 }
 
 func NewAdminServer() *adminServer {
@@ -46,6 +48,11 @@ func NewAdminServer() *adminServer {
 	s.azCosmosContainerClientCerts, err = s.azCosmosDatabaseClient.NewContainer(common.GetEnvWithDefault("AZURE_COSMOS_CONTAINERNAME_CERTS", "Certs"))
 	if err != nil {
 		log.Panicf("Failed to get az cosmos container client for Certs: %s", err.Error())
+	}
+
+	s.msGraphClient, err = msgraph.NewGraphServiceClientWithCredentials(s.DefaultAzCredential(), nil)
+	if err != nil {
+		log.Panicf("Failed to get graph clients: %s", err.Error())
 	}
 	return &s
 }

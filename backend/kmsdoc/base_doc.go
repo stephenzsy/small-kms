@@ -21,6 +21,7 @@ const (
 	DocTypePolicy              KmsDocType = 80 // P
 	DocTypePolicyState         KmsDocType = 83 // S
 	DocTypeLatestCertForPolicy KmsDocType = 76 // L
+	DocTypeDirectoryObject     KmsDocType = 79 // O
 )
 
 type KmsDocTypeName string
@@ -32,6 +33,7 @@ const (
 	DocTypeNamePolicy              KmsDocTypeName = "policy"
 	DocTypeNamePolicyState         KmsDocTypeName = "policy-state"
 	DocTypeNameLatestCertForPolicy KmsDocTypeName = "cert-latest"
+	DocTypeNameDirectoryObject     KmsDocTypeName = "directory-object"
 )
 
 // KmsDocID is a unique identifier for a KmsDoc, is comparable
@@ -126,6 +128,8 @@ func (doc *BaseDoc) fillTypeName() {
 		doc.TypeName = DocTypeNamePolicyState
 	case DocTypeLatestCertForPolicy:
 		doc.TypeName = DocTypeNameLatestCertForPolicy
+	case DocTypeDirectoryObject:
+		doc.TypeName = DocTypeNameDirectoryObject
 	default:
 		doc.TypeName = DocTypeNameUnknown
 	}

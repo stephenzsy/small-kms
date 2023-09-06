@@ -19,12 +19,6 @@ import {
     CertificateUsageFromJSONTyped,
     CertificateUsageToJSON,
 } from './CertificateUsage';
-import type { KeyProperties } from './KeyProperties';
-import {
-    KeyPropertiesFromJSON,
-    KeyPropertiesFromJSONTyped,
-    KeyPropertiesToJSON,
-} from './KeyProperties';
 
 /**
  * 
@@ -40,22 +34,22 @@ export interface CertificateIssurancePolicyParameters {
     issuerId: string;
     /**
      * 
-     * @type {Array<KeyProperties>}
+     * @type {Array<string>}
      * @memberof CertificateIssurancePolicyParameters
      */
-    allowedKeyProperties?: Array<KeyProperties>;
+    allowedRequesters?: Array<string>;
     /**
      * 
      * @type {Array<CertificateUsage>}
      * @memberof CertificateIssurancePolicyParameters
      */
-    allowedUsages: Array<CertificateUsage>;
+    allowedUsages?: Array<CertificateUsage>;
     /**
      * 
-     * @type {Array<string>}
+     * @type {number}
      * @memberof CertificateIssurancePolicyParameters
      */
-    allowedNamespaceIds: Array<string>;
+    maxValidityMonths?: number;
 }
 
 /**
@@ -64,8 +58,6 @@ export interface CertificateIssurancePolicyParameters {
 export function instanceOfCertificateIssurancePolicyParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "issuerId" in value;
-    isInstance = isInstance && "allowedUsages" in value;
-    isInstance = isInstance && "allowedNamespaceIds" in value;
 
     return isInstance;
 }
@@ -81,9 +73,9 @@ export function CertificateIssurancePolicyParametersFromJSONTyped(json: any, ign
     return {
         
         'issuerId': json['issuerId'],
-        'allowedKeyProperties': !exists(json, 'allowedKeyProperties') ? undefined : ((json['allowedKeyProperties'] as Array<any>).map(KeyPropertiesFromJSON)),
-        'allowedUsages': ((json['allowedUsages'] as Array<any>).map(CertificateUsageFromJSON)),
-        'allowedNamespaceIds': json['allowedNamespaceIds'],
+        'allowedRequesters': !exists(json, 'allowedRequesters') ? undefined : json['allowedRequesters'],
+        'allowedUsages': !exists(json, 'allowedUsages') ? undefined : ((json['allowedUsages'] as Array<any>).map(CertificateUsageFromJSON)),
+        'maxValidityMonths': !exists(json, 'max_validity_months') ? undefined : json['max_validity_months'],
     };
 }
 
@@ -97,9 +89,9 @@ export function CertificateIssurancePolicyParametersToJSON(value?: CertificateIs
     return {
         
         'issuerId': value.issuerId,
-        'allowedKeyProperties': value.allowedKeyProperties === undefined ? undefined : ((value.allowedKeyProperties as Array<any>).map(KeyPropertiesToJSON)),
-        'allowedUsages': ((value.allowedUsages as Array<any>).map(CertificateUsageToJSON)),
-        'allowedNamespaceIds': value.allowedNamespaceIds,
+        'allowedRequesters': value.allowedRequesters,
+        'allowedUsages': value.allowedUsages === undefined ? undefined : ((value.allowedUsages as Array<any>).map(CertificateUsageToJSON)),
+        'max_validity_months': value.maxValidityMonths,
     };
 }
 

@@ -75,6 +75,46 @@ paths:
               schema:
                 type: string
                 format: binary
+  /v1/namespaces/{namespaceType}:
+    get:
+      tags:
+        - directory
+      summary: List namespaces
+      operationId: ListNamespacesV1
+      parameters:
+        - in: path
+          name: namespaceType
+          schema:
+            $ref: "#/components/schemas/NamespaceType"
+          required: true
+      responses:
+        "200":
+          description: List namespace response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NamespaceRef"
+  /v1/{namespaceId}/register:
+    post:
+      tags:
+        - directory
+      summary: Register namespace
+      operationId: RegisterNamespaceV1
+      parameters:
+        - in: path
+          description: AAD directory object ID
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          $ref: "#/components/responses/GenericResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v1/{namespaceId}/policies/{policyId}:
     put:
       tags:
@@ -176,6 +216,16 @@ components:
       type: http
       scheme: bearer
   schemas:
+    NamespaceType:
+      type: string
+      enum:
+        - builtIn
+        - "#microsoft.graph.servicePrincipal"
+        - "#microsoft.graph.user"
+      x-enum-varnames:
+        - NamespaceType_BuiltIn
+        - NamespaceType_MsGraphServicePrincipal
+        - NamespaceType_MsGraphUser
     ApplyPolicyRequest:
       type: object
       properties:
@@ -473,9 +523,40 @@ components:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/PolicyParameters"
+    NamespaceRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-name: ID
+        objectType:
+          $ref: "#/components/schemas/NamespaceType"
+        displayName:
+          type: string
+        servicePrincipalType:
+          type: string
+        userPrincipalName:
+          type: string
+      required:
+        - id
+        - objectType
+        - displayName
   responses:
+    GenericResponse:
+      description: generic response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+            additionalProperties: true
     ErrorResponse:
-      description: error
+      description: error response
       content:
         application/json:
           schema:

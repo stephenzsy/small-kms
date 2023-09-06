@@ -7,6 +7,7 @@ import { AuthProvider } from "./auth/AuthProvider";
 import Layout from "./Layout";
 import { MainPage } from "./MainPage";
 import { RouteIds } from "./route-constants";
+import RegisterPage from "./admin/RegisterPage";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
               { index: true, element: <PoliciesPage /> },
               { path: ":policyId", element: <PolicyPage /> },
             ],
+          },
+          {
+            path: "register",
+            element: <RegisterPage />,
           },
         ],
       },

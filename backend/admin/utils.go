@@ -7,6 +7,13 @@ func ToPtr[T any](v T) *T {
 	return &v
 }
 
+func ToNonEmptyStringPtr(v string) *string {
+	if len(v) > 0 {
+		return &v
+	}
+	return nil
+}
+
 func (s *CertificateSubject) ToPkixName() pkix.Name {
 	caSubjectOU := []string{}
 	caSubjectO := []string{}

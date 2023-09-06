@@ -1,4 +1,20 @@
+import { useRequest } from "ahooks";
+import { useAppAuthContext } from "./auth/AuthProvider";
+import { DirectoryApi } from "./generated";
+import { useAuthedClient } from "./utils/useCertsApi";
+
 export function MainPage() {
+  const client = useAuthedClient(DirectoryApi);
+  const { account } = useAppAuthContext();
+  useRequest(
+    async () => {
+      if (account?.tenantId && account.localAccountId) {
+        client.registerNamespaceV1({ namespaceId: account.localAccountId });
+      }
+    },
+    { manual: true }
+  );
+
   return (
     <>
       <header className="bg-white shadow">

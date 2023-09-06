@@ -16,22 +16,22 @@
 import * as runtime from '../runtime';
 import type {
   ApplyPolicyRequest,
-  GetPolicyV1404Response,
   Policy,
   PolicyParameters,
   PolicyState,
+  RegisterNamespaceV1200Response,
 } from '../models';
 import {
     ApplyPolicyRequestFromJSON,
     ApplyPolicyRequestToJSON,
-    GetPolicyV1404ResponseFromJSON,
-    GetPolicyV1404ResponseToJSON,
     PolicyFromJSON,
     PolicyToJSON,
     PolicyParametersFromJSON,
     PolicyParametersToJSON,
     PolicyStateFromJSON,
     PolicyStateToJSON,
+    RegisterNamespaceV1200ResponseFromJSON,
+    RegisterNamespaceV1200ResponseToJSON,
 } from '../models';
 
 export interface ApplyPolicyV1Request {

@@ -9,6 +9,8 @@ var wellKnownNamespaceID_RootCA = common.GetID(common.IdentifierRootCA)
 var wellKnownNamespaceID_IntCAService = common.GetID(common.IdentifierIntCAService)
 var wellKnownNamespaceID_IntCaIntranet uuid.UUID = common.GetID(common.IdentifierIntCAIntranet)
 
+var directoryID = common.GetID(common.IdentifierDirectory)
+
 var testNamespaceID_RootCA = common.GetID(common.IdentifierTestRootCA)
 var testNamespaceID_IntCA = common.GetID(common.IdentifierTestIntCA)
 

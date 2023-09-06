@@ -46,6 +46,13 @@ const (
 	KtyRSA KeyPropertiesKty = "RSA"
 )
 
+// Defines values for NamespaceType.
+const (
+	NamespaceTypeBuiltIn                 NamespaceType = "builtIn"
+	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
+	NamespaceTypeMsGraphUser             NamespaceType = "#microsoft.graph.user"
+)
+
 // Defines values for PolicyType.
 const (
 	PolicyTypeCertIssue   PolicyType = "certIssue"
@@ -175,6 +182,18 @@ type KeyPropertiesKeySize int32
 // KeyPropertiesKty defines model for KeyProperties.Kty.
 type KeyPropertiesKty string
 
+// NamespaceRef defines model for NamespaceRef.
+type NamespaceRef struct {
+	DisplayName          string             `json:"displayName"`
+	ID                   openapi_types.UUID `json:"id"`
+	ObjectType           NamespaceType      `json:"objectType"`
+	ServicePrincipalType *string            `json:"servicePrincipalType,omitempty"`
+	UserPrincipalName    *string            `json:"userPrincipalName,omitempty"`
+}
+
+// NamespaceType defines model for NamespaceType.
+type NamespaceType string
+
 // Policy defines model for Policy.
 type Policy struct {
 	CertIssue   *CertificateIssurancePolicyParameters `json:"certIssue,omitempty"`
@@ -244,6 +263,13 @@ type ResourceRef struct {
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
+	Code                 *string                `json:"code,omitempty"`
+	Message              *string                `json:"message,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
+// GenericResponse defines model for GenericResponse.
+type GenericResponse struct {
 	Code                 *string                `json:"code,omitempty"`
 	Message              *string                `json:"message,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
@@ -346,8 +372,94 @@ func (a ErrorResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for GenericResponse. Returns the specified
+// element and whether it was found
+func (a GenericResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for GenericResponse
+func (a *GenericResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for GenericResponse to handle AdditionalProperties
+func (a *GenericResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["code"]; found {
+		err = json.Unmarshal(raw, &a.Code)
+		if err != nil {
+			return fmt.Errorf("error reading 'code': %w", err)
+		}
+		delete(object, "code")
+	}
+
+	if raw, found := object["message"]; found {
+		err = json.Unmarshal(raw, &a.Message)
+		if err != nil {
+			return fmt.Errorf("error reading 'message': %w", err)
+		}
+		delete(object, "message")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for GenericResponse to handle AdditionalProperties
+func (a GenericResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Code != nil {
+		object["code"], err = json.Marshal(a.Code)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'code': %w", err)
+		}
+	}
+
+	if a.Message != nil {
+		object["message"], err = json.Marshal(a.Message)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'message': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List namespaces
+	// (GET /v1/namespaces/{namespaceType})
+	ListNamespacesV1(c *gin.Context, namespaceType NamespaceType)
 	// List certificates
 	// (GET /v1/{namespaceId}/certificates)
 	ListCertificatesV1(c *gin.Context, namespaceId openapi_types.UUID)
@@ -363,6 +475,9 @@ type ServerInterface interface {
 	// Apply policy
 	// (POST /v1/{namespaceId}/policies/{policyId}/apply)
 	ApplyPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
+	// Register namespace
+	// (POST /v1/{namespaceId}/register)
+	RegisterNamespaceV1(c *gin.Context, namespaceId openapi_types.UUID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -373,6 +488,32 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// ListNamespacesV1 operation middleware
+func (siw *ServerInterfaceWrapper) ListNamespacesV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceType
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListNamespacesV1(c, namespaceType)
+}
 
 // ListCertificatesV1 operation middleware
 func (siw *ServerInterfaceWrapper) ListCertificatesV1(c *gin.Context) {
@@ -564,6 +705,32 @@ func (siw *ServerInterfaceWrapper) ApplyPolicyV1(c *gin.Context) {
 	siw.Handler.ApplyPolicyV1(c, namespaceId, policyId)
 }
 
+// RegisterNamespaceV1 operation middleware
+func (siw *ServerInterfaceWrapper) RegisterNamespaceV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RegisterNamespaceV1(c, namespaceId)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -591,9 +758,11 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.GetPolicyV1)
 	router.PUT(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.PutPolicyV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
+	router.POST(options.BaseURL+"/v1/:namespaceId/register", wrapper.RegisterNamespaceV1)
 }

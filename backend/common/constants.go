@@ -18,6 +18,7 @@ const (
 	IdentifierIntCAIntranet
 	IdentifierTestIntCA
 
+	IdentifierDirectory
 	IdentifierIssuerPolicy
 )
 
@@ -33,6 +34,8 @@ var (
 	idIntCAIntranet = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-000000000012"))
 	idTestIntCA     = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-0000000000ff"))
 
+	idDirectory = WellKnownID(uuid.MustParse(MustGetenv("AZURE_TENANT_ID")))
+
 	// special policy ids --1-1 ~ --1-f
 	idIssuerPolicy = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
 )
@@ -45,6 +48,7 @@ var idMap = map[WellKnownIdentifier]WellKnownID{
 	IdentifierIntCAIntranet: idIntCAIntranet,
 	IdentifierTestIntCA:     idTestIntCA,
 
+	IdentifierDirectory:    idDirectory,
 	IdentifierIssuerPolicy: idIssuerPolicy,
 }
 
