@@ -20,22 +20,22 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@azure/msal-browser@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-3.0.2.tgz#ad21ce7632312ede969a8183c73add29bfaf2b9e"
-  integrity sha512-a2lIzWGV8EJhxVTHu2Vd5sRdK6DTisueq2HCXt49CQqc1hG/j9pK+ds+hJi+QLlZHPo3FPMwiTCHEA9sNgX3HA==
+"@azure/msal-browser@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-3.1.0.tgz#8addaaf67211302c1e64dba4975f3691ad390175"
+  integrity sha512-zQpL/mR6Xif+WltcRMej8wRsBQu+lW8e1/su8SMkF41i+Pnn/a/a/l+VoT4D+cQrBAq3PL5IaLfuUoNVTRUjKw==
   dependencies:
-    "@azure/msal-common" "14.0.2"
+    "@azure/msal-common" "14.0.3"
 
-"@azure/msal-common@14.0.2":
-  version "14.0.2"
-  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.0.2.tgz#e5898dcdbb6b630146b227ead14f5e03f8d837fd"
-  integrity sha512-yvVP63oXe20JFzvooTVxiX9UorxcL8VFoVwEtKuGlQnEnNGzrOpQZ6lKa1lqwGqxMtwKpW7oAFQhbbskG5RbYA==
+"@azure/msal-common@14.0.3":
+  version "14.0.3"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.0.3.tgz#4e273c72b7a9dde4e79f84db0e6c51c1665fcd2f"
+  integrity sha512-Vl5SsC3zvQ8913GnO5Typox+35M6CaXmO/2FXi35LfMAV3ZB/HLCsldLxylI01c3CmtOm7pICWpOjp/DlQ9RWA==
 
-"@azure/msal-react@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@azure/msal-react/-/msal-react-2.0.2.tgz#3969738fac513c42a0ad7272bcab3112e2fb41a8"
-  integrity sha512-EQn735OKtnxYf9JbQX94UG+Op14MugW379pI+gbKmcK8s5CaK2lClb9Zr+fA2isL3MOj8rOQsGGXSaIx9lSsAQ==
+"@azure/msal-react@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@azure/msal-react/-/msal-react-2.0.3.tgz#1cf041738cadde6bcf4b2814270b95fb490429a8"
+  integrity sha512-ysS9vdEkP9UcEAyMsblAZUhU7y74yEjJSg0wYTw+2vLzgGAKoIGw2t4awUVQaWrIEHeROGg7Tpudaz/caOxc7w==
   dependencies:
     "@rollup/plugin-typescript" "^11.1.0"
     rollup "^3.20.2"
