@@ -82,7 +82,7 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 		return fmt.Errorf("invalid usage: %s", p.Usage)
 	}
 	t.Usage = p.Usage
-
+	t.IssuerNamespaceID = p.IssuerNamespaceID
 	// key store path to store certificate in keyvault is required except for client only certificates
 	t.KeyStorePath = p.KeyStorePath
 	if p.Usage == UsageClientOnly {
@@ -310,23 +310,11 @@ func (p *PolicyCertRequestDocSection) ToKeyvaultCreateCertificateParameters(name
 		Subject:                 ToPtr(p.Subject.ToPkixName().String()),
 		ValidityInMonths:        ToPtr(int32(p.ValidityInMonths)),
 		SubjectAlternativeNames: p.SubjectAlternativeNames.ToAzCertificatesSubjectAlternativeNames(),
-		EnhancedKeyUsage:        make([]*string, 0, 2),
-	}
-	if p.Usage == UsageServerAndClient || p.Usage == UsageServerOnly {
-		x509Properties.EnhancedKeyUsage = append(x509Properties.EnhancedKeyUsage, to.Ptr("1.3.6.1.5.5.7.3.1"))
-	}
-	if p.Usage == UsageServerAndClient || p.Usage == UsageClientOnly {
-		x509Properties.EnhancedKeyUsage = append(x509Properties.EnhancedKeyUsage, to.Ptr("1.3.6.1.5.5.7.3.2"))
 	}
 
 	keyProperties := p.KeyProperties.ToAzCertificatesKeyProperties()
 	if p.Usage == UsageRootCA || p.Usage == UsageIntCA {
 		keyProperties.Exportable = to.Ptr(false)
-		x509Properties.KeyUsage = []*azcertificates.KeyUsageType{
-			ToPtr(azcertificates.KeyUsageTypeDigitalSignature),
-			ToPtr(azcertificates.KeyUsageTypeKeyCertSign),
-			ToPtr(azcertificates.KeyUsageTypeCRLSign),
-		}
 	}
 
 	r.CertificatePolicy = &azcertificates.CertificatePolicy{
@@ -353,9 +341,6 @@ func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, c
 
 	if csr != nil {
 		c.Subject = csr.Subject
-		if !IsCANamespace(namespaceID) {
-			c.Extensions = csr.Extensions
-		}
 		c.EmailAddresses = csr.EmailAddresses
 		c.DNSNames = csr.DNSNames
 		c.IPAddresses = csr.IPAddresses
@@ -376,8 +361,13 @@ func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, c
 		c.MaxPathLenZero = true
 		c.BasicConstraintsValid = true
 	} else {
-		err = fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
-		return
+		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
+		if p.Usage == UsageServerAndClient || p.Usage == UsageServerOnly {
+			c.ExtKeyUsage = append(c.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
+		}
+		if p.Usage == UsageServerAndClient || p.Usage == UsageClientOnly {
+			c.ExtKeyUsage = append(c.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
+		}
 	}
 
 	return
@@ -421,6 +411,66 @@ func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, 
 	return signer, string(*signerKey.KID), err
 }
 
+func getCaIssuerPoilcyID(signerNamespaceID uuid.UUID) uuid.UUID {
+	if IsRootCANamespace(signerNamespaceID) {
+		return signerNamespaceID
+	}
+	if !IsIntCANamespace(signerNamespaceID) {
+		return uuid.Nil
+	}
+	if IsTestCA(signerNamespaceID) {
+		return testNamespaceID_RootCA
+	}
+	return wellKnownNamespaceID_RootCA
+}
+
+type signerCertBundle struct {
+	privateKey                  crypto.Signer
+	certificate                 *x509.Certificate
+	certificateChainPEMRaw      []byte
+	additionalCertificateDERRaw []byte
+}
+
+func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID) (*signerCertBundle, error) {
+	policyID := getCaIssuerPoilcyID(signerNamespaceID)
+	if policyID == uuid.Nil {
+		return nil, errors.New("invalid signer namespace")
+	}
+	// load certificate
+	crtDoc, err := s.GetLatestCertDocForPolicy(ctx, signerNamespaceID, policyID)
+	if err != nil {
+		return nil, err
+	}
+	if len(crtDoc.KID) == 0 {
+		return nil, errors.New("issuer certificate key not found")
+	}
+	keyId := azkeys.ID(crtDoc.KID)
+	resp, err := s.AzKeysClient().GetKey(ctx, keyId.Name(), keyId.Version(), nil)
+	if err != nil {
+		return nil, err
+	}
+	bundle := new(signerCertBundle)
+	bundle.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), resp.Key)
+	if err != nil {
+		return nil, err
+	}
+	signerBlobName := crtDoc.CertStorePath
+	if len(signerBlobName) == 0 {
+		return nil, errors.New("issuer certificate missing")
+	}
+	bundle.certificateChainPEMRaw, err = s.FetchCertificatePEMBlob(ctx, signerBlobName)
+	if err != nil {
+		return nil, err
+	}
+	pemBlock, rest := pem.Decode(bundle.certificateChainPEMRaw)
+	bundle.certificate, err = x509.ParseCertificate(pemBlock.Bytes)
+	extraPemBlock, _ := pem.Decode(rest)
+	if extraPemBlock != nil {
+		bundle.additionalCertificateDERRaw = extraPemBlock.Bytes
+	}
+	return bundle, err
+}
+
 func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, namespaceID uuid.UUID, policyDoc *PolicyDoc) (resultDoc *PolicyStateDoc, err error) {
 
 	policyID := policyDoc.GetUUID()
@@ -458,50 +508,20 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	}
 
 	// get signer, and signer certificate
-	var signerCert *x509.Certificate
-	var signer crypto.Signer
-	var signerPemBytes []byte
+	var signerBundle *signerCertBundle
 	if isRootNS {
-		signer, kid, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
+		signerBundle = new(signerCertBundle)
+		signerBundle.certificate = &certificate
+		signerBundle.privateKey, kid, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
 		if err != nil {
 			return nil, err
 		}
-		certPubKey = signer.Public()
-		signerCert = &certificate
-	} else if IsIntCANamespace(namespaceID) {
-		// load certificate
-		crtDoc, err := s.GetLatestCertDocForPolicy(ctx, policyID, policyID)
-		if err != nil {
-			return nil, err
-		}
-		if len(crtDoc.KID) == 0 {
-			return nil, errors.New("issuer certificate key not found")
-		}
-		keyId := azkeys.ID(crtDoc.KID)
-		resp, err := s.AzKeysClient().GetKey(ctx, keyId.Name(), keyId.Version(), nil)
-		if err != nil {
-			return nil, err
-		}
-		signer, err = newKeyVaultSigner(ctx, s.AzKeysClient(), resp.Key)
-		if err != nil {
-			return nil, err
-		}
-		signerBlobName := crtDoc.CertStorePath
-		if len(signerBlobName) == 0 {
-			return nil, errors.New("issuer certificate missing")
-		}
-		signerPemBytes, err := s.FetchCertificatePEMBlob(ctx, signerBlobName)
-		if err != nil {
-			return nil, err
-		}
-		pemBlock, _ := pem.Decode(signerPemBytes)
-		signerCert, err = x509.ParseCertificate(pemBlock.Bytes)
-		if err != nil {
-			return nil, err
-		}
+		certPubKey = signerBundle.privateKey.Public()
 	} else {
-		// TODO
-		return nil, fmt.Errorf("namespace not supported yet: %s", namespaceID.String())
+		signerBundle, err = s.loadSignerCertificateBundle(ctx, policyID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	switch p.KeyProperties.KeyType {
@@ -521,7 +541,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	}
 
 	// Sign cert
-	certSigned, err := x509.CreateCertificate(nil, &certificate, signerCert, certPubKey, signer)
+	certSigned, err := x509.CreateCertificate(nil, &certificate, signerBundle.certificate, certPubKey, signerBundle.privateKey)
 	if err != nil {
 		return
 	}
@@ -539,7 +559,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	}
 	if !isRootNS {
 		// attach chain
-		_, err = bb.Write(signerPemBytes)
+		_, err = bb.Write(signerBundle.certificateChainPEMRaw)
 		if err != nil {
 			return nil, err
 		}
@@ -555,11 +575,14 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		return
 	}
 	log.Info().Msgf("Certificate uploaded to blob")
-
 	var cid string
-	if !isRootNS && IsIntCANamespace(namespaceID) && len(keyName) > 0 {
+	if !isRootNS && len(keyName) > 0 {
+		mergeRequestCerts := [][]byte{certSigned, signerBundle.certificate.Raw}
+		if len(signerBundle.additionalCertificateDERRaw) > 0 {
+			mergeRequestCerts = append(mergeRequestCerts, signerBundle.additionalCertificateDERRaw)
+		}
 		azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, keyName, azcertificates.MergeCertificateParameters{
-			X509Certificates: [][]byte{certSigned, signerCert.Raw},
+			X509Certificates: mergeRequestCerts,
 		}, nil)
 		if err != nil {
 			return nil, err

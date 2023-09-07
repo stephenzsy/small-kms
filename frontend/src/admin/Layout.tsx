@@ -1,4 +1,3 @@
-import { useMsal } from "@azure/msal-react";
 import { useMemo, type PropsWithChildren } from "react";
 import { useAppAuthContext } from "../auth/AuthProvider";
 

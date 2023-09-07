@@ -89,8 +89,19 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 				}
 			}
 		default:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
-			return
+			dirObj, err := s.GetDirectoryObjectDoc(c, namespaceID)
+			if err != nil {
+				if common.IsAzNotFound(err) {
+					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
+					return
+				}
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+				return
+			}
+			if dirObj.OdataType != string(NamespaceTypeMsGraphServicePrincipal) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
+				return
+			}
 		}
 		docSection := new(PolicyCertRequestDocSection)
 		if err := docSection.validateAndFillWithParameters(p.CertRequest, namespaceID); err != nil {

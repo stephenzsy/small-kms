@@ -25,10 +25,11 @@ func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, pol
 func (s *adminServer) ListPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
-WHERE c.namespaceId = @namespaceId`,
+WHERE c.namespaceId = @namespaceId AND c.type = @type`,
 		partitionKey, &azcosmos.QueryOptions{
 			QueryParameters: []azcosmos.QueryParameter{
 				{Name: "@namespaceId", Value: namespaceID.String()},
+				{Name: "@type", Value: kmsdoc.DocTypeNamePolicy},
 			},
 		})
 

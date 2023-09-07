@@ -17,7 +17,7 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./FormComponents";
 import {
   IsIntCaNamespace,
-  certRequestPolicyNames,
+  policyTypeNames,
   isRootCaNamespace,
   nsDisplayNames,
 } from "./displayConstants";
@@ -29,6 +29,7 @@ interface CertCreatePolicyFormInput {
   subjectC?: string;
   validityInMonths?: number;
   keyStorePath: string;
+  usage: CertificateUsage;
 }
 
 function CertCreatePolicyForm({
@@ -65,6 +66,7 @@ function CertCreatePolicyForm({
   const { register, handleSubmit } = useForm<CertCreatePolicyFormInput>({
     defaultValues: {
       keyStorePath: defaultKeyStorePath,
+      usage: CertificateUsage.Usage_ClientOnly,
     },
   });
 
@@ -113,7 +115,7 @@ function CertCreatePolicyForm({
           ? CertificateUsage.Usage_RootCA
           : IsIntCaNamespace(namespaceId)
           ? CertificateUsage.Usage_IntCA
-          : CertificateUsage.Usage_ClientOnly,
+          : input.usage,
         validityMonths,
         keyStorePath: input.keyStorePath,
       },
@@ -172,6 +174,58 @@ function CertCreatePolicyForm({
           type="text"
           required
         />
+        <fieldset>
+          <legend className="text-base font-semibold text-gray-900">
+            Certificate Usage
+          </legend>
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <input
+                id="usage-client-and-server"
+                type="radio"
+                {...register("usage", {})}
+                value={CertificateUsage.Usage_ServerAndClient}
+                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+              <label
+                htmlFor="usage-client-and-server"
+                className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              >
+                Server and client
+              </label>
+            </div>{" "}
+            <div className="flex items-center">
+              <input
+                id="usage-server-only"
+                type="radio"
+                {...register("usage", {})}
+                value={CertificateUsage.Usage_ServerOnly}
+                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+              <label
+                htmlFor="usage-server-only"
+                className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              >
+                Server only
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                id="usage-client-only"
+                type="radio"
+                {...register("usage", {})}
+                value={CertificateUsage.Usage_ClientOnly}
+                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+              <label
+                htmlFor="usage-client-only"
+                className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              >
+                Client only
+              </label>
+            </div>
+          </div>
+        </fieldset>
       </div>
       {formInvalid && (
         <div className="bg-red-50 px-4 py-4 sm:px-6 ">
@@ -252,7 +306,7 @@ export default function PolicyPage() {
     <>
       <h1 className="text-4xl font-semibold">Policy</h1>
       <div>{nsDisplayNames[namespaceId!] ?? namespaceId}</div>
-      <div>{certRequestPolicyNames[certCategory]}</div>
+      <div>{policyTypeNames[certCategory]}</div>
       {fetchedPolicy !== undefined && fetchedPolicy ? (
         <div>
           <pre className="text-sm">
