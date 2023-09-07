@@ -9,7 +9,9 @@ export function MainPage() {
   useRequest(
     async () => {
       if (account?.tenantId && account.localAccountId) {
-        client.registerNamespaceV1({ namespaceId: account.localAccountId });
+        client.registerNamespaceProfileV1({
+          namespaceId: account.localAccountId,
+        });
       }
     },
     { manual: true }
