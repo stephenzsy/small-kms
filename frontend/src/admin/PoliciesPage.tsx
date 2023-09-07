@@ -2,7 +2,13 @@ import { useRequest } from "ahooks";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { WellknownId } from "../constants";
-import { Policy, PolicyApi, PolicyType, ResponseError } from "../generated";
+import {
+  DirectoryApi,
+  Policy,
+  PolicyApi,
+  PolicyType,
+  ResponseError,
+} from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import {
   certRequestPolicyNames,
@@ -12,8 +18,11 @@ import {
 import { ErrorAlert } from "../components/ErrorAlert";
 
 export default function PoliciesPage() {
-  const { namespaceId } = useParams();
+  const { namespaceId: _namespaceId } = useParams();
+  const namespaceId = _namespaceId as string;
   const client = useAuthedClient(PolicyApi);
+  const dirClient = useAuthedClient(DirectoryApi);
+
   const [fetchPolicyIds, catLabels] = useMemo<[string[], PolicyType[]]>(() => {
     switch (namespaceId) {
       case WellknownId.nsRootCa:
@@ -53,15 +62,22 @@ export default function PoliciesPage() {
     },
     { refreshDeps: [fetchPolicyIds] }
   );
+
+  const { data: dirProfile } = useRequest(
+    () => {
+      return dirClient.getNamespaceProfileV1({ namespaceId: namespaceId });
+    },
+    { refreshDeps: [namespaceId] }
+  );
   return (
     <>
       <h1 className="font-semibold text-4xl">Policies</h1>
       <div className="font-medium text-xl">
-        {nsDisplayNames[namespaceId!] || namespaceId}
+        {nsDisplayNames[namespaceId!] || dirProfile?.displayName || namespaceId}
       </div>
       {fetchPoliciesError && <ErrorAlert error={fetchPoliciesError} />}
       {catLabels.map((catLabel, i) => {
-        const policyId = fetchPolicyIds[i]
+        const policyId = fetchPolicyIds[i];
         return (
           <div
             key={i}
@@ -75,7 +91,7 @@ export default function PoliciesPage() {
                 <dl>
                   <div>
                     <dt>CA Issuer Namespace</dt>
-                    <dd>{nsDisplayNames[policyId]?? policyId}</dd>
+                    <dd>{nsDisplayNames[policyId] ?? policyId}</dd>
                   </div>
                 </dl>
               )}

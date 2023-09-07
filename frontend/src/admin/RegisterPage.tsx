@@ -24,7 +24,7 @@ export default function RegisterPage() {
 
   const { run: registerNs, loading: registerNsLoading } = useRequest(
     async (objectId: string) => {
-      await client.registerNamespaceV1({
+      await client.registerNamespaceProfileV1({
         namespaceId: objectId,
       });
       return objectId;
