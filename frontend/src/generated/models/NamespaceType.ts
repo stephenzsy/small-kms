@@ -18,7 +18,7 @@
  * @export
  */
 export const NamespaceType = {
-    NamespaceType_BuiltIn: 'builtIn',
+    NamespaceType_BuiltInCaInt: '#builtin.ca.intermediate',
     NamespaceType_MsGraphServicePrincipal: '#microsoft.graph.servicePrincipal',
     NamespaceType_MsGraphUser: '#microsoft.graph.user'
 } as const;

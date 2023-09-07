@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -15,6 +16,13 @@ type DirectoryObjectDoc struct {
 	DisplayName          string  `json:"displayName"`
 	UserPrincipalName    *string `json:"userPrincipalName,omitempty"`
 	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+}
+
+func (s *adminServer) GetDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
+	doc := new(DirectoryObjectDoc)
+	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, directoryID,
+		kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID), doc)
+	return doc, err
 }
 
 func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType NamespaceType) (results []DirectoryObjectDoc, err error) {
@@ -51,4 +59,15 @@ WHERE c.namespaceId = @namespaceId
 		}
 	}
 	return
+}
+
+func (item *DirectoryObjectDoc) PopulateNamespaceRef(ref *NamespaceRef) {
+	ref.NamespaceID = directoryID
+	ref.ID = item.ID.GetUUID()
+	ref.DisplayName = item.DisplayName
+	ref.ObjectType = NamespaceType(item.OdataType)
+	ref.UserPrincipalName = item.UserPrincipalName
+	ref.ServicePrincipalType = item.ServicePrincipalType
+	ref.Updated = item.Updated
+	ref.UpdatedBy = item.UpdatedBy
 }

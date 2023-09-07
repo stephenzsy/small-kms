@@ -18,7 +18,6 @@
  * @export
  */
 export const PolicyType = {
-    PolicyType_CertIssue: 'certIssue',
     PolicyType_CertRequest: 'certRequest'
 } as const;
 export type PolicyType = typeof PolicyType[keyof typeof PolicyType];

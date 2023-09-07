@@ -4,7 +4,6 @@ apis/PolicyApi.ts
 apis/index.ts
 index.ts
 models/ApplyPolicyRequest.ts
-models/CertificateIssurancePolicyParameters.ts
 models/CertificateLifetimeTrigger.ts
 models/CertificateRef.ts
 models/CertificateRequestPolicyParameters.ts
@@ -12,8 +11,11 @@ models/CertificateSubject.ts
 models/CertificateSubjectAlternativeNames.ts
 models/CertificateUsage.ts
 models/CreateCertificateOptions.ts
+models/GetPolicyV1404Response.ts
 models/KeyProperties.ts
+models/NamespaceProfile.ts
 models/NamespaceRef.ts
+models/NamespaceRefAllOf.ts
 models/NamespaceType.ts
 models/Policy.ts
 models/PolicyParameters.ts
@@ -21,7 +23,6 @@ models/PolicyState.ts
 models/PolicyStateAllOf.ts
 models/PolicyStateCertRequest.ts
 models/PolicyType.ts
-models/RegisterNamespaceV1200Response.ts
 models/ResourceRef.ts
 models/index.ts
 runtime.ts

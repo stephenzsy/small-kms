@@ -9,10 +9,11 @@ import (
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func (s *adminServer) RegisterNamespaceV1(c *gin.Context, namespaceId uuid.UUID) {
+func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
 	callerId, ok := authNamespaceAdminOrSelf(c, namespaceId)
 	if !ok && callerId != namespaceId {
 		c.JSON(http.StatusForbidden, gin.H{"message": "only admin or self can sync graph"})
@@ -63,5 +64,29 @@ func (s *adminServer) RegisterNamespaceV1(c *gin.Context, namespaceId uuid.UUID)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	nsProfile := NamespaceProfile{}
+	doc.PopulateNamespaceRef(&nsProfile)
+
+	c.JSON(http.StatusOK, &nsProfile)
+}
+
+func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
+	callerId, ok := authNamespaceAdminOrSelf(c, namespaceId)
+	if !ok && callerId != namespaceId {
+		c.JSON(http.StatusForbidden, gin.H{"message": "only admin or self can sync graph"})
+		return
+	}
+
+	doc, err := s.GetDirectoryObjectDoc(c, namespaceId)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{})
+			return
+		}
+	}
+
+	nsProfile := NamespaceProfile{}
+	doc.PopulateNamespaceRef(&nsProfile)
+
+	c.JSON(http.StatusOK, &nsProfile)
 }

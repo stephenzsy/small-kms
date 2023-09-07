@@ -75,6 +75,39 @@ paths:
               schema:
                 type: string
                 format: binary
+  /v1/{namespaceId}/profile:
+    parameters:
+      - in: path
+        description: AAD directory object ID
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    get:
+      tags:
+        - directory
+      summary: Get namespace profile
+      operationId: GetNamespaceProfileV1
+      responses:
+        "200":
+          description: Get namespace resposne profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceProfile"
+    post:
+      tags:
+        - directory
+      summary: Register namespace
+      operationId: RegisterNamespaceProfileV1
+      responses:
+        "200":
+          description: register namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceProfile"
   /v1/namespaces/{namespaceType}:
     get:
       tags:
@@ -96,25 +129,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/NamespaceRef"
-  /v1/{namespaceId}/register:
-    post:
-      tags:
-        - directory
-      summary: Register namespace
-      operationId: RegisterNamespaceV1
-      parameters:
-        - in: path
-          description: AAD directory object ID
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-      responses:
-        200:
-          $ref: "#/components/responses/GenericResponse"
-        404:
-          $ref: "#/components/responses/ErrorResponse"
   /v1/{namespaceId}/policies/{policyId}:
     put:
       tags:
@@ -219,11 +233,11 @@ components:
     NamespaceType:
       type: string
       enum:
-        - builtIn
+        - "#builtin.ca.intermediate"
         - "#microsoft.graph.servicePrincipal"
         - "#microsoft.graph.user"
       x-enum-varnames:
-        - NamespaceType_BuiltIn
+        - NamespaceType_BuiltInCaInt
         - NamespaceType_MsGraphServicePrincipal
         - NamespaceType_MsGraphUser
     ApplyPolicyRequest:
@@ -361,10 +375,10 @@ components:
     PolicyType:
       type: string
       enum:
-        - certIssue
+        # - certIssue
         - certRequest
       x-enum-varnames:
-        - PolicyType_CertIssue
+        # - PolicyType_CertIssue
         - PolicyType_CertRequest
     ResourceRef:
       type: object
@@ -427,29 +441,29 @@ components:
             - policyType
             - string
             - message
-    CertificateIssurancePolicyParameters:
-      type: object
-      properties:
-        issuerId:
-          description: ID of the current issuer certificate
-          type: string
-          format: uuid
-          x-go-name: IssuerID
-        allowedRequesters:
-          type: array
-          items:
-            type: string
-            format: uuid
-        allowedUsages:
-          type: array
-          items:
-            $ref: "#/components/schemas/CertificateUsage"
-        max_validity_months:
-          type: integer
-          format: int32
-          x-go-name: MaxValidityInMonths
-      required:
-        - issuerId
+    # CertificateIssurancePolicyParameters:
+    #   type: object
+    #   properties:
+    #     issuerId:
+    #       description: ID of the current issuer certificate
+    #       type: string
+    #       format: uuid
+    #       x-go-name: IssuerID
+    #     allowedRequesters:
+    #       type: array
+    #       items:
+    #         type: string
+    #         format: uuid
+    #     allowedUsages:
+    #       type: array
+    #       items:
+    #         $ref: "#/components/schemas/CertificateUsage"
+    #     max_validity_months:
+    #       type: integer
+    #       format: int32
+    #       x-go-name: MaxValidityInMonths
+    #   required:
+    #     - issuerId
     CertificateLifetimeTrigger:
       type: object
       properties:
@@ -513,8 +527,8 @@ components:
       properties:
         policyType:
           $ref: "#/components/schemas/PolicyType"
-        certIssue:
-          $ref: "#/components/schemas/CertificateIssurancePolicyParameters"
+        # certIssue:
+        #   $ref: "#/components/schemas/CertificateIssurancePolicyParameters"
         certRequest:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
       required:
@@ -524,24 +538,24 @@ components:
         - $ref: "#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/PolicyParameters"
     NamespaceRef:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          x-go-name: ID
-        objectType:
-          $ref: "#/components/schemas/NamespaceType"
-        displayName:
-          type: string
-        servicePrincipalType:
-          type: string
-        userPrincipalName:
-          type: string
-      required:
-        - id
-        - objectType
-        - displayName
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - type: object
+          properties:
+            objectType:
+              $ref: "#/components/schemas/NamespaceType"
+            displayName:
+              type: string
+            servicePrincipalType:
+              type: string
+            userPrincipalName:
+              type: string
+          required:
+            - objectType
+            - displayName
+    NamespaceProfile:
+      allOf:
+        - $ref: "#/components/schemas/NamespaceRef"
   responses:
     GenericResponse:
       description: generic response

@@ -23,88 +23,56 @@ import {
 /**
  * 
  * @export
- * @interface NamespaceRef
+ * @interface NamespaceRefAllOf
  */
-export interface NamespaceRef {
-    /**
-     * Unique ID of the namespace
-     * @type {string}
-     * @memberof NamespaceRef
-     */
-    namespaceId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceRef
-     */
-    id: string;
-    /**
-     * Unique ID of the user who created the policy
-     * @type {string}
-     * @memberof NamespaceRef
-     */
-    updatedBy: string;
-    /**
-     * Time when the policy was last updated
-     * @type {Date}
-     * @memberof NamespaceRef
-     */
-    updated: Date;
+export interface NamespaceRefAllOf {
     /**
      * 
      * @type {NamespaceType}
-     * @memberof NamespaceRef
+     * @memberof NamespaceRefAllOf
      */
     objectType: NamespaceType;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceRefAllOf
      */
     displayName: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceRefAllOf
      */
     servicePrincipalType?: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceRefAllOf
      */
     userPrincipalName?: string;
 }
 
 /**
- * Check if a given object implements the NamespaceRef interface.
+ * Check if a given object implements the NamespaceRefAllOf interface.
  */
-export function instanceOfNamespaceRef(value: object): boolean {
+export function instanceOfNamespaceRefAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceId" in value;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "objectType" in value;
     isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
 
-export function NamespaceRefFromJSON(json: any): NamespaceRef {
-    return NamespaceRefFromJSONTyped(json, false);
+export function NamespaceRefAllOfFromJSON(json: any): NamespaceRefAllOf {
+    return NamespaceRefAllOfFromJSONTyped(json, false);
 }
 
-export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceRef {
+export function NamespaceRefAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceRefAllOf {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'namespaceId': json['namespaceId'],
-        'id': json['id'],
-        'updatedBy': json['updatedBy'],
-        'updated': (new Date(json['updated'])),
         'objectType': NamespaceTypeFromJSON(json['objectType']),
         'displayName': json['displayName'],
         'servicePrincipalType': !exists(json, 'servicePrincipalType') ? undefined : json['servicePrincipalType'],
@@ -112,7 +80,7 @@ export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolea
     };
 }
 
-export function NamespaceRefToJSON(value?: NamespaceRef | null): any {
+export function NamespaceRefAllOfToJSON(value?: NamespaceRefAllOf | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -121,10 +89,6 @@ export function NamespaceRefToJSON(value?: NamespaceRef | null): any {
     }
     return {
         
-        'namespaceId': value.namespaceId,
-        'id': value.id,
-        'updatedBy': value.updatedBy,
-        'updated': (value.updated.toISOString()),
         'objectType': NamespaceTypeToJSON(value.objectType),
         'displayName': value.displayName,
         'servicePrincipalType': value.servicePrincipalType,

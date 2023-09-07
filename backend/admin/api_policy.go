@@ -7,14 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
 	// validate
-	_, ok := authNamespaceAdminOrSelf(c, namespaceID)
-	if !ok {
+	if !auth.CallerPrincipalHasAdminRole(c) {
+		c.JSON(http.StatusForbidden, nil)
 		return
 	}
 

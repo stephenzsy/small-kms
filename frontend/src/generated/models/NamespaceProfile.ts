@@ -23,63 +23,63 @@ import {
 /**
  * 
  * @export
- * @interface NamespaceRef
+ * @interface NamespaceProfile
  */
-export interface NamespaceRef {
+export interface NamespaceProfile {
     /**
      * Unique ID of the namespace
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     namespaceId: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     id: string;
     /**
      * Unique ID of the user who created the policy
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     updatedBy: string;
     /**
      * Time when the policy was last updated
      * @type {Date}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     updated: Date;
     /**
      * 
      * @type {NamespaceType}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     objectType: NamespaceType;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     displayName: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     servicePrincipalType?: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceRef
+     * @memberof NamespaceProfile
      */
     userPrincipalName?: string;
 }
 
 /**
- * Check if a given object implements the NamespaceRef interface.
+ * Check if a given object implements the NamespaceProfile interface.
  */
-export function instanceOfNamespaceRef(value: object): boolean {
+export function instanceOfNamespaceProfile(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "id" in value;
@@ -91,11 +91,11 @@ export function instanceOfNamespaceRef(value: object): boolean {
     return isInstance;
 }
 
-export function NamespaceRefFromJSON(json: any): NamespaceRef {
-    return NamespaceRefFromJSONTyped(json, false);
+export function NamespaceProfileFromJSON(json: any): NamespaceProfile {
+    return NamespaceProfileFromJSONTyped(json, false);
 }
 
-export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceRef {
+export function NamespaceProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceProfile {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -112,7 +112,7 @@ export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolea
     };
 }
 
-export function NamespaceRefToJSON(value?: NamespaceRef | null): any {
+export function NamespaceProfileToJSON(value?: NamespaceProfile | null): any {
     if (value === undefined) {
         return undefined;
     }
