@@ -92,6 +92,10 @@ type BaseDoc struct {
 	TypeName KmsDocTypeName `json:"type"`
 }
 
+func GetBaseDocQueryColumns(prefix string) string {
+	return fmt.Sprintf("%s.id,%s.namespaceId,%s.updated,%s.updatedBy,%s.updatedByName", prefix, prefix, prefix, prefix, prefix)
+}
+
 type KmsDocument interface {
 	GetNamespaceID() uuid.UUID
 	StampUpdatedWithAuth(c *gin.Context)

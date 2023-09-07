@@ -2,15 +2,57 @@ package admin
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
+
+func getBuiltinPolicyRefs(namespaceID uuid.UUID) []PolicyRef {
+	switch {
+	case IsRootCANamespace(namespaceID):
+		return []PolicyRef{
+			{NamespaceID: namespaceID, ID: namespaceID, PolicyType: PolicyTypeCertRequest},
+		}
+	case IsIntCANamespace(namespaceID):
+		rootCaNs := wellKnownNamespaceID_RootCA
+		if IsTestCA(namespaceID) {
+			rootCaNs = testNamespaceID_RootCA
+		}
+		return []PolicyRef{
+			{NamespaceID: namespaceID, ID: rootCaNs, PolicyType: PolicyTypeCertRequest},
+		}
+
+	}
+	return nil
+}
+
+func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
+	// validate
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
+		return
+	}
+	builtInList := getBuiltinPolicyRefs(namespaceID)
+	if builtInList != nil {
+		c.JSON(http.StatusOK, builtInList)
+		return
+	}
+	l, err := s.ListPoliciesByNamespace(c, namespaceID)
+	if err != nil {
+		log.Err(err).Msg("Internal error")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	results := make([]PolicyRef, len(l))
+	for i, item := range l {
+		item.PopulatePolicyRef(&results[i])
+	}
+	c.JSON(http.StatusOK, results)
+}
 
 func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
 	// validate
@@ -75,8 +117,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 
 func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
 	// validate
-	_, ok := authNamespaceAdminOrSelf(c, namespaceID)
-	if !ok {
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
 		return
 	}
 	pd, err := s.GetPolicyDoc(c, namespaceID, policyID)

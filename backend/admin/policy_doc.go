@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
@@ -19,6 +20,28 @@ func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, pol
 	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), pd)
 	return pd, err
+}
+
+func (s *adminServer) ListPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
+WHERE c.namespaceId = @namespaceId`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@namespaceId", Value: namespaceID.String()},
+			},
+		})
+
+	return PagerToList[PolicyDoc](ctx, pager)
+}
+
+func (doc *PolicyDoc) PopulatePolicyRef(r *PolicyRef) {
+	r.ID = doc.GetUUID()
+	r.NamespaceID = doc.NamespaceID
+	r.Updated = doc.Updated
+	r.UpdatedBy = doc.UpdatedBy
+
+	r.PolicyType = doc.PolicyType
 }
 
 type PolicyStateStatus string

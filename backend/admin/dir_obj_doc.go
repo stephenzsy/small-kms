@@ -2,7 +2,6 @@ package admin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -25,7 +24,7 @@ func (s *adminServer) GetDirectoryObjectDoc(ctx context.Context, objectID uuid.U
 	return doc, err
 }
 
-func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType NamespaceType) (results []DirectoryObjectDoc, err error) {
+func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType NamespaceType) ([]*DirectoryObjectDoc, error) {
 	switch nsType {
 	case NamespaceTypeMsGraphUser:
 	case NamespaceTypeMsGraphServicePrincipal:
@@ -33,7 +32,7 @@ func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType Name
 		return nil, fmt.Errorf("namespace type not supported")
 	}
 	partitionKey := azcosmos.NewPartitionKeyString(directoryID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT * FROM c
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName,c.userPrincipalName,c.servicePrincipalType FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.odType = @odType`,
 		partitionKey, &azcosmos.QueryOptions{
@@ -43,22 +42,7 @@ WHERE c.namespaceId = @namespaceId
 			},
 		})
 
-	for pager.More() {
-		t, scanErr := pager.NextPage(ctx)
-		if scanErr != nil {
-			err = fmt.Errorf("faild to get list of certificates: %w", scanErr)
-			return
-		}
-		for _, itemBytes := range t.Items {
-			item := DirectoryObjectDoc{}
-			if err = json.Unmarshal(itemBytes, &item); err != nil {
-				err = fmt.Errorf("faild to serialize db entry: %w", err)
-				return
-			}
-			results = append(results, item)
-		}
-	}
-	return
+	return PagerToList[DirectoryObjectDoc](ctx, pager)
 }
 
 func (item *DirectoryObjectDoc) PopulateNamespaceRef(ref *NamespaceRef) {

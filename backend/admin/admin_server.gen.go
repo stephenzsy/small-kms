@@ -208,6 +208,21 @@ type PolicyParameters struct {
 	PolicyType  PolicyType                          `json:"policyType"`
 }
 
+// PolicyRef defines model for PolicyRef.
+type PolicyRef struct {
+	ID openapi_types.UUID `json:"id"`
+
+	// NamespaceId Unique ID of the namespace
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+	PolicyType  PolicyType         `json:"policyType"`
+
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
+
+	// UpdatedBy Unique ID of the user who created the policy
+	UpdatedBy string `json:"updatedBy"`
+}
+
 // PolicyState defines model for PolicyState.
 type PolicyState struct {
 	CertRequest *PolicyStateCertRequest `json:"certRequest,omitempty"`
@@ -366,6 +381,9 @@ type ServerInterface interface {
 	// Get certificate
 	// (GET /v1/{namespaceId}/certificates/{id})
 	GetCertificateV1(c *gin.Context, namespaceId openapi_types.UUID, id openapi_types.UUID, params GetCertificateV1Params)
+	// List policies
+	// (GET /v1/{namespaceId}/policies)
+	ListPoliciesV1(c *gin.Context, namespaceId openapi_types.UUID)
 	// Get Certificate Policy
 	// (GET /v1/{namespaceId}/policies/{policyId})
 	GetPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
@@ -501,6 +519,32 @@ func (siw *ServerInterfaceWrapper) GetCertificateV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetCertificateV1(c, namespaceId, id, params)
+}
+
+// ListPoliciesV1 operation middleware
+func (siw *ServerInterfaceWrapper) ListPoliciesV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListPoliciesV1(c, namespaceId)
 }
 
 // GetPolicyV1 operation middleware
@@ -690,6 +734,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)
+	router.GET(options.BaseURL+"/v1/:namespaceId/policies", wrapper.ListPoliciesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.GetPolicyV1)
 	router.PUT(options.BaseURL+"/v1/:namespaceId/policies/:policyId", wrapper.PutPolicyV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)

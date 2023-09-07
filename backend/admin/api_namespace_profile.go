@@ -52,13 +52,8 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 }
 
 func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	callerId, ok := authNamespaceAdminOrSelf(c, namespaceId)
-	if !ok && callerId != namespaceId {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin or self can sync graph"})
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
 		return
-	}
-	if namespaceId == uuid.Nil {
-		namespaceId = callerId
 	}
 	if namespaceId == uuid.Nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
@@ -109,9 +104,7 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 }
 
 func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	callerId, ok := authNamespaceAdminOrSelf(c, namespaceId)
-	if !ok && callerId != namespaceId {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin or self can view namespace profile"})
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
 		return
 	}
 

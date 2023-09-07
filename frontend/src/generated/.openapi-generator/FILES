@@ -10,7 +10,6 @@ models/CertificateRequestPolicyParameters.ts
 models/CertificateSubject.ts
 models/CertificateSubjectAlternativeNames.ts
 models/CertificateUsage.ts
-models/CreateCertificateOptions.ts
 models/GetPolicyV1404Response.ts
 models/KeyProperties.ts
 models/NamespaceProfile.ts
@@ -19,6 +18,8 @@ models/NamespaceRefAllOf.ts
 models/NamespaceType.ts
 models/Policy.ts
 models/PolicyParameters.ts
+models/PolicyRef.ts
+models/PolicyRefParameters.ts
 models/PolicyState.ts
 models/PolicyStateAllOf.ts
 models/PolicyStateCertRequest.ts

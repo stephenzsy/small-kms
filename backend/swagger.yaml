@@ -129,6 +129,28 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/NamespaceRef"
+  /v1/{namespaceId}/policies:
+    get:
+      tags:
+        - policy
+      summary: List policies
+      operationId: ListPoliciesV1
+      parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+          description: List policies response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PolicyRef"
   /v1/{namespaceId}/policies/{policyId}:
     put:
       tags:
@@ -268,15 +290,6 @@ components:
           type: string
       required:
         - cn
-    CreateCertificateOptions:
-      type: object
-      properties:
-        newKeyName:
-          description: Create new key name instead of a new version if exists
-          type: boolean
-        keepKeyVersion:
-          description: Keep using the same key version if exists
-          type: boolean
     KeyProperties:
       type: object
       properties:
@@ -533,9 +546,19 @@ components:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
       required:
         - policyType
-    Policy:
+    PolicyRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
+        - type: object
+          title: PolicyRefParameters
+          properties:
+            policyType:
+              $ref: "#/components/schemas/PolicyType"
+          required:
+            - policyType
+    Policy:
+      allOf:
+        - $ref: "#/components/schemas/PolicyRef"
         - $ref: "#/components/schemas/PolicyParameters"
     NamespaceRef:
       allOf:

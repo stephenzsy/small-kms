@@ -16,6 +16,9 @@ import {
   nsDisplayNames,
 } from "./displayConstants";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { PolicyRef } from "../generated/models/PolicyRef";
+
+const predefinedPolicyRefs: Record<string, PolicyRef[]> = {};
 
 export default function PoliciesPage() {
   const { namespaceId: _namespaceId } = useParams();
@@ -23,44 +26,11 @@ export default function PoliciesPage() {
   const client = useAuthedClient(PolicyApi);
   const dirClient = useAuthedClient(DirectoryApi);
 
-  const [fetchPolicyIds, catLabels] = useMemo<[string[], PolicyType[]]>(() => {
-    switch (namespaceId) {
-      case WellknownId.nsRootCa:
-      case WellknownId.nsTestRootCa:
-        return [[namespaceId], [PolicyType.PolicyType_CertRequest]];
-      case WellknownId.nsIntCaIntranet:
-        return [[WellknownId.nsRootCa], [PolicyType.PolicyType_CertRequest]];
-      case WellknownId.nsTestIntCa:
-        return [
-          [WellknownId.nsTestRootCa],
-          [PolicyType.PolicyType_CertRequest],
-        ];
-    }
-    return [[], []];
-  }, [namespaceId]);
-  const {
-    data: fetchedPolicies,
-    error: fetchPoliciesError,
-    run: refresh,
-  } = useRequest(
+  const { data: policyRefs, error: fetchPoliciesError } = useRequest(
     () => {
-      return Promise.all(
-        fetchPolicyIds.map(async (policyId): Promise<Policy | undefined> => {
-          try {
-            return await client.getPolicyV1({
-              namespaceId: namespaceId!,
-              policyId,
-            });
-          } catch (e) {
-            if (e instanceof ResponseError && e.response.status === 404) {
-              return undefined;
-            }
-            throw e;
-          }
-        })
-      );
+      return client.listPoliciesV1({ namespaceId: namespaceId });
     },
-    { refreshDeps: [fetchPolicyIds] }
+    { refreshDeps: [] }
   );
 
   const { data: dirProfile } = useRequest(
@@ -76,40 +46,42 @@ export default function PoliciesPage() {
         {nsDisplayNames[namespaceId!] || dirProfile?.displayName || namespaceId}
       </div>
       {fetchPoliciesError && <ErrorAlert error={fetchPoliciesError} />}
-      {catLabels.map((catLabel, i) => {
-        const policyId = fetchPolicyIds[i];
-        return (
-          <div
-            key={i}
-            className="divide-y space-y-4  divide-neutral-500 overflow-hidden rounded-lg bg-white shadow px-4 sm:px-6 lg:px-8 py-6"
-          >
-            <div>
-              <h2 className="text-lg font-semibold mb-6">
-                {certRequestPolicyNames[catLabel]}
-              </h2>
-              {!isRootCaNamespace(namespaceId!) && (
-                <dl>
-                  <div>
-                    <dt>CA Issuer Namespace</dt>
-                    <dd>{nsDisplayNames[policyId] ?? policyId}</dd>
-                  </div>
-                </dl>
-              )}
-            </div>
-            {fetchedPolicies && !fetchedPolicies[i] && (
-              <div className="pt-4">Not found</div>
-            )}
-            <div className="pt-4">
-              <Link
-                to={`/admin/${namespaceId}/policies/${policyId}`}
-                className="text-indigo-600 hover:text-indigo-900 font-semibold"
+      {policyRefs &&
+        (policyRefs.length == 0 ? (
+          <div>No policy found</div>
+        ) : (
+          policyRefs?.map((policyRef) => {
+            const policyId = policyRef.id;
+            return (
+              <div
+                key={policyId}
+                className="divide-y space-y-4  divide-neutral-500 overflow-hidden rounded-lg bg-white shadow px-4 sm:px-6 lg:px-8 py-6"
               >
-                Modify<span className="sr-only">, {policyId}</span>
-              </Link>
-            </div>
-          </div>
-        );
-      })}
+                <div>
+                  <h2 className="text-lg font-semibold mb-6">
+                    {certRequestPolicyNames[policyRef.policyType]}
+                  </h2>
+                  {!isRootCaNamespace(namespaceId!) && (
+                    <dl>
+                      <div>
+                        <dt>CA Issuer Namespace</dt>
+                        <dd>{nsDisplayNames[policyId] ?? policyId}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </div>
+                <div className="pt-4">
+                  <Link
+                    to={`/admin/${namespaceId}/policies/${policyId}`}
+                    className="text-indigo-600 hover:text-indigo-900 font-semibold"
+                  >
+                    Modify<span className="sr-only">, {policyId}</span>
+                  </Link>
+                </div>
+              </div>
+            );
+          })
+        ))}
     </>
   );
 }

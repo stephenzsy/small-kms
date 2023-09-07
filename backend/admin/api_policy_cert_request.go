@@ -10,8 +10,7 @@ import (
 )
 
 func (s *adminServer) ApplyPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
-	_, ok := authNamespaceAdminOrSelf(c, namespaceID)
-	if !ok {
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
 		return
 	}
 

@@ -28,5 +28,4 @@ export function IsIntCaNamespace(namespaceId: string) {
 
 export const certRequestPolicyNames: Record<PolicyType, string> = {
   [PolicyType.PolicyType_CertRequest]: "Certificate Request Policy",
-  [PolicyType.PolicyType_CertIssue]: "Certificate Issurance Policy",
 };
