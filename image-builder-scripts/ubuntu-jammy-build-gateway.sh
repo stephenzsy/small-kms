@@ -1,10 +1,10 @@
 #!/bin/bash -e
 
-apt-get update
-apt-get install ca-certificates curl gnupg
+apt-get -q update
+apt-get -q install ca-certificates curl gnupg
 
 for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
-    apt-get remove $pkg;
+    apt-get -q remove $pkg;
 done
 
 # Add Docker's official GPG key:
@@ -17,6 +17,6 @@ echo \
   "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
+apt-get -q update
 
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get -q -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
