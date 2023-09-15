@@ -256,8 +256,20 @@ type PolicyType string
 
 // RequestDiagnostics defines model for RequestDiagnostics.
 type RequestDiagnostics struct {
-	RequestHeaders *map[string]string `json:"requestHeaders,omitempty"`
-	Runtime        *map[string]string `json:"runtime,omitempty"`
+	RequestHeaders []RequestHeaderEntry              `json:"requestHeaders"`
+	ServiceRuntime RequestDiagnostics_ServiceRuntime `json:"serviceRuntime"`
+}
+
+// RequestDiagnostics_ServiceRuntime defines model for RequestDiagnostics.ServiceRuntime.
+type RequestDiagnostics_ServiceRuntime struct {
+	GoVersion            string            `json:"goVersion"`
+	AdditionalProperties map[string]string `json:"-"`
+}
+
+// RequestHeaderEntry defines model for RequestHeaderEntry.
+type RequestHeaderEntry struct {
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
 }
 
 // ResourceRef defines model for ResourceRef.
@@ -294,6 +306,72 @@ type PutPolicyV1JSONRequestBody = PolicyParameters
 
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
+
+// Getter for additional properties for RequestDiagnostics_ServiceRuntime. Returns the specified
+// element and whether it was found
+func (a RequestDiagnostics_ServiceRuntime) Get(fieldName string) (value string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for RequestDiagnostics_ServiceRuntime
+func (a *RequestDiagnostics_ServiceRuntime) Set(fieldName string, value string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for RequestDiagnostics_ServiceRuntime to handle AdditionalProperties
+func (a *RequestDiagnostics_ServiceRuntime) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["goVersion"]; found {
+		err = json.Unmarshal(raw, &a.GoVersion)
+		if err != nil {
+			return fmt.Errorf("error reading 'goVersion': %w", err)
+		}
+		delete(object, "goVersion")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for RequestDiagnostics_ServiceRuntime to handle AdditionalProperties
+func (a RequestDiagnostics_ServiceRuntime) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["goVersion"], err = json.Marshal(a.GoVersion)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'goVersion': %w", err)
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for ErrorResponse. Returns the specified
 // element and whether it was found

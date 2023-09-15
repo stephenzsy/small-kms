@@ -596,22 +596,25 @@ components:
     NamespaceProfile:
       allOf:
         - $ref: "#/components/schemas/NamespaceRef"
+    RequestHeaderEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+      required:
+        - key
+        - value
     RequestDiagnostics:
       type: object
       properties:
         requestHeaders:
           type: array
           items:
-            type: object
-            title: HeaderEntry
-            properties:
-              key:
-                type: string
-              value:
-                type: string
-            required:
-              - key
-              - value
+            $ref: "#/components/schemas/RequestHeaderEntry"
         serviceRuntime:
           type: object
           title: ServiceRuntime
