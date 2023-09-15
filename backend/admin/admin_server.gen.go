@@ -49,6 +49,7 @@ const (
 // Defines values for NamespaceType.
 const (
 	NamespaceTypeBuiltInCaInt            NamespaceType = "#builtin.ca.intermediate"
+	NamespaceTypeMsGraphGroup            NamespaceType = "#microsoft.graph.group"
 	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
 	NamespaceTypeMsGraphUser             NamespaceType = "#microsoft.graph.user"
 )

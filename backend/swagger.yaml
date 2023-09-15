@@ -258,10 +258,12 @@ components:
         - "#builtin.ca.intermediate"
         - "#microsoft.graph.servicePrincipal"
         - "#microsoft.graph.user"
+        - "#microsoft.graph.group"
       x-enum-varnames:
         - NamespaceType_BuiltInCaInt
         - NamespaceType_MsGraphServicePrincipal
         - NamespaceType_MsGraphUser
+        - NamespaceType_MsGraphGroup
     ApplyPolicyRequest:
       type: object
       properties:

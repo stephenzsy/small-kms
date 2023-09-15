@@ -31,7 +31,8 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 	case NamespaceTypeBuiltInCaInt:
 		c.JSON(http.StatusOK, getBuiltInCaIntNamespaceRefs())
 		return
-	case NamespaceTypeMsGraphServicePrincipal:
+	case NamespaceTypeMsGraphGroup,
+		NamespaceTypeMsGraphServicePrincipal:
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
 		return
@@ -59,7 +60,7 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 		c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
 		return
 	}
-	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectIdString(namespaceId.String()).Get(c, nil)
+	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(namespaceId.String()).Get(c, nil)
 	if err != nil {
 		if odErr, ok := err.(*odataerrors.ODataError); ok {
 			if odErr.ResponseStatusCode == http.StatusNotFound {
