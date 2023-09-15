@@ -33,7 +33,7 @@ func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType Name
 		return nil, fmt.Errorf("namespace type not supported")
 	}
 	partitionKey := azcosmos.NewPartitionKeyString(directoryID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName,c.userPrincipalName,c.servicePrincipalType FROM c
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.odType = @odType`,
 		partitionKey, &azcosmos.QueryOptions{
@@ -51,8 +51,18 @@ func (item *DirectoryObjectDoc) PopulateNamespaceRef(ref *NamespaceRef) {
 	ref.ID = item.ID.GetUUID()
 	ref.DisplayName = item.DisplayName
 	ref.ObjectType = NamespaceType(item.OdataType)
-	ref.UserPrincipalName = item.UserPrincipalName
-	ref.ServicePrincipalType = item.ServicePrincipalType
 	ref.Updated = item.Updated
 	ref.UpdatedBy = item.UpdatedBy
+}
+
+func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) {
+	ref.NamespaceID = directoryID
+	ref.ID = item.ID.GetUUID()
+	ref.DisplayName = item.DisplayName
+	ref.ObjectType = NamespaceType(item.OdataType)
+	ref.Updated = item.Updated
+	ref.UpdatedBy = item.UpdatedBy
+
+	ref.UserPrincipalName = item.UserPrincipalName
+	ref.ServicePrincipalType = item.ServicePrincipalType
 }

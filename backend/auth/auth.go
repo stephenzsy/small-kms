@@ -21,8 +21,12 @@ type msClientPrincipal struct {
 type ContextKey string
 
 const msClientPrincipalHasAdminRole string = "MsClientPrincipalHasAdminRole"
+const msClientPrincipalDeviceId string = "MsClientPrincipalDeviceId"
+
 const msClientPrincipalId string = "MsClientPrincipalId"
 const msClientPrincipalName string = "MsClientPrincipalName"
+
+const msClientPrincipalClaimType_DeviceID string = "http://schemas.microsoft.com/2012/01/devicecontext/claims/identifier"
 
 func HandleAadAuthMiddleware(ctx *gin.Context) {
 	// Intercept the headers here
@@ -53,14 +57,15 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 		if c.Type == "roles" && c.Value == "App.Admin" {
 			ctx.Set(msClientPrincipalHasAdminRole, true)
 		}
+		if c.Type == msClientPrincipalClaimType_DeviceID {
+			if deviceID, err := uuid.Parse(c.Value); err == nil {
+				ctx.Set(msClientPrincipalDeviceId, deviceID)
+			}
+		}
 	}
 
 SkipClaims:
 	ctx.Next()
-}
-
-func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
-	return ctx.Value(msClientPrincipalHasAdminRole) == true
 }
 
 func CallerPrincipalId(c *gin.Context) uuid.UUID {
@@ -75,4 +80,15 @@ func CallerPrincipalName(c *gin.Context) string {
 		return value
 	}
 	return ""
+}
+
+func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
+	return ctx.Value(msClientPrincipalHasAdminRole) == true
+}
+
+func CallerPrincipalDeviceID(c *gin.Context) uuid.UUID {
+	if value, ok := c.Value(msClientPrincipalDeviceId).(uuid.UUID); ok {
+		return value
+	}
+	return uuid.Nil
 }

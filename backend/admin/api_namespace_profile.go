@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -103,9 +104,19 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 	}
 
 	nsProfile := NamespaceProfile{}
-	doc.PopulateNamespaceRef(&nsProfile)
+	doc.PopulateNamespaceProfile(&nsProfile)
 
 	c.JSON(http.StatusOK, &nsProfile)
+}
+
+func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {
+	doc, err := s.GetDirectoryObjectDoc(c, namespaceId)
+	if common.IsAzNotFound(err) {
+		return nil, nil
+	}
+	nsProfile := new(NamespaceProfile)
+	doc.PopulateNamespaceProfile(nsProfile)
+	return nsProfile, nil
 }
 
 func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
@@ -113,19 +124,16 @@ func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUI
 		return
 	}
 
-	doc, err := s.GetDirectoryObjectDoc(c, namespaceId)
+	profile, err := s.GetNamespaceProfile(c, namespaceId)
 	if err != nil {
-		if common.IsAzNotFound(err) {
-			c.JSON(http.StatusNotFound, gin.H{})
-			return
-		}
 		log.Error().Err(err).Msg("Internal error")
-		c.JSON(500, gin.H{"error": "internal error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	if profile == nil {
+		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}
 
-	nsProfile := NamespaceProfile{}
-	doc.PopulateNamespaceRef(&nsProfile)
-
-	c.JSON(http.StatusOK, &nsProfile)
+	c.JSON(http.StatusOK, profile)
 }

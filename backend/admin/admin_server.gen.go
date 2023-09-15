@@ -49,6 +49,7 @@ const (
 // Defines values for NamespaceType.
 const (
 	NamespaceTypeBuiltInCaInt            NamespaceType = "#builtin.ca.intermediate"
+	NamespaceTypeMsGraphDevice           NamespaceType = "#microsoft.graph.device"
 	NamespaceTypeMsGraphGroup            NamespaceType = "#microsoft.graph.group"
 	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
 	NamespaceTypeMsGraphUser             NamespaceType = "#microsoft.graph.user"
@@ -165,17 +166,34 @@ type KeyPropertiesKeySize int32
 type KeyPropertiesKty string
 
 // NamespaceProfile defines model for NamespaceProfile.
-type NamespaceProfile = NamespaceRef
+type NamespaceProfile struct {
+	// DeviceId \#microsoft.graph.device deviceId
+	DeviceID        *openapi_types.UUID `json:"deviceId,omitempty"`
+	DeviceOwnership *string             `json:"deviceOwnership,omitempty"`
+	DisplayName     string              `json:"displayName"`
+	ID              openapi_types.UUID  `json:"id"`
 
-// NamespaceRef defines model for NamespaceRef.
-type NamespaceRef struct {
-	DisplayName string             `json:"displayName"`
-	ID          openapi_types.UUID `json:"id"`
+	// IsCompliant \#microsoft.graph.device isCompliant
+	IsCompliant *bool `json:"isCompliant,omitempty"`
+
+	// Manufacturer \#microsoft.graph.device manufacturer
+	Manufacturer *string         `json:"manufacturer,omitempty"`
+	MemberOf     *[]NamespaceRef `json:"memberOf,omitempty"`
+
+	// Model \#microsoft.graph.device model
+	Model *string `json:"model,omitempty"`
 
 	// NamespaceId Unique ID of the namespace
-	NamespaceID          openapi_types.UUID `json:"namespaceId"`
-	ObjectType           NamespaceType      `json:"objectType"`
-	ServicePrincipalType *string            `json:"servicePrincipalType,omitempty"`
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+	ObjectType  NamespaceType      `json:"objectType"`
+
+	// OperatingSystem \#microsoft.graph.device operatingSystem
+	OperatingSystem *string `json:"operatingSystem,omitempty"`
+
+	// OperatingSystemVersion \#microsoft.graph.device operatingSystemVersion
+	OperatingSystemVersion *string         `json:"operatingSystemVersion,omitempty"`
+	RegisterdOwners        *[]NamespaceRef `json:"registerdOwners,omitempty"`
+	ServicePrincipalType   *string         `json:"servicePrincipalType,omitempty"`
 
 	// Updated Time when the policy was last updated
 	Updated time.Time `json:"updated"`
@@ -183,6 +201,22 @@ type NamespaceRef struct {
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy         string  `json:"updatedBy"`
 	UserPrincipalName *string `json:"userPrincipalName,omitempty"`
+}
+
+// NamespaceRef defines model for NamespaceRef.
+type NamespaceRef struct {
+	DisplayName string             `json:"displayName"`
+	ID          openapi_types.UUID `json:"id"`
+
+	// NamespaceId Unique ID of the namespace
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+	ObjectType  NamespaceType      `json:"objectType"`
+
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
+
+	// UpdatedBy Unique ID of the user who created the policy
+	UpdatedBy string `json:"updatedBy"`
 }
 
 // NamespaceType defines model for NamespaceType.
@@ -461,6 +495,9 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
+	// Get my profiles
+	// (GET /v1/my/profiles)
+	GetMyProfilesV1(c *gin.Context)
 	// List namespaces
 	// (GET /v1/namespaces/{namespaceType})
 	ListNamespacesV1(c *gin.Context, namespaceType NamespaceType)
@@ -512,6 +549,21 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
+}
+
+// GetMyProfilesV1 operation middleware
+func (siw *ServerInterfaceWrapper) GetMyProfilesV1(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyProfilesV1(c)
 }
 
 // ListNamespacesV1 operation middleware
@@ -836,6 +888,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
+	router.GET(options.BaseURL+"/v1/my/profiles", wrapper.GetMyProfilesV1)
 	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)

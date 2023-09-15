@@ -129,6 +129,21 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/NamespaceRef"
+  /v1/my/profiles:
+    get:
+      tags:
+        - user
+      summary: Get my profiles
+      operationId: GetMyProfilesV1
+      responses:
+        "200":
+          description: Get my profiles info response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NamespaceProfile"
   /v1/{namespaceId}/policies:
     get:
       tags:
@@ -272,11 +287,13 @@ components:
         - "#microsoft.graph.servicePrincipal"
         - "#microsoft.graph.user"
         - "#microsoft.graph.group"
+        - "#microsoft.graph.device"
       x-enum-varnames:
         - NamespaceType_BuiltInCaInt
         - NamespaceType_MsGraphServicePrincipal
         - NamespaceType_MsGraphUser
         - NamespaceType_MsGraphGroup
+        - NamespaceType_MsGraphDevice
     ApplyPolicyRequest:
       type: object
       properties:
@@ -586,16 +603,48 @@ components:
               $ref: "#/components/schemas/NamespaceType"
             displayName:
               type: string
-            servicePrincipalType:
-              type: string
-            userPrincipalName:
-              type: string
           required:
             - objectType
             - displayName
     NamespaceProfile:
       allOf:
         - $ref: "#/components/schemas/NamespaceRef"
+        - type: object
+          properties:
+            servicePrincipalType:
+              type: string
+            userPrincipalName:
+              type: string
+            deviceOwnership:
+              type: string
+            deviceId:
+              description: \#microsoft.graph.device deviceId
+              x-go-name: DeviceID
+              type: string
+              format: uuid
+            manufacturer:
+              description: \#microsoft.graph.device manufacturer
+              type: string
+            model:
+              description: \#microsoft.graph.device model
+              type: string
+            operatingSystem:
+              description: \#microsoft.graph.device operatingSystem
+              type: string
+            operatingSystemVersion:
+              description: \#microsoft.graph.device operatingSystemVersion
+              type: string
+            isCompliant:
+              description: \#microsoft.graph.device isCompliant
+              type: boolean
+            registerdOwners:
+              type: array
+              items:
+                $ref: "#/components/schemas/NamespaceRef"
+            memberOf:
+              type: array
+              items:
+                $ref: "#/components/schemas/NamespaceRef"
     RequestHeaderEntry:
       type: object
       properties:
@@ -628,6 +677,13 @@ components:
       required:
         - requestHeaders
         - serviceRuntime
+    MyProfile:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/NamespaceProfile"
+        device:
+          $ref: "#/components/schemas/NamespaceProfile"
   responses:
     GenericResponse:
       description: generic response
