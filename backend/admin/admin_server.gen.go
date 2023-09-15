@@ -109,14 +109,15 @@ type CertificateRef struct {
 // CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
 type CertificateRequestPolicyParameters struct {
 	// IssuerNamespaceId ID of the issuer namespace
-	IssuerNamespaceID       openapi_types.UUID                  `json:"issuerNamespaceId"`
-	KeyProperties           *KeyProperties                      `json:"keyProperties,omitempty"`
-	KeyStorePath            string                              `json:"keyStorePath"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
+	IssuerNamespaceID        openapi_types.UUID                  `json:"issuerNamespaceId"`
+	KeyProperties            *KeyProperties                      `json:"keyProperties,omitempty"`
+	KeyStorePath             string                              `json:"keyStorePath"`
+	LifetimeTrigger          *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	MsGraphGroupAllowMembers *bool                               `json:"msGraphGroupAllowMembers,omitempty"`
+	Subject                  CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames  *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                    CertificateUsage                    `json:"usage"`
+	ValidityInMonths         *int32                              `json:"validity_months,omitempty"`
 }
 
 // CertificateSubject defines model for CertificateSubject.

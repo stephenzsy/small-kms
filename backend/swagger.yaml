@@ -532,6 +532,8 @@ components:
           $ref: "#/components/schemas/CertificateUsage"
         lifetimeTrigger:
           $ref: "#/components/schemas/CertificateLifetimeTrigger"
+        msGraphGroupAllowMembers:
+          type: boolean
       required:
         - issuerNamespaceId
         - subject

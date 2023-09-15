@@ -87,6 +87,10 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 			doc.DisplayName = *spObj.GetDisplayName()
 			doc.ServicePrincipalType = spObj.GetServicePrincipalType()
 		}
+	case "#microsoft.graph.group":
+		if spObj, ok := dirObj.(msgraphmodels.Groupable); ok {
+			doc.DisplayName = *spObj.GetDisplayName()
+		}
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("graph object type (%s) not supported", doc.OdataType)})
 		return

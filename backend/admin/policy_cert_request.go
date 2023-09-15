@@ -26,14 +26,15 @@ import (
 )
 
 type PolicyCertRequestDocSection struct {
-	IssuerNamespaceID       uuid.UUID                           `json:"issuerNamespaceId"`
-	KeyProperties           KeyProperties                       `json:"keyProperties"`
-	KeyStorePath            string                              `json:"keyStorePath"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        int32                               `json:"validity_months"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	IssuerNamespaceID        uuid.UUID                           `json:"issuerNamespaceId"`
+	KeyProperties            KeyProperties                       `json:"keyProperties"`
+	KeyStorePath             string                              `json:"keyStorePath"`
+	Subject                  CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames  *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                    CertificateUsage                    `json:"usage"`
+	ValidityInMonths         int32                               `json:"validity_months"`
+	LifetimeTrigger          *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	MsGraphGroupAllowMembers *bool                               `json:"msGraphGroupAllowMembers,omitempty"`
 }
 
 const maxValidityInMonths = 120
@@ -53,7 +54,7 @@ func getDefaultKeyProperties(namespaceID uuid.UUID) (kp KeyProperties) {
 	return
 }
 
-func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *CertificateRequestPolicyParameters, namespaceID uuid.UUID) error {
+func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *CertificateRequestPolicyParameters, namespaceID uuid.UUID, dirProfile *DirectoryObjectDoc) error {
 	if p == nil {
 		return errors.New("missing CertRequest property")
 	}
@@ -156,6 +157,15 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 					EcCurveP384:
 					t.KeyProperties.CurveName = p.KeyProperties.CurveName
 				}
+			}
+		}
+	}
+
+	if dirProfile != nil {
+		if dirProfile.OdataType == string(NamespaceTypeMsGraphGroup) {
+			t.MsGraphGroupAllowMembers = p.MsGraphGroupAllowMembers
+			if t.MsGraphGroupAllowMembers == nil {
+				t.MsGraphGroupAllowMembers = ToPtr(false)
 			}
 		}
 	}
@@ -651,14 +661,15 @@ func (s *PolicyCertRequestDocSection) ToCertificateRequestPolicyParameters() *Ce
 		return nil
 	}
 	return &CertificateRequestPolicyParameters{
-		IssuerNamespaceID:       s.IssuerNamespaceID,
-		KeyProperties:           &s.KeyProperties,
-		KeyStorePath:            s.KeyStorePath,
-		LifetimeTrigger:         s.LifetimeTrigger,
-		Subject:                 s.Subject,
-		SubjectAlternativeNames: s.SubjectAlternativeNames,
-		Usage:                   s.Usage,
-		ValidityInMonths:        ToPtr(s.ValidityInMonths),
+		IssuerNamespaceID:        s.IssuerNamespaceID,
+		KeyProperties:            &s.KeyProperties,
+		KeyStorePath:             s.KeyStorePath,
+		LifetimeTrigger:          s.LifetimeTrigger,
+		Subject:                  s.Subject,
+		SubjectAlternativeNames:  s.SubjectAlternativeNames,
+		Usage:                    s.Usage,
+		ValidityInMonths:         ToPtr(s.ValidityInMonths),
+		MsGraphGroupAllowMembers: s.MsGraphGroupAllowMembers,
 	}
 }
 
