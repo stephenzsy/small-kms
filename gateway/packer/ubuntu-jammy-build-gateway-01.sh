@@ -38,3 +38,11 @@ apt-get -q -y install azure-cli
 # Configure vm as a router
 echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
+
+# Install Azure CNI
+#mkdir /software
+#curl -fsSL https://github.com/Azure/azure-container-networking/releases/download/v1.5.11/azure-vnet-cni-linux-amd64-v1.5.11.tgz -o /software/azure-vnet-cni-linux-amd64-v1.5.11.tgz
+#tar -C /software/azure-vnet-cni-linux-amd64-v1.5.11 -xvf /software/azure-vnet-cni-linux-amd64-v1.5.11.tgz
+
+# reboot
+shutdown -r now

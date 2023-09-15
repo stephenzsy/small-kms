@@ -1,0 +1,11 @@
+services:  
+   radius:
+    image: ${ACR_IMAGE_RADIUS}
+    build: radius/docker
+    volumes:
+      - ./radius/log:/opt/var/log/radius
+  #   links:
+  #     - krakend:krakend
+     #tty: true
+     #stdin_open: true
+     #command: /bin/sh
