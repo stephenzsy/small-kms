@@ -98,6 +98,12 @@ export interface CertificateRequestPolicyParameters {
      * @memberof CertificateRequestPolicyParameters
      */
     lifetimeTrigger?: CertificateLifetimeTrigger;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificateRequestPolicyParameters
+     */
+    msGraphGroupAllowMembers?: boolean;
 }
 
 /**
@@ -131,6 +137,7 @@ export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignor
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usage': CertificateUsageFromJSON(json['usage']),
         'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
+        'msGraphGroupAllowMembers': !exists(json, 'msGraphGroupAllowMembers') ? undefined : json['msGraphGroupAllowMembers'],
     };
 }
 
@@ -151,6 +158,7 @@ export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequ
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usage': CertificateUsageToJSON(value.usage),
         'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
+        'msGraphGroupAllowMembers': value.msGraphGroupAllowMembers,
     };
 }
 
