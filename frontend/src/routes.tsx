@@ -8,6 +8,9 @@ import Layout from "./Layout";
 import { MainPage } from "./MainPage";
 import { RouteIds } from "./route-constants";
 import RegisterPage from "./admin/RegisterPage";
+import React from "react";
+
+const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +24,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <MainPage />, id: RouteIds.home },
+      { path: "diagnostics", element: <DiagnosticsPage /> },
       {
         path: "admin",
         id: RouteIds.admin,

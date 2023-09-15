@@ -21,4 +21,7 @@ export * from './PolicyState';
 export * from './PolicyStateAllOf';
 export * from './PolicyStateCertRequest';
 export * from './PolicyType';
+export * from './RequestDiagnostics';
+export * from './RequestHeaderEntry';
 export * from './ResourceRef';
+export * from './ServiceRuntime';

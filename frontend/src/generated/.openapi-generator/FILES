@@ -1,4 +1,5 @@
 apis/CertsApi.ts
+apis/DiagnosticsApi.ts
 apis/DirectoryApi.ts
 apis/PolicyApi.ts
 apis/index.ts
@@ -24,6 +25,9 @@ models/PolicyState.ts
 models/PolicyStateAllOf.ts
 models/PolicyStateCertRequest.ts
 models/PolicyType.ts
+models/RequestDiagnostics.ts
+models/RequestHeaderEntry.ts
 models/ResourceRef.ts
+models/ServiceRuntime.ts
 models/index.ts
 runtime.ts
