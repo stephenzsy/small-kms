@@ -26,8 +26,9 @@ func (s *adminServer) GetDirectoryObjectDoc(ctx context.Context, objectID uuid.U
 
 func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType NamespaceType) ([]*DirectoryObjectDoc, error) {
 	switch nsType {
-	case NamespaceTypeMsGraphUser:
-	case NamespaceTypeMsGraphServicePrincipal:
+	case NamespaceTypeMsGraphUser,
+		NamespaceTypeMsGraphGroup,
+		NamespaceTypeMsGraphServicePrincipal:
 	default:
 		return nil, fmt.Errorf("namespace type not supported")
 	}

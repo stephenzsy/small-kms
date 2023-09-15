@@ -107,6 +107,15 @@ export default function AdminPage() {
     { refreshDeps: [] }
   );
 
+  const { data: gNamespaces } = useRequest(
+    () => {
+      return client.listNamespacesV1({
+        namespaceType: "#microsoft.graph.group",
+      });
+    },
+    { refreshDeps: [] }
+  );
+
   return (
     <>
       <PolicySection
@@ -129,6 +138,7 @@ export default function AdminPage() {
         title="Service Principals"
         showAdd
       />
+      <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
     </>
   );
 }
