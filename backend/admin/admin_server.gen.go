@@ -254,6 +254,12 @@ type PolicyStateCertRequest struct {
 // PolicyType defines model for PolicyType.
 type PolicyType string
 
+// RequestDiagnostics defines model for RequestDiagnostics.
+type RequestDiagnostics struct {
+	RequestHeaders *map[string]string `json:"requestHeaders,omitempty"`
+	Runtime        *map[string]string `json:"runtime,omitempty"`
+}
+
 // ResourceRef defines model for ResourceRef.
 type ResourceRef struct {
 	ID openapi_types.UUID `json:"id"`
@@ -374,6 +380,9 @@ func (a ErrorResponse) MarshalJSON() ([]byte, error) {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get diagnostics
+	// (GET /v1/diagnostics)
+	GetDiagnosticsV1(c *gin.Context)
 	// List namespaces
 	// (GET /v1/namespaces/{namespaceType})
 	ListNamespacesV1(c *gin.Context, namespaceType NamespaceType)
@@ -411,6 +420,21 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// GetDiagnosticsV1 operation middleware
+func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetDiagnosticsV1(c)
+}
 
 // ListNamespacesV1 operation middleware
 func (siw *ServerInterfaceWrapper) ListNamespacesV1(c *gin.Context) {
@@ -733,6 +757,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
 	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)

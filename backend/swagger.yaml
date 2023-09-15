@@ -244,6 +244,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyState"
+  /v1/diagnostics:
+    get:
+      tags:
+        - diagnostics
+      summary: Get diagnostics
+      operationId: GetDiagnosticsV1
+      responses:
+        "200":
+          description: Diagnostics response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestDiagnostics"
 security:
   - BearerAuth: []
 components:
@@ -583,6 +596,35 @@ components:
     NamespaceProfile:
       allOf:
         - $ref: "#/components/schemas/NamespaceRef"
+    RequestDiagnostics:
+      type: object
+      properties:
+        requestHeaders:
+          type: array
+          items:
+            type: object
+            title: HeaderEntry
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+            required:
+              - key
+              - value
+        serviceRuntime:
+          type: object
+          title: ServiceRuntime
+          properties:
+            goVersion:
+              type: string
+          required:
+            - goVersion
+          additionalProperties:
+            type: string
+      required:
+        - requestHeaders
+        - serviceRuntime
   responses:
     GenericResponse:
       description: generic response
