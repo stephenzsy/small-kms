@@ -46,6 +46,40 @@ export interface RegisterNamespaceProfileV1Request {
 export class DirectoryApi extends runtime.BaseAPI {
 
     /**
+     * Get my profiles
+     */
+    async getMyProfilesV1Raw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceProfile>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/my/profiles`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NamespaceProfileFromJSON));
+    }
+
+    /**
+     * Get my profiles
+     */
+    async getMyProfilesV1(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceProfile>> {
+        const response = await this.getMyProfilesV1Raw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get namespace profile
      */
     async getNamespaceProfileV1Raw(requestParameters: GetNamespaceProfileV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespaceProfile>> {
@@ -156,6 +190,40 @@ export class DirectoryApi extends runtime.BaseAPI {
      */
     async registerNamespaceProfileV1(requestParameters: RegisterNamespaceProfileV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespaceProfile> {
         const response = await this.registerNamespaceProfileV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync my profiles
+     */
+    async syncMyProfilesV1Raw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceProfile>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/my/profiles`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NamespaceProfileFromJSON));
+    }
+
+    /**
+     * Sync my profiles
+     */
+    async syncMyProfilesV1(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceProfile>> {
+        const response = await this.syncMyProfilesV1Raw(initOverrides);
         return await response.value();
     }
 

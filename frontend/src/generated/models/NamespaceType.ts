@@ -21,7 +21,8 @@ export const NamespaceType = {
     NamespaceType_BuiltInCaInt: '#builtin.ca.intermediate',
     NamespaceType_MsGraphServicePrincipal: '#microsoft.graph.servicePrincipal',
     NamespaceType_MsGraphUser: '#microsoft.graph.user',
-    NamespaceType_MsGraphGroup: '#microsoft.graph.group'
+    NamespaceType_MsGraphGroup: '#microsoft.graph.group',
+    NamespaceType_MsGraphDevice: '#microsoft.graph.device'
 } as const;
 export type NamespaceType = typeof NamespaceType[keyof typeof NamespaceType];
 

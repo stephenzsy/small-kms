@@ -62,18 +62,6 @@ export interface NamespaceRef {
      * @memberof NamespaceRef
      */
     displayName: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceRef
-     */
-    servicePrincipalType?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceRef
-     */
-    userPrincipalName?: string;
 }
 
 /**
@@ -107,8 +95,6 @@ export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'updated': (new Date(json['updated'])),
         'objectType': NamespaceTypeFromJSON(json['objectType']),
         'displayName': json['displayName'],
-        'servicePrincipalType': !exists(json, 'servicePrincipalType') ? undefined : json['servicePrincipalType'],
-        'userPrincipalName': !exists(json, 'userPrincipalName') ? undefined : json['userPrincipalName'],
     };
 }
 
@@ -127,8 +113,6 @@ export function NamespaceRefToJSON(value?: NamespaceRef | null): any {
         'updated': (value.updated.toISOString()),
         'objectType': NamespaceTypeToJSON(value.objectType),
         'displayName': value.displayName,
-        'servicePrincipalType': value.servicePrincipalType,
-        'userPrincipalName': value.userPrincipalName,
     };
 }
 

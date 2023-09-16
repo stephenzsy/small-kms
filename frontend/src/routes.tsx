@@ -5,12 +5,12 @@ import PoliciesPage from "./admin/PoliciesPage";
 import PolicyPage from "./admin/PolicyPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import Layout from "./Layout";
-import { MainPage } from "./MainPage";
 import { RouteIds } from "./route-constants";
 import RegisterPage from "./admin/RegisterPage";
 import React from "react";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
+const MainPage = React.lazy(() => import("./MainPage"));
 
 export const router = createBrowserRouter([
   {

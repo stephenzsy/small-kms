@@ -13,7 +13,9 @@ models/CertificateSubjectAlternativeNames.ts
 models/CertificateUsage.ts
 models/GetPolicyV1404Response.ts
 models/KeyProperties.ts
+models/MyProfile.ts
 models/NamespaceProfile.ts
+models/NamespaceProfileAllOf.ts
 models/NamespaceRef.ts
 models/NamespaceRefAllOf.ts
 models/NamespaceType.ts

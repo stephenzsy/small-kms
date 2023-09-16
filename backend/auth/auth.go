@@ -58,9 +58,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 			ctx.Set(msClientPrincipalHasAdminRole, true)
 		}
 		if c.Type == msClientPrincipalClaimType_DeviceID {
-			if deviceID, err := uuid.Parse(c.Value); err == nil {
-				ctx.Set(msClientPrincipalDeviceId, deviceID)
-			}
+			ctx.Set(msClientPrincipalDeviceId, c.Value)
 		}
 	}
 
@@ -86,9 +84,9 @@ func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
 	return ctx.Value(msClientPrincipalHasAdminRole) == true
 }
 
-func CallerPrincipalDeviceID(c *gin.Context) uuid.UUID {
-	if value, ok := c.Value(msClientPrincipalDeviceId).(uuid.UUID); ok {
+func CallerPrincipalDeviceID(c *gin.Context) string {
+	if value, ok := c.Value(msClientPrincipalDeviceId).(string); ok {
 		return value
 	}
-	return uuid.Nil
+	return ""
 }

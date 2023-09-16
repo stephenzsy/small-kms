@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -53,28 +52,16 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 	c.JSON(http.StatusOK, results)
 }
 
-func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
-		return
-	}
-	if namespaceId == uuid.Nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
-		return
-	}
-	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(namespaceId.String()).Get(c, nil)
+func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUID) (*NamespaceProfile, int, error) {
+	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
 	if err != nil {
-		if odErr, ok := err.(*odataerrors.ODataError); ok {
-			if odErr.ResponseStatusCode == http.StatusNotFound {
-				c.JSON(http.StatusNotFound, gin.H{"message": "graph object not found"})
-				return
-			}
+		if common.IsGraphODataErrorNotFound(err) {
+			return nil, http.StatusNotFound, err
 		}
-		log.Error().Err(err).Msg("Failed to get graph object")
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-		return
+		return nil, http.StatusInternalServerError, err
 	}
 	doc := new(DirectoryObjectDoc)
-	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, namespaceId)
+	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID)
 	doc.NamespaceID = directoryID
 	doc.OdataType = *dirObj.GetOdataType()
 	switch doc.OdataType {
@@ -89,24 +76,55 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 			doc.ServicePrincipalType = spObj.GetServicePrincipalType()
 		}
 	case "#microsoft.graph.group":
-		if spObj, ok := dirObj.(msgraphmodels.Groupable); ok {
-			doc.DisplayName = *spObj.GetDisplayName()
+		if gObj, ok := dirObj.(msgraphmodels.Groupable); ok {
+			doc.DisplayName = *gObj.GetDisplayName()
+		}
+	case "#microsoft.graph.device":
+		if dObj, ok := dirObj.(msgraphmodels.Deviceable); ok {
+			doc.DisplayName = *dObj.GetDisplayName()
+			doc.DeviceID = dObj.GetDeviceId()
+			doc.OperatingSystem = dObj.GetOperatingSystem()
+			doc.OperatingSystemVersion = dObj.GetOperatingSystemVersion()
+			doc.DeviceOwnership = dObj.GetDeviceOwnership()
+			doc.IsCompliant = dObj.GetIsCompliant()
 		}
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("graph object type (%s) not supported", doc.OdataType)})
-		return
+		return nil, http.StatusBadRequest, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)
 	}
 
 	err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return nil, http.StatusInternalServerError, err
+
+	}
+
+	nsProfile := new(NamespaceProfile)
+	doc.PopulateNamespaceProfile(nsProfile)
+
+	return nsProfile, http.StatusOK, nil
+}
+
+func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
+	if !auth.CallerPrincipalHasAdminRole(c) {
+		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can register namespaces"})
+		return
+	}
+	if namespaceId == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
+		return
+	}
+	profile, status, err := s.RegisterNamespaceProfile(c, namespaceId)
+	if err != nil {
+		if status == http.StatusInternalServerError {
+			log.Error().Err(err).Msg("Failed to register graph object")
+			c.JSON(status, gin.H{"message": "internal error"})
+		} else {
+			c.JSON(status, gin.H{"message": err.Error()})
+		}
 		return
 	}
 
-	nsProfile := NamespaceProfile{}
-	doc.PopulateNamespaceProfile(&nsProfile)
-
-	c.JSON(http.StatusOK, &nsProfile)
+	c.JSON(http.StatusOK, profile)
 }
 
 func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {

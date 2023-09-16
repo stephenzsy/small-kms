@@ -38,18 +38,6 @@ export interface NamespaceRefAllOf {
      * @memberof NamespaceRefAllOf
      */
     displayName: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceRefAllOf
-     */
-    servicePrincipalType?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceRefAllOf
-     */
-    userPrincipalName?: string;
 }
 
 /**
@@ -75,8 +63,6 @@ export function NamespaceRefAllOfFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'objectType': NamespaceTypeFromJSON(json['objectType']),
         'displayName': json['displayName'],
-        'servicePrincipalType': !exists(json, 'servicePrincipalType') ? undefined : json['servicePrincipalType'],
-        'userPrincipalName': !exists(json, 'userPrincipalName') ? undefined : json['userPrincipalName'],
     };
 }
 
@@ -91,8 +77,6 @@ export function NamespaceRefAllOfToJSON(value?: NamespaceRefAllOf | null): any {
         
         'objectType': NamespaceTypeToJSON(value.objectType),
         'displayName': value.displayName,
-        'servicePrincipalType': value.servicePrincipalType,
-        'userPrincipalName': value.userPrincipalName,
     };
 }
 

@@ -19,136 +19,82 @@ import {
     NamespaceRefFromJSONTyped,
     NamespaceRefToJSON,
 } from './NamespaceRef';
-import type { NamespaceType } from './NamespaceType';
-import {
-    NamespaceTypeFromJSON,
-    NamespaceTypeFromJSONTyped,
-    NamespaceTypeToJSON,
-} from './NamespaceType';
 
 /**
  * 
  * @export
- * @interface NamespaceProfile
+ * @interface NamespaceProfileAllOf
  */
-export interface NamespaceProfile {
-    /**
-     * Unique ID of the namespace
-     * @type {string}
-     * @memberof NamespaceProfile
-     */
-    namespaceId: string;
+export interface NamespaceProfileAllOf {
     /**
      * 
      * @type {string}
-     * @memberof NamespaceProfile
-     */
-    id: string;
-    /**
-     * Unique ID of the user who created the policy
-     * @type {string}
-     * @memberof NamespaceProfile
-     */
-    updatedBy: string;
-    /**
-     * Time when the policy was last updated
-     * @type {Date}
-     * @memberof NamespaceProfile
-     */
-    updated: Date;
-    /**
-     * 
-     * @type {NamespaceType}
-     * @memberof NamespaceProfile
-     */
-    objectType: NamespaceType;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceProfile
-     */
-    displayName: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     servicePrincipalType?: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     userPrincipalName?: string;
     /**
      * 
      * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     deviceOwnership?: string;
     /**
      * \#microsoft.graph.device deviceId
      * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     deviceId?: string;
     /**
      * \#microsoft.graph.device operatingSystem
      * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     operatingSystem?: string;
     /**
      * \#microsoft.graph.device operatingSystemVersion
      * @type {string}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     operatingSystemVersion?: string;
     /**
      * \#microsoft.graph.device isCompliant
      * @type {boolean}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     isCompliant?: boolean;
     /**
      * 
      * @type {Array<NamespaceRef>}
-     * @memberof NamespaceProfile
+     * @memberof NamespaceProfileAllOf
      */
     memberOf?: Array<NamespaceRef>;
 }
 
 /**
- * Check if a given object implements the NamespaceProfile interface.
+ * Check if a given object implements the NamespaceProfileAllOf interface.
  */
-export function instanceOfNamespaceProfile(value: object): boolean {
+export function instanceOfNamespaceProfileAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceId" in value;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "objectType" in value;
-    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
 
-export function NamespaceProfileFromJSON(json: any): NamespaceProfile {
-    return NamespaceProfileFromJSONTyped(json, false);
+export function NamespaceProfileAllOfFromJSON(json: any): NamespaceProfileAllOf {
+    return NamespaceProfileAllOfFromJSONTyped(json, false);
 }
 
-export function NamespaceProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceProfile {
+export function NamespaceProfileAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean): NamespaceProfileAllOf {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'namespaceId': json['namespaceId'],
-        'id': json['id'],
-        'updatedBy': json['updatedBy'],
-        'updated': (new Date(json['updated'])),
-        'objectType': NamespaceTypeFromJSON(json['objectType']),
-        'displayName': json['displayName'],
         'servicePrincipalType': !exists(json, 'servicePrincipalType') ? undefined : json['servicePrincipalType'],
         'userPrincipalName': !exists(json, 'userPrincipalName') ? undefined : json['userPrincipalName'],
         'deviceOwnership': !exists(json, 'deviceOwnership') ? undefined : json['deviceOwnership'],
@@ -160,7 +106,7 @@ export function NamespaceProfileFromJSONTyped(json: any, ignoreDiscriminator: bo
     };
 }
 
-export function NamespaceProfileToJSON(value?: NamespaceProfile | null): any {
+export function NamespaceProfileAllOfToJSON(value?: NamespaceProfileAllOf | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -169,12 +115,6 @@ export function NamespaceProfileToJSON(value?: NamespaceProfile | null): any {
     }
     return {
         
-        'namespaceId': value.namespaceId,
-        'id': value.id,
-        'updatedBy': value.updatedBy,
-        'updated': (value.updated.toISOString()),
-        'objectType': NamespaceTypeToJSON(value.objectType),
-        'displayName': value.displayName,
         'servicePrincipalType': value.servicePrincipalType,
         'userPrincipalName': value.userPrincipalName,
         'deviceOwnership': value.deviceOwnership,

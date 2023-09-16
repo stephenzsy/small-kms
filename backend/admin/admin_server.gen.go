@@ -168,20 +168,14 @@ type KeyPropertiesKty string
 // NamespaceProfile defines model for NamespaceProfile.
 type NamespaceProfile struct {
 	// DeviceId \#microsoft.graph.device deviceId
-	DeviceID        *openapi_types.UUID `json:"deviceId,omitempty"`
-	DeviceOwnership *string             `json:"deviceOwnership,omitempty"`
-	DisplayName     string              `json:"displayName"`
-	ID              openapi_types.UUID  `json:"id"`
+	DeviceID        *string            `json:"deviceId,omitempty"`
+	DeviceOwnership *string            `json:"deviceOwnership,omitempty"`
+	DisplayName     string             `json:"displayName"`
+	ID              openapi_types.UUID `json:"id"`
 
 	// IsCompliant \#microsoft.graph.device isCompliant
-	IsCompliant *bool `json:"isCompliant,omitempty"`
-
-	// Manufacturer \#microsoft.graph.device manufacturer
-	Manufacturer *string         `json:"manufacturer,omitempty"`
-	MemberOf     *[]NamespaceRef `json:"memberOf,omitempty"`
-
-	// Model \#microsoft.graph.device model
-	Model *string `json:"model,omitempty"`
+	IsCompliant *bool           `json:"isCompliant,omitempty"`
+	MemberOf    *[]NamespaceRef `json:"memberOf,omitempty"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
@@ -191,9 +185,8 @@ type NamespaceProfile struct {
 	OperatingSystem *string `json:"operatingSystem,omitempty"`
 
 	// OperatingSystemVersion \#microsoft.graph.device operatingSystemVersion
-	OperatingSystemVersion *string         `json:"operatingSystemVersion,omitempty"`
-	RegisterdOwners        *[]NamespaceRef `json:"registerdOwners,omitempty"`
-	ServicePrincipalType   *string         `json:"servicePrincipalType,omitempty"`
+	OperatingSystemVersion *string `json:"operatingSystemVersion,omitempty"`
+	ServicePrincipalType   *string `json:"servicePrincipalType,omitempty"`
 
 	// Updated Time when the policy was last updated
 	Updated time.Time `json:"updated"`
@@ -498,6 +491,9 @@ type ServerInterface interface {
 	// Get my profiles
 	// (GET /v1/my/profiles)
 	GetMyProfilesV1(c *gin.Context)
+	// Sync my profiles
+	// (POST /v1/my/profiles)
+	SyncMyProfilesV1(c *gin.Context)
 	// List namespaces
 	// (GET /v1/namespaces/{namespaceType})
 	ListNamespacesV1(c *gin.Context, namespaceType NamespaceType)
@@ -564,6 +560,21 @@ func (siw *ServerInterfaceWrapper) GetMyProfilesV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetMyProfilesV1(c)
+}
+
+// SyncMyProfilesV1 operation middleware
+func (siw *ServerInterfaceWrapper) SyncMyProfilesV1(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SyncMyProfilesV1(c)
 }
 
 // ListNamespacesV1 operation middleware
@@ -889,6 +900,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
 	router.GET(options.BaseURL+"/v1/my/profiles", wrapper.GetMyProfilesV1)
+	router.POST(options.BaseURL+"/v1/my/profiles", wrapper.SyncMyProfilesV1)
 	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)

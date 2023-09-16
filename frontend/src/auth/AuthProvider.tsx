@@ -65,7 +65,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
         if (!accountRef.current) {
           acquireToken();
         }
-      }, 5000);
+      }, 3000);
       return () => clearTimeout(t);
     }
   }, [account, inProgress]);

@@ -11,9 +11,7 @@ const namespaceIds = {
 };
 
 function PolicySection(props: {
-  namespaces:
-    | Pick<NamespaceRef, "id" | "displayName" | "userPrincipalName">[]
-    | undefined;
+  namespaces: Pick<NamespaceRef, "id" | "displayName">[] | undefined;
   title: string;
   showAdd?: boolean;
 }) {
@@ -66,7 +64,7 @@ function PolicySection(props: {
                         {ns.id}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {ns.userPrincipalName ?? ns.displayName}
+                        {ns.displayName}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">
                         <Link

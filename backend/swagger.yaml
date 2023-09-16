@@ -132,9 +132,23 @@ paths:
   /v1/my/profiles:
     get:
       tags:
-        - user
+        - directory
       summary: Get my profiles
       operationId: GetMyProfilesV1
+      responses:
+        "200":
+          description: Get my profiles info response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NamespaceProfile"
+    post:
+      tags:
+        - directory
+      summary: Sync my profiles
+      operationId: SyncMyProfilesV1
       responses:
         "200":
           description: Get my profiles info response
@@ -621,13 +635,6 @@ components:
               description: \#microsoft.graph.device deviceId
               x-go-name: DeviceID
               type: string
-              format: uuid
-            manufacturer:
-              description: \#microsoft.graph.device manufacturer
-              type: string
-            model:
-              description: \#microsoft.graph.device model
-              type: string
             operatingSystem:
               description: \#microsoft.graph.device operatingSystem
               type: string
@@ -637,10 +644,6 @@ components:
             isCompliant:
               description: \#microsoft.graph.device isCompliant
               type: boolean
-            registerdOwners:
-              type: array
-              items:
-                $ref: "#/components/schemas/NamespaceRef"
             memberOf:
               type: array
               items:
