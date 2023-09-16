@@ -16,17 +16,25 @@ const (
 	DefualtEnvVarAzCosmosResourceEndpoint      = "AZURE_COSMOS_RESOURCEENDPOINT"
 	DefualtEnvVarAzKeyvaultResourceEndpoint    = "AZURE_KEYVAULT_RESOURCEENDPOINT"
 	DefualtEnvVarAzStroageBlobResourceEndpoint = "AZURE_STORAGEBLOB_RESOURCEENDPOINT"
+	DefaultEnvVarAzureManagedIdentityClientId  = "AZURE_MANAGED_IDENTITY_CLIENT_ID"
 )
 
 type commonConfig struct {
-	defaultAzCerdential  *azidentity.DefaultAzureCredential
+	defaultAzCerdential  azcore.TokenCredential
 	keyvaultEndpoint     string
 	azKeysClient         *azkeys.Client
 	azCertificatesClient *azcertificates.Client
 }
 
 func NewCommonConfig() (c commonConfig, err error) {
-	c.defaultAzCerdential, err = azidentity.NewDefaultAzureCredential(nil)
+	if managedIdentityClientId, ok := os.LookupEnv(DefaultEnvVarAzureManagedIdentityClientId); ok {
+		c.defaultAzCerdential, err = azidentity.NewManagedIdentityCredential(
+			&azidentity.ManagedIdentityCredentialOptions{
+				ID: azidentity.ClientID(managedIdentityClientId),
+			})
+	} else {
+		c.defaultAzCerdential, err = azidentity.NewDefaultAzureCredential(nil)
+	}
 	if err != nil {
 		return
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/microsoftgraph/msgraph-sdk-go/devices"
+	"github.com/microsoftgraph/msgraph-sdk-go/deviceswithdeviceid"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
 )
@@ -50,9 +50,9 @@ func (s *adminServer) GetMyProfilesV1(c *gin.Context) {
 }
 
 func (s *adminServer) resolveObjectIDFromDeviceID(c context.Context, deviceID string) (uuid.UUID, error) {
-	device, err := s.msGraphClient.Devices().ByDeviceId(deviceID).Get(c,
-		&devices.DeviceItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devices.DeviceItemRequestBuilderGetQueryParameters{
+	device, err := s.msGraphClient.DevicesWithDeviceId(&deviceID).Get(c,
+		&deviceswithdeviceid.DevicesWithDeviceIdRequestBuilderGetRequestConfiguration{
+			QueryParameters: &deviceswithdeviceid.DevicesWithDeviceIdRequestBuilderGetQueryParameters{
 				Select: []string{"id"},
 			},
 		})
