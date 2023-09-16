@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { WellknownId } from "../constants";
 import { nsDisplayNames } from "./displayConstants";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { DirectoryApi, NamespaceRef } from "../generated";
+import { DirectoryApi, NamespaceRef, NamespaceType } from "../generated";
 import { useRequest } from "ahooks";
 
 const namespaceIds = {
@@ -99,7 +99,7 @@ export default function AdminPage() {
   const { data: spNamespaces } = useRequest(
     () => {
       return client.listNamespacesV1({
-        namespaceType: "#microsoft.graph.servicePrincipal",
+        namespaceType: NamespaceType.NamespaceType_MsGraphServicePrincipal,
       });
     },
     { refreshDeps: [] }
@@ -108,7 +108,23 @@ export default function AdminPage() {
   const { data: gNamespaces } = useRequest(
     () => {
       return client.listNamespacesV1({
-        namespaceType: "#microsoft.graph.group",
+        namespaceType: NamespaceType.NamespaceType_MsGraphGroup,
+      });
+    },
+    { refreshDeps: [] }
+  );
+  const { data: dNamespaces } = useRequest(
+    () => {
+      return client.listNamespacesV1({
+        namespaceType: NamespaceType.NamespaceType_MsGraphDevice,
+      });
+    },
+    { refreshDeps: [] }
+  );
+  const { data: uNamespaces } = useRequest(
+    () => {
+      return client.listNamespacesV1({
+        namespaceType: NamespaceType.NamespaceType_MsGraphUser,
       });
     },
     { refreshDeps: [] }
@@ -130,13 +146,14 @@ export default function AdminPage() {
         }))}
         title="Intermediate Certificate Authorities"
       />
-
       <PolicySection
         namespaces={spNamespaces}
         title="Service Principals"
         showAdd
       />
       <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
+      <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
+      <PolicySection namespaces={uNamespaces} title="Users" showAdd />
     </>
   );
 }
