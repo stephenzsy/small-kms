@@ -180,7 +180,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PolicyRef"
-  /v1/{namespaceId}/policies/{policyId}:
+  /v1/{namespaceId}/policies/{policyIdentifier}:
     put:
       tags:
         - policy
@@ -194,10 +194,9 @@ paths:
             format: uuid
           required: true
         - in: path
-          name: policyId
+          name: policyIdentifier
           schema:
             type: string
-            format: uuid
           required: true
       requestBody:
         content:
@@ -227,10 +226,9 @@ paths:
             format: uuid
           required: true
         - in: path
-          name: policyId
+          name: policyIdentifier
           schema:
             type: string
-            format: uuid
           required: true
       responses:
         "200":
@@ -286,6 +284,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RequestDiagnostics"
+  /v1/certificates/enroll:
+    post:
+      tags:
+        - certs
+      summary: Enroll certificate
+      operationId: EnrollCertificateV1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateEnrollRequest"
+        required: true
+      responses:
+        200:
+          description: Enroll certificate response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Certificate"
 security:
   - BearerAuth: []
 components:
@@ -340,14 +357,8 @@ components:
       type: object
       properties:
         kty:
-          type: string
-          enum:
-            - RSA
-            - EC
-          x-enum-varnames:
-            - Kty_RSA
-            - Kty_EC
           x-go-name: KeyType
+          $ref: "#/components/schemas/KeyType"
         key_size:
           type: integer
           format: int32
@@ -361,13 +372,7 @@ components:
             - KeySize_4096
           x-go-name: KeySize
         crv:
-          type: string
-          enum:
-            - P-256
-            - P-384
-          x-enum-varnames:
-            - EcCurve_P256
-            - EcCurve_P384
+          $ref: "#/components/schemas/CurveName"
           x-go-name: CurveName
         reuse_key:
           description: Keep using the same key version if exists
@@ -390,55 +395,56 @@ components:
         - Usage_ServerOnly
         - Usage_ClientOnly
     CertificateRef:
-      type: object
-      properties:
-        namespaceId:
-          description: Unique ID of the namespace
-          type: string
-          format: uuid
-          x-go-name: NamespaceID
-        id:
-          description: Unique ID of the certificate, also the serial number of the certificate
-          type: string
-          format: uuid
-          x-go-name: ID
-        name:
-          description: Name of the certificate, also the common name (CN) of the certificate
-          type: string
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
-        notAfter:
-          description: Expiration date of the certificate
-          type: string
-          format: date-time
-        issuerNamespace:
-          description: Issuer of the certificate
-          type: string
-          format: uuid
-        issuer:
-          description: Issuer of the certificate
-          type: string
-          format: uuid
-        createdBy:
-          description: Unique ID of the user who created the certificate
-          type: string
-      required:
-        - namespaceId
-        - id
-        - name
-        - usage
-        - notAfter
-        - issuerNamespace
-        - issuer
-        - createdBy
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - type: object
+          properties:
+            name:
+              description: Name of the certificate, also the common name (CN) in the subject of the certificate
+              type: string
+            usage:
+              $ref: "#/components/schemas/CertificateUsage"
+            notAfter:
+              description: Expiration date of the certificate
+              type: string
+              format: date-time
+            issuerNamespace:
+              description: Issuer namespace ID
+              type: string
+              format: uuid
+            issuer:
+              description: Issuer certificate ID
+              type: string
+              format: uuid
+            createdBy:
+              description: Unique ID of the user who created the certificate
+              type: string
+          required:
+            - namespaceId
+            - id
+            - name
+            - usage
+            - notAfter
+            - issuerNamespace
+            - issuer
+            - createdBy
+    Certificate:
+      allOf:
+        - $ref: "#/components/schemas/CertificateRef"
+        - type: object
+          properties:
+            x509pem:
+              description: PEM encoded X.509 certificate
+              type: string
+              format: byte
     PolicyType:
       type: string
       enum:
-        # - certIssue
         - certRequest
+        - certEnroll-groupMemberDevice
       x-enum-varnames:
-        # - PolicyType_CertIssue
         - PolicyType_CertRequest
+        - PolicyType_CertEnroll_GroupMemberDevice
     ResourceRef:
       type: object
       properties:
@@ -500,29 +506,6 @@ components:
             - policyType
             - string
             - message
-    # CertificateIssurancePolicyParameters:
-    #   type: object
-    #   properties:
-    #     issuerId:
-    #       description: ID of the current issuer certificate
-    #       type: string
-    #       format: uuid
-    #       x-go-name: IssuerID
-    #     allowedRequesters:
-    #       type: array
-    #       items:
-    #         type: string
-    #         format: uuid
-    #     allowedUsages:
-    #       type: array
-    #       items:
-    #         $ref: "#/components/schemas/CertificateUsage"
-    #     max_validity_months:
-    #       type: integer
-    #       format: int32
-    #       x-go-name: MaxValidityInMonths
-    #   required:
-    #     - issuerId
     CertificateLifetimeTrigger:
       type: object
       properties:
@@ -552,7 +535,66 @@ components:
           type: array
           items:
             type: string
-    CertificateRequestPolicyParameters:
+    KeyType:
+      type: string
+      enum:
+        - RSA
+        - EC
+      x-enum-varnames:
+        - KeyTypeRSA
+        - KeyTypeEC
+    CurveName:
+      type: string
+      enum:
+        - P-256
+        - P-384
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+    JSONWebKey:
+      type: object
+      description: Partial implementation of JSON Web Key (RFC 7517)
+      properties:
+        kty:
+          $ref: "#/components/schemas/KeyType"
+        n:
+          type: string
+          format: byte
+        e:
+          type: string
+          format: byte
+        crv:
+          $ref: "#/components/schemas/CurveName"
+        x:
+          type: string
+          format: byte
+        y:
+          type: string
+          format: byte
+      required:
+        - kty
+    CertificateEnrollRequest:
+      type: object
+      properties:
+        ownerNamespaceId:
+          type: string
+          format: uuid
+          x-go-name: OwnerNamespaceID
+        policyNamespaceId:
+          type: string
+          format: uuid
+          x-go-name: PolicyNamespaceID
+        publicKey:
+          $ref: "#/components/schemas/JSONWebKey"
+        deviceOwnerId:
+          description: Required to issue certificate to device with registered owner
+          type: string
+          format: uuid
+          x-go-name: DeviceOwnerID
+      required:
+        - ownerNamespaceId
+        - publicKey
+    CertificateIssuerParameters:
       type: object
       properties:
         issuerNamespaceId:
@@ -560,38 +602,48 @@ components:
           type: string
           format: uuid
           x-go-name: IssuerNamespaceID
+        issuerPolicyIdentifier:
+          description: ID of the issuer policy
+          type: string
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
           format: int32
-        keyStorePath:
-          type: string
-        keyProperties:
-          $ref: "#/components/schemas/KeyProperties"
-        subject:
-          $ref: "#/components/schemas/CertificateSubject"
-        subjectAlternativeNames:
-          $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
-        lifetimeTrigger:
-          $ref: "#/components/schemas/CertificateLifetimeTrigger"
-        msGraphGroupAllowMembers:
-          type: boolean
       required:
         - issuerNamespaceId
-        - subject
-        - usage
-        - keyStorePath
+    CertificateRequestPolicyParameters:
+      allOf:
+        - $ref: "#/components/schemas/CertificateIssuerParameters"
+        - type: object
+          properties:
+            keyStorePath:
+              type: string
+            keyProperties:
+              $ref: "#/components/schemas/KeyProperties"
+            subject:
+              $ref: "#/components/schemas/CertificateSubject"
+            subjectAlternativeNames:
+              $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
+            usage:
+              $ref: "#/components/schemas/CertificateUsage"
+            lifetimeTrigger:
+              $ref: "#/components/schemas/CertificateLifetimeTrigger"
+          required:
+            - subject
+            - usage
+            - keyStorePath
+    CertificateEnrollPolicyParameters:
+      allOf:
+        - $ref: "#/components/schemas/CertificateIssuerParameters"
     PolicyParameters:
       type: object
       properties:
         policyType:
           $ref: "#/components/schemas/PolicyType"
-        # certIssue:
-        #   $ref: "#/components/schemas/CertificateIssurancePolicyParameters"
         certRequest:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
+        certEnroll:
+          $ref: "#/components/schemas/CertificateEnrollPolicyParameters"
       required:
         - policyType
     PolicyRef:
@@ -644,10 +696,6 @@ components:
             isCompliant:
               description: \#microsoft.graph.device isCompliant
               type: boolean
-            memberOf:
-              type: array
-              items:
-                $ref: "#/components/schemas/NamespaceRef"
     RequestHeaderEntry:
       type: object
       properties:

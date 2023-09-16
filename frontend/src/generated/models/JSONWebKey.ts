@@ -27,77 +27,79 @@ import {
 } from './KeyType';
 
 /**
- * 
+ * Partial implementation of JSON Web Key (RFC 7517)
  * @export
- * @interface KeyProperties
+ * @interface JSONWebKey
  */
-export interface KeyProperties {
+export interface JSONWebKey {
     /**
      * 
      * @type {KeyType}
-     * @memberof KeyProperties
+     * @memberof JSONWebKey
      */
     kty: KeyType;
     /**
      * 
-     * @type {number}
-     * @memberof KeyProperties
+     * @type {string}
+     * @memberof JSONWebKey
      */
-    keySize?: KeyPropertiesKeySizeEnum;
+    n?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof JSONWebKey
+     */
+    e?: string;
     /**
      * 
      * @type {CurveName}
-     * @memberof KeyProperties
+     * @memberof JSONWebKey
      */
     crv?: CurveName;
     /**
-     * Keep using the same key version if exists
-     * @type {boolean}
-     * @memberof KeyProperties
+     * 
+     * @type {string}
+     * @memberof JSONWebKey
      */
-    reuseKey?: boolean;
+    x?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof JSONWebKey
+     */
+    y?: string;
 }
 
-
 /**
- * @export
+ * Check if a given object implements the JSONWebKey interface.
  */
-export const KeyPropertiesKeySizeEnum = {
-    KeySize_2048: 2048,
-    KeySize_3072: 3072,
-    KeySize_4096: 4096
-} as const;
-export type KeyPropertiesKeySizeEnum = typeof KeyPropertiesKeySizeEnum[keyof typeof KeyPropertiesKeySizeEnum];
-
-
-/**
- * Check if a given object implements the KeyProperties interface.
- */
-export function instanceOfKeyProperties(value: object): boolean {
+export function instanceOfJSONWebKey(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "kty" in value;
 
     return isInstance;
 }
 
-export function KeyPropertiesFromJSON(json: any): KeyProperties {
-    return KeyPropertiesFromJSONTyped(json, false);
+export function JSONWebKeyFromJSON(json: any): JSONWebKey {
+    return JSONWebKeyFromJSONTyped(json, false);
 }
 
-export function KeyPropertiesFromJSONTyped(json: any, ignoreDiscriminator: boolean): KeyProperties {
+export function JSONWebKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): JSONWebKey {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
         'kty': KeyTypeFromJSON(json['kty']),
-        'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
+        'n': !exists(json, 'n') ? undefined : json['n'],
+        'e': !exists(json, 'e') ? undefined : json['e'],
         'crv': !exists(json, 'crv') ? undefined : CurveNameFromJSON(json['crv']),
-        'reuseKey': !exists(json, 'reuse_key') ? undefined : json['reuse_key'],
+        'x': !exists(json, 'x') ? undefined : json['x'],
+        'y': !exists(json, 'y') ? undefined : json['y'],
     };
 }
 
-export function KeyPropertiesToJSON(value?: KeyProperties | null): any {
+export function JSONWebKeyToJSON(value?: JSONWebKey | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -107,9 +109,11 @@ export function KeyPropertiesToJSON(value?: KeyProperties | null): any {
     return {
         
         'kty': KeyTypeToJSON(value.kty),
-        'key_size': value.keySize,
+        'n': value.n,
+        'e': value.e,
         'crv': CurveNameToJSON(value.crv),
-        'reuse_key': value.reuseKey,
+        'x': value.x,
+        'y': value.y,
     };
 }
 

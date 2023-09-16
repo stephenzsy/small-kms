@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceRef } from './NamespaceRef';
-import {
-    NamespaceRefFromJSON,
-    NamespaceRefFromJSONTyped,
-    NamespaceRefToJSON,
-} from './NamespaceRef';
-
 /**
  * 
  * @export
@@ -68,12 +61,6 @@ export interface NamespaceProfileAllOf {
      * @memberof NamespaceProfileAllOf
      */
     isCompliant?: boolean;
-    /**
-     * 
-     * @type {Array<NamespaceRef>}
-     * @memberof NamespaceProfileAllOf
-     */
-    memberOf?: Array<NamespaceRef>;
 }
 
 /**
@@ -102,7 +89,6 @@ export function NamespaceProfileAllOfFromJSONTyped(json: any, ignoreDiscriminato
         'operatingSystem': !exists(json, 'operatingSystem') ? undefined : json['operatingSystem'],
         'operatingSystemVersion': !exists(json, 'operatingSystemVersion') ? undefined : json['operatingSystemVersion'],
         'isCompliant': !exists(json, 'isCompliant') ? undefined : json['isCompliant'],
-        'memberOf': !exists(json, 'memberOf') ? undefined : ((json['memberOf'] as Array<any>).map(NamespaceRefFromJSON)),
     };
 }
 
@@ -122,7 +108,6 @@ export function NamespaceProfileAllOfToJSON(value?: NamespaceProfileAllOf | null
         'operatingSystem': value.operatingSystem,
         'operatingSystemVersion': value.operatingSystemVersion,
         'isCompliant': value.isCompliant,
-        'memberOf': value.memberOf === undefined ? undefined : ((value.memberOf as Array<any>).map(NamespaceRefToJSON)),
     };
 }
 

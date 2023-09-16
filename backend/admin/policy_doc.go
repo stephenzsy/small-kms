@@ -9,10 +9,17 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
+type PolicyDocSectionIssuerProperties struct {
+	IssuerNamespaceID uuid.UUID `json:"issuerNamespaceId"`
+	IssuerPolicyID    uuid.UUID `json:"issuerPolicyId"`
+}
+
 type PolicyDoc struct {
 	kmsdoc.BaseDoc
+	Enabled     bool                         `json:"enabled"`
 	PolicyType  PolicyType                   `json:"policyType"`
 	CertRequest *PolicyCertRequestDocSection `json:"certRequest,omitempty"`
+	CertEnroll  *PolicyCertEnrollDocSection  `json:"certEnroll,omitempty"`
 }
 
 func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {

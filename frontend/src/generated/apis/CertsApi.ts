@@ -15,12 +15,22 @@
 
 import * as runtime from '../runtime';
 import type {
+  Certificate,
+  CertificateEnrollRequest,
   CertificateRef,
 } from '../models';
 import {
+    CertificateFromJSON,
+    CertificateToJSON,
+    CertificateEnrollRequestFromJSON,
+    CertificateEnrollRequestToJSON,
     CertificateRefFromJSON,
     CertificateRefToJSON,
 } from '../models';
+
+export interface EnrollCertificateV1Request {
+    certificateEnrollRequest: CertificateEnrollRequest;
+}
 
 export interface GetCertificateV1Request {
     namespaceId: string;
@@ -36,6 +46,47 @@ export interface ListCertificatesV1Request {
  * 
  */
 export class CertsApi extends runtime.BaseAPI {
+
+    /**
+     * Enroll certificate
+     */
+    async enrollCertificateV1Raw(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.certificateEnrollRequest === null || requestParameters.certificateEnrollRequest === undefined) {
+            throw new runtime.RequiredError('certificateEnrollRequest','Required parameter requestParameters.certificateEnrollRequest was null or undefined when calling enrollCertificateV1.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/certificates/enroll`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CertificateEnrollRequestToJSON(requestParameters.certificateEnrollRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * Enroll certificate
+     */
+    async enrollCertificateV1(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.enrollCertificateV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get certificate

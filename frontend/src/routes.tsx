@@ -11,6 +11,7 @@ import React from "react";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./MainPage"));
+const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +46,10 @@ export const router = createBrowserRouter([
           {
             path: "register",
             element: <RegisterPage />,
+          },
+          {
+            path: "enroll",
+            element: <AdminEnrollPage />,
           },
         ],
       },

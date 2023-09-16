@@ -23,80 +23,52 @@ import {
 /**
  * 
  * @export
- * @interface CertificateRef
+ * @interface CertificateRefAllOf
  */
-export interface CertificateRef {
-    /**
-     * Unique ID of the namespace
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    namespaceId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    id: string;
-    /**
-     * Unique ID of the user who created the policy
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    updatedBy: string;
-    /**
-     * Time when the policy was last updated
-     * @type {Date}
-     * @memberof CertificateRef
-     */
-    updated: Date;
+export interface CertificateRefAllOf {
     /**
      * Name of the certificate, also the common name (CN) in the subject of the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     name: string;
     /**
      * 
      * @type {CertificateUsage}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     usage: CertificateUsage;
     /**
      * Expiration date of the certificate
      * @type {Date}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     notAfter: Date;
     /**
      * Issuer namespace ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     issuerNamespace: string;
     /**
      * Issuer certificate ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     issuer: string;
     /**
      * Unique ID of the user who created the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefAllOf
      */
     createdBy: string;
 }
 
 /**
- * Check if a given object implements the CertificateRef interface.
+ * Check if a given object implements the CertificateRefAllOf interface.
  */
-export function instanceOfCertificateRef(value: object): boolean {
+export function instanceOfCertificateRefAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceId" in value;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "name" in value;
     isInstance = isInstance && "usage" in value;
     isInstance = isInstance && "notAfter" in value;
@@ -107,20 +79,16 @@ export function instanceOfCertificateRef(value: object): boolean {
     return isInstance;
 }
 
-export function CertificateRefFromJSON(json: any): CertificateRef {
-    return CertificateRefFromJSONTyped(json, false);
+export function CertificateRefAllOfFromJSON(json: any): CertificateRefAllOf {
+    return CertificateRefAllOfFromJSONTyped(json, false);
 }
 
-export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRef {
+export function CertificateRefAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRefAllOf {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'namespaceId': json['namespaceId'],
-        'id': json['id'],
-        'updatedBy': json['updatedBy'],
-        'updated': (new Date(json['updated'])),
         'name': json['name'],
         'usage': CertificateUsageFromJSON(json['usage']),
         'notAfter': (new Date(json['notAfter'])),
@@ -130,7 +98,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
     };
 }
 
-export function CertificateRefToJSON(value?: CertificateRef | null): any {
+export function CertificateRefAllOfToJSON(value?: CertificateRefAllOf | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -139,10 +107,6 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
     }
     return {
         
-        'namespaceId': value.namespaceId,
-        'id': value.id,
-        'updatedBy': value.updatedBy,
-        'updated': (value.updated.toISOString()),
         'name': value.name,
         'usage': CertificateUsageToJSON(value.usage),
         'notAfter': (value.notAfter.toISOString()),

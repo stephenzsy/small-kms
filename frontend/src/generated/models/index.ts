@@ -1,14 +1,24 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './ApplyPolicyRequest';
+export * from './Certificate';
+export * from './CertificateAllOf';
+export * from './CertificateEnrollPolicyParameters';
+export * from './CertificateEnrollRequest';
+export * from './CertificateIssuerParameters';
 export * from './CertificateLifetimeTrigger';
 export * from './CertificateRef';
+export * from './CertificateRefAllOf';
 export * from './CertificateRequestPolicyParameters';
+export * from './CertificateRequestPolicyParametersAllOf';
 export * from './CertificateSubject';
 export * from './CertificateSubjectAlternativeNames';
 export * from './CertificateUsage';
+export * from './CurveName';
 export * from './GetPolicyV1404Response';
+export * from './JSONWebKey';
 export * from './KeyProperties';
+export * from './KeyType';
 export * from './MyProfile';
 export * from './NamespaceProfile';
 export * from './NamespaceProfileAllOf';

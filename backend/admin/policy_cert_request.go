@@ -26,30 +26,29 @@ import (
 )
 
 type PolicyCertRequestDocSection struct {
-	IssuerNamespaceID        uuid.UUID                           `json:"issuerNamespaceId"`
-	KeyProperties            KeyProperties                       `json:"keyProperties"`
-	KeyStorePath             string                              `json:"keyStorePath"`
-	Subject                  CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames  *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                    CertificateUsage                    `json:"usage"`
-	ValidityInMonths         int32                               `json:"validity_months"`
-	LifetimeTrigger          *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
-	MsGraphGroupAllowMembers *bool                               `json:"msGraphGroupAllowMembers,omitempty"`
+	PolicyDocSectionIssuerProperties
+	KeyProperties           KeyProperties                       `json:"keyProperties"`
+	KeyStorePath            string                              `json:"keyStorePath"`
+	Subject                 CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                   CertificateUsage                    `json:"usage"`
+	ValidityInMonths        int32                               `json:"validity_months"`
+	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
 }
 
 const maxValidityInMonths = 120
 const defaultValidityInMonths = 12
 
 func getDefaultKeyProperties(namespaceID uuid.UUID) (kp KeyProperties) {
-	kp.KeyType = KtyRSA
+	kp.Kty = KeyTypeRSA
 	kp.KeySize = ToPtr(KeySize2048)
 	if IsCANamespace(namespaceID) {
 		kp.KeySize = ToPtr(KeySize4096)
 	}
 	if IsTestCA(namespaceID) {
-		kp.KeyType = KtyEC
+		kp.Kty = KeyTypeEC
 		kp.KeySize = nil
-		kp.CurveName = ToPtr(EcCurveP384)
+		kp.Crv = ToPtr(CurveNameP384)
 	}
 	return
 }
@@ -130,11 +129,11 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 	t.KeyProperties = getDefaultKeyProperties(namespaceID)
 	// keyspec
 	if p.KeyProperties != nil {
-		switch p.KeyProperties.KeyType {
-		case KtyRSA:
-			if t.KeyProperties.KeyType != KtyRSA {
-				t.KeyProperties.KeyType = KtyRSA
-				t.KeyProperties.CurveName = nil
+		switch p.KeyProperties.Kty {
+		case KeyTypeRSA:
+			if t.KeyProperties.Kty != KeyTypeRSA {
+				t.KeyProperties.Kty = KeyTypeRSA
+				t.KeyProperties.Crv = nil
 				t.KeyProperties.KeySize = ToPtr(KeySize2048)
 			}
 			if t.KeyProperties.KeySize != nil {
@@ -145,27 +144,18 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 					t.KeyProperties.KeySize = p.KeyProperties.KeySize
 				}
 			}
-		case KtyEC:
-			if t.KeyProperties.KeyType != KtyEC {
-				t.KeyProperties.KeyType = KtyEC
-				t.KeyProperties.CurveName = ToPtr(EcCurveP256)
+		case KeyTypeEC:
+			if t.KeyProperties.Kty != KeyTypeEC {
+				t.KeyProperties.Kty = KeyTypeEC
+				t.KeyProperties.Crv = ToPtr(CurveNameP256)
 				t.KeyProperties.KeySize = nil
 			}
-			if t.KeyProperties.CurveName != nil {
-				switch *p.KeyProperties.CurveName {
-				case EcCurveP256,
-					EcCurveP384:
-					t.KeyProperties.CurveName = p.KeyProperties.CurveName
+			if t.KeyProperties.Crv != nil {
+				switch *p.KeyProperties.Crv {
+				case CurveNameP256,
+					CurveNameP384:
+					t.KeyProperties.Crv = p.KeyProperties.Crv
 				}
-			}
-		}
-	}
-
-	if dirProfile != nil {
-		if dirProfile.OdataType == string(NamespaceTypeMsGraphGroup) {
-			t.MsGraphGroupAllowMembers = p.MsGraphGroupAllowMembers
-			if t.MsGraphGroupAllowMembers == nil {
-				t.MsGraphGroupAllowMembers = ToPtr(false)
 			}
 		}
 	}
@@ -236,8 +226,8 @@ func (p *KeyProperties) ToAzCertificatesKeyProperties() (r azcertificates.KeyPro
 	r.KeyType = ToPtr(azcertificates.KeyTypeRSA)
 	r.KeySize = ToPtr(int32(2048))
 	r.ReuseKey = p.ReuseKey
-	switch p.KeyType {
-	case KtyRSA:
+	switch p.Kty {
+	case KeyTypeRSA:
 		if p.KeySize != nil {
 			switch *p.KeySize {
 			case KeySize3072:
@@ -246,13 +236,13 @@ func (p *KeyProperties) ToAzCertificatesKeyProperties() (r azcertificates.KeyPro
 				r.KeySize = ToPtr(int32(4096))
 			}
 		}
-	case KtyEC:
+	case KeyTypeEC:
 		r.KeyType = ToPtr(azcertificates.KeyTypeEC)
 		r.KeySize = nil
 		r.Curve = ToPtr(azcertificates.CurveNameP256)
-		if p.CurveName != nil {
-			switch *p.CurveName {
-			case EcCurveP384:
+		if p.Crv != nil {
+			switch *p.Crv {
+			case CurveNameP384:
 				r.Curve = ToPtr(azcertificates.CurveNameP384)
 			}
 		}
@@ -264,8 +254,8 @@ func (p *KeyProperties) ToAzCertificatesKeyProperties() (r azcertificates.KeyPro
 func (p *KeyProperties) ToAzKeysCreateKeyParameters() (r azkeys.CreateKeyParameters) {
 	r.Kty = to.Ptr(azkeys.KeyTypeRSA)
 	r.KeySize = to.Ptr(int32(2048))
-	switch p.KeyType {
-	case KtyRSA:
+	switch p.Kty {
+	case KeyTypeRSA:
 		if p.KeySize != nil {
 			switch *p.KeySize {
 			case KeySize3072:
@@ -274,13 +264,13 @@ func (p *KeyProperties) ToAzKeysCreateKeyParameters() (r azkeys.CreateKeyParamet
 				r.KeySize = ToPtr(int32(4096))
 			}
 		}
-	case KtyEC:
+	case KeyTypeEC:
 		r.Kty = to.Ptr(azkeys.KeyTypeEC)
 		r.KeySize = nil
 		r.Curve = to.Ptr(azkeys.CurveNameP256)
-		if p.CurveName != nil {
-			switch *p.CurveName {
-			case EcCurveP384:
+		if p.Crv != nil {
+			switch *p.Crv {
+			case CurveNameP384:
 				r.Curve = to.Ptr(azkeys.CurveNameP384)
 			}
 		}
@@ -439,6 +429,8 @@ type signerCertBundle struct {
 	certificate                 *x509.Certificate
 	certificateChainPEMRaw      []byte
 	additionalCertificateDERRaw []byte
+	signerNamespaceID           uuid.UUID
+	signerCertId                kmsdoc.KmsDocID
 }
 
 func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID) (*signerCertBundle, error) {
@@ -460,6 +452,15 @@ func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNam
 		return nil, err
 	}
 	bundle := new(signerCertBundle)
+
+	// signer info
+	bundle.signerNamespaceID = signerNamespaceID
+	if crtDoc.AliasID != nil {
+		// doc is alias
+		bundle.signerCertId = *crtDoc.AliasID
+	} else {
+		bundle.signerCertId = crtDoc.ID
+	}
 	bundle.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), resp.Key)
 	if err != nil {
 		return nil, err
@@ -499,6 +500,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	var csr *x509.CertificateRequest
 	var certPubKey crypto.PublicKey
 	var kid string
+	var keyExportable bool = false
 	if !isRootNS {
 		azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
 		azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
@@ -511,6 +513,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			return nil, err
 		}
 		certPubKey = csr.PublicKey
+		keyExportable = *azCreateCertParams.CertificatePolicy.KeyProperties.Exportable
 	}
 	certificate, err := prepareCertificate(p, namespaceID, certID, csr)
 	if err != nil {
@@ -534,20 +537,20 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		}
 	}
 
-	switch p.KeyProperties.KeyType {
-	case KtyRSA:
+	switch p.KeyProperties.Kty {
+	case KeyTypeRSA:
 		certificate.SignatureAlgorithm = x509.SHA384WithRSA
-	case KtyEC:
-		switch *p.KeyProperties.CurveName {
-		case EcCurveP384:
+	case KeyTypeEC:
+		switch *p.KeyProperties.Crv {
+		case CurveNameP384:
 			certificate.SignatureAlgorithm = x509.ECDSAWithSHA384
-		case EcCurveP256:
+		case CurveNameP256:
 			certificate.SignatureAlgorithm = x509.ECDSAWithSHA256
 		default:
-			return nil, fmt.Errorf("unsupported curve: %s", *p.KeyProperties.CurveName)
+			return nil, fmt.Errorf("unsupported curve: %s", *p.KeyProperties.Crv)
 		}
 	default:
-		return nil, fmt.Errorf("unsupported key type: %s", p.KeyProperties.KeyType)
+		return nil, fmt.Errorf("unsupported key type: %s", p.KeyProperties.Kty)
 	}
 
 	// Sign cert
@@ -586,6 +589,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	}
 	log.Info().Msgf("Certificate uploaded to blob")
 	var cid string
+	var sid string
 	if !isRootNS && len(keyName) > 0 {
 		mergeRequestCerts := [][]byte{certSigned, signerBundle.certificate.Raw}
 		if len(signerBundle.additionalCertificateDERRaw) > 0 {
@@ -599,6 +603,9 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		}
 		cid = string(*azcMcResp.ID)
 		kid = string(*azcMcResp.KID)
+		if keyExportable {
+			sid = string(*azcMcResp.SID)
+		}
 		log.Info().Msgf("Certificate merged to keyvault: %s", cid)
 	}
 
@@ -608,13 +615,21 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, certID),
 			NamespaceID: namespaceID,
 		},
-		PolicyID: policyID,
-		Expires:  certificate.NotAfter,
-		Usage:    p.Usage,
-		CID:      cid,
-		KID:      kid,
-		//		SID:           string(*azcMcResp.SID),
+		PolicyID:      policyID,
+		Expires:       certificate.NotAfter,
+		Usage:         p.Usage,
+		CID:           cid,
+		KID:           kid,
+		SID:           sid,
 		CertStorePath: blobName,
+		Name:          certificate.Subject.CommonName,
+	}
+	if isRootNS {
+		certDoc.IssuerNamespace = namespaceID
+		certDoc.IssuerID = certDoc.ID
+	} else {
+		certDoc.IssuerNamespace = signerBundle.signerNamespaceID
+		certDoc.IssuerID = signerBundle.signerCertId
 	}
 	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, &certDoc)
 	if err != nil {
@@ -661,15 +676,14 @@ func (s *PolicyCertRequestDocSection) ToCertificateRequestPolicyParameters() *Ce
 		return nil
 	}
 	return &CertificateRequestPolicyParameters{
-		IssuerNamespaceID:        s.IssuerNamespaceID,
-		KeyProperties:            &s.KeyProperties,
-		KeyStorePath:             s.KeyStorePath,
-		LifetimeTrigger:          s.LifetimeTrigger,
-		Subject:                  s.Subject,
-		SubjectAlternativeNames:  s.SubjectAlternativeNames,
-		Usage:                    s.Usage,
-		ValidityInMonths:         ToPtr(s.ValidityInMonths),
-		MsGraphGroupAllowMembers: s.MsGraphGroupAllowMembers,
+		IssuerNamespaceID:       s.IssuerNamespaceID,
+		KeyProperties:           &s.KeyProperties,
+		KeyStorePath:            s.KeyStorePath,
+		LifetimeTrigger:         s.LifetimeTrigger,
+		Subject:                 s.Subject,
+		SubjectAlternativeNames: s.SubjectAlternativeNames,
+		Usage:                   s.Usage,
+		ValidityInMonths:        ToPtr(s.ValidityInMonths),
 	}
 }
 

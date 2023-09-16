@@ -77,7 +77,7 @@ function CertCreatePolicyForm({
     async (policyParameters: PolicyParameters) => {
       const policy = await client.putPolicyV1({
         namespaceId,
-        policyId,
+        policyIdentifier: policyId,
         policyParameters,
       });
       onPolicyMutate?.(policy);
@@ -276,7 +276,7 @@ export default function PolicyPage() {
       try {
         return await client.getPolicyV1({
           namespaceId: namespaceId!,
-          policyId: policyId!,
+          policyIdentifier: policyId!,
         });
       } catch (e) {
         if (e instanceof ResponseError && e.response.status === 404) {

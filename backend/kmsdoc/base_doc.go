@@ -82,11 +82,12 @@ func (k *KmsDocID) UnmarshalJSON(b []byte) (err error) {
 }
 
 type BaseDoc struct {
-	ID            KmsDocID  `json:"id"`
-	NamespaceID   uuid.UUID `json:"namespaceId"`
-	Updated       time.Time `json:"updated"`
-	UpdatedBy     string    `json:"updatedBy"`
-	UpdatedByName string    `json:"updatedByName"`
+	ID            KmsDocID   `json:"id"`
+	NamespaceID   uuid.UUID  `json:"namespaceId"`
+	Updated       time.Time  `json:"updated"`
+	UpdatedBy     string     `json:"updatedBy"`
+	UpdatedByName string     `json:"updatedByName"`
+	Deleted       *time.Time `json:"deleted,omitempty"`
 
 	// used only for serialization
 	TypeName KmsDocTypeName `json:"type"`

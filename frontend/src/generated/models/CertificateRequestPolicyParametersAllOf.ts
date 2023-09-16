@@ -47,71 +47,52 @@ import {
 /**
  * 
  * @export
- * @interface CertificateRequestPolicyParameters
+ * @interface CertificateRequestPolicyParametersAllOf
  */
-export interface CertificateRequestPolicyParameters {
-    /**
-     * ID of the issuer namespace
-     * @type {string}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    issuerNamespaceId: string;
-    /**
-     * ID of the issuer policy
-     * @type {string}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    issuerPolicyIdentifier?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    validityMonths?: number;
+export interface CertificateRequestPolicyParametersAllOf {
     /**
      * 
      * @type {string}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     keyStorePath: string;
     /**
      * 
      * @type {KeyProperties}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     keyProperties?: KeyProperties;
     /**
      * 
      * @type {CertificateSubject}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     subject: CertificateSubject;
     /**
      * 
      * @type {CertificateSubjectAlternativeNames}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     subjectAlternativeNames?: CertificateSubjectAlternativeNames;
     /**
      * 
      * @type {CertificateUsage}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     usage: CertificateUsage;
     /**
      * 
      * @type {CertificateLifetimeTrigger}
-     * @memberof CertificateRequestPolicyParameters
+     * @memberof CertificateRequestPolicyParametersAllOf
      */
     lifetimeTrigger?: CertificateLifetimeTrigger;
 }
 
 /**
- * Check if a given object implements the CertificateRequestPolicyParameters interface.
+ * Check if a given object implements the CertificateRequestPolicyParametersAllOf interface.
  */
-export function instanceOfCertificateRequestPolicyParameters(value: object): boolean {
+export function instanceOfCertificateRequestPolicyParametersAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "issuerNamespaceId" in value;
     isInstance = isInstance && "keyStorePath" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
@@ -119,19 +100,16 @@ export function instanceOfCertificateRequestPolicyParameters(value: object): boo
     return isInstance;
 }
 
-export function CertificateRequestPolicyParametersFromJSON(json: any): CertificateRequestPolicyParameters {
-    return CertificateRequestPolicyParametersFromJSONTyped(json, false);
+export function CertificateRequestPolicyParametersAllOfFromJSON(json: any): CertificateRequestPolicyParametersAllOf {
+    return CertificateRequestPolicyParametersAllOfFromJSONTyped(json, false);
 }
 
-export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRequestPolicyParameters {
+export function CertificateRequestPolicyParametersAllOfFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRequestPolicyParametersAllOf {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'issuerNamespaceId': json['issuerNamespaceId'],
-        'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
-        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': json['keyStorePath'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : KeyPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -141,7 +119,7 @@ export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignor
     };
 }
 
-export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequestPolicyParameters | null): any {
+export function CertificateRequestPolicyParametersAllOfToJSON(value?: CertificateRequestPolicyParametersAllOf | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -150,9 +128,6 @@ export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequ
     }
     return {
         
-        'issuerNamespaceId': value.issuerNamespaceId,
-        'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
-        'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,
         'keyProperties': KeyPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),

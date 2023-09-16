@@ -54,42 +54,88 @@ func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
 	c.JSON(http.StatusOK, results)
 }
 
-func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
+var (
+	defaultPolicyIdCertRequest                 = common.GetID(common.DefaultPolicyIdCertRequest)
+	defaultPolicyIdCertEnrollGroupMemberDevice = common.GetID(common.DefaultPolicyIdCertEnrollGroupMemberDevice)
+)
+
+func resolvePolicyIdentifier(policyIdentifier string) (uuid.UUID, error) {
+	switch policyIdentifier {
+	case string(PolicyTypeCertRequest):
+		return defaultPolicyIdCertRequest, nil
+	case string(PolicyTypeCertEnrollGroupMemberDevice):
+		return defaultPolicyIdCertEnrollGroupMemberDevice, nil
+	}
+	return uuid.Parse(policyIdentifier)
+}
+
+func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
+	switch policyID {
+	case defaultPolicyIdCertRequest:
+		return policyType == PolicyTypeCertRequest
+	case defaultPolicyIdCertEnrollGroupMemberDevice:
+		return policyType == PolicyTypeCertEnrollGroupMemberDevice
+	}
+	return true
+}
+
+func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyIdentifier string) {
 	// validate
 	if !auth.CallerPrincipalHasAdminRole(c) {
 		c.JSON(http.StatusForbidden, nil)
 		return
 	}
 
-	p := PolicyParameters{}
+	policyID, err := resolvePolicyIdentifier(policyIdentifier)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("invalid policy identifier: %s", policyIdentifier)})
+		return
+	}
 
+	p := PolicyParameters{}
 	if err := c.BindJSON(&p); err != nil {
 		c.JSON(http.StatusBadRequest, nil)
 		return
 	}
+
+	if !isPolicyTypeValidForId(p.PolicyType, policyID) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("policy type %s is not valid for policy id %s", p.PolicyType, policyID)})
+		return
+	}
+
 	policyDoc := new(PolicyDoc)
 	var dirProfile *DirectoryObjectDoc
 	switch p.PolicyType {
 	case PolicyTypeCertRequest:
 		switch {
 		case IsRootCANamespace(namespaceID):
-			if namespaceID != policyID {
+			// root ca must have issuer as the same as the namespace id
+			if p.CertRequest.IssuerNamespaceID != namespaceID {
 				c.JSON(http.StatusForbidden, gin.H{"message": "root namespace must have policy name as the same as the namespace id"})
 				return
 			}
 		case IsIntCANamespace(namespaceID):
 			if IsTestCA(namespaceID) {
-				if policyID != testNamespaceID_RootCA {
-					c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
+				// test int ca must have issuer namespace as the same as test root ca
+				if p.CertRequest.IssuerNamespaceID != testNamespaceID_RootCA {
+					c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
 					return
 				}
 			} else {
-				if policyID != wellKnownNamespaceID_RootCA {
-					c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
+				if p.CertRequest.IssuerNamespaceID != wellKnownNamespaceID_RootCA {
+					c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
 					return
 				}
 			}
 		default:
+			// other certificate must be issued by an intermediate CA
+			if !IsIntCANamespace(p.CertRequest.IssuerNamespaceID) {
+				c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
+				return
+			}
+
+			// verify requester is one of
+			// - servicePrincipal
 			dirProfile, err := s.GetDirectoryObjectDoc(c, namespaceID)
 			if err != nil {
 				if common.IsAzNotFound(err) {
@@ -101,8 +147,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 				return
 			}
 			switch dirProfile.OdataType {
-			case string(NamespaceTypeMsGraphGroup),
-				string(NamespaceTypeMsGraphServicePrincipal):
+			case string(NamespaceTypeMsGraphServicePrincipal):
 				// ok
 			default:
 				c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
@@ -115,6 +160,25 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 			return
 		}
 		policyDoc.CertRequest = docSection
+	case PolicyTypeCertEnrollGroupMemberDevice:
+		// verify namespace belongs to a group
+		dirDoc, err := s.GetDirectoryObjectDoc(c, namespaceID)
+		if err != nil {
+			if common.IsAzNotFound(err) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
+				return
+			}
+			log.Error().Err(err).Msg("failed to get directory profile")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		switch dirDoc.OdataType {
+		case string(NamespaceTypeMsGraphGroup):
+			// ok
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
+			return
+		}
 	default:
 		c.JSON(http.StatusBadRequest, nil)
 		return
@@ -132,9 +196,14 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	c.JSON(http.StatusOK, policyDoc.ToPolicy())
 }
 
-func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID) {
+func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyIdentifier string) {
 	// validate
 	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
+		return
+	}
+	policyID, err := resolvePolicyIdentifier(policyIdentifier)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("invalid policy identifier: %s", policyIdentifier)})
 		return
 	}
 	pd, err := s.GetPolicyDoc(c, namespaceID, policyID)

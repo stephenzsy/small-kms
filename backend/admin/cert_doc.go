@@ -16,9 +16,12 @@ type CertDoc struct {
 	PolicyID uuid.UUID `json:"policyId"`
 	Expires  time.Time `json:"expires"`
 	// alias for certs with L prefix
-	AliasID *kmsdoc.KmsDocID `json:"aliasId,omitempty"`
-	Usage   CertificateUsage `json:"usage"`
-
+	AliasID         *kmsdoc.KmsDocID `json:"aliasId,omitempty"`
+	Usage           CertificateUsage `json:"usage"`
+	IssuerNamespace uuid.UUID        `json:"issuerNamespace"`
+	IssuerID        kmsdoc.KmsDocID  `json:"issuerId"`
+	// display name of the certificate
+	Name string `json:"name"`
 	// keyvault certificate id
 	CID string `json:"cid"`
 	// keyvault certificate key id

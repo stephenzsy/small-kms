@@ -45,7 +45,7 @@ export interface ApplyPolicyV1Request {
 
 export interface GetPolicyV1Request {
     namespaceId: string;
-    policyId: string;
+    policyIdentifier: string;
 }
 
 export interface ListPoliciesV1Request {
@@ -54,7 +54,7 @@ export interface ListPoliciesV1Request {
 
 export interface PutPolicyV1Request {
     namespaceId: string;
-    policyId: string;
+    policyIdentifier: string;
     policyParameters: PolicyParameters;
 }
 
@@ -116,8 +116,8 @@ export class PolicyApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getPolicyV1.');
         }
 
-        if (requestParameters.policyId === null || requestParameters.policyId === undefined) {
-            throw new runtime.RequiredError('policyId','Required parameter requestParameters.policyId was null or undefined when calling getPolicyV1.');
+        if (requestParameters.policyIdentifier === null || requestParameters.policyIdentifier === undefined) {
+            throw new runtime.RequiredError('policyIdentifier','Required parameter requestParameters.policyIdentifier was null or undefined when calling getPolicyV1.');
         }
 
         const queryParameters: any = {};
@@ -133,7 +133,7 @@ export class PolicyApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/policies/{policyId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyId"}}`, encodeURIComponent(String(requestParameters.policyId))),
+            path: `/v1/{namespaceId}/policies/{policyIdentifier}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyIdentifier"}}`, encodeURIComponent(String(requestParameters.policyIdentifier))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -196,8 +196,8 @@ export class PolicyApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putPolicyV1.');
         }
 
-        if (requestParameters.policyId === null || requestParameters.policyId === undefined) {
-            throw new runtime.RequiredError('policyId','Required parameter requestParameters.policyId was null or undefined when calling putPolicyV1.');
+        if (requestParameters.policyIdentifier === null || requestParameters.policyIdentifier === undefined) {
+            throw new runtime.RequiredError('policyIdentifier','Required parameter requestParameters.policyIdentifier was null or undefined when calling putPolicyV1.');
         }
 
         if (requestParameters.policyParameters === null || requestParameters.policyParameters === undefined) {
@@ -219,7 +219,7 @@ export class PolicyApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceId}/policies/{policyId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyId"}}`, encodeURIComponent(String(requestParameters.policyId))),
+            path: `/v1/{namespaceId}/policies/{policyIdentifier}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyIdentifier"}}`, encodeURIComponent(String(requestParameters.policyIdentifier))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

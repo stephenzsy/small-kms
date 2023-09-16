@@ -23,75 +23,81 @@ import {
 /**
  * 
  * @export
- * @interface CertificateRef
+ * @interface Certificate
  */
-export interface CertificateRef {
+export interface Certificate {
     /**
      * Unique ID of the namespace
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     namespaceId: string;
     /**
      * 
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     id: string;
     /**
      * Unique ID of the user who created the policy
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     updatedBy: string;
     /**
      * Time when the policy was last updated
      * @type {Date}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     updated: Date;
     /**
      * Name of the certificate, also the common name (CN) in the subject of the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     name: string;
     /**
      * 
      * @type {CertificateUsage}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     usage: CertificateUsage;
     /**
      * Expiration date of the certificate
      * @type {Date}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     notAfter: Date;
     /**
      * Issuer namespace ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     issuerNamespace: string;
     /**
      * Issuer certificate ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     issuer: string;
     /**
      * Unique ID of the user who created the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof Certificate
      */
     createdBy: string;
+    /**
+     * PEM encoded X.509 certificate
+     * @type {string}
+     * @memberof Certificate
+     */
+    x509pem?: string;
 }
 
 /**
- * Check if a given object implements the CertificateRef interface.
+ * Check if a given object implements the Certificate interface.
  */
-export function instanceOfCertificateRef(value: object): boolean {
+export function instanceOfCertificate(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "id" in value;
@@ -107,11 +113,11 @@ export function instanceOfCertificateRef(value: object): boolean {
     return isInstance;
 }
 
-export function CertificateRefFromJSON(json: any): CertificateRef {
-    return CertificateRefFromJSONTyped(json, false);
+export function CertificateFromJSON(json: any): Certificate {
+    return CertificateFromJSONTyped(json, false);
 }
 
-export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRef {
+export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean): Certificate {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -127,10 +133,11 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'issuerNamespace': json['issuerNamespace'],
         'issuer': json['issuer'],
         'createdBy': json['createdBy'],
+        'x509pem': !exists(json, 'x509pem') ? undefined : json['x509pem'],
     };
 }
 
-export function CertificateRefToJSON(value?: CertificateRef | null): any {
+export function CertificateToJSON(value?: Certificate | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -149,6 +156,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'issuerNamespace': value.issuerNamespace,
         'issuer': value.issuer,
         'createdBy': value.createdBy,
+        'x509pem': value.x509pem,
     };
 }
 
