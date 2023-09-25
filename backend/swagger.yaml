@@ -344,12 +344,14 @@ components:
     NamespaceType:
       type: string
       enum:
+        - "#builtin.ca.root"
         - "#builtin.ca.intermediate"
         - "#microsoft.graph.servicePrincipal"
         - "#microsoft.graph.user"
         - "#microsoft.graph.group"
         - "#microsoft.graph.device"
       x-enum-varnames:
+        - NamespaceType_BuiltInCaRoot
         - NamespaceType_BuiltInCaInt
         - NamespaceType_MsGraphServicePrincipal
         - NamespaceType_MsGraphUser

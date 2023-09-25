@@ -18,6 +18,7 @@
  * @export
  */
 export const NamespaceType = {
+    NamespaceType_BuiltInCaRoot: '#builtin.ca.root',
     NamespaceType_BuiltInCaInt: '#builtin.ca.intermediate',
     NamespaceType_MsGraphServicePrincipal: '#microsoft.graph.servicePrincipal',
     NamespaceType_MsGraphUser: '#microsoft.graph.user',

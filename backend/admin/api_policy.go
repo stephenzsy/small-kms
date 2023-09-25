@@ -52,7 +52,7 @@ func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
 	case defaultPolicyIdCertEnrollGroupMemberDevice:
 		return policyType == PolicyTypeCertEnrollGroupMemberDevice
 	}
-	return true
+	return policyID.Version() == 4
 }
 
 func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyIdentifier string) {

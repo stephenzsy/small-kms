@@ -16,21 +16,32 @@ import (
 
 func getBuiltInCaIntNamespaceRefs() []NamespaceRef {
 	return []NamespaceRef{
-		{NamespaceID: wellKnownNamespaceID_IntCaIntranet, ID: wellKnownNamespaceID_IntCaIntranet, DisplayName: "Intermediate CA - Intranet", ObjectType: NamespaceTypeBuiltInCaInt},
-		{NamespaceID: testNamespaceID_IntCA, ID: testNamespaceID_IntCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaInt},
+		{NamespaceID: uuid.Nil, ID: wellKnownNamespaceID_IntCaIntranet, DisplayName: "Intermediate CA - Intranet", ObjectType: NamespaceTypeBuiltInCaInt},
+		{NamespaceID: uuid.Nil, ID: testNamespaceID_IntCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaInt},
+	}
+}
+
+func getBuiltInCaRootNamespaceRefs() []NamespaceRef {
+	return []NamespaceRef{
+		{NamespaceID: uuid.Nil, ID: wellKnownNamespaceID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
+		{NamespaceID: uuid.Nil, ID: testNamespaceID_RootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
 	}
 }
 
 func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceType) {
+	if namespaceType == NamespaceTypeBuiltInCaRoot {
+		c.JSON(http.StatusOK, getBuiltInCaRootNamespaceRefs())
+		return
+	} else if namespaceType == NamespaceTypeBuiltInCaInt {
+		c.JSON(http.StatusOK, getBuiltInCaIntNamespaceRefs())
+		return
+	}
 	if !auth.CallerPrincipalHasAdminRole(c) {
 		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
 		return
 	}
 
 	switch namespaceType {
-	case NamespaceTypeBuiltInCaInt:
-		c.JSON(http.StatusOK, getBuiltInCaIntNamespaceRefs())
-		return
 	case NamespaceTypeMsGraphGroup,
 		NamespaceTypeMsGraphServicePrincipal,
 		NamespaceTypeMsGraphDevice,
@@ -130,6 +141,28 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 }
 
 func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {
+	if IsCANamespace(namespaceId) {
+		nsProfile := new(NamespaceProfile)
+		nsProfile.NamespaceID = namespaceId
+		switch namespaceId {
+		case testNamespaceID_RootCA:
+			nsProfile.DisplayName = "Test Root CA"
+		case wellKnownNamespaceID_RootCA:
+			nsProfile.DisplayName = "Root CA"
+		case testNamespaceID_IntCA:
+			nsProfile.DisplayName = "Test Intermediate CA"
+		case wellKnownNamespaceID_IntCaIntranet:
+			nsProfile.DisplayName = "Intermediate CA - Intranet"
+		case wellKnownNamespaceID_IntCAService:
+			nsProfile.DisplayName = "Intermediate CA - Services"
+		}
+		if IsIntCANamespace(namespaceId) {
+			nsProfile.ObjectType = NamespaceTypeBuiltInCaInt
+		} else {
+			nsProfile.ObjectType = NamespaceTypeBuiltInCaRoot
+		}
+		return nsProfile, nil
+	}
 	doc, err := s.GetDirectoryObjectDoc(c, namespaceId)
 	if common.IsAzNotFound(err) {
 		return nil, nil
@@ -140,8 +173,11 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 }
 
 func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
-		return
+	// CA profiles are public
+	if !IsCANamespace(namespaceId) {
+		if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
+			return
+		}
 	}
 
 	profile, err := s.GetNamespaceProfile(c, namespaceId)

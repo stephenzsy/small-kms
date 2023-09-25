@@ -3,7 +3,12 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { WellknownId } from "../constants";
-import { DirectoryApi, NamespaceProfile, PolicyApi } from "../generated";
+import {
+  DirectoryApi,
+  NamespaceProfile,
+  NamespaceType,
+  PolicyApi,
+} from "../generated";
 import { PolicyRef } from "../generated/models/PolicyRef";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { nsDisplayNames, policyTypeNames } from "./displayConstants";
@@ -129,6 +134,24 @@ export default function PoliciesPage() {
           </div>
         </div>
       </section>
+      {policyRefs &&
+        dirProfile &&
+        (dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaRoot ||
+          dirProfile.objectType ===
+            NamespaceType.NamespaceType_BuiltInCaInt) && (
+          <>
+            {policyRefs.some(
+              (p) => p.id === WellknownId.defaultPolicyIdCertRequest
+            ) ? null : (
+              <Link
+                to={`/admin/${namespaceId}/policies/${WellknownId.defaultPolicyIdCertRequest}`}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                Create Default Certificate Policy
+              </Link>
+            )}
+          </>
+        )}
       {policyRefs && dirProfile && (
         <div>
           <CreatePoliciesLinks policyRefs={policyRefs} profile={dirProfile} />

@@ -1,10 +1,24 @@
 import { useRequest } from "ahooks";
-import { useAppAuthContext } from "./auth/AuthProvider";
-import { DirectoryApi, NamespaceType } from "./generated";
-import { useAuthedClient } from "./utils/useCertsApi";
-import { useMemo } from "react";
 import classNames from "classnames";
-
+import { useAppAuthContext } from "./auth/AuthProvider";
+import { DirectoryApi } from "./generated";
+import { useAuthedClient } from "./utils/useCertsApi";
+/*
+async function genKeypair() {
+  const subtle = new SubtleCrypto();
+  const kp = await subtle.generateKey(
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+      hash: "SHA-384",
+    },
+    true,
+    ["encrypt", "decrypt", "sign", "verify"]
+  );
+  subtle.exportKey("jwk", kp.publicKey);
+}
+*/
 export default function MainPage() {
   const client = useAuthedClient(DirectoryApi);
 
@@ -14,9 +28,12 @@ export default function MainPage() {
     ready: !!account,
   });
 
-  const { run: syncProfiles, loading: syncProfilesLoading } = useRequest(() => client.syncMyProfilesV1(), {
-    manual: true,
-  });
+  const { run: syncProfiles, loading: syncProfilesLoading } = useRequest(
+    () => client.syncMyProfilesV1(),
+    {
+      manual: true,
+    }
+  );
 
   return (
     <>
