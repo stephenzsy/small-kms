@@ -17,7 +17,7 @@ func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
 	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
 		return
 	}
-	l, err := s.ListPoliciesByNamespace(c, namespaceID)
+	l, err := s.listPoliciesByNamespace(c, namespaceID)
 	if err != nil {
 		log.Err(err).Msg("Internal error")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})

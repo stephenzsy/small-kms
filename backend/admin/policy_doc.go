@@ -56,7 +56,7 @@ func (s *adminServer) deletePolicyDoc(c *gin.Context, namespaceID uuid.UUID, pol
 	return kmsdoc.AzCosmosDelete(c, s.azCosmosContainerClientCerts, namespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), purge)
 }
 
-func (s *adminServer) ListPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
+func (s *adminServer) listPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
 	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
 WHERE c.namespaceId = @namespaceId AND c.type = @type`,
@@ -75,6 +75,7 @@ func (doc *PolicyDoc) PopulatePolicyRef(r *PolicyRef) {
 	r.NamespaceID = doc.NamespaceID
 	r.Updated = doc.Updated
 	r.UpdatedBy = doc.UpdatedBy
+	r.Deleted = doc.Deleted
 
 	r.PolicyType = doc.PolicyType
 }

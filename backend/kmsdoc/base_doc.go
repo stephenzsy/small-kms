@@ -94,7 +94,7 @@ type BaseDoc struct {
 }
 
 func GetBaseDocQueryColumns(prefix string) string {
-	return fmt.Sprintf("%s.id,%s.namespaceId,%s.updated,%s.updatedBy,%s.updatedByName", prefix, prefix, prefix, prefix, prefix)
+	return fmt.Sprintf("%s.id,%s.namespaceId,%s.updated,%s.updatedBy,%s.deleted", prefix, prefix, prefix, prefix, prefix)
 }
 
 type KmsDocument interface {

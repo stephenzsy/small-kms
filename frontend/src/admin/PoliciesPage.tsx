@@ -1,16 +1,12 @@
 import { useRequest } from "ahooks";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { WellknownId } from "../constants";
 import { DirectoryApi, NamespaceProfile, PolicyApi } from "../generated";
 import { PolicyRef } from "../generated/models/PolicyRef";
 import { useAuthedClient } from "../utils/useCertsApi";
-import {
-  policyTypeNames,
-  isRootCaNamespace,
-  nsDisplayNames,
-} from "./displayConstants";
-import { useMemo } from "react";
-import { WellknownId } from "../constants";
+import { nsDisplayNames, policyTypeNames } from "./displayConstants";
 
 function CreatePoliciesLinks({
   policyRefs,
@@ -32,7 +28,8 @@ function CreatePoliciesLinks({
           to={`/admin/${profile.id}/policies/${WellknownId.nsIntCaIntranet}`}
           className="text-indigo-600 hover:text-indigo-900"
         >
-          Create Intranet Certificate Policy<span className="sr-only">, {WellknownId.nsIntCaIntranet}</span>
+          Create Intranet Certificate Policy
+          <span className="sr-only">, {WellknownId.nsIntCaIntranet}</span>
         </Link>
       )}
     </>
@@ -87,6 +84,12 @@ export default function PoliciesPage() {
                       </th>
                       <th
                         scope="col"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
                         className="relative py-3.5 pl-3 pr-4 sm:pr-0"
                       >
                         <span className="sr-only">Edit</span>
@@ -101,6 +104,9 @@ export default function PoliciesPage() {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {policyTypeNames[p.policyType]}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {p.deleted ? "Disabled" : "Enabled"}
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">
                           <Link

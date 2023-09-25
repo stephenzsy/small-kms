@@ -304,11 +304,12 @@ export default function PolicyPage() {
   const [formOpen, { toggle: toggleForm, setFalse: closeForm }] =
     useBoolean(false);
 
-  const { run: disablePolicy } = useRequest(
-    async () => {
+  const { run: deletePolicy } = useRequest(
+    async (purge?: boolean) => {
       const updated = await client.deletePolicyV1({
         namespaceId: namespaceId!,
         policyIdentifier: policyId!,
+        purge: purge ?? false,
       });
       mutate(updated);
     },
@@ -316,10 +317,13 @@ export default function PolicyPage() {
   );
 
   const [
+    disableDialogOpen,
+    { setFalse: closeDisableDialog, setTrue: openDisableDialog },
+  ] = useBoolean(false);
+  const [
     deleteDialogOpen,
     { setFalse: closeDeleteDialog, setTrue: openDeleteDialog },
   ] = useBoolean(false);
-
   return (
     <>
       <h1 className="text-4xl font-semibold">Policy</h1>
@@ -335,20 +339,41 @@ export default function PolicyPage() {
         <div>No policy</div>
       )}
       <div className="flex flex-row items-center gap-x-6">
-        <Button color="danger" variant="soft" onClick={openDeleteDialog}>
-          Disable
-        </Button>
-        <AlertDialog
-          title="Disable policy"
-          description="Are you sure you want to disable this policy?"
-          open={deleteDialogOpen}
-          onClose={closeDeleteDialog}
-          okText="Disable policy"
-          onOk={() => {
-            disablePolicy();
-            closeDeleteDialog();
-          }}
-        />
+        {fetchedPolicy?.deleted ? (
+          <>
+            <Button color="danger" variant="soft" onClick={openDeleteDialog}>
+              Delete
+            </Button>
+            <AlertDialog
+              title="Delete policy"
+              description="Are you sure you want to delete this policy? This action cannot be undone."
+              open={deleteDialogOpen}
+              onClose={closeDeleteDialog}
+              okText="Delete policy"
+              onOk={() => {
+                deletePolicy(true);
+                closeDeleteDialog();
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <Button color="danger" variant="soft" onClick={openDisableDialog}>
+              Disable
+            </Button>
+            <AlertDialog
+              title="Disable policy"
+              description="Are you sure you want to disable this policy?"
+              open={disableDialogOpen}
+              onClose={closeDisableDialog}
+              okText="Disable policy"
+              onOk={() => {
+                deletePolicy();
+                closeDisableDialog();
+              }}
+            />
+          </>
+        )}
         <button
           type="button"
           className={classNames(
