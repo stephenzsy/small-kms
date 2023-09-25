@@ -51,6 +51,12 @@ export interface CertificateRef {
      */
     updated: Date;
     /**
+     * Time when the policy was deleted
+     * @type {Date}
+     * @memberof CertificateRef
+     */
+    deleted?: Date;
+    /**
      * Name of the certificate, also the common name (CN) in the subject of the certificate
      * @type {string}
      * @memberof CertificateRef
@@ -121,6 +127,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'id': json['id'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'name': json['name'],
         'usage': CertificateUsageFromJSON(json['usage']),
         'notAfter': (new Date(json['notAfter'])),
@@ -143,6 +150,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'id': value.id,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'name': value.name,
         'usage': CertificateUsageToJSON(value.usage),
         'notAfter': (value.notAfter.toISOString()),

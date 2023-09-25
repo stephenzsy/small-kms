@@ -43,6 +43,12 @@ export interface ApplyPolicyV1Request {
     applyPolicyRequest?: ApplyPolicyRequest;
 }
 
+export interface DeletePolicyV1Request {
+    namespaceId: string;
+    policyIdentifier: string;
+    purge?: boolean;
+}
+
 export interface GetPolicyV1Request {
     namespaceId: string;
     policyIdentifier: string;
@@ -105,6 +111,52 @@ export class PolicyApi extends runtime.BaseAPI {
      */
     async applyPolicyV1(requestParameters: ApplyPolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PolicyState> {
         const response = await this.applyPolicyV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Delete Certificate Policy
+     */
+    async deletePolicyV1Raw(requestParameters: DeletePolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Policy>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deletePolicyV1.');
+        }
+
+        if (requestParameters.policyIdentifier === null || requestParameters.policyIdentifier === undefined) {
+            throw new runtime.RequiredError('policyIdentifier','Required parameter requestParameters.policyIdentifier was null or undefined when calling deletePolicyV1.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.purge !== undefined) {
+            queryParameters['purge'] = requestParameters.purge;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceId}/policies/{policyIdentifier}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"policyIdentifier"}}`, encodeURIComponent(String(requestParameters.policyIdentifier))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PolicyFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete Certificate Policy
+     */
+    async deletePolicyV1(requestParameters: DeletePolicyV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Policy> {
+        const response = await this.deletePolicyV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

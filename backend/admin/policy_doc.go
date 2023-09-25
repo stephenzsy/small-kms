@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
@@ -12,6 +13,28 @@ import (
 type PolicyDocSectionIssuerProperties struct {
 	IssuerNamespaceID uuid.UUID `json:"issuerNamespaceId"`
 	IssuerPolicyID    uuid.UUID `json:"issuerPolicyId"`
+}
+
+func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertRequestParameters(p *CertificateRequestPolicyParameters) (err error) {
+	t.IssuerNamespaceID = p.IssuerNamespaceID
+
+	if p.IssuerPolicyIdentifier == nil {
+		t.IssuerPolicyID = defaultPolicyIdCertRequest
+	} else if t.IssuerPolicyID, err = resolvePolicyIdentifier(*p.IssuerPolicyIdentifier); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertEnrollParameters(p *CertificateEnrollPolicyParameters) (err error) {
+	t.IssuerNamespaceID = p.IssuerNamespaceID
+
+	if p.IssuerPolicyIdentifier == nil {
+		t.IssuerPolicyID = defaultPolicyIdCertRequest
+	} else if t.IssuerPolicyID, err = resolvePolicyIdentifier(*p.IssuerPolicyIdentifier); err != nil {
+		return err
+	}
+	return nil
 }
 
 type PolicyDoc struct {
@@ -27,6 +50,10 @@ func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, pol
 	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), pd)
 	return pd, err
+}
+
+func (s *adminServer) deletePolicyDoc(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID, purge bool) error {
+	return kmsdoc.AzCosmosDelete(c, s.azCosmosContainerClientCerts, namespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), purge)
 }
 
 func (s *adminServer) ListPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
@@ -81,6 +108,7 @@ func (doc *PolicyDoc) ToPolicy() *Policy {
 		ID:          doc.GetUUID(),
 		PolicyType:  doc.PolicyType,
 		NamespaceID: doc.NamespaceID,
+		Deleted:     doc.Deleted,
 		Updated:     doc.Updated,
 		UpdatedBy:   fmt.Sprintf("%s:%s", doc.UpdatedBy, doc.UpdatedByName),
 	}

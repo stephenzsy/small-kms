@@ -57,6 +57,12 @@ export interface PolicyState {
      */
     updated: Date;
     /**
+     * Time when the policy was deleted
+     * @type {Date}
+     * @memberof PolicyState
+     */
+    deleted?: Date;
+    /**
      * 
      * @type {PolicyType}
      * @memberof PolicyState
@@ -111,6 +117,7 @@ export function PolicyStateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'id': json['id'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'policyType': PolicyTypeFromJSON(json['policyType']),
         'status': !exists(json, 'status') ? undefined : json['status'],
         'message': json['message'],
@@ -131,6 +138,7 @@ export function PolicyStateToJSON(value?: PolicyState | null): any {
         'id': value.id,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'policyType': PolicyTypeToJSON(value.policyType),
         'status': value.status,
         'message': value.message,

@@ -43,6 +43,12 @@ export interface ResourceRef {
      * @memberof ResourceRef
      */
     updated: Date;
+    /**
+     * Time when the policy was deleted
+     * @type {Date}
+     * @memberof ResourceRef
+     */
+    deleted?: Date;
 }
 
 /**
@@ -72,6 +78,7 @@ export function ResourceRefFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'id': json['id'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
     };
 }
 
@@ -88,6 +95,7 @@ export function ResourceRefToJSON(value?: ResourceRef | null): any {
         'id': value.id,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
     };
 }
 

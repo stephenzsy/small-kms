@@ -12,9 +12,9 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
-	github.com/microsoftgraph/msgraph-sdk-go v1.18.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.19.0
 	github.com/oapi-codegen/runtime v1.0.0
-	github.com/rs/zerolog v1.30.0
+	github.com/rs/zerolog v1.31.0
 )
 
 require (

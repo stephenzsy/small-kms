@@ -239,6 +239,36 @@ paths:
                 $ref: "#/components/schemas/Policy"
         404:
           $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - policy
+      summary: Delete Certificate Policy
+      operationId: DeletePolicyV1
+      parameters:
+        - in: path
+          name: namespaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: policyIdentifier
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: purge
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: Certificate policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        204:
+          description: No content
   /v1/{namespaceId}/policies/{policyId}/apply:
     post:
       tags:
@@ -462,6 +492,10 @@ components:
           type: string
         updated:
           description: Time when the policy was last updated
+          type: string
+          format: date-time
+        deleted:
+          description: Time when the policy was deleted
           type: string
           format: date-time
       required:

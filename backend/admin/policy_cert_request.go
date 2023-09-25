@@ -82,7 +82,11 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 		return fmt.Errorf("invalid usage: %s", p.Usage)
 	}
 	t.Usage = p.Usage
-	t.IssuerNamespaceID = p.IssuerNamespaceID
+
+	if err := t.PolicyDocSectionIssuerProperties.validateAndFillWithCertRequestParameters(p); err != nil {
+		return err
+	}
+
 	// key store path to store certificate in keyvault is required except for client only certificates
 	t.KeyStorePath = p.KeyStorePath
 	if p.Usage == UsageClientOnly {

@@ -158,3 +158,18 @@ func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClie
 	}
 	return json.Unmarshal(resp.Value, target)
 }
+
+func AzCosmosDelete(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID, docID KmsDocID, purge bool) (err error) {
+	if purge {
+		_, err = cc.DeleteItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), nil)
+	} else {
+		ops := azcosmos.PatchOperations{}
+		tsStr := time.Now().UTC().Format(time.RFC3339)
+		ops.AppendSet("/deleted", tsStr)
+		ops.AppendSet("/updated", tsStr)
+		ops.AppendSet("/updatedBy", auth.CallerPrincipalId(ctx).String())
+		ops.AppendSet("/updatedByName", auth.CallerPrincipalName(ctx))
+		_, err = cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), ops, nil)
+	}
+	return
+}

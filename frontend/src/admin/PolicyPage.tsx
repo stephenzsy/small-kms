@@ -21,6 +21,8 @@ import {
   isRootCaNamespace,
   nsDisplayNames,
 } from "./displayConstants";
+import { Button } from "../components/Button";
+import AlertDialog from "../components/AlertDialog";
 
 interface CertCreatePolicyFormInput {
   subjectCN: string;
@@ -302,6 +304,22 @@ export default function PolicyPage() {
   const [formOpen, { toggle: toggleForm, setFalse: closeForm }] =
     useBoolean(false);
 
+  const { run: disablePolicy } = useRequest(
+    async () => {
+      const updated = await client.deletePolicyV1({
+        namespaceId: namespaceId!,
+        policyIdentifier: policyId!,
+      });
+      mutate(updated);
+    },
+    { manual: true }
+  );
+
+  const [
+    deleteDialogOpen,
+    { setFalse: closeDeleteDialog, setTrue: openDeleteDialog },
+  ] = useBoolean(false);
+
   return (
     <>
       <h1 className="text-4xl font-semibold">Policy</h1>
@@ -317,6 +335,20 @@ export default function PolicyPage() {
         <div>No policy</div>
       )}
       <div className="flex flex-row items-center gap-x-6">
+        <Button color="danger" variant="soft" onClick={openDeleteDialog}>
+          Disable
+        </Button>
+        <AlertDialog
+          title="Disable policy"
+          description="Are you sure you want to disable this policy?"
+          open={deleteDialogOpen}
+          onClose={closeDeleteDialog}
+          okText="Disable policy"
+          onOk={() => {
+            disablePolicy();
+            closeDeleteDialog();
+          }}
+        />
         <button
           type="button"
           className={classNames(

@@ -63,6 +63,12 @@ export interface Policy {
      */
     updated: Date;
     /**
+     * Time when the policy was deleted
+     * @type {Date}
+     * @memberof Policy
+     */
+    deleted?: Date;
+    /**
      * 
      * @type {PolicyType}
      * @memberof Policy
@@ -110,6 +116,7 @@ export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Po
         'id': json['id'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'policyType': PolicyTypeFromJSON(json['policyType']),
         'certRequest': !exists(json, 'certRequest') ? undefined : CertificateRequestPolicyParametersFromJSON(json['certRequest']),
         'certEnroll': !exists(json, 'certEnroll') ? undefined : CertificateEnrollPolicyParametersFromJSON(json['certEnroll']),
@@ -129,6 +136,7 @@ export function PolicyToJSON(value?: Policy | null): any {
         'id': value.id,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'policyType': PolicyTypeToJSON(value.policyType),
         'certRequest': CertificateRequestPolicyParametersToJSON(value.certRequest),
         'certEnroll': CertificateEnrollPolicyParametersToJSON(value.certEnroll),

@@ -12,33 +12,9 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func getBuiltinPolicyRefs(namespaceID uuid.UUID) []PolicyRef {
-	switch {
-	case IsRootCANamespace(namespaceID):
-		return []PolicyRef{
-			{NamespaceID: namespaceID, ID: namespaceID, PolicyType: PolicyTypeCertRequest},
-		}
-	case IsIntCANamespace(namespaceID):
-		rootCaNs := wellKnownNamespaceID_RootCA
-		if IsTestCA(namespaceID) {
-			rootCaNs = testNamespaceID_RootCA
-		}
-		return []PolicyRef{
-			{NamespaceID: namespaceID, ID: rootCaNs, PolicyType: PolicyTypeCertRequest},
-		}
-
-	}
-	return nil
-}
-
 func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
 	// validate
 	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
-		return
-	}
-	builtInList := getBuiltinPolicyRefs(namespaceID)
-	if builtInList != nil {
-		c.JSON(http.StatusOK, builtInList)
 		return
 	}
 	l, err := s.ListPoliciesByNamespace(c, namespaceID)
@@ -111,7 +87,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 		case IsRootCANamespace(namespaceID):
 			// root ca must have issuer as the same as the namespace id
 			if p.CertRequest.IssuerNamespaceID != namespaceID {
-				c.JSON(http.StatusForbidden, gin.H{"message": "root namespace must have policy name as the same as the namespace id"})
+				c.JSON(http.StatusForbidden, gin.H{"message": "root namespace must have policy issuer the same as the namespace ID"})
 				return
 			}
 		case IsIntCANamespace(namespaceID):
@@ -179,6 +155,12 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 			c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
 			return
 		}
+		docSection := new(PolicyCertEnrollDocSection)
+		if err := docSection.validateAndFillWithCertEnrollParameters(p.CertEnroll); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+		policyDoc.CertEnroll = docSection
 	default:
 		c.JSON(http.StatusBadRequest, nil)
 		return
@@ -217,5 +199,54 @@ func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 		return
 	}
 
+	c.JSON(200, pd.ToPolicy())
+}
+
+// Delete Certificate Policy
+// (DELETE /v1/{namespaceId}/policies/{policyIdentifier})
+func (s *adminServer) DeletePolicyV1(c *gin.Context, namespaceID uuid.UUID, policyIdentifier string, params DeletePolicyV1Params) {
+	purge := false
+	if params.Purge != nil && *params.Purge {
+		if !auth.CallerPrincipalHasAdminRole(c) {
+			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can purge"})
+			return
+		}
+		purge = true
+	}
+	// validate
+	if _, ok := authNamespaceAdminOrSelf(c, namespaceID); !ok {
+		return
+	}
+	policyID, err := resolvePolicyIdentifier(policyIdentifier)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("invalid policy identifier: %s", policyIdentifier)})
+		return
+	}
+	err = s.deletePolicyDoc(c, namespaceID, policyID, purge)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			c.JSON(http.StatusNotFound, nil)
+		} else {
+			log.Printf("Internal error: %s", err.Error())
+			c.JSON(500, gin.H{"error": "internal error"})
+		}
+		return
+	}
+
+	if purge {
+		c.JSON(204, nil)
+	}
+
+	pd, err := s.GetPolicyDoc(c, namespaceID, policyID)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			c.JSON(http.StatusNotFound, nil)
+		} else {
+			log.Printf("Internal error: %s", err.Error())
+			c.JSON(500, gin.H{"error": "internal error"})
+		}
+
+		return
+	}
 	c.JSON(200, pd.ToPolicy())
 }

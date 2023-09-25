@@ -51,6 +51,12 @@ export interface NamespaceRef {
      */
     updated: Date;
     /**
+     * Time when the policy was deleted
+     * @type {Date}
+     * @memberof NamespaceRef
+     */
+    deleted?: Date;
+    /**
      * 
      * @type {NamespaceType}
      * @memberof NamespaceRef
@@ -93,6 +99,7 @@ export function NamespaceRefFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'id': json['id'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'objectType': NamespaceTypeFromJSON(json['objectType']),
         'displayName': json['displayName'],
     };
@@ -111,6 +118,7 @@ export function NamespaceRefToJSON(value?: NamespaceRef | null): any {
         'id': value.id,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'objectType': NamespaceTypeToJSON(value.objectType),
         'displayName': value.displayName,
     };

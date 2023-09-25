@@ -80,8 +80,11 @@ type ApplyPolicyRequest struct {
 // Certificate defines model for Certificate.
 type Certificate struct {
 	// CreatedBy Unique ID of the user who created the certificate
-	CreatedBy string             `json:"createdBy"`
-	ID        openapi_types.UUID `json:"id"`
+	CreatedBy string `json:"createdBy"`
+
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
 
 	// Issuer Issuer certificate ID
 	Issuer openapi_types.UUID `json:"issuer"`
@@ -142,8 +145,11 @@ type CertificateLifetimeTrigger struct {
 // CertificateRef defines model for CertificateRef.
 type CertificateRef struct {
 	// CreatedBy Unique ID of the user who created the certificate
-	CreatedBy string             `json:"createdBy"`
-	ID        openapi_types.UUID `json:"id"`
+	CreatedBy string `json:"createdBy"`
+
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
 
 	// Issuer Issuer certificate ID
 	Issuer openapi_types.UUID `json:"issuer"`
@@ -240,6 +246,9 @@ type KeyType string
 
 // NamespaceProfile defines model for NamespaceProfile.
 type NamespaceProfile struct {
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time `json:"deleted,omitempty"`
+
 	// DeviceId \#microsoft.graph.device deviceId
 	DeviceID        *string            `json:"deviceId,omitempty"`
 	DeviceOwnership *string            `json:"deviceOwnership,omitempty"`
@@ -270,6 +279,8 @@ type NamespaceProfile struct {
 
 // NamespaceRef defines model for NamespaceRef.
 type NamespaceRef struct {
+	// Deleted Time when the policy was deleted
+	Deleted     *time.Time         `json:"deleted,omitempty"`
 	DisplayName string             `json:"displayName"`
 	ID          openapi_types.UUID `json:"id"`
 
@@ -291,7 +302,10 @@ type NamespaceType string
 type Policy struct {
 	CertEnroll  *CertificateEnrollPolicyParameters  `json:"certEnroll,omitempty"`
 	CertRequest *CertificateRequestPolicyParameters `json:"certRequest,omitempty"`
-	ID          openapi_types.UUID                  `json:"id"`
+
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
@@ -313,7 +327,9 @@ type PolicyParameters struct {
 
 // PolicyRef defines model for PolicyRef.
 type PolicyRef struct {
-	ID openapi_types.UUID `json:"id"`
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
@@ -329,8 +345,11 @@ type PolicyRef struct {
 // PolicyState defines model for PolicyState.
 type PolicyState struct {
 	CertRequest *PolicyStateCertRequest `json:"certRequest,omitempty"`
-	ID          openapi_types.UUID      `json:"id"`
-	Message     string                  `json:"message"`
+
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
+	Message string             `json:"message"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
@@ -375,7 +394,9 @@ type RequestHeaderEntry struct {
 
 // ResourceRef defines model for ResourceRef.
 type ResourceRef struct {
-	ID openapi_types.UUID `json:"id"`
+	// Deleted Time when the policy was deleted
+	Deleted *time.Time         `json:"deleted,omitempty"`
+	ID      openapi_types.UUID `json:"id"`
 
 	// NamespaceId Unique ID of the namespace
 	NamespaceID openapi_types.UUID `json:"namespaceId"`
@@ -401,6 +422,11 @@ type GetCertificateV1Params struct {
 
 // GetCertificateV1ParamsAccept defines parameters for GetCertificateV1.
 type GetCertificateV1ParamsAccept string
+
+// DeletePolicyV1Params defines parameters for DeletePolicyV1.
+type DeletePolicyV1Params struct {
+	Purge *bool `form:"purge,omitempty" json:"purge,omitempty"`
+}
 
 // EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
 type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest
@@ -586,6 +612,9 @@ type ServerInterface interface {
 	// List policies
 	// (GET /v1/{namespaceId}/policies)
 	ListPoliciesV1(c *gin.Context, namespaceId openapi_types.UUID)
+	// Delete Certificate Policy
+	// (DELETE /v1/{namespaceId}/policies/{policyIdentifier})
+	DeletePolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyIdentifier string, params DeletePolicyV1Params)
 	// Get Certificate Policy
 	// (GET /v1/{namespaceId}/policies/{policyIdentifier})
 	GetPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyIdentifier string)
@@ -809,6 +838,52 @@ func (siw *ServerInterfaceWrapper) ListPoliciesV1(c *gin.Context) {
 	siw.Handler.ListPoliciesV1(c, namespaceId)
 }
 
+// DeletePolicyV1 operation middleware
+func (siw *ServerInterfaceWrapper) DeletePolicyV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "policyIdentifier" -------------
+	var policyIdentifier string
+
+	err = runtime.BindStyledParameter("simple", false, "policyIdentifier", c.Param("policyIdentifier"), &policyIdentifier)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter policyIdentifier: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeletePolicyV1Params
+
+	// ------------- Optional query parameter "purge" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "purge", c.Request.URL.Query(), &params.Purge)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter purge: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeletePolicyV1(c, namespaceId, policyIdentifier, params)
+}
+
 // GetPolicyV1 operation middleware
 func (siw *ServerInterfaceWrapper) GetPolicyV1(c *gin.Context) {
 
@@ -1001,6 +1076,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies", wrapper.ListPoliciesV1)
+	router.DELETE(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.DeletePolicyV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.GetPolicyV1)
 	router.PUT(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.PutPolicyV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
