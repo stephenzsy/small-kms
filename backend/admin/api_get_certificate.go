@@ -8,6 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error) {
@@ -32,8 +34,37 @@ func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName stri
 	return downloadedData.Bytes(), nil
 }
 
+func (c *CertificateRef) populateFromDoc(certDoc *CertDoc) {
+	c.Deleted = certDoc.Deleted
+	c.ID = certDoc.ID.GetUUID()
+	c.Issuer = certDoc.IssuerID.GetUUID()
+	c.IssuerNamespace = certDoc.IssuerNamespace
+	c.Name = certDoc.Name
+	c.NamespaceID = certDoc.NamespaceID
+	c.NotAfter = certDoc.Expires
+	c.Updated = certDoc.Updated
+	c.UpdatedBy = certDoc.UpdatedBy
+	c.Usage = certDoc.Usage
+}
+
 func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id uuid.UUID, params GetCertificateV1Params) {
 	if _, ok := authNamespaceRead(c, namespaceID); !ok {
+		return
+	}
+	if params.ByType != nil && *params.ByType == PolicyId {
+		certDoc, err := s.getLatestCertDocForPolicy(c, namespaceID, id)
+		if err != nil {
+			if common.IsAzNotFound(err) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+				return
+			}
+			log.Error().Err(err).Msg("Internal error")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		cert := new(CertificateRef)
+		cert.populateFromDoc(certDoc)
+		c.JSON(http.StatusOK, cert)
 		return
 	}
 	c.JSON(http.StatusNotFound, gin.H{"error": "not found"})

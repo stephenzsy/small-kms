@@ -23,98 +23,64 @@ import {
 /**
  * 
  * @export
- * @interface CertificateRef
+ * @interface CertificateRefParameters
  */
-export interface CertificateRef {
-    /**
-     * Unique ID of the namespace
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    namespaceId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    id: string;
-    /**
-     * Unique ID of the user who created the policy
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    updatedBy: string;
-    /**
-     * Time when the policy was last updated
-     * @type {Date}
-     * @memberof CertificateRef
-     */
-    updated: Date;
-    /**
-     * Time when the policy was deleted
-     * @type {Date}
-     * @memberof CertificateRef
-     */
-    deleted?: Date;
+export interface CertificateRefParameters {
     /**
      * Name of the certificate, also the common name (CN) in the subject of the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     name: string;
     /**
      * 
      * @type {CertificateUsage}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     usage: CertificateUsage;
     /**
      * Expiration date of the certificate
      * @type {Date}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     notAfter: Date;
     /**
      * Issuer namespace ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     issuerNamespace: string;
     /**
      * Issuer certificate ID
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     issuer: string;
     /**
      * Unique ID of the user who created the certificate
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     createdBy: string;
     /**
      * X.509 certificate chain
      * @type {Array<string>}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     x5c?: Array<string>;
     /**
      * X.509 certificate thumbprint
      * @type {string}
-     * @memberof CertificateRef
+     * @memberof CertificateRefParameters
      */
     x5t?: string;
 }
 
 /**
- * Check if a given object implements the CertificateRef interface.
+ * Check if a given object implements the CertificateRefParameters interface.
  */
-export function instanceOfCertificateRef(value: object): boolean {
+export function instanceOfCertificateRefParameters(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceId" in value;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "name" in value;
     isInstance = isInstance && "usage" in value;
     isInstance = isInstance && "notAfter" in value;
@@ -125,21 +91,16 @@ export function instanceOfCertificateRef(value: object): boolean {
     return isInstance;
 }
 
-export function CertificateRefFromJSON(json: any): CertificateRef {
-    return CertificateRefFromJSONTyped(json, false);
+export function CertificateRefParametersFromJSON(json: any): CertificateRefParameters {
+    return CertificateRefParametersFromJSONTyped(json, false);
 }
 
-export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRef {
+export function CertificateRefParametersFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRefParameters {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'namespaceId': json['namespaceId'],
-        'id': json['id'],
-        'updatedBy': json['updatedBy'],
-        'updated': (new Date(json['updated'])),
-        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'name': json['name'],
         'usage': CertificateUsageFromJSON(json['usage']),
         'notAfter': (new Date(json['notAfter'])),
@@ -151,7 +112,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
     };
 }
 
-export function CertificateRefToJSON(value?: CertificateRef | null): any {
+export function CertificateRefParametersToJSON(value?: CertificateRefParameters | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -160,11 +121,6 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
     }
     return {
         
-        'namespaceId': value.namespaceId,
-        'id': value.id,
-        'updatedBy': value.updatedBy,
-        'updated': (value.updated.toISOString()),
-        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'name': value.name,
         'usage': CertificateUsageToJSON(value.usage),
         'notAfter': (value.notAfter.toISOString()),

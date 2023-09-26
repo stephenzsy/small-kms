@@ -62,11 +62,10 @@ const (
 	PolicyTypeCertRequest                 PolicyType = "certRequest"
 )
 
-// Defines values for GetCertificateV1ParamsAccept.
+// Defines values for GetCertificateV1ParamsByType.
 const (
-	AcceptJson       GetCertificateV1ParamsAccept = "application/json"
-	AcceptPem        GetCertificateV1ParamsAccept = "application/x-pem-file"
-	AcceptX509CaCert GetCertificateV1ParamsAccept = "application/x-x509-ca-cert"
+	CertId   GetCertificateV1ParamsByType = "certId"
+	PolicyId GetCertificateV1ParamsByType = "policyId"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -76,41 +75,6 @@ type ApplyPolicyRequest struct {
 
 	// ForceRenewCertificate Force certificate renewal
 	ForceRenewCertificate *bool `json:"forceRenewCertificate,omitempty"`
-}
-
-// Certificate defines model for Certificate.
-type Certificate struct {
-	// CreatedBy Unique ID of the user who created the certificate
-	CreatedBy string `json:"createdBy"`
-
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-
-	// Issuer Issuer certificate ID
-	Issuer openapi_types.UUID `json:"issuer"`
-
-	// IssuerNamespace Issuer namespace ID
-	IssuerNamespace openapi_types.UUID `json:"issuerNamespace"`
-
-	// Name Name of the certificate, also the common name (CN) in the subject of the certificate
-	Name string `json:"name"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string           `json:"updatedBy"`
-	Usage     CertificateUsage `json:"usage"`
-
-	// X509pem PEM encoded X.509 certificate
-	X509pem *[]byte `json:"x509pem,omitempty"`
 }
 
 // CertificateEnrollPolicyParameters defines model for CertificateEnrollPolicyParameters.
@@ -173,6 +137,12 @@ type CertificateRef struct {
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy string           `json:"updatedBy"`
 	Usage     CertificateUsage `json:"usage"`
+
+	// X5c X.509 certificate chain
+	X5c *[][]byte `json:"x5c,omitempty"`
+
+	// X5t X.509 certificate thumbprint
+	X5t *[]byte `json:"x5t,omitempty"`
 }
 
 // CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
@@ -416,13 +386,19 @@ type ErrorResponse struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
-// GetCertificateV1Params defines parameters for GetCertificateV1.
-type GetCertificateV1Params struct {
-	Accept *GetCertificateV1ParamsAccept `json:"Accept,omitempty"`
+// ListCertificatesV1Params defines parameters for ListCertificatesV1.
+type ListCertificatesV1Params struct {
+	PolicyId *openapi_types.UUID `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
-// GetCertificateV1ParamsAccept defines parameters for GetCertificateV1.
-type GetCertificateV1ParamsAccept string
+// GetCertificateV1Params defines parameters for GetCertificateV1.
+type GetCertificateV1Params struct {
+	ByType       *GetCertificateV1ParamsByType `form:"byType,omitempty" json:"byType,omitempty"`
+	IncludeChain *bool                         `form:"includeChain,omitempty" json:"includeChain,omitempty"`
+}
+
+// GetCertificateV1ParamsByType defines parameters for GetCertificateV1.
+type GetCertificateV1ParamsByType string
 
 // DeletePolicyV1Params defines parameters for DeletePolicyV1.
 type DeletePolicyV1Params struct {
@@ -606,7 +582,7 @@ type ServerInterface interface {
 	ListNamespacesV1(c *gin.Context, namespaceType NamespaceType)
 	// List certificates
 	// (GET /v1/{namespaceId}/certificates)
-	ListCertificatesV1(c *gin.Context, namespaceId openapi_types.UUID)
+	ListCertificatesV1(c *gin.Context, namespaceId openapi_types.UUID, params ListCertificatesV1Params)
 	// Get certificate
 	// (GET /v1/{namespaceId}/certificates/{id})
 	GetCertificateV1(c *gin.Context, namespaceId openapi_types.UUID, id openapi_types.UUID, params GetCertificateV1Params)
@@ -744,6 +720,17 @@ func (siw *ServerInterfaceWrapper) ListCertificatesV1(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCertificatesV1Params
+
+	// ------------- Optional query parameter "policyId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "policyId", c.Request.URL.Query(), &params.PolicyId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter policyId: %w", err), http.StatusBadRequest)
+		return
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -751,7 +738,7 @@ func (siw *ServerInterfaceWrapper) ListCertificatesV1(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ListCertificatesV1(c, namespaceId)
+	siw.Handler.ListCertificatesV1(c, namespaceId, params)
 }
 
 // GetCertificateV1 operation middleware
@@ -782,25 +769,20 @@ func (siw *ServerInterfaceWrapper) GetCertificateV1(c *gin.Context) {
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetCertificateV1Params
 
-	headers := c.Request.Header
+	// ------------- Optional query parameter "byType" -------------
 
-	// ------------- Optional header parameter "Accept" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Accept")]; found {
-		var Accept GetCertificateV1ParamsAccept
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandler(c, fmt.Errorf("Expected one value for Accept, got %d", n), http.StatusBadRequest)
-			return
-		}
+	err = runtime.BindQueryParameter("form", true, false, "byType", c.Request.URL.Query(), &params.ByType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter byType: %w", err), http.StatusBadRequest)
+		return
+	}
 
-		err = runtime.BindStyledParameterWithLocation("simple", false, "Accept", runtime.ParamLocationHeader, valueList[0], &Accept)
-		if err != nil {
-			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter Accept: %w", err), http.StatusBadRequest)
-			return
-		}
+	// ------------- Optional query parameter "includeChain" -------------
 
-		params.Accept = &Accept
-
+	err = runtime.BindQueryParameter("form", true, false, "includeChain", c.Request.URL.Query(), &params.IncludeChain)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeChain: %w", err), http.StatusBadRequest)
+		return
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {

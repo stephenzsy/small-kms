@@ -32,9 +32,28 @@ type CertDoc struct {
 	CertStorePath string `json:"certStorePath"`
 }
 
-func (s *adminServer) GetLatestCertDocForPolicy(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*CertDoc, error) {
+func (s *adminServer) getLatestCertDocForPolicy(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*CertDoc, error) {
 	pd := new(CertDoc)
 	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, policyID), pd)
 	return pd, err
 }
+
+/*
+
+func (s *adminServer) listCertDocForPolicyID(ctx context.Context, namespaceID uuid.UUID, policyID uuid.UUID) ([]*CertDoc, error) {
+
+	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
+WHERE c.namespaceId = @namespaceId
+  AND c.type = @type`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@namespaceId", Value: directoryID.String()},
+				{Name: "@type", Value: kmsdoc.DocTypeNameCert},
+			},
+		})
+
+	return PagerToList[DirectoryObjectDoc](ctx, pager)
+}
+*/

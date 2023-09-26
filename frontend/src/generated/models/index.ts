@@ -1,14 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './ApplyPolicyRequest';
-export * from './Certificate';
-export * from './CertificateAllOf';
 export * from './CertificateEnrollPolicyParameters';
 export * from './CertificateEnrollRequest';
 export * from './CertificateIssuerParameters';
 export * from './CertificateLifetimeTrigger';
 export * from './CertificateRef';
-export * from './CertificateRefAllOf';
+export * from './CertificateRefParameters';
 export * from './CertificateRequestPolicyParameters';
 export * from './CertificateRequestPolicyParametersAllOf';
 export * from './CertificateSubject';

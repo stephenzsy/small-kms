@@ -2,7 +2,6 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
 import AdminPage from "./admin/Page";
 import PoliciesPage from "./admin/PoliciesPage";
-import PolicyPage from "./admin/PolicyPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import Layout from "./Layout";
 import { RouteIds } from "./route-constants";
@@ -12,6 +11,8 @@ import React from "react";
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
+const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
+const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +20,9 @@ export const router = createBrowserRouter([
     element: (
       <AuthProvider>
         <Layout>
-          <Outlet />
+          <React.Suspense>
+            <Outlet />
+          </React.Suspense>
         </Layout>
       </AuthProvider>
     ),
@@ -41,6 +44,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <PoliciesPage /> },
               { path: ":policyId", element: <PolicyPage /> },
+              {
+                path: ":policyId/latest-certificate",
+                element: <CertificatePage />,
+              },
             ],
           },
           {

@@ -118,7 +118,13 @@ export default function PoliciesPage() {
                             to={`/admin/${namespaceId}/policies/${p.id}`}
                             className="text-indigo-600 hover:text-indigo-900"
                           >
-                            View<span className="sr-only">, {p.id}</span>
+                            View
+                          </Link>
+                          <Link
+                            to={`/admin/${namespaceId}/policies/${p.id}/latest-certificate`}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            Certificate
                           </Link>
                         </td>
                       </tr>

@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *adminServer) ListCertificatesV1(c *gin.Context, namespaceID uuid.UUID) {
+func (s *adminServer) ListCertificatesV1(c *gin.Context, namespaceID uuid.UUID, params ListCertificatesV1Params) {
 	if _, ok := authNamespaceRead(c, namespaceID); !ok {
 		return
 	}

@@ -5,14 +5,12 @@ apis/PolicyApi.ts
 apis/index.ts
 index.ts
 models/ApplyPolicyRequest.ts
-models/Certificate.ts
-models/CertificateAllOf.ts
 models/CertificateEnrollPolicyParameters.ts
 models/CertificateEnrollRequest.ts
 models/CertificateIssuerParameters.ts
 models/CertificateLifetimeTrigger.ts
 models/CertificateRef.ts
-models/CertificateRefAllOf.ts
+models/CertificateRefParameters.ts
 models/CertificateRequestPolicyParameters.ts
 models/CertificateRequestPolicyParametersAllOf.ts
 models/CertificateSubject.ts

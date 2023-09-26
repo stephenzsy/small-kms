@@ -19,6 +19,11 @@ paths:
             type: string
             format: uuid
           required: true
+        - in: query
+          name: policyId
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: A JSON array of Certificate Refs
@@ -48,18 +53,19 @@ paths:
             type: string
             format: uuid
           required: true
-        - in: header
-          name: Accept
+        - in: query
+          name: byType
           schema:
             type: string
             enum:
-              - application/json
-              - application/x-pem-file
-              - application/x-x509-ca-cert
-            x-enum-varnames:
-              - Accept_Json
-              - Accept_Pem
-              - Accept_X509CaCert
+              - certId
+              - policyId
+            default: certId
+        - in: query
+          name: includeChain
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Get certificate response
@@ -67,14 +73,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRef"
-            application/x-pem-file:
-              schema:
-                type: string
-                format: binary
-            application/x-x509-ca-cert:
-              schema:
-                type: string
-                format: binary
   /v1/{namespaceId}/profile:
     parameters:
       - in: path
@@ -332,7 +330,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Certificate"
+                $ref: "#/components/schemas/CertificateRef"
 security:
   - BearerAuth: []
 components:
@@ -429,7 +427,8 @@ components:
     CertificateRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
-        - type: object
+        - title: CertificateRefParameters
+          type: object
           properties:
             name:
               description: Name of the certificate, also the common name (CN) in the subject of the certificate
@@ -451,24 +450,23 @@ components:
             createdBy:
               description: Unique ID of the user who created the certificate
               type: string
+            x5c:
+              description: X.509 certificate chain
+              type: array
+              items:
+                type: string
+                format: byte
+            x5t:
+              description: X.509 certificate thumbprint
+              type: string
+              format: byte
           required:
-            - namespaceId
-            - id
             - name
             - usage
             - notAfter
             - issuerNamespace
             - issuer
             - createdBy
-    Certificate:
-      allOf:
-        - $ref: "#/components/schemas/CertificateRef"
-        - type: object
-          properties:
-            x509pem:
-              description: PEM encoded X.509 certificate
-              type: string
-              format: byte
     PolicyType:
       type: string
       enum:

@@ -73,12 +73,6 @@ function PolicySection(props: {
                         >
                           Policies<span className="sr-only">, {ns.id}</span>
                         </Link>
-                        <a
-                          href="#"
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          Certificates<span className="sr-only">, {ns.id}</span>
-                        </a>
                       </td>
                     </tr>
                   ))}

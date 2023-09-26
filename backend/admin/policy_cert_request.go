@@ -415,19 +415,6 @@ func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, 
 	return signer, string(*signerKey.KID), err
 }
 
-func getCaIssuerPoilcyID(signerNamespaceID uuid.UUID) uuid.UUID {
-	if IsRootCANamespace(signerNamespaceID) {
-		return signerNamespaceID
-	}
-	if !IsIntCANamespace(signerNamespaceID) {
-		return uuid.Nil
-	}
-	if IsTestCA(signerNamespaceID) {
-		return testNamespaceID_RootCA
-	}
-	return wellKnownNamespaceID_RootCA
-}
-
 type signerCertBundle struct {
 	privateKey                  crypto.Signer
 	certificate                 *x509.Certificate
@@ -437,13 +424,9 @@ type signerCertBundle struct {
 	signerCertId                kmsdoc.KmsDocID
 }
 
-func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID) (*signerCertBundle, error) {
-	policyID := getCaIssuerPoilcyID(signerNamespaceID)
-	if policyID == uuid.Nil {
-		return nil, errors.New("invalid signer namespace")
-	}
+func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID, signerPolicyID uuid.UUID) (*signerCertBundle, error) {
 	// load certificate
-	crtDoc, err := s.GetLatestCertDocForPolicy(ctx, signerNamespaceID, policyID)
+	crtDoc, err := s.getLatestCertDocForPolicy(ctx, signerNamespaceID, signerPolicyID)
 	if err != nil {
 		return nil, err
 	}
@@ -535,7 +518,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 		}
 		certPubKey = signerBundle.privateKey.Public()
 	} else {
-		signerBundle, err = s.loadSignerCertificateBundle(ctx, policyID)
+		signerBundle, err = s.loadSignerCertificateBundle(ctx, policyDoc.CertRequest.IssuerNamespaceID, policyDoc.CertRequest.IssuerPolicyID)
 		if err != nil {
 			return nil, err
 		}

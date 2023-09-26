@@ -15,13 +15,10 @@
 
 import * as runtime from '../runtime';
 import type {
-  Certificate,
   CertificateEnrollRequest,
   CertificateRef,
 } from '../models';
 import {
-    CertificateFromJSON,
-    CertificateToJSON,
     CertificateEnrollRequestFromJSON,
     CertificateEnrollRequestToJSON,
     CertificateRefFromJSON,
@@ -35,11 +32,13 @@ export interface EnrollCertificateV1Request {
 export interface GetCertificateV1Request {
     namespaceId: string;
     id: string;
-    accept?: GetCertificateV1AcceptEnum;
+    byType?: GetCertificateV1ByTypeEnum;
+    includeChain?: boolean;
 }
 
 export interface ListCertificatesV1Request {
     namespaceId: string;
+    policyId?: string;
 }
 
 /**
@@ -50,7 +49,7 @@ export class CertsApi extends runtime.BaseAPI {
     /**
      * Enroll certificate
      */
-    async enrollCertificateV1Raw(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+    async enrollCertificateV1Raw(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRef>> {
         if (requestParameters.certificateEnrollRequest === null || requestParameters.certificateEnrollRequest === undefined) {
             throw new runtime.RequiredError('certificateEnrollRequest','Required parameter requestParameters.certificateEnrollRequest was null or undefined when calling enrollCertificateV1.');
         }
@@ -77,13 +76,13 @@ export class CertsApi extends runtime.BaseAPI {
             body: CertificateEnrollRequestToJSON(requestParameters.certificateEnrollRequest),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRefFromJSON(jsonValue));
     }
 
     /**
      * Enroll certificate
      */
-    async enrollCertificateV1(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+    async enrollCertificateV1(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRef> {
         const response = await this.enrollCertificateV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -102,11 +101,15 @@ export class CertsApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.accept !== undefined && requestParameters.accept !== null) {
-            headerParameters['Accept'] = String(requestParameters.accept);
+        if (requestParameters.byType !== undefined) {
+            queryParameters['byType'] = requestParameters.byType;
         }
+
+        if (requestParameters.includeChain !== undefined) {
+            queryParameters['includeChain'] = requestParameters.includeChain;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -144,6 +147,10 @@ export class CertsApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.policyId !== undefined) {
+            queryParameters['policyId'] = requestParameters.policyId;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -177,9 +184,8 @@ export class CertsApi extends runtime.BaseAPI {
 /**
  * @export
  */
-export const GetCertificateV1AcceptEnum = {
-    Accept_Json: 'application/json',
-    Accept_Pem: 'application/x-pem-file',
-    Accept_X509CaCert: 'application/x-x509-ca-cert'
+export const GetCertificateV1ByTypeEnum = {
+    CertId: 'certId',
+    PolicyId: 'policyId'
 } as const;
-export type GetCertificateV1AcceptEnum = typeof GetCertificateV1AcceptEnum[keyof typeof GetCertificateV1AcceptEnum];
+export type GetCertificateV1ByTypeEnum = typeof GetCertificateV1ByTypeEnum[keyof typeof GetCertificateV1ByTypeEnum];
