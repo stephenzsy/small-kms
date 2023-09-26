@@ -319,6 +319,8 @@ func (p *PolicyCertRequestDocSection) ToKeyvaultCreateCertificateParameters(name
 	keyProperties := p.KeyProperties.ToAzCertificatesKeyProperties()
 	if p.Usage == UsageRootCA || p.Usage == UsageIntCA {
 		keyProperties.Exportable = to.Ptr(false)
+	} else {
+		keyProperties.Exportable = to.Ptr(true)
 	}
 
 	r.CertificatePolicy = &azcertificates.CertificatePolicy{
