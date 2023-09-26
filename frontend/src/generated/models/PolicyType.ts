@@ -19,7 +19,8 @@
  */
 export const PolicyType = {
     PolicyType_CertRequest: 'certRequest',
-    PolicyType_CertEnroll_GroupMemberDevice: 'certEnroll-groupMemberDevice'
+    PolicyType_CertEnroll_GroupMemberDevice: 'certEnroll-groupMemberDevice',
+    PolicyType_CertAadAppClientCredential: 'certAadAppCred'
 } as const;
 export type PolicyType = typeof PolicyType[keyof typeof PolicyType];
 

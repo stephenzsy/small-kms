@@ -30,4 +30,6 @@ export const policyTypeNames: Record<PolicyType, string> = {
   [PolicyType.PolicyType_CertRequest]: "Certificate Request Policy",
   [PolicyType.PolicyType_CertEnroll_GroupMemberDevice]:
     "Group Member Device Certificate Enrollment Policy",
+  [PolicyType.PolicyType_CertAadAppClientCredential]:
+    "AAD Application Client Credential Certificate Policy",
 };

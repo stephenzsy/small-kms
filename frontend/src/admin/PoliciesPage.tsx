@@ -140,14 +140,17 @@ export default function PoliciesPage() {
           </div>
         </div>
       </section>
-      {policyRefs &&
-        dirProfile &&
-        (dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaRoot ||
-          dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaInt ||
-          dirProfile.objectType ===
-            NamespaceType.NamespaceType_MsGraphServicePrincipal) && (
-          <>
-            {policyRefs.some(
+      {policyRefs && dirProfile && (
+        <>
+          {(dirProfile.objectType ===
+            NamespaceType.NamespaceType_BuiltInCaRoot ||
+            dirProfile.objectType ===
+              NamespaceType.NamespaceType_BuiltInCaInt ||
+            dirProfile.objectType ===
+              NamespaceType.NamespaceType_MsGraphServicePrincipal ||
+            dirProfile.objectType ===
+              NamespaceType.NamespaceType_MsGraphApplication) &&
+            (policyRefs.some(
               (p) => p.id === WellknownId.defaultPolicyIdCertRequest
             ) ? null : (
               <Link
@@ -156,9 +159,21 @@ export default function PoliciesPage() {
               >
                 Create Default Certificate Policy
               </Link>
-            )}
-          </>
-        )}
+            ))}
+          {dirProfile.objectType ===
+            NamespaceType.NamespaceType_MsGraphApplication &&
+            (policyRefs.some(
+              (p) => p.id === WellknownId.defaultPolicyIdAadAppCred
+            ) ? null : (
+              <Link
+                to={`/admin/${namespaceId}/policies/${WellknownId.defaultPolicyIdAadAppCred}`}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                Create Default AAD Application Client Credentials Policy
+              </Link>
+            ))}
+        </>
+      )}
       {policyRefs && dirProfile && (
         <div>
           <CreatePoliciesLinks policyRefs={policyRefs} profile={dirProfile} />

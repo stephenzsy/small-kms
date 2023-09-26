@@ -61,6 +61,12 @@ export interface NamespaceProfileAllOf {
      * @memberof NamespaceProfileAllOf
      */
     isCompliant?: boolean;
+    /**
+     * \#microsoft.graph.application appId
+     * @type {string}
+     * @memberof NamespaceProfileAllOf
+     */
+    appId?: string;
 }
 
 /**
@@ -89,6 +95,7 @@ export function NamespaceProfileAllOfFromJSONTyped(json: any, ignoreDiscriminato
         'operatingSystem': !exists(json, 'operatingSystem') ? undefined : json['operatingSystem'],
         'operatingSystemVersion': !exists(json, 'operatingSystemVersion') ? undefined : json['operatingSystemVersion'],
         'isCompliant': !exists(json, 'isCompliant') ? undefined : json['isCompliant'],
+        'appId': !exists(json, 'appId') ? undefined : json['appId'],
     };
 }
 
@@ -108,6 +115,7 @@ export function NamespaceProfileAllOfToJSON(value?: NamespaceProfileAllOf | null
         'operatingSystem': value.operatingSystem,
         'operatingSystemVersion': value.operatingSystemVersion,
         'isCompliant': value.isCompliant,
+        'appId': value.appId,
     };
 }
 

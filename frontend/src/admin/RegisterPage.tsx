@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { InputField } from "./FormComponents";
+import { InputFieldLegacy } from "./FormComponents";
 import { useBoolean, useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { DirectoryApi } from "../generated";
@@ -43,7 +43,7 @@ export default function RegisterPage() {
         onSubmit={handleSubmit(onSubmit, setFormInvalid)}
       >
         <div className="px-4 py-5 sm:p-6 space-y-12 [&>*+*]:border-t [&>*+*]:pt-6">
-          <InputField
+          <InputFieldLegacy
             inputKey="objectId"
             labelContent="Azure AD Object ID"
             register={register}

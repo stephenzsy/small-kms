@@ -35,7 +35,8 @@ func (s *adminServer) ListDirectoryObjectByType(ctx context.Context, nsType Name
 	case NamespaceTypeMsGraphUser,
 		NamespaceTypeMsGraphGroup,
 		NamespaceTypeMsGraphDevice,
-		NamespaceTypeMsGraphServicePrincipal:
+		NamespaceTypeMsGraphServicePrincipal,
+		NamespaceTypeMsGraphApplication:
 	default:
 		return nil, fmt.Errorf("namespace type not supported")
 	}

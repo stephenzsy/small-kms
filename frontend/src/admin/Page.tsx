@@ -123,6 +123,14 @@ export default function AdminPage() {
     },
     { refreshDeps: [] }
   );
+  const { data: aNamespaces } = useRequest(
+    () => {
+      return client.listNamespacesV1({
+        namespaceType: NamespaceType.NamespaceType_MsGraphApplication,
+      });
+    },
+    { refreshDeps: [] }
+  );
 
   return (
     <>
@@ -148,6 +156,7 @@ export default function AdminPage() {
       <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
       <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
       <PolicySection namespaces={uNamespaces} title="Users" showAdd />
+      <PolicySection namespaces={aNamespaces} title="Applications" showAdd />
     </>
   );
 }

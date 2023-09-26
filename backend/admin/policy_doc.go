@@ -117,7 +117,10 @@ func (doc *PolicyDoc) ToPolicy() *Policy {
 	}
 	switch doc.PolicyType {
 	case PolicyTypeCertRequest:
-		p.CertRequest = doc.CertRequest.ToCertificateRequestPolicyParameters()
+		p.CertRequest = doc.CertRequest.toCertificateRequestPolicyParameters()
+	case PolicyTypeCertEnrollGroupMemberDevice:
+	case PolicyTypeCertAadAppClientCredential:
+		p.CertAadAppCred = doc.CertAadAppCred.toCertificateAadAppPolicyParameters()
 	}
 	return &p
 }

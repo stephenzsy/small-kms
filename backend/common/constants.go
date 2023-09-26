@@ -22,6 +22,7 @@ const (
 
 	DefaultPolicyIdCertRequest
 	DefaultPolicyIdCertEnrollGroupMemberDevice
+	DefaultPolicyIdCertAadAppCredential
 )
 
 var (
@@ -41,6 +42,7 @@ var (
 	// default policy ids --1-1 ~ --1-f
 	defaultPolicyIdCertRequest                 = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
 	defaultPolicyIdCertEnrollGroupMemberDevice = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
+	defaultPolicyIdCertAadAppCredential        = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000003"))
 )
 
 var idMap = map[WellKnownIdentifier]WellKnownID{
@@ -55,6 +57,7 @@ var idMap = map[WellKnownIdentifier]WellKnownID{
 
 	DefaultPolicyIdCertRequest:                 defaultPolicyIdCertRequest,
 	DefaultPolicyIdCertEnrollGroupMemberDevice: defaultPolicyIdCertEnrollGroupMemberDevice,
+	DefaultPolicyIdCertAadAppCredential:        defaultPolicyIdCertAadAppCredential,
 }
 
 func GetID(identifier WellKnownIdentifier) uuid.UUID {

@@ -5,8 +5,11 @@ apis/PolicyApi.ts
 apis/index.ts
 index.ts
 models/ApplyPolicyRequest.ts
+models/CertificateAadAppCredPolicyParameters.ts
 models/CertificateEnrollPolicyParameters.ts
 models/CertificateEnrollRequest.ts
+models/CertificateIdentifier.ts
+models/CertificateIdentifierType.ts
 models/CertificateIssuerParameters.ts
 models/CertificateLifetimeTrigger.ts
 models/CertificateRef.ts

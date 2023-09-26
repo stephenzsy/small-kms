@@ -9,7 +9,7 @@ import {
   CertificateUsage,
   CertsApi,
   DirectoryApi,
-  GetCertificateV1ByTypeEnum,
+  CertificateIdentifierType,
   GetCertificateV1FormatEnum,
   NamespaceType,
   Policy,
@@ -19,7 +19,7 @@ import {
   ResponseError,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { InputField } from "./FormComponents";
+import { InputFieldLegacy } from "./FormComponents";
 import {
   IsIntCaNamespace,
   policyTypeNames,
@@ -299,42 +299,42 @@ function CertCreatePolicyForm({
             Subject
           </h2>
 
-          <InputField
+          <InputFieldLegacy
             inputKey="subjectCN"
             labelContent="Common Name (CN)"
             register={register}
             placeholder="Sample Internal Root CA"
             required
           />
-          <InputField
+          <InputFieldLegacy
             inputKey="subjectOU"
             labelContent="Organizational Unit (OU)"
             register={register}
             placeholder="Sample Organizational Unit"
           />
 
-          <InputField
+          <InputFieldLegacy
             inputKey="subjectO"
             labelContent="Organization (O)"
             register={register}
             placeholder="Sample Organization"
           />
 
-          <InputField
+          <InputFieldLegacy
             inputKey="subjectC"
             labelContent="Country or Region (C)"
             register={register}
             placeholder="US"
           />
         </div>
-        <InputField
+        <InputFieldLegacy
           inputKey="validityInMonths"
           labelContent="Validity in months"
           register={register}
           type="number"
           placeholder={defaultValidityPlaceholder.toString()}
         />
-        <InputField
+        <InputFieldLegacy
           inputKey="keyStorePath"
           labelContent="Key Store Path"
           register={register}
@@ -440,7 +440,7 @@ export default function CertificatePage() {
         if (policyId) {
           return await client.getCertificateV1({
             namespaceId: namespaceId!,
-            byType: GetCertificateV1ByTypeEnum.ByTypePolicyId,
+            byType: CertificateIdentifierType.CertIdTypePolicyId,
             id: policyId,
             format,
           });

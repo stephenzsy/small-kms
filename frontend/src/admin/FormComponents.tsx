@@ -11,7 +11,7 @@ export interface InputFieldProps<T extends {}> {
   type?: "text" | "number";
 }
 
-export function InputField<T extends {}>({
+export function InputFieldLegacy<T extends {}>({
   labelContent,
   defaultValue = "",
   required = false,

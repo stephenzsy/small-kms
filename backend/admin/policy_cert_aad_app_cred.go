@@ -1,11 +1,8 @@
 package admin
 
 import (
-	"encoding/base64"
-	"encoding/pem"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -100,28 +97,19 @@ func (p *PolicyCertAadAppCredDocSection) action(ctx *gin.Context, s *adminServer
 	if err != nil {
 		return nil, err
 	}
-	pemblob, err := s.FetchCertificatePEMBlob(ctx, certDoc.CertStorePath)
+	pemBlob, err := s.FetchCertificatePEMBlob(ctx, certDoc.CertStorePath)
 	if err != nil {
 		return nil, err
 	}
-
-	block, _ := pem.Decode(pemblob)
-	if block == nil {
-		return nil, fmt.Errorf("failed to decode pem for %s", certDoc.CertStorePath)
-	}
-	keyStr := fmt.Sprintf("base64%s", base64.StdEncoding.EncodeToString(block.Bytes))
 	requestBody := graphmodels.NewApplication()
 	keyCredential := graphmodels.NewKeyCredential()
 	keyCredential.SetTypeEscaped(ToPtr("AsymmetricX509Cert"))
 	keyCredential.SetUsage(ToPtr("Verify"))
-	keyCredential.SetDisplayName(&certDoc.Name)
-	keyCredential.SetKey([]byte(keyStr))
-	keyCredential.SetStartDateTime(ToPtr(time.Now().UTC()))
-	keyCredential.SetEndDateTime(ToPtr(certDoc.Expires.UTC()))
+	keyCredential.SetKey(pemBlob)
 
 	requestBody.SetKeyCredentials([]graphmodels.KeyCredentialable{keyCredential})
 
-	_, err = s.msGraphClient.Applications().ByApplicationId(*dirDoc.AppID).Patch(ctx, requestBody, nil)
+	_, err = s.msGraphClient.Applications().ByApplicationId(dirDoc.ID.GetUUID().String()).Patch(ctx, requestBody, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +140,7 @@ func (p *PolicyCertAadAppCredDocSection) action(ctx *gin.Context, s *adminServer
 	return
 }
 
-func (s *PolicyCertAadAppCredDocSection) ToCertificateRequestPolicyParameters() *CertificateAadAppCredPolicyParameters {
+func (s *PolicyCertAadAppCredDocSection) toCertificateAadAppPolicyParameters() *CertificateAadAppCredPolicyParameters {
 	if s == nil {
 		return nil
 	}

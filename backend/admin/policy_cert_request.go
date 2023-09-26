@@ -657,7 +657,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	return
 }
 
-func (s *PolicyCertRequestDocSection) ToCertificateRequestPolicyParameters() *CertificateRequestPolicyParameters {
+func (s *PolicyCertRequestDocSection) toCertificateRequestPolicyParameters() *CertificateRequestPolicyParameters {
 	if s == nil {
 		return nil
 	}

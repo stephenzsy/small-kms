@@ -45,7 +45,9 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 	case NamespaceTypeMsGraphGroup,
 		NamespaceTypeMsGraphServicePrincipal,
 		NamespaceTypeMsGraphDevice,
-		NamespaceTypeMsGraphUser:
+		NamespaceTypeMsGraphUser,
+		NamespaceTypeMsGraphApplication:
+		// allow
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
 		return

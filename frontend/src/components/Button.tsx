@@ -20,7 +20,7 @@ export const Button = React.forwardRef(
     return (
       <button
         ref={ref}
-        type="button"
+        type={type}
         className={classNames(
           "rounded-md text-sm font-semibold shadow-sm",
           {
@@ -30,7 +30,7 @@ export const Button = React.forwardRef(
           },
           {
             "bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600":
-            variant === "primary" && color === "default",
+              variant === "primary" && color === "default",
             "bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600":
               variant === "primary" && color === "danger",
             "text-neutral-900 ring-neutral-300 hover:bg-neutral-50":

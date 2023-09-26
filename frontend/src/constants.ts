@@ -6,4 +6,5 @@ export const enum WellknownId {
   nsTestIntCa = "00000000-0000-0000-0000-0000000000ff",
 
   defaultPolicyIdCertRequest = "00000000-0000-0000-0001-000000000001",
+  defaultPolicyIdAadAppCred = "00000000-0000-0000-0001-000000000003",
 }

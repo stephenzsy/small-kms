@@ -16,11 +16,14 @@
 import * as runtime from '../runtime';
 import type {
   CertificateEnrollRequest,
+  CertificateIdentifierType,
   CertificateRef,
 } from '../models';
 import {
     CertificateEnrollRequestFromJSON,
     CertificateEnrollRequestToJSON,
+    CertificateIdentifierTypeFromJSON,
+    CertificateIdentifierTypeToJSON,
     CertificateRefFromJSON,
     CertificateRefToJSON,
 } from '../models';
@@ -32,7 +35,7 @@ export interface EnrollCertificateV1Request {
 export interface GetCertificateV1Request {
     namespaceId: string;
     id: string;
-    byType?: GetCertificateV1ByTypeEnum;
+    byType?: CertificateIdentifierType;
     format?: GetCertificateV1FormatEnum;
 }
 
@@ -181,14 +184,6 @@ export class CertsApi extends runtime.BaseAPI {
 
 }
 
-/**
- * @export
- */
-export const GetCertificateV1ByTypeEnum = {
-    ByTypeCertId: 'certId',
-    ByTypePolicyId: 'policyId'
-} as const;
-export type GetCertificateV1ByTypeEnum = typeof GetCertificateV1ByTypeEnum[keyof typeof GetCertificateV1ByTypeEnum];
 /**
  * @export
  */
