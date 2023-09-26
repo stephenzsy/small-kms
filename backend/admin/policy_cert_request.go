@@ -379,7 +379,7 @@ func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, c
 	return
 }
 
-func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, expires time.Time, p *PolicyCertRequestDocSection) (crypto.Signer, string, error) {
+func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, expires time.Time, p *PolicyCertRequestDocSection) (*keyVaultSigner, string, error) {
 	var signerKey *azkeys.JSONWebKey = nil
 	reuseKey := false
 	if p.KeyProperties.ReuseKey != nil {
@@ -418,12 +418,24 @@ func (s *adminServer) getRootCASigner(ctx context.Context, keyStorePath string, 
 }
 
 type signerCertBundle struct {
-	privateKey                  crypto.Signer
+	privateKey                  *keyVaultSigner
 	certificate                 *x509.Certificate
 	certificateChainPEMRaw      []byte
 	additionalCertificateDERRaw []byte
 	signerNamespaceID           uuid.UUID
 	signerCertId                kmsdoc.KmsDocID
+}
+
+func (b *signerCertBundle) SignatureAlgorithm() x509.SignatureAlgorithm {
+	switch b.privateKey.sigAlg {
+	case azkeys.SignatureAlgorithmRS384:
+		return x509.SHA384WithRSA
+	case azkeys.SignatureAlgorithmES256:
+		return x509.ECDSAWithSHA256
+	case azkeys.SignatureAlgorithmES384:
+		return x509.ECDSAWithSHA384
+	}
+	return x509.UnknownSignatureAlgorithm
 }
 
 func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID, signerPolicyID uuid.UUID) (*signerCertBundle, error) {
@@ -525,22 +537,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			return nil, err
 		}
 	}
-
-	switch p.KeyProperties.Kty {
-	case KeyTypeRSA:
-		certificate.SignatureAlgorithm = x509.SHA384WithRSA
-	case KeyTypeEC:
-		switch *p.KeyProperties.Crv {
-		case CurveNameP384:
-			certificate.SignatureAlgorithm = x509.ECDSAWithSHA384
-		case CurveNameP256:
-			certificate.SignatureAlgorithm = x509.ECDSAWithSHA256
-		default:
-			return nil, fmt.Errorf("unsupported curve: %s", *p.KeyProperties.Crv)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported key type: %s", p.KeyProperties.Kty)
-	}
+	certificate.SignatureAlgorithm = signerBundle.SignatureAlgorithm()
 
 	// Sign cert
 	certSigned, err := x509.CreateCertificate(nil, &certificate, signerBundle.certificate, certPubKey, signerBundle.privateKey)
@@ -664,8 +661,10 @@ func (s *PolicyCertRequestDocSection) ToCertificateRequestPolicyParameters() *Ce
 	if s == nil {
 		return nil
 	}
+	policyID := s.IssuerPolicyID.String()
 	return &CertificateRequestPolicyParameters{
 		IssuerNamespaceID:       s.IssuerNamespaceID,
+		IssuerPolicyIdentifier:  &policyID,
 		KeyProperties:           &s.KeyProperties,
 		KeyStorePath:            s.KeyStorePath,
 		LifetimeTrigger:         s.LifetimeTrigger,

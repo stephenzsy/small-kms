@@ -550,7 +550,7 @@ export default function PolicyPage() {
           )}
           onClick={toggleForm}
         >
-          {formOpen ? "Candel" : "Update"}
+          {formOpen ? "Cancel" : "Update"}
         </button>
         {fetchedPolicy && (
           <button
