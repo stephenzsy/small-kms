@@ -143,8 +143,9 @@ export default function PoliciesPage() {
       {policyRefs &&
         dirProfile &&
         (dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaRoot ||
+          dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaInt ||
           dirProfile.objectType ===
-            NamespaceType.NamespaceType_BuiltInCaInt) && (
+            NamespaceType.NamespaceType_MsGraphServicePrincipal) && (
           <>
             {policyRefs.some(
               (p) => p.id === WellknownId.defaultPolicyIdCertRequest
