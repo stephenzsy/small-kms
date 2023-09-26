@@ -10,6 +10,10 @@ services:
       - krakend:krakend
     env_file:
       - dev.radius.env
+    secrets:
+      - radius-tls-ca.pem
+      - radius-tls-server.pem
+      - radius-tls-key.pem
   #tty: true
   #stdin_open: true
   #command: /bin/sh
@@ -17,3 +21,11 @@ services:
     build: krakend
     volumes:
       - ./krakend/log:/opt/var/log/krakend
+
+secrets:
+  radius-tls-ca.pem:
+    file: ./secrets/radius-ca.pem
+  radius-tls-server.pem:
+    file: ./secrets/radius-server.pem
+  radius-tls-key.pem:
+    file: ./secrets/radius-key.pem

@@ -100,8 +100,10 @@ eap {
 	#  authenticate via EAP-TLS!  This is likely not what you want.
 	#
 	tls-config tls-common {
-		private_key_password = whatever
-		private_key_file = ${certdir}/server.pem
+		private_key_file = ${certdir}/radius-tls-key.pem
+		#private_key_password = whatever
+		#private_key_file = ${certdir}/server.pem
+
 
 		#  If Private key & Certificate are located in
 		#  the same file, then private_key_file &
@@ -137,7 +139,8 @@ eap {
 		#  give advice which will work everywhere.  Instead,
 		#  we give general guidelines.
 		#
-		certificate_file = ${certdir}/server.pem
+		certificate_file = ${certdir}/radius-tls-server.pem
+		#certificate_file = ${certdir}/server.pem
 
 		#  Trusted Root CA list
 		#
@@ -150,13 +153,14 @@ eap {
 		#  In that case, this CA file should contain
 		#  *one* CA certificate.
 		#
-		ca_file = ${cadir}/ca.pem
+		ca_file = ${cadir}/radius-tls-ca.pem
+		#ca_file = ${cadir}/ca.pem
 
 		#
 		#  Directory where multiple CAs are stored.  Both
 		#  "ca_file" and "ca_path" can be used at the same time.
 		#
-		ca_path = ${cadir}
+		#ca_path = ${cadir}
 
 		# OpenSSL does not reload contents of ca_path dir over time.
 		# That means that if check_crl is enabled and CRLs are loaded
