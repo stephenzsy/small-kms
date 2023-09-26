@@ -39,10 +39,11 @@ func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertEnrollParamete
 
 type PolicyDoc struct {
 	kmsdoc.BaseDoc
-	Enabled     bool                         `json:"enabled"`
-	PolicyType  PolicyType                   `json:"policyType"`
-	CertRequest *PolicyCertRequestDocSection `json:"certRequest,omitempty"`
-	CertEnroll  *PolicyCertEnrollDocSection  `json:"certEnroll,omitempty"`
+	Enabled        bool                            `json:"enabled"`
+	PolicyType     PolicyType                      `json:"policyType"`
+	CertRequest    *PolicyCertRequestDocSection    `json:"certRequest,omitempty"`
+	CertEnroll     *PolicyCertEnrollDocSection     `json:"certEnroll,omitempty"`
+	CertAadAppCred *PolicyCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
 }
 
 func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {
@@ -88,10 +89,11 @@ const (
 
 type PolicyStateDoc struct {
 	kmsdoc.BaseDoc
-	PolicyType  PolicyType                        `json:"policyType"`
-	Status      PolicyStateStatus                 `json:"status"`
-	Message     string                            `json:"message"`
-	CertRequest *PolicyStateCertRequestDocSection `json:"certRequest,omitempty"`
+	PolicyType     PolicyType                           `json:"policyType"`
+	Status         PolicyStateStatus                    `json:"status"`
+	Message        string                               `json:"message"`
+	CertRequest    *PolicyStateCertRequestDocSection    `json:"certRequest,omitempty"`
+	CertAadAppCred *PolicyStateCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
 }
 
 func (s *adminServer) GetPolicyStateDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyStateDoc, error) {

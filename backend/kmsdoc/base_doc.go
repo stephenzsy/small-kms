@@ -81,6 +81,10 @@ func (k *KmsDocID) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
+func (k *KmsDocID) GetType() KmsDocType {
+	return k.typeByte
+}
+
 type BaseDoc struct {
 	ID            KmsDocID   `json:"id"`
 	NamespaceID   uuid.UUID  `json:"namespaceId"`

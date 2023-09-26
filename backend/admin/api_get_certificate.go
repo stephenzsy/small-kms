@@ -52,97 +52,45 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id
 	if _, ok := authNamespaceRead(c, namespaceID); !ok {
 		return
 	}
-	if params.ByType != nil && *params.ByType == ByTypePolicyId {
-		certDoc, err := s.getLatestCertDocForPolicy(c, namespaceID, id)
-		if err != nil {
-			if common.IsAzNotFound(err) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-				return
-			}
-			log.Error().Err(err).Msg("Internal error")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-			return
-		}
-		cert := new(CertificateRef)
-		cert.populateFromDoc(certDoc)
-		if params.Format == nil || (*params.Format != FormatPEM && *params.Format != FormatJWK) {
-			c.JSON(http.StatusOK, cert)
-			return
-		}
-		// fetchPemBlob
-		pemBlob, err := s.FetchCertificatePEMBlob(c, certDoc.CertStorePath)
-		if err != nil {
-			if common.IsAzNotFound(err) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-				return
-			}
-			log.Error().Err(err).Msg("Internal error")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-			return
-		}
-		if *params.Format == FormatPEM {
-			pemString := string(pemBlob)
-			cert.Pem = &pemString
-			c.JSON(http.StatusOK, cert)
-			return
-		}
-		x5c := make([][]byte, 0)
-		for block, rest := pem.Decode(pemBlob); block != nil; block, rest = pem.Decode(rest) {
-			x5c = append(x5c, block.Bytes)
-		}
-		cert.X5c = &x5c
-		c.JSON(http.StatusOK, cert)
-		return
-	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-	/*
-		result, err := s.ReadCertDBItem(c, namespaceID, id)
-		if err != nil {
-			log.Printf("Faild to get certificate metadata: %s", err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-			return
-		}
-		if result.ID == uuid.Nil {
-			log.Printf("Faild to get certificate metadata: %s", err.Error())
+
+	certIdentifier := CertificateIdentifier{ID: id, Type: params.ByType}
+	certDoc, err := s.getCertDoc(c, namespaceID, certIdentifier.docID())
+	if err != nil {
+		if common.IsAzNotFound(err) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 			return
 		}
-
-		accept := AcceptJson
-		switch *params.Accept {
-		case AcceptX509CaCert:
-			accept = AcceptX509CaCert
-		case AcceptPem:
-			accept = AcceptPem
-		}
-
-		if accept == AcceptJson {
-			c.JSON(200, result.CertificateRef)
+		log.Error().Err(err).Msg("Internal error")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	cert := new(CertificateRef)
+	cert.populateFromDoc(certDoc)
+	if params.Format == nil || (*params.Format != FormatPEM && *params.Format != FormatJWK) {
+		c.JSON(http.StatusOK, cert)
+		return
+	}
+	// fetchPemBlob
+	pemBlob, err := s.FetchCertificatePEMBlob(c, certDoc.CertStorePath)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 			return
 		}
-
-		if len(result.CertStore) == 0 {
-			c.JSON(404, gin.H{"error": "not found"})
-			return
-		}
-
-		pemBlob, err := s.FetchCertificatePEMBlob(c, result.CertStore)
-		if err != nil {
-			log.Printf("Faild to fetch certificate blob: %s", err.Error())
-			c.JSON(500, gin.H{"error": "internal error"})
-			return
-		}
-
-		switch *params.Accept {
-		case AcceptX509CaCert:
-			block, _ := pem.Decode(pemBlob)
-			if block == nil {
-				log.Printf("Faild to decode certificate blob stored")
-				c.JSON(500, gin.H{"error": "internal error"})
-				return
-			}
-			c.Data(200, "application/x-x509-ca-cert", block.Bytes)
-		default:
-			c.Data(200, "application/x-pem-file", pemBlob)
-		}*/
+		log.Error().Err(err).Msg("Internal error")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	if *params.Format == FormatPEM {
+		pemString := string(pemBlob)
+		cert.Pem = &pemString
+		c.JSON(http.StatusOK, cert)
+		return
+	}
+	x5c := make([][]byte, 0)
+	for block, rest := pem.Decode(pemBlob); block != nil; block, rest = pem.Decode(rest) {
+		x5c = append(x5c, block.Bytes)
+	}
+	cert.X5c = &x5c
+	c.JSON(http.StatusOK, cert)
 }

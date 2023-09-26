@@ -101,6 +101,11 @@ func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUI
 			doc.DeviceOwnership = dObj.GetDeviceOwnership()
 			doc.IsCompliant = dObj.GetIsCompliant()
 		}
+	case "#microsoft.graph.application":
+		if dObj, ok := dirObj.(msgraphmodels.Applicationable); ok {
+			doc.DisplayName = *dObj.GetDisplayName()
+			doc.AppID = dObj.GetAppId()
+		}
 	default:
 		return nil, http.StatusBadRequest, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)
 	}
@@ -163,7 +168,7 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 		}
 		return nsProfile, nil
 	}
-	doc, err := s.GetDirectoryObjectDoc(c, namespaceId)
+	doc, err := s.getDirectoryObjectDoc(c, namespaceId)
 	if common.IsAzNotFound(err) {
 		return nil, nil
 	}

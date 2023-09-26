@@ -18,6 +18,12 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for CertificateIdentifierType.
+const (
+	CertIdTypeCertId   CertificateIdentifierType = "certId"
+	CertIdTypePolicyId CertificateIdentifierType = "policyId"
+)
+
 // Defines values for CertificateUsage.
 const (
 	UsageClientOnly      CertificateUsage = "client-only"
@@ -50,6 +56,7 @@ const (
 const (
 	NamespaceTypeBuiltInCaInt            NamespaceType = "#builtin.ca.intermediate"
 	NamespaceTypeBuiltInCaRoot           NamespaceType = "#builtin.ca.root"
+	NamespaceTypeMsGraphApplication      NamespaceType = "#microsoft.graph.application"
 	NamespaceTypeMsGraphDevice           NamespaceType = "#microsoft.graph.device"
 	NamespaceTypeMsGraphGroup            NamespaceType = "#microsoft.graph.group"
 	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
@@ -58,14 +65,9 @@ const (
 
 // Defines values for PolicyType.
 const (
+	PolicyTypeCertAadAppClientCredential  PolicyType = "certAadAppCred"
 	PolicyTypeCertEnrollGroupMemberDevice PolicyType = "certEnroll-groupMemberDevice"
 	PolicyTypeCertRequest                 PolicyType = "certRequest"
-)
-
-// Defines values for GetCertificateV1ParamsByType.
-const (
-	ByTypeCertId   GetCertificateV1ParamsByType = "certId"
-	ByTypePolicyId GetCertificateV1ParamsByType = "policyId"
 )
 
 // Defines values for GetCertificateV1ParamsFormat.
@@ -83,6 +85,11 @@ type ApplyPolicyRequest struct {
 	ForceRenewCertificate *bool `json:"forceRenewCertificate,omitempty"`
 }
 
+// CertificateAadAppCredPolicyParameters defines model for CertificateAadAppCredPolicyParameters.
+type CertificateAadAppCredPolicyParameters struct {
+	CertificateIdentifier CertificateIdentifier `json:"certificateIdentifier"`
+}
+
 // CertificateEnrollPolicyParameters defines model for CertificateEnrollPolicyParameters.
 type CertificateEnrollPolicyParameters = CertificateIssuerParameters
 
@@ -96,6 +103,16 @@ type CertificateEnrollRequest struct {
 	// PublicKey Partial implementation of JSON Web Key (RFC 7517)
 	PublicKey JSONWebKey `json:"publicKey"`
 }
+
+// CertificateIdentifier defines model for CertificateIdentifier.
+type CertificateIdentifier struct {
+	// Id ID of the issuer namespace
+	ID   openapi_types.UUID         `json:"id"`
+	Type *CertificateIdentifierType `json:"type,omitempty"`
+}
+
+// CertificateIdentifierType defines model for CertificateIdentifierType.
+type CertificateIdentifierType string
 
 // CertificateIssuerParameters defines model for CertificateIssuerParameters.
 type CertificateIssuerParameters struct {
@@ -226,6 +243,9 @@ type KeyType string
 
 // NamespaceProfile defines model for NamespaceProfile.
 type NamespaceProfile struct {
+	// AppId \#microsoft.graph.application appId
+	AppID *string `json:"appId,omitempty"`
+
 	// Deleted Time when the policy was deleted
 	Deleted *time.Time `json:"deleted,omitempty"`
 
@@ -280,8 +300,9 @@ type NamespaceType string
 
 // Policy defines model for Policy.
 type Policy struct {
-	CertEnroll  *CertificateEnrollPolicyParameters  `json:"certEnroll,omitempty"`
-	CertRequest *CertificateRequestPolicyParameters `json:"certRequest,omitempty"`
+	CertAadAppCred *CertificateAadAppCredPolicyParameters `json:"certAadAppCred,omitempty"`
+	CertEnroll     *CertificateEnrollPolicyParameters     `json:"certEnroll,omitempty"`
+	CertRequest    *CertificateRequestPolicyParameters    `json:"certRequest,omitempty"`
 
 	// Deleted Time when the policy was deleted
 	Deleted *time.Time         `json:"deleted,omitempty"`
@@ -300,9 +321,10 @@ type Policy struct {
 
 // PolicyParameters defines model for PolicyParameters.
 type PolicyParameters struct {
-	CertEnroll  *CertificateEnrollPolicyParameters  `json:"certEnroll,omitempty"`
-	CertRequest *CertificateRequestPolicyParameters `json:"certRequest,omitempty"`
-	PolicyType  PolicyType                          `json:"policyType"`
+	CertAadAppCred *CertificateAadAppCredPolicyParameters `json:"certAadAppCred,omitempty"`
+	CertEnroll     *CertificateEnrollPolicyParameters     `json:"certEnroll,omitempty"`
+	CertRequest    *CertificateRequestPolicyParameters    `json:"certRequest,omitempty"`
+	PolicyType     PolicyType                             `json:"policyType"`
 }
 
 // PolicyRef defines model for PolicyRef.
@@ -402,12 +424,9 @@ type ListCertificatesV1Params struct {
 
 // GetCertificateV1Params defines parameters for GetCertificateV1.
 type GetCertificateV1Params struct {
-	ByType *GetCertificateV1ParamsByType `form:"byType,omitempty" json:"byType,omitempty"`
+	ByType *CertificateIdentifierType    `form:"byType,omitempty" json:"byType,omitempty"`
 	Format *GetCertificateV1ParamsFormat `form:"format,omitempty" json:"format,omitempty"`
 }
-
-// GetCertificateV1ParamsByType defines parameters for GetCertificateV1.
-type GetCertificateV1ParamsByType string
 
 // GetCertificateV1ParamsFormat defines parameters for GetCertificateV1.
 type GetCertificateV1ParamsFormat string

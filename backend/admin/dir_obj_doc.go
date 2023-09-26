@@ -20,9 +20,10 @@ type DirectoryObjectDoc struct {
 	OperatingSystemVersion *string `json:"operatingSystemVersion,omitempty"`
 	DeviceOwnership        *string `json:"deviceOwnership,omitempty"`
 	IsCompliant            *bool   `json:"isCompliant,omitempty"`
+	AppID                  *string `json:"appId,omitempty"`
 }
 
-func (s *adminServer) GetDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
+func (s *adminServer) getDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	doc := new(DirectoryObjectDoc)
 	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, directoryID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID), doc)
@@ -80,5 +81,7 @@ func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) 
 		ref.IsCompliant = item.IsCompliant
 		ref.OperatingSystem = item.OperatingSystem
 		ref.OperatingSystemVersion = item.OperatingSystemVersion
+	case string(NamespaceTypeMsGraphApplication):
+		ref.AppID = item.AppID
 	}
 }

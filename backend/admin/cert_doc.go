@@ -32,11 +32,49 @@ type CertDoc struct {
 	CertStorePath string `json:"certStorePath"`
 }
 
-func (s *adminServer) getLatestCertDocForPolicy(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*CertDoc, error) {
+func (identifier *CertificateIdentifier) docID() kmsdoc.KmsDocID {
+	if identifier == nil {
+		return kmsdoc.NewKmsDocID(kmsdoc.DocTypeUnknown, uuid.Nil)
+	}
+	if identifier.Type != nil {
+		switch *identifier.Type {
+		case CertIdTypePolicyId:
+			return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, identifier.ID)
+		}
+	}
+	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, identifier.ID)
+}
+
+func docIDtoCertIdentifier(id kmsdoc.KmsDocID) CertificateIdentifier {
+	switch id.GetType() {
+	case kmsdoc.DocTypeLatestCertForPolicy:
+		return CertificateIdentifier{
+			ID:   id.GetUUID(),
+			Type: ToPtr(CertIdTypePolicyId),
+		}
+	case kmsdoc.DocTypeCert:
+		return CertificateIdentifier{
+			ID:   id.GetUUID(),
+			Type: ToPtr(CertIdTypeCertId),
+		}
+	}
+	return CertificateIdentifier{
+		ID: id.GetUUID(),
+	}
+}
+
+func (s *adminServer) getCertDoc(c context.Context, namespaceID uuid.UUID, id kmsdoc.KmsDocID) (*CertDoc, error) {
 	pd := new(CertDoc)
 	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
-		kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, policyID), pd)
+		id, pd)
 	return pd, err
+}
+
+func (d *CertDoc) GetCUID() kmsdoc.KmsDocID {
+	if d.AliasID != nil {
+		return *d.AliasID
+	}
+	return d.ID
 }
 
 /*

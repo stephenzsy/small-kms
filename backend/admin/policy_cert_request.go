@@ -440,7 +440,7 @@ func (b *signerCertBundle) SignatureAlgorithm() x509.SignatureAlgorithm {
 
 func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNamespaceID uuid.UUID, signerPolicyID uuid.UUID) (*signerCertBundle, error) {
 	// load certificate
-	crtDoc, err := s.getLatestCertDocForPolicy(ctx, signerNamespaceID, signerPolicyID)
+	crtDoc, err := s.getCertDoc(ctx, signerNamespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, signerPolicyID))
 	if err != nil {
 		return nil, err
 	}

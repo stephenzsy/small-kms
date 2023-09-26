@@ -112,7 +112,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 
 			// verify requester is one of
 			// - servicePrincipal
-			dirProfile, err := s.GetDirectoryObjectDoc(c, namespaceID)
+			dirProfile, err := s.getDirectoryObjectDoc(c, namespaceID)
 			if err != nil {
 				if common.IsAzNotFound(err) {
 					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
@@ -138,7 +138,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 		policyDoc.CertRequest = docSection
 	case PolicyTypeCertEnrollGroupMemberDevice:
 		// verify namespace belongs to a group
-		dirDoc, err := s.GetDirectoryObjectDoc(c, namespaceID)
+		dirDoc, err := s.getDirectoryObjectDoc(c, namespaceID)
 		if err != nil {
 			if common.IsAzNotFound(err) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
@@ -161,6 +161,27 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 			return
 		}
 		policyDoc.CertEnroll = docSection
+	case PolicyTypeCertAadAppClientCredential:
+		dirDoc, err := s.getDirectoryObjectDoc(c, namespaceID)
+		if err != nil {
+			if common.IsAzNotFound(err) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
+				return
+			}
+			log.Error().Err(err).Msg("failed to get directory profile")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if dirDoc.OdataType != string(NamespaceTypeMsGraphApplication) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("policy can only be registered on application: %s", namespaceID)})
+			return
+		}
+		docSection := new(PolicyCertAadAppCredDocSection)
+		if err := docSection.validateAndFillWithParameters(p.CertAadAppCred); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+		policyDoc.CertAadAppCred = docSection
 	default:
 		c.JSON(http.StatusBadRequest, nil)
 		return

@@ -1,67 +1,8 @@
-# -*- text -*-
-##
-##  eap.conf -- Configuration for EAP types (PEAP, TTLS, etc.)
-##
-##	$Id: ee9e539a239a432dff7892efc3d57411bddd58cb $
-
-#######################################################################
-#
-#  Whatever you do, do NOT set 'Auth-Type := EAP'.  The server
-#  is smart enough to figure this out on its own.  The most
-#  common side effect of setting 'Auth-Type := EAP' is that the
-#  users then cannot use ANY other authentication method.
-#
 eap {
-	#  Invoke the default supported EAP type when
-	#  EAP-Identity response is received.
-	#
-	#  The incoming EAP messages DO NOT specify which EAP
-	#  type they will be using, so it MUST be set here.
-	#
-	#  For now, only one default EAP type may be used at a time.
-	#
-	#  If the EAP-Type attribute is set by another module,
-	#  then that EAP type takes precedence over the
-	#  default type configured here.
-	#
 	default_eap_type = tls
-
-	#  A list is maintained to correlate EAP-Response
-	#  packets with EAP-Request packets.  After a
-	#  configurable length of time, entries in the list
-	#  expire, and are deleted.
-	#
 	timer_expire = 60
-
-	#  There are many EAP types, but the server has support
-	#  for only a limited subset.  If the server receives
-	#  a request for an EAP type it does not support, then
-	#  it normally rejects the request.  By setting this
-	#  configuration to "yes", you can tell the server to
-	#  instead keep processing the request.  Another module
-	#  MUST then be configured to proxy the request to
-	#  another RADIUS server which supports that EAP type.
-	#
-	#  If another module is NOT configured to handle the
-	#  request, then the request will still end up being
-	#  rejected.
-	#
 	ignore_unknown_eap_types = no
-
-	# Cisco AP1230B firmware 12.2(13)JA1 has a bug.  When given
-	# a User-Name attribute in an Access-Accept, it copies one
-	# more byte than it should.
-	#
-	# We can work around it by configurably adding an extra
-	# zero byte.
-	#
 	cisco_accounting_username_bug = no
-
-	#  Help prevent DoS attacks by limiting the number of
-	#  sessions that the server is tracking.  For simplicity,
-	#  this is taken from the "max_requests" directive in
-	#  radiusd.conf.
-	#
 	max_sessions = ${max_requests}
 
 
@@ -225,16 +166,7 @@ eap {
 		#  out, and OpenSSL will do the right thing.
 		#
 	#	dh_file = ${certdir}/dh
-
-		#  If your system doesn't have /dev/urandom,
-		#  you will need to create this file, and
-		#  periodically change its contents.
-		#
-		#  For security reasons, FreeRADIUS doesn't
-		#  write to files in its configuration
-		#  directory.
-		#
-	#	random_file = /dev/urandom
+		random_file = /dev/random
 
 		#  This can never exceed the size of a RADIUS
 		#  packet (4096 bytes), and is preferably half
@@ -329,11 +261,7 @@ eap {
 		#
 	#	reject_unknown_intermediate_ca = no
 
-		#  Set this option to specify the allowed
-		#  TLS cipher suites.  The format is listed
-		#  in "man 1 ciphers".
-		#
-		cipher_list = "DEFAULT"
+		cipher_list = "HIGH"
 
 		#  Set this option to specify the allowed
 		#  TLS signature algorithms for OpenSSL 1.1.1 and above.
@@ -355,18 +283,6 @@ eap {
 		#  if necessary.
 		#
 		cipher_server_preference = no
-
-		#  You can selectively disable TLS versions for
-		#  compatability with old client devices.
-		#
-		#  If your system has OpenSSL 1.1.0 or greater, do NOT
-		#  use these.  Instead, set tls_min_version and
-		#  tls_max_version.
-		#
-#		disable_tlsv1_2 = yes
-#		disable_tlsv1_1 = yes
-#		disable_tlsv1 = yes
-
 
 		#  Set min / max TLS version.
 		#
@@ -424,24 +340,9 @@ eap {
 		#  TTLS, and PEAP.  It is not supported for EAP-FAST.
 		#
 		tls_min_version = "1.2"
-		tls_max_version = "1.2"
+		tls_max_version = "1.3"
 
-		#  Elliptical cryptography configuration
-		#
-		#  This configuration should be one of the following:
-		#
-		#  * a name of the curve to use, e.g. "prime256v1".
-		#
-		#  * a colon separated list of curve NIDs or names.
-		#
-		#  * an empty string, in which case OpenSSL will choose
-		#    the "best" curve for the situation.
-		#
-		#  For supported curve names, please run
-		#
-		#	openssl ecparam -list_curves
-		#
-		ecdh_curve = ""
+		ecdh_curve = "secp384r1"
 
 		#  Session resumption / fast reauthentication
 		#  cache.

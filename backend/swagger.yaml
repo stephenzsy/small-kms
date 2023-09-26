@@ -56,14 +56,7 @@ paths:
         - in: query
           name: byType
           schema:
-            type: string
-            enum:
-              - certId
-              - policyId
-            x-enum-varnames:
-              - ByTypeCertId
-              - ByTypePolicyId
-            default: certId
+            $ref: "#/components/schemas/CertificateIdentifierType"
         - in: query
           name: format
           schema:
@@ -356,6 +349,7 @@ components:
         - "#microsoft.graph.user"
         - "#microsoft.graph.group"
         - "#microsoft.graph.device"
+        - "#microsoft.graph.application"
       x-enum-varnames:
         - NamespaceType_BuiltInCaRoot
         - NamespaceType_BuiltInCaInt
@@ -363,6 +357,7 @@ components:
         - NamespaceType_MsGraphUser
         - NamespaceType_MsGraphGroup
         - NamespaceType_MsGraphDevice
+        - NamespaceType_MsGraphApplication
     ApplyPolicyRequest:
       type: object
       properties:
@@ -483,9 +478,11 @@ components:
       enum:
         - certRequest
         - certEnroll-groupMemberDevice
+        - certAadAppCred
       x-enum-varnames:
         - PolicyType_CertRequest
         - PolicyType_CertEnroll_GroupMemberDevice
+        - PolicyType_CertAadAppClientCredential
     ResourceRef:
       type: object
       properties:
@@ -677,6 +674,33 @@ components:
             - subject
             - usage
             - keyStorePath
+    CertificateIdentifierType:
+      type: string
+      enum:
+        - certId
+        - policyId
+      x-enum-varnames:
+        - CertIdTypeCertId
+        - CertIdTypePolicyId
+    CertificateIdentifier:
+      type: object
+      properties:
+        id:
+          description: ID of the issuer namespace
+          type: string
+          format: uuid
+          x-go-name: ID
+        type:
+          $ref: "#/components/schemas/CertificateIdentifierType"
+      required:
+        - id
+    CertificateAadAppCredPolicyParameters:
+      type: object
+      properties:
+        certificateIdentifier:
+          $ref: "#/components/schemas/CertificateIdentifier"
+      required:
+        - certificateIdentifier
     CertificateEnrollPolicyParameters:
       allOf:
         - $ref: "#/components/schemas/CertificateIssuerParameters"
@@ -689,6 +713,8 @@ components:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
         certEnroll:
           $ref: "#/components/schemas/CertificateEnrollPolicyParameters"
+        certAadAppCred:
+          $ref: "#/components/schemas/CertificateAadAppCredPolicyParameters"
       required:
         - policyType
     PolicyRef:
@@ -741,6 +767,10 @@ components:
             isCompliant:
               description: \#microsoft.graph.device isCompliant
               type: boolean
+            appId:
+              description: \#microsoft.graph.application appId
+              x-go-name: AppID
+              type: string
     RequestHeaderEntry:
       type: object
       properties:
