@@ -40,8 +40,9 @@ COPY docker-entrypoint.sh /
 COPY raddb/sites-enabled/default /etc/raddb/sites-enabled/default
 COPY raddb/mods-enabled/eap /etc/raddb/mods-enabled/eap
 COPY raddb/mods-enabled/rest /etc/raddb/mods-enabled/rest
+COPY raddb/clients.conf /etc/raddb/clients.conf
 RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 1812/udp 1813/udp
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["radiusd"]
+CMD ["radiusd", "-X"]

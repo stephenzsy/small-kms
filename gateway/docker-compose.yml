@@ -1,11 +1,19 @@
-services:  
-   radius:
+services:
+  radius:
     image: ${ACR_IMAGE_RADIUS}
-    build: radius/docker
+    build: radius
     volumes:
       - ./radius/log:/opt/var/log/radius
-  #   links:
-  #     - krakend:krakend
-     #tty: true
-     #stdin_open: true
-     #command: /bin/sh
+    ports:
+      - 1812:1812/udp
+    links:
+      - krakend:krakend
+    env_file:
+      - dev.radius.env
+  #tty: true
+  #stdin_open: true
+  #command: /bin/sh
+  krakend:
+    build: krakend
+    volumes:
+      - ./krakend/log:/opt/var/log/krakend
