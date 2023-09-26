@@ -51,12 +51,16 @@ function IssuerSelector({
         });
         if (isRootCaNamespace(requesterNamespace)) {
           return [l.find((x) => x.id === requesterNamespace)];
-        } else {
+        } else if (IsIntCaNamespace(requesterNamespace)) {
           if (requesterNamespace === WellknownId.nsTestIntCa) {
             return [l.find((x) => x.id === WellknownId.nsTestRootCa)];
           } else {
             return [l.find((x) => x.id === WellknownId.nsRootCa)];
           }
+        } else {
+          return l.filter(
+            (x) => x.objectType === NamespaceType.NamespaceType_BuiltInCaInt
+          );
         }
       }
     },
