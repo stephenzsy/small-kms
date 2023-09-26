@@ -29,6 +29,8 @@ export const Button = React.forwardRef(
             "bg-white shadow-sm ring-1 ring-inset": variant === "secondary",
           },
           {
+            "bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600":
+            variant === "primary" && color === "default",
             "bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600":
               variant === "primary" && color === "danger",
             "text-neutral-900 ring-neutral-300 hover:bg-neutral-50":

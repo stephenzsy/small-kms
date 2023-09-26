@@ -52,7 +52,7 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id
 	if _, ok := authNamespaceRead(c, namespaceID); !ok {
 		return
 	}
-	if params.ByType != nil && *params.ByType == ByTypeCertId {
+	if params.ByType != nil && *params.ByType == ByTypePolicyId {
 		certDoc, err := s.getLatestCertDocForPolicy(c, namespaceID, id)
 		if err != nil {
 			if common.IsAzNotFound(err) {

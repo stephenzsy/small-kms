@@ -1,7 +1,7 @@
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { useBoolean, useRequest } from "ahooks";
 import classNames from "classnames";
-import { useMemo, useState, useId } from "react";
+import { useMemo, useState, useId, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { WellknownId } from "../constants";
@@ -10,6 +10,7 @@ import {
   CertsApi,
   DirectoryApi,
   GetCertificateV1ByTypeEnum,
+  GetCertificateV1FormatEnum,
   NamespaceType,
   Policy,
   PolicyApi,
@@ -433,14 +434,15 @@ export default function CertificatePage() {
   const { namespaceId, policyId } = useParams();
 
   const client = useAuthedClient(CertsApi);
-  const { data: certificateInfo } = useRequest(
-    async () => {
+  const { data: certificateInfo, run: manualDownload } = useRequest(
+    async (format?: GetCertificateV1FormatEnum) => {
       try {
         if (policyId) {
           return await client.getCertificateV1({
             namespaceId: namespaceId!,
             byType: GetCertificateV1ByTypeEnum.ByTypePolicyId,
             id: policyId,
+            format,
           });
         }
       } catch (e) {
@@ -453,6 +455,20 @@ export default function CertificatePage() {
     { refreshDeps: [namespaceId, policyId] }
   );
 
+  const [pemUrl, setPemUrl] = useState<string>();
+  useEffect(() => {
+    if (certificateInfo?.pem) {
+      const url = URL.createObjectURL(
+        new Blob([certificateInfo.pem], { type: "application/x-pem-file" })
+      );
+      setPemUrl(url);
+      return () => {
+        setPemUrl(undefined);
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [certificateInfo?.pem]);
+
   return (
     <>
       <h1 className="text-4xl font-semibold">Certificate</h1>
@@ -462,6 +478,15 @@ export default function CertificatePage() {
             <pre className="text-sm">
               {JSON.stringify(certificateInfo, undefined, 2)}
             </pre>
+            <Button
+              variant="primary"
+              onClick={() => {
+                manualDownload(GetCertificateV1FormatEnum.FormatPEM);
+              }}
+            >
+              Prepare download
+            </Button>
+            {pemUrl && (<a href={pemUrl} download={`${certificateInfo.id}.pem`}>Download .PEM file</a>)}
           </div>
         ) : (
           <div>No certificate</div>
