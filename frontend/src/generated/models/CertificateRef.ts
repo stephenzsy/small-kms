@@ -99,6 +99,12 @@ export interface CertificateRef {
      */
     x5c?: Array<string>;
     /**
+     * PEM encoded certificate chain
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    pem?: string;
+    /**
      * X.509 certificate thumbprint
      * @type {string}
      * @memberof CertificateRef
@@ -147,6 +153,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'issuer': json['issuer'],
         'createdBy': json['createdBy'],
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
+        'pem': !exists(json, 'pem') ? undefined : json['pem'],
         'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
     };
 }
@@ -172,6 +179,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'issuer': value.issuer,
         'createdBy': value.createdBy,
         'x5c': value.x5c,
+        'pem': value.pem,
         'x5t': value.x5t,
     };
 }

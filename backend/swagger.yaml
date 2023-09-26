@@ -60,12 +60,20 @@ paths:
             enum:
               - certId
               - policyId
+            x-enum-varnames:
+              - ByTypeCertId
+              - ByTypePolicyId
             default: certId
         - in: query
-          name: includeChain
+          name: format
           schema:
-            type: boolean
-            default: false
+            type: string
+            enum:
+              - jwk
+              - pem
+            x-enum-varnames:
+              - FormatJWK
+              - FormatPEM
       responses:
         "200":
           description: Get certificate response
@@ -456,6 +464,9 @@ components:
               items:
                 type: string
                 format: byte
+            pem:
+              description: PEM encoded certificate chain
+              type: string
             x5t:
               description: X.509 certificate thumbprint
               type: string

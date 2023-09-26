@@ -33,7 +33,7 @@ export interface GetCertificateV1Request {
     namespaceId: string;
     id: string;
     byType?: GetCertificateV1ByTypeEnum;
-    includeChain?: boolean;
+    format?: GetCertificateV1FormatEnum;
 }
 
 export interface ListCertificatesV1Request {
@@ -105,8 +105,8 @@ export class CertsApi extends runtime.BaseAPI {
             queryParameters['byType'] = requestParameters.byType;
         }
 
-        if (requestParameters.includeChain !== undefined) {
-            queryParameters['includeChain'] = requestParameters.includeChain;
+        if (requestParameters.format !== undefined) {
+            queryParameters['format'] = requestParameters.format;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -185,7 +185,15 @@ export class CertsApi extends runtime.BaseAPI {
  * @export
  */
 export const GetCertificateV1ByTypeEnum = {
-    CertId: 'certId',
-    PolicyId: 'policyId'
+    ByTypeCertId: 'certId',
+    ByTypePolicyId: 'policyId'
 } as const;
 export type GetCertificateV1ByTypeEnum = typeof GetCertificateV1ByTypeEnum[keyof typeof GetCertificateV1ByTypeEnum];
+/**
+ * @export
+ */
+export const GetCertificateV1FormatEnum = {
+    FormatJWK: 'jwk',
+    FormatPEM: 'pem'
+} as const;
+export type GetCertificateV1FormatEnum = typeof GetCertificateV1FormatEnum[keyof typeof GetCertificateV1FormatEnum];

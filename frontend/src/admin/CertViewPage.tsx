@@ -1,16 +1,15 @@
 import { useRequest } from "ahooks";
-import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { CertificateRef, GetCertificateV1AcceptEnum } from "../generated";
-import { CertsDownloadApi } from "../utils/CertsDownloadApi";
-import { useAuthedClient, useCertsApi } from "../utils/useCertsApi";
-import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
+
 import { WellknownId } from "../constants";
+import { useCertsApi } from "../utils/useCertsApi";
+import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
 
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
 ];
-
+/*
 function CertDownloadLink({
   download,
   className,
@@ -64,7 +63,7 @@ function CertDownloadLink({
     </a>
   );
 }
-
+*/
 export default function CertViewPage() {
   const client = useCertsApi();
   const { certId, namespaceId } = useParams();
@@ -103,7 +102,7 @@ export default function CertViewPage() {
               </div>
             </dl>
             <div className="px-4 py-5 sm:p-6 flex gap-x-6">
-              <CertDownloadLink
+              {/*<CertDownloadLink
                 cert={cert}
                 download={`${cert.id}.pem`}
                 accept={GetCertificateV1AcceptEnum.Accept_Pem}
@@ -120,7 +119,7 @@ export default function CertViewPage() {
                 getLinkText="Get download .CRT file link"
               >
                 Download .CRT file
-              </CertDownloadLink>
+        </CertDownloadLink>*/}
             </div>
           </>
         )}

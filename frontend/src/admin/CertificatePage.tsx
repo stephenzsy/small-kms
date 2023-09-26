@@ -439,7 +439,7 @@ export default function CertificatePage() {
         if (policyId) {
           return await client.getCertificateV1({
             namespaceId: namespaceId!,
-            byType: GetCertificateV1ByTypeEnum.PolicyId,
+            byType: GetCertificateV1ByTypeEnum.ByTypePolicyId,
             id: policyId,
           });
         }

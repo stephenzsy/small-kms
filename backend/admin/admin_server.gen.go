@@ -64,8 +64,14 @@ const (
 
 // Defines values for GetCertificateV1ParamsByType.
 const (
-	CertId   GetCertificateV1ParamsByType = "certId"
-	PolicyId GetCertificateV1ParamsByType = "policyId"
+	ByTypeCertId   GetCertificateV1ParamsByType = "certId"
+	ByTypePolicyId GetCertificateV1ParamsByType = "policyId"
+)
+
+// Defines values for GetCertificateV1ParamsFormat.
+const (
+	FormatJWK GetCertificateV1ParamsFormat = "jwk"
+	FormatPEM GetCertificateV1ParamsFormat = "pem"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -130,6 +136,9 @@ type CertificateRef struct {
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
+
+	// Pem PEM encoded certificate chain
+	Pem *string `json:"pem,omitempty"`
 
 	// Updated Time when the policy was last updated
 	Updated time.Time `json:"updated"`
@@ -393,12 +402,15 @@ type ListCertificatesV1Params struct {
 
 // GetCertificateV1Params defines parameters for GetCertificateV1.
 type GetCertificateV1Params struct {
-	ByType       *GetCertificateV1ParamsByType `form:"byType,omitempty" json:"byType,omitempty"`
-	IncludeChain *bool                         `form:"includeChain,omitempty" json:"includeChain,omitempty"`
+	ByType *GetCertificateV1ParamsByType `form:"byType,omitempty" json:"byType,omitempty"`
+	Format *GetCertificateV1ParamsFormat `form:"format,omitempty" json:"format,omitempty"`
 }
 
 // GetCertificateV1ParamsByType defines parameters for GetCertificateV1.
 type GetCertificateV1ParamsByType string
+
+// GetCertificateV1ParamsFormat defines parameters for GetCertificateV1.
+type GetCertificateV1ParamsFormat string
 
 // DeletePolicyV1Params defines parameters for DeletePolicyV1.
 type DeletePolicyV1Params struct {
@@ -777,11 +789,11 @@ func (siw *ServerInterfaceWrapper) GetCertificateV1(c *gin.Context) {
 		return
 	}
 
-	// ------------- Optional query parameter "includeChain" -------------
+	// ------------- Optional query parameter "format" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "includeChain", c.Request.URL.Query(), &params.IncludeChain)
+	err = runtime.BindQueryParameter("form", true, false, "format", c.Request.URL.Query(), &params.Format)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeChain: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter format: %w", err), http.StatusBadRequest)
 		return
 	}
 

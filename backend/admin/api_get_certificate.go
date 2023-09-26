@@ -3,6 +3,7 @@ package admin
 import (
 	"bytes"
 	"context"
+	"encoding/pem"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -51,7 +52,7 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id
 	if _, ok := authNamespaceRead(c, namespaceID); !ok {
 		return
 	}
-	if params.ByType != nil && *params.ByType == PolicyId {
+	if params.ByType != nil && *params.ByType == ByTypeCertId {
 		certDoc, err := s.getLatestCertDocForPolicy(c, namespaceID, id)
 		if err != nil {
 			if common.IsAzNotFound(err) {
@@ -64,6 +65,32 @@ func (s *adminServer) GetCertificateV1(c *gin.Context, namespaceID uuid.UUID, id
 		}
 		cert := new(CertificateRef)
 		cert.populateFromDoc(certDoc)
+		if params.Format == nil || (*params.Format != FormatPEM && *params.Format != FormatJWK) {
+			c.JSON(http.StatusOK, cert)
+			return
+		}
+		// fetchPemBlob
+		pemBlob, err := s.FetchCertificatePEMBlob(c, certDoc.CertStorePath)
+		if err != nil {
+			if common.IsAzNotFound(err) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+				return
+			}
+			log.Error().Err(err).Msg("Internal error")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if *params.Format == FormatPEM {
+			pemString := string(pemBlob)
+			cert.Pem = &pemString
+			c.JSON(http.StatusOK, cert)
+			return
+		}
+		x5c := make([][]byte, 0)
+		for block, rest := pem.Decode(pemBlob); block != nil; block, rest = pem.Decode(rest) {
+			x5c = append(x5c, block.Bytes)
+		}
+		cert.X5c = &x5c
 		c.JSON(http.StatusOK, cert)
 		return
 	}
