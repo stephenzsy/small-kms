@@ -15,13 +15,17 @@
 
 import * as runtime from '../runtime';
 import type {
+  NamespaceInfo,
   NamespacePermissionKey,
   NamespacePermissions,
   NamespaceProfile,
   NamespaceRef,
   NamespaceType,
+  NamespaceTypeShortName,
 } from '../models';
 import {
+    NamespaceInfoFromJSON,
+    NamespaceInfoToJSON,
     NamespacePermissionKeyFromJSON,
     NamespacePermissionKeyToJSON,
     NamespacePermissionsFromJSON,
@@ -32,6 +36,8 @@ import {
     NamespaceRefToJSON,
     NamespaceTypeFromJSON,
     NamespaceTypeToJSON,
+    NamespaceTypeShortNameFromJSON,
+    NamespaceTypeShortNameToJSON,
 } from '../models';
 
 export interface GetNamespaceProfileV1Request {
@@ -58,6 +64,11 @@ export interface PutPermissionsV1Request {
 }
 
 export interface RegisterNamespaceProfileV1Request {
+    namespaceId: string;
+}
+
+export interface SyncNamespaceInfoV2Request {
+    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
 }
 
@@ -374,6 +385,48 @@ export class DirectoryApi extends runtime.BaseAPI {
      */
     async syncMyProfilesV1(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceProfile>> {
         const response = await this.syncMyProfilesV1Raw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync namespace info with ms graph
+     */
+    async syncNamespaceInfoV2Raw(requestParameters: SyncNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespaceInfo>> {
+        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
+            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling syncNamespaceInfoV2.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncNamespaceInfoV2.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceType}/{namespaceId}/graph-sync`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => NamespaceInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync namespace info with ms graph
+     */
+    async syncNamespaceInfoV2(requestParameters: SyncNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespaceInfo> {
+        const response = await this.syncNamespaceInfoV2Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

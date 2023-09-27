@@ -13,12 +13,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { JSONWebKey } from './JSONWebKey';
+import type { CertificateIssuerParameters } from './CertificateIssuerParameters';
 import {
-    JSONWebKeyFromJSON,
-    JSONWebKeyFromJSONTyped,
-    JSONWebKeyToJSON,
-} from './JSONWebKey';
+    CertificateIssuerParametersFromJSON,
+    CertificateIssuerParametersFromJSONTyped,
+    CertificateIssuerParametersToJSON,
+} from './CertificateIssuerParameters';
+import type { CertificateRenewalParameters } from './CertificateRenewalParameters';
+import {
+    CertificateRenewalParametersFromJSON,
+    CertificateRenewalParametersFromJSONTyped,
+    CertificateRenewalParametersToJSON,
+} from './CertificateRenewalParameters';
+import type { CertificateUsage } from './CertificateUsage';
+import {
+    CertificateUsageFromJSON,
+    CertificateUsageFromJSONTyped,
+    CertificateUsageToJSON,
+} from './CertificateUsage';
+import type { JwkKeyProperties } from './JwkKeyProperties';
+import {
+    JwkKeyPropertiesFromJSON,
+    JwkKeyPropertiesFromJSONTyped,
+    JwkKeyPropertiesToJSON,
+} from './JwkKeyProperties';
 
 /**
  * 
@@ -28,28 +46,52 @@ import {
 export interface CertificateEnrollRequest {
     /**
      * 
+     * @type {CertificateIssuerParameters}
+     * @memberof CertificateEnrollRequest
+     */
+    issuer: CertificateIssuerParameters;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificateEnrollRequest
+     */
+    issueToUser?: boolean;
+    /**
+     * ID of the policy to use for certificate enrollment
      * @type {string}
      * @memberof CertificateEnrollRequest
      */
-    ownerNamespaceId: string;
+    policyId: string;
+    /**
+     * 
+     * @type {JwkKeyProperties}
+     * @memberof CertificateEnrollRequest
+     */
+    publicKey: JwkKeyProperties;
     /**
      * 
      * @type {string}
      * @memberof CertificateEnrollRequest
      */
-    policyNamespaceId?: string;
+    targetFqdn?: string;
     /**
      * 
-     * @type {JSONWebKey}
+     * @type {CertificateUsage}
      * @memberof CertificateEnrollRequest
      */
-    publicKey: JSONWebKey;
+    usage: CertificateUsage;
     /**
-     * Required to issue certificate to device with registered owner
-     * @type {string}
+     * 
+     * @type {CertificateRenewalParameters}
      * @memberof CertificateEnrollRequest
      */
-    deviceOwnerId?: string;
+    renew?: CertificateRenewalParameters;
+    /**
+     * 
+     * @type {number}
+     * @memberof CertificateEnrollRequest
+     */
+    validityMonths: number;
 }
 
 /**
@@ -57,8 +99,11 @@ export interface CertificateEnrollRequest {
  */
 export function instanceOfCertificateEnrollRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "ownerNamespaceId" in value;
+    isInstance = isInstance && "issuer" in value;
+    isInstance = isInstance && "policyId" in value;
     isInstance = isInstance && "publicKey" in value;
+    isInstance = isInstance && "usage" in value;
+    isInstance = isInstance && "validityMonths" in value;
 
     return isInstance;
 }
@@ -73,10 +118,14 @@ export function CertificateEnrollRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'ownerNamespaceId': json['ownerNamespaceId'],
-        'policyNamespaceId': !exists(json, 'policyNamespaceId') ? undefined : json['policyNamespaceId'],
-        'publicKey': JSONWebKeyFromJSON(json['publicKey']),
-        'deviceOwnerId': !exists(json, 'deviceOwnerId') ? undefined : json['deviceOwnerId'],
+        'issuer': CertificateIssuerParametersFromJSON(json['issuer']),
+        'issueToUser': !exists(json, 'issueToUser') ? undefined : json['issueToUser'],
+        'policyId': json['policyId'],
+        'publicKey': JwkKeyPropertiesFromJSON(json['publicKey']),
+        'targetFqdn': !exists(json, 'targetFqdn') ? undefined : json['targetFqdn'],
+        'usage': CertificateUsageFromJSON(json['usage']),
+        'renew': !exists(json, 'renew') ? undefined : CertificateRenewalParametersFromJSON(json['renew']),
+        'validityMonths': json['validity_months'],
     };
 }
 
@@ -89,10 +138,14 @@ export function CertificateEnrollRequestToJSON(value?: CertificateEnrollRequest 
     }
     return {
         
-        'ownerNamespaceId': value.ownerNamespaceId,
-        'policyNamespaceId': value.policyNamespaceId,
-        'publicKey': JSONWebKeyToJSON(value.publicKey),
-        'deviceOwnerId': value.deviceOwnerId,
+        'issuer': CertificateIssuerParametersToJSON(value.issuer),
+        'issueToUser': value.issueToUser,
+        'policyId': value.policyId,
+        'publicKey': JwkKeyPropertiesToJSON(value.publicKey),
+        'targetFqdn': value.targetFqdn,
+        'usage': CertificateUsageToJSON(value.usage),
+        'renew': CertificateRenewalParametersToJSON(value.renew),
+        'validity_months': value.validityMonths,
     };
 }
 

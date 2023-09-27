@@ -1,16 +1,15 @@
 package admin
 
 import (
+	"crypto/x509"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/microsoftgraph/msgraph-sdk-go/devices"
-	"github.com/microsoftgraph/msgraph-sdk-go/directoryobjects"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 // extract owner name
@@ -20,100 +19,72 @@ const (
 	deviceOwnershipTypePersonal = "Personal"
 )
 
-func (s *adminServer) validateEnrollCertificateRequest(c *gin.Context, r *CertificateEnrollRequest) (int, error) {
-	// validate device namespace
-	profile, status, err := s.RegisterNamespaceProfile(c, r.OwnerNamespaceID)
-	if err != nil {
-		return status, err
+func (r *CertificateEnrollRequest) createX509Certificate(c *gin.Context) (*x509.Certificate, error) {
+	cert := x509.Certificate{}
+	if r.IssueToUser != nil && *r.IssueToUser {
+		auth.CallerPrincipalName(c)
 	}
-	if profile.ObjectType != NamespaceTypeMsGraphDevice {
-		return http.StatusBadRequest, fmt.Errorf("owner namespace is not for device: %s", r.OwnerNamespaceID)
-	}
-	if profile.DeviceOwnership == nil {
-		return http.StatusBadRequest, fmt.Errorf("device must be registered as Company or Personal: %s", profile.ID)
-	}
-	if profile.IsCompliant == nil || !*profile.IsCompliant {
-		return http.StatusBadRequest, fmt.Errorf("device must be compliant: %s", profile.ID)
-	}
-
-	verifyIds := make([]string, 1, 2)
-	verifyIds[0] = profile.ID.String()
-
-	switch *profile.DeviceOwnership {
-	case deviceOwnershipTypeCompany:
-		// TODO company owned, admin can manage or owner can manage
-	case deviceOwnershipTypePersonal:
-		// verify owner
-		if r.DeviceOwnerID == nil {
-			return http.StatusBadRequest, fmt.Errorf("null device owner id: %s", profile.ID)
-		}
-
-		// check graph
-		roResp, err := s.msGraphClient.Devices().ByDeviceId(*profile.DeviceID).RegisteredOwners().Get(c, &devices.ItemRegisteredOwnersRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devices.ItemRegisteredOwnersRequestBuilderGetQueryParameters{
-				Select: []string{"id"},
-			},
-		})
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		isOwner := false
-		for _, v := range roResp.GetValue() {
-			if parsedOwnerId, err := uuid.Parse(*v.GetId()); err == nil && parsedOwnerId == *r.DeviceOwnerID {
-				isOwner = true
-				break
-			}
-		}
-		if !isOwner {
-			return http.StatusBadRequest, fmt.Errorf("device owner id does not match: %s, owner: %s", *profile.DeviceID, r.DeviceOwnerID)
-		}
-		// verify ids belong to group
-		verifyIds = append(verifyIds, r.DeviceOwnerID.String())
-	default:
-		return http.StatusBadRequest, fmt.Errorf("unsupported device ownership: %s [%s]", *profile.DeviceOwnership, profile.ID)
-	}
-
-	// verify group membership
-	groupProfile, status, err := s.RegisterNamespaceProfile(c, *r.PolicyNamespaceID)
-	if err != nil {
-		return status, err
-	}
-	if groupProfile.ObjectType != NamespaceTypeMsGraphGroup {
-		return http.StatusBadRequest, fmt.Errorf("policy namespace is not for group: %s", r.PolicyNamespaceID)
-	}
-
-	checkMembershipRequestBody := directoryobjects.NewItemCheckMemberObjectsPostRequestBody()
-	checkMembershipRequestBody.SetIds(verifyIds)
-
-	checkMemberResp, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(groupProfile.ID.String()).CheckMemberObjects().Post(c, checkMembershipRequestBody, nil)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	if len(verifyIds) != len(checkMemberResp.GetValue()) {
-		return http.StatusBadRequest, fmt.Errorf("not all ids are members of group: %s, memberIDs: %s", groupProfile.ID, strings.Join(verifyIds, ","))
-	}
-	return 0, nil
+	return &cert, nil
 }
 
-func (s *adminServer) EnrollCertificateV1(c *gin.Context) {
-	if !auth.CallerPrincipalHasAdminRole(c) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can enroll certificate"})
+func (s *adminServer) EnrollCertificateV1(c *gin.Context, targetId uuid.UUID) {
+	// check user
+	callerId := auth.CallerPrincipalId(c)
+	if callerId == uuid.Nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 		return
 	}
-	req := CertificateEnrollRequest{}
-	if err := c.BindJSON(&req); err != nil {
+
+	canEnroll, err := s.hasAllowEnrollDeviceCertificatePermission(c, callerId, targetId)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to check permission")
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
+		return
+	}
+	if !canEnroll {
+		c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("user %s does not have permission to enroll certificate for target %s", callerId.String(), targetId.String())})
+		return
+	}
+
+	p := new(CertificateEnrollRequest)
+	if err := c.Bind(p); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-
-	// Validate request
-	if statusCode, err := s.validateEnrollCertificateRequest(c, &req); err != nil {
-		if statusCode >= 500 {
-			log.Error().Err(err).Msg("Failed to validate enroll certificate request")
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-		} else {
-			c.JSON(statusCode, gin.H{"message": err.Error()})
-		}
+	if p.ValidityInMonths < 1 || p.ValidityInMonths > 120 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "validity in months must be between 1 and 120"})
 		return
+	}
+
+	// check enrollment policy
+	policyDoc, err := s.GetPolicyDoc(c, p.Issuer.IssuerNamespaceID, p.PolicyID)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"message": "no policy found for given issuer and policy id"})
+			return
+		}
+		log.Error().Err(err).Msg("Failed to get enrollment policy")
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
+		return
+	}
+	if policyDoc.PolicyType != PolicyTypeCertEnroll {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "policy is not for certificate enrollment"})
+		return
+	}
+
+	// validate request against policy
+	if policyDoc.CertEnroll.MaxValidityInMonths < p.ValidityInMonths {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "validity in months exceeds policy limit"})
+		return
+	}
+	usageValidated := false
+	for _, usage := range policyDoc.CertEnroll.AllowedUsages {
+		if usage == p.Usage {
+			usageValidated = true
+			break
+		}
+	}
+	if !usageValidated {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "usage is not allowed by policy"})
 	}
 }

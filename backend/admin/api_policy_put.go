@@ -49,63 +49,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	}
 
 	policyDoc := new(PolicyDoc)
-	var dirProfile *DirectoryObjectDoc
 	switch p.PolicyType {
-	case PolicyTypeCertRequest:
-		switch {
-		case IsRootCANamespace(namespaceID):
-			// root ca must have issuer as the same as the namespace id
-			if p.CertRequest.IssuerNamespaceID != namespaceID {
-				c.JSON(http.StatusForbidden, gin.H{"message": "root namespace must have policy issuer the same as the namespace ID"})
-				return
-			}
-		case IsIntCANamespace(namespaceID):
-			if IsTestCA(namespaceID) {
-				// test int ca must have issuer namespace as the same as test root ca
-				if p.CertRequest.IssuerNamespaceID != testNamespaceID_RootCA {
-					c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
-					return
-				}
-			} else {
-				if p.CertRequest.IssuerNamespaceID != wellKnownNamespaceID_RootCA {
-					c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
-					return
-				}
-			}
-		default:
-			// other certificate must be issued by an intermediate CA
-			if !IsIntCANamespace(p.CertRequest.IssuerNamespaceID) {
-				c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer %s does not allow the requester namespace: %s", policyID.String(), namespaceID.String())})
-				return
-			}
-
-			// verify requester is one of
-			// - servicePrincipal
-			dirProfile, err := s.getDirectoryObjectDoc(c, namespaceID)
-			if err != nil {
-				if common.IsAzNotFound(err) {
-					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
-					return
-				}
-				log.Error().Err(err).Msg("failed to get directory profile")
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-				return
-			}
-			switch dirProfile.OdataType {
-			case string(NamespaceTypeMsGraphServicePrincipal),
-				string(NamespaceTypeMsGraphApplication):
-				// ok
-			default:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "namespace not supported yet"})
-				return
-			}
-		}
-		docSection := new(PolicyCertRequestDocSection)
-		if err := docSection.validateAndFillWithParameters(p.CertRequest, namespaceID, dirProfile); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-			return
-		}
-		policyDoc.CertRequest = docSection
 	case PolicyTypeCertEnroll:
 		// verify namespace is an intermediate CA
 		if !IsIntCANamespace(namespaceID) {

@@ -23,7 +23,7 @@ func getBuiltInCaIntNamespaceRefs() []NamespaceRef {
 
 func getBuiltInCaRootNamespaceRefs() []NamespaceRef {
 	return []NamespaceRef{
-		{NamespaceID: uuid.Nil, ID: wellKnownNamespaceID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
 		{NamespaceID: uuid.Nil, ID: testNamespaceID_RootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
 	}
 }
@@ -67,17 +67,14 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 	c.JSON(http.StatusOK, results)
 }
 
-func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUID) (*NamespaceProfile, int, error) {
+func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
 	if err != nil {
-		if common.IsGraphODataErrorNotFound(err) {
-			return nil, http.StatusNotFound, err
-		}
-		return nil, http.StatusInternalServerError, err
+		return nil, err
 	}
 	doc := new(DirectoryObjectDoc)
 	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID)
-	doc.NamespaceID = directoryID
+	doc.NamespaceID = wellknownNamespaceID_directoryID
 	doc.OdataType = *dirObj.GetOdataType()
 	switch doc.OdataType {
 	case "#microsoft.graph.user":
@@ -97,11 +94,17 @@ func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUI
 	case "#microsoft.graph.device":
 		if dObj, ok := dirObj.(msgraphmodels.Deviceable); ok {
 			doc.DisplayName = *dObj.GetDisplayName()
-			doc.DeviceID = dObj.GetDeviceId()
-			doc.OperatingSystem = dObj.GetOperatingSystem()
-			doc.OperatingSystemVersion = dObj.GetOperatingSystemVersion()
-			doc.DeviceOwnership = dObj.GetDeviceOwnership()
-			doc.IsCompliant = dObj.GetIsCompliant()
+			deviceId, err := uuid.Parse(*dObj.GetDeviceId())
+			if err != nil {
+				return nil, err
+			}
+			doc.Device = &DirectoryObjectDocDeviceSection{
+				DeviceID:               deviceId,
+				OperatingSystem:        dObj.GetOperatingSystem(),
+				OperatingSystemVersion: dObj.GetOperatingSystemVersion(),
+				DeviceOwnership:        dObj.GetDeviceOwnership(),
+				IsCompliant:            dObj.GetIsCompliant(),
+			}
 		}
 	case "#microsoft.graph.application":
 		if dObj, ok := dirObj.(msgraphmodels.Applicationable); ok {
@@ -109,13 +112,36 @@ func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUI
 			doc.AppID = dObj.GetAppId()
 		}
 	default:
-		return nil, http.StatusBadRequest, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)
+		return nil, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)
+	}
+	return doc, nil
+}
+
+func (s *adminServer) syncDirDoc(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
+	doc, err := s.genDirDocFromMsGraph(c, objectID)
+	if err != nil {
+		return doc, err
 	}
 
 	err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return doc, err
+	}
+	uuid.Nil = uuid.New()
+	return doc, nil
+}
 
+func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUID) (*NamespaceProfile, int, error) {
+	doc, err := s.syncDirDoc(c, objectID)
+
+	if err != nil {
+		if common.IsGraphODataErrorNotFound(err) {
+			return nil, http.StatusNotFound, err
+		}
+		if common.IsAzNotFound(err) {
+			return nil, http.StatusNotFound, err
+		}
+		return nil, http.StatusInternalServerError, err
 	}
 
 	nsProfile := new(NamespaceProfile)
@@ -154,7 +180,7 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 		switch namespaceId {
 		case testNamespaceID_RootCA:
 			nsProfile.DisplayName = "Test Root CA"
-		case wellKnownNamespaceID_RootCA:
+		case common.WellKnownID_RootCA:
 			nsProfile.DisplayName = "Root CA"
 		case testNamespaceID_IntCA:
 			nsProfile.DisplayName = "Test Intermediate CA"

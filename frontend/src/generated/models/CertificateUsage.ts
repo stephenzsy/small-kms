@@ -22,7 +22,8 @@ export const CertificateUsage = {
     Usage_IntCA: 'intermediate-ca',
     Usage_ServerAndClient: 'server-and-client',
     Usage_ServerOnly: 'server-only',
-    Usage_ClientOnly: 'client-only'
+    Usage_ClientOnly: 'client-only',
+    Usage_AADClientCredential: 'aad-client-credential'
 } as const;
 export type CertificateUsage = typeof CertificateUsage[keyof typeof CertificateUsage];
 

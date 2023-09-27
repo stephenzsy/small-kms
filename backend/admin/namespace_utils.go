@@ -5,18 +5,17 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-var wellKnownNamespaceID_RootCA = common.GetID(common.IdentifierRootCA)
 var wellKnownNamespaceID_IntCAService = common.GetID(common.IdentifierIntCAService)
 var wellKnownNamespaceID_IntCaIntranet uuid.UUID = common.GetID(common.IdentifierIntCAIntranet)
 
-var directoryID = common.GetID(common.IdentifierDirectory)
+var wellknownNamespaceID_directoryID = common.GetID(common.IdentifierDirectory)
 
 var testNamespaceID_RootCA = common.GetID(common.IdentifierTestRootCA)
 var testNamespaceID_IntCA = common.GetID(common.IdentifierTestIntCA)
 
 func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	switch namespaceID {
-	case wellKnownNamespaceID_RootCA,
+	case common.WellKnownID_RootCA,
 		wellKnownNamespaceID_IntCAService,
 		wellKnownNamespaceID_IntCaIntranet,
 		testNamespaceID_RootCA:
@@ -27,7 +26,7 @@ func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 
 func IsRootCANamespace(namespaceID uuid.UUID) bool {
 	switch namespaceID {
-	case wellKnownNamespaceID_RootCA,
+	case common.WellKnownID_RootCA,
 		testNamespaceID_RootCA:
 		return true
 	}
@@ -52,6 +51,42 @@ func IsTestCA(namespaceID uuid.UUID) bool {
 	switch namespaceID {
 	case testNamespaceID_RootCA, testNamespaceID_IntCA:
 		return true
+	}
+	return false
+}
+
+// returns a tuple of (isValid, needs graph validation)
+func validateNamespaceType(nsType NamespaceTypeShortName, nsID uuid.UUID) (bool, bool) {
+	switch nsType {
+	case NSTypeRootCA:
+		return IsRootCANamespace(nsID), false
+	case NSTypeIntCA:
+		return IsIntCANamespace(nsID), false
+	case NSTypeServicePrincipal,
+		NSTypeGroup,
+		NSTypeDevice,
+		NSTypeUser,
+		NSTypeApplication:
+		return nsID.Version() == 4, true
+	}
+	return false, false
+}
+
+func validateNamespaceTypeWithDirDoc(nsType NamespaceTypeShortName, doc *DirectoryObjectDoc) bool {
+	if doc == nil {
+		return false
+	}
+	switch nsType {
+	case NSTypeServicePrincipal:
+		return doc.OdataType == string(NamespaceTypeMsGraphServicePrincipal)
+	case NSTypeGroup:
+		return doc.OdataType == string(NamespaceTypeMsGraphGroup)
+	case NSTypeDevice:
+		return doc.OdataType == string(NamespaceTypeMsGraphDevice)
+	case NSTypeUser:
+		return doc.OdataType == string(NamespaceTypeMsGraphUser)
+	case NSTypeApplication:
+		return doc.OdataType == string(NamespaceTypeMsGraphApplication)
 	}
 	return false
 }

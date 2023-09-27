@@ -7,6 +7,7 @@ import (
 
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 func PagerToList[D any](ctx context.Context, pager *azruntime.Pager[azcosmos.QueryItemsResponse]) (results []*D, err error) {
@@ -26,4 +27,15 @@ func PagerToList[D any](ctx context.Context, pager *azruntime.Pager[azcosmos.Que
 		}
 	}
 	return
+}
+
+func baseDocPopulateRef(d *kmsdoc.BaseDoc, ref *Ref, nsType NamespaceTypeShortName) {
+	if d == nil || ref == nil {
+		return
+	}
+	ref.ID = d.ID.GetUUID()
+	ref.NamespaceID = d.NamespaceID
+	ref.Updated = d.Updated
+	ref.UpdatedBy = d.UpdatedBy
+	ref.NamespaceType = nsType
 }

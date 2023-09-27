@@ -19,6 +19,12 @@ import {
     CurveNameFromJSONTyped,
     CurveNameToJSON,
 } from './CurveName';
+import type { JwkAlg } from './JwkAlg';
+import {
+    JwkAlgFromJSON,
+    JwkAlgFromJSONTyped,
+    JwkAlgToJSON,
+} from './JwkAlg';
 import type { JwkKeySize } from './JwkKeySize';
 import {
     JwkKeySizeFromJSON,
@@ -33,65 +39,93 @@ import {
 } from './KeyType';
 
 /**
- * 
+ * Partial implementation of JSON Web Key (RFC 7517) with additional fields
  * @export
- * @interface KeyProperties
+ * @interface JwkKeyProperties
  */
-export interface KeyProperties {
+export interface JwkKeyProperties {
+    /**
+     * 
+     * @type {JwkAlg}
+     * @memberof JwkKeyProperties
+     */
+    alg?: JwkAlg;
     /**
      * 
      * @type {KeyType}
-     * @memberof KeyProperties
+     * @memberof JwkKeyProperties
      */
     kty: KeyType;
     /**
      * 
      * @type {JwkKeySize}
-     * @memberof KeyProperties
+     * @memberof JwkKeyProperties
      */
     keySize?: JwkKeySize;
     /**
      * 
+     * @type {string}
+     * @memberof JwkKeyProperties
+     */
+    n?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof JwkKeyProperties
+     */
+    e?: string;
+    /**
+     * 
      * @type {CurveName}
-     * @memberof KeyProperties
+     * @memberof JwkKeyProperties
      */
     crv?: CurveName;
     /**
-     * Keep using the same key version if exists
-     * @type {boolean}
-     * @memberof KeyProperties
+     * 
+     * @type {string}
+     * @memberof JwkKeyProperties
      */
-    reuseKey?: boolean;
+    x?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof JwkKeyProperties
+     */
+    y?: string;
 }
 
 /**
- * Check if a given object implements the KeyProperties interface.
+ * Check if a given object implements the JwkKeyProperties interface.
  */
-export function instanceOfKeyProperties(value: object): boolean {
+export function instanceOfJwkKeyProperties(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "kty" in value;
 
     return isInstance;
 }
 
-export function KeyPropertiesFromJSON(json: any): KeyProperties {
-    return KeyPropertiesFromJSONTyped(json, false);
+export function JwkKeyPropertiesFromJSON(json: any): JwkKeyProperties {
+    return JwkKeyPropertiesFromJSONTyped(json, false);
 }
 
-export function KeyPropertiesFromJSONTyped(json: any, ignoreDiscriminator: boolean): KeyProperties {
+export function JwkKeyPropertiesFromJSONTyped(json: any, ignoreDiscriminator: boolean): JwkKeyProperties {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'alg': !exists(json, 'alg') ? undefined : JwkAlgFromJSON(json['alg']),
         'kty': KeyTypeFromJSON(json['kty']),
         'keySize': !exists(json, 'key_size') ? undefined : JwkKeySizeFromJSON(json['key_size']),
+        'n': !exists(json, 'n') ? undefined : json['n'],
+        'e': !exists(json, 'e') ? undefined : json['e'],
         'crv': !exists(json, 'crv') ? undefined : CurveNameFromJSON(json['crv']),
-        'reuseKey': !exists(json, 'reuse_key') ? undefined : json['reuse_key'],
+        'x': !exists(json, 'x') ? undefined : json['x'],
+        'y': !exists(json, 'y') ? undefined : json['y'],
     };
 }
 
-export function KeyPropertiesToJSON(value?: KeyProperties | null): any {
+export function JwkKeyPropertiesToJSON(value?: JwkKeyProperties | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -100,10 +134,14 @@ export function KeyPropertiesToJSON(value?: KeyProperties | null): any {
     }
     return {
         
+        'alg': JwkAlgToJSON(value.alg),
         'kty': KeyTypeToJSON(value.kty),
         'key_size': JwkKeySizeToJSON(value.keySize),
+        'n': value.n,
+        'e': value.e,
         'crv': CurveNameToJSON(value.crv),
-        'reuse_key': value.reuseKey,
+        'x': value.x,
+        'y': value.y,
     };
 }
 

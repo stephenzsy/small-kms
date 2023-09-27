@@ -21,6 +21,12 @@ import { exists, mapValues } from '../runtime';
 export interface CertificateLifetimeTrigger {
     /**
      * 
+     * @type {boolean}
+     * @memberof CertificateLifetimeTrigger
+     */
+    disabled?: boolean;
+    /**
+     * 
      * @type {number}
      * @memberof CertificateLifetimeTrigger
      */
@@ -52,6 +58,7 @@ export function CertificateLifetimeTriggerFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
+        'disabled': !exists(json, 'disabled') ? undefined : json['disabled'],
         'daysBeforeExpiry': !exists(json, 'days_before_expiry') ? undefined : json['days_before_expiry'],
         'lifetimePercentage': !exists(json, 'lifetime_percentage') ? undefined : json['lifetime_percentage'],
     };
@@ -66,6 +73,7 @@ export function CertificateLifetimeTriggerToJSON(value?: CertificateLifetimeTrig
     }
     return {
         
+        'disabled': value.disabled,
         'days_before_expiry': value.daysBeforeExpiry,
         'lifetime_percentage': value.lifetimePercentage,
     };

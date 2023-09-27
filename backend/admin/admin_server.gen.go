@@ -26,11 +26,12 @@ const (
 
 // Defines values for CertificateUsage.
 const (
-	UsageClientOnly      CertificateUsage = "client-only"
-	UsageIntCA           CertificateUsage = "intermediate-ca"
-	UsageRootCA          CertificateUsage = "root-ca"
-	UsageServerAndClient CertificateUsage = "server-and-client"
-	UsageServerOnly      CertificateUsage = "server-only"
+	UsageAADClientCredential CertificateUsage = "aad-client-credential"
+	UsageClientOnly          CertificateUsage = "client-only"
+	UsageIntCA               CertificateUsage = "intermediate-ca"
+	UsageRootCA              CertificateUsage = "root-ca"
+	UsageServerAndClient     CertificateUsage = "server-and-client"
+	UsageServerOnly          CertificateUsage = "server-only"
 )
 
 // Defines values for CurveName.
@@ -39,11 +40,20 @@ const (
 	CurveNameP384 CurveName = "P-384"
 )
 
-// Defines values for KeyPropertiesKeySize.
+// Defines values for JwkAlg.
 const (
-	KeySize2048 KeyPropertiesKeySize = 2048
-	KeySize3072 KeyPropertiesKeySize = 3072
-	KeySize4096 KeyPropertiesKeySize = 4096
+	AlgES256 JwkAlg = "ES256"
+	AlgES384 JwkAlg = "ES384"
+	AlgRS256 JwkAlg = "RS256"
+	AlgRS384 JwkAlg = "RS384"
+	AlgRS512 JwkAlg = "RS512"
+)
+
+// Defines values for KeySize.
+const (
+	KeySize2048 KeySize = 2048
+	KeySize3072 KeySize = 3072
+	KeySize4096 KeySize = 4096
 )
 
 // Defines values for KeyType.
@@ -66,6 +76,18 @@ const (
 	NamespaceTypeMsGraphGroup            NamespaceType = "#microsoft.graph.group"
 	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
 	NamespaceTypeMsGraphUser             NamespaceType = "#microsoft.graph.user"
+)
+
+// Defines values for NamespaceTypeShortName.
+const (
+	NSTypeApplication      NamespaceTypeShortName = "application"
+	NSTypeDevice           NamespaceTypeShortName = "device"
+	NSTypeGroup            NamespaceTypeShortName = "group"
+	NSTypeIntCA            NamespaceTypeShortName = "intermediate-ca"
+	NSTypeRootCA           NamespaceTypeShortName = "root-ca"
+	NSTypeServicePrincipal NamespaceTypeShortName = "service-principal"
+	NSTypeUnknown          NamespaceTypeShortName = "unknown"
+	NSTypeUser             NamespaceTypeShortName = "user"
 )
 
 // Defines values for PolicyType.
@@ -103,13 +125,18 @@ type CertificateEnrollPolicyParameters struct {
 
 // CertificateEnrollRequest defines model for CertificateEnrollRequest.
 type CertificateEnrollRequest struct {
-	// DeviceOwnerId Required to issue certificate to device with registered owner
-	DeviceOwnerID     *openapi_types.UUID `json:"deviceOwnerId,omitempty"`
-	OwnerNamespaceID  openapi_types.UUID  `json:"ownerNamespaceId"`
-	PolicyNamespaceID *openapi_types.UUID `json:"policyNamespaceId,omitempty"`
+	IssueToUser *bool                       `json:"issueToUser,omitempty"`
+	Issuer      CertificateIssuerParameters `json:"issuer"`
 
-	// PublicKey Partial implementation of JSON Web Key (RFC 7517)
-	PublicKey JSONWebKey `json:"publicKey"`
+	// PolicyId ID of the policy to use for certificate enrollment
+	PolicyID openapi_types.UUID `json:"policyId"`
+
+	// PublicKey Partial implementation of JSON Web Key (RFC 7517) with additional fields
+	PublicKey        JwkKeyProperties              `json:"publicKey"`
+	Renew            *CertificateRenewalParameters `json:"renew,omitempty"`
+	TargetFqdn       *string                       `json:"targetFqdn,omitempty"`
+	Usage            CertificateUsage              `json:"usage"`
+	ValidityInMonths int32                         `json:"validity_months"`
 }
 
 // CertificateIdentifier defines model for CertificateIdentifier.
@@ -121,6 +148,16 @@ type CertificateIdentifier struct {
 
 // CertificateIdentifierType defines model for CertificateIdentifierType.
 type CertificateIdentifierType string
+
+// CertificateIssuer defines model for CertificateIssuer.
+type CertificateIssuer struct {
+	CertificateID *openapi_types.UUID    `json:"certificateId,omitempty"`
+	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
+	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
+
+	// TemplateId if certificate ID is not specified, use template ID to find the latest certificate, use default value if not specified
+	TemplateID *openapi_types.UUID `json:"templateId,omitempty"`
+}
 
 // CertificateIssuerParameters defines model for CertificateIssuerParameters.
 type CertificateIssuerParameters struct {
@@ -134,6 +171,7 @@ type CertificateIssuerParameters struct {
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
+	Disabled           *bool  `json:"disabled,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
@@ -178,6 +216,12 @@ type CertificateRef struct {
 	X5t *[]byte `json:"x5t,omitempty"`
 }
 
+// CertificateRenewalParameters defines model for CertificateRenewalParameters.
+type CertificateRenewalParameters struct {
+	RenewalCertificateId *openapi_types.UUID `json:"renewalCertificateId,omitempty"`
+	Signature            *[]byte             `json:"signature,omitempty"`
+}
+
 // CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
 type CertificateRequestPolicyParameters struct {
 	// IssuerNamespaceId ID of the issuer namespace
@@ -216,37 +260,86 @@ type CertificateSubjectAlternativeNames struct {
 	UserPrincipalNames *[]string `json:"upns,omitempty"`
 }
 
+// CertificateTemplate defines model for CertificateTemplate.
+type CertificateTemplate struct {
+	Issuer CertificateIssuer `json:"issuer"`
+
+	// KeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
+	KeyProperties           *JwkKeyProperties                   `json:"keyProperties,omitempty"`
+	KeyStorePath            *string                             `json:"keyStorePath,omitempty"`
+	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	Ref                     Ref                                 `json:"ref"`
+	Subject                 CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                   CertificateUsage                    `json:"usage"`
+	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
+}
+
+// CertificateTemplateParameters Certificate fields, may accept template substitutions
+type CertificateTemplateParameters struct {
+	Issuer CertificateIssuer `json:"issuer"`
+
+	// KeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
+	KeyProperties           *JwkKeyProperties                   `json:"keyProperties,omitempty"`
+	KeyStorePath            *string                             `json:"keyStorePath,omitempty"`
+	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	Subject                 CertificateSubject                  `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usage                   CertificateUsage                    `json:"usage"`
+	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
+}
+
 // CertificateUsage defines model for CertificateUsage.
 type CertificateUsage string
 
 // CurveName defines model for CurveName.
 type CurveName string
 
-// JSONWebKey Partial implementation of JSON Web Key (RFC 7517)
-type JSONWebKey struct {
-	Crv *CurveName `json:"crv,omitempty"`
-	E   *[]byte    `json:"e,omitempty"`
-	Kty KeyType    `json:"kty"`
-	N   *[]byte    `json:"n,omitempty"`
-	X   *[]byte    `json:"x,omitempty"`
-	Y   *[]byte    `json:"y,omitempty"`
+// DeviceServicePrincipal defines model for DeviceServicePrincipal.
+type DeviceServicePrincipal struct {
+	ApplicationClientID      openapi_types.UUID `json:"applicationClientId"`
+	ApplicationObjectID      openapi_types.UUID `json:"applicationObjectId"`
+	DeviceId                 openapi_types.UUID `json:"deviceId"`
+	ServicePrincipalObjectID openapi_types.UUID `json:"servicePrincipalObjectId"`
 }
+
+// JwkAlg defines model for JwkAlg.
+type JwkAlg string
+
+// JwkKeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
+type JwkKeyProperties struct {
+	Alg     *JwkAlg    `json:"alg,omitempty"`
+	Crv     *CurveName `json:"crv,omitempty"`
+	E       *[]byte    `json:"e,omitempty"`
+	KeySize *KeySize   `json:"key_size,omitempty"`
+	Kty     KeyType    `json:"kty"`
+	N       *[]byte    `json:"n,omitempty"`
+	X       *[]byte    `json:"x,omitempty"`
+	Y       *[]byte    `json:"y,omitempty"`
+}
+
+// KeySize defines model for JwkKeySize.
+type KeySize int32
 
 // KeyProperties defines model for KeyProperties.
 type KeyProperties struct {
-	Crv     *CurveName            `json:"crv,omitempty"`
-	KeySize *KeyPropertiesKeySize `json:"key_size,omitempty"`
-	Kty     KeyType               `json:"kty"`
+	Crv     *CurveName `json:"crv,omitempty"`
+	KeySize *KeySize   `json:"key_size,omitempty"`
+	Kty     KeyType    `json:"kty"`
 
 	// ReuseKey Keep using the same key version if exists
 	ReuseKey *bool `json:"reuse_key,omitempty"`
 }
 
-// KeyPropertiesKeySize defines model for KeyProperties.KeySize.
-type KeyPropertiesKeySize int32
-
 // KeyType defines model for KeyType.
 type KeyType string
+
+// NamespaceInfo defines model for NamespaceInfo.
+type NamespaceInfo struct {
+	DisplayName string        `json:"displayName"`
+	ObjectType  NamespaceType `json:"objectType"`
+	Ref         Ref           `json:"ref"`
+}
 
 // NamespacePermissionKey defines model for NamespacePermissionKey.
 type NamespacePermissionKey string
@@ -312,6 +405,9 @@ type NamespaceRef struct {
 
 // NamespaceType defines model for NamespaceType.
 type NamespaceType string
+
+// NamespaceTypeShortName defines model for NamespaceTypeShortName.
+type NamespaceTypeShortName string
 
 // Policy defines model for Policy.
 type Policy struct {
@@ -391,6 +487,19 @@ type PolicyStateCertRequest struct {
 // PolicyType defines model for PolicyType.
 type PolicyType string
 
+// Ref defines model for Ref.
+type Ref struct {
+	ID            openapi_types.UUID     `json:"id"`
+	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
+	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
+
+	// Updated Time when the policy was last updated
+	Updated time.Time `json:"updated"`
+
+	// UpdatedBy Unique ID of the user who created the policy
+	UpdatedBy string `json:"updatedBy"`
+}
+
 // RequestDiagnostics defines model for RequestDiagnostics.
 type RequestDiagnostics struct {
 	RequestHeaders []RequestHeaderEntry              `json:"requestHeaders"`
@@ -462,6 +571,9 @@ type PutPolicyV1JSONRequestBody = PolicyParameters
 
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
+
+// PutCertificateTemplateV2JSONRequestBody defines body for PutCertificateTemplateV2 for application/json ContentType.
+type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters
 
 // Getter for additional properties for RequestDiagnostics_ServiceRuntime. Returns the specified
 // element and whether it was found
@@ -615,8 +727,8 @@ func (a ErrorResponse) MarshalJSON() ([]byte, error) {
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Enroll certificate
-	// (POST /v1/certificates/enroll)
-	EnrollCertificateV1(c *gin.Context)
+	// (POST /v1/certificates/enroll/{targetId})
+	EnrollCertificateV1(c *gin.Context, targetId openapi_types.UUID)
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
@@ -665,6 +777,15 @@ type ServerInterface interface {
 	// Register namespace
 	// (POST /v1/{namespaceId}/profile)
 	RegisterNamespaceProfileV1(c *gin.Context, namespaceId openapi_types.UUID)
+	// Link device service principal
+	// (POST /v2/device/{namespaceId}/link-service-principal)
+	LinkDeviceServicePrincipalV2(c *gin.Context, namespaceId openapi_types.UUID)
+	// Put certificate template
+	// (PUT /v2/{namespaceType}/{namespaceId}/certificate-template/{templateId})
+	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
+	// Sync namespace info with ms graph
+	// (POST /v2/{namespaceType}/{namespaceId}/graph-sync)
+	SyncNamespaceInfoV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -679,6 +800,17 @@ type MiddlewareFunc func(c *gin.Context)
 // EnrollCertificateV1 operation middleware
 func (siw *ServerInterfaceWrapper) EnrollCertificateV1(c *gin.Context) {
 
+	var err error
+
+	// ------------- Path parameter "targetId" -------------
+	var targetId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "targetId", c.Param("targetId"), &targetId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter targetId: %w", err), http.StatusBadRequest)
+		return
+	}
+
 	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -688,7 +820,7 @@ func (siw *ServerInterfaceWrapper) EnrollCertificateV1(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.EnrollCertificateV1(c)
+	siw.Handler.EnrollCertificateV1(c, targetId)
 }
 
 // GetDiagnosticsV1 operation middleware
@@ -1178,6 +1310,111 @@ func (siw *ServerInterfaceWrapper) RegisterNamespaceProfileV1(c *gin.Context) {
 	siw.Handler.RegisterNamespaceProfileV1(c, namespaceId)
 }
 
+// LinkDeviceServicePrincipalV2 operation middleware
+func (siw *ServerInterfaceWrapper) LinkDeviceServicePrincipalV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.LinkDeviceServicePrincipalV2(c, namespaceId)
+}
+
+// PutCertificateTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.PutCertificateTemplateV2(c, namespaceType, namespaceId, templateId)
+}
+
+// SyncNamespaceInfoV2 operation middleware
+func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SyncNamespaceInfoV2(c, namespaceType, namespaceId)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -1205,7 +1442,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.POST(options.BaseURL+"/v1/certificates/enroll", wrapper.EnrollCertificateV1)
+	router.POST(options.BaseURL+"/v1/certificates/enroll/:targetId", wrapper.EnrollCertificateV1)
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
 	router.GET(options.BaseURL+"/v1/my/hasPermission/:permissionKey", wrapper.MyHasPermissionV1)
 	router.GET(options.BaseURL+"/v1/my/profiles", wrapper.GetMyProfilesV1)
@@ -1222,4 +1459,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/profile", wrapper.RegisterNamespaceProfileV1)
+	router.POST(options.BaseURL+"/v2/device/:namespaceId/link-service-principal", wrapper.LinkDeviceServicePrincipalV2)
+	router.PUT(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplateV2)
+	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

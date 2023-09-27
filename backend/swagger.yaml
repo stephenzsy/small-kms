@@ -6,6 +6,88 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
+  /v2/device/{namespaceId}/link-service-principal:
+    parameters:
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    post:
+      tags:
+        - admin
+      summary: Link device service principal
+      operationId: LinkDeviceServicePrincipalV2
+      responses:
+        201:
+          description: Link device service principal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceServicePrincipal"
+  /v2/{namespaceType}/{namespaceId}/certificate-template/{templateId}:
+    parameters:
+      - in: path
+        name: namespaceType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        required: true
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: templateId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    put:
+      tags:
+        - admin
+      summary: Put certificate template
+      operationId: PutCertificateTemplateV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateTemplateParameters"
+        required: true
+      responses:
+        201:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
+  /v2/{namespaceType}/{namespaceId}/graph-sync:
+    parameters:
+      - in: path
+        name: namespaceType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        required: true
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    post:
+      tags:
+        - directory
+      summary: Sync namespace info with ms graph
+      operationId: SyncNamespaceInfoV2
+      responses:
+        "200":
+          description: register namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceInfo"
   /v1/{namespaceId}/certificates:
     get:
       tags:
@@ -398,12 +480,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RequestDiagnostics"
-  /v1/certificates/enroll:
+  /v1/certificates/enroll/{targetId}:
     post:
       tags:
         - certs
       summary: Enroll certificate
       operationId: EnrollCertificateV1
+      parameters:
+        - in: path
+          name: targetId
+          schema:
+            type: string
+            format: uuid
+          required: true
       requestBody:
         content:
           application/json:
@@ -425,6 +514,110 @@ components:
       type: http
       scheme: bearer
   schemas:
+    NamespaceTypeShortName:
+      type: string
+      enum:
+        - unknown
+        - root-ca
+        - intermediate-ca
+        - service-principal
+        - group
+        - device
+        - user
+        - application
+      x-enum-varnames:
+        - NSType_Unknown
+        - NSType_RootCA
+        - NSType_IntCA
+        - NSType_ServicePrincipal
+        - NSType_Group
+        - NSType_Device
+        - NSType_User
+        - NSType_Application
+    CertificateIssuer:
+      type: object
+      properties:
+        namespaceType:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        namespaceId:
+          type: string
+          format: uuid
+          x-go-name: NamespaceID
+        certificateId:
+          type: string
+          format: uuid
+          x-go-name: CertificateID
+        templateId:
+          description: if certificate ID is not specified, use template ID to find the latest certificate, use default value if not specified
+          type: string
+          format: uuid
+          x-go-name: TemplateID
+      required:
+        - namespaceType
+        - namespaceId
+    Ref:
+      type: object
+      properties:
+        namespaceType:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        namespaceId:
+          type: string
+          format: uuid
+          x-go-name: NamespaceID
+        id:
+          type: string
+          format: uuid
+          x-go-name: ID
+        updatedBy:
+          description: Unique ID of the user who created the policy
+          type: string
+        updated:
+          description: Time when the policy was last updated
+          type: string
+          format: date-time
+      required:
+        - namespaceType
+        - namespaceId
+        - id
+        - updated
+        - updatedBy
+    CertificateTemplateParameters:
+      type: object
+      description: Certificate fields, may accept template substitutions
+      properties:
+        issuer:
+          $ref: "#/components/schemas/CertificateIssuer"
+        keyProperties:
+          $ref: "#/components/schemas/JwkKeyProperties"
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 120
+        keyStorePath:
+          type: string
+        lifetimeTrigger:
+          $ref: "#/components/schemas/CertificateLifetimeTrigger"
+      required:
+        - issuer
+        - subject
+        - usage
+    CertificateTemplate:
+      allOf:
+        - type: object
+          properties:
+            ref:
+              $ref: "#/components/schemas/Ref"
+          required:
+            - ref
+        - $ref: "#/components/schemas/CertificateTemplateParameters"
     NamespaceType:
       type: string
       enum:
@@ -443,6 +636,42 @@ components:
         - NamespaceType_MsGraphGroup
         - NamespaceType_MsGraphDevice
         - NamespaceType_MsGraphApplication
+    NamespaceInfo:
+      type: object
+      properties:
+        ref:
+          $ref: "#/components/schemas/Ref"
+        objectType:
+          $ref: "#/components/schemas/NamespaceType"
+        displayName:
+          type: string
+      required:
+        - ref
+        - objectType
+        - displayName
+    DeviceServicePrincipal:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        applicationClientId:
+          type: string
+          format: uuid
+          x-go-name: ApplicationClientID
+        applicationObjectId:
+          type: string
+          format: uuid
+          x-go-name: ApplicationObjectID
+        servicePrincipalObjectId:
+          type: string
+          format: uuid
+          x-go-name: ServicePrincipalObjectID
+      required:
+        - deviceId
+        - applicationClientId
+        - applicationObjectId
+        - servicePrincipalObjectId
     ApplyPolicyRequest:
       type: object
       properties:
@@ -478,17 +707,8 @@ components:
           x-go-name: KeyType
           $ref: "#/components/schemas/KeyType"
         key_size:
-          type: integer
-          format: int32
-          enum:
-            - 2048
-            - 3072
-            - 4096
-          x-enum-varnames:
-            - KeySize_2048
-            - KeySize_3072
-            - KeySize_4096
           x-go-name: KeySize
+          $ref: "#/components/schemas/JwkKeySize"
         crv:
           $ref: "#/components/schemas/CurveName"
           x-go-name: CurveName
@@ -506,12 +726,14 @@ components:
         - server-and-client
         - server-only
         - client-only
+        - aad-client-credential
       x-enum-varnames:
         - Usage_RootCA
         - Usage_IntCA
         - Usage_ServerAndClient
         - Usage_ServerOnly
         - Usage_ClientOnly
+        - Usage_AADClientCredential
     CertificateRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
@@ -636,6 +858,8 @@ components:
     CertificateLifetimeTrigger:
       type: object
       properties:
+        disabled:
+          type: boolean
         days_before_expiry:
           x-go-name: DaysBeforeExpiry
           type: integer
@@ -678,12 +902,42 @@ components:
       x-enum-varnames:
         - CurveNameP256
         - CurveNameP384
-    JSONWebKey:
+    JwkAlg:
+      type: string
+      enum:
+        - RS256
+        - RS384
+        - RS512
+        - ES256
+        - ES384
+      x-enum-varnames:
+        - AlgRS256
+        - AlgRS384
+        - AlgRS512
+        - AlgES256
+        - AlgES384
+    JwkKeySize:
+      type: integer
+      format: int32
+      enum:
+        - 2048
+        - 3072
+        - 4096
+      x-enum-varnames:
+        - KeySize_2048
+        - KeySize_3072
+        - KeySize_4096
+      x-go-name: KeySize
+    JwkKeyProperties:
       type: object
-      description: Partial implementation of JSON Web Key (RFC 7517)
+      description: Partial implementation of JSON Web Key (RFC 7517) with additional fields
       properties:
+        alg:
+          $ref: "#/components/schemas/JwkAlg"
         kty:
           $ref: "#/components/schemas/KeyType"
+        key_size:
+          $ref: "#/components/schemas/JwkKeySize"
         n:
           type: string
           format: byte
@@ -700,27 +954,45 @@ components:
           format: byte
       required:
         - kty
+    CertificateRenewalParameters:
+      type: object
+      properties:
+        renewalCertificateId:
+          type: string
+          format: uuid
+        signature:
+          type: string
+          format: byte
     CertificateEnrollRequest:
       type: object
       properties:
-        ownerNamespaceId:
+        issuer:
+          $ref: "#/components/schemas/CertificateIssuerParameters"
+        issueToUser:
+          type: boolean
+        policyId:
+          description: ID of the policy to use for certificate enrollment
           type: string
           format: uuid
-          x-go-name: OwnerNamespaceID
-        policyNamespaceId:
-          type: string
-          format: uuid
-          x-go-name: PolicyNamespaceID
+          x-go-name: PolicyID
         publicKey:
-          $ref: "#/components/schemas/JSONWebKey"
-        deviceOwnerId:
-          description: Required to issue certificate to device with registered owner
+          $ref: "#/components/schemas/JwkKeyProperties"
+        targetFqdn:
           type: string
-          format: uuid
-          x-go-name: DeviceOwnerID
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        renew:
+          $ref: "#/components/schemas/CertificateRenewalParameters"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+          format: int32
       required:
-        - ownerNamespaceId
+        - issuer
+        - policyId
         - publicKey
+        - usage
+        - validity_months
     CertificateIssuerParameters:
       type: object
       properties:

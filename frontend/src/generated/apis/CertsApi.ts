@@ -29,6 +29,7 @@ import {
 } from '../models';
 
 export interface EnrollCertificateV1Request {
+    targetId: string;
     certificateEnrollRequest: CertificateEnrollRequest;
 }
 
@@ -53,6 +54,10 @@ export class CertsApi extends runtime.BaseAPI {
      * Enroll certificate
      */
     async enrollCertificateV1Raw(requestParameters: EnrollCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRef>> {
+        if (requestParameters.targetId === null || requestParameters.targetId === undefined) {
+            throw new runtime.RequiredError('targetId','Required parameter requestParameters.targetId was null or undefined when calling enrollCertificateV1.');
+        }
+
         if (requestParameters.certificateEnrollRequest === null || requestParameters.certificateEnrollRequest === undefined) {
             throw new runtime.RequiredError('certificateEnrollRequest','Required parameter requestParameters.certificateEnrollRequest was null or undefined when calling enrollCertificateV1.');
         }
@@ -72,7 +77,7 @@ export class CertsApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/certificates/enroll`,
+            path: `/v1/certificates/enroll/{targetId}`.replace(`{${"targetId"}}`, encodeURIComponent(String(requestParameters.targetId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
