@@ -25,6 +25,8 @@ models/JSONWebKey.ts
 models/KeyProperties.ts
 models/KeyType.ts
 models/MyProfile.ts
+models/NamespacePermissionKey.ts
+models/NamespacePermissions.ts
 models/NamespaceProfile.ts
 models/NamespaceProfileAllOf.ts
 models/NamespaceRef.ts

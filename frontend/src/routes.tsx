@@ -13,6 +13,7 @@ const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
+const PermissionsPage = React.lazy(() => import("./admin/PermissionsPage"));
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,17 @@ export const router = createBrowserRouter([
             path: ":namespaceId/policies",
             children: [
               { index: true, element: <PoliciesPage /> },
+              { path: ":policyId", element: <PolicyPage /> },
+              {
+                path: ":policyId/latest-certificate",
+                element: <CertificatePage />,
+              },
+            ],
+          },
+          {
+            path: ":namespaceId/permissions",
+            children: [
+              { index: true, element: <PermissionsPage /> },
               { path: ":policyId", element: <PolicyPage /> },
               {
                 path: ":policyId/latest-certificate",

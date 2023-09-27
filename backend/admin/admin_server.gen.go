@@ -52,6 +52,11 @@ const (
 	KeyTypeRSA KeyType = "RSA"
 )
 
+// Defines values for NamespacePermissionKey.
+const (
+	AllowEnrollDeviceCertificate NamespacePermissionKey = "allowEnrollDeviceCertificate"
+)
+
 // Defines values for NamespaceType.
 const (
 	NamespaceTypeBuiltInCaInt            NamespaceType = "#builtin.ca.intermediate"
@@ -240,6 +245,14 @@ type KeyPropertiesKeySize int32
 
 // KeyType defines model for KeyType.
 type KeyType string
+
+// NamespacePermissionKey defines model for NamespacePermissionKey.
+type NamespacePermissionKey string
+
+// NamespacePermissions defines model for NamespacePermissions.
+type NamespacePermissions struct {
+	AllowEnrollDeviceCertificate *bool `json:"allowEnrollDeviceCertificate,omitempty"`
+}
 
 // NamespaceProfile defines model for NamespaceProfile.
 type NamespaceProfile struct {
@@ -439,6 +452,9 @@ type DeletePolicyV1Params struct {
 // EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
 type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest
 
+// PutPermissionsV1JSONRequestBody defines body for PutPermissionsV1 for application/json ContentType.
+type PutPermissionsV1JSONRequestBody = NamespacePermissions
+
 // PutPolicyV1JSONRequestBody defines body for PutPolicyV1 for application/json ContentType.
 type PutPolicyV1JSONRequestBody = PolicyParameters
 
@@ -602,6 +618,9 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
+	// My Has permission
+	// (GET /v1/my/hasPermission/{permissionKey})
+	MyHasPermissionV1(c *gin.Context, permissionKey NamespacePermissionKey)
 	// Get my profiles
 	// (GET /v1/my/profiles)
 	GetMyProfilesV1(c *gin.Context)
@@ -617,6 +636,12 @@ type ServerInterface interface {
 	// Get certificate
 	// (GET /v1/{namespaceId}/certificates/{id})
 	GetCertificateV1(c *gin.Context, namespaceId openapi_types.UUID, id openapi_types.UUID, params GetCertificateV1Params)
+	// Has permission
+	// (GET /v1/{namespaceId}/hasPermission/{permissionKey})
+	HasPermissionV1(c *gin.Context, namespaceId openapi_types.UUID, permissionKey NamespacePermissionKey)
+	// Put permissions
+	// (PUT /v1/{namespaceId}/permissions/{objectId})
+	PutPermissionsV1(c *gin.Context, namespaceId openapi_types.UUID, objectId openapi_types.UUID)
 	// List policies
 	// (GET /v1/{namespaceId}/policies)
 	ListPoliciesV1(c *gin.Context, namespaceId openapi_types.UUID)
@@ -677,6 +702,32 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
+}
+
+// MyHasPermissionV1 operation middleware
+func (siw *ServerInterfaceWrapper) MyHasPermissionV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "permissionKey" -------------
+	var permissionKey NamespacePermissionKey
+
+	err = runtime.BindStyledParameter("simple", false, "permissionKey", c.Param("permissionKey"), &permissionKey)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter permissionKey: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.MyHasPermissionV1(c, permissionKey)
 }
 
 // GetMyProfilesV1 operation middleware
@@ -824,6 +875,76 @@ func (siw *ServerInterfaceWrapper) GetCertificateV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetCertificateV1(c, namespaceId, id, params)
+}
+
+// HasPermissionV1 operation middleware
+func (siw *ServerInterfaceWrapper) HasPermissionV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "permissionKey" -------------
+	var permissionKey NamespacePermissionKey
+
+	err = runtime.BindStyledParameter("simple", false, "permissionKey", c.Param("permissionKey"), &permissionKey)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter permissionKey: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.HasPermissionV1(c, namespaceId, permissionKey)
+}
+
+// PutPermissionsV1 operation middleware
+func (siw *ServerInterfaceWrapper) PutPermissionsV1(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "objectId" -------------
+	var objectId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "objectId", c.Param("objectId"), &objectId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter objectId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.PutPermissionsV1(c, namespaceId, objectId)
 }
 
 // ListPoliciesV1 operation middleware
@@ -1084,11 +1205,14 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.POST(options.BaseURL+"/v1/certificates/enroll", wrapper.EnrollCertificateV1)
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
+	router.GET(options.BaseURL+"/v1/my/hasPermission/:permissionKey", wrapper.MyHasPermissionV1)
 	router.GET(options.BaseURL+"/v1/my/profiles", wrapper.GetMyProfilesV1)
 	router.POST(options.BaseURL+"/v1/my/profiles", wrapper.SyncMyProfilesV1)
 	router.GET(options.BaseURL+"/v1/namespaces/:namespaceType", wrapper.ListNamespacesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates", wrapper.ListCertificatesV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/certificates/:id", wrapper.GetCertificateV1)
+	router.GET(options.BaseURL+"/v1/:namespaceId/hasPermission/:permissionKey", wrapper.HasPermissionV1)
+	router.PUT(options.BaseURL+"/v1/:namespaceId/permissions/:objectId", wrapper.PutPermissionsV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies", wrapper.ListPoliciesV1)
 	router.DELETE(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.DeletePolicyV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.GetPolicyV1)

@@ -21,6 +21,8 @@ export * from './JSONWebKey';
 export * from './KeyProperties';
 export * from './KeyType';
 export * from './MyProfile';
+export * from './NamespacePermissionKey';
+export * from './NamespacePermissions';
 export * from './NamespaceProfile';
 export * from './NamespaceProfileAllOf';
 export * from './NamespaceRef';

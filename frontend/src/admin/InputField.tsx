@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useId } from "react";
 
 export interface InputFieldProps {
@@ -9,6 +10,7 @@ export interface InputFieldProps {
   value: string | number | undefined;
   onChange: (value: string) => void;
   inputMode?: "text" | "numeric";
+  className?: string;
 }
 
 export function InputField({
@@ -19,10 +21,11 @@ export function InputField({
   value,
   onChange,
   inputMode,
+  className,
 }: InputFieldProps) {
   const id = useId();
   return (
-    <div className="sm:col-span-4">
+    <div className={classNames("sm:col-span-4", className)}>
       <label
         htmlFor={id}
         className="block text-sm font-medium leading-6 text-neutral-900"

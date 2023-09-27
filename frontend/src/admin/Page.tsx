@@ -14,8 +14,16 @@ function PolicySection(props: {
   namespaces: Pick<NamespaceRef, "id" | "displayName">[] | undefined;
   title: string;
   showAdd?: boolean;
+  property?: "policies" | "permissions";
+  actionTitle?: React.ReactNode;
 }) {
-  const { namespaces, title, showAdd = false } = props;
+  const {
+    namespaces,
+    title,
+    showAdd = false,
+    property = "policies",
+    actionTitle = "Policies",
+  } = props;
 
   return (
     <section className="overflow-hidden rounded-lg bg-white shadow px-4 sm:px-6 lg:px-8 py-6">
@@ -68,10 +76,11 @@ function PolicySection(props: {
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">
                         <Link
-                          to={`/admin/${ns.id}/policies`}
+                          to={`/admin/${ns.id}/${property}`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Policies<span className="sr-only">, {ns.id}</span>
+                          {actionTitle}
+                          <span className="sr-only">, {ns.id}</span>
                         </Link>
                       </td>
                     </tr>
@@ -155,7 +164,7 @@ export default function AdminPage() {
       />
       <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
       <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
-      <PolicySection namespaces={uNamespaces} title="Users" showAdd />
+      <PolicySection namespaces={uNamespaces} title="Users" showAdd property="permissions" actionTitle="Permissions" />
       <PolicySection namespaces={aNamespaces} title="Applications" showAdd />
     </>
   );

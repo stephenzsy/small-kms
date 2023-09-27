@@ -2,6 +2,7 @@ package admin
 
 import (
 	"log"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -18,6 +19,7 @@ type adminServer struct {
 	azCosmosDatabaseClient       *azcosmos.DatabaseClient
 	azCosmosContainerClientCerts *azcosmos.ContainerClient
 	msGraphClient                *msgraph.GraphServiceClient
+	skipDeviceCheck              bool
 }
 
 func NewAdminServer() *adminServer {
@@ -29,7 +31,8 @@ func NewAdminServer() *adminServer {
 		log.Panic(err)
 	}
 	s := adminServer{
-		CommonConfig: &commonConfig,
+		CommonConfig:    &commonConfig,
+		skipDeviceCheck: os.Getenv("SKIP_DEVICE_CHECK") == "true",
 	}
 	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
 	if err != nil {
