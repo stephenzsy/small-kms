@@ -26,6 +26,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DeviceServicePrincipal"
+  /v2/{namespaceType}/{namespaceId}/certificate-template:
+    parameters:
+      - in: path
+        name: namespaceType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        required: true
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    post:
+      tags:
+        - admin
+      summary: Create certificate template
+      operationId: CreateCertificateTemplateV2
+      parameters:
+        - in: query
+          name: isDefault
+          schema:
+            type: boolean
+            default: false
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateTemplateParameters"
+        required: true
+      responses:
+        201:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
   /v2/{namespaceType}/{namespaceId}/certificate-template/{templateId}:
     parameters:
       - in: path

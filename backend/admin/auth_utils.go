@@ -21,7 +21,7 @@ func authNamespaceAdminOrSelf(c *gin.Context, namespaceID uuid.UUID) (callerID u
 
 func authAdminOnly(c *gin.Context) bool {
 	if !auth.CallerPrincipalHasAdminRole(c) {
-		respondPublicErrorMsg(c, http.StatusForbidden, fmt.Sprintf("caller %s does not have admin addess"))
+		respondPublicErrorMsg(c, http.StatusForbidden, "caller does not have admin addess")
 		return false
 	}
 	return true

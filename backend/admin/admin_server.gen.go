@@ -560,6 +560,11 @@ type DeletePolicyV1Params struct {
 	Purge *bool `form:"purge,omitempty" json:"purge,omitempty"`
 }
 
+// CreateCertificateTemplateV2Params defines parameters for CreateCertificateTemplateV2.
+type CreateCertificateTemplateV2Params struct {
+	IsDefault *bool `form:"isDefault,omitempty" json:"isDefault,omitempty"`
+}
+
 // EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
 type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest
 
@@ -571,6 +576,9 @@ type PutPolicyV1JSONRequestBody = PolicyParameters
 
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
+
+// CreateCertificateTemplateV2JSONRequestBody defines body for CreateCertificateTemplateV2 for application/json ContentType.
+type CreateCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters
 
 // PutCertificateTemplateV2JSONRequestBody defines body for PutCertificateTemplateV2 for application/json ContentType.
 type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters
@@ -780,6 +788,9 @@ type ServerInterface interface {
 	// Link device service principal
 	// (POST /v2/device/{namespaceId}/link-service-principal)
 	LinkDeviceServicePrincipalV2(c *gin.Context, namespaceId openapi_types.UUID)
+	// Create certificate template
+	// (POST /v2/{namespaceType}/{namespaceId}/certificate-template)
+	CreateCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, params CreateCertificateTemplateV2Params)
 	// Put certificate template
 	// (PUT /v2/{namespaceType}/{namespaceId}/certificate-template/{templateId})
 	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
@@ -1336,6 +1347,52 @@ func (siw *ServerInterfaceWrapper) LinkDeviceServicePrincipalV2(c *gin.Context) 
 	siw.Handler.LinkDeviceServicePrincipalV2(c, namespaceId)
 }
 
+// CreateCertificateTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) CreateCertificateTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateCertificateTemplateV2Params
+
+	// ------------- Optional query parameter "isDefault" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "isDefault", c.Request.URL.Query(), &params.IsDefault)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter isDefault: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateCertificateTemplateV2(c, namespaceType, namespaceId, params)
+}
+
 // PutCertificateTemplateV2 operation middleware
 func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
 
@@ -1460,6 +1517,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/profile", wrapper.RegisterNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v2/device/:namespaceId/link-service-principal", wrapper.LinkDeviceServicePrincipalV2)
+	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-template", wrapper.CreateCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

@@ -24,7 +24,7 @@ func getBuiltInCaIntNamespaceRefs() []NamespaceRef {
 func getBuiltInCaRootNamespaceRefs() []NamespaceRef {
 	return []NamespaceRef{
 		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
-		{NamespaceID: uuid.Nil, ID: testNamespaceID_RootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
 	}
 }
 
@@ -178,7 +178,7 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 		nsProfile := new(NamespaceProfile)
 		nsProfile.NamespaceID = namespaceId
 		switch namespaceId {
-		case testNamespaceID_RootCA:
+		case common.WellKnownID_TestRootCA:
 			nsProfile.DisplayName = "Test Root CA"
 		case common.WellKnownID_RootCA:
 			nsProfile.DisplayName = "Root CA"

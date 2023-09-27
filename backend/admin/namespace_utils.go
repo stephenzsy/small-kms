@@ -10,7 +10,6 @@ var wellKnownNamespaceID_IntCaIntranet uuid.UUID = common.GetID(common.Identifie
 
 var wellknownNamespaceID_directoryID = common.GetID(common.IdentifierDirectory)
 
-var testNamespaceID_RootCA = common.GetID(common.IdentifierTestRootCA)
 var testNamespaceID_IntCA = common.GetID(common.IdentifierTestIntCA)
 
 func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
@@ -18,7 +17,7 @@ func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	case common.WellKnownID_RootCA,
 		wellKnownNamespaceID_IntCAService,
 		wellKnownNamespaceID_IntCaIntranet,
-		testNamespaceID_RootCA:
+		common.WellKnownID_TestRootCA:
 		return true
 	}
 	return false
@@ -27,7 +26,7 @@ func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 func IsRootCANamespace(namespaceID uuid.UUID) bool {
 	switch namespaceID {
 	case common.WellKnownID_RootCA,
-		testNamespaceID_RootCA:
+		common.WellKnownID_TestRootCA:
 		return true
 	}
 	return false
@@ -49,7 +48,7 @@ func IsCANamespace(namespaceID uuid.UUID) bool {
 
 func IsTestCA(namespaceID uuid.UUID) bool {
 	switch namespaceID {
-	case testNamespaceID_RootCA, testNamespaceID_IntCA:
+	case common.WellKnownID_TestRootCA, testNamespaceID_IntCA:
 		return true
 	}
 	return false

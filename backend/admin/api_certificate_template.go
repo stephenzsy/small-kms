@@ -11,6 +11,16 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
+func (s *adminServer) CreateCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, params CreateCertificateTemplateV2Params) {
+	var templateId uuid.UUID
+	if params.IsDefault != nil && *params.IsDefault {
+		templateId = uuid.Nil
+	} else {
+		templateId = uuid.New()
+	}
+	s.PutCertificateTemplateV2(c, namespaceType, namespaceId, templateId)
+}
+
 func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
