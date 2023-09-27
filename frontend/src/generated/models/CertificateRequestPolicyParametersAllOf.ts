@@ -82,6 +82,12 @@ export interface CertificateRequestPolicyParametersAllOf {
     usage: CertificateUsage;
     /**
      * 
+     * @type {number}
+     * @memberof CertificateRequestPolicyParametersAllOf
+     */
+    validityMonths?: number;
+    /**
+     * 
      * @type {CertificateLifetimeTrigger}
      * @memberof CertificateRequestPolicyParametersAllOf
      */
@@ -115,6 +121,7 @@ export function CertificateRequestPolicyParametersAllOfFromJSONTyped(json: any, 
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usage': CertificateUsageFromJSON(json['usage']),
+        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
     };
 }
@@ -133,6 +140,7 @@ export function CertificateRequestPolicyParametersAllOfToJSON(value?: Certificat
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usage': CertificateUsageToJSON(value.usage),
+        'validity_months': value.validityMonths,
         'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
     };
 }

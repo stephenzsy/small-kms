@@ -23,6 +23,10 @@ import {
   PolicyCertificateRequestForm,
   useCertificateRequestFormState,
 } from "./PolicyCertificateRequestForm";
+import {
+  PolicyCertificateEnrollForm,
+  usePolicyCertEnrollFormState,
+} from "./PolicyCertificateEnrollForm";
 
 export type PolicyFormsProps = {};
 
@@ -35,6 +39,11 @@ const policyTypes: ReadonlyArray<{
     policyType: "certRequest",
     title: policyTypeNames[PolicyType.PolicyType_CertRequest],
     defaultPolicyId: WellknownId.defaultPolicyIdCertRequest,
+  },
+  {
+    policyType: "certEnroll",
+    title: policyTypeNames[PolicyType.PolicyType_CertEnroll],
+    defaultPolicyId: WellknownId.defaultPolicyIdCertEnroll,
   },
   {
     policyType: "certAadAppCred",
@@ -51,6 +60,8 @@ export function PolicyForms(_props: PolicyFormsProps) {
     switch (policyId) {
       case WellknownId.defaultPolicyIdCertRequest:
         return PolicyType.PolicyType_CertRequest;
+      case WellknownId.defaultPolicyIdCertEnroll:
+        return PolicyType.PolicyType_CertEnroll;
       case WellknownId.defaultPolicyIdAadAppCred:
         return PolicyType.PolicyType_CertAadAppClientCredential;
     }
@@ -68,7 +79,7 @@ export function PolicyForms(_props: PolicyFormsProps) {
 
   const aadAppCredState = usePolicyAppCredFormState();
   const certReqState = useCertificateRequestFormState();
-
+  const certEnrollState = usePolicyCertEnrollFormState();
   const onSubmit = useMemoizedFn<React.FormEventHandler<HTMLFormElement>>(
     (e) => {
       e.preventDefault();
@@ -103,6 +114,27 @@ export function PolicyForms(_props: PolicyFormsProps) {
               ? CertificateUsage.Usage_IntCA
               : certReqState.certUsage,
             keyStorePath: certReqState.keyStorePath,
+            validityMonths: certReqState.validityInMonths
+              ? parseInt(certReqState.validityInMonths.toString())
+              : 0,
+          };
+          break;
+        case PolicyType.PolicyType_CertEnroll:
+          const allowedUsages: CertificateUsage[] = [];
+          for (const k in certEnrollState.certificateUsages) {
+            if (
+              certEnrollState.certificateUsages[
+                k as unknown as CertificateUsage
+              ]
+            ) {
+              allowedUsages.push(k as CertificateUsage);
+            }
+          }
+          policyParameters.certEnroll = {
+            allowedUsages,
+            maxValidityInMonths: certEnrollState.validityInMonths
+              ? parseInt(certEnrollState.validityInMonths.toString())
+              : 0,
           };
           break;
         case PolicyType.PolicyType_CertAadAppClientCredential:
@@ -165,6 +197,9 @@ export function PolicyForms(_props: PolicyFormsProps) {
       <div className="pt-6">
         {policyType === PolicyType.PolicyType_CertRequest && (
           <PolicyCertificateRequestForm {...certReqState} />
+        )}
+        {policyType === PolicyType.PolicyType_CertEnroll && (
+          <PolicyCertificateEnrollForm {...certEnrollState} />
         )}
         {policyType === PolicyType.PolicyType_CertAadAppClientCredential && (
           <PolicyAadAppCredForm {...aadAppCredState} />

@@ -21,7 +21,7 @@ const (
 	IdentifierDirectory
 
 	DefaultPolicyIdCertRequest
-	DefaultPolicyIdCertEnrollGroupMemberDevice
+	DefaultPolicyIdCertEnroll
 	DefaultPolicyIdCertAadAppCredential
 )
 
@@ -40,9 +40,9 @@ var (
 	idDirectory = WellKnownID(uuid.MustParse(MustGetenv("AZURE_TENANT_ID")))
 
 	// default policy ids --1-1 ~ --1-f
-	defaultPolicyIdCertRequest                 = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
-	defaultPolicyIdCertEnrollGroupMemberDevice = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
-	defaultPolicyIdCertAadAppCredential        = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000003"))
+	defaultPolicyIdCertRequest          = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
+	defaultPolicyIdCertEnroll           = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
+	defaultPolicyIdCertAadAppCredential = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000003"))
 )
 
 var idMap = map[WellKnownIdentifier]WellKnownID{
@@ -55,9 +55,9 @@ var idMap = map[WellKnownIdentifier]WellKnownID{
 
 	IdentifierDirectory: idDirectory,
 
-	DefaultPolicyIdCertRequest:                 defaultPolicyIdCertRequest,
-	DefaultPolicyIdCertEnrollGroupMemberDevice: defaultPolicyIdCertEnrollGroupMemberDevice,
-	DefaultPolicyIdCertAadAppCredential:        defaultPolicyIdCertAadAppCredential,
+	DefaultPolicyIdCertRequest:          defaultPolicyIdCertRequest,
+	DefaultPolicyIdCertEnroll:           defaultPolicyIdCertEnroll,
+	DefaultPolicyIdCertAadAppCredential: defaultPolicyIdCertAadAppCredential,
 }
 
 func GetID(identifier WellKnownIdentifier) uuid.UUID {

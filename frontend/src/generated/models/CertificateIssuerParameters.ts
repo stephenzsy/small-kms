@@ -31,12 +31,6 @@ export interface CertificateIssuerParameters {
      * @memberof CertificateIssuerParameters
      */
     issuerPolicyIdentifier?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof CertificateIssuerParameters
-     */
-    validityMonths?: number;
 }
 
 /**
@@ -61,7 +55,6 @@ export function CertificateIssuerParametersFromJSONTyped(json: any, ignoreDiscri
         
         'issuerNamespaceId': json['issuerNamespaceId'],
         'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
-        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
     };
 }
 
@@ -76,7 +69,6 @@ export function CertificateIssuerParametersToJSON(value?: CertificateIssuerParam
         
         'issuerNamespaceId': value.issuerNamespaceId,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
-        'validity_months': value.validityMonths,
     };
 }
 

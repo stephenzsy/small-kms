@@ -70,9 +70,9 @@ const (
 
 // Defines values for PolicyType.
 const (
-	PolicyTypeCertAadAppClientCredential  PolicyType = "certAadAppCred"
-	PolicyTypeCertEnrollGroupMemberDevice PolicyType = "certEnroll-groupMemberDevice"
-	PolicyTypeCertRequest                 PolicyType = "certRequest"
+	PolicyTypeCertAadAppClientCredential PolicyType = "certAadAppCred"
+	PolicyTypeCertEnroll                 PolicyType = "certEnroll"
+	PolicyTypeCertRequest                PolicyType = "certRequest"
 )
 
 // Defines values for GetCertificateV1ParamsFormat.
@@ -96,7 +96,10 @@ type CertificateAadAppCredPolicyParameters struct {
 }
 
 // CertificateEnrollPolicyParameters defines model for CertificateEnrollPolicyParameters.
-type CertificateEnrollPolicyParameters = CertificateIssuerParameters
+type CertificateEnrollPolicyParameters struct {
+	AllowedUsages       []CertificateUsage `json:"allowedUsages"`
+	MaxValidityInMonths int32              `json:"maxValidityInMonths"`
+}
 
 // CertificateEnrollRequest defines model for CertificateEnrollRequest.
 type CertificateEnrollRequest struct {
@@ -126,7 +129,6 @@ type CertificateIssuerParameters struct {
 
 	// IssuerPolicyIdentifier ID of the issuer policy
 	IssuerPolicyIdentifier *string `json:"issuerPolicyIdentifier,omitempty"`
-	ValidityInMonths       *int32  `json:"validity_months,omitempty"`
 }
 
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.

@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { useAppAuthContext } from "./auth/AuthProvider";
 import { DirectoryApi } from "./generated";
 import { useAuthedClient } from "./utils/useCertsApi";
+import { Link } from "react-router-dom";
 /*
 async function genKeypair() {
   const subtle = new SubtleCrypto();
@@ -103,7 +104,9 @@ export default function MainPage() {
                 <tr key={d.id}>
                   <td>{d.id}</td>
                   <td>{d.displayName}</td>
-                  <td>Enroll certificate</td>
+                  <td>
+                    <Link to={"/my/enroll"}>Enroll certificate</Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

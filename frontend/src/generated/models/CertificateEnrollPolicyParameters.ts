@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateUsage } from './CertificateUsage';
+import {
+    CertificateUsageFromJSON,
+    CertificateUsageFromJSONTyped,
+    CertificateUsageToJSON,
+} from './CertificateUsage';
+
 /**
  * 
  * @export
@@ -20,23 +27,17 @@ import { exists, mapValues } from '../runtime';
  */
 export interface CertificateEnrollPolicyParameters {
     /**
-     * ID of the issuer namespace
-     * @type {string}
+     * 
+     * @type {Array<CertificateUsage>}
      * @memberof CertificateEnrollPolicyParameters
      */
-    issuerNamespaceId: string;
-    /**
-     * ID of the issuer policy
-     * @type {string}
-     * @memberof CertificateEnrollPolicyParameters
-     */
-    issuerPolicyIdentifier?: string;
+    allowedUsages: Array<CertificateUsage>;
     /**
      * 
      * @type {number}
      * @memberof CertificateEnrollPolicyParameters
      */
-    validityMonths?: number;
+    maxValidityInMonths: number;
 }
 
 /**
@@ -44,7 +45,8 @@ export interface CertificateEnrollPolicyParameters {
  */
 export function instanceOfCertificateEnrollPolicyParameters(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "issuerNamespaceId" in value;
+    isInstance = isInstance && "allowedUsages" in value;
+    isInstance = isInstance && "maxValidityInMonths" in value;
 
     return isInstance;
 }
@@ -59,9 +61,8 @@ export function CertificateEnrollPolicyParametersFromJSONTyped(json: any, ignore
     }
     return {
         
-        'issuerNamespaceId': json['issuerNamespaceId'],
-        'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
-        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
+        'allowedUsages': ((json['allowedUsages'] as Array<any>).map(CertificateUsageFromJSON)),
+        'maxValidityInMonths': json['maxValidityInMonths'],
     };
 }
 
@@ -74,9 +75,8 @@ export function CertificateEnrollPolicyParametersToJSON(value?: CertificateEnrol
     }
     return {
         
-        'issuerNamespaceId': value.issuerNamespaceId,
-        'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
-        'validity_months': value.validityMonths,
+        'allowedUsages': ((value.allowedUsages as Array<any>).map(CertificateUsageToJSON)),
+        'maxValidityInMonths': value.maxValidityInMonths,
     };
 }
 

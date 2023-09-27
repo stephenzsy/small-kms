@@ -562,11 +562,11 @@ components:
       type: string
       enum:
         - certRequest
-        - certEnroll-groupMemberDevice
+        - certEnroll
         - certAadAppCred
       x-enum-varnames:
         - PolicyType_CertRequest
-        - PolicyType_CertEnroll_GroupMemberDevice
+        - PolicyType_CertEnroll
         - PolicyType_CertAadAppClientCredential
     ResourceRef:
       type: object
@@ -732,10 +732,6 @@ components:
         issuerPolicyIdentifier:
           description: ID of the issuer policy
           type: string
-        validity_months:
-          x-go-name: ValidityInMonths
-          type: integer
-          format: int32
       required:
         - issuerNamespaceId
     CertificateRequestPolicyParameters:
@@ -753,6 +749,10 @@ components:
               $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
             usage:
               $ref: "#/components/schemas/CertificateUsage"
+            validity_months:
+              x-go-name: ValidityInMonths
+              type: integer
+              format: int32
             lifetimeTrigger:
               $ref: "#/components/schemas/CertificateLifetimeTrigger"
           required:
@@ -787,8 +787,20 @@ components:
       required:
         - certificateIdentifier
     CertificateEnrollPolicyParameters:
-      allOf:
-        - $ref: "#/components/schemas/CertificateIssuerParameters"
+      type: object
+      properties:
+        allowedUsages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateUsage"
+        maxValidityInMonths:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 120
+      required:
+        - allowedUsages
+        - maxValidityInMonths
     PolicyParameters:
       type: object
       properties:

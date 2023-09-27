@@ -26,17 +26,6 @@ func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertRequestParamet
 	return nil
 }
 
-func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertEnrollParameters(p *CertificateEnrollPolicyParameters) (err error) {
-	t.IssuerNamespaceID = p.IssuerNamespaceID
-
-	if p.IssuerPolicyIdentifier == nil {
-		t.IssuerPolicyID = defaultPolicyIdCertRequest
-	} else if t.IssuerPolicyID, err = resolvePolicyIdentifier(*p.IssuerPolicyIdentifier); err != nil {
-		return err
-	}
-	return nil
-}
-
 type PolicyDoc struct {
 	kmsdoc.BaseDoc
 	Enabled        bool                            `json:"enabled"`
@@ -118,7 +107,8 @@ func (doc *PolicyDoc) ToPolicy() *Policy {
 	switch doc.PolicyType {
 	case PolicyTypeCertRequest:
 		p.CertRequest = doc.CertRequest.toCertificateRequestPolicyParameters()
-	case PolicyTypeCertEnrollGroupMemberDevice:
+	case PolicyTypeCertEnroll:
+		p.CertEnroll = doc.CertEnroll.toCertificateEnrollPolicyParameters()
 	case PolicyTypeCertAadAppClientCredential:
 		p.CertAadAppCred = doc.CertAadAppCred.toCertificateAadAppPolicyParameters()
 	}

@@ -4,6 +4,7 @@ import { InputField } from "./InputField";
 import { PolicyContext } from "./PolicyContext";
 import { IssuerSelector, PolicySelector } from "./Selectors";
 import { useMemoizedFn } from "ahooks";
+import { CertificateUsageSelector } from "./CertificateUsageSelector";
 
 export interface PolicyCertificateRequestFormProps {
   issuerNamespaceId: string | undefined;
@@ -116,6 +117,10 @@ export function PolicyCertificateRequestForm({
       setCertUsage(e.target.value as any);
     }
   });
+
+  const certUsageIsChecked = useMemoizedFn((usage: CertificateUsage) => {
+    return usage === certUsage;
+  });
   return (
     <div className="divide-y divide-neutral-200 space-y-6">
       <h2 className="text-2xl font-semibold">Certificate Request Policy</h2>
@@ -184,61 +189,11 @@ export function PolicyCertificateRequestForm({
         NamespaceType.NamespaceType_BuiltInCaRoot &&
         namespaceProfile?.objectType !==
           NamespaceType.NamespaceType_BuiltInCaInt && (
-          <fieldset className="space-y-4">
-            <legend className="text-base font-semibold text-gray-900">
-              Certificate Usage
-            </legend>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <input
-                  id="usage-client-and-server"
-                  type="radio"
-                  onChange={certUsageInputOnChange}
-                  value={CertificateUsage.Usage_ServerAndClient}
-                  checked={certUsage === CertificateUsage.Usage_ServerAndClient}
-                  className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                />
-                <label
-                  htmlFor="usage-client-and-server"
-                  className="ml-3 block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Server and client
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="usage-server-only"
-                  type="radio"
-                  onChange={certUsageInputOnChange}
-                  value={CertificateUsage.Usage_ServerOnly}
-                  checked={certUsage === CertificateUsage.Usage_ServerOnly}
-                  className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                />
-                <label
-                  htmlFor="usage-server-only"
-                  className="ml-3 block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Server only
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="usage-client-only"
-                  type="radio"
-                  onChange={certUsageInputOnChange}
-                  value={CertificateUsage.Usage_ClientOnly}
-                  checked={certUsage === CertificateUsage.Usage_ClientOnly}
-                  className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                />
-                <label
-                  htmlFor="usage-client-only"
-                  className="ml-3 block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Client only
-                </label>
-              </div>
-            </div>
-          </fieldset>
+          <CertificateUsageSelector
+            inputType="radio"
+            onChange={certUsageInputOnChange}
+            isChecked={certUsageIsChecked}
+          />
         )}
     </div>
   );

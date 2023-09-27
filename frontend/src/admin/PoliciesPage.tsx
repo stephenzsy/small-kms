@@ -160,6 +160,17 @@ export default function PoliciesPage() {
                 Create Default Certificate Policy
               </Link>
             ))}
+          {dirProfile.objectType === NamespaceType.NamespaceType_BuiltInCaInt &&
+            (policyRefs.some(
+              (p) => p.id === WellknownId.defaultPolicyIdCertEnroll
+            ) ? null : (
+              <Link
+                to={`/admin/${namespaceId}/policies/${WellknownId.defaultPolicyIdCertEnroll}`}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                Create Default Certificate Enrollment Policy
+              </Link>
+            ))}
           {dirProfile.objectType ===
             NamespaceType.NamespaceType_MsGraphApplication &&
             (policyRefs.some(

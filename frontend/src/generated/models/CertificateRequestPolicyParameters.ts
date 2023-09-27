@@ -64,12 +64,6 @@ export interface CertificateRequestPolicyParameters {
     issuerPolicyIdentifier?: string;
     /**
      * 
-     * @type {number}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    validityMonths?: number;
-    /**
-     * 
      * @type {string}
      * @memberof CertificateRequestPolicyParameters
      */
@@ -98,6 +92,12 @@ export interface CertificateRequestPolicyParameters {
      * @memberof CertificateRequestPolicyParameters
      */
     usage: CertificateUsage;
+    /**
+     * 
+     * @type {number}
+     * @memberof CertificateRequestPolicyParameters
+     */
+    validityMonths?: number;
     /**
      * 
      * @type {CertificateLifetimeTrigger}
@@ -131,12 +131,12 @@ export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignor
         
         'issuerNamespaceId': json['issuerNamespaceId'],
         'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
-        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': json['keyStorePath'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : KeyPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usage': CertificateUsageFromJSON(json['usage']),
+        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
     };
 }
@@ -152,12 +152,12 @@ export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequ
         
         'issuerNamespaceId': value.issuerNamespaceId,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
-        'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,
         'keyProperties': KeyPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usage': CertificateUsageToJSON(value.usage),
+        'validity_months': value.validityMonths,
         'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
     };
 }
