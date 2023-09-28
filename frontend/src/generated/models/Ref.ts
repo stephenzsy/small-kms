@@ -19,6 +19,12 @@ import {
     NamespaceTypeShortNameFromJSONTyped,
     NamespaceTypeShortNameToJSON,
 } from './NamespaceTypeShortName';
+import type { RefType } from './RefType';
+import {
+    RefTypeFromJSON,
+    RefTypeFromJSONTyped,
+    RefTypeToJSON,
+} from './RefType';
 
 /**
  * 
@@ -40,10 +46,22 @@ export interface Ref {
     namespaceId: string;
     /**
      * 
+     * @type {RefType}
+     * @memberof Ref
+     */
+    type: RefType;
+    /**
+     * 
      * @type {string}
      * @memberof Ref
      */
     id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Ref
+     */
+    displayName: string;
     /**
      * Unique ID of the user who created the policy
      * @type {string}
@@ -65,7 +83,9 @@ export function instanceOfRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "namespaceType" in value;
     isInstance = isInstance && "namespaceId" in value;
+    isInstance = isInstance && "type" in value;
     isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updated" in value;
 
@@ -84,7 +104,9 @@ export function RefFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ref {
         
         'namespaceType': NamespaceTypeShortNameFromJSON(json['namespaceType']),
         'namespaceId': json['namespaceId'],
+        'type': RefTypeFromJSON(json['type']),
         'id': json['id'],
+        'displayName': json['displayName'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
     };
@@ -101,7 +123,9 @@ export function RefToJSON(value?: Ref | null): any {
         
         'namespaceType': NamespaceTypeShortNameToJSON(value.namespaceType),
         'namespaceId': value.namespaceId,
+        'type': RefTypeToJSON(value.type),
         'id': value.id,
+        'displayName': value.displayName,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
     };

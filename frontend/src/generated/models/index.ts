@@ -47,6 +47,7 @@ export * from './PolicyStateAllOf';
 export * from './PolicyStateCertRequest';
 export * from './PolicyType';
 export * from './Ref';
+export * from './RefType';
 export * from './RequestDiagnostics';
 export * from './RequestHeaderEntry';
 export * from './ResourceRef';

@@ -1,58 +1,87 @@
 package admin
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
-	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceType) {
-	if namespaceType == NamespaceTypeBuiltInCaRoot {
-		c.JSON(http.StatusOK, nil)
-		return
-	} else if namespaceType == NamespaceTypeBuiltInCaInt {
-		c.JSON(http.StatusOK, nil)
-		return
+func getRootCaRefs() []Ref {
+	return []Ref{
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, DisplayName: "Test Root CA", Type: RefTypeNamespace},
 	}
-	if !auth.CallerPrincipalHasAdminRole(c) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
-		return
-	}
-
-	switch namespaceType {
-	case NamespaceTypeMsGraphGroup,
-		NamespaceTypeMsGraphServicePrincipal,
-		NamespaceTypeMsGraphDevice,
-		NamespaceTypeMsGraphUser,
-		NamespaceTypeMsGraphApplication:
-		// allow
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
-		return
-	}
-
-	list, err := s.ListDirectoryObjectByType(c, namespaceType)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get list of directory objects")
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-		return
-	}
-
-	results := make([]NamespaceRef, len(list))
-	for i, item := range list {
-		item.PopulateNamespaceRef(&results[i])
-	}
-	c.JSON(http.StatusOK, results)
 }
 
+func getIntCaRefs() []Ref {
+	return []Ref{
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAService, DisplayName: "Services Intermediate CA", Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAIntranet, DisplayName: "Intranet Intermediate CA", Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestIntCA, DisplayName: "Test Intermediate CA", Type: RefTypeNamespace},
+	}
+}
+
+/*
+	func getBuiltInCaRootNamespaceRefs() []NamespaceRef {
+		return []NamespaceRef{
+			{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
+			{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
+		}
+	}
+*/
+func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTypeShortName) {
+	if !authAdminOnly(c) {
+		return
+	}
+	switch nsType {
+	case NSTypeRootCA:
+		c.JSON(http.StatusOK, getRootCaRefs())
+	case NSTypeIntCA:
+		c.JSON(http.StatusOK, getIntCaRefs())
+	}
+	/*
+		if namespaceType == NamespaceTypeBuiltInCaRoot {
+			c.JSON(http.StatusOK, getBuiltInCaRootNamespaceRefs())
+			return
+		} else if namespaceType == NamespaceTypeBuiltInCaInt {
+			c.JSON(http.StatusOK, getBuiltInCaIntNamespaceRefs())
+			return
+		}
+		if !auth.CallerPrincipalHasAdminRole(c) {
+			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
+			return
+		}
+
+		switch namespaceType {
+		case NamespaceTypeMsGraphGroup,
+			NamespaceTypeMsGraphServicePrincipal,
+			NamespaceTypeMsGraphDevice,
+			NamespaceTypeMsGraphUser,
+			NamespaceTypeMsGraphApplication:
+			// allow
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
+			return
+		}
+
+		list, err := s.ListDirectoryObjectByType(c, namespaceType)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to get list of directory objects")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
+			return
+		}
+
+		results := make([]NamespaceRef, len(list))
+		for i, item := range list {
+			item.PopulateNamespaceRef(&results[i])
+		}
+		c.JSON(http.StatusOK, results)
+	*/
+}
+
+/*
 func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
 	if err != nil {
@@ -168,11 +197,11 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 			nsProfile.DisplayName = "Test Root CA"
 		case common.WellKnownID_RootCA:
 			nsProfile.DisplayName = "Root CA"
-		case common.WellKnownID_TestIntCA:
+		case testNamespaceID_IntCA:
 			nsProfile.DisplayName = "Test Intermediate CA"
-		case common.WellKnownID_IntCAIntranet:
+		case wellKnownNamespaceID_IntCaIntranet:
 			nsProfile.DisplayName = "Intermediate CA - Intranet"
-		case common.WellKnownID_IntCAService:
+		case wellKnownNamespaceID_IntCAService:
 			nsProfile.DisplayName = "Intermediate CA - Services"
 		}
 		if IsIntCANamespace(namespaceId) {
@@ -212,3 +241,4 @@ func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUI
 
 	c.JSON(http.StatusOK, profile)
 }
+*/

@@ -798,9 +798,15 @@ type ServerInterface interface {
 	// Link device service principal
 	// (POST /v2/device/{namespaceId}/link-service-principal)
 	LinkDeviceServicePrincipalV2(c *gin.Context, namespaceId openapi_types.UUID)
+	// List namespaces by type
+	// (GET /v2/{namespaceType})
+	ListNamespacesByTypeV2(c *gin.Context, namespaceType NamespaceTypeShortName)
 	// List certificate templates
 	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates)
 	ListCertificateTemplatesV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID)
+	// Get certificate template
+	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId})
+	GetCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
 	// Put certificate template
 	// (PUT /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId})
 	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID, params PutCertificateTemplateV2Params)
@@ -1357,6 +1363,32 @@ func (siw *ServerInterfaceWrapper) LinkDeviceServicePrincipalV2(c *gin.Context) 
 	siw.Handler.LinkDeviceServicePrincipalV2(c, namespaceId)
 }
 
+// ListNamespacesByTypeV2 operation middleware
+func (siw *ServerInterfaceWrapper) ListNamespacesByTypeV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListNamespacesByTypeV2(c, namespaceType)
+}
+
 // ListCertificateTemplatesV2 operation middleware
 func (siw *ServerInterfaceWrapper) ListCertificateTemplatesV2(c *gin.Context) {
 
@@ -1390,6 +1422,50 @@ func (siw *ServerInterfaceWrapper) ListCertificateTemplatesV2(c *gin.Context) {
 	}
 
 	siw.Handler.ListCertificateTemplatesV2(c, namespaceType, namespaceId)
+}
+
+// GetCertificateTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) GetCertificateTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCertificateTemplateV2(c, namespaceType, namespaceId, templateId)
 }
 
 // PutCertificateTemplateV2 operation middleware
@@ -1534,7 +1610,9 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/profile", wrapper.RegisterNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v2/device/:namespaceId/link-service-principal", wrapper.LinkDeviceServicePrincipalV2)
+	router.GET(options.BaseURL+"/v2/:namespaceType", wrapper.ListNamespacesByTypeV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
+	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

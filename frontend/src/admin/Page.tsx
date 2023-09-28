@@ -2,8 +2,16 @@ import { Link } from "react-router-dom";
 import { WellknownId } from "../constants";
 import { nsDisplayNames } from "./displayConstants";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { DirectoryApi, NamespaceRef, NamespaceType } from "../generated";
+import {
+  AdminApi,
+  DirectoryApi,
+  NamespaceRef,
+  NamespaceType,
+  NamespaceTypeShortName,
+  Ref as RRef,
+} from "../generated";
 import { useRequest } from "ahooks";
+import { RefsTable } from "./RefsTable";
 
 const namespaceIds = {
   rootCa: [WellknownId.nsRootCa, WellknownId.nsTestRootCa],
@@ -99,6 +107,24 @@ function PolicySection(props: {
 
 export default function AdminPage() {
   const client = useAuthedClient(DirectoryApi);
+  const adminApi = useAuthedClient(AdminApi);
+  const { data: allNs } = useRequest(
+    async () => {
+      return {
+        [NamespaceTypeShortName.NSType_RootCA]:
+          await adminApi.listNamespacesByTypeV2({
+            namespaceType: NamespaceTypeShortName.NSType_RootCA,
+          }),
+        [NamespaceTypeShortName.NSType_IntCA]:
+          await adminApi.listNamespacesByTypeV2({
+            namespaceType: NamespaceTypeShortName.NSType_IntCA,
+          }),
+      };
+    },
+    {
+      refreshDeps: [],
+    }
+  );
   const { data: spNamespaces } = useRequest(
     () => {
       return client.listNamespacesV1({
@@ -143,20 +169,31 @@ export default function AdminPage() {
 
   return (
     <>
-      <PolicySection
-        namespaces={namespaceIds.rootCa.map((id) => ({
-          id,
-          displayName: nsDisplayNames[id],
-        }))}
+      <RefsTable
+        items={allNs?.[NamespaceTypeShortName.NSType_RootCA]}
         title="Root Certificate Authorities"
+        refActions={(ref) => (
+          <Link
+            to={`/admin/${NamespaceTypeShortName.NSType_RootCA}/${ref.id}`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            View
+          </Link>
+        )}
       />
-      <PolicySection
-        namespaces={namespaceIds.intCa.map((id) => ({
-          id,
-          displayName: nsDisplayNames[id],
-        }))}
+      <RefsTable
+        items={allNs?.[NamespaceTypeShortName.NSType_IntCA]}
         title="Intermediate Certificate Authorities"
+        refActions={(ref) => (
+          <Link
+            to={`/admin/${NamespaceTypeShortName.NSType_IntCA}/${ref.id}`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            View
+          </Link>
+        )}
       />
+
       <PolicySection
         namespaces={spNamespaces}
         title="Service Principals"
@@ -164,7 +201,13 @@ export default function AdminPage() {
       />
       <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
       <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
-      <PolicySection namespaces={uNamespaces} title="Users" showAdd property="permissions" actionTitle="Permissions" />
+      <PolicySection
+        namespaces={uNamespaces}
+        title="Users"
+        showAdd
+        property="permissions"
+        actionTitle="Permissions"
+      />
       <PolicySection namespaces={aNamespaces} title="Applications" showAdd />
     </>
   );

@@ -45,11 +45,11 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 	}
 
 	doc, err := templateParams.validateAndToDoc(namespaceType, namespaceId, templateId)
-	doc.DisplayName = params.DisplayName
 	if err != nil {
 		respondPublicError(c, http.StatusBadRequest, err)
 		return
 	}
+	doc.DisplayName = params.DisplayName
 
 	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc); err != nil {
 		respondInternalError(c, err, fmt.Sprintf("failed to upsert certificate template in cosmos: %s", templateId))
@@ -90,6 +90,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 
 	doc := new(CertificateTemplateDoc)
 	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateId)
+	doc.NamespaceID = nsID
 
 	// validate and populate issuer, usage
 	switch nsType {

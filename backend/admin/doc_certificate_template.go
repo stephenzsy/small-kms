@@ -38,6 +38,13 @@ type CertificateTemplateDoc struct {
 	LifetimeTrigger         CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
 }
 
+func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {
+	doc := new(CertificateTemplateDoc)
+	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, nsID,
+		kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateID), doc)
+	return doc, err
+}
+
 func (p *CertificateTemplateDocKeyProperties) setDefault() {
 	p.Alg = AlgRS256
 	p.Kty = KeyTypeRSA

@@ -5,18 +5,14 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-var wellKnownNamespaceID_IntCAService = common.GetID(common.IdentifierIntCAService)
-var wellKnownNamespaceID_IntCaIntranet uuid.UUID = common.GetID(common.IdentifierIntCAIntranet)
-
 var wellknownNamespaceID_directoryID = common.GetID(common.IdentifierDirectory)
 
-var testNamespaceID_IntCA = common.GetID(common.IdentifierTestIntCA)
-
+// Deprecated
 func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	switch namespaceID {
 	case common.WellKnownID_RootCA,
-		wellKnownNamespaceID_IntCAService,
-		wellKnownNamespaceID_IntCaIntranet,
+		common.WellKnownID_IntCAService,
+		common.WellKnownID_IntCAIntranet,
 		common.WellKnownID_TestRootCA:
 		return true
 	}
@@ -34,9 +30,9 @@ func IsRootCANamespace(namespaceID uuid.UUID) bool {
 
 func IsIntCANamespace(namespaceID uuid.UUID) bool {
 	switch namespaceID {
-	case wellKnownNamespaceID_IntCAService,
-		wellKnownNamespaceID_IntCaIntranet,
-		testNamespaceID_IntCA:
+	case common.WellKnownID_IntCAService,
+		common.WellKnownID_IntCAIntranet,
+		common.WellKnownID_TestIntCA:
 		return true
 	}
 	return false
@@ -48,7 +44,8 @@ func IsCANamespace(namespaceID uuid.UUID) bool {
 
 func IsTestCA(namespaceID uuid.UUID) bool {
 	switch namespaceID {
-	case common.WellKnownID_TestRootCA, testNamespaceID_IntCA:
+	case common.WellKnownID_TestRootCA,
+		common.WellKnownID_TestIntCA:
 		return true
 	}
 	return false

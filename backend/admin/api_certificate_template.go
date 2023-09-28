@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID) {
@@ -26,4 +27,22 @@ func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType Namespac
 	}
 
 	c.JSON(http.StatusOK, r)
+}
+
+func (s *adminServer) GetCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
+	if !authAdminOnly(c) {
+		return
+	}
+
+	doc, err := s.readCertificateTemplateDoc(c, namespaceId, templateId)
+	if err != nil {
+		if common.IsAzNotFound(err) {
+			respondPublicError(c, http.StatusNotFound, err)
+			return
+		}
+		respondInternalError(c, err, fmt.Sprintf("failed to get certificate template: %s", templateId))
+		return
+	}
+
+	c.JSON(http.StatusOK, doc.toCertificateTemplate(namespaceType))
 }

@@ -9,11 +9,16 @@ import RegisterPage from "./admin/RegisterPage";
 import React from "react";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
+
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
 const PermissionsPage = React.lazy(() => import("./admin/PermissionsPage"));
+const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
+const CertificateTemplatePage = React.lazy(
+  () => import("./admin/CertificateTemplatePage")
+);
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +45,16 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <AdminPage /> },
+          {
+            path: ":nsType/:namespaceId",
+            children: [
+              { index: true, element: <NamespacePage /> },
+              {
+                path: "certificate-templates/:templateId",
+                element: <CertificateTemplatePage />,
+              },
+            ],
+          },
           {
             path: ":namespaceId/policies",
             children: [

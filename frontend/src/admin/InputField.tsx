@@ -11,6 +11,7 @@ export interface InputFieldProps {
   onChange: (value: string) => void;
   inputMode?: "text" | "numeric";
   className?: string;
+  disabled?: boolean;
 }
 
 export function InputField({
@@ -22,6 +23,7 @@ export function InputField({
   onChange,
   inputMode,
   className,
+  disabled = false,
 }: InputFieldProps) {
   const id = useId();
   return (
@@ -37,11 +39,16 @@ export function InputField({
         <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-neutral-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
           <input
             type={type}
+            disabled={disabled}
             id={id}
             value={value}
             className="block flex-1 border-0 bg-transparent py-1.5 px-em text-neutral-900 placeholder:text-neutral-400 focus:ring-0 sm:text-sm sm:leading-6"
             placeholder={placeholder}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) =>
+              type === "number"
+                ? onChange(e.target.valueAsNumber as any)
+                : onChange(e.target.value)
+            }
             inputMode={inputMode}
           />
         </div>

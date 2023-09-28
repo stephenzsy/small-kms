@@ -44,12 +44,6 @@ export interface NamespaceInfo {
      * @memberof NamespaceInfo
      */
     objectType: NamespaceType;
-    /**
-     * 
-     * @type {string}
-     * @memberof NamespaceInfo
-     */
-    displayName: string;
 }
 
 /**
@@ -59,7 +53,6 @@ export function instanceOfNamespaceInfo(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "ref" in value;
     isInstance = isInstance && "objectType" in value;
-    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
@@ -76,7 +69,6 @@ export function NamespaceInfoFromJSONTyped(json: any, ignoreDiscriminator: boole
         
         'ref': RefFromJSON(json['ref']),
         'objectType': NamespaceTypeFromJSON(json['objectType']),
-        'displayName': json['displayName'],
     };
 }
 
@@ -91,7 +83,6 @@ export function NamespaceInfoToJSON(value?: NamespaceInfo | null): any {
         
         'ref': RefToJSON(value.ref),
         'objectType': NamespaceTypeToJSON(value.objectType),
-        'displayName': value.displayName,
     };
 }
 

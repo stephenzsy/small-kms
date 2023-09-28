@@ -11,10 +11,6 @@ type WellKnownIdentifier int
 const (
 	IdentifierUnknown WellKnownIdentifier = iota
 
-	IdentifierIntCAService
-	IdentifierIntCAIntranet
-	IdentifierTestIntCA
-
 	IdentifierDirectory
 
 	DefaultPolicyIdCertRequest
@@ -30,9 +26,9 @@ var (
 	WellKnownID_TestRootCA = uuid.MustParse("00000000-0000-0000-0000-00000000000f")
 
 	// intermediate CAs --10 ~ --ff
-	idIntCAService  = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-000000000011"))
-	idIntCAIntranet = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-000000000012"))
-	idTestIntCA     = WellKnownID(uuid.MustParse("00000000-0000-0000-0000-0000000000ff"))
+	WellKnownID_IntCAService  = uuid.MustParse("00000000-0000-0000-0000-000000000011")
+	WellKnownID_IntCAIntranet = uuid.MustParse("00000000-0000-0000-0000-000000000012")
+	WellKnownID_TestIntCA     = uuid.MustParse("00000000-0000-0000-0000-0000000000ff")
 
 	idDirectory = WellKnownID(uuid.MustParse(MustGetenv("AZURE_TENANT_ID")))
 
@@ -43,10 +39,6 @@ var (
 )
 
 var idMap = map[WellKnownIdentifier]WellKnownID{
-
-	IdentifierIntCAService:  idIntCAService,
-	IdentifierIntCAIntranet: idIntCAIntranet,
-	IdentifierTestIntCA:     idTestIntCA,
 
 	IdentifierDirectory: idDirectory,
 
