@@ -597,10 +597,6 @@ components:
           type: string
           format: uuid
           x-go-name: NamespaceID
-        certificateId:
-          type: string
-          format: uuid
-          x-go-name: CertificateID
         templateId:
           description: if certificate ID is not specified, use template ID to find the latest certificate, use default value if not specified
           type: string

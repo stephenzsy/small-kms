@@ -22,12 +22,14 @@ export function BaseSelector<T extends ISelectorItem = ISelectorItem>({
   label,
   placeholder,
   items,
+  defaultItem,
 }: {
   value: string;
   onChange: (v: string) => void;
   label: React.ReactNode;
   placeholder: React.ReactNode;
   items: readonly T[] | undefined;
+  defaultItem?: T;
 }) {
   const selectId = React.useId();
   return (
@@ -45,9 +47,13 @@ export function BaseSelector<T extends ISelectorItem = ISelectorItem>({
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option disabled value="">
-          {placeholder}
-        </option>
+        {defaultItem ? (
+          <option value={defaultItem.value}>{defaultItem.title}</option>
+        ) : (
+          <option disabled value="">
+            {placeholder}
+          </option>
+        )}
         {items?.map((item) => (
           <option key={item.value} value={item.value}>
             {item.title}

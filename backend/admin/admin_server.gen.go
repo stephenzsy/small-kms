@@ -157,7 +157,6 @@ type CertificateIdentifierType string
 
 // CertificateIssuer defines model for CertificateIssuer.
 type CertificateIssuer struct {
-	CertificateID *openapi_types.UUID    `json:"certificateId,omitempty"`
 	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
 	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
 

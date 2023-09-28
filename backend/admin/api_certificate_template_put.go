@@ -62,12 +62,10 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 func (p *CertificateTemplateParameters) populateDocIssuer(doc *CertificateTemplateDoc, issuerNsType NamespaceTypeShortName) {
 	doc.IssuerNamespaceID = p.Issuer.NamespaceID
 	doc.IssuerNameSpaceType = issuerNsType
-	if p.Issuer.CertificateID != nil && *p.Issuer.CertificateID != uuid.Nil {
-		doc.IssuerCertificateId = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, *p.Issuer.CertificateID)
-	} else if p.Issuer.TemplateID != nil && *p.Issuer.TemplateID != uuid.Nil {
-		doc.IssuerCertificateId = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, *p.Issuer.TemplateID)
+	if p.Issuer.TemplateID != nil && *p.Issuer.TemplateID != uuid.Nil {
+		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, *p.Issuer.TemplateID)
 	} else {
-		doc.IssuerCertificateId = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, uuid.Nil)
+		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, uuid.Nil)
 	}
 }
 
@@ -99,13 +97,10 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 			return nil, fmt.Errorf("root ca issuer namespace ID %s does not match namespace ID %s", p.Issuer.NamespaceID, nsID)
 		}
 		doc.IssuerNamespaceID = nsID
-		if p.Issuer.CertificateID != nil && *p.Issuer.CertificateID != uuid.Nil {
-			return nil, fmt.Errorf("root ca issuer certificate ID must not be specified")
-		}
 		if p.Issuer.TemplateID != nil && *p.Issuer.TemplateID != templateId {
 			return nil, fmt.Errorf("root ca issuer template ID %s does not match template ID %s", *p.Issuer.TemplateID, templateId)
 		}
-		doc.IssuerCertificateId = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateId)
+		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateId)
 		doc.IssuerNameSpaceType = NSTypeRootCA
 		if p.Usage != UsageRootCA {
 			return nil, errors.New("root ca must be used for root ca certificate")

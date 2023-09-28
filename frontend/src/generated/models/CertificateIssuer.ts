@@ -39,12 +39,6 @@ export interface CertificateIssuer {
      */
     namespaceId: string;
     /**
-     * 
-     * @type {string}
-     * @memberof CertificateIssuer
-     */
-    certificateId?: string;
-    /**
      * if certificate ID is not specified, use template ID to find the latest certificate, use default value if not specified
      * @type {string}
      * @memberof CertificateIssuer
@@ -75,7 +69,6 @@ export function CertificateIssuerFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'namespaceType': NamespaceTypeShortNameFromJSON(json['namespaceType']),
         'namespaceId': json['namespaceId'],
-        'certificateId': !exists(json, 'certificateId') ? undefined : json['certificateId'],
         'templateId': !exists(json, 'templateId') ? undefined : json['templateId'],
     };
 }
@@ -91,7 +84,6 @@ export function CertificateIssuerToJSON(value?: CertificateIssuer | null): any {
         
         'namespaceType': NamespaceTypeShortNameToJSON(value.namespaceType),
         'namespaceId': value.namespaceId,
-        'certificateId': value.certificateId,
         'templateId': value.templateId,
     };
 }

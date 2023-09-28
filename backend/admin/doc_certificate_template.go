@@ -28,7 +28,7 @@ type CertificateTemplateDoc struct {
 	DisplayName             string                                `json:"displayName"`
 	IssuerNamespaceID       uuid.UUID                             `json:"issuerNamespaceId"`
 	IssuerNameSpaceType     NamespaceTypeShortName                `json:"issuerNameSpaceType"`
-	IssuerCertificateId     kmsdoc.KmsDocID                       `json:"issuerCertificateId"`
+	IssuerTemplateID        kmsdoc.KmsDocID                       `json:"issuerTemplateId"`
 	KeyProperties           CertificateTemplateDocKeyProperties   `json:"keyProperties"`
 	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
 	Subject                 CertificateSubject                    `json:"subject"`
@@ -151,10 +151,9 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 	o.Ref.DisplayName = doc.DisplayName
 	o.Ref.Type = RefTypeCertificateTemplate
 	o.Issuer = CertificateIssuer{
-		CertificateID: ToPtr(doc.IssuerCertificateId.GetUUID()),
 		NamespaceID:   doc.IssuerNamespaceID,
 		NamespaceType: doc.IssuerNameSpaceType,
-		TemplateID:    ToPtr(doc.IssuerCertificateId.GetUUID()),
+		TemplateID:    ToPtr(doc.IssuerTemplateID.GetUUID()),
 	}
 	o.KeyProperties = &JwkKeyProperties{
 		Alg:     ToPtr(doc.KeyProperties.Alg),
