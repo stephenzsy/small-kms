@@ -26,7 +26,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DeviceServicePrincipal"
-  /v2/{namespaceType}/{namespaceId}/certificate-template:
+  /v2/{namespaceType}/{namespaceId}/certificate-templates:
     parameters:
       - in: path
         name: namespaceType
@@ -39,32 +39,15 @@ paths:
           type: string
           format: uuid
         required: true
-    post:
+    get:
       tags:
         - admin
-      summary: Create certificate template
-      operationId: CreateCertificateTemplateV2
-      parameters:
-        - in: query
-          name: isDefault
-          schema:
-            type: boolean
-            default: false
-          required: false
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateTemplateParameters"
-        required: true
+      summary: List certificate templates
+      operationId: ListCertificateTemplatesV2
       responses:
-        201:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
-  /v2/{namespaceType}/{namespaceId}/certificate-template/{templateId}:
+        200:
+          $ref: "#/components/responses/RefListResponse"
+  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}:
     parameters:
       - in: path
         name: namespaceType
@@ -88,6 +71,12 @@ paths:
         - admin
       summary: Put certificate template
       operationId: PutCertificateTemplateV2
+      parameters:
+        - in: query
+          name: displayName
+          schema:
+            type: string
+          required: true
       requestBody:
         content:
           application/json:
@@ -593,6 +582,14 @@ components:
       required:
         - namespaceType
         - namespaceId
+    RefType:
+      type: string
+      enum:
+        - namespace
+        - certificate-template
+      x-enum-varnames:
+        - RefTypeNamespace
+        - RefTypeCertificateTemplate
     Ref:
       type: object
       properties:
@@ -602,10 +599,14 @@ components:
           type: string
           format: uuid
           x-go-name: NamespaceID
+        type:
+          $ref: "#/components/schemas/RefType"
         id:
           type: string
           format: uuid
           x-go-name: ID
+        displayName:
+          type: string
         updatedBy:
           description: Unique ID of the user who created the policy
           type: string
@@ -616,7 +617,9 @@ components:
       required:
         - namespaceType
         - namespaceId
+        - type
         - id
+        - displayName
         - updated
         - updatedBy
     CertificateTemplateParameters:
@@ -681,12 +684,9 @@ components:
           $ref: "#/components/schemas/Ref"
         objectType:
           $ref: "#/components/schemas/NamespaceType"
-        displayName:
-          type: string
       required:
         - ref
         - objectType
-        - displayName
     DeviceServicePrincipal:
       type: object
       properties:
@@ -1227,6 +1227,14 @@ components:
         allowEnrollDeviceCertificate:
           type: boolean
   responses:
+    RefListResponse:
+      description: List RefsResponse
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Ref"
     GenericResponse:
       description: generic response
       content:

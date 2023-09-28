@@ -85,7 +85,8 @@ func (item *DirectoryObjectDoc) toNamespaceInfo() *NamespaceInfo {
 	}
 	r := new(NamespaceInfo)
 	baseDocPopulateRef(&item.BaseDoc, &r.Ref, toNsType(item.OdataType))
-	r.DisplayName = item.DisplayName
+
+	r.Ref.DisplayName = item.DisplayName
 	switch r.Ref.NamespaceType {
 	}
 	return r

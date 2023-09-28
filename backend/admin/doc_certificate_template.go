@@ -1,8 +1,10 @@
 package admin
 
 import (
+	"context"
 	"errors"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
@@ -23,6 +25,7 @@ type CertificateTemplateDocLifeTimeTrigger struct {
 
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
+	DisplayName             string                                `json:"displayName"`
 	IssuerNamespaceID       uuid.UUID                             `json:"issuerNamespaceId"`
 	IssuerNameSpaceType     NamespaceTypeShortName                `json:"issuerNameSpaceType"`
 	IssuerCertificateId     kmsdoc.KmsDocID                       `json:"issuerCertificateId"`
@@ -138,6 +141,8 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 	}
 	o := new(CertificateTemplate)
 	baseDocPopulateRef(&doc.BaseDoc, &o.Ref, nsType)
+	o.Ref.DisplayName = doc.DisplayName
+	o.Ref.Type = RefTypeCertificateTemplate
 	o.Issuer = CertificateIssuer{
 		CertificateID: ToPtr(doc.IssuerCertificateId.GetUUID()),
 		NamespaceID:   doc.IssuerNamespaceID,
@@ -161,4 +166,19 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 	o.Usage = doc.Usage
 	o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
 	return o
+}
+
+func (s *adminServer) listCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID) ([]*CertificateTemplateDoc, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.displayName FROM c
+WHERE c.namespaceId = @namespaceId
+  AND c.type = @type`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@namespaceId", Value: nsID.String()},
+				{Name: "@type", Value: kmsdoc.DocTypeNameCertTemplate},
+			},
+		})
+
+	return PagerToList[CertificateTemplateDoc](ctx, pager)
 }
