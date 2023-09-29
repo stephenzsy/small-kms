@@ -1,12 +1,14 @@
-import { Ref as RRef } from "../generated";
+import { RefWithMetadata } from "../generated";
 
 export function RefsTable(props: {
-  items: RRef[] | undefined;
+  items: RefWithMetadata[] | undefined;
+  itemTitleMetadataKey: string;
   title: string;
   tableActions?: React.ReactNode;
-  refActions?: (ref: RRef) => React.ReactNode;
+  refActions?: (ref: RefWithMetadata) => React.ReactNode;
 }) {
-  const { title, tableActions, items, refActions } = props;
+  const { title, tableActions, items, refActions, itemTitleMetadataKey } =
+    props;
 
   return (
     <section className="overflow-hidden rounded-lg bg-white shadow px-4 sm:px-6 lg:px-8 py-6">
@@ -51,7 +53,7 @@ export function RefsTable(props: {
                           <pre>{r.id}</pre>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {r.displayName}
+                          {r.metadata?.[itemTitleMetadataKey]}
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">
                           {refActions?.(r)}

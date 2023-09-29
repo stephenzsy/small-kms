@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
@@ -35,6 +36,7 @@ type CertDoc struct {
 	CertStorePath           string           `json:"certStorePath"` // certificate storage path in blob storage
 	CommonName              string           `json:"name"`
 	Usage                   CertificateUsage `json:"usage"`
+	FingerprintSHA1Hex      string           `json:"fingerprint"` // information only
 }
 
 func (doc *CertDoc) IsActive() bool {
@@ -135,28 +137,38 @@ func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azb
 			BlobContentType: to.Ptr("application/x-pem-file"),
 		},
 		Metadata: map[string]*string{
-			"issuer-id": to.Ptr(fmt.Sprintf("%s/%s", doc.IssuerNamespaceID, doc.IssuerCertificateID.GetUUID())),
+			"issuer_id": to.Ptr(fmt.Sprintf("%s/%s", doc.IssuerNamespaceID, doc.IssuerCertificateID.GetUUID())),
 			"x5t":       base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprint),
-			"x5t-s256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
+			"x5t_S256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
 		},
 	})
 	return ToPtr(blockBlobClient.URL()), err
 }
 
-func (s *adminServer) toCertificateInfo(ctx context.Context, doc *CertDoc, include *GetCertificateV2ParamsIncludeCertificate, nsType NamespaceTypeShortName, certPemBlob []byte) (*CertificateInfo, error) {
+func (s *adminServer) toCertificateInfo(ctx context.Context,
+	doc *CertDoc,
+	include *GetCertificateV2ParamsIncludeCertificate,
+	nsType NamespaceTypeShortName,
+	certPemBlob []byte) (*CertificateInfo, error) {
 	if doc == nil {
 		return nil, nil
 	}
 	certInfo := CertificateInfo{
-		CommonName:              doc.CommonName,
-		Usage:                   doc.Usage,
-		NotBefore:               doc.NotBefore,
-		NotAfter:                doc.NotAfter,
-		Subject:                 doc.Subject,
-		SubjectAlternativeNames: &doc.SubjectAlternativeNames.CertificateSubjectAlternativeNames,
+		CommonName: doc.CommonName,
+		Usage:      doc.Usage,
+		NotBefore:  doc.NotBefore,
+		NotAfter:   doc.NotAfter,
+		Subject:    doc.Subject,
 	}
-	baseDocPopulateRef(&doc.BaseDoc, &certInfo.Ref, nsType)
-	certInfo.Ref.DisplayName = base64UrlToHexStr(*doc.KeyInfo.CertificateThumbprint)
+	if doc.SubjectAlternativeNames != nil {
+		certInfo.SubjectAlternativeNames = &doc.SubjectAlternativeNames.CertificateSubjectAlternativeNames
+	}
+
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &certInfo.Ref, nsType)
+	docCuid := doc.GetCUID()
+	certInfo.Ref.ID = docCuid.GetUUID()
+	certInfo.Ref.Type = RefTypeCertificate
+	certInfo.Ref.Metadata = map[string]string{RefPropertyKeyThumbprint: doc.FingerprintSHA1Hex}
 
 	if include != nil {
 		if certPemBlob == nil {
@@ -174,24 +186,32 @@ func (s *adminServer) toCertificateInfo(ctx context.Context, doc *CertDoc, inclu
 		}
 	}
 
+	certInfo.Template.ID = doc.TemplateID.GetUUID()
+	certInfo.Template.Type = RefTypeCertificateTemplate
+	certInfo.Template.NamespaceID = doc.NamespaceID
+
+	certInfo.IssuerCertificate.ID = doc.IssuerCertificateID.GetUUID()
+	certInfo.IssuerCertificate.Type = RefTypeCertificate
+	certInfo.IssuerCertificate.NamespaceID = doc.IssuerNamespaceID
+	if doc.NamespaceID == doc.IssuerNamespaceID {
+		// root CA
+		certInfo.IssuerCertificate.ID = certInfo.Ref.ID
+	}
+
 	return &certInfo, nil
 }
 
-/*
-
-func (s *adminServer) listCertDocForPolicyID(ctx context.Context, namespaceID uuid.UUID, policyID uuid.UUID) ([]*CertDoc, error) {
-
-	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
+func (s *adminServer) listCertificateDocs(ctx context.Context, nsID uuid.UUID) ([]*CertDoc, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.fingerprint FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.type = @type`,
 		partitionKey, &azcosmos.QueryOptions{
 			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@namespaceId", Value: directoryID.String()},
+				{Name: "@namespaceId", Value: nsID.String()},
 				{Name: "@type", Value: kmsdoc.DocTypeNameCert},
 			},
 		})
 
-	return PagerToList[DirectoryObjectDoc](ctx, pager)
+	return PagerToList[CertDoc](ctx, pager)
 }
-*/

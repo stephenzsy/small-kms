@@ -188,8 +188,8 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 		return nil
 	}
 	o := new(CertificateTemplate)
-	baseDocPopulateRef(&doc.BaseDoc, &o.Ref, nsType)
-	o.Ref.DisplayName = doc.DisplayName
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &o.Ref, nsType)
+	o.DisplayName = doc.DisplayName
 	o.Ref.Type = RefTypeCertificateTemplate
 	o.Issuer = CertificateIssuer{
 		NamespaceID:   doc.IssuerNamespaceID,
@@ -258,7 +258,7 @@ func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azke
 		return r, fmt.Errorf("unsupported key type %s", doc.KeyProperties.Kty)
 	}
 
-	if doc.KeyStorePath != nil || len(*doc.KeyStorePath) <= 0 {
+	if doc.KeyStorePath == nil || len(*doc.KeyStorePath) <= 0 {
 		return r, fmt.Errorf("nil key name")
 	}
 

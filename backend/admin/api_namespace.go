@@ -8,18 +8,18 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-func getRootCaRefs() []Ref {
-	return []Ref{
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", Type: RefTypeNamespace},
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, DisplayName: "Test Root CA", Type: RefTypeNamespace},
+func getRootCaRefs() []RefWithMetadata {
+	return []RefWithMetadata{
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Root CA"}, Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Intermediate CA"}, Type: RefTypeNamespace},
 	}
 }
 
-func getIntCaRefs() []Ref {
-	return []Ref{
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAService, DisplayName: "Services Intermediate CA", Type: RefTypeNamespace},
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAIntranet, DisplayName: "Intranet Intermediate CA", Type: RefTypeNamespace},
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestIntCA, DisplayName: "Test Intermediate CA", Type: RefTypeNamespace},
+func getIntCaRefs() []RefWithMetadata {
+	return []RefWithMetadata{
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAService, Metadata: map[string]string{RefPropertyKeyDisplayName: "Services Intermediate CA"}, Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAIntranet, Metadata: map[string]string{RefPropertyKeyDisplayName: "Intranet Intermediate CA"}, Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestIntCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Test Intermediate CA"}, Type: RefTypeNamespace},
 	}
 }
 

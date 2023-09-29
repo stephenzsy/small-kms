@@ -19,10 +19,10 @@ func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType Namespac
 		respondInternalError(c, err, fmt.Sprintf("failed to list certificate templates: %s", nsID))
 		return
 	}
-	r := make([]Ref, len(docs))
+	r := make([]RefWithMetadata, len(docs))
 	for i, doc := range docs {
-		baseDocPopulateRef(&doc.BaseDoc, &r[i], nsType)
-		r[i].DisplayName = doc.DisplayName
+		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
+		r[i].Metadata = map[string]string{RefPropertyKeyDisplayName: doc.DisplayName}
 		r[i].Type = RefTypeCertificateTemplate
 	}
 

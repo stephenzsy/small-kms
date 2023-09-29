@@ -57,6 +57,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 		if err != nil {
 			return nil, err
 		}
+		signer.certificate = cert
 		signer.certPubKey = signer.privateKey.publicKey
 		signer.rootCAKeyBundle = &keyBundle
 	} else {
@@ -112,7 +113,7 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 	t *CertificateTemplateDoc, certID uuid.UUID) (*CertDoc, []byte, error) {
 
 	// prep certificate
-	if certID != uuid.Nil {
+	if certID == uuid.Nil {
 		newCertID, err := uuid.NewRandom()
 		if err != nil {
 			return nil, nil, err
@@ -122,13 +123,13 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 	certSerial := big.Int{}
 	certSerial.SetBytes(certID[:])
 	now := time.Now()
-	c := &x509.Certificate{
+	c := x509.Certificate{
 		SerialNumber: &certSerial,
 		Subject:      t.Subject.pkixName(),
 		NotBefore:    now,
 		NotAfter:     now.AddDate(0, int(t.ValidityInMonths), 0),
 	}
-	t.SubjectAlternativeNames.populateCertificate(c)
+	t.SubjectAlternativeNames.populateCertificate(&c)
 	if nsType == NSTypeRootCA {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
@@ -151,14 +152,14 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 	}
 
 	// prep signer
-	signer, err := s.loadCertSigner(ctx, nsType, nsID, t, c)
+	signer, err := s.loadCertSigner(ctx, nsType, nsID, t, &c)
 	if err != nil {
 		return nil, nil, err
 	}
 	c.SignatureAlgorithm = signer.SignatureAlgorithm()
 	log.Info().Msgf("signer %s", signer.certCUID.String())
 	// Sign cert
-	certSigned, err := x509.CreateCertificate(nil, c, signer.certificate, signer.certPubKey, signer.privateKey)
+	certSigned, err := x509.CreateCertificate(nil, &c, signer.certificate, signer.certPubKey, signer.privateKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -223,6 +224,7 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 		CommonName:              certParsed.Subject.CommonName,
 	}
 	certDoc.KeyInfo.populateBriefFromCertificate(certParsed)
+	certDoc.FingerprintSHA1Hex = base64UrlToHexStr(*certDoc.KeyInfo.CertificateThumbprint)
 	// populate x5u
 	if mergeCertificateResponse != nil {
 		certDoc.KeyInfo.KeyID = (*string)(mergeCertificateResponse.KID)

@@ -1,17 +1,21 @@
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { useBoolean, useRequest } from "ahooks";
 import classNames from "classnames";
-import { useMemo, useState, useId, useEffect } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
+import { Button } from "../components/Button";
 import { WellknownId } from "../constants";
 import {
+  AdminApi,
+  CertificateIdentifierType,
   CertificateUsage,
   CertsApi,
   DirectoryApi,
-  CertificateIdentifierType,
   GetCertificateV1FormatEnum,
+  GetCertificateV2Request,
   NamespaceType,
+  NamespaceTypeShortName,
   Policy,
   PolicyApi,
   PolicyParameters,
@@ -20,14 +24,7 @@ import {
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { InputFieldLegacy } from "./FormComponents";
-import {
-  IsIntCaNamespace,
-  policyTypeNames,
-  isRootCaNamespace,
-  nsDisplayNames,
-} from "./displayConstants";
-import { Button } from "../components/Button";
-import AlertDialog from "../components/AlertDialog";
+import { IsIntCaNamespace, isRootCaNamespace } from "./displayConstants";
 
 interface IssuerNamespaceSelectorProps {
   requesterNamespace: string;
@@ -431,66 +428,76 @@ function CertCreatePolicyForm({
 }
 
 export default function CertificatePage() {
-  const { namespaceId, policyId } = useParams();
+  const { namespaceId, nsType, templateId, certId } = useParams() as {
+    namespaceId: string;
+    nsType: NamespaceTypeShortName;
+    templateId: string;
+    certId: string;
+  };
 
-  const client = useAuthedClient(CertsApi);
-  const { data: certificateInfo, run: manualDownload } = useRequest(
-    async (format?: GetCertificateV1FormatEnum) => {
+  const adminApi = useAuthedClient(AdminApi);
+  const {
+    data: cert,
+    loading,
+    error: certError,
+    run,
+  } = useRequest(
+    async (p: GetCertificateV2Request) => {
       try {
-        if (policyId) {
-          return await client.getCertificateV1({
-            namespaceId: namespaceId!,
-            byType: CertificateIdentifierType.CertIdTypePolicyId,
-            id: policyId,
-            format,
-          });
-        }
+        return await adminApi.getCertificateV2(p);
       } catch (e) {
-        if (e instanceof ResponseError && e.response.status === 404) {
-          return null;
+        if (e instanceof ResponseError) {
+          if (e.response.status === 404) {
+            return null;
+          }
         }
         throw e;
       }
     },
-    { refreshDeps: [namespaceId, policyId] }
-  );
-
-  const [pemUrl, setPemUrl] = useState<string>();
-  useEffect(() => {
-    if (certificateInfo?.pem) {
-      const url = URL.createObjectURL(
-        new Blob([certificateInfo.pem], { type: "application/x-pem-file" })
-      );
-      setPemUrl(url);
-      return () => {
-        setPemUrl(undefined);
-        URL.revokeObjectURL(url);
-      };
+    {
+      defaultParams: [
+        {
+          namespaceId,
+          namespaceType: nsType,
+          templateId,
+          certId,
+        },
+      ],
+      refreshDeps: [namespaceId, nsType, templateId, certId],
     }
-  }, [certificateInfo?.pem]);
-
+  );
   return (
     <>
-      <h1 className="text-4xl font-semibold">Certificate</h1>
-      {certificateInfo !== undefined &&
-        (certificateInfo ? (
-          <div>
-            <pre className="text-sm">
-              {JSON.stringify(certificateInfo, undefined, 2)}
-            </pre>
-            <Button
-              variant="primary"
-              onClick={() => {
-                manualDownload(GetCertificateV1FormatEnum.FormatPEM);
-              }}
-            >
-              Prepare download
-            </Button>
-            {pemUrl && (<a href={pemUrl} download={`${certificateInfo.id}.pem`}>Download .PEM file</a>)}
-          </div>
+      <h1>
+        {nsType}/{namespaceId}/certificate-templates/{templateId}/certificates/
+        {certId}
+      </h1>
+      <div className="p-6 bg-white rounded-lg overflow-hidden shadow-sm">
+        {certError && <div>Fetch cert has error</div>}
+        {loading ? (
+          <div>Loading...</div>
+        ) : cert ? (
+          <pre>{JSON.stringify(cert, undefined, 2)}</pre>
         ) : (
-          <div>No certificate</div>
-        ))}
+          "No cert"
+        )}
+      </div>
+      <div className="p-6 bg-white rounded-lg overflow-hidden shadow-sm">
+        <Button
+          variant="primary"
+          onClick={() => {
+            run({
+              namespaceId,
+              namespaceType: nsType,
+              templateId,
+              certId,
+              apply: true,
+            });
+          }}
+        >
+          Apply Template
+        </Button>
+      </div>
     </>
   );
 }

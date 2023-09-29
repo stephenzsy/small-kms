@@ -109,6 +109,7 @@ const (
 
 // Defines values for RefType.
 const (
+	RefTypeCertificate         RefType = "certificate"
 	RefTypeCertificateTemplate RefType = "certificate-template"
 	RefTypeNamespace           RefType = "namespace"
 )
@@ -186,7 +187,7 @@ type CertificateInfo struct {
 	// NotBefore Expiration date of the certificate
 	NotBefore               time.Time                           `json:"notBefore"`
 	Pem                     *string                             `json:"pem,omitempty"`
-	Ref                     Ref                                 `json:"ref"`
+	Ref                     RefWithMetadata                     `json:"ref"`
 	Subject                 string                              `json:"subject"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 	Template                Ref                                 `json:"template"`
@@ -305,13 +306,14 @@ type CertificateSubjectAlternativeNames struct {
 
 // CertificateTemplate defines model for CertificateTemplate.
 type CertificateTemplate struct {
-	Issuer CertificateIssuer `json:"issuer"`
+	DisplayName string            `json:"displayName"`
+	Issuer      CertificateIssuer `json:"issuer"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
-	Ref             Ref                         `json:"ref"`
+	Ref             RefWithMetadata             `json:"ref"`
 
 	// ReuseKey Keep using the same key version if exists
 	ReuseKey                *bool                               `json:"reuse_key,omitempty"`
@@ -323,7 +325,8 @@ type CertificateTemplate struct {
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
 type CertificateTemplateParameters struct {
-	Issuer CertificateIssuer `json:"issuer"`
+	DisplayName string            `json:"displayName"`
+	Issuer      CertificateIssuer `json:"issuer"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
@@ -412,8 +415,8 @@ type KeyType string
 
 // NamespaceInfo defines model for NamespaceInfo.
 type NamespaceInfo struct {
-	ObjectType NamespaceType `json:"objectType"`
-	Ref        Ref           `json:"ref"`
+	ObjectType NamespaceType   `json:"objectType"`
+	Ref        RefWithMetadata `json:"ref"`
 }
 
 // NamespacePermissionKey defines model for NamespacePermissionKey.
@@ -564,10 +567,20 @@ type PolicyType string
 
 // Ref defines model for Ref.
 type Ref struct {
+	ID          openapi_types.UUID `json:"id"`
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+	Type        RefType            `json:"type"`
+}
+
+// RefType defines model for RefType.
+type RefType string
+
+// RefWithMetadata defines model for RefWithMetadata.
+type RefWithMetadata struct {
 	// Deleted Time when the object was deleted
 	Deleted       *time.Time             `json:"deleted,omitempty"`
-	DisplayName   string                 `json:"displayName"`
 	ID            openapi_types.UUID     `json:"id"`
+	Metadata      map[string]string      `json:"metadata,omitempty"`
 	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
 	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
 	Type          RefType                `json:"type"`
@@ -578,9 +591,6 @@ type Ref struct {
 	// UpdatedBy Unique ID of the user who last updated the object
 	UpdatedBy string `json:"updatedBy"`
 }
-
-// RefType defines model for RefType.
-type RefType string
 
 // RequestDiagnostics defines model for RequestDiagnostics.
 type RequestDiagnostics struct {
@@ -624,7 +634,7 @@ type ErrorResponse struct {
 }
 
 // RefListResponse defines model for RefListResponse.
-type RefListResponse = []Ref
+type RefListResponse = []RefWithMetadata
 
 // ListCertificatesV1Params defines parameters for ListCertificatesV1.
 type ListCertificatesV1Params struct {
@@ -643,11 +653,6 @@ type GetCertificateV1ParamsFormat string
 // DeletePolicyV1Params defines parameters for DeletePolicyV1.
 type DeletePolicyV1Params struct {
 	Purge *bool `form:"purge,omitempty" json:"purge,omitempty"`
-}
-
-// PutCertificateTemplateV2Params defines parameters for PutCertificateTemplateV2.
-type PutCertificateTemplateV2Params struct {
-	DisplayName string `form:"displayName" json:"displayName"`
 }
 
 // GetCertificateV2Params defines parameters for GetCertificateV2.
@@ -890,7 +895,10 @@ type ServerInterface interface {
 	GetCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
 	// Put certificate template
 	// (PUT /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId})
-	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID, params PutCertificateTemplateV2Params)
+	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
+	// List certificates
+	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates)
+	ListCertificatesV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID)
 	// Get certificate
 	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId})
 	GetCertificateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID, certId openapi_types.UUID, params GetCertificateV2Params)
@@ -1586,23 +1594,49 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
 
 	c.Set(BearerAuthScopes, []string{})
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PutCertificateTemplateV2Params
-
-	// ------------- Required query parameter "displayName" -------------
-
-	if paramValue := c.Query("displayName"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument displayName is required, but not found"), http.StatusBadRequest)
-		return
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
 	}
 
-	err = runtime.BindQueryParameter("form", true, true, "displayName", c.Request.URL.Query(), &params.DisplayName)
+	siw.Handler.PutCertificateTemplateV2(c, namespaceType, namespaceId, templateId)
+}
+
+// ListCertificatesV2 operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificatesV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter displayName: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
 		return
 	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -1611,7 +1645,7 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.PutCertificateTemplateV2(c, namespaceType, namespaceId, templateId, params)
+	siw.Handler.ListCertificatesV2(c, namespaceType, namespaceId, templateId)
 }
 
 // GetCertificateV2 operation middleware
@@ -1770,6 +1804,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)
+	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates", wrapper.ListCertificatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates/:certId", wrapper.GetCertificateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

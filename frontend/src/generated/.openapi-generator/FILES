@@ -57,6 +57,8 @@ models/PolicyStateCertRequest.ts
 models/PolicyType.ts
 models/Ref.ts
 models/RefType.ts
+models/RefWithMetadata.ts
+models/RefWithMetadataAllOf.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceRef.ts

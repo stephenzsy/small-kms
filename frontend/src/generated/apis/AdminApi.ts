@@ -20,7 +20,7 @@ import type {
   CertificateTemplateParameters,
   DeviceServicePrincipal,
   NamespaceTypeShortName,
-  Ref,
+  RefWithMetadata,
 } from '../models';
 import {
     CertificateInfoFromJSON,
@@ -33,8 +33,8 @@ import {
     DeviceServicePrincipalToJSON,
     NamespaceTypeShortNameFromJSON,
     NamespaceTypeShortNameToJSON,
-    RefFromJSON,
-    RefToJSON,
+    RefWithMetadataFromJSON,
+    RefWithMetadataToJSON,
 } from '../models';
 
 export interface GetCertificateTemplateV2Request {
@@ -61,6 +61,12 @@ export interface ListCertificateTemplatesV2Request {
     namespaceId: string;
 }
 
+export interface ListCertificatesV2Request {
+    namespaceType: NamespaceTypeShortName;
+    namespaceId: string;
+    templateId: string;
+}
+
 export interface ListNamespacesByTypeV2Request {
     namespaceType: NamespaceTypeShortName;
 }
@@ -69,7 +75,6 @@ export interface PutCertificateTemplateV2Request {
     namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
-    displayName: string;
     certificateTemplateParameters: CertificateTemplateParameters;
 }
 
@@ -223,7 +228,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * List certificate templates
      */
-    async listCertificateTemplatesV2Raw(requestParameters: ListCertificateTemplatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
+    async listCertificateTemplatesV2Raw(requestParameters: ListCertificateTemplatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RefWithMetadata>>> {
         if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
             throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listCertificateTemplatesV2.');
         }
@@ -251,21 +256,67 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefWithMetadataFromJSON));
     }
 
     /**
      * List certificate templates
      */
-    async listCertificateTemplatesV2(requestParameters: ListCertificateTemplatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
+    async listCertificateTemplatesV2(requestParameters: ListCertificateTemplatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RefWithMetadata>> {
         const response = await this.listCertificateTemplatesV2Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List certificates
+     */
+    async listCertificatesV2Raw(requestParameters: ListCertificatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RefWithMetadata>>> {
+        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
+            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listCertificatesV2.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificatesV2.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling listCertificatesV2.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefWithMetadataFromJSON));
+    }
+
+    /**
+     * List certificates
+     */
+    async listCertificatesV2(requestParameters: ListCertificatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RefWithMetadata>> {
+        const response = await this.listCertificatesV2Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List namespaces by type
      */
-    async listNamespacesByTypeV2Raw(requestParameters: ListNamespacesByTypeV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
+    async listNamespacesByTypeV2Raw(requestParameters: ListNamespacesByTypeV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RefWithMetadata>>> {
         if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
             throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listNamespacesByTypeV2.');
         }
@@ -289,13 +340,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefWithMetadataFromJSON));
     }
 
     /**
      * List namespaces by type
      */
-    async listNamespacesByTypeV2(requestParameters: ListNamespacesByTypeV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
+    async listNamespacesByTypeV2(requestParameters: ListNamespacesByTypeV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RefWithMetadata>> {
         const response = await this.listNamespacesByTypeV2Raw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -316,19 +367,11 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling putCertificateTemplateV2.');
         }
 
-        if (requestParameters.displayName === null || requestParameters.displayName === undefined) {
-            throw new runtime.RequiredError('displayName','Required parameter requestParameters.displayName was null or undefined when calling putCertificateTemplateV2.');
-        }
-
         if (requestParameters.certificateTemplateParameters === null || requestParameters.certificateTemplateParameters === undefined) {
             throw new runtime.RequiredError('certificateTemplateParameters','Required parameter requestParameters.certificateTemplateParameters was null or undefined when calling putCertificateTemplateV2.');
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.displayName !== undefined) {
-            queryParameters['displayName'] = requestParameters.displayName;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

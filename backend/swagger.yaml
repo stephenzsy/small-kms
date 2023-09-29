@@ -98,12 +98,6 @@ paths:
         - admin
       summary: Put certificate template
       operationId: PutCertificateTemplateV2
-      parameters:
-        - in: query
-          name: displayName
-          schema:
-            type: string
-          required: true
       requestBody:
         content:
           application/json:
@@ -689,14 +683,14 @@ components:
       enum:
         - namespace
         - certificate-template
+        - certificate
       x-enum-varnames:
         - RefTypeNamespace
         - RefTypeCertificateTemplate
+        - RefTypeCertificate
     Ref:
       type: object
       properties:
-        namespaceType:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
         namespaceId:
           type: string
           format: uuid
@@ -707,31 +701,43 @@ components:
           type: string
           format: uuid
           x-go-name: ID
-        displayName:
-          type: string
-        updatedBy:
-          description: Unique ID of the user who last updated the object
-          type: string
-        updated:
-          description: Time when the object was last updated
-          type: string
-          format: date-time
-        deleted:
-          description: Time when the object was deleted
-          type: string
-          format: date-time
       required:
-        - namespaceType
         - namespaceId
         - type
         - id
-        - displayName
-        - updated
-        - updatedBy
+    RefWithMetadata:
+      allOf:
+        - $ref: "#/components/schemas/Ref"
+        - type: object
+          properties:
+            namespaceType:
+              $ref: "#/components/schemas/NamespaceTypeShortName"
+            updatedBy:
+              description: Unique ID of the user who last updated the object
+              type: string
+            updated:
+              description: Time when the object was last updated
+              type: string
+              format: date-time
+            deleted:
+              description: Time when the object was deleted
+              type: string
+              format: date-time
+            metadata:
+              type: object
+              additionalProperties:
+                type: string
+              x-go-type-skip-optional-pointer: true
+          required:
+            - namespaceType
+            - updated
+            - updatedBy
     CertificateTemplateParameters:
       type: object
       description: Certificate fields, may accept template substitutions
       properties:
+        displayName:
+          type: string
         issuer:
           $ref: "#/components/schemas/CertificateIssuer"
         keyProperties:
@@ -757,6 +763,7 @@ components:
           type: boolean
           x-go-name: ReuseKey
       required:
+        - displayName
         - issuer
         - subject
         - usage
@@ -765,7 +772,7 @@ components:
         - type: object
           properties:
             ref:
-              $ref: "#/components/schemas/Ref"
+              $ref: "#/components/schemas/RefWithMetadata"
           required:
             - ref
         - $ref: "#/components/schemas/CertificateTemplateParameters"
@@ -791,7 +798,7 @@ components:
       type: object
       properties:
         ref:
-          $ref: "#/components/schemas/Ref"
+          $ref: "#/components/schemas/RefWithMetadata"
         objectType:
           $ref: "#/components/schemas/NamespaceType"
       required:
@@ -1277,7 +1284,7 @@ components:
       type: object
       properties:
         ref:
-          $ref: "#/components/schemas/Ref"
+          $ref: "#/components/schemas/RefWithMetadata"
         commonName:
           description: Common name
           type: string
@@ -1470,7 +1477,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/Ref"
+              $ref: "#/components/schemas/RefWithMetadata"
     GenericResponse:
       description: generic response
       content:

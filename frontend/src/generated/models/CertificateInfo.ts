@@ -37,6 +37,12 @@ import {
     RefFromJSONTyped,
     RefToJSON,
 } from './Ref';
+import type { RefWithMetadata } from './RefWithMetadata';
+import {
+    RefWithMetadataFromJSON,
+    RefWithMetadataFromJSONTyped,
+    RefWithMetadataToJSON,
+} from './RefWithMetadata';
 
 /**
  * 
@@ -46,10 +52,10 @@ import {
 export interface CertificateInfo {
     /**
      * 
-     * @type {Ref}
+     * @type {RefWithMetadata}
      * @memberof CertificateInfo
      */
-    ref: Ref;
+    ref: RefWithMetadata;
     /**
      * Common name
      * @type {string}
@@ -139,7 +145,7 @@ export function CertificateInfoFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'ref': RefFromJSON(json['ref']),
+        'ref': RefWithMetadataFromJSON(json['ref']),
         'commonName': json['commonName'],
         'subject': json['subject'],
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
@@ -162,7 +168,7 @@ export function CertificateInfoToJSON(value?: CertificateInfo | null): any {
     }
     return {
         
-        'ref': RefToJSON(value.ref),
+        'ref': RefWithMetadataToJSON(value.ref),
         'commonName': value.commonName,
         'subject': value.subject,
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),

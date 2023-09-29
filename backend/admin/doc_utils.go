@@ -10,6 +10,11 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
+const (
+	RefPropertyKeyDisplayName = "displayName"
+	RefPropertyKeyThumbprint  = "thumbprint"
+)
+
 func PagerToList[D any](ctx context.Context, pager *azruntime.Pager[azcosmos.QueryItemsResponse]) (results []*D, err error) {
 	for pager.More() {
 		t, scanErr := pager.NextPage(ctx)
@@ -29,7 +34,7 @@ func PagerToList[D any](ctx context.Context, pager *azruntime.Pager[azcosmos.Que
 	return
 }
 
-func baseDocPopulateRef(d *kmsdoc.BaseDoc, ref *Ref, nsType NamespaceTypeShortName) {
+func baseDocPopulateRefWithMetadata(d *kmsdoc.BaseDoc, ref *RefWithMetadata, nsType NamespaceTypeShortName) {
 	if d == nil || ref == nil {
 		return
 	}

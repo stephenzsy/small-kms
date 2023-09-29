@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -147,4 +148,26 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 	}
 
 	c.JSON(http.StatusOK, certInfo)
+}
+
+func (s *adminServer) ListCertificatesV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
+	if !authAdminOnly(c) {
+		return
+	}
+
+	docs, err := s.listCertificateDocs(c, nsID)
+	if err != nil {
+		respondInternalError(c, err, fmt.Sprintf("failed to list certificates namespace: %s, template: %s", nsID, templateId))
+		return
+	}
+	r := make([]RefWithMetadata, len(docs))
+	for i, doc := range docs {
+		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
+		if doc.FingerprintSHA1Hex != "" {
+			r[i].Metadata = map[string]string{RefPropertyKeyThumbprint: doc.FingerprintSHA1Hex}
+		}
+		r[i].Type = RefTypeCertificate
+	}
+
+	c.JSON(http.StatusOK, r)
 }

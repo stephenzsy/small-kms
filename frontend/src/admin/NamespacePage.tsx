@@ -54,6 +54,7 @@ function CertificateTemplatesList({
           </div>
         )
       }
+      itemTitleMetadataKey="displayName"
       refActions={(ref) => (
         <Link
           to={`/admin/${ref.namespaceType}/${ref.namespaceId}/certificate-templates/${ref.id}`}

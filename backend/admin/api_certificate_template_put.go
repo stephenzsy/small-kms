@@ -11,7 +11,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID, params PutCertificateTemplateV2Params) {
+func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
 	}
@@ -49,7 +49,6 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 		respondPublicError(c, http.StatusBadRequest, err)
 		return
 	}
-	doc.DisplayName = params.DisplayName
 
 	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc); err != nil {
 		respondInternalError(c, err, fmt.Sprintf("failed to upsert certificate template in cosmos: %s", templateId))
@@ -89,6 +88,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 	doc := new(CertificateTemplateDoc)
 	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateId)
 	doc.NamespaceID = nsID
+	doc.DisplayName = p.DisplayName
 
 	// validate and populate issuer, usage
 	switch nsType {

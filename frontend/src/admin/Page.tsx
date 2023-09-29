@@ -180,6 +180,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
+        itemTitleMetadataKey="displayName"
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_IntCA]}
@@ -192,6 +193,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
+        itemTitleMetadataKey="displayName"
       />
 
       <PolicySection

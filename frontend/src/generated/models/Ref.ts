@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceTypeShortName } from './NamespaceTypeShortName';
-import {
-    NamespaceTypeShortNameFromJSON,
-    NamespaceTypeShortNameFromJSONTyped,
-    NamespaceTypeShortNameToJSON,
-} from './NamespaceTypeShortName';
 import type { RefType } from './RefType';
 import {
     RefTypeFromJSON,
@@ -32,12 +26,6 @@ import {
  * @interface Ref
  */
 export interface Ref {
-    /**
-     * 
-     * @type {NamespaceTypeShortName}
-     * @memberof Ref
-     */
-    namespaceType: NamespaceTypeShortName;
     /**
      * 
      * @type {string}
@@ -56,30 +44,6 @@ export interface Ref {
      * @memberof Ref
      */
     id: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Ref
-     */
-    displayName: string;
-    /**
-     * Unique ID of the user who last updated the object
-     * @type {string}
-     * @memberof Ref
-     */
-    updatedBy: string;
-    /**
-     * Time when the object was last updated
-     * @type {Date}
-     * @memberof Ref
-     */
-    updated: Date;
-    /**
-     * Time when the object was deleted
-     * @type {Date}
-     * @memberof Ref
-     */
-    deleted?: Date;
 }
 
 /**
@@ -87,13 +51,9 @@ export interface Ref {
  */
 export function instanceOfRef(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceType" in value;
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "type" in value;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "updated" in value;
 
     return isInstance;
 }
@@ -108,14 +68,9 @@ export function RefFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ref {
     }
     return {
         
-        'namespaceType': NamespaceTypeShortNameFromJSON(json['namespaceType']),
         'namespaceId': json['namespaceId'],
         'type': RefTypeFromJSON(json['type']),
         'id': json['id'],
-        'displayName': json['displayName'],
-        'updatedBy': json['updatedBy'],
-        'updated': (new Date(json['updated'])),
-        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
     };
 }
 
@@ -128,14 +83,9 @@ export function RefToJSON(value?: Ref | null): any {
     }
     return {
         
-        'namespaceType': NamespaceTypeShortNameToJSON(value.namespaceType),
         'namespaceId': value.namespaceId,
         'type': RefTypeToJSON(value.type),
         'id': value.id,
-        'displayName': value.displayName,
-        'updatedBy': value.updatedBy,
-        'updated': (value.updated.toISOString()),
-        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
     };
 }
 

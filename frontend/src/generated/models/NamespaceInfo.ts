@@ -19,12 +19,12 @@ import {
     NamespaceTypeFromJSONTyped,
     NamespaceTypeToJSON,
 } from './NamespaceType';
-import type { Ref } from './Ref';
+import type { RefWithMetadata } from './RefWithMetadata';
 import {
-    RefFromJSON,
-    RefFromJSONTyped,
-    RefToJSON,
-} from './Ref';
+    RefWithMetadataFromJSON,
+    RefWithMetadataFromJSONTyped,
+    RefWithMetadataToJSON,
+} from './RefWithMetadata';
 
 /**
  * 
@@ -34,10 +34,10 @@ import {
 export interface NamespaceInfo {
     /**
      * 
-     * @type {Ref}
+     * @type {RefWithMetadata}
      * @memberof NamespaceInfo
      */
-    ref: Ref;
+    ref: RefWithMetadata;
     /**
      * 
      * @type {NamespaceType}
@@ -67,7 +67,7 @@ export function NamespaceInfoFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
-        'ref': RefFromJSON(json['ref']),
+        'ref': RefWithMetadataFromJSON(json['ref']),
         'objectType': NamespaceTypeFromJSON(json['objectType']),
     };
 }
@@ -81,7 +81,7 @@ export function NamespaceInfoToJSON(value?: NamespaceInfo | null): any {
     }
     return {
         
-        'ref': RefToJSON(value.ref),
+        'ref': RefWithMetadataToJSON(value.ref),
         'objectType': NamespaceTypeToJSON(value.objectType),
     };
 }

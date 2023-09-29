@@ -36,9 +36,6 @@ type PolicyCertRequestDocSection struct {
 	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
 }
 
-const maxValidityInMonths = 120
-const defaultValidityInMonths = 12
-
 func getDefaultKeyProperties(namespaceID uuid.UUID) (kp KeyProperties) {
 	kp.Kty = KeyTypeRSA
 	kp.KeySize = ToPtr(KeySize2048)
@@ -117,17 +114,6 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 				LifetimePercentage: p.LifetimeTrigger.LifetimePercentage,
 			}
 		}
-	}
-
-	// validate validity in months, max 10 years, default 12 months, minimum 1
-	if p.ValidityInMonths == nil || *p.ValidityInMonths == 0 {
-		t.ValidityInMonths = defaultValidityInMonths
-	} else if *p.ValidityInMonths > maxValidityInMonths {
-		t.ValidityInMonths = maxValidityInMonths
-	} else if *p.ValidityInMonths < 1 {
-		t.ValidityInMonths = 1
-	} else {
-		t.ValidityInMonths = *p.ValidityInMonths
 	}
 
 	t.KeyProperties = getDefaultKeyProperties(namespaceID)

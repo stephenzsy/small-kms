@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"hash"
 	"math/big"
 	"net"
 	"net/url"
@@ -151,8 +152,6 @@ func (p *JwkProperties) populateBriefFromCertificate(c *x509.Certificate) {
 		p.Kty = KeyTypeRSA
 		if rsaPublicKey, ok := c.PublicKey.(*rsa.PublicKey); ok {
 			p.KeySize = ToPtr(KeySize(rsaPublicKey.N.BitLen()))
-			//	p.E = ToPtr(base64.URLEncoding.EncodeToString(big.NewInt(int64(rsaPublicKey.E)).Bytes()))
-			//	p.N = ToPtr(base64.URLEncoding.EncodeToString(rsaPublicKey.N.Bytes()))
 		}
 	case x509.ECDSA:
 		p.Kty = KeyTypeEC
@@ -164,16 +163,18 @@ func (p *JwkProperties) populateBriefFromCertificate(c *x509.Certificate) {
 			case elliptic.P384().Params().Name:
 				p.Crv = ToPtr(CurveNameP384)
 			}
-			//	p.X = ToPtr(base64.URLEncoding.EncodeToString(ecdsaPublicKey.X.Bytes()))
-			//	p.Y = ToPtr(base64.URLEncoding.EncodeToString(ecdsaPublicKey.Y.Bytes()))
 		}
 	}
-	thumbprinterSha1 := sha1.New().Sum(c.Raw)
-	thumbprinterSha256 := sha256.New().Sum(c.Raw)
+	thumbprinterSha1 := getThumbprint(sha1.New(), c.Raw)
+	thumbprinterSha256 := getThumbprint(sha256.New(), c.Raw)
 
 	p.CertificateThumbprint = ToPtr(base64.URLEncoding.EncodeToString(thumbprinterSha1))
 	p.CertificateThumbprintSHA256 = ToPtr(base64.URLEncoding.EncodeToString(thumbprinterSha256))
+}
 
+func getThumbprint(h hash.Hash, b []byte) []byte {
+	h.Write(b)
+	return h.Sum(nil)
 }
 
 func (p *JwkProperties) populateCertsFromPemBlob(pemBlob []byte) error {

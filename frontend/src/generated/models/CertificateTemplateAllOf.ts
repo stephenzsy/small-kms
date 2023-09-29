@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Ref } from './Ref';
+import type { RefWithMetadata } from './RefWithMetadata';
 import {
-    RefFromJSON,
-    RefFromJSONTyped,
-    RefToJSON,
-} from './Ref';
+    RefWithMetadataFromJSON,
+    RefWithMetadataFromJSONTyped,
+    RefWithMetadataToJSON,
+} from './RefWithMetadata';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface CertificateTemplateAllOf {
     /**
      * 
-     * @type {Ref}
+     * @type {RefWithMetadata}
      * @memberof CertificateTemplateAllOf
      */
-    ref: Ref;
+    ref: RefWithMetadata;
 }
 
 /**
@@ -54,7 +54,7 @@ export function CertificateTemplateAllOfFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'ref': RefFromJSON(json['ref']),
+        'ref': RefWithMetadataFromJSON(json['ref']),
     };
 }
 
@@ -67,7 +67,7 @@ export function CertificateTemplateAllOfToJSON(value?: CertificateTemplateAllOf 
     }
     return {
         
-        'ref': RefToJSON(value.ref),
+        'ref': RefWithMetadataToJSON(value.ref),
     };
 }
 

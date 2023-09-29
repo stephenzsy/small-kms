@@ -1,6 +1,6 @@
 import { useMemoizedFn, useRequest } from "ahooks";
 import React, { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Button } from "../components/Button";
 import { WellknownId, uuidNil } from "../constants";
 import {
@@ -21,6 +21,7 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { BaseSelector, IssuerSelector } from "./Selectors";
+import { RefsTable } from "./RefsTable";
 
 export interface CertificateTemplateFormState {
   displayName: ValueStateMayBeFixed<string>;
@@ -98,7 +99,9 @@ export function useCertificateTemplateFormState(
 
   React.useEffect(() => {
     if (certTemplate) {
-      state.displayName.onChange?.(certTemplate.ref.displayName);
+      state.displayName.onChange?.(
+        certTemplate.ref.metadata?.["displayName"] ?? ""
+      );
       state.issuerNamespaceId.onChange?.(certTemplate.issuer.namespaceId);
       state.issuerTemplateId.onChange?.(
         certTemplate.issuer.templateId ?? uuidNil
@@ -145,7 +148,7 @@ export function CertificateIssuerSelector({
     () =>
       issuers?.map((issuer) => ({
         value: issuer.id,
-        title: issuer.displayName || issuer.id,
+        title: issuer.metadata?.["displayName"] || issuer.id,
       })),
     [issuers]
   );
@@ -190,7 +193,7 @@ export function CertificateIssuerTemplateSelector({
         ?.filter((issuer) => issuer.id !== uuidNil)
         .map((issuer) => ({
           value: issuer.id,
-          title: issuer.displayName || issuer.id,
+          title: issuer.metadata?.["displayName"] || issuer.id,
         })),
     [issuers]
   );
@@ -339,7 +342,7 @@ export default function CertificateTemplatePage() {
 
   const adminApi = useAuthedClient(AdminApi);
   const { data, loading, run } = useRequest(
-    async (p?: CertificateTemplateParameters, updateDisplayName?: string) => {
+    async (p?: CertificateTemplateParameters) => {
       if (!p) {
         try {
           return await adminApi.getCertificateTemplateV2({
@@ -359,8 +362,6 @@ export default function CertificateTemplatePage() {
           namespaceId,
           templateId,
           certificateTemplateParameters: p,
-          displayName:
-            templateId === uuidNil ? "default" : updateDisplayName ?? "",
         });
       }
     },
@@ -376,40 +377,73 @@ export default function CertificateTemplatePage() {
   const onSubmit = useMemoizedFn<React.FormEventHandler<HTMLFormElement>>(
     (e) => {
       e.preventDefault();
-      run(
-        {
-          issuer: {
-            namespaceId: state.issuerNamespaceId.value,
-            namespaceType:
-              nsType === "root-ca" || nsType === "intermediate-ca"
-                ? NamespaceTypeShortName.NSType_RootCA
-                : NamespaceTypeShortName.NSType_IntCA,
-            templateId: state.issuerTemplateId.value,
-          },
-          subject: {
-            cn: state.subjectCN,
-            ou: state.subjectOU || undefined,
-            o: state.subjectO || undefined,
-            c: state.subjectC || undefined,
-          },
-          usage:
-            nsType === "root-ca"
-              ? CertificateUsage.Usage_RootCA
-              : nsType === "intermediate-ca"
-              ? CertificateUsage.Usage_IntCA
-              : state.certUsage,
-          keyStorePath: state.keyStorePath,
-          validityMonths: state.validityInMonths,
+      run({
+        displayName: state.displayName.value,
+        issuer: {
+          namespaceId: state.issuerNamespaceId.value,
+          namespaceType:
+            nsType === "root-ca" || nsType === "intermediate-ca"
+              ? NamespaceTypeShortName.NSType_RootCA
+              : NamespaceTypeShortName.NSType_IntCA,
+          templateId: state.issuerTemplateId.value,
         },
-        state.displayName.value
-      );
+        subject: {
+          cn: state.subjectCN,
+          ou: state.subjectOU || undefined,
+          o: state.subjectO || undefined,
+          c: state.subjectC || undefined,
+        },
+        usage:
+          nsType === "root-ca"
+            ? CertificateUsage.Usage_RootCA
+            : nsType === "intermediate-ca"
+            ? CertificateUsage.Usage_IntCA
+            : state.certUsage,
+        keyStorePath: state.keyStorePath,
+        validityMonths: state.validityInMonths,
+      });
     }
   );
+
+  const { data: issuedCertificates } = useRequest(
+    () => {
+      return adminApi.listCertificatesV2({
+        namespaceId,
+        namespaceType: nsType,
+        templateId: templateId,
+      });
+    },
+    { refreshDeps: [nsType, namespaceId, templateId] }
+  );
+
   return (
     <>
       <h1>
         {nsType}/{namespaceId}/certificate-templates/{templateId}
       </h1>
+      <RefsTable
+        items={issuedCertificates}
+        title="Issued certificates"
+        tableActions={
+          <div>
+            <Link
+              to={`/admin/${nsType}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
+              className="text-indigo-600 hover:text-indigo-900"
+            >
+              View latest certificate
+            </Link>
+          </div>
+        }
+        itemTitleMetadataKey="thumbprint"
+        refActions={(ref) => (
+          <Link
+            to={`/admin/${ref.namespaceType}/${ref.namespaceId}/certificate-templates/${ref.id}`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            View
+          </Link>
+        )}
+      />
       <div className="rounded-lg bg-white shadow p-6 space-y-6">
         <h2>Current policy</h2>
         {loading ? (

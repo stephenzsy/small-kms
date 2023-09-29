@@ -49,12 +49,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
-import type { Ref } from './Ref';
+import type { RefWithMetadata } from './RefWithMetadata';
 import {
-    RefFromJSON,
-    RefFromJSONTyped,
-    RefToJSON,
-} from './Ref';
+    RefWithMetadataFromJSON,
+    RefWithMetadataFromJSONTyped,
+    RefWithMetadataToJSON,
+} from './RefWithMetadata';
 
 /**
  * 
@@ -64,10 +64,16 @@ import {
 export interface CertificateTemplate {
     /**
      * 
-     * @type {Ref}
+     * @type {RefWithMetadata}
      * @memberof CertificateTemplate
      */
-    ref: Ref;
+    ref: RefWithMetadata;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplate
+     */
+    displayName: string;
     /**
      * 
      * @type {CertificateIssuer}
@@ -130,6 +136,7 @@ export interface CertificateTemplate {
 export function instanceOfCertificateTemplate(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "ref" in value;
+    isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "issuer" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
@@ -147,7 +154,8 @@ export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
-        'ref': RefFromJSON(json['ref']),
+        'ref': RefWithMetadataFromJSON(json['ref']),
+        'displayName': json['displayName'],
         'issuer': CertificateIssuerFromJSON(json['issuer']),
         'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -169,7 +177,8 @@ export function CertificateTemplateToJSON(value?: CertificateTemplate | null): a
     }
     return {
         
-        'ref': RefToJSON(value.ref),
+        'ref': RefWithMetadataToJSON(value.ref),
+        'displayName': value.displayName,
         'issuer': CertificateIssuerToJSON(value.issuer),
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),

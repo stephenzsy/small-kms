@@ -58,6 +58,12 @@ import {
 export interface CertificateTemplateParameters {
     /**
      * 
+     * @type {string}
+     * @memberof CertificateTemplateParameters
+     */
+    displayName: string;
+    /**
+     * 
      * @type {CertificateIssuer}
      * @memberof CertificateTemplateParameters
      */
@@ -117,6 +123,7 @@ export interface CertificateTemplateParameters {
  */
 export function instanceOfCertificateTemplateParameters(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "issuer" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
@@ -134,6 +141,7 @@ export function CertificateTemplateParametersFromJSONTyped(json: any, ignoreDisc
     }
     return {
         
+        'displayName': json['displayName'],
         'issuer': CertificateIssuerFromJSON(json['issuer']),
         'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -155,6 +163,7 @@ export function CertificateTemplateParametersToJSON(value?: CertificateTemplateP
     }
     return {
         
+        'displayName': value.displayName,
         'issuer': CertificateIssuerToJSON(value.issuer),
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),

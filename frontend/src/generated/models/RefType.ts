@@ -19,7 +19,8 @@
  */
 export const RefType = {
     RefTypeNamespace: 'namespace',
-    RefTypeCertificateTemplate: 'certificate-template'
+    RefTypeCertificateTemplate: 'certificate-template',
+    RefTypeCertificate: 'certificate'
 } as const;
 export type RefType = typeof RefType[keyof typeof RefType];
 
