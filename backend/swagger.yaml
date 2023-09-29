@@ -117,6 +117,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates:
+    parameters:
+      - in: path
+        name: namespaceType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        required: true
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: templateId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    get:
+      tags:
+        - admin
+      summary: List certificates
+      operationId: ListCertificatesV2
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId}:
     parameters:
       - in: path
@@ -728,7 +755,7 @@ components:
         reuse_key:
           description: Keep using the same key version if exists
           type: boolean
-          x-go-name: ReuseKey          
+          x-go-name: ReuseKey
       required:
         - issuer
         - subject
