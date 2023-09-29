@@ -28,3 +28,13 @@ func IsGraphODataErrorNotFound(err error) bool {
 	}
 	return false
 }
+
+func IsGraphODataErrorNotFoundWithAltErrorCode(err error, altCode int) bool {
+	var odErr *odataerrors.ODataError
+	if errors.As(err, &odErr) {
+		if odErr.ResponseStatusCode == http.StatusNotFound || odErr.ResponseStatusCode == altCode {
+			return true
+		}
+	}
+	return false
+}

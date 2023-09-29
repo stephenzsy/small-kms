@@ -18,9 +18,9 @@ import type {
   CertificateInfo,
   CertificateTemplate,
   CertificateTemplateParameters,
-  DeviceServicePrincipal,
   NamespaceTypeShortName,
   RefWithMetadata,
+  ServicePrincipalLinkedDevice,
 } from '../models';
 import {
     CertificateInfoFromJSON,
@@ -29,12 +29,12 @@ import {
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
     CertificateTemplateParametersToJSON,
-    DeviceServicePrincipalFromJSON,
-    DeviceServicePrincipalToJSON,
     NamespaceTypeShortNameFromJSON,
     NamespaceTypeShortNameToJSON,
     RefWithMetadataFromJSON,
     RefWithMetadataToJSON,
+    ServicePrincipalLinkedDeviceFromJSON,
+    ServicePrincipalLinkedDeviceToJSON,
 } from '../models';
 
 export interface GetCertificateTemplateV2Request {
@@ -52,8 +52,9 @@ export interface GetCertificateV2Request {
     includeCertificate?: GetCertificateV2IncludeCertificateEnum;
 }
 
-export interface LinkDeviceServicePrincipalV2Request {
+export interface GetDeviceServicePrincipalLinkV2Request {
     namespaceId: string;
+    apply?: boolean;
 }
 
 export interface ListCertificateTemplatesV2Request {
@@ -190,12 +191,16 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Link device service principal
      */
-    async linkDeviceServicePrincipalV2Raw(requestParameters: LinkDeviceServicePrincipalV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DeviceServicePrincipal>> {
+    async getDeviceServicePrincipalLinkV2Raw(requestParameters: GetDeviceServicePrincipalLinkV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServicePrincipalLinkedDevice>> {
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling linkDeviceServicePrincipalV2.');
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getDeviceServicePrincipalLinkV2.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.apply !== undefined) {
+            queryParameters['apply'] = requestParameters.apply;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -209,19 +214,19 @@ export class AdminApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/v2/device/{namespaceId}/link-service-principal`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
+            method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => DeviceServicePrincipalFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ServicePrincipalLinkedDeviceFromJSON(jsonValue));
     }
 
     /**
      * Link device service principal
      */
-    async linkDeviceServicePrincipalV2(requestParameters: LinkDeviceServicePrincipalV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DeviceServicePrincipal> {
-        const response = await this.linkDeviceServicePrincipalV2Raw(requestParameters, initOverrides);
+    async getDeviceServicePrincipalLinkV2(requestParameters: GetDeviceServicePrincipalLinkV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServicePrincipalLinkedDevice> {
+        const response = await this.getDeviceServicePrincipalLinkV2Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

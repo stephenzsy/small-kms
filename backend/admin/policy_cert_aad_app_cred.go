@@ -116,7 +116,7 @@ func (p *PolicyCertAadAppCredDocSection) action(ctx *gin.Context, s *adminServer
 
 	certDocCUID := certDoc.GetCUID()
 
-	log.Info().Msgf("Certificate installed %s to application %s", certDocCUID.String(), *dirDoc.AppID)
+	log.Info().Msgf("Certificate installed %s to application %s", certDocCUID.String(), dirDoc.Application.AppID)
 
 	// record policy state
 	resultDoc = &PolicyStateDoc{
@@ -125,7 +125,7 @@ func (p *PolicyCertAadAppCredDocSection) action(ctx *gin.Context, s *adminServer
 			NamespaceID: namespaceID,
 		},
 		Status:  PolicyStateStatusSuccess,
-		Message: fmt.Sprintf("Certificate installed %s to application %s", certDocCUID.String(), *dirDoc.AppID),
+		Message: fmt.Sprintf("Certificate installed %s to application %s", certDocCUID.String(), dirDoc.Application.AppID),
 		CertAadAppCred: &PolicyStateCertAadAppCredDocSection{
 			CertInstalledCUID: certDocCUID,
 			LastAction:        PolicyCertAadAppCredActionInstallCert,

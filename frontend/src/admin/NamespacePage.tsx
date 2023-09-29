@@ -13,6 +13,7 @@ import {
 import { useRequest } from "ahooks";
 import { RefsTable } from "./RefsTable";
 import { useMemo } from "react";
+import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 
 function CertificateTemplatesList({
   nsType,
@@ -101,6 +102,9 @@ export default function NamespacePage() {
         nsType == NamespaceTypeShortName.NSType_ServicePrincipal ||
         nsType == NamespaceTypeShortName.NSType_Group) && (
         <CertificateTemplatesList nsType={nsType} namespaceId={namespaceId} />
+      )}
+      {nsType === NamespaceTypeShortName.NSType_Device && (
+        <DeviceServicePrincipalLink namespaceId={namespaceId} />
       )}
     </>
   );

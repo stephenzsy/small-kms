@@ -2,12 +2,16 @@ package admin
 
 import (
 	"log"
-	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+
+	//"github.com/google/uuid"
 	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
+	//msgraphapp "github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
+	//msgraphsp "github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
+
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -19,7 +23,10 @@ type adminServer struct {
 	azCosmosDatabaseClient       *azcosmos.DatabaseClient
 	azCosmosContainerClientCerts *azcosmos.ContainerClient
 	msGraphClient                *msgraph.GraphServiceClient
-	skipDeviceCheck              bool
+	//appClientId                  string
+	//appServicePrincipalId        string
+	// name to id mapping
+	//appRoles map[string]uuid.UUID
 }
 
 func NewAdminServer() *adminServer {
@@ -31,8 +38,7 @@ func NewAdminServer() *adminServer {
 		log.Panic(err)
 	}
 	s := adminServer{
-		CommonConfig:    &commonConfig,
-		skipDeviceCheck: os.Getenv("SKIP_DEVICE_CHECK") == "true",
+		CommonConfig: &commonConfig,
 	}
 	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
 	if err != nil {
@@ -57,5 +63,32 @@ func NewAdminServer() *adminServer {
 	if err != nil {
 		log.Panicf("Failed to get graph clients: %s", err.Error())
 	}
+	/*
+		s.appClientId = common.MustGetenv(common.DefaultEnvVarAzureClientId)
+		spobj, err := s.msGraphClient.ServicePrincipalsWithAppId(&s.appClientId).Get(context.Background(),
+			&msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+				QueryParameters: &msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+					Select: []string{"id"},
+				},
+			})
+		if err != nil {
+			log.Panicf("Failed to get current graph service principal: %s", err.Error())
+		}
+		s.appServicePrincipalId = *spobj.GetId()
+
+		app, err := s.msGraphClient.ApplicationsWithAppId(&s.appClientId).Get(context.Background(),
+			&msgraphapp.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+				QueryParameters: &msgraphapp.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
+					Select: []string{"id", "appRoles"},
+				},
+			})
+		if err != nil {
+			log.Panicf("Failed to get current graph app: %s", err.Error())
+		}
+		appRoles := app.GetAppRoles()
+		s.appRoles = make(map[string]uuid.UUID, len(appRoles))
+		for _, appRole := range appRoles {
+			s.appRoles[*appRole.GetValue()] = *appRole.GetId()
+		}*/
 	return &s
 }

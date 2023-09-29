@@ -28,9 +28,12 @@ var (
 	WellKnownID_IntCAIntranet = uuid.MustParse("00000000-0000-0000-0000-000000000012")
 	WellKnownID_TestIntCA     = uuid.MustParse("00000000-0000-0000-0000-0000000000ff")
 
-	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv("AZURE_TENANT_ID"))
+	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
 
-	// default policy ids --1-1 ~ --1-f
+	// Namespace relation type IDs --1-1 ~ --1-f
+	WellKnownNSRelID_DeviceLinkServicePrincipal = uuid.MustParse("00000000-0000-0000-0001-000000000001")
+
+	// default policy ids --1-1 ~ --1-f, deprecated
 	defaultPolicyIdCertRequest          = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
 	defaultPolicyIdCertEnroll           = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
 	defaultPolicyIdCertAadAppCredential = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000003"))

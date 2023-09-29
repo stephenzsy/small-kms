@@ -34,16 +34,8 @@ func (s *adminServer) EnrollCertificateV1(c *gin.Context, targetId uuid.UUID) {
 		return
 	}
 
-	canEnroll, err := s.hasAllowEnrollDeviceCertificatePermission(c, callerId, targetId)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to check permission")
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-		return
-	}
-	if !canEnroll {
-		c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("user %s does not have permission to enroll certificate for target %s", callerId.String(), targetId.String())})
-		return
-	}
+	c.JSON(http.StatusForbidden, gin.H{"message": fmt.Sprintf("user %s does not have permission to enroll certificate for target %s", callerId.String(), targetId.String())})
+	return
 
 	p := new(CertificateEnrollRequest)
 	if err := c.Bind(p); err != nil {

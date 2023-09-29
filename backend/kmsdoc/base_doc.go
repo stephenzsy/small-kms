@@ -18,11 +18,10 @@ const (
 	DocTypeUnknown KmsDocType = 90 // Z
 
 	DocTypeCert                KmsDocType = 67 // C
-	DocTypeDeviceLink          KmsDocType = 68 // D
 	DocTypeLatestCertForPolicy KmsDocType = 76 // L
 	DocTypeDirectoryObject     KmsDocType = 79 // O
 	DocTypePolicy              KmsDocType = 80 // P, deprecated
-	DocTypeNamespaceRelation   KmsDocType = 82 // R, deprecated
+	DocTypeNamespaceRelation   KmsDocType = 82 // R
 	DocTypePolicyState         KmsDocType = 83 // S, deprecated
 	DocTypeCertTemplate        KmsDocType = 84 // T
 )
@@ -33,7 +32,6 @@ const (
 	DocTypeNameUnknown KmsDocTypeName = "unknown"
 
 	DocTypeNameCert                KmsDocTypeName = "cert"
-	DocTypeNameDeviceLink          KmsDocTypeName = "device-link"
 	DocTypeNameLatestCertForPolicy KmsDocTypeName = "cert-latest"
 	DocTypeNameDirectoryObject     KmsDocTypeName = "directory-object"
 	DocTypeNamePolicy              KmsDocTypeName = "policy"
@@ -74,15 +72,6 @@ func (k *KmsDocID) UnmarshalJSON(b []byte) (err error) {
 		return
 	}
 	k.typeByte = KmsDocType(s[0])
-	switch k.typeByte {
-	case DocTypeCert,
-		DocTypePolicy,
-		DocTypePolicyState,
-		DocTypeLatestCertForPolicy:
-		// accept
-	default:
-		k.typeByte = DocTypeUnknown
-	}
 	k.uuid, err = uuid.Parse(s[1:])
 	return err
 }
@@ -135,7 +124,6 @@ func (doc *BaseDoc) StampUpdatedWithAuth(c *gin.Context) {
 
 var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
 	DocTypeCert:                DocTypeNameCert,
-	DocTypeDeviceLink:          DocTypeNameDeviceLink,
 	DocTypeLatestCertForPolicy: DocTypeNameLatestCertForPolicy,
 	DocTypeDirectoryObject:     DocTypeNameDirectoryObject,
 	DocTypePolicy:              DocTypeNamePolicy,
@@ -167,17 +155,25 @@ func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClie
 	return json.Unmarshal(resp.Value, target)
 }
 
+func AzCosmosPatch(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID,
+	docID KmsDocID, getPatchOps func(time.Time) *azcosmos.PatchOperations) (azcosmos.ItemResponse, error) {
+	now := time.Now().UTC()
+	ops := getPatchOps(now)
+	ops.AppendSet("/updated", now.Format(time.RFC3339))
+	ops.AppendSet("/updatedBy", auth.CallerPrincipalId(ctx).String())
+	ops.AppendSet("/updatedByName", auth.CallerPrincipalName(ctx))
+	return cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), *ops, nil)
+}
+
 func AzCosmosDelete(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID, docID KmsDocID, purge bool) (err error) {
 	if purge {
 		_, err = cc.DeleteItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), nil)
 	} else {
-		ops := azcosmos.PatchOperations{}
-		tsStr := time.Now().UTC().Format(time.RFC3339)
-		ops.AppendSet("/deleted", tsStr)
-		ops.AppendSet("/updated", tsStr)
-		ops.AppendSet("/updatedBy", auth.CallerPrincipalId(ctx).String())
-		ops.AppendSet("/updatedByName", auth.CallerPrincipalName(ctx))
-		_, err = cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), ops, nil)
+		AzCosmosPatch(ctx, cc, namespaceID, docID, func(now time.Time) *azcosmos.PatchOperations {
+			ops := azcosmos.PatchOperations{}
+			ops.AppendSet("/deleted", now.Format(time.RFC3339))
+			return &ops
+		})
 	}
 	return
 }

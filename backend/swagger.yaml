@@ -14,13 +14,18 @@ paths:
           type: string
           format: uuid
         required: true
-    post:
+    get:
       tags:
         - admin
       summary: Link device service principal
-      operationId: LinkDeviceServicePrincipalV2
+      operationId: GetDeviceServicePrincipalLinkV2
+      parameters:
+        - in: query
+          name: "apply"
+          schema:
+            type: boolean
       responses:
-        201:
+        200:
           description: Link device service principal response
           content:
             application/json:
@@ -283,69 +288,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRef"
-  /v1/{namespaceId}/hasPermission/{permissionKey}:
-    parameters:
-      - in: path
-        description: AAD directory object ID
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        description: AAD directory object ID
-        name: permissionKey
-        schema:
-          $ref: "#/components/schemas/NamespacePermissionKey"
-        required: true
-    get:
-      tags:
-        - directory
-      summary: Has permission
-      operationId: HasPermissionV1
-      responses:
-        "200":
-          description: Permission response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NamespaceRef"
-  /v1/{namespaceId}/permissions/{objectId}:
-    parameters:
-      - in: path
-        description: AAD directory object ID
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        description: AAD directory object ID
-        name: objectId
-        schema:
-          type: string
-          format: uuid
-        required: true
-    put:
-      tags:
-        - directory
-      summary: Put permissions
-      operationId: PutPermissionsV1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/NamespacePermissions"
-        required: true
-      responses:
-        "200":
-          description: Permission response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NamespacePermissions"
+  # /v1/{namespaceId}/hasPermission/{permissionKey}:
+  #   parameters:
+  #     - in: path
+  #       description: AAD directory object ID
+  #       name: namespaceId
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #       required: true
+  #     - in: path
+  #       description: AAD directory object ID
+  #       name: permissionKey
+  #       schema:
+  #         $ref: "#/components/schemas/NamespacePermissionKey"
+  #       required: true
+  #   get:
+  #     tags:
+  #       - directory
+  #     summary: Has permission
+  #     operationId: HasPermissionV1
+  #     responses:
+  #       "200":
+  #         description: Permission response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: "#/components/schemas/NamespaceRef"
+  # /v1/{namespaceId}/permissions/{objectId}:
+  #   parameters:
+  #     - in: path
+  #       description: AAD directory object ID
+  #       name: namespaceId
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #       required: true
+  #     - in: path
+  #       description: AAD directory object ID
+  #       name: objectId
+  #       schema:
+  #         type: string
+  #         format: uuid
+  #       required: true
+  #   put:
+  #     tags:
+  #       - directory
+  #     summary: Put permissions
+  #     operationId: PutPermissionsV1
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: "#/components/schemas/NamespacePermissions"
+  #       required: true
+  #     responses:
+  #       "200":
+  #         description: Permission response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/NamespacePermissions"
   /v1/{namespaceId}/profile:
     parameters:
       - in: path
@@ -400,28 +405,28 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/NamespaceRef"
-  /v1/my/hasPermission/{permissionKey}:
-    parameters:
-      - in: path
-        description: permission key
-        name: permissionKey
-        schema:
-          $ref: "#/components/schemas/NamespacePermissionKey"
-        required: true
-    get:
-      tags:
-        - directory
-      summary: My Has permission
-      operationId: MyHasPermissionV1
-      responses:
-        "200":
-          description: Permission response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NamespaceRef"
+  # /v1/my/hasPermission/{permissionKey}:
+  #   parameters:
+  #     - in: path
+  #       description: permission key
+  #       name: permissionKey
+  #       schema:
+  #         $ref: "#/components/schemas/NamespacePermissionKey"
+  #       required: true
+  #   get:
+  #     tags:
+  #       - directory
+  #     summary: My Has permission
+  #     operationId: MyHasPermissionV1
+  #     responses:
+  #       "200":
+  #         description: Permission response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: "#/components/schemas/NamespaceRef"
   /v1/my/profiles:
     get:
       tags:

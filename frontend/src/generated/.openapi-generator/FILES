@@ -29,7 +29,6 @@ models/CertificateTemplateAllOf.ts
 models/CertificateTemplateParameters.ts
 models/CertificateUsage.ts
 models/CurveName.ts
-models/DeviceServicePrincipal.ts
 models/GetPolicyV1404Response.ts
 models/JwkAlg.ts
 models/JwkKeyOperation.ts
@@ -62,6 +61,7 @@ models/RefWithMetadataAllOf.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceRef.ts
+models/ServicePrincipalLinkedDevice.ts
 models/ServiceRuntime.ts
 models/index.ts
 runtime.ts

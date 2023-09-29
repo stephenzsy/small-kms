@@ -71,7 +71,7 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 	case "#microsoft.graph.servicePrincipal":
 		if spObj, ok := dirObj.(msgraphmodels.ServicePrincipalable); ok {
 			doc.DisplayName = *spObj.GetDisplayName()
-			doc.ServicePrincipal = &DirectoryObjectDocServicePrincipalSection{ServicePrincipalType: *spObj.GetServicePrincipalType()}
+			doc.ServicePrincipal = &DirectoryObjectDocServicePrincipal{ServicePrincipalType: *spObj.GetServicePrincipalType()}
 		}
 	case "#microsoft.graph.group":
 		if gObj, ok := dirObj.(msgraphmodels.Groupable); ok {
@@ -84,7 +84,7 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 			if err != nil {
 				return nil, err
 			}
-			doc.Device = &DirectoryObjectDocDeviceSection{
+			doc.Device = &DirectoryObjectDocDevice{
 				DeviceID:               deviceId,
 				OperatingSystem:        dObj.GetOperatingSystem(),
 				OperatingSystemVersion: dObj.GetOperatingSystemVersion(),
@@ -95,7 +95,9 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 	case "#microsoft.graph.application":
 		if dObj, ok := dirObj.(msgraphmodels.Applicationable); ok {
 			doc.DisplayName = *dObj.GetDisplayName()
-			doc.AppID = dObj.GetAppId()
+			doc.Application = &DirectoryObjectDocApplication{
+				AppID: *dObj.GetAppId(),
+			}
 		}
 	default:
 		return nil, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)

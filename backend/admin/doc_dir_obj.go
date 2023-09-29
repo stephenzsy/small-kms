@@ -9,31 +9,29 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-type DirectoryObjectDocDeviceSection struct {
+type DirectoryObjectDocDevice struct {
 	DeviceID               uuid.UUID `json:"deviceId,omitempty"`
 	OperatingSystem        *string   `json:"operatingSystem,omitempty"`
 	OperatingSystemVersion *string   `json:"operatingSystemVersion,omitempty"`
 	DeviceOwnership        *string   `json:"deviceOwnership,omitempty"`
 	IsCompliant            *bool     `json:"isCompliant,omitempty"`
-
-	// custom link info, not from ms graph
-	LinkedApplicationObjectID      *uuid.UUID `json:"linkedApplicationObjectId,omitempty"`
-	LinkedApplicationClientID      *uuid.UUID `json:"linkedApplicationClientId,omitempty"`
-	LinkedServicePrincipalObjectID *uuid.UUID `json:"linkedServicePrincipalObjectID,omitempty"`
 }
 
-type DirectoryObjectDocServicePrincipalSection struct {
+type DirectoryObjectDocServicePrincipal struct {
 	ServicePrincipalType string `json:"servicePrincipalType"`
+}
+type DirectoryObjectDocApplication struct {
+	AppID string `json:"appId,omitempty"`
 }
 
 type DirectoryObjectDoc struct {
 	kmsdoc.BaseDoc
-	OdataType         string                                     `json:"odType"`
-	DisplayName       string                                     `json:"displayName"`
-	UserPrincipalName *string                                    `json:"userPrincipalName,omitempty"`
-	AppID             *string                                    `json:"appId,omitempty"`
-	Device            *DirectoryObjectDocDeviceSection           `json:"device,omitempty"`
-	ServicePrincipal  *DirectoryObjectDocServicePrincipalSection `json:"servicePrincipal,omitempty"`
+	OdataType         string                              `json:"odType"`
+	DisplayName       string                              `json:"displayName"`
+	UserPrincipalName *string                             `json:"userPrincipalName,omitempty"`
+	Application       *DirectoryObjectDocApplication      `json:"application,omitempty"`
+	Device            *DirectoryObjectDocDevice           `json:"device,omitempty"`
+	ServicePrincipal  *DirectoryObjectDocServicePrincipal `json:"servicePrincipal,omitempty"`
 }
 
 func (s *adminServer) getDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
@@ -120,6 +118,8 @@ func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) 
 			ref.OperatingSystemVersion = item.Device.OperatingSystemVersion
 		}
 	case string(NamespaceTypeMsGraphApplication):
-		ref.AppID = item.AppID
+		if item.Application != nil {
+			ref.AppID = ToPtr(item.Application.AppID)
+		}
 	}
 }

@@ -16,8 +16,6 @@
 import * as runtime from '../runtime';
 import type {
   NamespaceInfo,
-  NamespacePermissionKey,
-  NamespacePermissions,
   NamespaceProfile,
   NamespaceRef,
   NamespaceType,
@@ -26,10 +24,6 @@ import type {
 import {
     NamespaceInfoFromJSON,
     NamespaceInfoToJSON,
-    NamespacePermissionKeyFromJSON,
-    NamespacePermissionKeyToJSON,
-    NamespacePermissionsFromJSON,
-    NamespacePermissionsToJSON,
     NamespaceProfileFromJSON,
     NamespaceProfileToJSON,
     NamespaceRefFromJSON,
@@ -44,23 +38,8 @@ export interface GetNamespaceProfileV1Request {
     namespaceId: string;
 }
 
-export interface HasPermissionV1Request {
-    namespaceId: string;
-    permissionKey: NamespacePermissionKey;
-}
-
 export interface ListNamespacesV1Request {
     namespaceType: NamespaceType;
-}
-
-export interface MyHasPermissionV1Request {
-    permissionKey: NamespacePermissionKey;
-}
-
-export interface PutPermissionsV1Request {
-    namespaceId: string;
-    objectId: string;
-    namespacePermissions: NamespacePermissions;
 }
 
 export interface RegisterNamespaceProfileV1Request {
@@ -150,48 +129,6 @@ export class DirectoryApi extends runtime.BaseAPI {
     }
 
     /**
-     * Has permission
-     */
-    async hasPermissionV1Raw(requestParameters: HasPermissionV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceRef>>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling hasPermissionV1.');
-        }
-
-        if (requestParameters.permissionKey === null || requestParameters.permissionKey === undefined) {
-            throw new runtime.RequiredError('permissionKey','Required parameter requestParameters.permissionKey was null or undefined when calling hasPermissionV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceId}/hasPermission/{permissionKey}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"permissionKey"}}`, encodeURIComponent(String(requestParameters.permissionKey))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NamespaceRefFromJSON));
-    }
-
-    /**
-     * Has permission
-     */
-    async hasPermissionV1(requestParameters: HasPermissionV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceRef>> {
-        const response = await this.hasPermissionV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * List namespaces
      */
     async listNamespacesV1Raw(requestParameters: ListNamespacesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceRef>>> {
@@ -226,93 +163,6 @@ export class DirectoryApi extends runtime.BaseAPI {
      */
     async listNamespacesV1(requestParameters: ListNamespacesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceRef>> {
         const response = await this.listNamespacesV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * My Has permission
-     */
-    async myHasPermissionV1Raw(requestParameters: MyHasPermissionV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceRef>>> {
-        if (requestParameters.permissionKey === null || requestParameters.permissionKey === undefined) {
-            throw new runtime.RequiredError('permissionKey','Required parameter requestParameters.permissionKey was null or undefined when calling myHasPermissionV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/my/hasPermission/{permissionKey}`.replace(`{${"permissionKey"}}`, encodeURIComponent(String(requestParameters.permissionKey))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NamespaceRefFromJSON));
-    }
-
-    /**
-     * My Has permission
-     */
-    async myHasPermissionV1(requestParameters: MyHasPermissionV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceRef>> {
-        const response = await this.myHasPermissionV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Put permissions
-     */
-    async putPermissionsV1Raw(requestParameters: PutPermissionsV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespacePermissions>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putPermissionsV1.');
-        }
-
-        if (requestParameters.objectId === null || requestParameters.objectId === undefined) {
-            throw new runtime.RequiredError('objectId','Required parameter requestParameters.objectId was null or undefined when calling putPermissionsV1.');
-        }
-
-        if (requestParameters.namespacePermissions === null || requestParameters.namespacePermissions === undefined) {
-            throw new runtime.RequiredError('namespacePermissions','Required parameter requestParameters.namespacePermissions was null or undefined when calling putPermissionsV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceId}/permissions/{objectId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"objectId"}}`, encodeURIComponent(String(requestParameters.objectId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: NamespacePermissionsToJSON(requestParameters.namespacePermissions),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => NamespacePermissionsFromJSON(jsonValue));
-    }
-
-    /**
-     * Put permissions
-     */
-    async putPermissionsV1(requestParameters: PutPermissionsV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespacePermissions> {
-        const response = await this.putPermissionsV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

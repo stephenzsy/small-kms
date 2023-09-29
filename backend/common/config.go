@@ -13,6 +13,8 @@ import (
 type ServerRole string
 
 const (
+	DefaultEnvVarAzureTenantId                 = "AZURE_TENANT_ID"
+	DefaultEnvVarAzureClientId                 = "AZURE_CLIENT_ID"
 	DefualtEnvVarAzCosmosResourceEndpoint      = "AZURE_COSMOS_RESOURCEENDPOINT"
 	DefualtEnvVarAzKeyvaultResourceEndpoint    = "AZURE_KEYVAULT_RESOURCEENDPOINT"
 	DefualtEnvVarAzStroageBlobResourceEndpoint = "AZURE_STORAGEBLOB_RESOURCEENDPOINT"

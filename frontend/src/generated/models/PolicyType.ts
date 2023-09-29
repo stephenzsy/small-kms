@@ -18,7 +18,6 @@
  * @export
  */
 export const PolicyType = {
-    PolicyType_CertRequest: 'certRequest',
     PolicyType_CertEnroll: 'certEnroll',
     PolicyType_CertAadAppClientCredential: 'certAadAppCred'
 } as const;
