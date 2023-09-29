@@ -1,0 +1,197 @@
+package admin
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
+	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+)
+
+type CertDoc struct {
+	kmsdoc.BaseDoc
+
+	// alias for certs with L prefix
+	AliasID *kmsdoc.KmsDocID `json:"aliasId,omitempty"`
+
+	IssuerNamespaceID       uuid.UUID        `json:"issuerNamespaceId"`
+	IssuerCertificateID     kmsdoc.KmsDocID  `json:"issuerCertId"`
+	TemplateID              kmsdoc.KmsDocID  `json:"templateId"`
+	Subject                 string           `json:"subject"`
+	SubjectBase             string           `json:"subjectBase"`
+	KeyInfo                 JwkProperties    `json:"keyInfo"`
+	SubjectAlternativeNames *SANsSanitized   `json:"sans,omitempty"`
+	NotBefore               time.Time        `json:"notBefore"`
+	NotAfter                time.Time        `json:"notAfter"`
+	CertStorePath           string           `json:"certStorePath"` // certificate storage path in blob storage
+	CommonName              string           `json:"name"`
+	Usage                   CertificateUsage `json:"usage"`
+}
+
+func (doc *CertDoc) IsActive() bool {
+	if doc == nil {
+		return false
+	}
+	if doc.Deleted != nil && !doc.Deleted.IsZero() {
+		return false
+	}
+	now := time.Now()
+	if now.After(doc.NotAfter) || now.Before(doc.NotBefore) {
+		return false
+	}
+	return true
+}
+
+func (s *adminServer) readCertDoc(ctx context.Context, nsID uuid.UUID, docID kmsdoc.KmsDocID) (*CertDoc, error) {
+	doc := new(CertDoc)
+	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, nsID, docID, doc)
+	return doc, err
+}
+
+func (identifier *CertificateIdentifier) docID() kmsdoc.KmsDocID {
+	if identifier == nil {
+		return kmsdoc.NewKmsDocID(kmsdoc.DocTypeUnknown, uuid.Nil)
+	}
+	if identifier.Type != nil {
+		switch *identifier.Type {
+		case CertIdTypePolicyId:
+			return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, identifier.ID)
+		}
+	}
+	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, identifier.ID)
+}
+
+func docIDtoCertIdentifier(id kmsdoc.KmsDocID) CertificateIdentifier {
+	switch id.GetType() {
+	case kmsdoc.DocTypeLatestCertForPolicy:
+		return CertificateIdentifier{
+			ID:   id.GetUUID(),
+			Type: ToPtr(CertIdTypePolicyId),
+		}
+	case kmsdoc.DocTypeCert:
+		return CertificateIdentifier{
+			ID:   id.GetUUID(),
+			Type: ToPtr(CertIdTypeCertId),
+		}
+	}
+	return CertificateIdentifier{
+		ID: id.GetUUID(),
+	}
+}
+
+// deprecated
+func (s *adminServer) getCertDoc(c context.Context, namespaceID uuid.UUID, id kmsdoc.KmsDocID) (*CertDoc, error) {
+	pd := new(CertDoc)
+	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
+		id, pd)
+	return pd, err
+}
+
+func (d *CertDoc) GetCUID() kmsdoc.KmsDocID {
+	if d.AliasID != nil {
+		return *d.AliasID
+	}
+	return d.ID
+}
+
+func (doc *CertDoc) fetchCertificatePEMBlob(ctx context.Context, blobClient *azblobcontainer.Client) ([]byte, error) {
+	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	downloadedData := bytes.Buffer{}
+	retryReader := get.NewRetryReader(ctx, &azblob.RetryReaderOptions{})
+	_, err = downloadedData.ReadFrom(retryReader)
+	if err != nil {
+		return nil, err
+	}
+
+	err = retryReader.Close()
+	if err != nil {
+		return nil, err
+
+	}
+	return downloadedData.Bytes(), nil
+}
+
+func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azblobcontainer.Client, b []byte) (*string, error) {
+	blobName := doc.CertStorePath
+	if blobName == "" {
+		return nil, errors.New("empty blob name")
+	}
+	blockBlobClient := blobClient.NewBlockBlobClient(blobName)
+	_, err := blockBlobClient.UploadBuffer(ctx, b, &blockblob.UploadBufferOptions{
+		HTTPHeaders: &blob.HTTPHeaders{
+			BlobContentType: to.Ptr("application/x-pem-file"),
+		},
+		Metadata: map[string]*string{
+			"issuer-id": to.Ptr(fmt.Sprintf("%s/%s", doc.IssuerNamespaceID, doc.IssuerCertificateID.GetUUID())),
+			"x5t":       base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprint),
+			"x5t-s256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
+		},
+	})
+	return ToPtr(blockBlobClient.URL()), err
+}
+
+func (s *adminServer) toCertificateInfo(ctx context.Context, doc *CertDoc, include *GetCertificateV2ParamsIncludeCertificate, nsType NamespaceTypeShortName, certPemBlob []byte) (*CertificateInfo, error) {
+	if doc == nil {
+		return nil, nil
+	}
+	certInfo := CertificateInfo{
+		CommonName:              doc.CommonName,
+		Usage:                   doc.Usage,
+		NotBefore:               doc.NotBefore,
+		NotAfter:                doc.NotAfter,
+		Subject:                 doc.Subject,
+		SubjectAlternativeNames: &doc.SubjectAlternativeNames.CertificateSubjectAlternativeNames,
+	}
+	baseDocPopulateRef(&doc.BaseDoc, &certInfo.Ref, nsType)
+	certInfo.Ref.DisplayName = base64UrlToHexStr(*doc.KeyInfo.CertificateThumbprint)
+
+	if include != nil {
+		if certPemBlob == nil {
+			if fetchedCertPemBlob, err := doc.fetchCertificatePEMBlob(ctx, s.azBlobContainerClient); err != nil {
+				return nil, err
+			} else {
+				certPemBlob = fetchedCertPemBlob
+			}
+		}
+		switch *include {
+		case IncludePEM:
+			certInfo.Pem = ToPtr(string(certPemBlob))
+		case IncludeJWK:
+			certInfo.Jwk.populateCertsFromPemBlob(certPemBlob)
+		}
+	}
+
+	return &certInfo, nil
+}
+
+/*
+
+func (s *adminServer) listCertDocForPolicyID(ctx context.Context, namespaceID uuid.UUID, policyID uuid.UUID) ([]*CertDoc, error) {
+
+	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
+	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
+WHERE c.namespaceId = @namespaceId
+  AND c.type = @type`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@namespaceId", Value: directoryID.String()},
+				{Name: "@type", Value: kmsdoc.DocTypeNameCert},
+			},
+		})
+
+	return PagerToList[DirectoryObjectDoc](ctx, pager)
+}
+*/

@@ -49,6 +49,16 @@ const (
 	AlgRS512 JwkAlg = "RS512"
 )
 
+// Defines values for KeyOp.
+const (
+	KeyOpDecrypt   KeyOp = "decrypt"
+	KeyOpEncrypt   KeyOp = "encrypt"
+	KeyOpSign      KeyOp = "sign"
+	KeyOpUnwrapKey KeyOp = "unwrapKey"
+	KeyOpVerify    KeyOp = "verify"
+	KeyOpWrapKey   KeyOp = "wrapKey"
+)
+
 // Defines values for KeySize.
 const (
 	KeySize2048 KeySize = 2048
@@ -109,6 +119,12 @@ const (
 	FormatPEM GetCertificateV1ParamsFormat = "pem"
 )
 
+// Defines values for GetCertificateV2ParamsIncludeCertificate.
+const (
+	IncludeJWK GetCertificateV2ParamsIncludeCertificate = "jwk"
+	IncludePEM GetCertificateV2ParamsIncludeCertificate = "pem"
+)
+
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
 type ApplyPolicyRequest struct {
 	// CheckConsistency Check consistency of the policy
@@ -137,8 +153,8 @@ type CertificateEnrollRequest struct {
 	// PolicyId ID of the policy to use for certificate enrollment
 	PolicyID openapi_types.UUID `json:"policyId"`
 
-	// PublicKey Partial implementation of JSON Web Key (RFC 7517) with additional fields
-	PublicKey        JwkKeyProperties              `json:"publicKey"`
+	// PublicKey Property bag of JSON Web Key (RFC 7517) with additional fields
+	PublicKey        JwkProperties                 `json:"publicKey"`
 	Renew            *CertificateRenewalParameters `json:"renew,omitempty"`
 	TargetFqdn       *string                       `json:"targetFqdn,omitempty"`
 	Usage            CertificateUsage              `json:"usage"`
@@ -154,6 +170,28 @@ type CertificateIdentifier struct {
 
 // CertificateIdentifierType defines model for CertificateIdentifierType.
 type CertificateIdentifierType string
+
+// CertificateInfo defines model for CertificateInfo.
+type CertificateInfo struct {
+	// CommonName Common name
+	CommonName        string `json:"commonName"`
+	IssuerCertificate Ref    `json:"issuerCertificate"`
+
+	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields
+	Jwk *JwkProperties `json:"jwk,omitempty"`
+
+	// NotAfter Expiration date of the certificate
+	NotAfter time.Time `json:"notAfter"`
+
+	// NotBefore Expiration date of the certificate
+	NotBefore               time.Time                           `json:"notBefore"`
+	Pem                     *string                             `json:"pem,omitempty"`
+	Ref                     Ref                                 `json:"ref"`
+	Subject                 string                              `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Template                Ref                                 `json:"template"`
+	Usage                   CertificateUsage                    `json:"usage"`
+}
 
 // CertificateIssuer defines model for CertificateIssuer.
 type CertificateIssuer struct {
@@ -176,7 +214,6 @@ type CertificateIssuerParameters struct {
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
-	Disabled           *bool  `json:"disabled,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
@@ -260,20 +297,24 @@ type CertificateSubject struct {
 
 // CertificateSubjectAlternativeNames defines model for CertificateSubjectAlternativeNames.
 type CertificateSubjectAlternativeNames struct {
-	DNSNames           *[]string `json:"dns_names,omitempty"`
-	Emails             *[]string `json:"emails,omitempty"`
-	UserPrincipalNames *[]string `json:"upns,omitempty"`
+	DNSNames       []string `json:"dns_names,omitempty"`
+	EmailAddresses []string `json:"emails,omitempty"`
+	IPAddresses    []string `json:"ipAddrs,omitempty"`
+	URIs           []string `json:"uris,omitempty"`
 }
 
 // CertificateTemplate defines model for CertificateTemplate.
 type CertificateTemplate struct {
 	Issuer CertificateIssuer `json:"issuer"`
 
-	// KeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
-	KeyProperties           *JwkKeyProperties                   `json:"keyProperties,omitempty"`
-	KeyStorePath            *string                             `json:"keyStorePath,omitempty"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
-	Ref                     Ref                                 `json:"ref"`
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
+	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
+	Ref             Ref                         `json:"ref"`
+
+	// ReuseKey Keep using the same key version if exists
+	ReuseKey                *bool                               `json:"reuse_key,omitempty"`
 	Subject                 CertificateSubject                  `json:"subject"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 	Usage                   CertificateUsage                    `json:"usage"`
@@ -284,10 +325,13 @@ type CertificateTemplate struct {
 type CertificateTemplateParameters struct {
 	Issuer CertificateIssuer `json:"issuer"`
 
-	// KeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
-	KeyProperties           *JwkKeyProperties                   `json:"keyProperties,omitempty"`
-	KeyStorePath            *string                             `json:"keyStorePath,omitempty"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
+	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
+
+	// ReuseKey Keep using the same key version if exists
+	ReuseKey                *bool                               `json:"reuse_key,omitempty"`
 	Subject                 CertificateSubject                  `json:"subject"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 	Usage                   CertificateUsage                    `json:"usage"`
@@ -311,20 +355,47 @@ type DeviceServicePrincipal struct {
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
 
-// JwkKeyProperties Partial implementation of JSON Web Key (RFC 7517) with additional fields
-type JwkKeyProperties struct {
-	Alg     *JwkAlg    `json:"alg,omitempty"`
-	Crv     *CurveName `json:"crv,omitempty"`
-	E       *[]byte    `json:"e,omitempty"`
-	KeySize *KeySize   `json:"key_size,omitempty"`
-	Kty     KeyType    `json:"kty"`
-	N       *[]byte    `json:"n,omitempty"`
-	X       *[]byte    `json:"x,omitempty"`
-	Y       *[]byte    `json:"y,omitempty"`
-}
+// KeyOp defines model for JwkKeyOperation.
+type KeyOp string
 
 // KeySize defines model for JwkKeySize.
 type KeySize int32
+
+// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+type JwkProperties struct {
+	Alg *JwkAlg    `json:"alg,omitempty"`
+	Crv *CurveName `json:"crv,omitempty"`
+
+	// E RSA exponent
+	E       *string  `json:"e,omitempty"`
+	KeyOp   *KeyOp   `json:"key_ops,omitempty"`
+	KeySize *KeySize `json:"key_size,omitempty"`
+
+	// Kid Key ID
+	KeyID *string `json:"kid,omitempty"`
+	Kty   KeyType `json:"kty"`
+
+	// N RSA modulus
+	N *string `json:"n,omitempty"`
+
+	// X EC x coordinate
+	X *string `json:"x,omitempty"`
+
+	// X5c X.509 certificate chain
+	CertificateChain []string `json:"x5c,omitempty"`
+
+	// X5t X.509 certificate SHA-1 thumbprint
+	CertificateThumbprint *string `json:"x5t,omitempty"`
+
+	// X5tS256 X.509 certificate SHA-256 thumbprint
+	CertificateThumbprintSHA256 *string `json:"x5t#S256,omitempty"`
+
+	// X5u X.509 certificate URL
+	CertificateURL *string `json:"x5u,omitempty"`
+
+	// Y EC y coordinate
+	Y *string `json:"y,omitempty"`
+}
 
 // KeyProperties defines model for KeyProperties.
 type KeyProperties struct {
@@ -493,16 +564,18 @@ type PolicyType string
 
 // Ref defines model for Ref.
 type Ref struct {
+	// Deleted Time when the object was deleted
+	Deleted       *time.Time             `json:"deleted,omitempty"`
 	DisplayName   string                 `json:"displayName"`
 	ID            openapi_types.UUID     `json:"id"`
 	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
 	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
 	Type          RefType                `json:"type"`
 
-	// Updated Time when the policy was last updated
+	// Updated Time when the object was last updated
 	Updated time.Time `json:"updated"`
 
-	// UpdatedBy Unique ID of the user who created the policy
+	// UpdatedBy Unique ID of the user who last updated the object
 	UpdatedBy string `json:"updatedBy"`
 }
 
@@ -576,6 +649,15 @@ type DeletePolicyV1Params struct {
 type PutCertificateTemplateV2Params struct {
 	DisplayName string `form:"displayName" json:"displayName"`
 }
+
+// GetCertificateV2Params defines parameters for GetCertificateV2.
+type GetCertificateV2Params struct {
+	Apply              *bool                                     `form:"apply,omitempty" json:"apply,omitempty"`
+	IncludeCertificate *GetCertificateV2ParamsIncludeCertificate `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+}
+
+// GetCertificateV2ParamsIncludeCertificate defines parameters for GetCertificateV2.
+type GetCertificateV2ParamsIncludeCertificate string
 
 // EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
 type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest
@@ -809,6 +891,9 @@ type ServerInterface interface {
 	// Put certificate template
 	// (PUT /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId})
 	PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID, params PutCertificateTemplateV2Params)
+	// Get certificate
+	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId})
+	GetCertificateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID, templateId openapi_types.UUID, certId openapi_types.UUID, params GetCertificateV2Params)
 	// Sync namespace info with ms graph
 	// (POST /v2/{namespaceType}/{namespaceId}/graph-sync)
 	SyncNamespaceInfoV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId openapi_types.UUID)
@@ -1529,6 +1614,78 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
 	siw.Handler.PutCertificateTemplateV2(c, namespaceType, namespaceId, templateId, params)
 }
 
+// GetCertificateV2 operation middleware
+func (siw *ServerInterfaceWrapper) GetCertificateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceType" -------------
+	var namespaceType NamespaceTypeShortName
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "certId" -------------
+	var certId openapi_types.UUID
+
+	err = runtime.BindStyledParameter("simple", false, "certId", c.Param("certId"), &certId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter certId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCertificateV2Params
+
+	// ------------- Optional query parameter "apply" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "apply", c.Request.URL.Query(), &params.Apply)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter apply: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCertificateV2(c, namespaceType, namespaceId, templateId, certId, params)
+}
+
 // SyncNamespaceInfoV2 operation middleware
 func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
 
@@ -1613,5 +1770,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)
+	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates/:certId", wrapper.GetCertificateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

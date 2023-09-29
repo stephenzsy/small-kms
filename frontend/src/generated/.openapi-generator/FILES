@@ -9,11 +9,14 @@ models/ApplyPolicyRequest.ts
 models/CertificateAadAppCredPolicyParameters.ts
 models/CertificateEnrollPolicyParameters.ts
 models/CertificateEnrollRequest.ts
+models/CertificateFingerprints.ts
 models/CertificateIdentifier.ts
 models/CertificateIdentifierType.ts
+models/CertificateInfo.ts
 models/CertificateIssuer.ts
 models/CertificateIssuerParameters.ts
 models/CertificateLifetimeTrigger.ts
+models/CertificateLinks.ts
 models/CertificateRef.ts
 models/CertificateRefParameters.ts
 models/CertificateRenewalParameters.ts
@@ -29,8 +32,9 @@ models/CurveName.ts
 models/DeviceServicePrincipal.ts
 models/GetPolicyV1404Response.ts
 models/JwkAlg.ts
-models/JwkKeyProperties.ts
+models/JwkKeyOperation.ts
 models/JwkKeySize.ts
+models/JwkProperties.ts
 models/KeyProperties.ts
 models/KeyType.ts
 models/MyProfile.ts

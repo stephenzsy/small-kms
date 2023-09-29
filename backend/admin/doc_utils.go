@@ -38,4 +38,5 @@ func baseDocPopulateRef(d *kmsdoc.BaseDoc, ref *Ref, nsType NamespaceTypeShortNa
 	ref.Updated = d.Updated
 	ref.UpdatedBy = d.UpdatedBy
 	ref.NamespaceType = nsType
+	ref.Deleted = d.Deleted
 }

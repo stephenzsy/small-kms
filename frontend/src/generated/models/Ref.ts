@@ -63,17 +63,23 @@ export interface Ref {
      */
     displayName: string;
     /**
-     * Unique ID of the user who created the policy
+     * Unique ID of the user who last updated the object
      * @type {string}
      * @memberof Ref
      */
     updatedBy: string;
     /**
-     * Time when the policy was last updated
+     * Time when the object was last updated
      * @type {Date}
      * @memberof Ref
      */
     updated: Date;
+    /**
+     * Time when the object was deleted
+     * @type {Date}
+     * @memberof Ref
+     */
+    deleted?: Date;
 }
 
 /**
@@ -109,6 +115,7 @@ export function RefFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ref {
         'displayName': json['displayName'],
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
     };
 }
 
@@ -128,6 +135,7 @@ export function RefToJSON(value?: Ref | null): any {
         'displayName': value.displayName,
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
     };
 }
 

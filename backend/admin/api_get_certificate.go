@@ -13,6 +13,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
+// deprecated
 func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName string) ([]byte, error) {
 	blobClient := s.azBlobContainerClient
 	get, err := blobClient.NewBlobClient(blobName).DownloadStream(ctx, nil)
@@ -38,11 +39,11 @@ func (s *adminServer) FetchCertificatePEMBlob(ctx context.Context, blobName stri
 func (c *CertificateRef) populateFromDoc(certDoc *CertDoc) {
 	c.Deleted = certDoc.Deleted
 	c.ID = certDoc.ID.GetUUID()
-	c.Issuer = certDoc.IssuerID.GetUUID()
-	c.IssuerNamespace = certDoc.IssuerNamespace
-	c.Name = certDoc.Name
+	c.Issuer = certDoc.IssuerCertificateID.GetUUID()
+	c.IssuerNamespace = certDoc.IssuerNamespaceID
+	c.Name = certDoc.CommonName
 	c.NamespaceID = certDoc.NamespaceID
-	c.NotAfter = certDoc.Expires
+	c.NotAfter = certDoc.NotAfter
 	c.Updated = certDoc.Updated
 	c.UpdatedBy = certDoc.UpdatedBy
 	c.Usage = certDoc.Usage

@@ -2,25 +2,37 @@ package admin
 
 import (
 	"context"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"errors"
+	"fmt"
+	"slices"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Alg     JwkAlg     `json:"alg"`
-	Kty     KeyType    `json:"kty"`
-	KeySize *KeySize   `json:"key_size,omitempty"`
-	Crv     *CurveName `json:"crv,omitempty"`
+	Alg      JwkAlg     `json:"alg"`
+	Kty      KeyType    `json:"kty"`
+	KeySize  *KeySize   `json:"key_size,omitempty"`
+	Crv      *CurveName `json:"crv,omitempty"`
+	ReuseKey *bool      `json:"reuse_key,omitempty"`
 }
 
 type CertificateTemplateDocLifeTimeTrigger struct {
-	Disabled           bool   `json:"disabled"`
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
+}
+
+type CertificateTemplateDocSubject struct {
+	CertificateSubject
+	cachedString *string
 }
 
 type CertificateTemplateDoc struct {
@@ -31,11 +43,19 @@ type CertificateTemplateDoc struct {
 	IssuerTemplateID        kmsdoc.KmsDocID                       `json:"issuerTemplateId"`
 	KeyProperties           CertificateTemplateDocKeyProperties   `json:"keyProperties"`
 	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
-	Subject                 CertificateSubject                    `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames   `json:"subjectAlternativeNames,omitempty"`
+	Subject                 CertificateTemplateDocSubject         `json:"subject"`
+	SubjectAlternativeNames *SANsSanitized                        `json:"sans,omitempty"`
 	Usage                   CertificateUsage                      `json:"usage"`
 	ValidityInMonths        int32                                 `json:"validity_months"`
 	LifetimeTrigger         CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
+}
+
+func (doc *CertificateTemplateDoc) IsActive() bool {
+	return doc.Deleted == nil || doc.Deleted.IsZero()
+}
+
+func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
+	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, doc.IssuerTemplateID.GetUUID())
 }
 
 func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {
@@ -69,7 +89,34 @@ func (p *CertificateTemplateDocKeyProperties) setECDSA(crv CurveName) {
 	}
 }
 
-func (p *CertificateTemplateDocKeyProperties) fromInput(input *JwkKeyProperties) error {
+func (s *CertificateTemplateDocSubject) pkixName() (name pkix.Name) {
+	name.CommonName = s.CN
+	if s.C != nil && len(*s.C) > 0 {
+		name.Country = []string{*s.C}
+	}
+	if s.O != nil && len(*s.O) > 0 {
+		name.Organization = []string{*s.O}
+	}
+	if s.OU != nil && len(*s.OU) > 0 {
+		name.OrganizationalUnit = []string{*s.OU}
+	}
+	return
+}
+
+func (s *CertificateTemplateDocSubject) String() string {
+	if s == nil {
+		return ""
+	}
+	if s.cachedString != nil {
+		return *s.cachedString
+	}
+	name := s.pkixName()
+	str := name.String()
+	s.cachedString = &str
+	return str
+}
+
+func (p *CertificateTemplateDocKeyProperties) fromInput(input *JwkProperties) error {
 	if input == nil {
 		return nil
 	}
@@ -103,30 +150,25 @@ func (p *CertificateTemplateDocKeyProperties) fromInput(input *JwkKeyProperties)
 }
 
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
-	t.Disabled = false
 	t.DaysBeforeExpiry = nil
 	t.LifetimePercentage = ToPtr(int32(80))
 }
 
+/*
 func (t *CertificateTemplateDocLifeTimeTrigger) setDisabled() {
-	t.Disabled = true
-	t.DaysBeforeExpiry = nil
+	t.DaysBeforeExpiry = ToPtr(int32(0))
 	t.LifetimePercentage = nil
 }
+*/
 
 func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLifetimeTrigger, validityInMonths int32) error {
 	if input == nil {
-		return nil
-	}
-	if input.Disabled != nil && *input.Disabled {
-		t.setDisabled()
 		return nil
 	}
 	if input.DaysBeforeExpiry != nil {
 		if *input.DaysBeforeExpiry < 0 || *input.DaysBeforeExpiry > validityInMonths*15 {
 			return errors.New("days_before_expiry must be between 0 and validity_months * 15")
 		}
-		t.Disabled = false
 		t.DaysBeforeExpiry = input.DaysBeforeExpiry
 		t.LifetimePercentage = nil
 		return nil
@@ -135,7 +177,6 @@ func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLife
 		if *input.LifetimePercentage < 50 || *input.LifetimePercentage > 100 {
 			return errors.New("lifetime_percentage must be between 50 and 100")
 		}
-		t.Disabled = false
 		t.DaysBeforeExpiry = nil
 		t.LifetimePercentage = input.LifetimePercentage
 	}
@@ -155,23 +196,186 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 		NamespaceType: doc.IssuerNameSpaceType,
 		TemplateID:    ToPtr(doc.IssuerTemplateID.GetUUID()),
 	}
-	o.KeyProperties = &JwkKeyProperties{
+	o.KeyProperties = &JwkProperties{
 		Alg:     ToPtr(doc.KeyProperties.Alg),
 		Kty:     doc.KeyProperties.Kty,
 		KeySize: doc.KeyProperties.KeySize,
 		Crv:     doc.KeyProperties.Crv,
 	}
+	o.ReuseKey = doc.KeyProperties.ReuseKey
 	o.KeyStorePath = doc.KeyStorePath
 	o.LifetimeTrigger = &CertificateLifetimeTrigger{
-		Disabled:           ToPtr(doc.LifetimeTrigger.Disabled),
 		DaysBeforeExpiry:   doc.LifetimeTrigger.DaysBeforeExpiry,
 		LifetimePercentage: doc.LifetimeTrigger.LifetimePercentage,
 	}
-	o.Subject = doc.Subject
-	o.SubjectAlternativeNames = doc.SubjectAlternativeNames
+	o.Subject = doc.Subject.CertificateSubject
+	if doc.SubjectAlternativeNames != nil {
+		o.SubjectAlternativeNames = &doc.SubjectAlternativeNames.CertificateSubjectAlternativeNames
+	}
 	o.Usage = doc.Usage
 	o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
 	return o
+}
+
+func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azkeys.Client, nsType NamespaceTypeShortName, cert *x509.Certificate) (r azkeys.KeyBundle, err error) {
+	params := azkeys.CreateKeyParameters{
+		KeyOps: []*azkeys.KeyOperation{to.Ptr(azkeys.KeyOperationSign), to.Ptr(azkeys.KeyOperationVerify)},
+		KeyAttributes: &azkeys.KeyAttributes{
+			Enabled: to.Ptr(true),
+		},
+	}
+	kp := doc.KeyProperties
+	switch kp.Kty {
+	case KeyTypeRSA:
+		params.Kty = to.Ptr(azkeys.KeyTypeRSA)
+		if doc.KeyProperties.KeySize == nil {
+			return r, fmt.Errorf("key size null for RSA key")
+		}
+		switch *doc.KeyProperties.KeySize {
+		case KeySize2048:
+			params.KeySize = to.Ptr(int32(KeySize2048))
+		case KeySize3072:
+			params.KeySize = to.Ptr(int32(KeySize3072))
+		case KeySize4096:
+			params.KeySize = to.Ptr(int32(KeySize4096))
+		default:
+			return r, fmt.Errorf("unsupported key size %d", *doc.KeyProperties.KeySize)
+		}
+	case KeyTypeEC:
+		params.Kty = to.Ptr(azkeys.KeyTypeEC)
+		if doc.KeyProperties.Crv == nil {
+			return r, fmt.Errorf("curve null for EC key")
+		}
+		switch *doc.KeyProperties.Crv {
+		case CurveNameP256:
+			params.Curve = to.Ptr(azkeys.CurveNameP256)
+		case CurveNameP384:
+			params.Curve = to.Ptr(azkeys.CurveNameP384)
+		default:
+			return r, fmt.Errorf("unsupported curve %s", *doc.KeyProperties.Crv)
+		}
+	default:
+		return r, fmt.Errorf("unsupported key type %s", doc.KeyProperties.Kty)
+	}
+
+	if doc.KeyStorePath != nil || len(*doc.KeyStorePath) <= 0 {
+		return r, fmt.Errorf("nil key name")
+	}
+
+	switch nsType {
+	case NSTypeRootCA,
+		NSTypeIntCA:
+		params.KeyAttributes.Exportable = to.Ptr(false)
+	default:
+		params.KeyAttributes.Exportable = to.Ptr(true)
+	}
+
+	if kp.ReuseKey != nil && *kp.ReuseKey {
+		// try get certificate
+		resp, err := client.GetKey(ctx, *doc.KeyStorePath, "", nil)
+		if err != nil {
+			return resp.KeyBundle, err
+		}
+		// verify key does not expire before certifiate
+		if resp.Attributes.Expires != nil && resp.Attributes.Expires.Before(cert.NotAfter) {
+			goto createKey
+		}
+		key := resp.Key
+		// verify key parameters
+		switch *key.Kty {
+		case azkeys.KeyTypeEC:
+			if kp.Kty != KeyTypeEC {
+				goto createKey
+			}
+			switch *key.Crv {
+			case azkeys.CurveNameP256:
+				if *kp.Crv != CurveNameP256 {
+					goto createKey
+				}
+			case azkeys.CurveNameP384:
+				if *kp.Crv != CurveNameP384 {
+					goto createKey
+				}
+			}
+		case azkeys.KeyTypeRSA:
+			if kp.Kty != KeyTypeRSA || len(key.N)*8 != int(*kp.KeySize) {
+				goto createKey
+			}
+		default:
+			goto createKey
+		}
+		// verify key ops
+		if !slices.ContainsFunc(key.KeyOps, func(op *azkeys.KeyOperation) bool {
+			return *op == azkeys.KeyOperationSign
+		}) {
+			goto createKey
+		}
+		return resp.KeyBundle, err
+	} else {
+		params.KeyAttributes.Expires = to.Ptr(cert.NotAfter)
+	}
+
+createKey:
+	resp, err := client.CreateKey(ctx, *doc.KeyStorePath, params, nil)
+	return resp.KeyBundle, err
+}
+
+func (p *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
+	nsType NamespaceTypeShortName) (azcertificates.CreateCertificateResponse, error) {
+	params := azcertificates.CreateCertificateParameters{}
+	x509Properties := azcertificates.X509CertificateProperties{
+		Subject:          ToPtr(p.Subject.pkixName().String()),
+		ValidityInMonths: ToPtr(int32(p.ValidityInMonths)),
+	}
+
+	keyProperties := p.KeyProperties.getAzCertificatesKeyProperties()
+
+	if nsType == NSTypeIntCA {
+		keyProperties.Exportable = to.Ptr(false)
+	} else {
+		keyProperties.Exportable = to.Ptr(true)
+	}
+
+	params.CertificatePolicy = &azcertificates.CertificatePolicy{
+		Attributes: &azcertificates.CertificateAttributes{
+			Enabled: to.Ptr(true),
+		},
+		KeyProperties:             &keyProperties,
+		X509CertificateProperties: &x509Properties,
+		SecretProperties: &azcertificates.SecretProperties{
+			ContentType: to.Ptr("application/x-pem-file"),
+		},
+	}
+
+	return client.CreateCertificate(ctx, *p.KeyStorePath, params, nil)
+}
+
+func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties() (r azcertificates.KeyProperties) {
+	r.KeyType = ToPtr(azcertificates.KeyTypeRSA)
+	r.KeySize = ToPtr(int32(2048))
+	r.ReuseKey = p.ReuseKey
+	switch p.Kty {
+	case KeyTypeRSA:
+		if p.KeySize != nil {
+			switch *p.KeySize {
+			case KeySize3072:
+				r.KeySize = ToPtr(int32(3072))
+			case KeySize4096:
+				r.KeySize = ToPtr(int32(4096))
+			}
+		}
+	case KeyTypeEC:
+		r.KeyType = ToPtr(azcertificates.KeyTypeEC)
+		r.KeySize = nil
+		r.Curve = ToPtr(azcertificates.CurveNameP256)
+		if p.Crv != nil {
+			switch *p.Crv {
+			case CurveNameP384:
+				r.Curve = ToPtr(azcertificates.CurveNameP384)
+			}
+		}
+	}
+	return
 }
 
 func (s *adminServer) listCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID) ([]*CertificateTemplateDoc, error) {

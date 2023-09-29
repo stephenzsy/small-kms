@@ -62,10 +62,10 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 func (p *CertificateTemplateParameters) populateDocIssuer(doc *CertificateTemplateDoc, issuerNsType NamespaceTypeShortName) {
 	doc.IssuerNamespaceID = p.Issuer.NamespaceID
 	doc.IssuerNameSpaceType = issuerNsType
-	if p.Issuer.TemplateID != nil && *p.Issuer.TemplateID != uuid.Nil {
-		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, *p.Issuer.TemplateID)
+	if p.Issuer.TemplateID != nil {
+		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, *p.Issuer.TemplateID)
 	} else {
-		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, uuid.Nil)
+		doc.IssuerTemplateID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, uuid.Nil)
 	}
 }
 
@@ -140,6 +140,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 
 	// validate and populate key properties
 	doc.KeyProperties.setDefault()
+	doc.KeyProperties.ReuseKey = p.ReuseKey
 	switch nsType {
 	case NSTypeRootCA,
 		NSTypeIntCA:
@@ -170,8 +171,11 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 		doc.KeyStorePath = p.KeyStorePath
 	}
 
-	doc.Subject = p.Subject
-	doc.SubjectAlternativeNames = p.SubjectAlternativeNames
+	doc.Subject = CertificateTemplateDocSubject{CertificateSubject: p.Subject}
+	var err error
+	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames); err != nil {
+		return nil, err
+	}
 
 	if p.ValidityInMonths != nil {
 		if *p.ValidityInMonths < 0 && *p.ValidityInMonths > 120 {

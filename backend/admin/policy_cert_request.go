@@ -287,23 +287,17 @@ func (san *CertificateSubjectAlternativeNames) ToAzCertificatesSubjectAlternativ
 	if san == nil {
 		return nil
 	}
-	if san.DNSNames != nil && len(*san.DNSNames) > 0 {
+	if len(san.DNSNames) > 0 {
 		if r != nil {
 			r = new(azcertificates.SubjectAlternativeNames)
 		}
-		r.DNSNames = to.SliceOfPtrs(*san.DNSNames...)
+		r.DNSNames = to.SliceOfPtrs(san.DNSNames...)
 	}
-	if san.Emails != nil && len(*san.Emails) > 0 {
+	if len(san.EmailAddresses) > 0 {
 		if r != nil {
 			r = new(azcertificates.SubjectAlternativeNames)
 		}
-		r.Emails = to.SliceOfPtrs(*san.Emails...)
-	}
-	if san.UserPrincipalNames != nil && len(*san.UserPrincipalNames) > 0 {
-		if r != nil {
-			r = new(azcertificates.SubjectAlternativeNames)
-		}
-		r.UserPrincipalNames = to.SliceOfPtrs(*san.UserPrincipalNames...)
+		r.Emails = to.SliceOfPtrs(san.EmailAddresses...)
 	}
 	return r
 }
@@ -311,7 +305,6 @@ func (san *CertificateSubjectAlternativeNames) ToAzCertificatesSubjectAlternativ
 func (p *PolicyCertRequestDocSection) ToKeyvaultCreateCertificateParameters(namespaceID uuid.UUID) (r azcertificates.CreateCertificateParameters) {
 
 	x509Properties := azcertificates.X509CertificateProperties{
-		Subject:                 ToPtr(p.Subject.ToPkixName().String()),
 		ValidityInMonths:        ToPtr(int32(p.ValidityInMonths)),
 		SubjectAlternativeNames: p.SubjectAlternativeNames.ToAzCertificatesSubjectAlternativeNames(),
 	}
@@ -351,8 +344,6 @@ func prepareCertificate(p *PolicyCertRequestDocSection, namespaceID uuid.UUID, c
 		c.DNSNames = csr.DNSNames
 		c.IPAddresses = csr.IPAddresses
 		c.URIs = csr.URIs
-	} else {
-		c.Subject = p.Subject.ToPkixName()
 	}
 
 	if IsRootCANamespace(namespaceID) {
@@ -444,11 +435,8 @@ func (s *adminServer) loadSignerCertificateBundle(ctx context.Context, signerNam
 	if err != nil {
 		return nil, err
 	}
-	if len(crtDoc.KID) == 0 {
-		return nil, errors.New("issuer certificate key not found")
-	}
-	keyId := azkeys.ID(crtDoc.KID)
-	resp, err := s.AzKeysClient().GetKey(ctx, keyId.Name(), keyId.Version(), nil)
+
+	resp, err := s.AzKeysClient().GetKey(ctx, "", "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -500,8 +488,6 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	// prepare certificate
 	var csr *x509.CertificateRequest
 	var certPubKey crypto.PublicKey
-	var kid string
-	var keyExportable bool = false
 	if !isRootNS {
 		azCreateCertParams := p.ToKeyvaultCreateCertificateParameters(namespaceID)
 		azcCcResp, err := s.AzCertificatesClient().CreateCertificate(ctx, keyName, azCreateCertParams, nil)
@@ -514,7 +500,6 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			return nil, err
 		}
 		certPubKey = csr.PublicKey
-		keyExportable = *azCreateCertParams.CertificatePolicy.KeyProperties.Exportable
 	}
 	certificate, err := prepareCertificate(p, namespaceID, certID, csr)
 	if err != nil {
@@ -526,7 +511,7 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	if isRootNS {
 		signerBundle = new(signerCertBundle)
 		signerBundle.certificate = &certificate
-		signerBundle.privateKey, kid, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
+		signerBundle.privateKey, _, err = s.getRootCASigner(ctx, keyName, certificate.NotAfter, p)
 		if err != nil {
 			return nil, err
 		}
@@ -575,7 +560,6 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 	}
 	log.Info().Msgf("Certificate uploaded to blob")
 	var cid string
-	var sid string
 	if !isRootNS && len(keyName) > 0 {
 		mergeRequestCerts := [][]byte{certSigned, signerBundle.certificate.Raw}
 		if len(signerBundle.additionalCertificateDERRaw) > 0 {
@@ -588,10 +572,6 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			return nil, err
 		}
 		cid = string(*azcMcResp.ID)
-		kid = string(*azcMcResp.KID)
-		if keyExportable {
-			sid = string(*azcMcResp.SID)
-		}
 		log.Info().Msgf("Certificate merged to keyvault: %s", cid)
 	}
 
@@ -601,21 +581,18 @@ func (p *PolicyCertRequestDocSection) action(ctx *gin.Context, s *adminServer, n
 			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, certID),
 			NamespaceID: namespaceID,
 		},
-		PolicyID:      policyID,
-		Expires:       certificate.NotAfter,
-		Usage:         p.Usage,
-		CID:           cid,
-		KID:           kid,
-		SID:           sid,
+		NotAfter: certificate.NotAfter,
+		Usage:    p.Usage,
+
 		CertStorePath: blobName,
-		Name:          certificate.Subject.CommonName,
+		CommonName:    certificate.Subject.CommonName,
 	}
 	if isRootNS {
-		certDoc.IssuerNamespace = namespaceID
-		certDoc.IssuerID = certDoc.ID
+		certDoc.IssuerNamespaceID = namespaceID
+		certDoc.IssuerCertificateID = certDoc.ID
 	} else {
-		certDoc.IssuerNamespace = signerBundle.signerNamespaceID
-		certDoc.IssuerID = signerBundle.signerCertId
+		certDoc.IssuerNamespaceID = signerBundle.signerNamespaceID
+		certDoc.IssuerCertificateID = signerBundle.signerCertId
 	}
 	err = kmsdoc.AzCosmosUpsert(ctx, s.azCosmosContainerClientCerts, &certDoc)
 	if err != nil {

@@ -31,12 +31,12 @@ import {
     CertificateUsageFromJSONTyped,
     CertificateUsageToJSON,
 } from './CertificateUsage';
-import type { JwkKeyProperties } from './JwkKeyProperties';
+import type { JwkProperties } from './JwkProperties';
 import {
-    JwkKeyPropertiesFromJSON,
-    JwkKeyPropertiesFromJSONTyped,
-    JwkKeyPropertiesToJSON,
-} from './JwkKeyProperties';
+    JwkPropertiesFromJSON,
+    JwkPropertiesFromJSONTyped,
+    JwkPropertiesToJSON,
+} from './JwkProperties';
 
 /**
  * 
@@ -64,10 +64,10 @@ export interface CertificateEnrollRequest {
     policyId: string;
     /**
      * 
-     * @type {JwkKeyProperties}
+     * @type {JwkProperties}
      * @memberof CertificateEnrollRequest
      */
-    publicKey: JwkKeyProperties;
+    publicKey: JwkProperties;
     /**
      * 
      * @type {string}
@@ -121,7 +121,7 @@ export function CertificateEnrollRequestFromJSONTyped(json: any, ignoreDiscrimin
         'issuer': CertificateIssuerParametersFromJSON(json['issuer']),
         'issueToUser': !exists(json, 'issueToUser') ? undefined : json['issueToUser'],
         'policyId': json['policyId'],
-        'publicKey': JwkKeyPropertiesFromJSON(json['publicKey']),
+        'publicKey': JwkPropertiesFromJSON(json['publicKey']),
         'targetFqdn': !exists(json, 'targetFqdn') ? undefined : json['targetFqdn'],
         'usage': CertificateUsageFromJSON(json['usage']),
         'renew': !exists(json, 'renew') ? undefined : CertificateRenewalParametersFromJSON(json['renew']),
@@ -141,7 +141,7 @@ export function CertificateEnrollRequestToJSON(value?: CertificateEnrollRequest 
         'issuer': CertificateIssuerParametersToJSON(value.issuer),
         'issueToUser': value.issueToUser,
         'policyId': value.policyId,
-        'publicKey': JwkKeyPropertiesToJSON(value.publicKey),
+        'publicKey': JwkPropertiesToJSON(value.publicKey),
         'targetFqdn': value.targetFqdn,
         'usage': CertificateUsageToJSON(value.usage),
         'renew': CertificateRenewalParametersToJSON(value.renew),

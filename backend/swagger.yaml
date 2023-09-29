@@ -40,7 +40,7 @@ paths:
       operationId: ListNamespacesByTypeV2
       responses:
         200:
-          $ref: "#/components/responses/RefListResponse"                
+          $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates:
     parameters:
       - in: path
@@ -83,7 +83,7 @@ paths:
         required: true
     get:
       tags:
-        - admin        
+        - admin
       summary: Get certificate template
       operationId: GetCertificateTemplateV2
       responses:
@@ -117,6 +117,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId}:
+    parameters:
+      - in: path
+        name: namespaceType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        required: true
+      - in: path
+        name: namespaceId
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: templateId
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: certId
+        schema:
+          type: string
+          format: uuid
+        required: true
+    get:
+      tags:
+        - admin
+      summary: Get certificate
+      operationId: GetCertificateV2
+      parameters:
+        - in: query
+          name: "apply"
+          schema:
+            type: boolean
+        - in: query
+          name: "includeCertificate"
+          schema:
+            type: string
+            enum:
+              - jwk
+              - pem
+            x-enum-varnames:
+              - IncludeJWK
+              - IncludePEM
+      responses:
+        200:
+          description: GetCertificateResponse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateInfo"
   /v2/{namespaceType}/{namespaceId}/graph-sync:
     parameters:
       - in: path
@@ -631,10 +683,14 @@ components:
         displayName:
           type: string
         updatedBy:
-          description: Unique ID of the user who created the policy
+          description: Unique ID of the user who last updated the object
           type: string
         updated:
-          description: Time when the policy was last updated
+          description: Time when the object was last updated
+          type: string
+          format: date-time
+        deleted:
+          description: Time when the object was deleted
           type: string
           format: date-time
       required:
@@ -652,7 +708,7 @@ components:
         issuer:
           $ref: "#/components/schemas/CertificateIssuer"
         keyProperties:
-          $ref: "#/components/schemas/JwkKeyProperties"
+          $ref: "#/components/schemas/JwkProperties"
         subject:
           $ref: "#/components/schemas/CertificateSubject"
         subjectAlternativeNames:
@@ -669,6 +725,10 @@ components:
           type: string
         lifetimeTrigger:
           $ref: "#/components/schemas/CertificateLifetimeTrigger"
+        reuse_key:
+          description: Keep using the same key version if exists
+          type: boolean
+          x-go-name: ReuseKey          
       required:
         - issuer
         - subject
@@ -919,8 +979,6 @@ components:
     CertificateLifetimeTrigger:
       type: object
       properties:
-        disabled:
-          type: boolean
         days_before_expiry:
           x-go-name: DaysBeforeExpiry
           type: integer
@@ -937,16 +995,25 @@ components:
           type: array
           items:
             type: string
+          x-go-type-skip-optional-pointer: true
         emails:
-          x-go-name: Emails
+          x-go-name: EmailAddresses
           type: array
           items:
             type: string
-        upns:
-          x-go-name: UserPrincipalNames
+          x-go-type-skip-optional-pointer: true
+        ipAddrs:
+          x-go-name: IPAddresses
           type: array
           items:
             type: string
+          x-go-type-skip-optional-pointer: true
+        uris:
+          x-go-name: URIs
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
     KeyType:
       type: string
       enum:
@@ -989,30 +1056,80 @@ components:
         - KeySize_3072
         - KeySize_4096
       x-go-name: KeySize
-    JwkKeyProperties:
+    JwkKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-enum-varnames:
+        - KeyOpSign
+        - KeyOpVerify
+        - KeyOpEncrypt
+        - KeyOpDecrypt
+        - KeyOpWrapKey
+        - KeyOpUnwrapKey
+      x-go-name: KeyOp
+    JwkProperties:
       type: object
-      description: Partial implementation of JSON Web Key (RFC 7517) with additional fields
+      description: Property bag of JSON Web Key (RFC 7517) with additional fields
       properties:
         alg:
           $ref: "#/components/schemas/JwkAlg"
         kty:
           $ref: "#/components/schemas/KeyType"
         key_size:
+          description: RSA key size
           $ref: "#/components/schemas/JwkKeySize"
+        key_ops:
+          $ref: "#/components/schemas/JwkKeyOperation"
         n:
+          description: RSA modulus
           type: string
-          format: byte
+          format: byteurl
         e:
+          description: RSA exponent
           type: string
-          format: byte
+          format: byteurl
         crv:
           $ref: "#/components/schemas/CurveName"
         x:
+          description: EC x coordinate
           type: string
-          format: byte
+          format: byteurl
         y:
+          description: EC y coordinate
           type: string
-          format: byte
+          format: byteurl
+        kid:
+          description: Key ID
+          type: string
+          x-go-name: KeyID
+        x5u:
+          x-go-name: CertificateURL
+          description: X.509 certificate URL
+          type: string
+        x5c:
+          description: X.509 certificate chain
+          type: array
+          items:
+            type: string
+            format: byteurl
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+          format: byteurl
+          x-go-name: CertificateThumbprint
+        x5t#S256:
+          description: X.509 certificate SHA-256 thumbprint
+          type: string
+          format: byteurl
+          x-go-name: CertificateThumbprintSHA256
       required:
         - kty
     CertificateRenewalParameters:
@@ -1037,7 +1154,7 @@ components:
           format: uuid
           x-go-name: PolicyID
         publicKey:
-          $ref: "#/components/schemas/JwkKeyProperties"
+          $ref: "#/components/schemas/JwkProperties"
         targetFqdn:
           type: string
         usage:
@@ -1100,6 +1217,75 @@ components:
       x-enum-varnames:
         - CertIdTypeCertId
         - CertIdTypePolicyId
+    CertificateLinks:
+      type: object
+      properties:
+        id:
+          description: Key Vault certificate ID
+          type: string
+        kid:
+          description: Key Vault key ID
+          type: string
+        sid:
+          description: Key Vault secret ID
+          type: string
+        certBlob:
+          description: Certificate link in Blob
+          type: string
+    CertificateFingerprints:
+      type: object
+      properties:
+        sha256:
+          description: SHA256 fingerprint of the certificate
+          type: string
+          format: hex
+        sha1:
+          description: SHA256 fingerprint of the certificate
+          type: string
+          format: hex
+      required:
+        - sha256
+        - sha1
+    CertificateInfo:
+      type: object
+      properties:
+        ref:
+          $ref: "#/components/schemas/Ref"
+        commonName:
+          description: Common name
+          type: string
+        subject:
+          type: string
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
+        notBefore:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        notAfter:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        usage:
+          $ref: "#/components/schemas/CertificateUsage"
+        jwk:
+          $ref: "#/components/schemas/JwkProperties"
+        pem:
+          type: string
+        template:
+          $ref: "#/components/schemas/Ref"
+        issuerCertificate:
+          $ref: "#/components/schemas/Ref"
+      required:
+        - ref
+        - commonName
+        - subject
+        - notBefore
+        - notAfter
+        - usage
+        - content
+        - template
+        - issuerCertificate
     CertificateIdentifier:
       type: object
       properties:

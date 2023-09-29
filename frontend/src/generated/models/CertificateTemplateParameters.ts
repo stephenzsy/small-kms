@@ -43,12 +43,12 @@ import {
     CertificateUsageFromJSONTyped,
     CertificateUsageToJSON,
 } from './CertificateUsage';
-import type { JwkKeyProperties } from './JwkKeyProperties';
+import type { JwkProperties } from './JwkProperties';
 import {
-    JwkKeyPropertiesFromJSON,
-    JwkKeyPropertiesFromJSONTyped,
-    JwkKeyPropertiesToJSON,
-} from './JwkKeyProperties';
+    JwkPropertiesFromJSON,
+    JwkPropertiesFromJSONTyped,
+    JwkPropertiesToJSON,
+} from './JwkProperties';
 
 /**
  * Certificate fields, may accept template substitutions
@@ -64,10 +64,10 @@ export interface CertificateTemplateParameters {
     issuer: CertificateIssuer;
     /**
      * 
-     * @type {JwkKeyProperties}
+     * @type {JwkProperties}
      * @memberof CertificateTemplateParameters
      */
-    keyProperties?: JwkKeyProperties;
+    keyProperties?: JwkProperties;
     /**
      * 
      * @type {CertificateSubject}
@@ -104,6 +104,12 @@ export interface CertificateTemplateParameters {
      * @memberof CertificateTemplateParameters
      */
     lifetimeTrigger?: CertificateLifetimeTrigger;
+    /**
+     * Keep using the same key version if exists
+     * @type {boolean}
+     * @memberof CertificateTemplateParameters
+     */
+    reuseKey?: boolean;
 }
 
 /**
@@ -129,13 +135,14 @@ export function CertificateTemplateParametersFromJSONTyped(json: any, ignoreDisc
     return {
         
         'issuer': CertificateIssuerFromJSON(json['issuer']),
-        'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkKeyPropertiesFromJSON(json['keyProperties']),
+        'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usage': CertificateUsageFromJSON(json['usage']),
         'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
         'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
+        'reuseKey': !exists(json, 'reuse_key') ? undefined : json['reuse_key'],
     };
 }
 
@@ -149,13 +156,14 @@ export function CertificateTemplateParametersToJSON(value?: CertificateTemplateP
     return {
         
         'issuer': CertificateIssuerToJSON(value.issuer),
-        'keyProperties': JwkKeyPropertiesToJSON(value.keyProperties),
+        'keyProperties': JwkPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usage': CertificateUsageToJSON(value.usage),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,
         'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
+        'reuse_key': value.reuseKey,
     };
 }
 
