@@ -61,3 +61,4 @@ terraform.rc
 .vscode
 
 *.pkrvars.hcl
+SmallKMSCertClient/SmallKMSCertClient/bin/Debug/net7.0/SmallKMSCertClient.runtimeconfig.json
