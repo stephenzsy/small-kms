@@ -18,11 +18,12 @@ const (
 	DocTypeUnknown KmsDocType = 90 // Z
 
 	DocTypeCert                KmsDocType = 67 // C
-	DocTypePolicy              KmsDocType = 80 // P
-	DocTypePolicyState         KmsDocType = 83 // S
+	DocTypeDeviceLink          KmsDocType = 68 // D
 	DocTypeLatestCertForPolicy KmsDocType = 76 // L
 	DocTypeDirectoryObject     KmsDocType = 79 // O
-	DocTypeNamespaceRelation   KmsDocType = 82 // R
+	DocTypePolicy              KmsDocType = 80 // P, deprecated
+	DocTypeNamespaceRelation   KmsDocType = 82 // R, deprecated
+	DocTypePolicyState         KmsDocType = 83 // S, deprecated
 	DocTypeCertTemplate        KmsDocType = 84 // T
 )
 
@@ -32,11 +33,12 @@ const (
 	DocTypeNameUnknown KmsDocTypeName = "unknown"
 
 	DocTypeNameCert                KmsDocTypeName = "cert"
-	DocTypeNamePolicy              KmsDocTypeName = "policy"
-	DocTypeNamePolicyState         KmsDocTypeName = "policy-state"
+	DocTypeNameDeviceLink          KmsDocTypeName = "device-link"
 	DocTypeNameLatestCertForPolicy KmsDocTypeName = "cert-latest"
 	DocTypeNameDirectoryObject     KmsDocTypeName = "directory-object"
+	DocTypeNamePolicy              KmsDocTypeName = "policy"
 	DocTypeNameNamespaceRelation   KmsDocTypeName = "namespace-relation"
+	DocTypeNamePolicyState         KmsDocTypeName = "policy-state"
 	DocTypeNameCertTemplate        KmsDocTypeName = "cert-template"
 )
 
@@ -97,7 +99,7 @@ type BaseDoc struct {
 	UpdatedByName string     `json:"updatedByName"`
 	Deleted       *time.Time `json:"deleted,omitempty"`
 
-	// used only for serialization
+	// used only for serialization and query
 	TypeName KmsDocTypeName `json:"type"`
 }
 
@@ -131,25 +133,19 @@ func (doc *BaseDoc) StampUpdatedWithAuth(c *gin.Context) {
 	doc.StampUpdated(auth.CallerPrincipalId(c).String(), auth.CallerPrincipalName(c))
 }
 
+var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
+	DocTypeCert:                DocTypeNameCert,
+	DocTypeDeviceLink:          DocTypeNameDeviceLink,
+	DocTypeLatestCertForPolicy: DocTypeNameLatestCertForPolicy,
+	DocTypeDirectoryObject:     DocTypeNameDirectoryObject,
+	DocTypePolicy:              DocTypeNamePolicy,
+	DocTypeNamespaceRelation:   DocTypeNameNamespaceRelation,
+	DocTypePolicyState:         DocTypeNamePolicyState,
+	DocTypeCertTemplate:        DocTypeNameCertTemplate,
+}
+
 func (doc *BaseDoc) fillTypeName() {
-	switch doc.ID.typeByte {
-	case DocTypeCert:
-		doc.TypeName = DocTypeNameCert
-	case DocTypePolicy:
-		doc.TypeName = DocTypeNamePolicy
-	case DocTypePolicyState:
-		doc.TypeName = DocTypeNamePolicyState
-	case DocTypeLatestCertForPolicy:
-		doc.TypeName = DocTypeNameLatestCertForPolicy
-	case DocTypeDirectoryObject:
-		doc.TypeName = DocTypeNameDirectoryObject
-	case DocTypeNamespaceRelation:
-		doc.TypeName = DocTypeNameNamespaceRelation
-	case DocTypeCertTemplate:
-		doc.TypeName = DocTypeNameCertTemplate
-	default:
-		doc.TypeName = DocTypeNameUnknown
-	}
+	doc.TypeName = docTypeNameMap[doc.ID.typeByte]
 }
 
 func AzCosmosUpsert[D KmsDocument](ctx *gin.Context, cc *azcosmos.ContainerClient, doc D) error {

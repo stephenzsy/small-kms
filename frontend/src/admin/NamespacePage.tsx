@@ -97,7 +97,9 @@ export default function NamespacePage() {
         {nsType}/{namespaceId}
       </h1>
       {(nsType === "root-ca" ||
-        nsType === NamespaceTypeShortName.NSType_IntCA) && (
+        nsType === NamespaceTypeShortName.NSType_IntCA ||
+        nsType == NamespaceTypeShortName.NSType_ServicePrincipal ||
+        nsType == NamespaceTypeShortName.NSType_Group) && (
         <CertificateTemplatesList nsType={nsType} namespaceId={namespaceId} />
       )}
     </>

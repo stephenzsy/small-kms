@@ -71,7 +71,7 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 	case "#microsoft.graph.servicePrincipal":
 		if spObj, ok := dirObj.(msgraphmodels.ServicePrincipalable); ok {
 			doc.DisplayName = *spObj.GetDisplayName()
-			doc.ServicePrincipalType = spObj.GetServicePrincipalType()
+			doc.ServicePrincipal = &DirectoryObjectDocServicePrincipalSection{ServicePrincipalType: *spObj.GetServicePrincipalType()}
 		}
 	case "#microsoft.graph.group":
 		if gObj, ok := dirObj.(msgraphmodels.Groupable); ok {
@@ -113,7 +113,6 @@ func (s *adminServer) syncDirDoc(c *gin.Context, objectID uuid.UUID) (*Directory
 	if err != nil {
 		return doc, err
 	}
-	uuid.Nil = uuid.New()
 	return doc, nil
 }
 

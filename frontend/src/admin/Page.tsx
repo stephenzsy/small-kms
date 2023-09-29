@@ -119,6 +119,10 @@ export default function AdminPage() {
           await adminApi.listNamespacesByTypeV2({
             namespaceType: NamespaceTypeShortName.NSType_IntCA,
           }),
+        [NamespaceTypeShortName.NSType_ServicePrincipal]:
+          await adminApi.listNamespacesByTypeV2({
+            namespaceType: NamespaceTypeShortName.NSType_ServicePrincipal,
+          }),
         [NamespaceTypeShortName.NSType_Group]:
           await adminApi.listNamespacesByTypeV2({
             namespaceType: NamespaceTypeShortName.NSType_Group,
@@ -129,23 +133,7 @@ export default function AdminPage() {
       refreshDeps: [],
     }
   );
-  const { data: spNamespaces } = useRequest(
-    () => {
-      return client.listNamespacesV1({
-        namespaceType: NamespaceType.NamespaceType_MsGraphServicePrincipal,
-      });
-    },
-    { refreshDeps: [] }
-  );
 
-  const { data: gNamespaces } = useRequest(
-    () => {
-      return client.listNamespacesV1({
-        namespaceType: NamespaceType.NamespaceType_MsGraphGroup,
-      });
-    },
-    { refreshDeps: [] }
-  );
   const { data: dNamespaces } = useRequest(
     () => {
       return client.listNamespacesV1({
@@ -199,10 +187,18 @@ export default function AdminPage() {
         )}
         itemTitleMetadataKey="displayName"
       />
-      <PolicySection
-        namespaces={spNamespaces}
+      <RefsTable
+        items={allNs?.[NamespaceTypeShortName.NSType_ServicePrincipal]}
         title="Service Principals"
-        showAdd
+        refActions={(ref) => (
+          <Link
+            to={`/admin/${NamespaceTypeShortName.NSType_ServicePrincipal}/${ref.id}`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            View
+          </Link>
+        )}
+        itemTitleMetadataKey="displayName"
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_Group]}

@@ -82,6 +82,7 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 
 	var createCertPemBlob []byte
 	// create certificate
+	successResponseCode := http.StatusOK
 	if params.Apply != nil && *params.Apply {
 		// verify template
 		templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateID)
@@ -106,6 +107,40 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 		if len(shouldApplyReason) == 0 {
 			log.Info().Msg("certificate up-to-date, no need to apply certificate template")
 		} else {
+			// verify nsType with nsID
+			var dirOdataTypeVerify string
+			switch nsType {
+			case NSTypeRootCA, NSTypeIntCA:
+				// no verify of built in CA
+				if !IsCANamespace(nsID) {
+					respondPublicErrorMsg(c, http.StatusBadRequest, "namespace type is not valid for ID: "+nsID.String())
+					return
+				}
+			case NSTypeServicePrincipal:
+				dirOdataTypeVerify = "#microsoft.graph.servicePrincipal"
+			default:
+				respondPublicErrorMsg(c, http.StatusBadRequest, "unsupported namespace type")
+				return
+			}
+			if dirOdataTypeVerify != "" {
+				if nsID.Version() != 4 {
+					respondPublicErrorMsg(c, http.StatusBadRequest, "namespace ID must be UUID v4 for #microsoft.graph.servicePrincipal")
+					return
+				}
+				dirDoc, err := s.syncDirDoc(c, nsID)
+				if err != nil {
+					if common.IsAzNotFound(err) || common.IsGraphODataErrorNotFound(err) {
+						respondPublicError(c, http.StatusNotFound, err)
+						return
+					}
+					respondInternalError(c, err, "failed to sync directory object")
+					return
+				}
+				if dirDoc.OdataType != dirOdataTypeVerify {
+					respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", nsType, nsID))
+					return
+				}
+			}
 
 			// create certificate
 			certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, certID)
@@ -117,6 +152,7 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 				respondInternalError(c, err, "failed to create certificate from template")
 				return
 			}
+			successResponseCode = http.StatusCreated
 
 			// psersist certificate in cosmos
 			err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, certDoc)
@@ -147,7 +183,7 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 		return
 	}
 
-	c.JSON(http.StatusOK, certInfo)
+	c.JSON(successResponseCode, certInfo)
 }
 
 func (s *adminServer) ListCertificatesV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {

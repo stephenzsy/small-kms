@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"crypto/x509"
 	"fmt"
 	"net/http"
 
@@ -14,18 +13,18 @@ import (
 
 // extract owner name
 
-const (
-	deviceOwnershipTypeCompany  = "Company"
-	deviceOwnershipTypePersonal = "Personal"
-)
-
+// const (
+// 	deviceOwnershipTypeCompany  = "Company"
+// 	deviceOwnershipTypePersonal = "Personal"
+// )
+/*
 func (r *CertificateEnrollRequest) createX509Certificate(c *gin.Context) (*x509.Certificate, error) {
 	cert := x509.Certificate{}
 	if r.IssueToUser != nil && *r.IssueToUser {
 		auth.CallerPrincipalName(c)
 	}
 	return &cert, nil
-}
+}*/
 
 func (s *adminServer) EnrollCertificateV1(c *gin.Context, targetId uuid.UUID) {
 	// check user

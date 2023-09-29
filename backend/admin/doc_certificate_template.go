@@ -320,15 +320,15 @@ createKey:
 	return resp.KeyBundle, err
 }
 
-func (p *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
+func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
 	nsType NamespaceTypeShortName) (azcertificates.CreateCertificateResponse, error) {
 	params := azcertificates.CreateCertificateParameters{}
 	x509Properties := azcertificates.X509CertificateProperties{
-		Subject:          ToPtr(p.Subject.pkixName().String()),
-		ValidityInMonths: ToPtr(int32(p.ValidityInMonths)),
+		Subject:          ToPtr(doc.Subject.pkixName().String()),
+		ValidityInMonths: ToPtr(int32(doc.ValidityInMonths)),
 	}
 
-	keyProperties := p.KeyProperties.getAzCertificatesKeyProperties()
+	keyProperties := doc.KeyProperties.getAzCertificatesKeyProperties()
 
 	if nsType == NSTypeIntCA {
 		keyProperties.Exportable = to.Ptr(false)
@@ -347,7 +347,14 @@ func (p *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client
 		},
 	}
 
-	return client.CreateCertificate(ctx, *p.KeyStorePath, params, nil)
+	switch nsType {
+	case NSTypeServicePrincipal:
+		params.Tags = map[string]*string{
+			"kms-access-principal-id": to.Ptr(doc.NamespaceID.String()),
+		}
+	}
+
+	return client.CreateCertificate(ctx, *doc.KeyStorePath, params, nil)
 }
 
 func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties() (r azcertificates.KeyProperties) {

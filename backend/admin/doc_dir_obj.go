@@ -22,14 +22,18 @@ type DirectoryObjectDocDeviceSection struct {
 	LinkedServicePrincipalObjectID *uuid.UUID `json:"linkedServicePrincipalObjectID,omitempty"`
 }
 
+type DirectoryObjectDocServicePrincipalSection struct {
+	ServicePrincipalType string `json:"servicePrincipalType"`
+}
+
 type DirectoryObjectDoc struct {
 	kmsdoc.BaseDoc
-	OdataType            string                           `json:"odType"`
-	DisplayName          string                           `json:"displayName"`
-	UserPrincipalName    *string                          `json:"userPrincipalName,omitempty"`
-	ServicePrincipalType *string                          `json:"servicePrincipalType,omitempty"`
-	AppID                *string                          `json:"appId,omitempty"`
-	Device               *DirectoryObjectDocDeviceSection `json:"device,omitempty"`
+	OdataType         string                                     `json:"odType"`
+	DisplayName       string                                     `json:"displayName"`
+	UserPrincipalName *string                                    `json:"userPrincipalName,omitempty"`
+	AppID             *string                                    `json:"appId,omitempty"`
+	Device            *DirectoryObjectDocDeviceSection           `json:"device,omitempty"`
+	ServicePrincipal  *DirectoryObjectDocServicePrincipalSection `json:"servicePrincipal,omitempty"`
 }
 
 func (s *adminServer) getDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
@@ -104,7 +108,9 @@ func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) 
 	case "#microsoft.graph.user":
 		ref.UserPrincipalName = item.UserPrincipalName
 	case "#microsoft.graph.servicePrincipal":
-		ref.ServicePrincipalType = item.ServicePrincipalType
+		if item.ServicePrincipal != nil {
+			ref.ServicePrincipalType = ToPtr(item.ServicePrincipal.ServicePrincipalType)
+		}
 	case "#microsoft.graph.device":
 		if item.Device != nil {
 			ref.DeviceID = ToPtr(item.Device.DeviceID.String())

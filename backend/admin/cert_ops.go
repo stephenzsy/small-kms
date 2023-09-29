@@ -81,7 +81,12 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 		if tdoc.KeyStorePath != nil && len(*tdoc.KeyStorePath) > 0 {
 
 			// load private key from key store
-			keyBundle, err := s.AzKeysClient().GetKey(ctx, *tdoc.KeyStorePath, "", nil)
+			if certDoc.KeyInfo.KeyID == nil {
+				return nil, fmt.Errorf("issuer certificate %s does not have key ID", signer.certCUID.String())
+			}
+			signerKID := azkeys.ID(*certDoc.KeyInfo.KeyID)
+
+			keyBundle, err := s.AzKeysClient().GetKey(ctx, signerKID.Name(), signerKID.Version(), nil)
 			if err != nil {
 				return nil, err
 			}
@@ -109,6 +114,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 	return &signer, nil
 }
 
+// (nsType/nsID) must be verified prior to calling this function
 func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
 	t *CertificateTemplateDoc, certID uuid.UUID) (*CertDoc, []byte, error) {
 
@@ -196,6 +202,7 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 		for block, rest := pem.Decode(pemBlob); block != nil; block, rest = pem.Decode(rest) {
 			mergeRequestCerts = append(mergeRequestCerts, block.Bytes)
 		}
+
 		azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, signer.createAzCertificateResp.ID.Name(), azcertificates.MergeCertificateParameters{
 			X509Certificates: mergeRequestCerts,
 		}, nil)
