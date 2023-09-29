@@ -11,7 +11,7 @@ import (
 func getRootCaRefs() []RefWithMetadata {
 	return []RefWithMetadata{
 		{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Root CA"}, Type: RefTypeNamespace},
-		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Intermediate CA"}, Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Test Root CA"}, Type: RefTypeNamespace},
 	}
 }
 
@@ -23,14 +23,6 @@ func getIntCaRefs() []RefWithMetadata {
 	}
 }
 
-/*
-	func getBuiltInCaRootNamespaceRefs() []NamespaceRef {
-		return []NamespaceRef{
-			{NamespaceID: uuid.Nil, ID: common.WellKnownID_RootCA, DisplayName: "Root CA", ObjectType: NamespaceTypeBuiltInCaRoot},
-			{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestRootCA, DisplayName: "Test Intermediate CA", ObjectType: NamespaceTypeBuiltInCaRoot},
-		}
-	}
-*/
 func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTypeShortName) {
 	if !authAdminOnly(c) {
 		return

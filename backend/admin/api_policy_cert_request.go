@@ -32,29 +32,6 @@ func (s *adminServer) ApplyPolicyV1(c *gin.Context, namespaceID uuid.UUID, polic
 		return
 	}
 	switch policy.PolicyType {
-	case PolicyTypeCertRequest:
-		section := policy.CertRequest
-		if section == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid policy to request certificate"})
-			return
-		}
-		shouldRenew, stateDoc, reason, err := section.evaluateForAction(c, s, namespaceID, policy, b.ForceRenewCertificate)
-		if err != nil {
-			log.Error().Err(err).Msg("Internal error")
-			c.JSON(500, gin.H{"error": "internal error"})
-			return
-		}
-		log.Info().Msgf("shouldRenew: %v, reason: %s", shouldRenew, reason)
-		if shouldRenew {
-			stateDoc, err = section.action(c, s, namespaceID, policy)
-			if err != nil {
-				log.Error().Err(err).Msg("Internal error")
-				c.JSON(500, gin.H{"error": "internal error"})
-				return
-			}
-		}
-		c.JSON(200, stateDoc.ToPolicyState())
-		return
 	case PolicyTypeCertAadAppClientCredential:
 		section := policy.CertAadAppCred
 		if section == nil {

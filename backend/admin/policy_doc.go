@@ -15,22 +15,10 @@ type PolicyDocSectionIssuerProperties struct {
 	IssuerPolicyID    uuid.UUID `json:"issuerPolicyId"`
 }
 
-func (t *PolicyDocSectionIssuerProperties) validateAndFillWithCertRequestParameters(p *CertificateRequestPolicyParameters) (err error) {
-	t.IssuerNamespaceID = p.IssuerNamespaceID
-
-	if p.IssuerPolicyIdentifier == nil {
-		t.IssuerPolicyID = defaultPolicyIdCertRequest
-	} else if t.IssuerPolicyID, err = resolvePolicyIdentifier(*p.IssuerPolicyIdentifier); err != nil {
-		return err
-	}
-	return nil
-}
-
 type PolicyDoc struct {
 	kmsdoc.BaseDoc
 	Enabled        bool                            `json:"enabled"`
 	PolicyType     PolicyType                      `json:"policyType"`
-	CertRequest    *PolicyCertRequestDocSection    `json:"certRequest,omitempty"`
 	CertEnroll     *PolicyCertEnrollDocSection     `json:"certEnroll,omitempty"`
 	CertAadAppCred *PolicyCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
 }
@@ -81,7 +69,6 @@ type PolicyStateDoc struct {
 	PolicyType     PolicyType                           `json:"policyType"`
 	Status         PolicyStateStatus                    `json:"status"`
 	Message        string                               `json:"message"`
-	CertRequest    *PolicyStateCertRequestDocSection    `json:"certRequest,omitempty"`
 	CertAadAppCred *PolicyStateCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
 }
 
@@ -105,8 +92,6 @@ func (doc *PolicyDoc) ToPolicy() *Policy {
 		UpdatedBy:   fmt.Sprintf("%s:%s", doc.UpdatedBy, doc.UpdatedByName),
 	}
 	switch doc.PolicyType {
-	case PolicyTypeCertRequest:
-		p.CertRequest = doc.CertRequest.toCertificateRequestPolicyParameters()
 	case PolicyTypeCertEnroll:
 		p.CertEnroll = doc.CertEnroll.toCertificateEnrollPolicyParameters()
 	case PolicyTypeCertAadAppClientCredential:
@@ -125,10 +110,6 @@ func (doc *PolicyStateDoc) ToPolicyState() *PolicyState {
 		NamespaceID: doc.NamespaceID,
 		Updated:     doc.Updated,
 		UpdatedBy:   fmt.Sprintf("%s:%s", doc.UpdatedBy, doc.UpdatedByName),
-	}
-	switch doc.PolicyType {
-	case PolicyTypeCertRequest:
-		ps.CertRequest = doc.CertRequest.ToPolicyStateCertRequest()
 	}
 	return &ps
 }

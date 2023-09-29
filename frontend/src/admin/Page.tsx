@@ -199,7 +199,6 @@ export default function AdminPage() {
         )}
         itemTitleMetadataKey="displayName"
       />
-
       <PolicySection
         namespaces={spNamespaces}
         title="Service Principals"
@@ -218,8 +217,6 @@ export default function AdminPage() {
         )}
         itemTitleMetadataKey="displayName"
       />
-
-      <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
       <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
       <PolicySection
         namespaces={uNamespaces}

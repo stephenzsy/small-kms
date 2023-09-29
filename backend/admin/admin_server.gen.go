@@ -104,7 +104,6 @@ const (
 const (
 	PolicyTypeCertAadAppClientCredential PolicyType = "certAadAppCred"
 	PolicyTypeCertEnroll                 PolicyType = "certEnroll"
-	PolicyTypeCertRequest                PolicyType = "certRequest"
 )
 
 // Defines values for RefType.

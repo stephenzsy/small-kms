@@ -30,15 +30,12 @@ func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
 }
 
 var (
-	defaultPolicyIdCertRequest          = common.GetID(common.DefaultPolicyIdCertRequest)
 	defaultPolicyIdCertEnroll           = common.GetID(common.DefaultPolicyIdCertEnroll)
 	defaultPolicyIdCertAadAppCredential = common.GetID(common.DefaultPolicyIdCertAadAppCredential)
 )
 
 func resolvePolicyIdentifier(policyIdentifier string) (uuid.UUID, error) {
 	switch policyIdentifier {
-	case string(PolicyTypeCertRequest):
-		return defaultPolicyIdCertRequest, nil
 	case string(PolicyTypeCertEnroll):
 		return defaultPolicyIdCertEnroll, nil
 	case string(PolicyTypeCertAadAppClientCredential):

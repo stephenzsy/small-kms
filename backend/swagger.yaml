@@ -938,11 +938,9 @@ components:
     PolicyType:
       type: string
       enum:
-        - certRequest
         - certEnroll
         - certAadAppCred
       x-enum-varnames:
-        - PolicyType_CertRequest
         - PolicyType_CertEnroll
         - PolicyType_CertAadAppClientCredential
     ResourceRef:

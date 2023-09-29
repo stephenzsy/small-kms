@@ -14,8 +14,6 @@ import (
 
 func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
 	switch policyID {
-	case defaultPolicyIdCertRequest:
-		return policyType == PolicyTypeCertRequest
 	case defaultPolicyIdCertEnroll:
 		return policyType == PolicyTypeCertEnroll
 	case defaultPolicyIdCertAadAppCredential:

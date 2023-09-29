@@ -124,9 +124,8 @@ func (p *PolicyCertAadAppCredDocSection) action(ctx *gin.Context, s *adminServer
 			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicyState, policyID),
 			NamespaceID: namespaceID,
 		},
-		PolicyType: PolicyTypeCertRequest,
-		Status:     PolicyStateStatusSuccess,
-		Message:    fmt.Sprintf("Certificate installed %s to application %s", certDocCUID.String(), *dirDoc.AppID),
+		Status:  PolicyStateStatusSuccess,
+		Message: fmt.Sprintf("Certificate installed %s to application %s", certDocCUID.String(), *dirDoc.AppID),
 		CertAadAppCred: &PolicyStateCertAadAppCredDocSection{
 			CertInstalledCUID: certDocCUID,
 			LastAction:        PolicyCertAadAppCredActionInstallCert,
