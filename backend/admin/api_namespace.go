@@ -19,6 +19,7 @@ func getIntCaRefs() []RefWithMetadata {
 	return []RefWithMetadata{
 		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAService, Metadata: map[string]string{RefPropertyKeyDisplayName: "Services Intermediate CA"}, Type: RefTypeNamespace},
 		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAIntranet, Metadata: map[string]string{RefPropertyKeyDisplayName: "Intranet Intermediate CA"}, Type: RefTypeNamespace},
+		{NamespaceID: uuid.Nil, ID: common.WellKnownID_IntCAAadSp, Metadata: map[string]string{RefPropertyKeyDisplayName: "AAD Client Secret Intermediate CA"}, Type: RefTypeNamespace},
 		{NamespaceID: uuid.Nil, ID: common.WellKnownID_TestIntCA, Metadata: map[string]string{RefPropertyKeyDisplayName: "Test Intermediate CA"}, Type: RefTypeNamespace},
 	}
 }

@@ -11,6 +11,7 @@ func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	case common.WellKnownID_RootCA,
 		common.WellKnownID_IntCAService,
 		common.WellKnownID_IntCAIntranet,
+		common.WellKnownID_IntCAAadSp,
 		common.WellKnownID_TestRootCA:
 		return true
 	}
@@ -30,6 +31,7 @@ func IsIntCANamespace(namespaceID uuid.UUID) bool {
 	switch namespaceID {
 	case common.WellKnownID_IntCAService,
 		common.WellKnownID_IntCAIntranet,
+		common.WellKnownID_IntCAAadSp,
 		common.WellKnownID_TestIntCA:
 		return true
 	}

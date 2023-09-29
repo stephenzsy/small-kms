@@ -26,6 +26,7 @@ var (
 	// intermediate CAs --10 ~ --ff
 	WellKnownID_IntCAService  = uuid.MustParse("00000000-0000-0000-0000-000000000011")
 	WellKnownID_IntCAIntranet = uuid.MustParse("00000000-0000-0000-0000-000000000012")
+	WellKnownID_IntCAAadSp    = uuid.MustParse("00000000-0000-0000-0000-000000000013")
 	WellKnownID_TestIntCA     = uuid.MustParse("00000000-0000-0000-0000-0000000000ff")
 
 	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
