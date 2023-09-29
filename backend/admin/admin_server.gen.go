@@ -273,7 +273,6 @@ type CertificateRequestPolicyParameters struct {
 	// IssuerPolicyIdentifier ID of the issuer policy
 	IssuerPolicyIdentifier  *string                             `json:"issuerPolicyIdentifier,omitempty"`
 	KeyProperties           *KeyProperties                      `json:"keyProperties,omitempty"`
-	KeyStorePath            string                              `json:"keyStorePath"`
 	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
 	Subject                 CertificateSubject                  `json:"subject"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`

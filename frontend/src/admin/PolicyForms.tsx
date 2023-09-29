@@ -113,7 +113,6 @@ export function PolicyForms(_props: PolicyFormsProps) {
               : IsIntCaNamespace(namespaceId)
               ? CertificateUsage.Usage_IntCA
               : certReqState.certUsage,
-            keyStorePath: certReqState.keyStorePath,
             validityMonths: certReqState.validityInMonths
               ? parseInt(certReqState.validityInMonths.toString())
               : 0,

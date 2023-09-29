@@ -11,8 +11,6 @@ type WellKnownIdentifier int
 const (
 	IdentifierUnknown WellKnownIdentifier = iota
 
-	IdentifierDirectory
-
 	DefaultPolicyIdCertRequest
 	DefaultPolicyIdCertEnroll
 	DefaultPolicyIdCertAadAppCredential
@@ -30,7 +28,7 @@ var (
 	WellKnownID_IntCAIntranet = uuid.MustParse("00000000-0000-0000-0000-000000000012")
 	WellKnownID_TestIntCA     = uuid.MustParse("00000000-0000-0000-0000-0000000000ff")
 
-	idDirectory = WellKnownID(uuid.MustParse(MustGetenv("AZURE_TENANT_ID")))
+	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv("AZURE_TENANT_ID"))
 
 	// default policy ids --1-1 ~ --1-f
 	defaultPolicyIdCertRequest          = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
@@ -39,8 +37,6 @@ var (
 )
 
 var idMap = map[WellKnownIdentifier]WellKnownID{
-
-	IdentifierDirectory: idDirectory,
 
 	DefaultPolicyIdCertRequest:          defaultPolicyIdCertRequest,
 	DefaultPolicyIdCertEnroll:           defaultPolicyIdCertEnroll,

@@ -257,7 +257,6 @@ function CertCreatePolicyForm({
           ? CertificateUsage.Usage_IntCA
           : input.usage,
         validityMonths,
-        keyStorePath: input.keyStorePath,
       },
     });
   };

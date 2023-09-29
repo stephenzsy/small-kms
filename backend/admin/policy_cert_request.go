@@ -85,11 +85,8 @@ func (t *PolicyCertRequestDocSection) validateAndFillWithParameters(p *Certifica
 	}
 
 	// key store path to store certificate in keyvault is required except for client only certificates
-	t.KeyStorePath = p.KeyStorePath
 	if p.Usage == UsageClientOnly {
-		t.KeyStorePath = ""
 	} else if len(t.KeyStorePath) == 0 {
-		t.KeyStorePath = strings.TrimSpace(p.KeyStorePath)
 		if len(t.KeyStorePath) == 0 {
 			return fmt.Errorf("missing KeyStorePath for usage: %s", p.Usage)
 		}
@@ -629,7 +626,6 @@ func (s *PolicyCertRequestDocSection) toCertificateRequestPolicyParameters() *Ce
 		IssuerNamespaceID:       s.IssuerNamespaceID,
 		IssuerPolicyIdentifier:  &policyID,
 		KeyProperties:           &s.KeyProperties,
-		KeyStorePath:            s.KeyStorePath,
 		LifetimeTrigger:         s.LifetimeTrigger,
 		Subject:                 s.Subject,
 		SubjectAlternativeNames: s.SubjectAlternativeNames,

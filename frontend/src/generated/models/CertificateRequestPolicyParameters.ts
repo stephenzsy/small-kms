@@ -64,12 +64,6 @@ export interface CertificateRequestPolicyParameters {
     issuerPolicyIdentifier?: string;
     /**
      * 
-     * @type {string}
-     * @memberof CertificateRequestPolicyParameters
-     */
-    keyStorePath: string;
-    /**
-     * 
      * @type {KeyProperties}
      * @memberof CertificateRequestPolicyParameters
      */
@@ -112,7 +106,6 @@ export interface CertificateRequestPolicyParameters {
 export function instanceOfCertificateRequestPolicyParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "issuerNamespaceId" in value;
-    isInstance = isInstance && "keyStorePath" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
 
@@ -131,7 +124,6 @@ export function CertificateRequestPolicyParametersFromJSONTyped(json: any, ignor
         
         'issuerNamespaceId': json['issuerNamespaceId'],
         'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
-        'keyStorePath': json['keyStorePath'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : KeyPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
@@ -152,7 +144,6 @@ export function CertificateRequestPolicyParametersToJSON(value?: CertificateRequ
         
         'issuerNamespaceId': value.issuerNamespaceId,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
-        'keyStorePath': value.keyStorePath,
         'keyProperties': KeyPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),

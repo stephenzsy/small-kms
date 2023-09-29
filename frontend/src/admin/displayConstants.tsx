@@ -39,4 +39,5 @@ export const certUsageNames: Record<CertificateUsage, string> = {
   [CertificateUsage.Usage_ClientOnly]: "Client only",
   [CertificateUsage.Usage_RootCA]: "Root CA",
   [CertificateUsage.Usage_IntCA]: "Intermediate CA",
+  [CertificateUsage.Usage_AADClientCredential]: "AAD Client Credential",
 };

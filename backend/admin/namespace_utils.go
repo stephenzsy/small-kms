@@ -5,8 +5,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-var wellknownNamespaceID_directoryID = common.GetID(common.IdentifierDirectory)
-
 // Deprecated
 func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	switch namespaceID {

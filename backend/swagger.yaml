@@ -1223,8 +1223,6 @@ components:
         - $ref: "#/components/schemas/CertificateIssuerParameters"
         - type: object
           properties:
-            keyStorePath:
-              type: string
             keyProperties:
               $ref: "#/components/schemas/KeyProperties"
             subject:
@@ -1242,7 +1240,6 @@ components:
           required:
             - subject
             - usage
-            - keyStorePath
     CertificateIdentifierType:
       type: string
       enum:

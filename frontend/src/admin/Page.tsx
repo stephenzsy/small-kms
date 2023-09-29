@@ -119,6 +119,10 @@ export default function AdminPage() {
           await adminApi.listNamespacesByTypeV2({
             namespaceType: NamespaceTypeShortName.NSType_IntCA,
           }),
+        [NamespaceTypeShortName.NSType_Group]:
+          await adminApi.listNamespacesByTypeV2({
+            namespaceType: NamespaceTypeShortName.NSType_Group,
+          }),
       };
     },
     {
@@ -201,6 +205,20 @@ export default function AdminPage() {
         title="Service Principals"
         showAdd
       />
+      <RefsTable
+        items={allNs?.[NamespaceTypeShortName.NSType_Group]}
+        title="Groups"
+        refActions={(ref) => (
+          <Link
+            to={`/admin/${NamespaceTypeShortName.NSType_Group}/${ref.id}`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            View
+          </Link>
+        )}
+        itemTitleMetadataKey="displayName"
+      />
+
       <PolicySection namespaces={gNamespaces} title="Groups" showAdd />
       <PolicySection namespaces={dNamespaces} title="Devices" showAdd />
       <PolicySection

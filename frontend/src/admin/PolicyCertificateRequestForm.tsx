@@ -60,7 +60,6 @@ export function useCertificateRequestFormState(): PolicyCertificateRequestFormPr
       setSubjectO(certReq.subject.o);
       setSubjectC(certReq.subject.c);
       setValidityInMonths(certReq.validityMonths);
-      setKeyStorePath(certReq.keyStorePath);
       setCertUsage(certReq.usage);
     }
   }, [policy]);

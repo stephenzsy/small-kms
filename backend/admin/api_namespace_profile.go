@@ -39,7 +39,7 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 		return
 	}
 
-	list, err := s.ListDirectoryObjectByType(c, namespaceType)
+	list, err := s.listDirectoryObjectByType(c, string(namespaceType))
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get list of directory objects")
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
@@ -60,7 +60,7 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 	}
 	doc := new(DirectoryObjectDoc)
 	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID)
-	doc.NamespaceID = wellknownNamespaceID_directoryID
+	doc.NamespaceID = common.WellKnownID_TenantDirectory
 	doc.OdataType = *dirObj.GetOdataType()
 	switch doc.OdataType {
 	case "#microsoft.graph.user":

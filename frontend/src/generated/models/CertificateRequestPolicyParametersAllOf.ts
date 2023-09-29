@@ -52,12 +52,6 @@ import {
 export interface CertificateRequestPolicyParametersAllOf {
     /**
      * 
-     * @type {string}
-     * @memberof CertificateRequestPolicyParametersAllOf
-     */
-    keyStorePath: string;
-    /**
-     * 
      * @type {KeyProperties}
      * @memberof CertificateRequestPolicyParametersAllOf
      */
@@ -99,7 +93,6 @@ export interface CertificateRequestPolicyParametersAllOf {
  */
 export function instanceOfCertificateRequestPolicyParametersAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "keyStorePath" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "usage" in value;
 
@@ -116,7 +109,6 @@ export function CertificateRequestPolicyParametersAllOfFromJSONTyped(json: any, 
     }
     return {
         
-        'keyStorePath': json['keyStorePath'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : KeyPropertiesFromJSON(json['keyProperties']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : CertificateSubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
@@ -135,7 +127,6 @@ export function CertificateRequestPolicyParametersAllOfToJSON(value?: Certificat
     }
     return {
         
-        'keyStorePath': value.keyStorePath,
         'keyProperties': KeyPropertiesToJSON(value.keyProperties),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': CertificateSubjectAlternativeNamesToJSON(value.subjectAlternativeNames),

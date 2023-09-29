@@ -38,47 +38,41 @@ func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTyp
 	switch nsType {
 	case NSTypeRootCA:
 		c.JSON(http.StatusOK, getRootCaRefs())
+		return
 	case NSTypeIntCA:
 		c.JSON(http.StatusOK, getIntCaRefs())
+		return
 	}
-	/*
-		if namespaceType == NamespaceTypeBuiltInCaRoot {
-			c.JSON(http.StatusOK, getBuiltInCaRootNamespaceRefs())
-			return
-		} else if namespaceType == NamespaceTypeBuiltInCaInt {
-			c.JSON(http.StatusOK, getBuiltInCaIntNamespaceRefs())
-			return
-		}
-		if !auth.CallerPrincipalHasAdminRole(c) {
-			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
-			return
-		}
+	var odType string
+	switch nsType {
+	case NSTypeGroup:
+		odType = "#microsoft.graph.group"
+	case NSTypeUser:
+		odType = "#microsoft.graph.user"
+	case NSTypeServicePrincipal:
+		odType = "#microsoft.graph.servicePrincipal"
+	case NSTypeDevice:
+		odType = "#microsoft.graph.device"
+	case NSTypeApplication:
+		odType = "#microsoft.graph.application"
+	default:
+		respondPublicErrorMsg(c, http.StatusBadRequest, "unsupported namespace type")
+		return
+	}
+	dirObjs, err := s.listDirectoryObjectByType(c, odType)
 
-		switch namespaceType {
-		case NamespaceTypeMsGraphGroup,
-			NamespaceTypeMsGraphServicePrincipal,
-			NamespaceTypeMsGraphDevice,
-			NamespaceTypeMsGraphUser,
-			NamespaceTypeMsGraphApplication:
-			// allow
-		default:
-			c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
-			return
-		}
+	if err != nil {
+		respondInternalError(c, err, "failed to list directory objects")
+		return
+	}
+	r := make([]RefWithMetadata, len(dirObjs))
+	for i, doc := range dirObjs {
+		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
+		r[i].Metadata = map[string]string{RefPropertyKeyDisplayName: doc.DisplayName}
+		r[i].Type = RefTypeNamespace
+	}
 
-		list, err := s.ListDirectoryObjectByType(c, namespaceType)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to get list of directory objects")
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-			return
-		}
-
-		results := make([]NamespaceRef, len(list))
-		for i, item := range list {
-			item.PopulateNamespaceRef(&results[i])
-		}
-		c.JSON(http.StatusOK, results)
-	*/
+	c.JSON(http.StatusOK, r)
 }
 
 /*
