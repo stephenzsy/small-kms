@@ -75,15 +75,15 @@ type SANsSanitized struct {
 	parsedURLs        []*url.URL
 }
 
-func sanitizeSANs(san *CertificateSubjectAlternativeNames) (*SANsSanitized, error) {
-	if san == nil {
+func sanitizeSANs(sans *CertificateSubjectAlternativeNames, allowVariables bool) (*SANsSanitized, error) {
+	if sans == nil {
 		return nil, nil
 	}
 	var parsedIPAddresses []net.IP
 	var parsedURLs []*url.URL
-	sanitizeStringArray(&san.DNSNames)
-	sanitizeStringArray(&san.EmailAddresses)
-	err := sanitizeStringArrayWithParse[net.IP](&san.IPAddresses, &parsedIPAddresses, func(s string) (ip net.IP, err error) {
+	sanitizeStringArray(&sans.DNSNames)
+	sanitizeStringArray(&sans.EmailAddresses)
+	err := sanitizeStringArrayWithParse[net.IP](&sans.IPAddresses, &parsedIPAddresses, func(s string) (ip net.IP, err error) {
 		ip = net.ParseIP(s)
 		if ip == nil {
 			err = fmt.Errorf("invalid ip address: %s", s)
@@ -93,18 +93,26 @@ func sanitizeSANs(san *CertificateSubjectAlternativeNames) (*SANsSanitized, erro
 	if err != nil {
 		return nil, err
 	}
-	err = sanitizeStringArrayWithParse[*url.URL](&san.URIs, &parsedURLs, url.Parse)
+	err = sanitizeStringArrayWithParse[*url.URL](&sans.URIs, &parsedURLs, func(s string) (*url.URL, error) {
+		if allowVariables {
+			_, isVar, err := validateCertFieldForVariable(&s)
+			if isVar {
+				return nil, err
+			}
+		}
+		return url.Parse(s)
+	})
 	if err != nil {
 		return nil, err
 	}
-	if len(san.DNSNames)+
-		len(san.EmailAddresses)+
-		len(san.IPAddresses)+
-		len(san.URIs) == 0 {
+	if len(sans.DNSNames)+
+		len(sans.EmailAddresses)+
+		len(sans.IPAddresses)+
+		len(sans.URIs) == 0 {
 		return nil, nil
 	}
 	return &SANsSanitized{
-		CertificateSubjectAlternativeNames: *san,
+		CertificateSubjectAlternativeNames: *sans,
 		parsedIPAddresses:                  parsedIPAddresses,
 		parsedURLs:                         parsedURLs,
 	}, nil

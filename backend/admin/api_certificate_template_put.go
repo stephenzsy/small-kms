@@ -12,6 +12,10 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
+var (
+	ErrCertificateTemplateVariable = errors.New("certificate template variable field is invalid")
+)
+
 func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
@@ -94,6 +98,19 @@ func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, 
 		}
 	}
 	return "invalid", false
+}
+
+func validateCertFieldForVariable(s *string) (*common.CertificateFieldVar, bool, error) {
+	if s == nil {
+		return nil, false, nil
+	}
+	*s = strings.TrimSpace(*s)
+	if strings.HasPrefix(*s, "{{") && strings.HasSuffix(*s, "}}") {
+		// try parse variable
+		parsed, err := common.ParseCertificateFieldVar(*s)
+		return &parsed, true, err
+	}
+	return nil, false, nil
 }
 
 func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) (*CertificateTemplateDoc, error) {
@@ -195,7 +212,19 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 
 	doc.Subject = CertificateTemplateDocSubject{CertificateSubject: p.Subject}
 	var err error
-	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames); err != nil {
+	if _, _, err = validateCertFieldForVariable(&doc.Subject.CertificateSubject.CN); err != nil {
+		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject CN", err)
+	}
+	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.OU); err != nil {
+		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject OU", err)
+	}
+	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.O); err != nil {
+		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject O", err)
+	}
+	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.C); err != nil {
+		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject C", err)
+	}
+	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames, true); err != nil {
 		return nil, err
 	}
 

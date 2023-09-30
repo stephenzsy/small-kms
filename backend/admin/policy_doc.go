@@ -17,10 +17,9 @@ type PolicyDocSectionIssuerProperties struct {
 
 type PolicyDoc struct {
 	kmsdoc.BaseDoc
-	Enabled        bool                            `json:"enabled"`
-	PolicyType     PolicyType                      `json:"policyType"`
-	CertEnroll     *PolicyCertEnrollDocSection     `json:"certEnroll,omitempty"`
-	CertAadAppCred *PolicyCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
+	Enabled    bool                        `json:"enabled"`
+	PolicyType PolicyType                  `json:"policyType"`
+	CertEnroll *PolicyCertEnrollDocSection `json:"certEnroll,omitempty"`
 }
 
 func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {
@@ -66,10 +65,9 @@ const (
 
 type PolicyStateDoc struct {
 	kmsdoc.BaseDoc
-	PolicyType     PolicyType                           `json:"policyType"`
-	Status         PolicyStateStatus                    `json:"status"`
-	Message        string                               `json:"message"`
-	CertAadAppCred *PolicyStateCertAadAppCredDocSection `json:"certAadAppCred,omitempty"`
+	PolicyType PolicyType        `json:"policyType"`
+	Status     PolicyStateStatus `json:"status"`
+	Message    string            `json:"message"`
 }
 
 func (s *adminServer) GetPolicyStateDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyStateDoc, error) {
@@ -94,8 +92,6 @@ func (doc *PolicyDoc) ToPolicy() *Policy {
 	switch doc.PolicyType {
 	case PolicyTypeCertEnroll:
 		p.CertEnroll = doc.CertEnroll.toCertificateEnrollPolicyParameters()
-	case PolicyTypeCertAadAppClientCredential:
-		p.CertAadAppCred = doc.CertAadAppCred.toCertificateAadAppPolicyParameters()
 	}
 	return &p
 }

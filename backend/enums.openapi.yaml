@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Admin API Common Types
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    CertificateFieldVarNamespaceSelectorToken:
+      type: string
+      enum:
+        - "self"
+        - "caller"
+        - "request"
+        - "linked"
+      x-enum-varnames:
+        - CertFieldVar_NsSelector_Self
+        - CertFieldVar_NsSelector_Caller
+        - CertFieldVar_NsSelector_Request
+        - CertFieldVar_NsSelector_Linked
+    CertificateFieldVarAttribute:
+      type: string
+      enum:
+        - required
+      x-enum-varnames:
+        - CertFieldVarAttrRequired
+    CertificateFieldVarNameTokenCommon:
+      type: string
+      enum:
+        - "id"
+        - "path"
+        - "uri"
+      x-enum-varnames:
+        - CertFieldVar_Name_ID
+        - CertFieldVar_Name_Path
+        - CertFieldVar_Name_URI
+    CertificateFieldVarNameTokenRequest:
+      type: string
+      enum:
+        - "fqdn"
+      x-enum-varnames:
+        - CertFieldVar_Name_RequestFQDN

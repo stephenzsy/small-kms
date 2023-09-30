@@ -1188,20 +1188,6 @@ components:
         certBlob:
           description: Certificate link in Blob
           type: string
-    CertificateFingerprints:
-      type: object
-      properties:
-        sha256:
-          description: SHA256 fingerprint of the certificate
-          type: string
-          format: hex
-        sha1:
-          description: SHA256 fingerprint of the certificate
-          type: string
-          format: hex
-      required:
-        - sha256
-        - sha1
     CertificateInfo:
       type: object
       properties:
@@ -1242,25 +1228,6 @@ components:
         - content
         - template
         - issuerCertificate
-    CertificateIdentifier:
-      type: object
-      properties:
-        id:
-          description: ID of the issuer namespace
-          type: string
-          format: uuid
-          x-go-name: ID
-        type:
-          $ref: "#/components/schemas/CertificateIdentifierType"
-      required:
-        - id
-    CertificateAadAppCredPolicyParameters:
-      type: object
-      properties:
-        certificateIdentifier:
-          $ref: "#/components/schemas/CertificateIdentifier"
-      required:
-        - certificateIdentifier
     CertificateEnrollPolicyParameters:
       type: object
       properties:
@@ -1285,8 +1252,6 @@ components:
           $ref: "#/components/schemas/CertificateRequestPolicyParameters"
         certEnroll:
           $ref: "#/components/schemas/CertificateEnrollPolicyParameters"
-        certAadAppCred:
-          $ref: "#/components/schemas/CertificateAadAppCredPolicyParameters"
       required:
         - policyType
     PolicyRef:

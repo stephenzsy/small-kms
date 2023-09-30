@@ -59,45 +59,6 @@ func (s *adminServer) readCertDoc(ctx context.Context, nsID uuid.UUID, docID kms
 	return doc, err
 }
 
-func (identifier *CertificateIdentifier) docID() kmsdoc.KmsDocID {
-	if identifier == nil {
-		return kmsdoc.NewKmsDocID(kmsdoc.DocTypeUnknown, uuid.Nil)
-	}
-	if identifier.Type != nil {
-		switch *identifier.Type {
-		case CertIdTypePolicyId:
-			return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, identifier.ID)
-		}
-	}
-	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, identifier.ID)
-}
-
-func docIDtoCertIdentifier(id kmsdoc.KmsDocID) CertificateIdentifier {
-	switch id.GetType() {
-	case kmsdoc.DocTypeLatestCertForPolicy:
-		return CertificateIdentifier{
-			ID:   id.GetUUID(),
-			Type: ToPtr(CertIdTypePolicyId),
-		}
-	case kmsdoc.DocTypeCert:
-		return CertificateIdentifier{
-			ID:   id.GetUUID(),
-			Type: ToPtr(CertIdTypeCertId),
-		}
-	}
-	return CertificateIdentifier{
-		ID: id.GetUUID(),
-	}
-}
-
-// deprecated
-func (s *adminServer) getCertDoc(c context.Context, namespaceID uuid.UUID, id kmsdoc.KmsDocID) (*CertDoc, error) {
-	pd := new(CertDoc)
-	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
-		id, pd)
-	return pd, err
-}
-
 func (d *CertDoc) GetCUID() kmsdoc.KmsDocID {
 	if d.AliasID != nil {
 		return *d.AliasID

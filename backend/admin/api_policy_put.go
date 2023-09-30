@@ -81,12 +81,6 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("policy can only be registered on application: %s", namespaceID)})
 			return
 		}
-		docSection := new(PolicyCertAadAppCredDocSection)
-		if err := docSection.validateAndFillWithParameters(p.CertAadAppCred); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-			return
-		}
-		policyDoc.CertAadAppCred = docSection
 	default:
 		c.JSON(http.StatusBadRequest, nil)
 		return
