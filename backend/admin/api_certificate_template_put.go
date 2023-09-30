@@ -107,7 +107,7 @@ func validateCertFieldForVariable(s *string) (*common.CertificateFieldVar, bool,
 	*s = strings.TrimSpace(*s)
 	if strings.HasPrefix(*s, "{{") && strings.HasSuffix(*s, "}}") {
 		// try parse variable
-		parsed, err := common.ParseCertificateFieldVar(*s)
+		parsed, err := common.ParseCertificateFieldVar((*s)[2 : len(*s)-2])
 		return &parsed, true, err
 	}
 	return nil, false, nil
@@ -147,7 +147,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 		doc.Usage = UsageRootCA
 		doc.ValidityInMonths = 120 // default 10 years
 	case NSTypeIntCA:
-		if !isAllowedIntCaNamespace(p.Issuer.NamespaceID) {
+		if !isAllowedRootCaNamespace(p.Issuer.NamespaceID) {
 			return nil, fmt.Errorf("intermediate ca issuer namespace ID %s is not a root ca namespace ID", p.Issuer.NamespaceID)
 		}
 		if isTestCA(nsID) && !isTestCA(p.Issuer.NamespaceID) {
@@ -221,10 +221,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.O); err != nil {
 		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject O", err)
 	}
-	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.C); err != nil {
-		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject C", err)
-	}
-	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames, true); err != nil {
+	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames); err != nil {
 		return nil, err
 	}
 

@@ -43,8 +43,8 @@ func isAllowedCaNamespace(namespaceID uuid.UUID) bool {
 }
 
 var testCaIDs = map[uuid.UUID]bool{
-	common.WellKnownID_RootCA:    true,
-	common.WellKnownID_TestIntCA: true,
+	common.WellKnownID_TestRootCA: true,
+	common.WellKnownID_TestIntCA:  true,
 }
 
 func isTestCA(namespaceID uuid.UUID) bool {

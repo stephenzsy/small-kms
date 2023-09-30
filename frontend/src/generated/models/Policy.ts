@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { CertificateAadAppCredPolicyParameters } from './CertificateAadAppCredPolicyParameters';
-import {
-    CertificateAadAppCredPolicyParametersFromJSON,
-    CertificateAadAppCredPolicyParametersFromJSONTyped,
-    CertificateAadAppCredPolicyParametersToJSON,
-} from './CertificateAadAppCredPolicyParameters';
 import type { CertificateEnrollPolicyParameters } from './CertificateEnrollPolicyParameters';
 import {
     CertificateEnrollPolicyParametersFromJSON,
@@ -92,12 +86,6 @@ export interface Policy {
      * @memberof Policy
      */
     certEnroll?: CertificateEnrollPolicyParameters;
-    /**
-     * 
-     * @type {CertificateAadAppCredPolicyParameters}
-     * @memberof Policy
-     */
-    certAadAppCred?: CertificateAadAppCredPolicyParameters;
 }
 
 /**
@@ -132,7 +120,6 @@ export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Po
         'policyType': PolicyTypeFromJSON(json['policyType']),
         'certRequest': !exists(json, 'certRequest') ? undefined : CertificateRequestPolicyParametersFromJSON(json['certRequest']),
         'certEnroll': !exists(json, 'certEnroll') ? undefined : CertificateEnrollPolicyParametersFromJSON(json['certEnroll']),
-        'certAadAppCred': !exists(json, 'certAadAppCred') ? undefined : CertificateAadAppCredPolicyParametersFromJSON(json['certAadAppCred']),
     };
 }
 
@@ -153,7 +140,6 @@ export function PolicyToJSON(value?: Policy | null): any {
         'policyType': PolicyTypeToJSON(value.policyType),
         'certRequest': CertificateRequestPolicyParametersToJSON(value.certRequest),
         'certEnroll': CertificateEnrollPolicyParametersToJSON(value.certEnroll),
-        'certAadAppCred': CertificateAadAppCredPolicyParametersToJSON(value.certAadAppCred),
     };
 }
 

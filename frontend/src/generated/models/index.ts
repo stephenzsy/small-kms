@@ -1,11 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './ApplyPolicyRequest';
-export * from './CertificateAadAppCredPolicyParameters';
 export * from './CertificateEnrollPolicyParameters';
 export * from './CertificateEnrollRequest';
-export * from './CertificateFingerprints';
-export * from './CertificateIdentifier';
 export * from './CertificateIdentifierType';
 export * from './CertificateInfo';
 export * from './CertificateIssuer';

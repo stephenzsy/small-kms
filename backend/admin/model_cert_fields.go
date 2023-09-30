@@ -16,6 +16,8 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 func sanitizeStringArray(ptr *[]string) {
@@ -34,74 +36,116 @@ func sanitizeStringArray(ptr *[]string) {
 		}
 	}
 	if len(trimmed) > 0 {
-		slices.Sort(trimmed)
+		slices.SortFunc(trimmed, func(a, b string) int {
+			return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
+		})
 		*ptr = trimmed
 	}
 }
 
-func sanitizeStringArrayWithParse[D any](ptr *[]string, parsed *[]D, parse func(string) (D, error)) error {
-	if *ptr == nil {
-		return nil
+type parsedSan[D net.IP | *url.URL] struct {
+	StringValue string
+	Parsed      D
+	Variable    *common.CertificateFieldVar
+}
+
+func sanitizeStringArrayWithParse[D net.IP | *url.URL](ptr *[]string, parseFunc func(string) (parsedSan[D], error), sortFunc func(a, b parsedSan[D]) int) ([]parsedSan[D], error) {
+	n := len(*ptr)
+	if ptr == nil || n == 0 {
+		*ptr = nil
+		return nil, nil
 	}
-	if len(*ptr) <= 0 {
-		ptr = nil
-		return nil
-	}
-	v := make([]string, 0, len(*ptr))
-	vp := make([]D, 0, len(*ptr))
+	rslice := make([]parsedSan[D], 0, n)
+	dedup := make(map[string]bool)
 	for _, s := range *ptr {
 		s = strings.TrimSpace(s)
-		if vs, err := parse(s); err == nil {
-			vp = append(vp, vs)
-			v = append(v, s)
-		} else {
-			return err
+		if len(s) == 0 {
+			continue
+		}
+		if item, err := parseFunc(s); err != nil {
+			return nil, err
+		} else if !dedup[item.StringValue] {
+			dedup[item.StringValue] = true
+			rslice = append(rslice, item)
 		}
 	}
-	if len(v) > 0 {
-		slices.Sort(v)
-		*ptr = v
-		*parsed = vp
-	} else {
+	if len(rslice) == 0 {
 		*ptr = nil
-		*parsed = nil
+		return nil, nil
 	}
-	return nil
+	slices.SortFunc(rslice, sortFunc)
+	sortedStringSlice := make([]string, len(rslice))
+	for i, item := range rslice {
+		sortedStringSlice[i] = item.StringValue
+	}
+	*ptr = sortedStringSlice
+	return rslice, nil
 }
 
 type SANsSanitized struct {
 	CertificateSubjectAlternativeNames
-	parsedIPAddresses []net.IP
-	parsedURLs        []*url.URL
+	parsedIPAddresses []parsedSan[net.IP]
+	parsedURLs        []parsedSan[*url.URL]
 }
 
-func sanitizeSANs(sans *CertificateSubjectAlternativeNames, allowVariables bool) (*SANsSanitized, error) {
+func parseSanIPAddr(s string) (p parsedSan[net.IP], err error) {
+	p.Parsed = net.ParseIP(s)
+	if p.Parsed == nil {
+		err = fmt.Errorf("invalid ip address: %s", s)
+		return
+	}
+	p.StringValue = p.Parsed.String()
+	return
+}
+
+func parseSanURL(s string) (p parsedSan[*url.URL], err error) {
+	p.Parsed, err = url.Parse(s)
+	if err != nil {
+		return
+	}
+	p.StringValue = p.Parsed.String()
+	return
+}
+
+func parseSanURLWithVariable(s string) (p parsedSan[*url.URL], err error) {
+	v, isVar, err := validateCertFieldForVariable(&s)
+	if err != nil {
+		return
+	}
+	if isVar {
+		p.Parsed = nil
+		p.StringValue = s
+		p.Variable = v
+		return
+	}
+	return parseSanURL(s)
+}
+
+func sanitizeSANs(sans *CertificateSubjectAlternativeNames) (*SANsSanitized, error) {
 	if sans == nil {
 		return nil, nil
 	}
-	var parsedIPAddresses []net.IP
-	var parsedURLs []*url.URL
+
 	sanitizeStringArray(&sans.DNSNames)
 	sanitizeStringArray(&sans.EmailAddresses)
-	err := sanitizeStringArrayWithParse[net.IP](&sans.IPAddresses, &parsedIPAddresses, func(s string) (ip net.IP, err error) {
-		ip = net.ParseIP(s)
-		if ip == nil {
-			err = fmt.Errorf("invalid ip address: %s", s)
-		}
-		return
-	})
+
+	parsedIPAddresses, err := sanitizeStringArrayWithParse[net.IP](&sans.IPAddresses,
+		parseSanIPAddr, func(a, b parsedSan[net.IP]) int {
+			// ipv4 before ipv6
+			lenDiff := len(a.Parsed) - len(b.Parsed)
+			if lenDiff != 0 {
+				return lenDiff
+			}
+			return slices.Compare(a.Parsed, b.Parsed)
+		})
+
 	if err != nil {
 		return nil, err
 	}
-	err = sanitizeStringArrayWithParse[*url.URL](&sans.URIs, &parsedURLs, func(s string) (*url.URL, error) {
-		if allowVariables {
-			_, isVar, err := validateCertFieldForVariable(&s)
-			if isVar {
-				return nil, err
-			}
-		}
-		return url.Parse(s)
-	})
+	parsedURLs, err := sanitizeStringArrayWithParse[*url.URL](&sans.URIs,
+		parseSanURLWithVariable, func(a, b parsedSan[*url.URL]) int {
+			return strings.Compare(a.StringValue, b.StringValue)
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -128,14 +172,36 @@ func (a *SANsSanitized) Equals(b *SANsSanitized) bool {
 		slices.Equal(a.URIs, b.URIs)
 }
 
-func (sans *SANsSanitized) populateCertificate(cert *x509.Certificate) {
+func (sans *SANsSanitized) populateCertificate(cert *x509.Certificate, variableValues map[string]string) (err error) {
 	if sans == nil {
 		return
 	}
 	cert.DNSNames = sans.DNSNames
 	cert.EmailAddresses = sans.EmailAddresses
-	cert.IPAddresses = sans.parsedIPAddresses
-	cert.URIs = sans.parsedURLs
+	// reparse
+	cert.IPAddresses, err = common.SliceMapWithError(sans.IPAddresses, func(s string) (net.IP, error) {
+		p, err := parseSanIPAddr(s)
+		return p.Parsed, err
+	})
+	if err != nil {
+		return
+	}
+	cert.URIs, err = common.SliceMapWithError(sans.URIs, func(s string) (*url.URL, error) {
+		p, err := parseSanURL(s)
+		if err != nil {
+			return nil, err
+		}
+		if p.Variable != nil {
+			// make subsitution, and redo parsing
+			s, err = p.Variable.Substitute(variableValues)
+			if err != nil {
+				return nil, err
+			}
+			p, err = parseSanURL(s)
+		}
+		return p.Parsed, err
+	})
+	return
 }
 
 func (p *JwkProperties) populateBriefFromCertificate(c *x509.Certificate) {

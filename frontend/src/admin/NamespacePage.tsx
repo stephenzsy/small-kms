@@ -14,6 +14,21 @@ import { useRequest } from "ahooks";
 import { RefsTable } from "./RefsTable";
 import { useMemo } from "react";
 import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
+import { v5 as uuidv5 } from "uuid";
+interface CreateDefaultLinkItem {
+  id: string;
+  title: string;
+}
+
+const groupSpDefaultTemplateName =
+  "default-service-principal-client-credential";
+
+function getGroupDefaultTemplateId(name: string) {
+  return uuidv5(
+    `https://example.com/#microsoft.graph.group/certificate-templates/${name}`,
+    uuidv5.URL
+  );
+}
 
 function CertificateTemplatesList({
   nsType,
@@ -35,25 +50,45 @@ function CertificateTemplatesList({
     }
   );
 
-  const showCreateDefault = useMemo(() => {
-    return !!data && !data.some((d) => d.id === uuidNil);
-  }, [data]);
+  const createDefaultLinkItems = useMemo<CreateDefaultLinkItem[]>(() => {
+    switch (nsType) {
+      case NamespaceTypeShortName.NSType_RootCA:
+      case NamespaceTypeShortName.NSType_IntCA:
+      case NamespaceTypeShortName.NSType_ServicePrincipal:
+        return [
+          { id: uuidNil, title: "Create/update default certificate template" },
+        ];
+      case NamespaceTypeShortName.NSType_Group:
+        const spTemplateId = getGroupDefaultTemplateId(
+          groupSpDefaultTemplateName
+        );
+        return [
+          {
+            id: spTemplateId,
+            title:
+              "Create/update default credential template - service principal AAD client credential",
+          },
+        ];
+    }
+    return [];
+  }, [data, nsType, namespaceId]);
 
   return (
     <RefsTable
       items={data}
       title="Certificate Templates"
       tableActions={
-        showCreateDefault && (
-          <div>
+        <div className="flex gap-4">
+          {createDefaultLinkItems.map((item, i) => (
             <Link
-              to={`/admin/${nsType}/${namespaceId}/certificate-templates/${uuidNil}`}
+              key={item.id}
+              to={`/admin/${nsType}/${namespaceId}/certificate-templates/${item.id}`}
               className="text-indigo-600 hover:text-indigo-900"
             >
-              Create Default Certificate Template
+              {item.title}
             </Link>
-          </div>
-        )
+          ))}
+        </div>
       }
       itemTitleMetadataKey="displayName"
       refActions={(ref) => (

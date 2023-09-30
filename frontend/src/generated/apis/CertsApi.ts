@@ -40,11 +40,6 @@ export interface GetCertificateV1Request {
     format?: GetCertificateV1FormatEnum;
 }
 
-export interface ListCertificatesV1Request {
-    namespaceId: string;
-    policyId?: string;
-}
-
 /**
  * 
  */
@@ -142,48 +137,6 @@ export class CertsApi extends runtime.BaseAPI {
      */
     async getCertificateV1(requestParameters: GetCertificateV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRef> {
         const response = await this.getCertificateV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List certificates
-     */
-    async listCertificatesV1Raw(requestParameters: ListCertificatesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificatesV1.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.policyId !== undefined) {
-            queryParameters['policyId'] = requestParameters.policyId;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceId}/certificates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRefFromJSON));
-    }
-
-    /**
-     * List certificates
-     */
-    async listCertificatesV1(requestParameters: ListCertificatesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
-        const response = await this.listCertificatesV1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -11,6 +11,8 @@ var (
 	ErrInvalidCertificateFieldVarSyntax    = errors.New("invalid certificate field variable syntax")
 	ErrInvalidCertificateFieldVarSelector  = errors.New("invalid certificate field variable selector")
 	ErrInvalidCertificateFieldVarName      = errors.New("invalid certificate field variable name")
+
+	ErrCertificateFieldVarRequired = errors.New("certificate field variable is required")
 )
 
 type CertificateFieldVar struct {
@@ -18,6 +20,14 @@ type CertificateFieldVar struct {
 	Selector    CertificateFieldVarNamespaceSelectorToken
 	Subselector string
 	Name        string
+}
+
+func (v *CertificateFieldVar) FullVariableKey() string {
+	var s string = string(v.Selector)
+	if len(v.Subselector) > 0 {
+		s += "." + v.Subselector
+	}
+	return s + "." + v.Name
 }
 
 func (v *CertificateFieldVar) parseIdentifier(s string) error {
@@ -86,4 +96,16 @@ func ParseCertificateFieldVar(s string) (v CertificateFieldVar, err error) {
 	}
 	err = v.parseAttributes(s_attributes)
 	return
+}
+
+func (v *CertificateFieldVar) Substitute(variableValues map[string]string) (string, error) {
+	key := v.FullVariableKey()
+	var value string
+	if variableValues != nil {
+		value = variableValues[key]
+	}
+	if len(value) == 0 && v.Required {
+		return value, fmt.Errorf("%w: %s", ErrCertificateFieldVarRequired, key)
+	}
+	return value, nil
 }

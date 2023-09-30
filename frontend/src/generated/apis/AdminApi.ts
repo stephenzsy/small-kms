@@ -37,6 +37,14 @@ import {
     ServicePrincipalLinkedDeviceToJSON,
 } from '../models';
 
+export interface CreateCertificateV2Request {
+    namespaceType: NamespaceTypeShortName;
+    namespaceId: string;
+    templateId: string;
+    certId: string;
+    includeCertificate?: CreateCertificateV2IncludeCertificateEnum;
+}
+
 export interface GetCertificateTemplateV2Request {
     namespaceType: NamespaceTypeShortName;
     namespaceId: string;
@@ -48,7 +56,6 @@ export interface GetCertificateV2Request {
     namespaceId: string;
     templateId: string;
     certId: string;
-    apply?: boolean;
     includeCertificate?: GetCertificateV2IncludeCertificateEnum;
 }
 
@@ -83,6 +90,60 @@ export interface PutCertificateTemplateV2Request {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Create certificate
+     */
+    async createCertificateV2Raw(requestParameters: CreateCertificateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
+        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
+            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling createCertificateV2.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createCertificateV2.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling createCertificateV2.');
+        }
+
+        if (requestParameters.certId === null || requestParameters.certId === undefined) {
+            throw new runtime.RequiredError('certId','Required parameter requestParameters.certId was null or undefined when calling createCertificateV2.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.includeCertificate !== undefined) {
+            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))).replace(`{${"certId"}}`, encodeURIComponent(String(requestParameters.certId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Create certificate
+     */
+    async createCertificateV2(requestParameters: CreateCertificateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
+        const response = await this.createCertificateV2Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get certificate template
@@ -151,10 +212,6 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.apply !== undefined) {
-            queryParameters['apply'] = requestParameters.apply;
-        }
 
         if (requestParameters.includeCertificate !== undefined) {
             queryParameters['includeCertificate'] = requestParameters.includeCertificate;
@@ -411,6 +468,14 @@ export class AdminApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const CreateCertificateV2IncludeCertificateEnum = {
+    IncludeJWK: 'jwk',
+    IncludePEM: 'pem'
+} as const;
+export type CreateCertificateV2IncludeCertificateEnum = typeof CreateCertificateV2IncludeCertificateEnum[keyof typeof CreateCertificateV2IncludeCertificateEnum];
 /**
  * @export
  */

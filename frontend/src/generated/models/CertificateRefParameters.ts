@@ -62,24 +62,6 @@ export interface CertificateRefParameters {
      * @memberof CertificateRefParameters
      */
     createdBy: string;
-    /**
-     * X.509 certificate chain
-     * @type {Array<string>}
-     * @memberof CertificateRefParameters
-     */
-    x5c?: Array<string>;
-    /**
-     * PEM encoded certificate chain
-     * @type {string}
-     * @memberof CertificateRefParameters
-     */
-    pem?: string;
-    /**
-     * X.509 certificate thumbprint
-     * @type {string}
-     * @memberof CertificateRefParameters
-     */
-    x5t?: string;
 }
 
 /**
@@ -113,9 +95,6 @@ export function CertificateRefParametersFromJSONTyped(json: any, ignoreDiscrimin
         'issuerNamespace': json['issuerNamespace'],
         'issuer': json['issuer'],
         'createdBy': json['createdBy'],
-        'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
-        'pem': !exists(json, 'pem') ? undefined : json['pem'],
-        'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
     };
 }
 
@@ -134,9 +113,6 @@ export function CertificateRefParametersToJSON(value?: CertificateRefParameters 
         'issuerNamespace': value.issuerNamespace,
         'issuer': value.issuer,
         'createdBy': value.createdBy,
-        'x5c': value.x5c,
-        'pem': value.pem,
-        'x5t': value.x5t,
     };
 }
 

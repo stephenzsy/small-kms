@@ -29,7 +29,7 @@ type keyVaultSigner struct {
 	sigAlg     azkeys.SignatureAlgorithm
 }
 
-func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azkeys.JSONWebKey) (signer *keyVaultSigner, err error) {
+func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azkeys.JSONWebKey, preferredRsaSigAlg azkeys.SignatureAlgorithm) (signer *keyVaultSigner, err error) {
 	signer = &keyVaultSigner{
 		ctx:        ctx,
 		keysClient: keysClient,
@@ -42,6 +42,12 @@ func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azke
 	switch *jwk.Kty {
 	case azkeys.KeyTypeRSA:
 		signer.sigAlg = azkeys.SignatureAlgorithmRS384
+		switch preferredRsaSigAlg {
+		case azkeys.SignatureAlgorithmRS256:
+			signer.sigAlg = azkeys.SignatureAlgorithmRS256
+		case azkeys.SignatureAlgorithmRS512:
+			signer.sigAlg = azkeys.SignatureAlgorithmRS512
+		}
 	case azkeys.KeyTypeEC:
 		switch *jwk.Crv {
 		case azkeys.CurveNameP256:

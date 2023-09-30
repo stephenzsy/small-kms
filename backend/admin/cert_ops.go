@@ -44,6 +44,16 @@ func (b *certificateSigner) SignatureAlgorithm() x509.SignatureAlgorithm {
 	return x509.UnknownSignatureAlgorithm
 }
 
+func (alg JwkAlg) toAzKeysSignatureAlgorithm() azkeys.SignatureAlgorithm {
+	switch alg {
+	case AlgRS256:
+		return azkeys.SignatureAlgorithmRS256
+	case AlgRS512:
+		return azkeys.SignatureAlgorithmRS512
+	}
+	return azkeys.SignatureAlgorithmRS384
+}
+
 func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
 	tdoc *CertificateTemplateDoc, cert *x509.Certificate) (*certificateSigner, error) {
 	signer := certificateSigner{}
@@ -53,7 +63,8 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 		if err != nil {
 			return nil, err
 		}
-		signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key)
+		signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
+			tdoc.KeyProperties.Alg.toAzKeysSignatureAlgorithm())
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +101,8 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 			if err != nil {
 				return nil, err
 			}
-			signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key)
+			signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
+				tdoc.KeyProperties.Alg.toAzKeysSignatureAlgorithm())
 			if err != nil {
 				return nil, err
 			}
@@ -116,7 +128,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 
 // (nsType/nsID) must be verified prior to calling this function
 func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	t *CertificateTemplateDoc, certID uuid.UUID) (*CertDoc, []byte, error) {
+	t *CertificateTemplateDoc, certID uuid.UUID, variableValues map[string]string) (*CertDoc, []byte, error) {
 
 	// prep certificate
 	if certID == uuid.Nil {
@@ -135,7 +147,10 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 		NotBefore:    now,
 		NotAfter:     now.AddDate(0, int(t.ValidityInMonths), 0),
 	}
-	t.SubjectAlternativeNames.populateCertificate(&c)
+	err := t.SubjectAlternativeNames.populateCertificate(&c, variableValues)
+	if err != nil {
+		return nil, nil, err
+	}
 	if nsType == NSTypeRootCA {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign

@@ -10,6 +10,13 @@ func ToPtr[T any](v T) *T {
 	return &v
 }
 
+func ToOptionalStringPtr(s string) *string {
+	if len(s) == 0 {
+		return nil
+	}
+	return &s
+}
+
 func base64UrlToHexStr(s string) string {
 	if b, err := base64.URLEncoding.DecodeString(s); err == nil {
 		return hex.EncodeToString(b)

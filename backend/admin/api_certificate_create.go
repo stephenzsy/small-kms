@@ -136,7 +136,7 @@ func (s *adminServer) CreateCertificateV2(c *gin.Context, nsType NamespaceTypeSh
 		}
 
 		// create certificate
-		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, certID)
+		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, certID, nil)
 		if err != nil {
 			if common.IsAzNotFound(err) {
 				respondPublicError(c, http.StatusNotFound, err)
