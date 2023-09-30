@@ -7,7 +7,7 @@ servers:
     description: Local server
 paths:
   /v2/device/{namespaceId}/link-service-principal:
-    parameters:      
+    parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
     get:
       tags:
@@ -28,7 +28,7 @@ paths:
                 $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
   /v2/{namespaceType}:
     parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"    
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
     get:
       tags:
         - admin
@@ -84,6 +84,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+  /v2/group/{namespaceId}/certificate-templates/{templateId}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
+      - in: query
+        name: onBeHalfOf
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - admin
+      summary: Put certificate template
+      operationId: BeginEnrollCertificateV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateEnrollmentRequest"
+        required: true
+      responses:
+        201:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateEnrollmentReceipt"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"
@@ -92,16 +119,39 @@ paths:
     get:
       tags:
         - admin
-      summary: List certificates
-      operationId: ListCertificatesV2
+      summary: List certificates issued by template
+      operationId: ListCertificatesByTemplateV2
       responses:
         200:
           $ref: "#/components/responses/RefListResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId}:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+      tags:
+        - admin
+      summary: Create certificate
+      operationId: IssueCertificateByTemplateV2
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/latest:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/TemplateIdParameter"
+      - $ref: "#/components/parameters/IncludeCertificateParameter"
+    get:
+      tags:
+        - admin
+      summary: Get certificate
+      operationId: GetLatestCertificateByTemplateV2
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+  /v2/{namespaceType}/{namespaceId}/certificates/{certId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertIdParameter"
       - $ref: "#/components/parameters/IncludeCertificateParameter"
     get:
@@ -111,23 +161,21 @@ paths:
       operationId: GetCertificateV2
       responses:
         200:
-          description: CertificateResponse
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateInfo"
+          $ref: "#/components/responses/CertificateResponse"
+  /v2/{namespaceType}/{namespaceId}/certificates/{certId}/pending:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertIdParameter"
+      - $ref: "#/components/parameters/IncludeCertificateParameter"
     post:
       tags:
         - admin
-      summary: Create certificate
-      operationId: CreateCertificateV2
+      summary: complete certificate enrollment
+      operationId: CompleteCertificateEnrollmentV2
       responses:
         200:
-          description: CertificateResponse
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateInfo"
+          $ref: "#/components/responses/CertificateResponse"
   /v2/{namespaceType}/{namespaceId}/graph-sync:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"
@@ -144,46 +192,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NamespaceInfo"
-  /v1/{namespaceId}/certificates/{id}:
-    get:
-      tags:
-        - certs
-      summary: Get certificate
-      operationId: GetCertificateV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: path
-          name: id
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: query
-          name: byType
-          schema:
-            $ref: "#/components/schemas/CertificateIdentifierType"
-        - in: query
-          name: format
-          schema:
-            type: string
-            enum:
-              - jwk
-              - pem
-            x-enum-varnames:
-              - FormatJWK
-              - FormatPEM
-      responses:
-        "200":
-          description: Get certificate response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRef"
   # /v1/{namespaceId}/hasPermission/{permissionKey}:
   #   parameters:
   #     - in: path
@@ -508,32 +516,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RequestDiagnostics"
-  /v1/certificates/enroll/{targetId}:
-    post:
-      tags:
-        - certs
-      summary: Enroll certificate
-      operationId: EnrollCertificateV1
-      parameters:
-        - in: path
-          name: targetId
-          schema:
-            type: string
-            format: uuid
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateEnrollRequest"
-        required: true
-      responses:
-        200:
-          description: Enroll certificate response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRef"
 security:
   - BearerAuth: []
 components:
@@ -561,14 +543,14 @@ components:
       schema:
         type: string
         format: uuid
-      required: true      
+      required: true
     CertIdParameter:
       in: path
       name: certId
       schema:
         type: string
         format: uuid
-      required: true    
+      required: true
     IncludeCertificateParameter:
       in: query
       name: "includeCertificate"
@@ -716,6 +698,46 @@ components:
           required:
             - ref
         - $ref: "#/components/schemas/CertificateTemplateParameters"
+    CertificateEnrollmentRequest:
+      type: object
+      properties:
+        fqdn:
+          description: Fully qualified domain name to be used in the certificate
+          type: string
+    CertificateEnrollmentReceipt:
+      type: object
+      properties:
+        ref:
+          $ref: "#/components/schemas/RefWithMetadata"
+        jwtPayload:
+          description: payload section of the certificate claims, in JWT format, base64url encoded
+          type: string
+        templateId:
+          description: Consistent derived ID (UUID v5) of the certificate template
+          type: string
+          format: uuid
+          x-go-name: TemplateID
+      required:
+        - ref
+        - payload
+    CertificateEnrollmentReplyFinalize:
+      type: object
+      properties:
+        jwtHeader:
+          description: header section of the certificate claims, in JWT format, base64url encoded
+          type: string
+        jwtSignature:
+          description:
+            signature section of the jwt, serves as proof of confirmation finalize the enrollment and being issued a certificate,
+            with header and signature, signed with the key pair with the public key in the same request
+          type: string
+        publicKey:
+          description: Public key in JWK format to be used to for certificate signing
+          $ref: "#/components/schemas/JwkProperties"
+      required:
+        - jwtHeader
+        - jwtSignature
+        - publicKey
     NamespaceType:
       type: string
       enum:
@@ -866,10 +888,8 @@ components:
       type: string
       enum:
         - certEnroll
-        - certAadAppCred
       x-enum-varnames:
         - PolicyType_CertEnroll
-        - PolicyType_CertAadAppClientCredential
     ResourceRef:
       type: object
       properties:
@@ -1034,7 +1054,7 @@ components:
       x-go-name: KeyOp
     JwkProperties:
       type: object
-      description: Property bag of JSON Web Key (RFC 7517) with additional fields
+      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
       properties:
         alg:
           $ref: "#/components/schemas/JwkAlg"
@@ -1048,21 +1068,17 @@ components:
         n:
           description: RSA modulus
           type: string
-          format: byteurl
         e:
           description: RSA exponent
           type: string
-          format: byteurl
         crv:
           $ref: "#/components/schemas/CurveName"
         x:
           description: EC x coordinate
           type: string
-          format: byteurl
         y:
           description: EC y coordinate
           type: string
-          format: byteurl
         kid:
           description: Key ID
           type: string
@@ -1076,18 +1092,15 @@ components:
           type: array
           items:
             type: string
-            format: byteurl
           x-go-name: CertificateChain
           x-go-type-skip-optional-pointer: true
         x5t:
           description: X.509 certificate SHA-1 thumbprint
           type: string
-          format: byteurl
           x-go-name: CertificateThumbprint
         x5t#S256:
           description: X.509 certificate SHA-256 thumbprint
           type: string
-          format: byteurl
           x-go-name: CertificateThumbprintSHA256
       required:
         - kty
@@ -1100,36 +1113,6 @@ components:
         signature:
           type: string
           format: byte
-    CertificateEnrollRequest:
-      type: object
-      properties:
-        issuer:
-          $ref: "#/components/schemas/CertificateIssuerParameters"
-        issueToUser:
-          type: boolean
-        policyId:
-          description: ID of the policy to use for certificate enrollment
-          type: string
-          format: uuid
-          x-go-name: PolicyID
-        publicKey:
-          $ref: "#/components/schemas/JwkProperties"
-        targetFqdn:
-          type: string
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
-        renew:
-          $ref: "#/components/schemas/CertificateRenewalParameters"
-        validity_months:
-          x-go-name: ValidityInMonths
-          type: integer
-          format: int32
-      required:
-        - issuer
-        - policyId
-        - publicKey
-        - usage
-        - validity_months
     CertificateIssuerParameters:
       type: object
       properties:
@@ -1365,6 +1348,12 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/RefWithMetadata"
+    CertificateResponse:
+      description: CertificateResponse
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificateInfo"
     GenericResponse:
       description: generic response
       content:

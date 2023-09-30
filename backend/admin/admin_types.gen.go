@@ -15,12 +15,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for CertificateIdentifierType.
-const (
-	CertIdTypeCertId   CertificateIdentifierType = "certId"
-	CertIdTypePolicyId CertificateIdentifierType = "policyId"
-)
-
 // Defines values for CertificateUsage.
 const (
 	UsageAADClientCredential CertificateUsage = "aad-client-credential"
@@ -94,8 +88,7 @@ const (
 
 // Defines values for PolicyType.
 const (
-	PolicyTypeCertAadAppClientCredential PolicyType = "certAadAppCred"
-	PolicyTypeCertEnroll                 PolicyType = "certEnroll"
+	PolicyTypeCertEnroll PolicyType = "certEnroll"
 )
 
 // Defines values for RefType.
@@ -107,14 +100,14 @@ const (
 
 // Defines values for IncludeCertificateParameter.
 const (
-	IncludeJWK IncludeCertificateParameter = "jwk"
-	IncludePEM IncludeCertificateParameter = "pem"
+	IncludeCertificateParameterIncludeJWK IncludeCertificateParameter = "jwk"
+	IncludeCertificateParameterIncludePEM IncludeCertificateParameter = "pem"
 )
 
-// Defines values for GetCertificateV1ParamsFormat.
+// Defines values for IssueCertificateByTemplateV2ParamsIncludeCertificate.
 const (
-	FormatJWK GetCertificateV1ParamsFormat = "jwk"
-	FormatPEM GetCertificateV1ParamsFormat = "pem"
+	IssueCertificateByTemplateV2ParamsIncludeCertificateIncludeJWK IssueCertificateByTemplateV2ParamsIncludeCertificate = "jwk"
+	IssueCertificateByTemplateV2ParamsIncludeCertificateIncludePEM IssueCertificateByTemplateV2ParamsIncludeCertificate = "pem"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -132,24 +125,21 @@ type CertificateEnrollPolicyParameters struct {
 	MaxValidityInMonths int32              `json:"maxValidityInMonths"`
 }
 
-// CertificateEnrollRequest defines model for CertificateEnrollRequest.
-type CertificateEnrollRequest struct {
-	IssueToUser *bool                       `json:"issueToUser,omitempty"`
-	Issuer      CertificateIssuerParameters `json:"issuer"`
+// CertificateEnrollmentReceipt defines model for CertificateEnrollmentReceipt.
+type CertificateEnrollmentReceipt struct {
+	// JwtPayload payload section of the certificate claims, in JWT format, base64url encoded
+	JwtPayload *string         `json:"jwtPayload,omitempty"`
+	Ref        RefWithMetadata `json:"ref"`
 
-	// PolicyId ID of the policy to use for certificate enrollment
-	PolicyID openapi_types.UUID `json:"policyId"`
-
-	// PublicKey Property bag of JSON Web Key (RFC 7517) with additional fields
-	PublicKey        JwkProperties                 `json:"publicKey"`
-	Renew            *CertificateRenewalParameters `json:"renew,omitempty"`
-	TargetFqdn       *string                       `json:"targetFqdn,omitempty"`
-	Usage            CertificateUsage              `json:"usage"`
-	ValidityInMonths int32                         `json:"validity_months"`
+	// TemplateId Consistent derived ID (UUID v5) of the certificate template
+	TemplateID *openapi_types.UUID `json:"templateId,omitempty"`
 }
 
-// CertificateIdentifierType defines model for CertificateIdentifierType.
-type CertificateIdentifierType string
+// CertificateEnrollmentRequest defines model for CertificateEnrollmentRequest.
+type CertificateEnrollmentRequest struct {
+	// Fqdn Fully qualified domain name to be used in the certificate
+	Fqdn *string `json:"fqdn,omitempty"`
+}
 
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo struct {
@@ -157,7 +147,7 @@ type CertificateInfo struct {
 	CommonName        string `json:"commonName"`
 	IssuerCertificate Ref    `json:"issuerCertificate"`
 
-	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields
+	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	Jwk *JwkProperties `json:"jwk,omitempty"`
 
 	// NotAfter Expiration date of the certificate
@@ -195,44 +185,6 @@ type CertificateIssuerParameters struct {
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
-}
-
-// CertificateRef defines model for CertificateRef.
-type CertificateRef struct {
-	// CreatedBy Unique ID of the user who created the certificate
-	CreatedBy string `json:"createdBy"`
-
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-
-	// Issuer Issuer certificate ID
-	Issuer openapi_types.UUID `json:"issuer"`
-
-	// IssuerNamespace Issuer namespace ID
-	IssuerNamespace openapi_types.UUID `json:"issuerNamespace"`
-
-	// Name Name of the certificate, also the common name (CN) in the subject of the certificate
-	Name string `json:"name"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string           `json:"updatedBy"`
-	Usage     CertificateUsage `json:"usage"`
-}
-
-// CertificateRenewalParameters defines model for CertificateRenewalParameters.
-type CertificateRenewalParameters struct {
-	RenewalCertificateId *openapi_types.UUID `json:"renewalCertificateId,omitempty"`
-	Signature            *[]byte             `json:"signature,omitempty"`
 }
 
 // CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
@@ -278,7 +230,7 @@ type CertificateTemplate struct {
 	DisplayName string            `json:"displayName"`
 	Issuer      CertificateIssuer `json:"issuer"`
 
-	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
@@ -297,7 +249,7 @@ type CertificateTemplateParameters struct {
 	DisplayName string            `json:"displayName"`
 	Issuer      CertificateIssuer `json:"issuer"`
 
-	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
@@ -325,7 +277,7 @@ type KeyOp string
 // KeySize defines model for JwkKeySize.
 type KeySize int32
 
-// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields
+// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
 	Alg *JwkAlg    `json:"alg,omitempty"`
 	Crv *CurveName `json:"crv,omitempty"`
@@ -600,6 +552,9 @@ type NamespaceTypeParameter = NamespaceTypeShortName
 // TemplateIdParameter defines model for TemplateIdParameter.
 type TemplateIdParameter = openapi_types.UUID
 
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = CertificateInfo
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Code                 *string                `json:"code,omitempty"`
@@ -609,15 +564,6 @@ type ErrorResponse struct {
 
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
-
-// GetCertificateV1Params defines parameters for GetCertificateV1.
-type GetCertificateV1Params struct {
-	ByType *CertificateIdentifierType    `form:"byType,omitempty" json:"byType,omitempty"`
-	Format *GetCertificateV1ParamsFormat `form:"format,omitempty" json:"format,omitempty"`
-}
-
-// GetCertificateV1ParamsFormat defines parameters for GetCertificateV1.
-type GetCertificateV1ParamsFormat string
 
 // DeletePolicyV1Params defines parameters for DeletePolicyV1.
 type DeletePolicyV1Params struct {
@@ -629,24 +575,42 @@ type GetDeviceServicePrincipalLinkV2Params struct {
 	Apply *bool `form:"apply,omitempty" json:"apply,omitempty"`
 }
 
+// BeginEnrollCertificateV2Params defines parameters for BeginEnrollCertificateV2.
+type BeginEnrollCertificateV2Params struct {
+	OnBeHalfOf *openapi_types.UUID `form:"onBeHalfOf,omitempty" json:"onBeHalfOf,omitempty"`
+}
+
+// IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
+type IssueCertificateByTemplateV2Params struct {
+	IncludeCertificate *IssueCertificateByTemplateV2ParamsIncludeCertificate `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+}
+
+// IssueCertificateByTemplateV2ParamsIncludeCertificate defines parameters for IssueCertificateByTemplateV2.
+type IssueCertificateByTemplateV2ParamsIncludeCertificate string
+
+// GetLatestCertificateByTemplateV2Params defines parameters for GetLatestCertificateByTemplateV2.
+type GetLatestCertificateByTemplateV2Params struct {
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+}
+
 // GetCertificateV2Params defines parameters for GetCertificateV2.
 type GetCertificateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
 
-// CreateCertificateV2Params defines parameters for CreateCertificateV2.
-type CreateCertificateV2Params struct {
+// CompleteCertificateEnrollmentV2Params defines parameters for CompleteCertificateEnrollmentV2.
+type CompleteCertificateEnrollmentV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
-
-// EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
-type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest
 
 // PutPolicyV1JSONRequestBody defines body for PutPolicyV1 for application/json ContentType.
 type PutPolicyV1JSONRequestBody = PolicyParameters
 
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
+
+// BeginEnrollCertificateV2JSONRequestBody defines body for BeginEnrollCertificateV2 for application/json ContentType.
+type BeginEnrollCertificateV2JSONRequestBody = CertificateEnrollmentRequest
 
 // PutCertificateTemplateV2JSONRequestBody defines body for PutCertificateTemplateV2 for application/json ContentType.
 type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters

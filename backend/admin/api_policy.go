@@ -38,8 +38,6 @@ func resolvePolicyIdentifier(policyIdentifier string) (uuid.UUID, error) {
 	switch policyIdentifier {
 	case string(PolicyTypeCertEnroll):
 		return defaultPolicyIdCertEnroll, nil
-	case string(PolicyTypeCertAadAppClientCredential):
-		return defaultPolicyIdCertAadAppCredential, nil
 	}
 	return uuid.Parse(policyIdentifier)
 }

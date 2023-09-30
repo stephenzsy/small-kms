@@ -59,13 +59,12 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 	return
 }
 
-func (s *adminServer) CreateCertificateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, certID uuid.UUID, params CreateCertificateV2Params) {
+func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, params IssueCertificateByTemplateV2Params) {
 	if !authAdminOnly(c) {
 		return
 	}
 
-	certDocID := resolveCertificateDodID(templateID, certID)
-	certDoc, readCertDocErr := s.readCertDoc(c, nsID, certDocID)
+	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID))
 	if readCertDocErr != nil {
 		if !common.IsAzNotFound(readCertDocErr) {
 			respondInternalError(c, readCertDocErr, "failed to load existing certificate doc")
@@ -90,10 +89,6 @@ func (s *adminServer) CreateCertificateV2(c *gin.Context, nsType NamespaceTypeSh
 	if !templateDoc.IsActive() {
 		respondPublicErrorMsg(c, http.StatusBadRequest, "template is not active")
 		return
-	}
-
-	if certID != uuid.Nil && certDoc != nil {
-		respondPublicErrorMsg(c, http.StatusConflict, "certificate already exists, cannot apply certificate template")
 	}
 
 	shouldApplyReason := s.shouldCreateCertificateForTemplate(c, nsID, templateDoc, certDoc)
@@ -136,7 +131,7 @@ func (s *adminServer) CreateCertificateV2(c *gin.Context, nsType NamespaceTypeSh
 		}
 
 		// create certificate
-		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, certID, nil)
+		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, nil)
 		if err != nil {
 			if common.IsAzNotFound(err) {
 				respondPublicError(c, http.StatusNotFound, err)

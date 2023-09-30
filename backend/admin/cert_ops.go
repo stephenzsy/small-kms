@@ -128,15 +128,12 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 
 // (nsType/nsID) must be verified prior to calling this function
 func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	t *CertificateTemplateDoc, certID uuid.UUID, variableValues map[string]string) (*CertDoc, []byte, error) {
+	t *CertificateTemplateDoc, variableValues map[string]string) (*CertDoc, []byte, error) {
 
 	// prep certificate
-	if certID == uuid.Nil {
-		newCertID, err := uuid.NewRandom()
-		if err != nil {
-			return nil, nil, err
-		}
-		certID = newCertID
+	certID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, nil, err
 	}
 	certSerial := big.Int{}
 	certSerial.SetBytes(certID[:])
@@ -147,7 +144,7 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 		NotBefore:    now,
 		NotAfter:     now.AddDate(0, int(t.ValidityInMonths), 0),
 	}
-	err := t.SubjectAlternativeNames.populateCertificate(&c, variableValues)
+	err = t.SubjectAlternativeNames.populateCertificate(&c, variableValues)
 	if err != nil {
 		return nil, nil, err
 	}

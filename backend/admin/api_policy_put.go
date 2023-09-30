@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -16,8 +15,6 @@ func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
 	switch policyID {
 	case defaultPolicyIdCertEnroll:
 		return policyType == PolicyTypeCertEnroll
-	case defaultPolicyIdCertAadAppCredential:
-		return policyType == PolicyTypeCertAadAppClientCredential
 	}
 	return policyID.Version() == 4
 }
@@ -66,21 +63,6 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 		}
 		docSection.MaxValidityInMonths = p.CertEnroll.MaxValidityInMonths
 		policyDoc.CertEnroll = docSection
-	case PolicyTypeCertAadAppClientCredential:
-		dirDoc, err := s.getDirectoryObjectDoc(c, namespaceID)
-		if err != nil {
-			if common.IsAzNotFound(err) {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("namespace not registered yet: %s", namespaceID)})
-				return
-			}
-			log.Error().Err(err).Msg("failed to get directory profile")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-			return
-		}
-		if dirDoc.OdataType != string(NamespaceTypeMsGraphApplication) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("policy can only be registered on application: %s", namespaceID)})
-			return
-		}
 	default:
 		c.JSON(http.StatusBadRequest, nil)
 		return

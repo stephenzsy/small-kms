@@ -10,21 +10,12 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func resolveCertificateDodID(templateID uuid.UUID, certID uuid.UUID) kmsdoc.KmsDocID {
-	if certID == uuid.Nil {
-		// use template ID
-		return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID)
-	}
-	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeCert, certID)
-}
-
-func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, certID uuid.UUID, params GetCertificateV2Params) {
+func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, params GetLatestCertificateByTemplateV2Params) {
 	if !authAdminOnly(c) {
 		return
 	}
 
-	certDocID := resolveCertificateDodID(templateID, certID)
-	certDoc, readCertDocErr := s.readCertDoc(c, nsID, certDocID)
+	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID))
 	if readCertDocErr != nil {
 		if common.IsAzNotFound(readCertDocErr) {
 			respondPublicErrorMsg(c, http.StatusNotFound, "certificate does not exist")
@@ -43,7 +34,7 @@ func (s *adminServer) GetCertificateV2(c *gin.Context, nsType NamespaceTypeShort
 	c.JSON(http.StatusOK, certInfo)
 }
 
-func (s *adminServer) ListCertificatesV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
+func (s *adminServer) ListCertificatesByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
 	}
