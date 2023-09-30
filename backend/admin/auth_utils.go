@@ -30,7 +30,7 @@ func authAdminOnly(c *gin.Context) bool {
 func authNamespaceRead(c *gin.Context, namespaceID uuid.UUID) (callerID uuid.UUID, ok bool) {
 	callerID = auth.CallerPrincipalId(c)
 	ok = true
-	if !IsCANamespace(namespaceID) && !auth.CallerPrincipalHasAdminRole(c) && callerID != namespaceID {
+	if !isAllowedCaNamespace(namespaceID) && !auth.CallerPrincipalHasAdminRole(c) && callerID != namespaceID {
 		respondPublicErrorMsg(c, http.StatusForbidden, fmt.Sprintf("caller %s does not have access to namespace %s", callerID, namespaceID))
 		ok = false
 		return

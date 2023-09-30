@@ -161,7 +161,7 @@ func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uui
 }
 
 func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {
-	if IsCANamespace(namespaceId) {
+	if isAllowedCaNamespace(namespaceId) {
 		nsProfile := new(NamespaceProfile)
 		nsProfile.NamespaceID = namespaceId
 		switch namespaceId {
@@ -176,7 +176,7 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 		case common.WellKnownID_IntCAService:
 			nsProfile.DisplayName = "Intermediate CA - Services"
 		}
-		if IsIntCANamespace(namespaceId) {
+		if isAllowedIntCaNamespace(namespaceId) {
 			nsProfile.ObjectType = NamespaceTypeBuiltInCaInt
 		} else {
 			nsProfile.ObjectType = NamespaceTypeBuiltInCaRoot
@@ -194,7 +194,7 @@ func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UU
 
 func (s *adminServer) GetNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
 	// CA profiles are public
-	if !IsCANamespace(namespaceId) {
+	if !isAllowedCaNamespace(namespaceId) {
 		if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
 			return
 		}

@@ -7,13 +7,8 @@ servers:
     description: Local server
 paths:
   /v2/device/{namespaceId}/link-service-principal:
-    parameters:
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
+    parameters:      
+      - $ref: "#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -33,11 +28,7 @@ paths:
                 $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
   /v2/{namespaceType}:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"    
     get:
       tags:
         - admin
@@ -48,17 +39,8 @@ paths:
           $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -69,23 +51,9 @@ paths:
           $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: templateId
-        schema:
-          type: string
-          format: uuid
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
     get:
       tags:
         - admin
@@ -118,23 +86,9 @@ paths:
                 $ref: "#/components/schemas/CertificateTemplate"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: templateId
-        schema:
-          type: string
-          format: uuid
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
     get:
       tags:
         - admin
@@ -145,69 +99,39 @@ paths:
           $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/{certId}:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: templateId
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - in: path
-        name: certId
-        schema:
-          type: string
-          format: uuid
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
+      - $ref: "#/components/parameters/CertIdParameter"
+      - $ref: "#/components/parameters/IncludeCertificateParameter"
     get:
       tags:
         - admin
       summary: Get certificate
       operationId: GetCertificateV2
-      parameters:
-        - in: query
-          name: "apply"
-          schema:
-            type: boolean
-        - in: query
-          name: "includeCertificate"
-          schema:
-            type: string
-            enum:
-              - jwk
-              - pem
-            x-enum-varnames:
-              - IncludeJWK
-              - IncludePEM
       responses:
         200:
-          description: GetCertificateResponse
+          description: CertificateResponse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateInfo"
+    post:
+      tags:
+        - admin
+      summary: Create certificate
+      operationId: CreateCertificateV2
+      responses:
+        200:
+          description: CertificateResponse
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateInfo"
   /v2/{namespaceType}/{namespaceId}/graph-sync:
     parameters:
-      - in: path
-        name: namespaceType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        required: true
-      - in: path
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
     post:
       tags:
         - directory
@@ -220,34 +144,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NamespaceInfo"
-  /v1/{namespaceId}/certificates:
-    get:
-      tags:
-        - certs
-      summary: List certificates
-      operationId: ListCertificatesV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: query
-          name: policyId
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: A JSON array of Certificate Refs
-          content:
-            application/json:
-              schema:
-                title: ListCertificatesResponse
-                type: array
-                items:
-                  $ref: "#/components/schemas/CertificateRef"
   /v1/{namespaceId}/certificates/{id}:
     get:
       tags:
@@ -645,6 +541,45 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+  parameters:
+    NamespaceIdParameter:
+      in: path
+      name: namespaceId
+      schema:
+        type: string
+        format: uuid
+      required: true
+    NamespaceTypeParameter:
+      in: path
+      name: namespaceType
+      schema:
+        $ref: "#/components/schemas/NamespaceTypeShortName"
+      required: true
+    TemplateIdParameter:
+      in: path
+      name: templateId
+      schema:
+        type: string
+        format: uuid
+      required: true      
+    CertIdParameter:
+      in: path
+      name: certId
+      schema:
+        type: string
+        format: uuid
+      required: true    
+    IncludeCertificateParameter:
+      in: query
+      name: "includeCertificate"
+      schema:
+        type: string
+        enum:
+          - jwk
+          - pem
+        x-enum-varnames:
+          - IncludeJWK
+          - IncludePEM
   schemas:
     NamespaceTypeShortName:
       type: string
@@ -920,19 +855,6 @@ components:
             createdBy:
               description: Unique ID of the user who created the certificate
               type: string
-            x5c:
-              description: X.509 certificate chain
-              type: array
-              items:
-                type: string
-                format: byte
-            pem:
-              description: PEM encoded certificate chain
-              type: string
-            x5t:
-              description: X.509 certificate thumbprint
-              type: string
-              format: byte
           required:
             - name
             - usage

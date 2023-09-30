@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -49,6 +50,10 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 		respondPublicError(c, http.StatusBadRequest, err)
 		return
 	}
+	if doc == nil {
+		respondPublicErrorMsg(c, http.StatusBadRequest, "no valid input")
+		return
+	}
 
 	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc); err != nil {
 		respondInternalError(c, err, fmt.Sprintf("failed to upsert certificate template in cosmos: %s", templateId))
@@ -68,27 +73,44 @@ func (p *CertificateTemplateParameters) populateDocIssuer(doc *CertificateTempla
 	}
 }
 
+func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, name string) (string, bool) {
+	if templateID.Version() == 4 {
+		// only allow non default prefixed name for user specified template ID
+		return name, (name != "" && !strings.HasPrefix(name, "default"))
+	} else {
+		// assign default template name for well known IDs
+		switch {
+		case templateID == uuid.Nil:
+			// allow default template for specified namespace type
+			switch nsType {
+			case NSTypeRootCA,
+				NSTypeIntCA,
+				NSTypeServicePrincipal:
+				return common.DefaultCertTemplateName, true
+			}
+		case nsType == NSTypeGroup &&
+			templateID == common.GetCanonicalCertificateTemplateID("#microsoft.graph.group", nsID, common.DefaultCertTemplateNameServicePrincipalClientCredential):
+			return common.DefaultCertTemplateNameServicePrincipalClientCredential, true
+		}
+	}
+	return "invalid", false
+}
+
 func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) (*CertificateTemplateDoc, error) {
 	if p == nil {
 		return nil, nil
 	}
-
-	// validate nsType
-	switch nsType {
-	case NSTypeRootCA,
-		NSTypeIntCA,
-		NSTypeServicePrincipal,
-		NSTypeGroup:
-		// pass
-	default:
-		return nil, fmt.Errorf("namespace type %s is not valid for certificate template", nsType)
-
+	displayName := p.DisplayName
+	if fixedName, ok := validateTemplateIdentifiers(nsType, nsID, templateId, displayName); ok {
+		displayName = fixedName
+	} else {
+		return nil, fmt.Errorf("template ID %s is not valid for namespace type %s", templateId, nsType)
 	}
 
 	doc := new(CertificateTemplateDoc)
 	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateId)
 	doc.NamespaceID = nsID
-	doc.DisplayName = p.DisplayName
+	doc.DisplayName = displayName
 
 	// validate and populate issuer, usage
 	switch nsType {
@@ -108,12 +130,12 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 		doc.Usage = UsageRootCA
 		doc.ValidityInMonths = 120 // default 10 years
 	case NSTypeIntCA:
-		if !IsRootCANamespace(p.Issuer.NamespaceID) {
+		if !isAllowedIntCaNamespace(p.Issuer.NamespaceID) {
 			return nil, fmt.Errorf("intermediate ca issuer namespace ID %s is not a root ca namespace ID", p.Issuer.NamespaceID)
 		}
-		if IsTestCA(nsID) && !IsTestCA(p.Issuer.NamespaceID) {
+		if isTestCA(nsID) && !isTestCA(p.Issuer.NamespaceID) {
 			return nil, fmt.Errorf("test ca namespace ID %s can only issue certificates to test intermediate ca namespace", nsID)
-		} else if !IsTestCA(nsID) && IsTestCA(p.Issuer.NamespaceID) {
+		} else if !isTestCA(nsID) && isTestCA(p.Issuer.NamespaceID) {
 			return nil, fmt.Errorf("production ca namespace ID %s can only issue certificates to production intermediate ca namespace", nsID)
 		}
 		p.populateDocIssuer(doc, NSTypeRootCA)
@@ -124,7 +146,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 		doc.ValidityInMonths = 36 // default 3 years
 
 	default:
-		if !IsIntCANamespace(p.Issuer.NamespaceID) {
+		if !isAllowedIntCaNamespace(p.Issuer.NamespaceID) {
 			return nil, fmt.Errorf("service principal/group issuer namespace ID %s is not an intermediate ca namespace ID", p.Issuer.NamespaceID)
 		}
 		p.populateDocIssuer(doc, NSTypeIntCA)
@@ -144,7 +166,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 	switch nsType {
 	case NSTypeRootCA,
 		NSTypeIntCA:
-		if IsTestCA(nsID) {
+		if isTestCA(nsID) {
 			doc.KeyProperties.setECDSA(CurveNameP384)
 		} else {
 			doc.KeyProperties.setRSA(AlgRS384, KeySize4096)

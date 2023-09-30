@@ -18,46 +18,46 @@ func IsNamespaceManagementAdminRequired(namespaceID uuid.UUID) bool {
 	return false
 }
 
-func IsRootCANamespace(namespaceID uuid.UUID) bool {
-	switch namespaceID {
-	case common.WellKnownID_RootCA,
-		common.WellKnownID_TestRootCA:
-		return true
-	}
-	return false
+var rootCaAllowedIDs = map[uuid.UUID]bool{
+	common.WellKnownID_RootCA:     true,
+	common.WellKnownID_TestRootCA: true,
 }
 
-func IsIntCANamespace(namespaceID uuid.UUID) bool {
-	switch namespaceID {
-	case common.WellKnownID_IntCAService,
-		common.WellKnownID_IntCAIntranet,
-		common.WellKnownID_IntCAAadSp,
-		common.WellKnownID_TestIntCA:
-		return true
-	}
-	return false
+func isAllowedRootCaNamespace(namespaceID uuid.UUID) bool {
+	return rootCaAllowedIDs[namespaceID]
 }
 
-func IsCANamespace(namespaceID uuid.UUID) bool {
-	return IsRootCANamespace(namespaceID) || IsIntCANamespace(namespaceID)
+var intermediateCaAllowedIDs = map[uuid.UUID]bool{
+	common.WellKnownID_IntCAService:  true,
+	common.WellKnownID_IntCAIntranet: true,
+	common.WellKnownID_IntCAAadSp:    true,
+	common.WellKnownID_TestIntCA:     true,
 }
 
-func IsTestCA(namespaceID uuid.UUID) bool {
-	switch namespaceID {
-	case common.WellKnownID_TestRootCA,
-		common.WellKnownID_TestIntCA:
-		return true
-	}
-	return false
+func isAllowedIntCaNamespace(namespaceID uuid.UUID) bool {
+	return intermediateCaAllowedIDs[namespaceID]
+}
+
+func isAllowedCaNamespace(namespaceID uuid.UUID) bool {
+	return isAllowedRootCaNamespace(namespaceID) || isAllowedIntCaNamespace(namespaceID)
+}
+
+var testCaIDs = map[uuid.UUID]bool{
+	common.WellKnownID_RootCA:    true,
+	common.WellKnownID_TestIntCA: true,
+}
+
+func isTestCA(namespaceID uuid.UUID) bool {
+	return testCaIDs[namespaceID]
 }
 
 // returns a tuple of (isValid, needs graph validation)
 func validateNamespaceType(nsType NamespaceTypeShortName, nsID uuid.UUID) (bool, bool) {
 	switch nsType {
 	case NSTypeRootCA:
-		return IsRootCANamespace(nsID), false
+		return isAllowedRootCaNamespace(nsID), false
 	case NSTypeIntCA:
-		return IsIntCANamespace(nsID), false
+		return isAllowedIntCaNamespace(nsID), false
 	case NSTypeServicePrincipal,
 		NSTypeGroup,
 		NSTypeDevice,

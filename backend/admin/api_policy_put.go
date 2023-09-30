@@ -50,7 +50,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	switch p.PolicyType {
 	case PolicyTypeCertEnroll:
 		// verify namespace is an intermediate CA
-		if !IsIntCANamespace(namespaceID) {
+		if !isAllowedIntCaNamespace(namespaceID) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Issuer namespace is invalid for certificate enrollment: %s", namespaceID.String())})
 			return
 		}

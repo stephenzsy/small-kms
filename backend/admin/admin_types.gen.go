@@ -105,16 +105,16 @@ const (
 	RefTypeNamespace           RefType = "namespace"
 )
 
+// Defines values for IncludeCertificateParameter.
+const (
+	IncludeJWK IncludeCertificateParameter = "jwk"
+	IncludePEM IncludeCertificateParameter = "pem"
+)
+
 // Defines values for GetCertificateV1ParamsFormat.
 const (
 	FormatJWK GetCertificateV1ParamsFormat = "jwk"
 	FormatPEM GetCertificateV1ParamsFormat = "pem"
-)
-
-// Defines values for GetCertificateV2ParamsIncludeCertificate.
-const (
-	IncludeJWK GetCertificateV2ParamsIncludeCertificate = "jwk"
-	IncludePEM GetCertificateV2ParamsIncludeCertificate = "pem"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -233,21 +233,12 @@ type CertificateRef struct {
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
 
-	// Pem PEM encoded certificate chain
-	Pem *string `json:"pem,omitempty"`
-
 	// Updated Time when the policy was last updated
 	Updated time.Time `json:"updated"`
 
 	// UpdatedBy Unique ID of the user who created the policy
 	UpdatedBy string           `json:"updatedBy"`
 	Usage     CertificateUsage `json:"usage"`
-
-	// X5c X.509 certificate chain
-	X5c *[][]byte `json:"x5c,omitempty"`
-
-	// X5t X.509 certificate thumbprint
-	X5t *[]byte `json:"x5t,omitempty"`
 }
 
 // CertificateRenewalParameters defines model for CertificateRenewalParameters.
@@ -608,6 +599,21 @@ type ServicePrincipalLinkedDevice struct {
 	ServicePrincipalObjectID openapi_types.UUID `json:"servicePrincipalObjectId"`
 }
 
+// CertIdParameter defines model for CertIdParameter.
+type CertIdParameter = openapi_types.UUID
+
+// IncludeCertificateParameter defines model for IncludeCertificateParameter.
+type IncludeCertificateParameter string
+
+// NamespaceIdParameter defines model for NamespaceIdParameter.
+type NamespaceIdParameter = openapi_types.UUID
+
+// NamespaceTypeParameter defines model for NamespaceTypeParameter.
+type NamespaceTypeParameter = NamespaceTypeShortName
+
+// TemplateIdParameter defines model for TemplateIdParameter.
+type TemplateIdParameter = openapi_types.UUID
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Code                 *string                `json:"code,omitempty"`
@@ -617,11 +623,6 @@ type ErrorResponse struct {
 
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
-
-// ListCertificatesV1Params defines parameters for ListCertificatesV1.
-type ListCertificatesV1Params struct {
-	PolicyId *openapi_types.UUID `form:"policyId,omitempty" json:"policyId,omitempty"`
-}
 
 // GetCertificateV1Params defines parameters for GetCertificateV1.
 type GetCertificateV1Params struct {
@@ -644,12 +645,13 @@ type GetDeviceServicePrincipalLinkV2Params struct {
 
 // GetCertificateV2Params defines parameters for GetCertificateV2.
 type GetCertificateV2Params struct {
-	Apply              *bool                                     `form:"apply,omitempty" json:"apply,omitempty"`
-	IncludeCertificate *GetCertificateV2ParamsIncludeCertificate `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
 
-// GetCertificateV2ParamsIncludeCertificate defines parameters for GetCertificateV2.
-type GetCertificateV2ParamsIncludeCertificate string
+// CreateCertificateV2Params defines parameters for CreateCertificateV2.
+type CreateCertificateV2Params struct {
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+}
 
 // EnrollCertificateV1JSONRequestBody defines body for EnrollCertificateV1 for application/json ContentType.
 type EnrollCertificateV1JSONRequestBody = CertificateEnrollRequest

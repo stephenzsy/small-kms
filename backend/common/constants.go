@@ -20,8 +20,10 @@ var (
 	// nil is reserved
 
 	// root CA --1 ~ --f
+	WellKnownID_RootCAMin  = uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	WellKnownID_RootCA     = uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	WellKnownID_TestRootCA = uuid.MustParse("00000000-0000-0000-0000-00000000000f")
+	WellKnownID_RootCAMax  = uuid.MustParse("00000000-0000-0000-0000-00000000000f")
 
 	// intermediate CAs --10 ~ --ff
 	WellKnownID_IntCAService  = uuid.MustParse("00000000-0000-0000-0000-000000000011")
@@ -50,3 +52,8 @@ var idMap = map[WellKnownIdentifier]WellKnownID{
 func GetID(identifier WellKnownIdentifier) uuid.UUID {
 	return uuid.UUID(idMap[identifier])
 }
+
+const (
+	DefaultCertTemplateName                                 = "default"
+	DefaultCertTemplateNameServicePrincipalClientCredential = "default-service-principal-client-credential"
+)

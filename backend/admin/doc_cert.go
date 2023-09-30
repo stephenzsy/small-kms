@@ -147,7 +147,7 @@ func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azb
 
 func (s *adminServer) toCertificateInfo(ctx context.Context,
 	doc *CertDoc,
-	include *GetCertificateV2ParamsIncludeCertificate,
+	include *IncludeCertificateParameter,
 	nsType NamespaceTypeShortName,
 	certPemBlob []byte) (*CertificateInfo, error) {
 	if doc == nil {
@@ -171,7 +171,7 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 	certInfo.Ref.Metadata = map[string]string{RefPropertyKeyThumbprint: doc.FingerprintSHA1Hex}
 
 	if include != nil {
-		if certPemBlob == nil {
+		if len(certPemBlob) == 0 {
 			if fetchedCertPemBlob, err := doc.fetchCertificatePEMBlob(ctx, s.azBlobContainerClient); err != nil {
 				return nil, err
 			} else {
