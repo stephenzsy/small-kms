@@ -127,6 +127,7 @@ paths:
     post:
       parameters:
         - $ref: "#/components/parameters/IncludeCertificateParameter"
+          x-go-type-name: IncludeCertificateParameter
       tags:
         - admin
       summary: Create certificate
@@ -555,14 +556,16 @@ components:
       in: query
       name: "includeCertificate"
       schema:
-        type: string
-        enum:
-          - jwk
-          - pem
-        x-enum-varnames:
-          - IncludeJWK
-          - IncludePEM
+        $ref: "#/components/schemas/IncludeCertificate"
   schemas:
+    IncludeCertificate:
+      type: string
+      enum:
+        - jwk
+        - pem
+      x-enum-varnames:
+        - IncludeJWK
+        - IncludePEM
     NamespaceTypeShortName:
       type: string
       enum:

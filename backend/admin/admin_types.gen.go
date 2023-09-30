@@ -31,6 +31,12 @@ const (
 	CurveNameP384 CurveName = "P-384"
 )
 
+// Defines values for IncludeCertificate.
+const (
+	IncludeJWK IncludeCertificate = "jwk"
+	IncludePEM IncludeCertificate = "pem"
+)
+
 // Defines values for JwkAlg.
 const (
 	AlgES256 JwkAlg = "ES256"
@@ -96,18 +102,6 @@ const (
 	RefTypeCertificate         RefType = "certificate"
 	RefTypeCertificateTemplate RefType = "certificate-template"
 	RefTypeNamespace           RefType = "namespace"
-)
-
-// Defines values for IncludeCertificateParameter.
-const (
-	IncludeCertificateParameterIncludeJWK IncludeCertificateParameter = "jwk"
-	IncludeCertificateParameterIncludePEM IncludeCertificateParameter = "pem"
-)
-
-// Defines values for IssueCertificateByTemplateV2ParamsIncludeCertificate.
-const (
-	IssueCertificateByTemplateV2ParamsIncludeCertificateIncludeJWK IssueCertificateByTemplateV2ParamsIncludeCertificate = "jwk"
-	IssueCertificateByTemplateV2ParamsIncludeCertificateIncludePEM IssueCertificateByTemplateV2ParamsIncludeCertificate = "pem"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -267,6 +261,9 @@ type CertificateUsage string
 
 // CurveName defines model for CurveName.
 type CurveName string
+
+// IncludeCertificate defines model for IncludeCertificate.
+type IncludeCertificate string
 
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
@@ -541,7 +538,7 @@ type ServicePrincipalLinkedDevice struct {
 type CertIdParameter = openapi_types.UUID
 
 // IncludeCertificateParameter defines model for IncludeCertificateParameter.
-type IncludeCertificateParameter string
+type IncludeCertificateParameter = IncludeCertificate
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = openapi_types.UUID
@@ -582,11 +579,8 @@ type BeginEnrollCertificateV2Params struct {
 
 // IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
 type IssueCertificateByTemplateV2Params struct {
-	IncludeCertificate *IssueCertificateByTemplateV2ParamsIncludeCertificate `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
-
-// IssueCertificateByTemplateV2ParamsIncludeCertificate defines parameters for IssueCertificateByTemplateV2.
-type IssueCertificateByTemplateV2ParamsIncludeCertificate string
 
 // GetLatestCertificateByTemplateV2Params defines parameters for GetLatestCertificateByTemplateV2.
 type GetLatestCertificateByTemplateV2Params struct {
