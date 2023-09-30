@@ -21,8 +21,8 @@ namespace SmallKMSCertClient
 		{
 			Console.WriteLine("Small KMS certificate utilities configurations");
 			Console.WriteLine("==============================================");
-			ConfigurationManager.AppSettings.AllKeys.ToList()
-				.ForEach(key => Console.WriteLine($"{key}: {ConfigurationManager.AppSettings[key]}"));
+			//ConfigurationManager.AppSettings.AllKeys.ToList()
+				//.ForEach(key => Console.WriteLine($"{key}: {ConfigurationManager.AppSettings[key]}"));
 		}
 	}
 }

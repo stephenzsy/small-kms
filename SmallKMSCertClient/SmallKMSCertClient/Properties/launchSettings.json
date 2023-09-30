@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SmallKMSCertClient": {
+      "commandName": "Project",
+      "commandLineArgs": "enroll-device"
+    }
+  }
+}

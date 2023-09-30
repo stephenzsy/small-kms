@@ -8,9 +8,16 @@ namespace SmallKMSCertClient
 {
 	internal class EnrollDeviceService
 	{
-		public Task StartEnrollment()
+		private readonly AdminAuthProvider authProvider;
+
+		public EnrollDeviceService(AdminAuthProvider authProvider)
 		{
-			return Task.CompletedTask;
+			this.authProvider = authProvider;
+		}
+
+		public async Task StartEnrollment()
+		{
+			await authProvider.EnsureLoggedIn();
 		}
 	}
 }
