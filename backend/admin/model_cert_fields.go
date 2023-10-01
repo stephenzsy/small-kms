@@ -50,12 +50,11 @@ type parsedSan[D net.IP | *url.URL] struct {
 }
 
 func sanitizeStringArrayWithParse[D net.IP | *url.URL](ptr *[]string, parseFunc func(string) (parsedSan[D], error), sortFunc func(a, b parsedSan[D]) int) ([]parsedSan[D], error) {
-	n := len(*ptr)
-	if ptr == nil || n == 0 {
+	if ptr == nil || len(*ptr) == 0 {
 		*ptr = nil
 		return nil, nil
 	}
-	rslice := make([]parsedSan[D], 0, n)
+	rslice := make([]parsedSan[D], 0, len(*ptr))
 	dedup := make(map[string]bool)
 	for _, s := range *ptr {
 		s = strings.TrimSpace(s)

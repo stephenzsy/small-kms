@@ -36,13 +36,6 @@ export default function MainPage() {
     }
   );
 
-  const { data: managedDevices, loading: managedDevicesLoading } = useRequest(
-    () =>
-      client.myHasPermissionV1({
-        permissionKey: "allowEnrollDeviceCertificate",
-      }),
-    {}
-  );
   return (
     <>
       <header className="bg-white shadow">
@@ -100,7 +93,7 @@ export default function MainPage() {
               </tr>
             </thead>
             <tbody>
-              {managedDevices?.map((d) => (
+              {/*managedDevices?.map((d) => (
                 <tr key={d.id}>
                   <td>{d.id}</td>
                   <td>{d.displayName}</td>
@@ -108,7 +101,7 @@ export default function MainPage() {
                     <Link to={"/my/enroll"}>Enroll certificate</Link>
                   </td>
                 </tr>
-              ))}
+              ))*/}
             </tbody>
           </table>
         </div>

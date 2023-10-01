@@ -1,14 +1,7 @@
 package admin
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
@@ -19,6 +12,7 @@ func isPolicyTypeValidForId(policyType PolicyType, policyID uuid.UUID) bool {
 	return policyID.Version() == 4
 }
 
+/*
 func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyIdentifier string) {
 	// validate
 	if !auth.CallerPrincipalHasAdminRole(c) {
@@ -79,3 +73,4 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	}
 	c.JSON(http.StatusOK, policyDoc.ToPolicy())
 }
+*/

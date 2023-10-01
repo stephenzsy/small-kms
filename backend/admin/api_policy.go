@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -30,8 +29,7 @@ func (s *adminServer) ListPoliciesV1(c *gin.Context, namespaceID uuid.UUID) {
 }
 
 var (
-	defaultPolicyIdCertEnroll           = common.GetID(common.DefaultPolicyIdCertEnroll)
-	defaultPolicyIdCertAadAppCredential = common.GetID(common.DefaultPolicyIdCertAadAppCredential)
+	defaultPolicyIdCertEnroll = common.GetID(common.DefaultPolicyIdCertEnroll)
 )
 
 func resolvePolicyIdentifier(policyIdentifier string) (uuid.UUID, error) {
@@ -65,6 +63,8 @@ func (s *adminServer) GetPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 
 	c.JSON(200, pd.ToPolicy())
 }
+
+/*
 
 // Delete Certificate Policy
 // (DELETE /v1/{namespaceId}/policies/{policyIdentifier})
@@ -114,3 +114,4 @@ func (s *adminServer) DeletePolicyV1(c *gin.Context, namespaceID uuid.UUID, poli
 	}
 	c.JSON(200, pd.ToPolicy())
 }
+*/

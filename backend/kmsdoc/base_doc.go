@@ -119,7 +119,13 @@ func (doc *BaseDoc) StampUpdated(callerId string, callerName string) {
 }
 
 func (doc *BaseDoc) StampUpdatedWithAuth(c *gin.Context) {
-	doc.StampUpdated(auth.CallerPrincipalId(c).String(), auth.CallerPrincipalName(c))
+	var callerPrincipalIdStr string
+	var callerPrincipalName string
+	if identity, ok := auth.GetAuthIdentity(c); ok {
+		callerPrincipalIdStr = identity.ClientPrincipalID().String()
+		callerPrincipalName = identity.ClientPrincipalName()
+	}
+	doc.StampUpdated(callerPrincipalIdStr, callerPrincipalName)
 }
 
 var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
@@ -155,14 +161,20 @@ func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClie
 	return json.Unmarshal(resp.Value, target)
 }
 
-func AzCosmosPatch(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID,
+func AzCosmosPatch(c *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID,
 	docID KmsDocID, getPatchOps func(time.Time) *azcosmos.PatchOperations) (azcosmos.ItemResponse, error) {
 	now := time.Now().UTC()
 	ops := getPatchOps(now)
+	var callerPrincipalIdStr string
+	var callerPrincipalName string
+	if identity, ok := auth.GetAuthIdentity(c); ok {
+		callerPrincipalIdStr = identity.ClientPrincipalID().String()
+		callerPrincipalName = identity.ClientPrincipalName()
+	}
 	ops.AppendSet("/updated", now.Format(time.RFC3339))
-	ops.AppendSet("/updatedBy", auth.CallerPrincipalId(ctx).String())
-	ops.AppendSet("/updatedByName", auth.CallerPrincipalName(ctx))
-	return cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), *ops, nil)
+	ops.AppendSet("/updatedBy", callerPrincipalIdStr)
+	ops.AppendSet("/updatedByName", callerPrincipalName)
+	return cc.PatchItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), *ops, nil)
 }
 
 func AzCosmosDelete(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID, docID KmsDocID, purge bool) (err error) {

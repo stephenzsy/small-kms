@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Broker;
 using Microsoft.Identity.Client.Extensions.Msal;
+using Microsoft.Identity.Client.NativeInterop;
 using Microsoft.Kiota.Http.HttpClientLibrary;
 using Microsoft.VisualBasic;
 using System;
@@ -52,7 +53,7 @@ namespace SmallKMSCertClient
 		{
 			try
 			{
-				return await acquireTokenSilently() != null;
+				return (await acquireTokenSilently()) != null;
 			}
 			catch
 			{ // swallow error
@@ -72,7 +73,9 @@ namespace SmallKMSCertClient
 			}
 			if (account != null)
 			{
-				return await app.AcquireTokenSilent(loginScopes, account).ExecuteAsync();
+				var result = await app.AcquireTokenSilent(loginScopes, account).ExecuteAsync();
+				Console.WriteLine(result.AccessToken);
+				return result;
 			}
 			throw new Exception("No account loaded");
 		}
@@ -85,12 +88,19 @@ namespace SmallKMSCertClient
 		public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
 		{
 			var authResult = await acquireTokenSilently();
+
 			return new AccessToken(authResult.AccessToken, authResult.ExpiresOn);
 		}
 
-		internal async Task Login()
+		internal async Task Login(bool useDeviceCode = false)
 		{
-			AuthenticationResult result = await app.AcquireTokenInteractive(loginScopes).ExecuteAsync();
+			AuthenticationResult result = await (useDeviceCode
+				? app.AcquireTokenWithDeviceCode(loginScopes, deviceCodeResult =>
+				{
+					Console.WriteLine(deviceCodeResult.Message);
+					return Task.FromResult(deviceCodeResult);
+				}).ExecuteAsync()
+				: app.AcquireTokenInteractive(loginScopes).ExecuteAsync());
 			account = result.Account;
 			ConfigUtils.StoreConfiguration("AZURE_ACCOUNT_IDENTIFIER", account.HomeAccountId.Identifier);
 		}

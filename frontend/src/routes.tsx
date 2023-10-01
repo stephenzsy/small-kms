@@ -14,7 +14,6 @@ const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
-const PermissionsPage = React.lazy(() => import("./admin/PermissionsPage"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificateTemplatePage = React.lazy(
   () => import("./admin/CertificateTemplatePage")
@@ -68,13 +67,7 @@ export const router = createBrowserRouter([
               { path: ":policyId", element: <PolicyPage /> },
             ],
           },
-          {
-            path: ":namespaceId/permissions",
-            children: [
-              { index: true, element: <PermissionsPage /> },
-              { path: ":policyId", element: <PolicyPage /> },
-            ],
-          },
+
           {
             path: "register",
             element: <RegisterPage />,

@@ -1,12 +1,13 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type msClientPrincipalClaims struct {
@@ -18,75 +19,50 @@ type msClientPrincipal struct {
 	Claims []msClientPrincipalClaims `json:"claims"`
 }
 
-type ContextKey string
-
 const msClientPrincipalHasAdminRole string = "MsClientPrincipalHasAdminRole"
 const msClientPrincipalDeviceId string = "MsClientPrincipalDeviceId"
 
-const msClientPrincipalId string = "MsClientPrincipalId"
 const msClientPrincipalName string = "MsClientPrincipalName"
 
 const msClientPrincipalClaimType_DeviceID string = "http://schemas.microsoft.com/2012/01/devicecontext/claims/identifier"
 
 func HandleAadAuthMiddleware(ctx *gin.Context) {
+	a := authIdentity{
+		appRoles: make(map[string]bool),
+	}
 	// Intercept the headers here
 	var err error
 	var decodedClaims []byte
 	p := msClientPrincipal{}
-	ctx.Set(msClientPrincipalName, ctx.Request.Header.Get("X-Ms-Client-Principal-Name"))
-	callerIdStr := ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
-	if parsedCallerId, err := uuid.Parse(callerIdStr); err == nil {
-		ctx.Set(msClientPrincipalId, parsedCallerId)
+	a.msClientPrincipalIDstr = ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
+	if parsedCallerId, err := uuid.Parse(a.msClientPrincipalIDstr); err == nil {
+		a.msClientPrincipalID = parsedCallerId
 	}
+
+	a.msClientPrincipalName = ctx.Request.Header.Get("X-Ms-Client-Principal-Name")
+
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
 	if len(encodedPrincipal) == 0 {
-		log.Println("No X-Ms-Client-Principal header found")
-		goto SkipClaims
+		log.Warn().Msg("No X-Ms-Client-Principal header found")
+		goto afterParsePrincipalClaims
 	}
 	decodedClaims, err = base64.StdEncoding.DecodeString(encodedPrincipal)
 	if err != nil {
-		log.Println("Error decoding X-Ms-Client-Principal header")
-		goto SkipClaims
+		log.Warn().Msg("Error decoding X-Ms-Client-Principal header")
+		goto afterParsePrincipalClaims
 	}
-	err = json.Unmarshal(decodedClaims, &p)
-	if err != nil {
-		log.Printf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
-		goto SkipClaims
-	}
-	for _, c := range p.Claims {
-		if c.Type == "roles" && c.Value == "App.Admin" {
-			ctx.Set(msClientPrincipalHasAdminRole, true)
-		}
-		if c.Type == msClientPrincipalClaimType_DeviceID {
-			ctx.Set(msClientPrincipalDeviceId, c.Value)
+	if err = json.Unmarshal(decodedClaims, &p); err != nil {
+		log.Warn().Msgf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
+		goto afterParsePrincipalClaims
+	} else {
+		for _, c := range p.Claims {
+			if c.Type == "roles" {
+				a.appRoles[c.Value] = true
+			}
 		}
 	}
 
-SkipClaims:
+afterParsePrincipalClaims:
+	SetAuthContext(ctx, context.WithValue(context.Background(), authIdentityContextKey, a))
 	ctx.Next()
-}
-
-func CallerPrincipalId(c *gin.Context) uuid.UUID {
-	if value, ok := c.Value(msClientPrincipalId).(uuid.UUID); ok {
-		return value
-	}
-	return uuid.Nil
-}
-
-func CallerPrincipalName(c *gin.Context) string {
-	if value, ok := c.Value(msClientPrincipalName).(string); ok {
-		return value
-	}
-	return ""
-}
-
-func CallerPrincipalHasAdminRole(ctx *gin.Context) bool {
-	return ctx.Value(msClientPrincipalHasAdminRole) == true
-}
-
-func CallerPrincipalDeviceID(c *gin.Context) string {
-	if value, ok := c.Value(msClientPrincipalDeviceId).(string); ok {
-		return value
-	}
-	return ""
 }

@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import AlertDialog from "../components/AlertDialog";
 import { Button } from "../components/Button";
 import { PolicyContext, PolicyContextProvider } from "./PolicyContext";
-import { PolicyForms } from "./PolicyForms";
 
 function CurrentPolicy() {
   const { policy } = useContext(PolicyContext);
@@ -86,7 +85,6 @@ export default function PolicyPage() {
         <div className="flex flex-row items-center gap-x-6">
           <CurrentPolicyControl />
         </div>
-        <PolicyForms />
       </PolicyContextProvider>
     </>
   );

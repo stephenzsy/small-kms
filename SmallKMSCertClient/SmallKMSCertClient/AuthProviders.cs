@@ -42,9 +42,9 @@ namespace SmallKMSCertClient
 			return innerProvider.AuthenticateRequestAsync(request, additionalAuthenticationContext, cancellationToken);
 		}
 
-		internal Task Login()
+		internal Task Login(bool useDeviceCode = false)
 		{
-			return this.tokenCredential.Login();
+			return this.tokenCredential.Login(useDeviceCode);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 import { useRequest } from "ahooks";
 import { CertsApi } from "../generated";
-
+/*
 export function useCaList(certsApi: CertsApi, namespaceId: string | undefined) {
   return useRequest(
     async () => {
@@ -14,3 +14,4 @@ export function useCaList(certsApi: CertsApi, namespaceId: string | undefined) {
     { refreshDeps: [namespaceId] }
   );
 }
+*/

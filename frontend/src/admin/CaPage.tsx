@@ -1,14 +1,4 @@
-import { Switch } from "@headlessui/react";
-import classNames from "classnames";
-import { useId, useMemo, useState } from "react";
-import { Link, generatePath, useMatches } from "react-router-dom";
-import { WellknownId } from "../constants";
-import { CertsApi } from "../generated";
-import { RouteIds } from "../route-constants";
-import { useCertsApi } from "../utils/useCertsApi";
-import { AdminBreadcrumb, BreadcrumbPageMetadata } from "./AdminBreadcrumb";
-import { useCaList } from "./useCaList";
-
+/*
 export const caBreadcrumPages: BreadcrumbPageMetadata[] = [
   { name: "CA", to: "/admin/ca" },
 ];
@@ -151,7 +141,8 @@ export default function AdminCaPage() {
         namespaceId={WellKnownNamespaceId.WellKnownNamespaceIDStr_IntCAIntranet}
         title="Intermediate CA - Intranet"
         createButtonLabel="Create intermediate CA"
-              />*/}
+              />}
     </>
   );
 }
+*/

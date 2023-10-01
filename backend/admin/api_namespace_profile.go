@@ -9,48 +9,49 @@ import (
 	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceType) {
-	if namespaceType == NamespaceTypeBuiltInCaRoot {
-		c.JSON(http.StatusOK, nil)
-		return
-	} else if namespaceType == NamespaceTypeBuiltInCaInt {
-		c.JSON(http.StatusOK, nil)
-		return
-	}
-	if !auth.CallerPrincipalHasAdminRole(c) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
-		return
-	}
+	/*
+		if namespaceType == NamespaceTypeBuiltInCaRoot {
+			c.JSON(http.StatusOK, nil)
+			return
+		} else if namespaceType == NamespaceTypeBuiltInCaInt {
+			c.JSON(http.StatusOK, nil)
+			return
+		}
+		if !auth.CallerPrincipalHasAdminRole(c) {
+			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can list name spaces"})
+			return
+		}
 
-	switch namespaceType {
-	case NamespaceTypeMsGraphGroup,
-		NamespaceTypeMsGraphServicePrincipal,
-		NamespaceTypeMsGraphDevice,
-		NamespaceTypeMsGraphUser,
-		NamespaceTypeMsGraphApplication:
-		// allow
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
-		return
-	}
+		switch namespaceType {
+		case NamespaceTypeMsGraphGroup,
+			NamespaceTypeMsGraphServicePrincipal,
+			NamespaceTypeMsGraphDevice,
+			NamespaceTypeMsGraphUser,
+			NamespaceTypeMsGraphApplication:
+			// allow
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"message": "namespace type not supported"})
+			return
+		}
 
-	list, err := s.listDirectoryObjectByType(c, string(namespaceType))
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get list of directory objects")
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-		return
-	}
+		list, err := s.listDirectoryObjectByType(c, string(namespaceType))
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to get list of directory objects")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
+			return
+		}
 
-	results := make([]NamespaceRef, len(list))
-	for i, item := range list {
-		item.PopulateNamespaceRef(&results[i])
-	}
-	c.JSON(http.StatusOK, results)
+		results := make([]NamespaceRef, len(list))
+		for i, item := range list {
+			item.PopulateNamespaceRef(&results[i])
+		}
+	*/
+	c.JSON(http.StatusOK, nil)
 }
 
 func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
@@ -138,26 +139,27 @@ func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUI
 }
 
 func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	if !auth.CallerPrincipalHasAdminRole(c) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "only admin can register namespaces"})
-		return
-	}
-	if namespaceId == uuid.Nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
-		return
-	}
-	profile, status, err := s.RegisterNamespaceProfile(c, namespaceId)
-	if err != nil {
-		if status == http.StatusInternalServerError {
-			log.Error().Err(err).Msg("Failed to register graph object")
-			c.JSON(status, gin.H{"message": "internal error"})
-		} else {
-			c.JSON(status, gin.H{"message": err.Error()})
+	/*
+		if !auth.CallerPrincipalHasAdminRole(c) {
+			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can register namespaces"})
+			return
 		}
-		return
-	}
-
-	c.JSON(http.StatusOK, profile)
+		if namespaceId == uuid.Nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
+			return
+		}
+		profile, status, err := s.RegisterNamespaceProfile(c, namespaceId)
+		if err != nil {
+			if status == http.StatusInternalServerError {
+				log.Error().Err(err).Msg("Failed to register graph object")
+				c.JSON(status, gin.H{"message": "internal error"})
+			} else {
+				c.JSON(status, gin.H{"message": err.Error()})
+			}
+			return
+		}
+	*/
+	c.JSON(http.StatusNotFound, 0)
 }
 
 func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {

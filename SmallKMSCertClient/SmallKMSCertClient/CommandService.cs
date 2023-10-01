@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace SmallKMSCertClient
 {
@@ -27,8 +24,6 @@ namespace SmallKMSCertClient
 		private Command buildEnrollDeviceCmd()
 		{
 			var cmd = new Command("enroll-device", "Enroll this device to Small KMS provisioning a certificate to be used for authenticate as Microsoft Entra ID service principal");
-
-			cmd.AddOption(new Option<bool>("--device-code", "Force to re-enroll this device"));
 
 			cmd.SetHandler(() =>
 			serviceProvider.GetService<EnrollDeviceService>()?.StartEnrollment() ?? Task.CompletedTask);
@@ -55,8 +50,9 @@ namespace SmallKMSCertClient
 		private Command buildLoginCmd()
 		{
 			var cmd = new Command("login", "Login to Azure AD");
-
-			cmd.SetHandler(() => serviceProvider.GetService<AdminAuthProvider>()?.Login() ?? Task.CompletedTask);
+			var deviceCodeOption = new Option<bool>("--device-code", "Use device code to login");
+			cmd.AddOption(deviceCodeOption);
+			cmd.SetHandler((bool useDeviceCode) => serviceProvider.GetService<AdminAuthProvider>()?.Login(useDeviceCode) ?? Task.CompletedTask, deviceCodeOption);
 
 			return cmd;
 		}
