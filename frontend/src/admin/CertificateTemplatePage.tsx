@@ -1,6 +1,7 @@
 import { useMemoizedFn, useRequest, useSet } from "ahooks";
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { v4 as uuidv4, version as uuidversion } from "uuid";
 import { Button } from "../components/Button";
 import { WellknownId, uuidNil } from "../constants";
 import {
@@ -20,10 +21,8 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
-import { BaseSelector, IssuerSelector } from "./Selectors";
 import { RefsTable } from "./RefsTable";
-import { version as uuidversion, v4 as uuidv4 } from "uuid";
-import _ from "lodash";
+import { BaseSelector } from "./Selectors";
 
 export interface CertificateTemplateFormState {
   displayName: ValueStateMayBeFixed<string>;
