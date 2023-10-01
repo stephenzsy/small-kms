@@ -23,6 +23,7 @@ func ResolvePtrWithDefault[D any](ptr *D, defaultValue D) ResolvePtr[D] {
 	return &resolvePtrWithDefault[D]{ptr: ptr, defaultValue: defaultValue}
 }
 */
+
 func ResolveBoolPtrValue(ptr *bool) bool {
 	return ptr != nil && *ptr
 }

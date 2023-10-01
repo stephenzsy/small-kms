@@ -10,6 +10,13 @@ func ToPtr[T any](v T) *T {
 	return &v
 }
 
+func DefaultIfNil[D any](ptr *D) (value D) {
+	if ptr != nil {
+		value = *ptr
+	}
+	return
+}
+
 func ToOptionalStringPtr(s string) *string {
 	if len(s) == 0 {
 		return nil

@@ -54,7 +54,7 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 	c.JSON(http.StatusOK, nil)
 }
 
-func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
+func (s *adminServer) genDirDocFromMsGraph(c context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
 	if err != nil {
 		return nil, err
@@ -106,13 +106,14 @@ func (s *adminServer) genDirDocFromMsGraph(c *gin.Context, objectID uuid.UUID) (
 	return doc, nil
 }
 
-func (s *adminServer) syncDirDoc(c *gin.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
+// Deprecated: this operation can throw error with graph 404
+func (s *adminServer) syncDirDoc(c context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	doc, err := s.genDirDocFromMsGraph(c, objectID)
 	if err != nil {
 		return doc, err
 	}
 
-	err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc)
+	err = kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc)
 	if err != nil {
 		return doc, err
 	}

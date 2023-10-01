@@ -3,50 +3,33 @@ package auth
 import (
 	"context"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type ContextKey string
 
 const (
-	appAuthContextKey string = "smallkms.appAuthContext"
-	roleKeyAppAdmin   string = "App.Admin"
-)
-const (
-	authIdentityContextKey ContextKey = "appIdentity"
+	appAuthIdentityContextKey string = "smallkms.appAuthIdentity"
+	roleKeyAppAdmin           string = "App.Admin"
 )
 
 type AuthIdentity interface {
 	HasAdminRole() bool
 	ClientPrincipalID() uuid.UUID
 	ClientPrincipalName() string
+	AppIDClaim() uuid.UUID
 }
 
 type authIdentity struct {
-	msClientPrincipalIDstr string
-	msClientPrincipalID    uuid.UUID
-	msClientPrincipalName  string
-	appRoles               map[string]bool
+	msClientPrincipalID   uuid.UUID
+	msClientPrincipalName string
+	appRoles              map[string]bool
+	appIDClaim            uuid.UUID
 }
 
-func SetAuthContext(c *gin.Context, ctx context.Context) {
-	c.Set(appAuthContextKey, ctx)
-}
-
-func GetAuthContext(c *gin.Context) (context.Context, bool) {
-	if ctx, ok := c.Value(appAuthContextKey).(context.Context); ok {
-		return ctx, ok
-	}
-	return nil, false
-}
-
-func GetAuthIdentity(c *gin.Context) (AuthIdentity, bool) {
-	if ctx, ok := GetAuthContext(c); ok {
-		identity, ok := ctx.Value(authIdentityContextKey).(AuthIdentity)
-		return identity, ok
-	}
-	return nil, false
+func GetAuthIdentity(ctx context.Context) (identity AuthIdentity, ok bool) {
+	identity, ok = ctx.Value(appAuthIdentityContextKey).(AuthIdentity)
+	return
 }
 
 func (i *authIdentity) HasAdminRole() bool {
@@ -75,4 +58,11 @@ func (i *authIdentity) ClientPrincipalName() string {
 	}
 
 	return i.msClientPrincipalName
+}
+
+func (i *authIdentity) AppIDClaim() uuid.UUID {
+	if i == nil {
+		return uuidNil
+	}
+	return i.appIDClaim
 }

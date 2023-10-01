@@ -36,14 +36,14 @@ type DirectoryObjectDoc struct {
 
 func (s *adminServer) getDirectoryObjectDoc(ctx context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
 	doc := new(DirectoryObjectDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, common.WellKnownID_TenantDirectory,
+	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), common.WellKnownID_TenantDirectory,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID), doc)
 	return doc, err
 }
 
 func (s *adminServer) listDirectoryObjectByType(ctx context.Context, odType string) ([]*DirectoryObjectDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(common.WellKnownID_TenantDirectory.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
+	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.odType = @odType`,
 		partitionKey, &azcosmos.QueryOptions{
@@ -121,5 +121,11 @@ func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) 
 		if item.Application != nil {
 			ref.AppID = ToPtr(item.Application.AppID)
 		}
+	}
+}
+
+func newDirectoryObjectDocFromApplicationable() *DirectoryObjectDoc {
+	return &DirectoryObjectDoc{
+		OdataType: "#microsoft.graph.application",
 	}
 }

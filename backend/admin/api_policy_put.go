@@ -66,7 +66,7 @@ func (s *adminServer) PutPolicyV1(c *gin.Context, namespaceID uuid.UUID, policyI
 	policyDoc.PolicyType = p.PolicyType
 
 	// write to DB
-	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, policyDoc); err != nil {
+	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), policyDoc); err != nil {
 		log.Printf("Internal error: %s", err.Error())
 		c.JSON(500, gin.H{"error": "internal error"})
 		return

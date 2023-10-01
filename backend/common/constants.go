@@ -33,9 +33,6 @@ var (
 
 	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
 
-	// Namespace relation type IDs --1-1 ~ --1-f
-	WellKnownNSRelID_DeviceLinkServicePrincipal = uuid.MustParse("00000000-0000-0000-0001-000000000001")
-
 	// default policy ids --1-1 ~ --1-f, deprecated
 	defaultPolicyIdCertRequest          = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
 	defaultPolicyIdCertEnroll           = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
@@ -56,4 +53,6 @@ func GetID(identifier WellKnownIdentifier) uuid.UUID {
 const (
 	DefaultCertTemplateName                                 = "default"
 	DefaultCertTemplateNameServicePrincipalClientCredential = "default-service-principal-client-credential"
+
+	NSRelNameDASPLink = "device-application-service-principal-link"
 )

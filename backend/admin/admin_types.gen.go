@@ -133,6 +133,10 @@ type CertificateEnrollmentReceipt struct {
 type CertificateEnrollmentRequest struct {
 	// Fqdn Fully qualified domain name to be used in the certificate
 	Fqdn *string `json:"fqdn,omitempty"`
+
+	// TargetNamespaceId Unique ID of the namespace to issue the certificate to
+	TargetNamespaceID   openapi_types.UUID     `json:"targetNamespaceId"`
+	TargetNamespaceType NamespaceTypeShortName `json:"targetNamespaceType"`
 }
 
 // CertificateInfo defines model for CertificateInfo.
@@ -528,10 +532,15 @@ type ResourceRef struct {
 
 // ServicePrincipalLinkedDevice defines model for ServicePrincipalLinkedDevice.
 type ServicePrincipalLinkedDevice struct {
-	ApplicationClientID      openapi_types.UUID `json:"applicationClientId"`
-	ApplicationObjectID      openapi_types.UUID `json:"applicationObjectId"`
-	DeviceId                 openapi_types.UUID `json:"deviceId"`
-	ServicePrincipalObjectID openapi_types.UUID `json:"servicePrincipalObjectId"`
+	ApplicationClientID openapi_types.UUID `json:"applicationClientId"`
+
+	// ApplicationOid Object ID of the application
+	ApplicationOID openapi_types.UUID `json:"applicationOid"`
+	DeviceID       openapi_types.UUID `json:"deviceId"`
+
+	// DeviceOid Object ID of the device
+	DeviceOID          openapi_types.UUID `json:"deviceOid"`
+	ServicePrincipalID openapi_types.UUID `json:"servicePrincipalId"`
 }
 
 // CertIdParameter defines model for CertIdParameter.
@@ -562,21 +571,6 @@ type ErrorResponse struct {
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
 
-// DeletePolicyV1Params defines parameters for DeletePolicyV1.
-type DeletePolicyV1Params struct {
-	Purge *bool `form:"purge,omitempty" json:"purge,omitempty"`
-}
-
-// GetDeviceServicePrincipalLinkV2Params defines parameters for GetDeviceServicePrincipalLinkV2.
-type GetDeviceServicePrincipalLinkV2Params struct {
-	Apply *bool `form:"apply,omitempty" json:"apply,omitempty"`
-}
-
-// BeginEnrollCertificateV2Params defines parameters for BeginEnrollCertificateV2.
-type BeginEnrollCertificateV2Params struct {
-	OnBeHalfOf *openapi_types.UUID `form:"onBeHalfOf,omitempty" json:"onBeHalfOf,omitempty"`
-}
-
 // IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
 type IssueCertificateByTemplateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
@@ -596,9 +590,6 @@ type GetCertificateV2Params struct {
 type CompleteCertificateEnrollmentV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
-
-// PutPolicyV1JSONRequestBody defines body for PutPolicyV1 for application/json ContentType.
-type PutPolicyV1JSONRequestBody = PolicyParameters
 
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest

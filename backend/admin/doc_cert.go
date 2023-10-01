@@ -55,7 +55,7 @@ func (doc *CertDoc) IsActive() bool {
 
 func (s *adminServer) readCertDoc(ctx context.Context, nsID uuid.UUID, docID kmsdoc.KmsDocID) (*CertDoc, error) {
 	doc := new(CertDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, nsID, docID, doc)
+	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID, docID, doc)
 	return doc, err
 }
 
@@ -164,7 +164,7 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 
 func (s *adminServer) listCertificateDocs(ctx context.Context, nsID uuid.UUID) ([]*CertDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.fingerprint FROM c
+	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.fingerprint FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.type = @type`,
 		partitionKey, &azcosmos.QueryOptions{

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/auth"
 )
 
 // extract owner name
@@ -23,11 +22,11 @@ func (r *CertificateEnrollRequest) createX509Certificate(c *gin.Context) (*x509.
 	return &cert, nil
 }*/
 
-func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId TemplateIdParameter, params BeginEnrollCertificateV2Params) {
-	// check user
-	callerId := auth.CallerPrincipalId(c)
-	if callerId == uuid.Nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId TemplateIdParameter) {
+
+	req := new(CertificateEnrollmentRequest)
+	if err := c.Bind(req); err != nil {
+		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
 		return
 	}
 

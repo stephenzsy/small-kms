@@ -24,18 +24,18 @@ type PolicyDoc struct {
 
 func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {
 	pd := new(PolicyDoc)
-	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
+	err := kmsdoc.AzCosmosRead(c, s.AzCosmosContainerClient(), namespaceID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), pd)
 	return pd, err
 }
 
 func (s *adminServer) deletePolicyDoc(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID, purge bool) error {
-	return kmsdoc.AzCosmosDelete(c, s.azCosmosContainerClientCerts, namespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), purge)
+	return kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), namespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), purge)
 }
 
 func (s *adminServer) listPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
+	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
 WHERE c.namespaceId = @namespaceId AND c.type = @type`,
 		partitionKey, &azcosmos.QueryOptions{
 			QueryParameters: []azcosmos.QueryParameter{
@@ -72,7 +72,7 @@ type PolicyStateDoc struct {
 
 func (s *adminServer) GetPolicyStateDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyStateDoc, error) {
 	pd := new(PolicyStateDoc)
-	err := kmsdoc.AzCosmosRead(c, s.azCosmosContainerClientCerts, namespaceID,
+	err := kmsdoc.AzCosmosRead(c, s.AzCosmosContainerClient(), namespaceID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicyState, policyID), pd)
 	return pd, err
 }

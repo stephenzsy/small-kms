@@ -60,7 +60,7 @@ func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
 
 func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {
 	doc := new(CertificateTemplateDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.azCosmosContainerClientCerts, nsID,
+	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateID), doc)
 	return doc, err
 }
@@ -387,7 +387,7 @@ func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties() (
 
 func (s *adminServer) listCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID) ([]*CertificateTemplateDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
-	pager := s.azCosmosContainerClientCerts.NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.displayName FROM c
+	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.displayName FROM c
 WHERE c.namespaceId = @namespaceId
   AND c.type = @type`,
 		partitionKey, &azcosmos.QueryOptions{

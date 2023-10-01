@@ -14,11 +14,6 @@ paths:
         - admin
       summary: Link device service principal
       operationId: GetDeviceServicePrincipalLinkV2
-      parameters:
-        - in: query
-          name: "apply"
-          schema:
-            type: boolean
       responses:
         200:
           description: Link device service principal response
@@ -26,6 +21,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
+    post:
+      tags:
+        - admin
+      summary: Link device service principal
+      operationId: CreateDeviceServicePrincipalLinkV2
+      responses:
+        201:
+          description: Link device service principal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        409:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceType}:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"
@@ -88,11 +99,6 @@ paths:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/TemplateIdParameter"
-      - in: query
-        name: onBeHalfOf
-        schema:
-          type: string
-          format: uuid
     post:
       tags:
         - admin
@@ -289,27 +295,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NamespaceProfile"
-  /v1/namespaces/{namespaceType}:
-    get:
-      tags:
-        - directory
-      summary: List namespaces
-      operationId: ListNamespacesV1
-      parameters:
-        - in: path
-          name: namespaceType
-          schema:
-            $ref: "#/components/schemas/NamespaceType"
-          required: true
-      responses:
-        "200":
-          description: List namespace response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NamespaceRef"
   # /v1/my/hasPermission/{permissionKey}:
   #   parameters:
   #     - in: path
@@ -384,38 +369,38 @@ paths:
                 items:
                   $ref: "#/components/schemas/PolicyRef"
   /v1/{namespaceId}/policies/{policyIdentifier}:
-    put:
-      tags:
-        - policy
-      summary: Put Policy
-      operationId: PutPolicyV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: path
-          name: policyIdentifier
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PolicyParameters"
-        required: true
-      responses:
-        "200":
-          description: Certificate policy
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-        400:
-          $ref: "#/components/responses/ErrorResponse"
+    # put:
+    #   tags:
+    #     - policy
+    #   summary: Put Policy
+    #   operationId: PutPolicyV1
+    #   parameters:
+    #     - in: path
+    #       name: namespaceId
+    #       schema:
+    #         type: string
+    #         format: uuid
+    #       required: true
+    #     - in: path
+    #       name: policyIdentifier
+    #       schema:
+    #         type: string
+    #       required: true
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: "#/components/schemas/PolicyParameters"
+    #     required: true
+    #   responses:
+    #     "200":
+    #       description: Certificate policy
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/Policy"
+    #     400:
+    #       $ref: "#/components/responses/ErrorResponse"
     get:
       tags:
         - policy
@@ -442,36 +427,36 @@ paths:
                 $ref: "#/components/schemas/Policy"
         404:
           $ref: "#/components/responses/ErrorResponse"
-    delete:
-      tags:
-        - policy
-      summary: Delete Certificate Policy
-      operationId: DeletePolicyV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: path
-          name: policyIdentifier
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: purge
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: Certificate policy
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-        204:
-          description: No content
+    # delete:
+    #   tags:
+    #     - policy
+    #   summary: Delete Certificate Policy
+    #   operationId: DeletePolicyV1
+    #   parameters:
+    #     - in: path
+    #       name: namespaceId
+    #       schema:
+    #         type: string
+    #         format: uuid
+    #       required: true
+    #     - in: path
+    #       name: policyIdentifier
+    #       schema:
+    #         type: string
+    #       required: true
+    #     - in: query
+    #       name: purge
+    #       schema:
+    #         type: boolean
+    #   responses:
+    #     200:
+    #       description: Certificate policy
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/Policy"
+    #     204:
+    #       description: No content
   /v1/{namespaceId}/policies/{policyId}/apply:
     post:
       tags:
@@ -704,9 +689,19 @@ components:
     CertificateEnrollmentRequest:
       type: object
       properties:
+        targetNamespaceType:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
+        targetNamespaceId:
+          description: Unique ID of the namespace to issue the certificate to
+          type: string
+          format: uuid
+          x-go-name: TargetNamespaceID
         fqdn:
           description: Fully qualified domain name to be used in the certificate
           type: string
+      required:
+        - targetNamespaceType
+        - targetNamespaceId
     CertificateEnrollmentReceipt:
       type: object
       properties:
@@ -772,26 +767,34 @@ components:
     ServicePrincipalLinkedDevice:
       type: object
       properties:
+        deviceOid:
+          description: Object ID of the device
+          type: string
+          format: uuid
+          x-go-name: DeviceOID
         deviceId:
           type: string
           format: uuid
+          x-go-name: DeviceID
+        applicationOid:
+          description: Object ID of the application
+          type: string
+          format: uuid
+          x-go-name: ApplicationOID
         applicationClientId:
           type: string
           format: uuid
           x-go-name: ApplicationClientID
-        applicationObjectId:
+        servicePrincipalId:
           type: string
           format: uuid
-          x-go-name: ApplicationObjectID
-        servicePrincipalObjectId:
-          type: string
-          format: uuid
-          x-go-name: ServicePrincipalObjectID
+          x-go-name: ServicePrincipalID
       required:
+        - deviceOid
         - deviceId
         - applicationClientId
-        - applicationObjectId
-        - servicePrincipalObjectId
+        - applicationOid
+        - servicePrincipalId
     ApplyPolicyRequest:
       type: object
       properties:

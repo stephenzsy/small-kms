@@ -143,7 +143,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 		successResponseCode = http.StatusCreated
 
 		// psersist certificate in cosmos
-		err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, certDoc)
+		err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), certDoc)
 		if err != nil {
 			respondInternalError(c, err, "failed to store certificate metadata")
 			return
@@ -153,7 +153,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 		certDocL := *certDoc
 		certDocL.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID)
 		certDocL.AliasID = &certDoc.ID
-		err = kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, &certDocL)
+		err = kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), &certDocL)
 		if err != nil {
 			respondInternalError(c, err, "failed to store certificate metadata for template")
 			return

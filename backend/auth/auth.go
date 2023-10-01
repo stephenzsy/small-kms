@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 
@@ -19,13 +18,6 @@ type msClientPrincipal struct {
 	Claims []msClientPrincipalClaims `json:"claims"`
 }
 
-const msClientPrincipalHasAdminRole string = "MsClientPrincipalHasAdminRole"
-const msClientPrincipalDeviceId string = "MsClientPrincipalDeviceId"
-
-const msClientPrincipalName string = "MsClientPrincipalName"
-
-const msClientPrincipalClaimType_DeviceID string = "http://schemas.microsoft.com/2012/01/devicecontext/claims/identifier"
-
 func HandleAadAuthMiddleware(ctx *gin.Context) {
 	a := authIdentity{
 		appRoles: make(map[string]bool),
@@ -33,12 +25,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	// Intercept the headers here
 	var err error
 	var decodedClaims []byte
-	p := msClientPrincipal{}
-	a.msClientPrincipalIDstr = ctx.Request.Header.Get("X-Ms-Client-Principal-Id")
-	if parsedCallerId, err := uuid.Parse(a.msClientPrincipalIDstr); err == nil {
-		a.msClientPrincipalID = parsedCallerId
-	}
-
+	a.msClientPrincipalID, _ = uuid.Parse(ctx.Request.Header.Get("X-Ms-Client-Principal-Id"))
 	a.msClientPrincipalName = ctx.Request.Header.Get("X-Ms-Client-Principal-Name")
 
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
@@ -51,18 +38,24 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 		log.Warn().Msg("Error decoding X-Ms-Client-Principal header")
 		goto afterParsePrincipalClaims
 	}
-	if err = json.Unmarshal(decodedClaims, &p); err != nil {
-		log.Warn().Msgf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
-		goto afterParsePrincipalClaims
-	} else {
-		for _, c := range p.Claims {
-			if c.Type == "roles" {
-				a.appRoles[c.Value] = true
+	{
+		p := msClientPrincipal{}
+		if err = json.Unmarshal(decodedClaims, &p); err != nil {
+			log.Warn().Msgf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
+			goto afterParsePrincipalClaims
+		} else {
+			for _, c := range p.Claims {
+				switch c.Type {
+				case "appid":
+					a.appIDClaim, _ = uuid.Parse(c.Value)
+				case "roles":
+					a.appRoles[c.Value] = true
+				}
 			}
 		}
 	}
 
 afterParsePrincipalClaims:
-	SetAuthContext(ctx, context.WithValue(context.Background(), authIdentityContextKey, a))
+	ctx.Set(appAuthIdentityContextKey, a)
 	ctx.Next()
 }

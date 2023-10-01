@@ -6,8 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/google/uuid"
+	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
 type ServerRole string
@@ -22,10 +25,15 @@ const (
 )
 
 type commonConfig struct {
-	defaultAzCerdential  azcore.TokenCredential
-	keyvaultEndpoint     string
-	azKeysClient         *azkeys.Client
-	azCertificatesClient *azcertificates.Client
+	defaultAzCerdential          azcore.TokenCredential
+	keyvaultEndpoint             string
+	azKeysClient                 *azkeys.Client
+	azCertificatesClient         *azcertificates.Client
+	azCosmosClient               *azcosmos.Client
+	azCosmosDatabaseClient       *azcosmos.DatabaseClient
+	azCosmosContainerClientCerts *azcosmos.ContainerClient
+	msGraphClient                *msgraph.GraphServiceClient
+	tenantID                     uuid.UUID
 }
 
 func NewCommonConfig() (c commonConfig, err error) {
@@ -46,6 +54,27 @@ func NewCommonConfig() (c commonConfig, err error) {
 		return
 	}
 	c.azCertificatesClient, err = azcertificates.NewClient(c.keyvaultEndpoint, c.defaultAzCerdential, nil)
+	c.tenantID = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
+
+	cosmosEndpoint := MustGetenv(DefualtEnvVarAzCosmosResourceEndpoint)
+	c.azCosmosClient, err = azcosmos.NewClient(cosmosEndpoint, c.DefaultAzCredential(), nil)
+	if err != nil {
+		log.Panicf("Failed to get az cosmos client: %s", err.Error())
+	}
+	c.azCosmosDatabaseClient, err = c.azCosmosClient.NewDatabase(GetEnvWithDefault("AZURE_COSMOS_DATABASE_ID", "kms"))
+	if err != nil {
+		log.Panicf("Failed to get az cosmos database client: %s", err.Error())
+	}
+	c.azCosmosContainerClientCerts, err = c.azCosmosDatabaseClient.NewContainer(GetEnvWithDefault("AZURE_COSMOS_CONTAINERNAME_CERTS", "Certs"))
+	if err != nil {
+		log.Panicf("Failed to get az cosmos container client for Certs: %s", err.Error())
+	}
+
+	c.msGraphClient, err = msgraph.NewGraphServiceClientWithCredentials(c.DefaultAzCredential(), nil)
+	if err != nil {
+		log.Panicf("Failed to get graph clients: %s", err.Error())
+	}
+
 	return
 }
 
@@ -53,6 +82,9 @@ type CommonConfig interface {
 	DefaultAzCredential() azcore.TokenCredential
 	AzKeysClient() *azkeys.Client
 	AzCertificatesClient() *azcertificates.Client
+	AzCosmosContainerClient() *azcosmos.ContainerClient
+	MsGraphClient() *msgraph.GraphServiceClient
+	TenantID() uuid.UUID
 }
 
 func (c *commonConfig) DefaultAzCredential() azcore.TokenCredential {
@@ -65,6 +97,18 @@ func (c *commonConfig) AzKeysClient() *azkeys.Client {
 
 func (c *commonConfig) AzCertificatesClient() *azcertificates.Client {
 	return c.azCertificatesClient
+}
+
+func (c *commonConfig) AzCosmosContainerClient() *azcosmos.ContainerClient {
+	return c.azCosmosContainerClientCerts
+}
+
+func (c *commonConfig) MsGraphClient() *msgraph.GraphServiceClient {
+	return c.msGraphClient
+}
+
+func (c *commonConfig) TenantID() uuid.UUID {
+	return c.tenantID
 }
 
 func MustGetenv(name string) (value string) {

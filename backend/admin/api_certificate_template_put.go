@@ -59,7 +59,7 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 		return
 	}
 
-	if err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc); err != nil {
+	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
 		respondInternalError(c, err, fmt.Sprintf("failed to upsert certificate template in cosmos: %s", templateId))
 		return
 	}
@@ -93,7 +93,7 @@ func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, 
 				return common.DefaultCertTemplateName, true
 			}
 		case nsType == NSTypeGroup &&
-			templateID == common.GetCanonicalCertificateTemplateID("#microsoft.graph.group", nsID, common.DefaultCertTemplateNameServicePrincipalClientCredential):
+			templateID == common.GetCanonicalCertificateTemplateID(nsID, common.DefaultCertTemplateNameServicePrincipalClientCredential):
 			return common.DefaultCertTemplateNameServicePrincipalClientCredential, true
 		}
 	}

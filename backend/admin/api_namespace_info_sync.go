@@ -33,7 +33,7 @@ func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceType Namespac
 		return
 	}
 	if validateNamespaceTypeWithDirDoc(namespaceType, doc) {
-		err := kmsdoc.AzCosmosUpsert(c, s.azCosmosContainerClientCerts, doc)
+		err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc)
 		if err != nil {
 			respondInternalError(c, err, fmt.Sprintf("failed to upsert directory object in cosmos: %s", namespaceId))
 			return

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/auth"
 )
@@ -18,8 +18,9 @@ const (
 	DocTypeUnknown KmsDocType = 90 // Z
 
 	DocTypeCert                KmsDocType = 67 // C
+	DocTypeMsGraphObject       KmsDocType = 71 // G
 	DocTypeLatestCertForPolicy KmsDocType = 76 // L
-	DocTypeDirectoryObject     KmsDocType = 79 // O
+	DocTypeDirectoryObject     KmsDocType = 79 // O, deprecated
 	DocTypePolicy              KmsDocType = 80 // P, deprecated
 	DocTypeNamespaceRelation   KmsDocType = 82 // R
 	DocTypePolicyState         KmsDocType = 83 // S, deprecated
@@ -32,6 +33,7 @@ const (
 	DocTypeNameUnknown KmsDocTypeName = "unknown"
 
 	DocTypeNameCert                KmsDocTypeName = "cert"
+	DocTypeNameMsGraphObject       KmsDocTypeName = "msgraph-object"
 	DocTypeNameLatestCertForPolicy KmsDocTypeName = "cert-latest"
 	DocTypeNameDirectoryObject     KmsDocTypeName = "directory-object"
 	DocTypeNamePolicy              KmsDocTypeName = "policy"
@@ -40,10 +42,21 @@ const (
 	DocTypeNameCertTemplate        KmsDocTypeName = "cert-template"
 )
 
+type KmsDocTypeExtName string
+
+const (
+	DocTypeExtNameApplication      KmsDocTypeExtName = ".application"
+	DocTypeExtNameDevice           KmsDocTypeExtName = ".device"
+	DocTypeExtNameUser             KmsDocTypeExtName = ".user"
+	DocTypeExtNameGroup            KmsDocTypeExtName = ".group"
+	DocTypeExtNameServicePrincipal KmsDocTypeExtName = ".servicePrincipal"
+)
+
 // KmsDocID is a unique identifier for a KmsDoc, is comparable
 type KmsDocID struct {
 	typeByte KmsDocType
 	uuid     uuid.UUID
+	ext      KmsDocTypeExtName
 }
 
 func NewKmsDocID(typ KmsDocType, id uuid.UUID) KmsDocID {
@@ -53,8 +66,16 @@ func NewKmsDocID(typ KmsDocType, id uuid.UUID) KmsDocID {
 	}
 }
 
-func (k *KmsDocID) String() string {
-	return fmt.Sprintf("%s%s", string(k.typeByte), k.uuid.String())
+func NewKmsDocIDExt(typ KmsDocType, id uuid.UUID, ext KmsDocTypeExtName) KmsDocID {
+	return KmsDocID{
+		typeByte: typ,
+		uuid:     id,
+		ext:      ext,
+	}
+}
+
+func (k KmsDocID) String() string {
+	return fmt.Sprintf("%s%s%s", string(k.typeByte), k.uuid.String(), k.ext)
 }
 
 func (k *KmsDocID) MarshalJSON() ([]byte, error) {
@@ -72,8 +93,13 @@ func (k *KmsDocID) UnmarshalJSON(b []byte) (err error) {
 		return
 	}
 	k.typeByte = KmsDocType(s[0])
-	k.uuid, err = uuid.Parse(s[1:])
+	k.uuid, err = uuid.Parse(s[1:37])
+	k.ext = KmsDocTypeExtName(s[37:])
 	return err
+}
+
+func (k *KmsDocID) Extension() KmsDocTypeExtName {
+	return k.ext
 }
 
 func (k *KmsDocID) GetType() KmsDocType {
@@ -89,7 +115,11 @@ type BaseDoc struct {
 	Deleted       *time.Time `json:"deleted,omitempty"`
 
 	// used only for serialization and query
-	TypeName KmsDocTypeName `json:"type"`
+	TypeName    KmsDocTypeName     `json:"type"`
+	ExtTypeName *KmsDocTypeExtName `json:"graph-type,omitempty"`
+
+	// metadata
+	ETag azcore.ETag `json:"-"`
 }
 
 func GetBaseDocQueryColumns(prefix string) string {
@@ -98,8 +128,13 @@ func GetBaseDocQueryColumns(prefix string) string {
 
 type KmsDocument interface {
 	GetNamespaceID() uuid.UUID
-	StampUpdatedWithAuth(c *gin.Context)
+	StampUpdatedWithAuth(context.Context) time.Time
 	GetUUID() uuid.UUID
+	GetDocID() KmsDocID
+	GetUpdated() time.Time
+	GetUpdatedBy() (string, string)
+	GetDeleted() *time.Time
+	SetETag(azcore.ETag)
 
 	fillTypeName()
 }
@@ -112,24 +147,46 @@ func (doc *BaseDoc) GetNamespaceID() uuid.UUID {
 	return doc.NamespaceID
 }
 
-func (doc *BaseDoc) StampUpdated(callerId string, callerName string) {
+func (doc *BaseDoc) GetDocID() KmsDocID {
+	return doc.ID
+}
+
+func (doc *BaseDoc) GetUpdated() time.Time {
+	return doc.Updated
+}
+
+func (doc *BaseDoc) GetUpdatedBy() (string, string) {
+	return doc.UpdatedBy, doc.UpdatedByName
+}
+
+func (doc *BaseDoc) GetDeleted() *time.Time {
+	return doc.Deleted
+}
+
+func (doc *BaseDoc) SetETag(etag azcore.ETag) {
+	doc.ETag = etag
+}
+
+func (doc *BaseDoc) StampUpdated(callerId string, callerName string) time.Time {
 	doc.Updated = time.Now()
 	doc.UpdatedBy = callerId
 	doc.UpdatedByName = callerName
+	return doc.Updated
 }
 
-func (doc *BaseDoc) StampUpdatedWithAuth(c *gin.Context) {
+func (doc *BaseDoc) StampUpdatedWithAuth(c context.Context) time.Time {
 	var callerPrincipalIdStr string
 	var callerPrincipalName string
 	if identity, ok := auth.GetAuthIdentity(c); ok {
 		callerPrincipalIdStr = identity.ClientPrincipalID().String()
 		callerPrincipalName = identity.ClientPrincipalName()
 	}
-	doc.StampUpdated(callerPrincipalIdStr, callerPrincipalName)
+	return doc.StampUpdated(callerPrincipalIdStr, callerPrincipalName)
 }
 
 var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
 	DocTypeCert:                DocTypeNameCert,
+	DocTypeMsGraphObject:       DocTypeNameMsGraphObject,
 	DocTypeLatestCertForPolicy: DocTypeNameLatestCertForPolicy,
 	DocTypeDirectoryObject:     DocTypeNameDirectoryObject,
 	DocTypePolicy:              DocTypeNamePolicy,
@@ -140,16 +197,34 @@ var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
 
 func (doc *BaseDoc) fillTypeName() {
 	doc.TypeName = docTypeNameMap[doc.ID.typeByte]
+	switch doc.ID.typeByte {
+	case DocTypeMsGraphObject:
+		extName := doc.ID.Extension()
+		doc.ExtTypeName = &extName
+	}
 }
 
-func AzCosmosUpsert[D KmsDocument](ctx *gin.Context, cc *azcosmos.ContainerClient, doc D) error {
+func AzCosmosCreate[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) error {
 	doc.StampUpdatedWithAuth(ctx)
 	doc.fillTypeName()
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
 	}
-	_, err = cc.UpsertItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), content, nil)
+	resp, err := cc.CreateItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), content, nil)
+	doc.SetETag(resp.ETag)
+	return err
+}
+
+func AzCosmosUpsert[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) error {
+	doc.StampUpdatedWithAuth(ctx)
+	doc.fillTypeName()
+	content, err := json.Marshal(doc)
+	if err != nil {
+		return err
+	}
+	resp, err := cc.UpsertItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), content, nil)
+	doc.SetETag(resp.ETag)
 	return err
 }
 
@@ -158,34 +233,39 @@ func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClie
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(resp.Value, target)
+	err = json.Unmarshal(resp.Value, target)
+	target.SetETag(resp.ETag)
+	return err
 }
 
-func AzCosmosPatch(c *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID,
-	docID KmsDocID, getPatchOps func(time.Time) *azcosmos.PatchOperations) (azcosmos.ItemResponse, error) {
-	now := time.Now().UTC()
-	ops := getPatchOps(now)
-	var callerPrincipalIdStr string
-	var callerPrincipalName string
-	if identity, ok := auth.GetAuthIdentity(c); ok {
-		callerPrincipalIdStr = identity.ClientPrincipalID().String()
-		callerPrincipalName = identity.ClientPrincipalName()
+func AzCosmosPatch[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D, getPatchOps ...func(*azcosmos.PatchOperations, D)) (D, error) {
+	ops := azcosmos.PatchOperations{}
+	for _, getPatchOpsFunc := range getPatchOps {
+		getPatchOpsFunc(&ops, doc)
 	}
-	ops.AppendSet("/updated", now.Format(time.RFC3339))
-	ops.AppendSet("/updatedBy", callerPrincipalIdStr)
-	ops.AppendSet("/updatedByName", callerPrincipalName)
-	return cc.PatchItem(c, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), *ops, nil)
+	doc.StampUpdatedWithAuth(ctx)
+	ops.AppendSet("/updated", doc.GetUpdated())
+	updatedBy, updatedByName := doc.GetUpdatedBy()
+	ops.AppendSet("/updatedBy", updatedBy)
+	ops.AppendSet("/updatedByName", updatedByName)
+	_, err := cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), doc.GetDocID().String(), ops, nil)
+	return doc, err
 }
 
-func AzCosmosDelete(ctx *gin.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID, docID KmsDocID, purge bool) (err error) {
-	if purge {
-		_, err = cc.DeleteItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), nil)
-	} else {
-		AzCosmosPatch(ctx, cc, namespaceID, docID, func(now time.Time) *azcosmos.PatchOperations {
-			ops := azcosmos.PatchOperations{}
-			ops.AppendSet("/deleted", now.Format(time.RFC3339))
-			return &ops
-		})
-	}
+func AzCosmosDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) (err error) {
+	_, err = cc.DeleteItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), doc.GetDocID().String(), nil)
 	return
+}
+
+func AzCosmosSoftDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) (D, error) {
+	ops := azcosmos.PatchOperations{}
+	doc.StampUpdatedWithAuth(ctx)
+	ops.AppendSet("/updated", doc.GetUpdated())
+	updatedBy, updatedByName := doc.GetUpdatedBy()
+	ops.AppendSet("/updatedBy", updatedBy)
+	ops.AppendSet("/updatedByName", updatedByName)
+	ops.AppendSet("/deleted", doc.GetDeleted())
+	_, err := cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), doc.GetDocID().String(), ops, nil)
+
+	return doc, err
 }
