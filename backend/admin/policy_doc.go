@@ -30,7 +30,7 @@ func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, pol
 }
 
 func (s *adminServer) deletePolicyDoc(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID, purge bool) error {
-	return kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), namespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), purge)
+	return nil
 }
 
 func (s *adminServer) listPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {

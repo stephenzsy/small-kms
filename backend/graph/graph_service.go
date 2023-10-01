@@ -11,7 +11,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-type GraphProfileDoc interface {
+type GraphProfileDocument interface {
 	kmsdoc.KmsDocument
 }
 
@@ -21,12 +21,14 @@ type GraphService interface {
 
 	GetDeviceByDeviceID(c ctx.Context, deviceID uuid.UUID) (msgraphmodels.Deviceable, error)
 
-	GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, docExtension kmsdoc.KmsDocTypeExtName) (GraphProfileDoc, error)
+	GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, docExtension kmsdoc.KmsDocTypeExtName) (GraphProfileDocument, error)
 	//	StoreDevice(device msgraphmodels.Deviceable) error
 
-	DeleteGraphProfileDoc(c ctx.Context, doc GraphProfileDoc) error
+	DeleteGraphProfileDoc(c ctx.Context, doc GraphProfileDocument) error
 
 	NewDeviceDocFromGraph(msgraphmodels.Deviceable) *DeviceDoc
+
+	ListGraphProfilesByType(c ctx.Context, docExtension kmsdoc.KmsDocTypeExtName) ([]GraphProfileDocument, error)
 }
 
 type graphService struct {
@@ -41,7 +43,7 @@ func NewGraphService(config common.CommonConfig) GraphService {
 	return &s
 }
 
-func (s *graphService) GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, docExtension kmsdoc.KmsDocTypeExtName) (GraphProfileDoc, error) {
+func (s *graphService) GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, docExtension kmsdoc.KmsDocTypeExtName) (GraphProfileDocument, error) {
 	docID := kmsdoc.NewKmsDocIDExt(kmsdoc.DocTypeMsGraphObject, objectID, docExtension)
 	switch docExtension {
 	case kmsdoc.DocTypeExtNameDevice:
@@ -55,13 +57,28 @@ func (s *graphService) GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, doc
 }
 
 func (s *graphService) GetGraphObjectByID(c ctx.Context, objectID uuid.UUID) (msgraphmodels.DirectoryObjectable, error) {
-	return s.MsGraphClient().DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
+	r, err := s.MsGraphClient().DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
+	return r, common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("graphobject/%s", objectID.String()))
 }
 
 func (s *graphService) GetDeviceByDeviceID(c ctx.Context, deviceID uuid.UUID) (device msgraphmodels.Deviceable, err error) {
-	return s.MsGraphClient().DevicesWithDeviceId(utils.ToPtr(deviceID.String())).Get(c, nil)
+	r, err := s.MsGraphClient().DevicesWithDeviceId(utils.ToPtr(deviceID.String())).Get(c, nil)
+	return r, common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("deviceswithdeviceid/%s", deviceID.String()))
 }
 
-func (s *graphService) DeleteGraphProfileDoc(c ctx.Context, doc GraphProfileDoc) error {
+func (s *graphService) DeleteGraphProfileDoc(c ctx.Context, doc GraphProfileDocument) error {
 	return kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), doc)
+}
+
+func (s *graphService) ListGraphProfilesByType(c ctx.Context, docExtension kmsdoc.KmsDocTypeExtName) ([]GraphProfileDocument, error) {
+	pager := s.queryProfilesByType(c, docExtension)
+	l, err := utils.PagerToList[GraphDoc](c, pager)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]GraphProfileDocument, len(l))
+	for i, item := range l {
+		result[i] = &item
+	}
+	return result, nil
 }

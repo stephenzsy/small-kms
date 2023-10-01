@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/microsoftgraph/msgraph-sdk-go/deviceswithdeviceid"
 )
 
 func (s *adminServer) GetMyProfilesV1(c *gin.Context) {
@@ -48,17 +47,7 @@ func (s *adminServer) GetMyProfilesV1(c *gin.Context) {
 }
 
 func (s *adminServer) resolveObjectIDFromDeviceID(c context.Context, deviceID string) (uuid.UUID, error) {
-	device, err := s.msGraphClient.DevicesWithDeviceId(&deviceID).Get(c,
-		&deviceswithdeviceid.DevicesWithDeviceIdRequestBuilderGetRequestConfiguration{
-			QueryParameters: &deviceswithdeviceid.DevicesWithDeviceIdRequestBuilderGetQueryParameters{
-				Select: []string{"id"},
-			},
-		})
-	if err != nil {
-		return uuid.Nil, err
-	}
-	idStr := *device.GetId()
-	return uuid.Parse(idStr)
+	return uuid.Nil, nil
 }
 
 func (s *adminServer) SyncMyProfilesV1(c *gin.Context) {

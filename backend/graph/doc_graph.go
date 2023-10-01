@@ -1,6 +1,10 @@
 package graph
 
 import (
+	ctx "context"
+
+	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
@@ -21,8 +25,7 @@ const (
 type GraphDoc struct {
 	kmsdoc.BaseDoc
 
-	GraphType   MsGraphOdataType `json:"@odata.type"`
-	DisplayName string           `json:"displayName"`
+	DisplayName string `json:"displayName"`
 
 	service *graphService
 }
@@ -32,22 +35,24 @@ type GraphProfileable interface {
 	GetDisplayName() *string
 }
 
-func (s *graphService) init(doc *GraphDoc, graphObj GraphProfileable, graphType MsGraphOdataType) {
+func (s *graphService) init(doc *GraphDoc, graphObj GraphProfileable, extType kmsdoc.KmsDocTypeExtName) {
 	oid, _ := uuid.Parse(utils.NilToDefault(graphObj.GetId()))
-	var docTypeExtName kmsdoc.KmsDocTypeExtName
-	switch doc.GraphType {
-	case MsGraphOdataTypeDevice:
-		docTypeExtName = kmsdoc.DocTypeExtNameDevice
-	case MsGraphOdataTypeUser:
-		docTypeExtName = kmsdoc.DocTypeExtNameUser
-	case MsGraphOdataTypeGroup:
-		docTypeExtName = kmsdoc.DocTypeExtNameGroup
-	case MsGraphOdataTypeApplication:
-		docTypeExtName = kmsdoc.DocTypeExtNameApplication
-	case MsGraphOdataTypeServicePrincipal:
-		docTypeExtName = kmsdoc.DocTypeExtNameServicePrincipal
-	}
 	doc.NamespaceID = s.TenantID()
-	doc.BaseDoc.ID = kmsdoc.NewKmsDocIDExt(kmsdoc.DocTypeMsGraphObject, oid, docTypeExtName)
+	doc.BaseDoc.ID = kmsdoc.NewKmsDocIDExt(kmsdoc.DocTypeMsGraphObject, oid, extType)
 	doc.DisplayName = utils.NilToDefault(graphObj.GetDisplayName())
+}
+
+func (s *graphService) queryProfilesByType(c ctx.Context, docExtension kmsdoc.KmsDocTypeExtName) *azruntime.Pager[azcosmos.QueryItemsResponse] {
+	partitionKey := azcosmos.NewPartitionKeyString(s.TenantID().String())
+	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.displayName FROM c
+WHERE c.namespaceId = @namespaceId
+  AND c.extType = @extType`,
+		partitionKey, &azcosmos.QueryOptions{
+			QueryParameters: []azcosmos.QueryParameter{
+				{Name: "@namespaceId", Value: s.TenantID().String()},
+				{Name: "@extType", Value: docExtension},
+			},
+		})
+
+	return pager
 }

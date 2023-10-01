@@ -116,7 +116,7 @@ type BaseDoc struct {
 
 	// used only for serialization and query
 	TypeName    KmsDocTypeName     `json:"type"`
-	ExtTypeName *KmsDocTypeExtName `json:"graph-type,omitempty"`
+	ExtTypeName *KmsDocTypeExtName `json:"extType,omitempty"`
 
 	// metadata
 	ETag azcore.ETag `json:"-"`
@@ -129,6 +129,8 @@ func GetBaseDocQueryColumns(prefix string) string {
 type KmsDocument interface {
 	GetNamespaceID() uuid.UUID
 	StampUpdatedWithAuth(context.Context) time.Time
+	StampDeletedWithAuth(context.Context) time.Time
+
 	GetUUID() uuid.UUID
 	GetDocID() KmsDocID
 	GetUpdated() time.Time
@@ -184,6 +186,12 @@ func (doc *BaseDoc) StampUpdatedWithAuth(c context.Context) time.Time {
 	return doc.StampUpdated(callerPrincipalIdStr, callerPrincipalName)
 }
 
+func (doc *BaseDoc) StampDeletedWithAuth(c context.Context) time.Time {
+	time := doc.StampUpdatedWithAuth(c)
+	doc.Deleted = &time
+	return time
+}
+
 var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
 	DocTypeCert:                DocTypeNameCert,
 	DocTypeMsGraphObject:       DocTypeNameMsGraphObject,
@@ -224,11 +232,15 @@ func AzCosmosUpsert[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerCl
 		return err
 	}
 	resp, err := cc.UpsertItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), content, nil)
+
 	doc.SetETag(resp.ETag)
 	return err
 }
 
-func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, namespaceID uuid.UUID, docID KmsDocID, target D) error {
+func AzCosmosRead[D KmsDocument](ctx context.Context,
+	cc *azcosmos.ContainerClient,
+	namespaceID uuid.UUID,
+	docID KmsDocID, target D) error {
 	resp, err := cc.ReadItem(ctx, azcosmos.NewPartitionKeyString(namespaceID.String()), docID.String(), nil)
 	if err != nil {
 		return err
@@ -238,7 +250,7 @@ func AzCosmosRead[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClie
 	return err
 }
 
-func AzCosmosPatch[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D, getPatchOps ...func(*azcosmos.PatchOperations, D)) (D, error) {
+func AzCosmosPatch[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D, getPatchOps ...func(*azcosmos.PatchOperations, D)) error {
 	ops := azcosmos.PatchOperations{}
 	for _, getPatchOpsFunc := range getPatchOps {
 		getPatchOpsFunc(&ops, doc)
@@ -249,7 +261,7 @@ func AzCosmosPatch[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerCli
 	ops.AppendSet("/updatedBy", updatedBy)
 	ops.AppendSet("/updatedByName", updatedByName)
 	_, err := cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), doc.GetDocID().String(), ops, nil)
-	return doc, err
+	return err
 }
 
 func AzCosmosDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) (err error) {
@@ -257,9 +269,9 @@ func AzCosmosDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerCl
 	return
 }
 
-func AzCosmosSoftDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) (D, error) {
+func AzCosmosSoftDelete[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) error {
 	ops := azcosmos.PatchOperations{}
-	doc.StampUpdatedWithAuth(ctx)
+	doc.StampDeletedWithAuth(ctx)
 	ops.AppendSet("/updated", doc.GetUpdated())
 	updatedBy, updatedByName := doc.GetUpdatedBy()
 	ops.AppendSet("/updatedBy", updatedBy)
@@ -267,5 +279,5 @@ func AzCosmosSoftDelete[D KmsDocument](ctx context.Context, cc *azcosmos.Contain
 	ops.AppendSet("/deleted", doc.GetDeleted())
 	_, err := cc.PatchItem(ctx, azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String()), doc.GetDocID().String(), ops, nil)
 
-	return doc, err
+	return err
 }

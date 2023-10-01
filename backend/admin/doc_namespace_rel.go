@@ -43,6 +43,12 @@ func patchNsRelDocSourceNamespaceID(ops *azcosmos.PatchOperations, doc *NsRelDoc
 
 func patchNsRelDocLinkedNamespacesDevice(ops *azcosmos.PatchOperations, doc *NsRelDoc) {
 	ops.AppendSet("/linked/device", doc.LinkedNamespaces.Device)
+	ops.AppendSet("/attributes/deviceId", doc.Attributes.DeviceID)
+}
+
+func patchNsRelDocLinkedNamespacesApplication(ops *azcosmos.PatchOperations, doc *NsRelDoc) {
+	ops.AppendSet("/linked/application", doc.LinkedNamespaces.Application)
+	ops.AppendSet("/attributes/appId", doc.Attributes.AppID)
 }
 
 /*

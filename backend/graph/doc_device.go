@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 
+	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -12,7 +13,9 @@ import (
 type DeviceDoc struct {
 	GraphDoc
 
-	AccountEnabled         bool    `json:"accountEnabled"`
+	DeviceID       uuid.UUID `json:"deviceId"`
+	AccountEnabled bool      `json:"accountEnabled"`
+
 	OperatingSystem        *string `json:"operatingSystem,omitempty"`
 	OperatingSystemVersion *string `json:"operatingSystemVersion,omitempty"`
 	TrustType              *string `json:"trustType,omitempty"`
@@ -27,7 +30,8 @@ func (s *graphService) NewDeviceDocFromGraph(
 		return nil
 	}
 	doc := &DeviceDoc{}
-	s.init(&doc.GraphDoc, graphObj, MsGraphOdataTypeDevice)
+	s.init(&doc.GraphDoc, graphObj, kmsdoc.DocTypeExtNameDevice)
+	doc.DeviceID, _ = uuid.Parse(utils.NilToDefault(graphObj.GetId()))
 	doc.AccountEnabled = utils.NilToDefault(graphObj.GetAccountEnabled())
 	doc.OperatingSystem = graphObj.GetOperatingSystem()
 	doc.OperatingSystemVersion = graphObj.GetOperatingSystemVersion()

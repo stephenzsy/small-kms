@@ -9,39 +9,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
-	msgraphsp "github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func (doc *NsRelDoc) toServicePrincipalLinkedDevice() (*ServicePrincipalLinkedDevice, error) {
+func (doc *NsRelDoc) toServicePrincipalLinkedDevice() *ServicePrincipalLinkedDevice {
 	if doc == nil {
-		return nil, nil
+		return nil
 	}
 	return &ServicePrincipalLinkedDevice{
-		ApplicationClientID: DefaultIfNil(doc.Attributes.AppID),
-		DeviceID:            DefaultIfNil(doc.Attributes.DeviceID),
-		DeviceOID:           DefaultIfNil(doc.LinkedNamespaces.Device),
-		ApplicationOID:      DefaultIfNil(doc.LinkedNamespaces.Application),
-		ServicePrincipalID:  DefaultIfNil(doc.LinkedNamespaces.ServicePrincipal),
-	}, nil
+		ApplicationClientID: utils.NilToDefault(doc.Attributes.AppID),
+		DeviceID:            utils.NilToDefault(doc.Attributes.DeviceID),
+		DeviceOID:           utils.NilToDefault(doc.LinkedNamespaces.Device),
+		ApplicationOID:      utils.NilToDefault(doc.LinkedNamespaces.Application),
+		ServicePrincipalID:  utils.NilToDefault(doc.LinkedNamespaces.ServicePrincipal),
+	}
 }
 
 func (s *adminServer) getDeviceServicePrincipalLinkDoc(c context.Context, nsID uuid.UUID) (doc *NsRelDoc, relID uuid.UUID, err error) {
 	relID = common.GetCanonicalNamespaceRelationID(nsID, common.NSRelNameDASPLink)
-	doc, err = s.readNsRel(c, nsID, relID)
-	return
-}
-
-func (s *adminServer) getDeviceServicePrincipalLink(c context.Context, nsID uuid.UUID) (*ServicePrincipalLinkedDevice, error) {
-	relDoc, relID, err := s.getDeviceServicePrincipalLinkDoc(c, nsID)
-	if err != nil {
-		return nil, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:rel:%s", nsID, relID))
+	if doc, err = s.readNsRel(c, nsID, relID); err != nil {
+		err = common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:rel:%s", nsID, relID))
 	}
-
-	return relDoc.toServicePrincipalLinkedDevice()
+	return
 }
 
 func (s *adminServer) GetDeviceServicePrincipalLinkV2(c *gin.Context, nsID uuid.UUID) {
@@ -49,7 +42,7 @@ func (s *adminServer) GetDeviceServicePrincipalLinkV2(c *gin.Context, nsID uuid.
 		return
 	}
 
-	r, err := s.getDeviceServicePrincipalLink(c, nsID)
+	r, _, err := s.getDeviceServicePrincipalLinkDoc(c, nsID)
 	if err != nil {
 		if errors.Is(err, common.ErrStatusNotFound) {
 			respondPublicError(c, http.StatusNotFound, err)
@@ -60,15 +53,13 @@ func (s *adminServer) GetDeviceServicePrincipalLinkV2(c *gin.Context, nsID uuid.
 		return
 	}
 
-	c.JSON(http.StatusOK, r)
+	c.JSON(http.StatusOK, r.toServicePrincipalLinkedDevice())
 }
 
-func (s *adminServer) createDeviceServicePrincipalLinkV2(c context.Context, nsID uuid.UUID) (*ServicePrincipalLinkedDevice, error) {
-	log.Info().Msgf("createDeviceServicePrincipalLinkV2: %s - start", nsID)
+func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsID uuid.UUID) (*NsRelDoc, error) {
+	log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - start", nsID)
 
-	defer log.Info().Msgf("createDeviceServicePrincipalLinkV2: %s - end", nsID)
-
-	var device msgraphmodels.Deviceable
+	defer log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - end", nsID)
 
 	// device require to have a profile
 	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, kmsdoc.DocTypeExtNameDevice)
@@ -92,8 +83,8 @@ func (s *adminServer) createDeviceServicePrincipalLinkV2(c context.Context, nsID
 	log.Info().Msgf("device %s: loaded from msgraph", nsID)
 
 	// verify is device
-	var ok bool
-	device, ok = devGraphObj.(msgraphmodels.Deviceable)
+
+	device, ok := devGraphObj.(msgraphmodels.Deviceable)
 	if !ok {
 		if deleteErr := s.graphService.DeleteGraphProfileDoc(c, graphProfileDoc); deleteErr != nil {
 			return nil, err
@@ -105,167 +96,223 @@ func (s *adminServer) createDeviceServicePrincipalLinkV2(c context.Context, nsID
 	if err := deviceDoc.Persist(c); err != nil {
 		return nil, err
 	}
-	log.Info().Msgf("device %s: verified and profile persisted: %s", nsID)
+
+	log.Info().Msgf("device %s: verified and profile persisted", nsID)
 
 	// next look up existing relation
-	deviceRelDoc, deviceRelID, err := s.getDeviceServicePrincipalLinkDoc(c, nsID)
+	var applicationID uuid.UUID
+	relDoc, deviceRelID, err := s.getDeviceServicePrincipalLinkDoc(c, nsID)
 	if err != nil {
 		err = common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:rel:%s", nsID, deviceRelID))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// clear error
-			deviceRelDoc = nil
+			relDoc = nil
 			err = nil
+			log.Info().Msgf("device link %s: not existing", deviceRelID)
 		} else {
-			return nil, err
-		}
-	}
-
-	// sync device doc
-	deviceDirDoc, err := s.syncDirDoc(c, nsID)
-	if err != nil {
-		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("%s", nsID))
-		if errors.Is(err, common.ErrStatusNotFound) && deviceRelDoc != nil {
-			// remote 404, delete relDoc
-			if delErr := kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), deviceRelDoc); err != nil {
-				return nil, delErr
-			}
-		}
-		return nil, err
-	}
-	if deviceDirDoc.OdataType != "#microsoft.graph.device" {
-		if deviceRelDoc != nil && deviceRelDoc.NamespaceID == nsID {
-			if delErr := kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), deviceRelDoc); err != nil {
-				return nil, delErr
-			}
-		}
-		return nil, fmt.Errorf("%w: namespace is not a device: %s", common.ErrStatusBadRequest, nsID)
-	}
-
-	// persist start doc
-	if deviceRelDoc == nil {
-		deviceRelDoc = new(NsRelDoc)
-		deviceRelDoc.NamespaceID = nsID
-		deviceRelDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, deviceRelID)
-		deviceRelDoc.Status = NsRelStatusUnknown
-		deviceRelDoc.SourceNamespaceID = nsID
-		deviceRelDoc.LinkedNamespaces.Device = &nsID
-		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), deviceRelDoc); err != nil {
 			return nil, err
 		}
 	} else {
-		deviceRelDoc.SourceNamespaceID = nsID
-		deviceRelDoc.LinkedNamespaces.Device = &nsID
-		if patchedDoc, err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), deviceRelDoc,
+		applicationID = utils.NilToDefault(relDoc.LinkedNamespaces.Application)
+		log.Info().Msgf("device link %s: existing loaded", deviceRelID)
+	}
+
+	// patch relations docs
+	deviceDeviceID, err := uuid.Parse(utils.NilToDefault(device.GetDeviceId()))
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to parse deviceId", err)
+	}
+	if relDoc != nil {
+		relDoc = new(NsRelDoc)
+		relDoc.NamespaceID = nsID
+		relDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, deviceRelID)
+		relDoc.Status = NsRelStatusUnknown
+		relDoc.SourceNamespaceID = nsID
+		relDoc.LinkedNamespaces.Device = &nsID
+		relDoc.Attributes.DeviceID = &deviceDeviceID
+		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), relDoc); err != nil {
+			return nil, err
+		}
+	} else {
+		relDoc.SourceNamespaceID = nsID
+		relDoc.LinkedNamespaces.Device = &nsID
+		relDoc.Attributes.DeviceID = &deviceDeviceID
+		if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
 			patchNsRelDocSourceNamespaceID,
 			patchNsRelDocLinkedNamespacesDevice); err != nil {
 			return nil, err
+		}
+	}
+	log.Info().Msgf("device link %s: patched device: %s", deviceRelID, nsID)
+
+	// look up application
+	var appObj msgraphmodels.Applicationable
+	if applicationID != uuid.Nil {
+		if appGraphObj, err := s.graphService.GetGraphObjectByID(c, applicationID); err != nil {
+			if !errors.Is(err, common.ErrStatusNotFound) {
+				return nil, err
+			}
+			// not found, let appObj continue to be nil
+			log.Info().Msgf("device link %s: application not exist: %s", deviceRelID, applicationID)
+		} else if appObj, ok = appGraphObj.(msgraphmodels.Applicationable); !ok {
+			// not an application, need to create a new one
+			appObj = nil
+			log.Info().Msgf("device link %s: application type mismatch: %s", deviceRelID, applicationID)
 		} else {
-			deviceRelDoc = patchedDoc
+			log.Info().Msgf("device link %s: application loaded: %s", deviceRelID, applicationID)
 		}
 	}
 
-	// sync created application
-	appOID := DefaultIfNil(deviceRelDoc.LinkedNamespaces.Application)
-	var applicationDirDoc *DirectoryObjectDoc
-	if appOID == uuid.Nil {
-		// no application linked, register a new one
+	if appObj == nil {
+		// create new
 		mApplication := msgraphmodels.NewApplication()
 		mApplication.SetDisplayName(ToPtr(fmt.Sprintf("small-kms-device-%s", nsID)))
 		mApplication.SetSignInAudience(ToPtr("AzureADMyOrg"))
 		mApplication.SetTags([]string{fmt.Sprintf("linked-device-object-id-%s", nsID), "linked-service-small-kms"})
 		mApplication.SetIsFallbackPublicClient(ToPtr(true))
-		application, err := s.msGraphClient.Applications().Post(c, mApplication, nil)
+		appObj, err = s.MsGraphClient().Applications().Post(c, mApplication, nil)
 		if err != nil {
-			// failed to create application
-			respondInternalError(c, err, "failed to create application")
+			return nil, err
+		}
+		log.Info().Msgf("device link %s: application created: %s", deviceRelID, applicationID)
+		if applicationID, err = uuid.Parse(utils.NilToDefault(appObj.GetAppId())); err != nil {
+			return nil, fmt.Errorf("%w: failed to parse application id: %s", err, appObj.GetAppId())
+
+		}
+	} else {
+		// verify configuration is up to date
+		// hasPatch:= false
+		// patchDelta := msgraphmodels.NewApplication()
+		// ...
+		// appObj, err := s.MsGraphClient().Applications().ByApplicationId(applicationID.String()).Patch(c, patchDelta, nil)
+	}
+	applicationAppID, err := uuid.Parse(utils.NilToDefault(appObj.GetAppId()))
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to parse appId: %s", err, appObj.GetAppId())
+	}
+	relDoc.LinkedNamespaces.Application = &applicationID
+	relDoc.Attributes.AppID = &applicationAppID
+	if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
+		patchNsRelDocLinkedNamespacesApplication); err != nil {
+		return nil, err
+	}
+
+	// create a link dock for application
+	appLinkDoc := new(NsRelDoc)
+	appLinkDoc.NamespaceID = applicationID
+	appLinkDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, common.GetCanonicalNamespaceRelationID(applicationID, common.NSRelNameDASPLink))
+	appLinkDoc.SourceNamespaceID = nsID
+	appLinkDoc.Status = NsRelStatusLink
+	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), appLinkDoc); err != nil {
+		return nil, err
+	}
+
+	/*
+		// sync created application
+		appOID := DefaultIfNil(relDoc.LinkedNamespaces.Application)
+		var applicationDirDoc *DirectoryObjectDoc
+		if appOID == uuid.Nil {
+			// no application linked, register a new one
+			mApplication := msgraphmodels.NewApplication()
+			mApplication.SetDisplayName(ToPtr(fmt.Sprintf("small-kms-device-%s", nsID)))
+			mApplication.SetSignInAudience(ToPtr("AzureADMyOrg"))
+			mApplication.SetTags([]string{fmt.Sprintf("linked-device-object-id-%s", nsID), "linked-service-small-kms"})
+			mApplication.SetIsFallbackPublicClient(ToPtr(true))
+			application, err := s.msGraphClient.Applications().Post(c, mApplication, nil)
+			if err != nil {
+				// failed to create application
+				respondInternalError(c, err, "failed to create application")
+				return
+			}
+			// sync application doc
+			applicationIdString := *application.GetId()
+			applicationObjectID, err := uuid.Parse(applicationIdString)
+			if err != nil {
+				respondInternalError(c, err, "failed to sync application")
+				return
+			}
+			// patch the application object id to relDoc
+			relDoc.LinkedNamespaces[string(NSTypeApplication)] = applicationObjectID
+			if err := s.patchNsRelLinkedNamespaces(c, relDoc, string(NSTypeApplication)); err != nil {
+				respondInternalError(c, err, "failed to patch relDoc")
+				return
+			}
+			if err := s.putNsRelShadow(c, relDoc, applicationObjectID); err != nil {
+				respondInternalError(c, err, "failed to sync relDoc")
+				return
+			}
+			applicationDirDoc, err = s.syncDirDoc(c, applicationObjectID)
+			if err != nil {
+				respondInternalError(c, err, "failed to sync relDoc")
+				return
+			}
+			// application doc synced
+		} else {
+			applicationDirDoc, err = s.syncDirDoc(c, appOID)
+			if err != nil {
+				if common.IsGraphODataErrorNotFound(err) || common.IsAzNotFound(err) {
+					if patchErr := s.patchNsRelStatus(c, relDoc, NsRelStatusError, fmt.Sprintf("namespace is no longer available: %s", appOID)); patchErr != nil {
+						log.Error().Err(patchErr).Msg("failed to patch namespace relation")
+					}
+					respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("linked application is no longer available: %s", appOID.String()))
+					return
+				}
+				respondInternalError(c, err, "failed to sync application doc")
+				return
+			}
+			if applicationDirDoc.OdataType != "#microsoft.graph.application" {
+				if patchErr := s.patchNsRelStatus(c, relDoc, NsRelStatusError, fmt.Sprintf("namespace is not an application: %s", appOID)); patchErr != nil {
+					log.Error().Err(patchErr).Msg("failed to patch namespace relation")
+				}
+				respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace is not an application: %s", appOID.String()))
+				return
+			}
+		}
+
+		// lookup service principal
+		sp, err := s.msGraphClient.ServicePrincipalsWithAppId(&applicationDirDoc.Application.AppID).Get(c, &msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+			QueryParameters: &msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+				Select: []string{"id"},
+			},
+		})
+		if err != nil {
+			if common.IsGraphODataErrorNotFoundWithAltErrorCode(err, 0) {
+				// not found, create one
+				spInput := msgraphmodels.NewServicePrincipal()
+				spInput.SetAppId(&applicationDirDoc.Application.AppID)
+				sp, err = s.msGraphClient.ServicePrincipals().Post(c, spInput, nil)
+				if err != nil {
+					respondInternalError(c, err, "failed to create service principal")
+					return
+				}
+			} else {
+				respondInternalError(c, err, "failed to get service principal")
+				return
+			}
+		}
+		spObjectId, err := uuid.Parse(*sp.GetId())
+		if err != nil {
+			respondInternalError(c, err, "failed to parse service principal object id")
 			return
 		}
-		// sync application doc
-		applicationIdString := *application.GetId()
-		applicationObjectID, err := uuid.Parse(applicationIdString)
-		if err != nil {
-			respondInternalError(c, err, "failed to sync application")
+		if _, err = s.syncDirDoc(c, spObjectId); err != nil {
+			respondInternalError(c, err, "failed to sync service principal")
 			return
 		}
+
 		// patch the application object id to relDoc
-		deviceRelDoc.LinkedNamespaces[string(NSTypeApplication)] = applicationObjectID
-		if err := s.patchNsRelLinkedNamespaces(c, deviceRelDoc, string(NSTypeApplication)); err != nil {
+		relDoc.LinkedNamespaces[string(NSTypeServicePrincipal)] = spObjectId
+		if err := s.patchNsRelLinkedNamespaces(c, relDoc, string(NSTypeServicePrincipal)); err != nil {
 			respondInternalError(c, err, "failed to patch relDoc")
 			return
 		}
-		if err := s.putNsRelShadow(c, deviceRelDoc, applicationObjectID); err != nil {
+		if err := s.putNsRelShadow(c, relDoc, spObjectId); err != nil {
 			respondInternalError(c, err, "failed to sync relDoc")
 			return
 		}
-		applicationDirDoc, err = s.syncDirDoc(c, applicationObjectID)
-		if err != nil {
-			respondInternalError(c, err, "failed to sync relDoc")
-			return
-		}
-		// application doc synced
-	} else {
-		applicationDirDoc, err = s.syncDirDoc(c, appOID)
-		if err != nil {
-			if common.IsGraphODataErrorNotFound(err) || common.IsAzNotFound(err) {
-				if patchErr := s.patchNsRelStatus(c, deviceRelDoc, NsRelStatusError, fmt.Sprintf("namespace is no longer available: %s", appOID)); patchErr != nil {
-					log.Error().Err(patchErr).Msg("failed to patch namespace relation")
-				}
-				respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("linked application is no longer available: %s", appOID.String()))
-				return
-			}
-			respondInternalError(c, err, "failed to sync application doc")
-			return
-		}
-		if applicationDirDoc.OdataType != "#microsoft.graph.application" {
-			if patchErr := s.patchNsRelStatus(c, deviceRelDoc, NsRelStatusError, fmt.Sprintf("namespace is not an application: %s", appOID)); patchErr != nil {
-				log.Error().Err(patchErr).Msg("failed to patch namespace relation")
-			}
-			respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace is not an application: %s", appOID.String()))
-			return
-		}
-	}
+	*/
 
-	// lookup service principal
-	sp, err := s.msGraphClient.ServicePrincipalsWithAppId(&applicationDirDoc.Application.AppID).Get(c, &msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
-		QueryParameters: &msgraphsp.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
-			Select: []string{"id"},
-		},
-	})
-	if err != nil {
-		if common.IsGraphODataErrorNotFoundWithAltErrorCode(err, 0) {
-			// not found, create one
-			spInput := msgraphmodels.NewServicePrincipal()
-			spInput.SetAppId(&applicationDirDoc.Application.AppID)
-			sp, err = s.msGraphClient.ServicePrincipals().Post(c, spInput, nil)
-			if err != nil {
-				respondInternalError(c, err, "failed to create service principal")
-				return
-			}
-		} else {
-			respondInternalError(c, err, "failed to get service principal")
-			return
-		}
-	}
-	spObjectId, err := uuid.Parse(*sp.GetId())
-	if err != nil {
-		respondInternalError(c, err, "failed to parse service principal object id")
-		return
-	}
-	if _, err = s.syncDirDoc(c, spObjectId); err != nil {
-		respondInternalError(c, err, "failed to sync service principal")
-		return
-	}
-
-	// patch the application object id to relDoc
-	deviceRelDoc.LinkedNamespaces[string(NSTypeServicePrincipal)] = spObjectId
-	if err := s.patchNsRelLinkedNamespaces(c, deviceRelDoc, string(NSTypeServicePrincipal)); err != nil {
-		respondInternalError(c, err, "failed to patch relDoc")
-		return
-	}
-	if err := s.putNsRelShadow(c, deviceRelDoc, spObjectId); err != nil {
-		respondInternalError(c, err, "failed to sync relDoc")
-		return
-	}
+	return relDoc, nil
 
 }
 
@@ -274,7 +321,7 @@ func (s *adminServer) CreateDeviceServicePrincipalLinkV2(c *gin.Context, nsID uu
 		return
 	}
 
-	r, err := s.createDeviceServicePrincipalLinkV2(c, nsID)
+	r, err := s.createDeviceServicePrincipalLinkDoc(c, nsID)
 	if err != nil {
 		if errors.Is(err, common.ErrStatusNotFound) {
 			respondPublicError(c, http.StatusNotFound, err)

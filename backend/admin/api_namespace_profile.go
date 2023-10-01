@@ -2,12 +2,10 @@ package admin
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
@@ -55,55 +53,7 @@ func (s *adminServer) ListNamespacesV1(c *gin.Context, namespaceType NamespaceTy
 }
 
 func (s *adminServer) genDirDocFromMsGraph(c context.Context, objectID uuid.UUID) (*DirectoryObjectDoc, error) {
-	dirObj, err := s.msGraphClient.DirectoryObjects().ByDirectoryObjectId(objectID.String()).Get(c, nil)
-	if err != nil {
-		return nil, err
-	}
-	doc := new(DirectoryObjectDoc)
-	doc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeDirectoryObject, objectID)
-	doc.NamespaceID = common.WellKnownID_TenantDirectory
-	doc.OdataType = *dirObj.GetOdataType()
-	switch doc.OdataType {
-	case "#microsoft.graph.user":
-		if userObj, ok := dirObj.(msgraphmodels.Userable); ok {
-			doc.DisplayName = *userObj.GetDisplayName()
-			doc.UserPrincipalName = userObj.GetUserPrincipalName()
-		}
-	case "#microsoft.graph.servicePrincipal":
-		if spObj, ok := dirObj.(msgraphmodels.ServicePrincipalable); ok {
-			doc.DisplayName = *spObj.GetDisplayName()
-			doc.ServicePrincipal = &DirectoryObjectDocServicePrincipal{ServicePrincipalType: *spObj.GetServicePrincipalType()}
-		}
-	case "#microsoft.graph.group":
-		if gObj, ok := dirObj.(msgraphmodels.Groupable); ok {
-			doc.DisplayName = *gObj.GetDisplayName()
-		}
-	case "#microsoft.graph.device":
-		if dObj, ok := dirObj.(msgraphmodels.Deviceable); ok {
-			doc.DisplayName = *dObj.GetDisplayName()
-			deviceId, err := uuid.Parse(*dObj.GetDeviceId())
-			if err != nil {
-				return nil, err
-			}
-			doc.Device = &DirectoryObjectDocDevice{
-				DeviceID:               deviceId,
-				OperatingSystem:        dObj.GetOperatingSystem(),
-				OperatingSystemVersion: dObj.GetOperatingSystemVersion(),
-				DeviceOwnership:        dObj.GetDeviceOwnership(),
-				IsCompliant:            dObj.GetIsCompliant(),
-			}
-		}
-	case "#microsoft.graph.application":
-		if dObj, ok := dirObj.(msgraphmodels.Applicationable); ok {
-			doc.DisplayName = *dObj.GetDisplayName()
-			doc.Application = &DirectoryObjectDocApplication{
-				AppID: *dObj.GetAppId(),
-			}
-		}
-	default:
-		return nil, fmt.Errorf("graph object type (%s) not supported", doc.OdataType)
-	}
-	return doc, nil
+	return nil, nil
 }
 
 // Deprecated: this operation can throw error with graph 404
