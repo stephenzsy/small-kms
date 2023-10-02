@@ -15,6 +15,7 @@ import { RefsTable } from "./RefsTable";
 import { useMemo } from "react";
 import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 import { v5 as uuidv5 } from "uuid";
+import { DeviceGroupInstall } from "./DeviceGroupInstall";
 interface CreateDefaultLinkItem {
   id: string;
   title: string;

@@ -68,6 +68,9 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	c = withGraphClient(c, graphClient)
 
 	graphAppClient, err := s.msGraphAppClient()
+	if err != nil {
+		return nil, err
+	}
 
 	// device require to have a profile
 	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeDevice)
@@ -197,19 +200,15 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	log.Info().Msgf("device link %s: application link created: %s", deviceRelID, applicationID)
 
 	// look up service principal
-	spID := utils.NilToDefault(relDoc.LinkedNamespaces.ServicePrincipal)
 	var spObj msgraphmodels.ServicePrincipalable
-	if spID != uuid.Nil {
-		if spObj, err = graphClient.ServicePrincipalsWithAppId(ToPtr(applicationAppID.String())).Get(c, nil); err != nil {
-			err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("servicePrincipal:%s", spID))
-			if !errors.Is(err, common.ErrStatusNotFound) {
-				return nil, err
-			}
-			// not found, let appObj continue to be nil
-			log.Info().Msgf("device link %s: service principal not exist: %s", deviceRelID, spID)
-		} else {
-			log.Info().Msgf("device link %s: service principal loaded: %s", deviceRelID, spID)
+
+	if spObj, err = graphClient.ServicePrincipalsWithAppId(ToPtr(applicationAppID.String())).Get(c, nil); err != nil {
+		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("servicePrincipal-appid:%s", applicationAppID))
+		if !errors.Is(err, common.ErrStatusNotFound) {
+			return nil, err
 		}
+		log.Info().Msgf("device link %s: service principal not exist for app id: %s", deviceRelID, applicationAppID)
+
 	}
 
 	if spObj == nil {
@@ -220,10 +219,11 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		if spObj, err = graphAppClient.ServicePrincipals().Post(c, mSp, nil); err != nil {
 			return nil, err
 		}
-		if spID, err = uuid.Parse(utils.NilToDefault(spObj.GetId())); err != nil {
-			return nil, fmt.Errorf("%w: failed to parse service principal id: %s", err, spID)
-		}
-		log.Info().Msgf("device link %s: service principal created: %s", deviceRelID, spID)
+		log.Info().Msgf("device link %s: service principal created for appId: %s", deviceRelID, applicationAppID)
+	}
+	spID, err := uuid.Parse(utils.NilToDefault(spObj.GetId()))
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to parse service principal id: %s", err, spID)
 	}
 
 	relDoc.LinkedNamespaces.ServicePrincipal = &spID

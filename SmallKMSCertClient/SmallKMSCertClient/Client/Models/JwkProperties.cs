@@ -6,7 +6,7 @@ using System.Linq;
 using System;
 namespace SmallKms.Client.Models {
     /// <summary>
-    /// Property bag of JSON Web Key (RFC 7517) with additional fields
+    /// Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
     /// </summary>
     public class JwkProperties : IAdditionalDataHolder, IParsable {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>

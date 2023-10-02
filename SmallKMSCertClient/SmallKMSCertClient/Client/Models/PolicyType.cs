@@ -5,7 +5,5 @@ namespace SmallKms.Client.Models {
     public enum PolicyType {
         [EnumMember(Value = "certEnroll")]
         CertEnroll,
-        [EnumMember(Value = "certAadAppCred")]
-        CertAadAppCred,
     }
 }

@@ -10,12 +10,14 @@ namespace SmallKms.Client.Models {
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The applicationClientId property</summary>
         public Guid? ApplicationClientId { get; set; }
-        /// <summary>The applicationObjectId property</summary>
-        public Guid? ApplicationObjectId { get; set; }
+        /// <summary>Object ID of the application</summary>
+        public Guid? ApplicationOid { get; set; }
         /// <summary>The deviceId property</summary>
         public Guid? DeviceId { get; set; }
-        /// <summary>The servicePrincipalObjectId property</summary>
-        public Guid? ServicePrincipalObjectId { get; set; }
+        /// <summary>Object ID of the device</summary>
+        public Guid? DeviceOid { get; set; }
+        /// <summary>The servicePrincipalId property</summary>
+        public Guid? ServicePrincipalId { get; set; }
         /// <summary>
         /// Instantiates a new ServicePrincipalLinkedDevice and sets the default values.
         /// </summary>
@@ -36,9 +38,10 @@ namespace SmallKms.Client.Models {
         public IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>> {
                 {"applicationClientId", n => { ApplicationClientId = n.GetGuidValue(); } },
-                {"applicationObjectId", n => { ApplicationObjectId = n.GetGuidValue(); } },
+                {"applicationOid", n => { ApplicationOid = n.GetGuidValue(); } },
                 {"deviceId", n => { DeviceId = n.GetGuidValue(); } },
-                {"servicePrincipalObjectId", n => { ServicePrincipalObjectId = n.GetGuidValue(); } },
+                {"deviceOid", n => { DeviceOid = n.GetGuidValue(); } },
+                {"servicePrincipalId", n => { ServicePrincipalId = n.GetGuidValue(); } },
             };
         }
         /// <summary>
@@ -48,9 +51,10 @@ namespace SmallKms.Client.Models {
         public void Serialize(ISerializationWriter writer) {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
             writer.WriteGuidValue("applicationClientId", ApplicationClientId);
-            writer.WriteGuidValue("applicationObjectId", ApplicationObjectId);
+            writer.WriteGuidValue("applicationOid", ApplicationOid);
             writer.WriteGuidValue("deviceId", DeviceId);
-            writer.WriteGuidValue("servicePrincipalObjectId", ServicePrincipalObjectId);
+            writer.WriteGuidValue("deviceOid", DeviceOid);
+            writer.WriteGuidValue("servicePrincipalId", ServicePrincipalId);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

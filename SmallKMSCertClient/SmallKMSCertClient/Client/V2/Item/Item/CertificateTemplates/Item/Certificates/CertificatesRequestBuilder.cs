@@ -2,7 +2,7 @@
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
 using SmallKms.Client.Models;
-using SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates.Item;
+using SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates.Latest;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,37 +14,26 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
     /// Builds and executes requests for operations under \v2\{namespaceType}\{namespaceId}\certificate-templates\{templateId}\certificates
     /// </summary>
     public class CertificatesRequestBuilder : BaseRequestBuilder {
-        /// <summary>Gets an item from the SmallKms.Client.v2.item.item.certificateTemplates.item.certificates.item collection</summary>
-        /// <param name="position">Unique identifier of the item</param>
-        public WithCertItemRequestBuilder this[Guid position] { get {
-            var urlTplParams = new Dictionary<string, object>(PathParameters);
-            urlTplParams.Add("certId", position);
-            return new WithCertItemRequestBuilder(urlTplParams, RequestAdapter);
-        } }
-        /// <summary>Gets an item from the SmallKms.Client.v2.item.item.certificateTemplates.item.certificates.item collection</summary>
-        /// <param name="position">Unique identifier of the item</param>
-        [Obsolete("This indexer is deprecated and will be removed in the next major version. Use the one with the typed parameter instead.")]
-        public WithCertItemRequestBuilder this[string position] { get {
-            var urlTplParams = new Dictionary<string, object>(PathParameters);
-            if (!string.IsNullOrWhiteSpace(position)) urlTplParams.Add("certId", position);
-            return new WithCertItemRequestBuilder(urlTplParams, RequestAdapter);
-        } }
+        /// <summary>The latest property</summary>
+        public LatestRequestBuilder Latest { get =>
+            new LatestRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>
         /// Instantiates a new CertificatesRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public CertificatesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates", pathParameters) {
+        public CertificatesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates{?includeCertificate*}", pathParameters) {
         }
         /// <summary>
         /// Instantiates a new CertificatesRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public CertificatesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates", rawUrl) {
+        public CertificatesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates{?includeCertificate*}", rawUrl) {
         }
         /// <summary>
-        /// List certificates
+        /// List certificates issued by template
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -60,7 +49,22 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             return collectionResult?.ToList();
         }
         /// <summary>
-        /// List certificates
+        /// Create certificate
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task<CertificateInfo?> PostAsync(Action<CertificatesRequestBuilderPostRequestConfiguration>? requestConfiguration = default, CancellationToken cancellationToken = default) {
+#nullable restore
+#else
+        public async Task<CertificateInfo> PostAsync(Action<CertificatesRequestBuilderPostRequestConfiguration> requestConfiguration = default, CancellationToken cancellationToken = default) {
+#endif
+            var requestInfo = ToPostRequestInformation(requestConfiguration);
+            return await RequestAdapter.SendAsync<CertificateInfo>(requestInfo, CertificateInfo.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// List certificates issued by template
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -85,6 +89,32 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             return requestInfo;
         }
         /// <summary>
+        /// Create certificate
+        /// </summary>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToPostRequestInformation(Action<CertificatesRequestBuilderPostRequestConfiguration>? requestConfiguration = default) {
+#nullable restore
+#else
+        public RequestInformation ToPostRequestInformation(Action<CertificatesRequestBuilderPostRequestConfiguration> requestConfiguration = default) {
+#endif
+            var requestInfo = new RequestInformation {
+                HttpMethod = Method.POST,
+                UrlTemplate = UrlTemplate,
+                PathParameters = PathParameters,
+            };
+            requestInfo.Headers.Add("Accept", "application/json");
+            if (requestConfiguration != null) {
+                var requestConfig = new CertificatesRequestBuilderPostRequestConfiguration();
+                requestConfiguration.Invoke(requestConfig);
+                requestInfo.AddQueryParameters(requestConfig.QueryParameters);
+                requestInfo.AddRequestOptions(requestConfig.Options);
+                requestInfo.AddHeaders(requestConfig.Headers);
+            }
+            return requestInfo;
+        }
+        /// <summary>
         /// Returns a request builder with the provided arbitrary URL. Using this method means any other path or query parameters are ignored.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
@@ -103,6 +133,38 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             /// Instantiates a new certificatesRequestBuilderGetRequestConfiguration and sets the default values.
             /// </summary>
             public CertificatesRequestBuilderGetRequestConfiguration() {
+                Options = new List<IRequestOption>();
+                Headers = new RequestHeaders();
+            }
+        }
+        /// <summary>
+        /// Create certificate
+        /// </summary>
+        public class CertificatesRequestBuilderPostQueryParameters {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("includeCertificate")]
+            public string? IncludeCertificate { get; set; }
+#nullable restore
+#else
+            [QueryParameter("includeCertificate")]
+            public string IncludeCertificate { get; set; }
+#endif
+        }
+        /// <summary>
+        /// Configuration for the request such as headers, query parameters, and middleware options.
+        /// </summary>
+        public class CertificatesRequestBuilderPostRequestConfiguration {
+            /// <summary>Request headers</summary>
+            public RequestHeaders Headers { get; set; }
+            /// <summary>Request options</summary>
+            public IList<IRequestOption> Options { get; set; }
+            /// <summary>Request query parameters</summary>
+            public CertificatesRequestBuilderPostQueryParameters QueryParameters { get; set; } = new CertificatesRequestBuilderPostQueryParameters();
+            /// <summary>
+            /// Instantiates a new certificatesRequestBuilderPostRequestConfiguration and sets the default values.
+            /// </summary>
+            public CertificatesRequestBuilderPostRequestConfiguration() {
                 Options = new List<IRequestOption>();
                 Headers = new RequestHeaders();
             }

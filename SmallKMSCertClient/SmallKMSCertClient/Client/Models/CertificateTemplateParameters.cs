@@ -25,7 +25,7 @@ namespace SmallKms.Client.Models {
 #else
         public CertificateIssuer Issuer { get; set; }
 #endif
-        /// <summary>Property bag of JSON Web Key (RFC 7517) with additional fields</summary>
+        /// <summary>Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public JwkProperties? KeyProperties { get; set; }

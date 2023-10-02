@@ -1,15 +1,8 @@
 import { useRequest } from "ahooks";
-import {
-  DirectoryApi,
-  NamespaceType,
-  PolicyApi,
-  PolicyType,
-} from "../generated";
+import React, { useMemo } from "react";
+import { PolicyApi, PolicyType } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import React, { useContext, useMemo } from "react";
 import { policyTypeNames } from "./displayConstants";
-import { PolicyContext } from "./PolicyContext";
-import { WellknownId } from "../constants";
 
 export interface ISelectorItem {
   value: string;
@@ -64,7 +57,7 @@ export function BaseSelector<T extends ISelectorItem = ISelectorItem>({
   );
 }
 
-export function PolicySelector({
+export function GroupSelector({
   namespaceId,
   policyType,
   selectedPolicyId,
@@ -111,60 +104,3 @@ export function PolicySelector({
     />
   );
 }
-
-/*
-interface IssuerNamespaceSelectorProps {
-  selectedIssuerId: string;
-  onChange: (issuerId: string) => void;
-}
-
-export function IssuerSelector({
-  selectedIssuerId,
-  onChange,
-}: IssuerNamespaceSelectorProps) {
-  const { namespaceId, namespaceProfile } = useContext(PolicyContext);
-  const client = useAuthedClient(DirectoryApi);
-  const { data: issuers } = useRequest(
-    async () => {
-      switch (namespaceProfile?.objectType) {
-        case NamespaceType.NamespaceType_BuiltInCaRoot:
-          // force itself
-          return [namespaceProfile];
-        case NamespaceType.NamespaceType_BuiltInCaInt:
-          const l = await client.listNamespacesV1({
-            namespaceType: NamespaceType.NamespaceType_BuiltInCaRoot,
-          });
-          if (namespaceId === WellknownId.nsTestIntCa) {
-            return l.filter((x) => x.id === WellknownId.nsTestRootCa);
-          } else {
-            return l.filter((x) => x.id === WellknownId.nsRootCa);
-          }
-      }
-      return await client.listNamespacesV1({
-        namespaceType: NamespaceType.NamespaceType_BuiltInCaInt,
-      });
-    },
-    {
-      ready: !!namespaceProfile,
-      refreshDeps: [namespaceProfile?.id],
-    }
-  );
-  const items = useMemo(
-    () =>
-      issuers?.map((issuer) => ({
-        value: issuer.id,
-        title: issuer.displayName || issuer.id,
-      })),
-    [issuers]
-  );
-  return (
-    <BaseSelector
-      items={items}
-      label={"Issuer namespace"}
-      placeholder="Select issuer namespace"
-      value={selectedIssuerId}
-      onChange={onChange}
-    />
-  );
-}
-*/

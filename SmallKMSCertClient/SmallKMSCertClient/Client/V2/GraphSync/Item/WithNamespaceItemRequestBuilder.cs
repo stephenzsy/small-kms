@@ -8,59 +8,59 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-namespace SmallKms.Client.V1.Item.Profile {
+namespace SmallKms.Client.V2.GraphSync.Item {
     /// <summary>
-    /// Builds and executes requests for operations under \v1\{namespaceId}\profile
+    /// Builds and executes requests for operations under \v2\graph-sync\{namespaceId}
     /// </summary>
-    public class ProfileRequestBuilder : BaseRequestBuilder {
+    public class WithNamespaceItemRequestBuilder : BaseRequestBuilder {
         /// <summary>
-        /// Instantiates a new ProfileRequestBuilder and sets the default values.
+        /// Instantiates a new WithNamespaceItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ProfileRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v1/{namespaceId}/profile", pathParameters) {
+        public WithNamespaceItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/graph-sync/{namespaceId}", pathParameters) {
         }
         /// <summary>
-        /// Instantiates a new ProfileRequestBuilder and sets the default values.
+        /// Instantiates a new WithNamespaceItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public ProfileRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v1/{namespaceId}/profile", rawUrl) {
+        public WithNamespaceItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/v2/graph-sync/{namespaceId}", rawUrl) {
         }
         /// <summary>
-        /// Get namespace profile
+        /// Sync namespace info with ms graph
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<NamespaceProfile?> GetAsync(Action<ProfileRequestBuilderGetRequestConfiguration>? requestConfiguration = default, CancellationToken cancellationToken = default) {
+        public async Task<NamespaceInfo?> PostAsync(Action<WithNamespaceItemRequestBuilderPostRequestConfiguration>? requestConfiguration = default, CancellationToken cancellationToken = default) {
 #nullable restore
 #else
-        public async Task<NamespaceProfile> GetAsync(Action<ProfileRequestBuilderGetRequestConfiguration> requestConfiguration = default, CancellationToken cancellationToken = default) {
+        public async Task<NamespaceInfo> PostAsync(Action<WithNamespaceItemRequestBuilderPostRequestConfiguration> requestConfiguration = default, CancellationToken cancellationToken = default) {
 #endif
-            var requestInfo = ToGetRequestInformation(requestConfiguration);
-            return await RequestAdapter.SendAsync<NamespaceProfile>(requestInfo, NamespaceProfile.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
+            var requestInfo = ToPostRequestInformation(requestConfiguration);
+            return await RequestAdapter.SendAsync<NamespaceInfo>(requestInfo, NamespaceInfo.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Get namespace profile
+        /// Sync namespace info with ms graph
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<ProfileRequestBuilderGetRequestConfiguration>? requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(Action<WithNamespaceItemRequestBuilderPostRequestConfiguration>? requestConfiguration = default) {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<ProfileRequestBuilderGetRequestConfiguration> requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(Action<WithNamespaceItemRequestBuilderPostRequestConfiguration> requestConfiguration = default) {
 #endif
             var requestInfo = new RequestInformation {
-                HttpMethod = Method.GET,
+                HttpMethod = Method.POST,
                 UrlTemplate = UrlTemplate,
                 PathParameters = PathParameters,
             };
             requestInfo.Headers.Add("Accept", "application/json");
             if (requestConfiguration != null) {
-                var requestConfig = new ProfileRequestBuilderGetRequestConfiguration();
+                var requestConfig = new WithNamespaceItemRequestBuilderPostRequestConfiguration();
                 requestConfiguration.Invoke(requestConfig);
                 requestInfo.AddRequestOptions(requestConfig.Options);
                 requestInfo.AddHeaders(requestConfig.Headers);
@@ -71,21 +71,21 @@ namespace SmallKms.Client.V1.Item.Profile {
         /// Returns a request builder with the provided arbitrary URL. Using this method means any other path or query parameters are ignored.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public ProfileRequestBuilder WithUrl(string rawUrl) {
-            return new ProfileRequestBuilder(rawUrl, RequestAdapter);
+        public WithNamespaceItemRequestBuilder WithUrl(string rawUrl) {
+            return new WithNamespaceItemRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
         /// Configuration for the request such as headers, query parameters, and middleware options.
         /// </summary>
-        public class ProfileRequestBuilderGetRequestConfiguration {
+        public class WithNamespaceItemRequestBuilderPostRequestConfiguration {
             /// <summary>Request headers</summary>
             public RequestHeaders Headers { get; set; }
             /// <summary>Request options</summary>
             public IList<IRequestOption> Options { get; set; }
             /// <summary>
-            /// Instantiates a new profileRequestBuilderGetRequestConfiguration and sets the default values.
+            /// Instantiates a new WithNamespaceItemRequestBuilderPostRequestConfiguration and sets the default values.
             /// </summary>
-            public ProfileRequestBuilderGetRequestConfiguration() {
+            public WithNamespaceItemRequestBuilderPostRequestConfiguration() {
                 Options = new List<IRequestOption>();
                 Headers = new RequestHeaders();
             }
