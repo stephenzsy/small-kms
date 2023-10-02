@@ -20,11 +20,23 @@ import { exists, mapValues } from '../runtime';
  */
 export interface ServicePrincipalLinkedDevice {
     /**
+     * Object ID of the device
+     * @type {string}
+     * @memberof ServicePrincipalLinkedDevice
+     */
+    deviceOid: string;
+    /**
      * 
      * @type {string}
      * @memberof ServicePrincipalLinkedDevice
      */
     deviceId: string;
+    /**
+     * Object ID of the application
+     * @type {string}
+     * @memberof ServicePrincipalLinkedDevice
+     */
+    applicationOid: string;
     /**
      * 
      * @type {string}
@@ -36,13 +48,7 @@ export interface ServicePrincipalLinkedDevice {
      * @type {string}
      * @memberof ServicePrincipalLinkedDevice
      */
-    applicationObjectId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ServicePrincipalLinkedDevice
-     */
-    servicePrincipalObjectId: string;
+    servicePrincipalId: string;
 }
 
 /**
@@ -50,10 +56,11 @@ export interface ServicePrincipalLinkedDevice {
  */
 export function instanceOfServicePrincipalLinkedDevice(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "deviceOid" in value;
     isInstance = isInstance && "deviceId" in value;
+    isInstance = isInstance && "applicationOid" in value;
     isInstance = isInstance && "applicationClientId" in value;
-    isInstance = isInstance && "applicationObjectId" in value;
-    isInstance = isInstance && "servicePrincipalObjectId" in value;
+    isInstance = isInstance && "servicePrincipalId" in value;
 
     return isInstance;
 }
@@ -68,10 +75,11 @@ export function ServicePrincipalLinkedDeviceFromJSONTyped(json: any, ignoreDiscr
     }
     return {
         
+        'deviceOid': json['deviceOid'],
         'deviceId': json['deviceId'],
+        'applicationOid': json['applicationOid'],
         'applicationClientId': json['applicationClientId'],
-        'applicationObjectId': json['applicationObjectId'],
-        'servicePrincipalObjectId': json['servicePrincipalObjectId'],
+        'servicePrincipalId': json['servicePrincipalId'],
     };
 }
 
@@ -84,10 +92,11 @@ export function ServicePrincipalLinkedDeviceToJSON(value?: ServicePrincipalLinke
     }
     return {
         
+        'deviceOid': value.deviceOid,
         'deviceId': value.deviceId,
+        'applicationOid': value.applicationOid,
         'applicationClientId': value.applicationClientId,
-        'applicationObjectId': value.applicationObjectId,
-        'servicePrincipalObjectId': value.servicePrincipalObjectId,
+        'servicePrincipalId': value.servicePrincipalId,
     };
 }
 

@@ -54,7 +54,6 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 			}
 		}
 	}
-
 afterParsePrincipalClaims:
 	ctx.Set(appAuthIdentityContextKey, a)
 	ctx.Next()

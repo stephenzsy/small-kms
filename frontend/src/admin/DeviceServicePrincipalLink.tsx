@@ -8,9 +8,13 @@ export function DeviceServicePrincipalLink(props: { namespaceId: string }) {
 
   const { data, run } = useRequest(
     (apply?: boolean) => {
+      if (apply) {
+        return adminApi.createDeviceServicePrincipalLinkV2({
+          namespaceId: props.namespaceId,
+        });
+      }
       return adminApi.getDeviceServicePrincipalLinkV2({
         namespaceId: props.namespaceId,
-        apply,
       });
     },
     {

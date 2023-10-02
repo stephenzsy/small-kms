@@ -28,41 +28,23 @@ type authIdentity struct {
 }
 
 func GetAuthIdentity(ctx context.Context) (identity AuthIdentity, ok bool) {
-	identity, ok = ctx.Value(appAuthIdentityContextKey).(AuthIdentity)
+	ctxValue := ctx.Value(appAuthIdentityContextKey)
+	identity, ok = ctxValue.(AuthIdentity)
 	return
 }
 
-func (i *authIdentity) HasAdminRole() bool {
-	if i == nil {
-		return false
-	}
+func (i authIdentity) HasAdminRole() bool {
 	return i.appRoles[roleKeyAppAdmin]
 }
 
-// use our own copy in case some code path modified it by accident
-var uuidNil = uuid.UUID{}
-
-func (i *authIdentity) ClientPrincipalID() uuid.UUID {
-
-	if i == nil {
-		return uuidNil
-	}
-
+func (i authIdentity) ClientPrincipalID() uuid.UUID {
 	return i.msClientPrincipalID
 }
 
-func (i *authIdentity) ClientPrincipalName() string {
-
-	if i == nil {
-		return ""
-	}
-
+func (i authIdentity) ClientPrincipalName() string {
 	return i.msClientPrincipalName
 }
 
-func (i *authIdentity) AppIDClaim() uuid.UUID {
-	if i == nil {
-		return uuidNil
-	}
+func (i authIdentity) AppIDClaim() uuid.UUID {
 	return i.appIDClaim
 }

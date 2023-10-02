@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { InputFieldLegacy } from "./FormComponents";
 import { useBoolean, useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { DirectoryApi } from "../generated";
+import { AdminApi, DirectoryApi } from "../generated";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 
@@ -20,11 +20,11 @@ export default function RegisterPage() {
   const [formInvalid, { setTrue: setFormInvalid, setFalse: clearFormInvalid }] =
     useBoolean(false);
 
-  const client = useAuthedClient(DirectoryApi);
+  const client = useAuthedClient(AdminApi);
 
   const { run: registerNs, loading: registerNsLoading } = useRequest(
     async (objectId: string) => {
-      await client.registerNamespaceProfileV1({
+      await client.syncNamespaceInfoV2({
         namespaceId: objectId,
       });
       return objectId;

@@ -1,14 +1,9 @@
 import React from "react";
-import { useAuthedClient } from "../utils/useCertsApi";
 import {
-  DirectoryApi,
   NamespaceProfile,
   Policy,
-  PolicyApi,
-  PolicyParameters,
-  ResponseError,
+  PolicyParameters
 } from "../generated";
-import { useRequest } from "ahooks";
 
 export interface IPolicyContext {
   policyId: string;
@@ -31,6 +26,7 @@ export const PolicyContext = React.createContext<IPolicyContext>({
   putPolicy: () => {},
 });
 
+/*
 export function PolicyContextProvider(
   props: React.PropsWithChildren<{ policyId: string; namespaceId: string }>
 ) {
@@ -126,3 +122,4 @@ export function PolicyContextProvider(
     </PolicyContext.Provider>
   );
 }
+*/

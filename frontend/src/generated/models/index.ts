@@ -2,7 +2,9 @@
 /* eslint-disable */
 export * from './ApplyPolicyRequest';
 export * from './CertificateEnrollPolicyParameters';
-export * from './CertificateEnrollRequest';
+export * from './CertificateEnrollmentReceipt';
+export * from './CertificateEnrollmentReplyFinalize';
+export * from './CertificateEnrollmentRequest';
 export * from './CertificateIdentifierType';
 export * from './CertificateInfo';
 export * from './CertificateIssuer';
@@ -20,8 +22,9 @@ export * from './CertificateTemplate';
 export * from './CertificateTemplateAllOf';
 export * from './CertificateTemplateParameters';
 export * from './CertificateUsage';
+export * from './CreateDeviceServicePrincipalLinkV2400Response';
 export * from './CurveName';
-export * from './GetPolicyV1404Response';
+export * from './IncludeCertificate';
 export * from './JwkAlg';
 export * from './JwkKeyOperation';
 export * from './JwkKeySize';

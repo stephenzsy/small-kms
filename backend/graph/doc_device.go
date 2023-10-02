@@ -1,11 +1,8 @@
 package graph
 
 import (
-	"context"
-
 	"github.com/google/uuid"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -23,24 +20,23 @@ type DeviceDoc struct {
 	IsCompliant            *bool   `json:"isCompliant,omitempty"`
 }
 
-func (s *graphService) NewDeviceDocFromGraph(
-	graphObj msgraphmodels.Deviceable,
-) *DeviceDoc {
+func (doc *DeviceDoc) init(
+	tenantID uuid.UUID,
+	graphObj GraphProfileable,
+	_ MsGraphOdataType,
+) {
 	if graphObj == nil {
-		return nil
+		return
 	}
-	doc := &DeviceDoc{}
-	s.init(&doc.GraphDoc, graphObj, kmsdoc.DocTypeExtNameDevice)
-	doc.DeviceID, _ = uuid.Parse(utils.NilToDefault(graphObj.GetId()))
-	doc.AccountEnabled = utils.NilToDefault(graphObj.GetAccountEnabled())
-	doc.OperatingSystem = graphObj.GetOperatingSystem()
-	doc.OperatingSystemVersion = graphObj.GetOperatingSystemVersion()
-	doc.TrustType = graphObj.GetTrustType()
-	doc.MDMAppID = graphObj.GetMdmAppId()
-	doc.IsCompliant = graphObj.GetIsCompliant()
-	return doc
-}
 
-func (doc *DeviceDoc) Persist(ctx context.Context) error {
-	return kmsdoc.AzCosmosUpsert(ctx, doc.service.AzCosmosContainerClient(), doc)
+	doc.GraphDoc.init(tenantID, graphObj, MsGraphOdataTypeDevice)
+	if graphObj, ok := graphObj.(msgraphmodels.Deviceable); ok {
+		doc.DeviceID, _ = uuid.Parse(utils.NilToDefault(graphObj.GetDeviceId()))
+		doc.AccountEnabled = utils.NilToDefault(graphObj.GetAccountEnabled())
+		doc.OperatingSystem = graphObj.GetOperatingSystem()
+		doc.OperatingSystemVersion = graphObj.GetOperatingSystemVersion()
+		doc.TrustType = graphObj.GetTrustType()
+		doc.MDMAppID = graphObj.GetMdmAppId()
+		doc.IsCompliant = graphObj.GetIsCompliant()
+	}
 }

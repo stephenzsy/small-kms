@@ -18,8 +18,7 @@
  * @export
  */
 export const PolicyType = {
-    PolicyType_CertEnroll: 'certEnroll',
-    PolicyType_CertAadAppClientCredential: 'certAadAppCred'
+    PolicyType_CertEnroll: 'certEnroll'
 } as const;
 export type PolicyType = typeof PolicyType[keyof typeof PolicyType];
 

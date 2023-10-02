@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/gin-gonic/gin"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -54,8 +56,22 @@ func WrapMsGraphNotFoundErr(err error, resourceDescriptor string) error {
 		return err
 	}
 	var odErr *odataerrors.ODataError
-	if errors.As(err, &odErr) && odErr.ResponseStatusCode == http.StatusNotFound {
+	if errors.As(err, &odErr) && *odErr.GetErrorEscaped().GetCode() == "Request_ResourceNotFound" {
 		return fmt.Errorf("%w: graph %s, %w", ErrStatusNotFound, resourceDescriptor, err)
 	}
 	return err
+}
+
+func RespondError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, ErrStatusBadRequest):
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, ErrStatusNotFound):
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case errors.Is(err, ErrStatusConflict):
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	default:
+		log.Error().Err(err).Msg("internal error")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+	}
 }

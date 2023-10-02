@@ -15,39 +15,14 @@
 
 import * as runtime from '../runtime';
 import type {
-  NamespaceInfo,
   NamespaceProfile,
-  NamespaceRef,
-  NamespaceType,
-  NamespaceTypeShortName,
 } from '../models';
 import {
-    NamespaceInfoFromJSON,
-    NamespaceInfoToJSON,
     NamespaceProfileFromJSON,
     NamespaceProfileToJSON,
-    NamespaceRefFromJSON,
-    NamespaceRefToJSON,
-    NamespaceTypeFromJSON,
-    NamespaceTypeToJSON,
-    NamespaceTypeShortNameFromJSON,
-    NamespaceTypeShortNameToJSON,
 } from '../models';
 
 export interface GetNamespaceProfileV1Request {
-    namespaceId: string;
-}
-
-export interface ListNamespacesV1Request {
-    namespaceType: NamespaceType;
-}
-
-export interface RegisterNamespaceProfileV1Request {
-    namespaceId: string;
-}
-
-export interface SyncNamespaceInfoV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
 }
 
@@ -129,82 +104,6 @@ export class DirectoryApi extends runtime.BaseAPI {
     }
 
     /**
-     * List namespaces
-     */
-    async listNamespacesV1Raw(requestParameters: ListNamespacesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceRef>>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listNamespacesV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/namespaces/{namespaceType}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NamespaceRefFromJSON));
-    }
-
-    /**
-     * List namespaces
-     */
-    async listNamespacesV1(requestParameters: ListNamespacesV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceRef>> {
-        const response = await this.listNamespacesV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Register namespace
-     */
-    async registerNamespaceProfileV1Raw(requestParameters: RegisterNamespaceProfileV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespaceProfile>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling registerNamespaceProfileV1.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceId}/profile`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => NamespaceProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Register namespace
-     */
-    async registerNamespaceProfileV1(requestParameters: RegisterNamespaceProfileV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespaceProfile> {
-        const response = await this.registerNamespaceProfileV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Sync my profiles
      */
     async syncMyProfilesV1Raw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NamespaceProfile>>> {
@@ -235,48 +134,6 @@ export class DirectoryApi extends runtime.BaseAPI {
      */
     async syncMyProfilesV1(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NamespaceProfile>> {
         const response = await this.syncMyProfilesV1Raw(initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Sync namespace info with ms graph
-     */
-    async syncNamespaceInfoV2Raw(requestParameters: SyncNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespaceInfo>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling syncNamespaceInfoV2.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncNamespaceInfoV2.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/graph-sync`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => NamespaceInfoFromJSON(jsonValue));
-    }
-
-    /**
-     * Sync namespace info with ms graph
-     */
-    async syncNamespaceInfoV2(requestParameters: SyncNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespaceInfo> {
-        const response = await this.syncNamespaceInfoV2Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

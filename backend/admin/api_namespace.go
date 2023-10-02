@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 )
 
 func getRootCaRefs() []RefWithMetadata {
@@ -28,6 +29,7 @@ func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTyp
 	if !authAdminOnly(c) {
 		return
 	}
+	var odataType graph.MsGraphOdataType
 	switch nsType {
 	case NSTypeRootCA:
 		c.JSON(http.StatusOK, getRootCaRefs())
@@ -36,32 +38,32 @@ func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTyp
 		c.JSON(http.StatusOK, getIntCaRefs())
 		return
 	}
-	var odType string
 	switch nsType {
 	case NSTypeGroup:
-		odType = "#microsoft.graph.group"
+		odataType = graph.MsGraphOdataTypeGroup
 	case NSTypeUser:
-		odType = "#microsoft.graph.user"
+		odataType = graph.MsGraphOdataTypeUser
 	case NSTypeServicePrincipal:
-		odType = "#microsoft.graph.servicePrincipal"
+		odataType = graph.MsGraphOdataTypeServicePrincipal
 	case NSTypeDevice:
-		odType = "#microsoft.graph.device"
+		odataType = graph.MsGraphOdataTypeDevice
 	case NSTypeApplication:
-		odType = "#microsoft.graph.application"
+		odataType = graph.MsGraphOdataTypeApplication
 	default:
 		respondPublicErrorMsg(c, http.StatusBadRequest, "unsupported namespace type")
 		return
 	}
-	dirObjs, err := s.listDirectoryObjectByType(c, odType)
+	dirObjs, err := s.graphService.ListGraphProfilesByType(c, odataType)
 
 	if err != nil {
-		respondInternalError(c, err, "failed to list directory objects")
+		common.RespondError(c, err)
 		return
 	}
+
 	r := make([]RefWithMetadata, len(dirObjs))
 	for i, doc := range dirObjs {
-		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
-		r[i].Metadata = map[string]string{RefPropertyKeyDisplayName: doc.DisplayName}
+		profileDocPopulateRefWithMetadata(doc, &r[i], nsType)
+		r[i].Metadata = map[string]string{RefPropertyKeyDisplayName: doc.GetDisplayName()}
 		r[i].Type = RefTypeNamespace
 	}
 

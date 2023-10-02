@@ -12,6 +12,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -62,7 +63,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	defer log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - end", nsID)
 
 	// device require to have a profile
-	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, kmsdoc.DocTypeExtNameDevice)
+	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeDevice)
 	if err != nil {
 		return nil, fmt.Errorf("%w: device must be registered first", err)
 	}
@@ -71,7 +72,6 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	// need to fetch device from graph
 	devGraphObj, err := s.graphService.GetGraphObjectByID(c, nsID)
 	if err != nil {
-		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("%s", nsID))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// device is no longer available, schedule profile deletion
 			if deleteErr := s.graphService.DeleteGraphProfileDoc(c, graphProfileDoc); deleteErr != nil {
@@ -92,8 +92,8 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		return nil, fmt.Errorf("%w: namespace is not a device: %s", common.ErrStatusBadRequest, nsID)
 	}
 	// device is verified, write new object to cosmos
-	deviceDoc := s.graphService.NewDeviceDocFromGraph(device)
-	if err := deviceDoc.Persist(c); err != nil {
+	deviceDoc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), device, graph.MsGraphOdataTypeDevice)
+	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), deviceDoc); err != nil {
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to parse deviceId", err)
 	}
-	if relDoc != nil {
+	if relDoc == nil {
 		relDoc = new(NsRelDoc)
 		relDoc.NamespaceID = nsID
 		relDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, deviceRelID)
@@ -174,21 +174,14 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		if err != nil {
 			return nil, err
 		}
-		log.Info().Msgf("device link %s: application created: %s", deviceRelID, applicationID)
-		if applicationID, err = uuid.Parse(utils.NilToDefault(appObj.GetAppId())); err != nil {
-			return nil, fmt.Errorf("%w: failed to parse application id: %s", err, appObj.GetAppId())
-
+		if applicationID, err = uuid.Parse(utils.NilToDefault(appObj.GetId())); err != nil {
+			return nil, fmt.Errorf("%w: failed to parse application id: %s", err, applicationID)
 		}
-	} else {
-		// verify configuration is up to date
-		// hasPatch:= false
-		// patchDelta := msgraphmodels.NewApplication()
-		// ...
-		// appObj, err := s.MsGraphClient().Applications().ByApplicationId(applicationID.String()).Patch(c, patchDelta, nil)
+		log.Info().Msgf("device link %s: application created: %s", deviceRelID, applicationID)
 	}
 	applicationAppID, err := uuid.Parse(utils.NilToDefault(appObj.GetAppId()))
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to parse appId: %s", err, appObj.GetAppId())
+		return nil, fmt.Errorf("%w: failed to parse appId: %s", err, applicationAppID)
 	}
 	relDoc.LinkedNamespaces.Application = &applicationID
 	relDoc.Attributes.AppID = &applicationAppID

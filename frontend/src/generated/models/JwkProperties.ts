@@ -45,7 +45,7 @@ import {
 } from './KeyType';
 
 /**
- * Property bag of JSON Web Key (RFC 7517) with additional fields
+ * Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
  * @export
  * @interface JwkProperties
  */

@@ -1,47 +1,55 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID) {
-	if _, ok := authNamespaceAdminOrSelf(c, namespaceId); !ok {
+func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceId uuid.UUID) {
+	if !authAdminOnly(c) {
 		return
 	}
-	isValid, isGraphValidationNeeded := validateNamespaceType(namespaceType, namespaceId)
-	if !isValid {
-		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", namespaceType, namespaceId))
-		return
-	}
-	if !isGraphValidationNeeded {
-		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is invalid for sync", namespaceType))
-		return
-	}
-	doc, err := s.genDirDocFromMsGraph(c, namespaceId)
+
+	obj, err := s.graphService.GetGraphObjectByID(c, namespaceId)
 	if err != nil {
-		if common.IsGraphODataErrorNotFound(err) || common.IsAzNotFound(err) {
+		if errors.Is(err, common.ErrStatusNotFound) {
+			// delete the doc if it exists
+			profileDoc, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
+			if err == nil {
+				if err = kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), profileDoc); err != nil {
+					respondInternalError(c, err, fmt.Sprintf("failed to delete directory object in cosmos: %s", namespaceId))
+					return
+				}
+			}
 			respondPublicError(c, http.StatusNotFound, err)
 			return
 		}
-		respondInternalError(c, err, fmt.Sprintf("failed to sync directory object: %s", namespaceId))
+		respondInternalError(c, err, fmt.Sprintf("failed to get directory object: %s", namespaceId))
 		return
 	}
-	if validateNamespaceTypeWithDirDoc(namespaceType, doc) {
-		err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc)
-		if err != nil {
+
+	profilableObj, ok := obj.(graph.GraphProfileable)
+	if !ok {
+		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("directory object is not supported: %s", namespaceId))
+		return
+	}
+	profileDoc := s.graphService.NewGraphProfileDoc(s.TenantID(), profilableObj)
+	if profileDoc.IsValid() {
+		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), profileDoc); err != nil {
 			respondInternalError(c, err, fmt.Sprintf("failed to upsert directory object in cosmos: %s", namespaceId))
 			return
 		}
 	} else {
-		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", namespaceType, namespaceId))
+		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("directory object is not supported: %s", namespaceId))
 		return
 	}
 
-	c.JSON(http.StatusOK, doc.toNamespaceInfo())
+	c.JSON(http.StatusOK, newNamespaceInfoFromProfileDoc(profileDoc))
 }

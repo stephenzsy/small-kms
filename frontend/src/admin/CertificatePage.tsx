@@ -1,97 +1,22 @@
-import { XCircleIcon } from "@heroicons/react/24/outline";
-import { useBoolean, useRequest } from "ahooks";
-import classNames from "classnames";
-import { useEffect, useId, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useRequest } from "ahooks";
+import { useId } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/Button";
-import { WellknownId } from "../constants";
 import {
   AdminApi,
-  CertificateIdentifierType,
   CertificateUsage,
-  CertsApi,
-  CreateCertificateV2Request,
   DirectoryApi,
-  GetCertificateV1FormatEnum,
-  GetCertificateV2Request,
-  NamespaceType,
   NamespaceTypeShortName,
-  Policy,
   PolicyApi,
-  PolicyParameters,
-  PolicyType,
-  ResponseError,
+  ResponseError
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { InputFieldLegacy } from "./FormComponents";
-import { IsIntCaNamespace, isRootCaNamespace } from "./displayConstants";
 
 interface IssuerNamespaceSelectorProps {
   requesterNamespace: string;
   client: DirectoryApi;
   selectedIssuerId: string;
   onChange: (issuerId: string) => void;
-}
-
-function IssuerSelector({
-  requesterNamespace,
-  client,
-  selectedIssuerId,
-  onChange,
-}: IssuerNamespaceSelectorProps) {
-  const { data: issuers } = useRequest(
-    async () => {
-      // if is intCA or root ca, query root ca namespaces
-      if (
-        isRootCaNamespace(requesterNamespace) ||
-        IsIntCaNamespace(requesterNamespace)
-      ) {
-        const l = await client.listNamespacesV1({
-          namespaceType: NamespaceType.NamespaceType_BuiltInCaRoot,
-        });
-        if (isRootCaNamespace(requesterNamespace)) {
-          return [l.find((x) => x.id === requesterNamespace)];
-        } else {
-          if (requesterNamespace === WellknownId.nsTestIntCa) {
-            return [l.find((x) => x.id === WellknownId.nsTestRootCa)];
-          } else {
-            return [l.find((x) => x.id === WellknownId.nsRootCa)];
-          }
-        }
-      }
-    },
-    {
-      refreshDeps: [requesterNamespace],
-    }
-  );
-  const selectId = useId();
-  return (
-    <div>
-      <label
-        htmlFor={selectId}
-        className="block text-sm font-medium leading-6 text-gray-900"
-      >
-        Issuer namespace
-      </label>
-      <select
-        id={selectId}
-        name="location"
-        className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        value={selectedIssuerId}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option disabled value="">
-          Select issuer namespace
-        </option>
-        {issuers?.map((issuer) => (
-          <option key={issuer?.id} value={issuer?.id}>
-            {issuer?.displayName}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
 }
 
 interface IssuerPolicySelectorProps {
@@ -172,18 +97,16 @@ export default function CertificatePage() {
     async (create?: boolean) => {
       try {
         if (create) {
-          return await adminApi.createCertificateV2({
+          return await adminApi.issueCertificateByTemplateV2({
             namespaceId,
             namespaceType: nsType,
             templateId,
-            certId,
           });
         }
-        return await adminApi.getCertificateV2({
+        return await adminApi.getCertificateTemplateV2({
           namespaceId,
           namespaceType: nsType,
           templateId,
-          certId,
         });
       } catch (e) {
         if (e instanceof ResponseError) {

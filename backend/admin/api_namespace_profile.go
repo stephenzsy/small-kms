@@ -89,30 +89,6 @@ func (s *adminServer) RegisterNamespaceProfile(c *gin.Context, objectID uuid.UUI
 	return nsProfile, http.StatusOK, nil
 }
 
-func (s *adminServer) RegisterNamespaceProfileV1(c *gin.Context, namespaceId uuid.UUID) {
-	/*
-		if !auth.CallerPrincipalHasAdminRole(c) {
-			c.JSON(http.StatusForbidden, gin.H{"message": "only admin can register namespaces"})
-			return
-		}
-		if namespaceId == uuid.Nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "No namespace id specified"})
-			return
-		}
-		profile, status, err := s.RegisterNamespaceProfile(c, namespaceId)
-		if err != nil {
-			if status == http.StatusInternalServerError {
-				log.Error().Err(err).Msg("Failed to register graph object")
-				c.JSON(status, gin.H{"message": "internal error"})
-			} else {
-				c.JSON(status, gin.H{"message": err.Error()})
-			}
-			return
-		}
-	*/
-	c.JSON(http.StatusNotFound, 0)
-}
-
 func (s *adminServer) GetNamespaceProfile(c context.Context, namespaceId uuid.UUID) (*NamespaceProfile, error) {
 	if isAllowedCaNamespace(namespaceId) {
 		nsProfile := new(NamespaceProfile)

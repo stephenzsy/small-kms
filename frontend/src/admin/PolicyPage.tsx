@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import AlertDialog from "../components/AlertDialog";
 import { Button } from "../components/Button";
-import { PolicyContext, PolicyContextProvider } from "./PolicyContext";
+import { PolicyContext } from "./PolicyContext";
 
 function CurrentPolicy() {
   const { policy } = useContext(PolicyContext);
@@ -80,12 +80,10 @@ export default function PolicyPage() {
   return (
     <>
       <h1 className="text-4xl font-semibold">Policy</h1>
-      <PolicyContextProvider namespaceId={namespaceId!} policyId={policyId!}>
-        <CurrentPolicy />
-        <div className="flex flex-row items-center gap-x-6">
-          <CurrentPolicyControl />
-        </div>
-      </PolicyContextProvider>
+      <CurrentPolicy />
+      <div className="flex flex-row items-center gap-x-6">
+        <CurrentPolicyControl />
+      </div>
     </>
   );
 }

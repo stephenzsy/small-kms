@@ -35,15 +35,15 @@ type ServerInterface interface {
 	// Get namespace profile
 	// (GET /v1/{namespaceId}/profile)
 	GetNamespaceProfileV1(c *gin.Context, namespaceId openapi_types.UUID)
-	// Register namespace
-	// (POST /v1/{namespaceId}/profile)
-	RegisterNamespaceProfileV1(c *gin.Context, namespaceId openapi_types.UUID)
 	// Link device service principal
 	// (GET /v2/device/{namespaceId}/link-service-principal)
 	GetDeviceServicePrincipalLinkV2(c *gin.Context, namespaceId NamespaceIdParameter)
 	// Link device service principal
 	// (POST /v2/device/{namespaceId}/link-service-principal)
 	CreateDeviceServicePrincipalLinkV2(c *gin.Context, namespaceId NamespaceIdParameter)
+	// Sync namespace info with ms graph
+	// (POST /v2/graph-sync/{namespaceId})
+	SyncNamespaceInfoV2(c *gin.Context, namespaceId NamespaceIdParameter)
 	// Put certificate template
 	// (POST /v2/group/{namespaceId}/certificate-templates/{templateId}/enroll)
 	BeginEnrollCertificateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
@@ -74,9 +74,6 @@ type ServerInterface interface {
 	// complete certificate enrollment
 	// (POST /v2/{namespaceType}/{namespaceId}/certificates/{certId}/pending)
 	CompleteCertificateEnrollmentV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params)
-	// Sync namespace info with ms graph
-	// (POST /v2/{namespaceType}/{namespaceId}/graph-sync)
-	SyncNamespaceInfoV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -255,32 +252,6 @@ func (siw *ServerInterfaceWrapper) GetNamespaceProfileV1(c *gin.Context) {
 	siw.Handler.GetNamespaceProfileV1(c, namespaceId)
 }
 
-// RegisterNamespaceProfileV1 operation middleware
-func (siw *ServerInterfaceWrapper) RegisterNamespaceProfileV1(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.RegisterNamespaceProfileV1(c, namespaceId)
-}
-
 // GetDeviceServicePrincipalLinkV2 operation middleware
 func (siw *ServerInterfaceWrapper) GetDeviceServicePrincipalLinkV2(c *gin.Context) {
 
@@ -331,6 +302,32 @@ func (siw *ServerInterfaceWrapper) CreateDeviceServicePrincipalLinkV2(c *gin.Con
 	}
 
 	siw.Handler.CreateDeviceServicePrincipalLinkV2(c, namespaceId)
+}
+
+// SyncNamespaceInfoV2 operation middleware
+func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SyncNamespaceInfoV2(c, namespaceId)
 }
 
 // BeginEnrollCertificateV2 operation middleware
@@ -781,41 +778,6 @@ func (siw *ServerInterfaceWrapper) CompleteCertificateEnrollmentV2(c *gin.Contex
 	siw.Handler.CompleteCertificateEnrollmentV2(c, namespaceType, namespaceId, certId, params)
 }
 
-// SyncNamespaceInfoV2 operation middleware
-func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.SyncNamespaceInfoV2(c, namespaceType, namespaceId)
-}
-
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -850,9 +812,9 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.GetPolicyV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
-	router.POST(options.BaseURL+"/v1/:namespaceId/profile", wrapper.RegisterNamespaceProfileV1)
 	router.GET(options.BaseURL+"/v2/device/:namespaceId/link-service-principal", wrapper.GetDeviceServicePrincipalLinkV2)
 	router.POST(options.BaseURL+"/v2/device/:namespaceId/link-service-principal", wrapper.CreateDeviceServicePrincipalLinkV2)
+	router.POST(options.BaseURL+"/v2/graph-sync/:namespaceId", wrapper.SyncNamespaceInfoV2)
 	router.POST(options.BaseURL+"/v2/group/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType", wrapper.ListNamespacesByTypeV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
@@ -863,5 +825,4 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificates/:certId", wrapper.GetCertificateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificates/:certId/pending", wrapper.CompleteCertificateEnrollmentV2)
-	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/graph-sync", wrapper.SyncNamespaceInfoV2)
 }

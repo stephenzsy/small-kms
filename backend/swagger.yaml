@@ -183,13 +183,12 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
-  /v2/{namespaceType}/{namespaceId}/graph-sync:
+  /v2/graph-sync/{namespaceId}:
     parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
     post:
       tags:
-        - directory
+        - admin
       summary: Sync namespace info with ms graph
       operationId: SyncNamespaceInfoV2
       responses:
@@ -279,18 +278,6 @@ paths:
       responses:
         "200":
           description: Get namespace resposne profile
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NamespaceProfile"
-    post:
-      tags:
-        - directory
-      summary: Register namespace
-      operationId: RegisterNamespaceProfileV1
-      responses:
-        "200":
-          description: register namespace profile response
           content:
             application/json:
               schema:

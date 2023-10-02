@@ -3,9 +3,9 @@ package admin
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -41,48 +41,29 @@ func (s *adminServer) getDirectoryObjectDoc(ctx context.Context, objectID uuid.U
 	return doc, err
 }
 
-func (s *adminServer) listDirectoryObjectByType(ctx context.Context, odType string) ([]*DirectoryObjectDoc, error) {
-	partitionKey := azcosmos.NewPartitionKeyString(common.WellKnownID_TenantDirectory.String())
-	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.odType,c.displayName FROM c
-WHERE c.namespaceId = @namespaceId
-  AND c.odType = @odType`,
-		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@namespaceId", Value: common.WellKnownID_TenantDirectory.String()},
-				{Name: "@odType", Value: odType},
-			},
-		})
-
-	return PagerToList[DirectoryObjectDoc](ctx, pager)
-}
-
-func toNsType(odataType string) NamespaceTypeShortName {
+func toNsType(odataType graph.MsGraphOdataType) NamespaceTypeShortName {
 	switch odataType {
-	case string(NamespaceTypeMsGraphServicePrincipal):
-		return NSTypeServicePrincipal
-	case string(NamespaceTypeMsGraphGroup):
-		return NSTypeGroup
-	case string(NamespaceTypeMsGraphDevice):
+	case graph.MsGraphOdataTypeDevice:
 		return NSTypeDevice
-	case string(NamespaceTypeMsGraphUser):
+	case graph.MsGraphOdataTypeGroup:
+		return NSTypeGroup
+	case graph.MsGraphOdataTypeUser:
 		return NSTypeUser
-	case string(NamespaceTypeMsGraphApplication):
+	case graph.MsGraphOdataTypeApplication:
 		return NSTypeApplication
+	case graph.MsGraphOdataTypeServicePrincipal:
+		return NSTypeServicePrincipal
 	}
 	return NSTypeUnknown
 }
 
-func (item *DirectoryObjectDoc) toNamespaceInfo() *NamespaceInfo {
-	if item == nil {
+func newNamespaceInfoFromProfileDoc(doc graph.GraphProfileDocument) *NamespaceInfo {
+	if doc == nil {
 		return nil
 	}
-	r := new(NamespaceInfo)
-	baseDocPopulateRefWithMetadata(&item.BaseDoc, &r.Ref, toNsType(item.OdataType))
-
-	r.Ref.Metadata[RefPropertyKeyDisplayName] = item.DisplayName
-	switch r.Ref.NamespaceType {
-	}
-	return r
+	p := new(NamespaceInfo)
+	profileDocPopulateRefWithMetadata(doc, &p.Ref, toNsType(doc.GetOdataType()))
+	return p
 }
 
 func (item *DirectoryObjectDoc) PopulateNamespaceRef(ref *NamespaceRef) {

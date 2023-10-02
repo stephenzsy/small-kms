@@ -28,8 +28,6 @@ export function IsIntCaNamespace(namespaceId: string) {
 
 export const policyTypeNames: Record<PolicyType, string> = {
   [PolicyType.PolicyType_CertEnroll]: "Certificate Enrollment Policy",
-  [PolicyType.PolicyType_CertAadAppClientCredential]:
-    "AAD Application Client Credential Certificate Policy",
 };
 
 export const certUsageNames: Record<CertificateUsage, string> = {

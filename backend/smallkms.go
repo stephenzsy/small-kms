@@ -45,7 +45,11 @@ func main() {
 			corsConfig.AllowCredentials = true
 			router.Use(cors.New(corsConfig))
 		}
-		router.Use(auth.HandleAadAuthMiddleware)
+		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
+			router.Use(auth.HandleDevJWTMiddleware)
+		} else {
+			router.Use(auth.HandleAadAuthMiddleware)
+		}
 		admin.RegisterHandlers(router, admin.NewAdminServer())
 	}
 

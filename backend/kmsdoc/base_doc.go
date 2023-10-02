@@ -42,21 +42,10 @@ const (
 	DocTypeNameCertTemplate        KmsDocTypeName = "cert-template"
 )
 
-type KmsDocTypeExtName string
-
-const (
-	DocTypeExtNameApplication      KmsDocTypeExtName = ".application"
-	DocTypeExtNameDevice           KmsDocTypeExtName = ".device"
-	DocTypeExtNameUser             KmsDocTypeExtName = ".user"
-	DocTypeExtNameGroup            KmsDocTypeExtName = ".group"
-	DocTypeExtNameServicePrincipal KmsDocTypeExtName = ".servicePrincipal"
-)
-
 // KmsDocID is a unique identifier for a KmsDoc, is comparable
 type KmsDocID struct {
 	typeByte KmsDocType
 	uuid     uuid.UUID
-	ext      KmsDocTypeExtName
 }
 
 func NewKmsDocID(typ KmsDocType, id uuid.UUID) KmsDocID {
@@ -66,16 +55,8 @@ func NewKmsDocID(typ KmsDocType, id uuid.UUID) KmsDocID {
 	}
 }
 
-func NewKmsDocIDExt(typ KmsDocType, id uuid.UUID, ext KmsDocTypeExtName) KmsDocID {
-	return KmsDocID{
-		typeByte: typ,
-		uuid:     id,
-		ext:      ext,
-	}
-}
-
 func (k KmsDocID) String() string {
-	return fmt.Sprintf("%s%s%s", string(k.typeByte), k.uuid.String(), k.ext)
+	return fmt.Sprintf("%s%s", string(k.typeByte), k.uuid.String())
 }
 
 func (k *KmsDocID) MarshalJSON() ([]byte, error) {
@@ -93,13 +74,8 @@ func (k *KmsDocID) UnmarshalJSON(b []byte) (err error) {
 		return
 	}
 	k.typeByte = KmsDocType(s[0])
-	k.uuid, err = uuid.Parse(s[1:37])
-	k.ext = KmsDocTypeExtName(s[37:])
+	k.uuid, err = uuid.Parse(s[1:])
 	return err
-}
-
-func (k *KmsDocID) Extension() KmsDocTypeExtName {
-	return k.ext
 }
 
 func (k *KmsDocID) GetType() KmsDocType {
@@ -115,8 +91,7 @@ type BaseDoc struct {
 	Deleted       *time.Time `json:"deleted,omitempty"`
 
 	// used only for serialization and query
-	TypeName    KmsDocTypeName     `json:"type"`
-	ExtTypeName *KmsDocTypeExtName `json:"extType,omitempty"`
+	TypeName KmsDocTypeName `json:"type"`
 
 	// metadata
 	ETag azcore.ETag `json:"-"`
@@ -205,11 +180,6 @@ var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
 
 func (doc *BaseDoc) fillTypeName() {
 	doc.TypeName = docTypeNameMap[doc.ID.typeByte]
-	switch doc.ID.typeByte {
-	case DocTypeMsGraphObject:
-		extName := doc.ID.Extension()
-		doc.ExtTypeName = &extName
-	}
 }
 
 func AzCosmosCreate[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerClient, doc D) error {

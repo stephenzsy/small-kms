@@ -112,6 +112,7 @@ export function PolicySelector({
   );
 }
 
+/*
 interface IssuerNamespaceSelectorProps {
   selectedIssuerId: string;
   onChange: (issuerId: string) => void;
@@ -166,3 +167,4 @@ export function IssuerSelector({
     />
   );
 }
+*/

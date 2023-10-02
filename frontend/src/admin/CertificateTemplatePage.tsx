@@ -489,7 +489,7 @@ export default function CertificateTemplatePage() {
 
   const { data: issuedCertificates } = useRequest(
     () => {
-      return adminApi.listCertificatesV2({
+      return adminApi.listCertificatesByTemplateV2({
         namespaceId,
         namespaceType: nsType,
         templateId: templateId,
