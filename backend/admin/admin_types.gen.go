@@ -5,14 +5,21 @@ package admin
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// Defines values for CertificateEnrollmentTargetType.
+const (
+	CertEnrollTargetTypeDeviceLinkedServicePrincipal CertificateEnrollmentTargetType = "device-linked-service-principal"
 )
 
 // Defines values for CertificateUsage.
@@ -131,13 +138,30 @@ type CertificateEnrollmentReceipt struct {
 
 // CertificateEnrollmentRequest defines model for CertificateEnrollmentRequest.
 type CertificateEnrollmentRequest struct {
-	// Fqdn Fully qualified domain name to be used in the certificate
-	Fqdn *string `json:"fqdn,omitempty"`
-
-	// TargetNamespaceId Unique ID of the namespace to issue the certificate to
-	TargetNamespaceID   openapi_types.UUID     `json:"targetNamespaceId"`
-	TargetNamespaceType NamespaceTypeShortName `json:"targetNamespaceType"`
+	union json.RawMessage
 }
+
+// CertificateEnrollmentRequestDeviceLinkedServicePrincipal defines model for CertificateEnrollmentRequestDeviceLinkedServicePrincipal.
+type CertificateEnrollmentRequestDeviceLinkedServicePrincipal struct {
+	// AppId Client ID of the application
+	ApplicationID openapi_types.UUID `json:"appId"`
+
+	// DeviceNamespaceId Object ID of the device
+	DeviceNamespaceID openapi_types.UUID `json:"deviceNamespaceId"`
+
+	// Fqdn Fully qualified domain name to be used in the certificate
+	Fqdn string `json:"fqdn"`
+
+	// LinkId Unique ID of the device link
+	DeviceLinkID openapi_types.UUID `json:"linkId"`
+
+	// ServicePrincipalId Object ID of the service principal
+	ServicePrincipalID openapi_types.UUID              `json:"servicePrincipalId"`
+	Type               CertificateEnrollmentTargetType `json:"type"`
+}
+
+// CertificateEnrollmentTargetType defines model for CertificateEnrollmentTargetType.
+type CertificateEnrollmentTargetType string
 
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo struct {
@@ -747,4 +771,63 @@ func (a ErrorResponse) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// AsCertificateEnrollmentRequestDeviceLinkedServicePrincipal returns the union data inside the CertificateEnrollmentRequest as a CertificateEnrollmentRequestDeviceLinkedServicePrincipal
+func (t CertificateEnrollmentRequest) AsCertificateEnrollmentRequestDeviceLinkedServicePrincipal() (CertificateEnrollmentRequestDeviceLinkedServicePrincipal, error) {
+	var body CertificateEnrollmentRequestDeviceLinkedServicePrincipal
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCertificateEnrollmentRequestDeviceLinkedServicePrincipal overwrites any union data inside the CertificateEnrollmentRequest as the provided CertificateEnrollmentRequestDeviceLinkedServicePrincipal
+func (t *CertificateEnrollmentRequest) FromCertificateEnrollmentRequestDeviceLinkedServicePrincipal(v CertificateEnrollmentRequestDeviceLinkedServicePrincipal) error {
+	v.Type = "device-linked-service-principal"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCertificateEnrollmentRequestDeviceLinkedServicePrincipal performs a merge with any union data inside the CertificateEnrollmentRequest, using the provided CertificateEnrollmentRequestDeviceLinkedServicePrincipal
+func (t *CertificateEnrollmentRequest) MergeCertificateEnrollmentRequestDeviceLinkedServicePrincipal(v CertificateEnrollmentRequestDeviceLinkedServicePrincipal) error {
+	v.Type = "device-linked-service-principal"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CertificateEnrollmentRequest) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CertificateEnrollmentRequest) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "device-linked-service-principal":
+		return t.AsCertificateEnrollmentRequestDeviceLinkedServicePrincipal()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CertificateEnrollmentRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CertificateEnrollmentRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }

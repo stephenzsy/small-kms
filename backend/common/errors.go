@@ -56,8 +56,11 @@ func WrapMsGraphNotFoundErr(err error, resourceDescriptor string) error {
 		return err
 	}
 	var odErr *odataerrors.ODataError
-	if errors.As(err, &odErr) && *odErr.GetErrorEscaped().GetCode() == "Request_ResourceNotFound" {
-		return fmt.Errorf("%w: graph %s, %w", ErrStatusNotFound, resourceDescriptor, err)
+	if errors.As(err, &odErr) {
+		errCode := odErr.GetErrorEscaped().GetCode()
+		if errCode != nil && *errCode == "Request_ResourceNotFound" {
+			return fmt.Errorf("%w: graph %s, %w", ErrStatusNotFound, resourceDescriptor, err)
+		}
 	}
 	return err
 }

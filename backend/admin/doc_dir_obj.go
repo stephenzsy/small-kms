@@ -104,9 +104,3 @@ func (item *DirectoryObjectDoc) PopulateNamespaceProfile(ref *NamespaceProfile) 
 		}
 	}
 }
-
-func newDirectoryObjectDocFromApplicationable() *DirectoryObjectDoc {
-	return &DirectoryObjectDoc{
-		OdataType: "#microsoft.graph.application",
-	}
-}

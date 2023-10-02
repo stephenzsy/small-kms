@@ -15,7 +15,7 @@ func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsType Na
 		return
 	}
 
-	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID))
+	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID))
 	if readCertDocErr != nil {
 		if common.IsAzNotFound(readCertDocErr) {
 			respondPublicErrorMsg(c, http.StatusNotFound, "certificate does not exist")

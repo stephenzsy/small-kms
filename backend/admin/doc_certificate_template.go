@@ -55,7 +55,7 @@ func (doc *CertificateTemplateDoc) IsActive() bool {
 }
 
 func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
-	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, doc.IssuerTemplateID.GetUUID())
+	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, doc.IssuerTemplateID.GetUUID())
 }
 
 func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {

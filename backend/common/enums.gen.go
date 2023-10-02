@@ -10,9 +10,10 @@ const (
 
 // Defines values for CertificateFieldVarNameTokenCommon.
 const (
-	CertFieldVarNameID   CertificateFieldVarNameTokenCommon = "id"
-	CertFieldVarNamePath CertificateFieldVarNameTokenCommon = "path"
-	CertFieldVarNameURI  CertificateFieldVarNameTokenCommon = "uri"
+	CertFieldVarNameAltURI CertificateFieldVarNameTokenCommon = "alt-uri"
+	CertFieldVarNameID     CertificateFieldVarNameTokenCommon = "id"
+	CertFieldVarNamePath   CertificateFieldVarNameTokenCommon = "path"
+	CertFieldVarNameURI    CertificateFieldVarNameTokenCommon = "uri"
 )
 
 // Defines values for CertificateFieldVarNameTokenRequest.

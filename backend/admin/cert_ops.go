@@ -73,7 +73,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 		signer.rootCAKeyBundle = &keyBundle
 	} else {
 		// read certficate doc
-		certDoc, err := s.readCertDoc(ctx, tdoc.IssuerNamespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, tdoc.IssuerTemplateID.GetUUID()))
+		certDoc, err := s.readCertDoc(ctx, tdoc.IssuerNamespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, tdoc.IssuerTemplateID.GetUUID()))
 		if err != nil {
 			return nil, err
 		}

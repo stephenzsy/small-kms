@@ -64,7 +64,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 		return
 	}
 
-	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID))
+	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID))
 	if readCertDocErr != nil {
 		if !common.IsAzNotFound(readCertDocErr) {
 			respondInternalError(c, readCertDocErr, "failed to load existing certificate doc")
@@ -151,7 +151,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 
 		// persist latest certificate for template
 		certDocL := *certDoc
-		certDocL.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForPolicy, templateID)
+		certDocL.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID)
 		certDocL.AliasID = &certDoc.ID
 		err = kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), &certDocL)
 		if err != nil {

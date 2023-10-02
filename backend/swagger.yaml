@@ -673,22 +673,54 @@ components:
           required:
             - ref
         - $ref: "#/components/schemas/CertificateTemplateParameters"
-    CertificateEnrollmentRequest:
+    CertificateEnrollmentTargetType:
+      type: string
+      enum:
+        - device-linked-service-principal
+      x-enum-varnames:
+        - CertEnrollTargetTypeDeviceLinkedServicePrincipal
+    CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
       type: object
       properties:
-        targetNamespaceType:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-        targetNamespaceId:
-          description: Unique ID of the namespace to issue the certificate to
+        type:
+          $ref: "#/components/schemas/CertificateEnrollmentTargetType"
+        deviceNamespaceId:
+          description: Object ID of the device
           type: string
           format: uuid
-          x-go-name: TargetNamespaceID
+          x-go-name: DeviceNamespaceID
+        linkId:
+          description: Unique ID of the device link
+          type: string
+          format: uuid
+          x-go-name: DeviceLinkID
+        appId:
+          description: Client ID of the application
+          type: string
+          format: uuid
+          x-go-name: ApplicationID
+        servicePrincipalId:
+          description: Object ID of the service principal
+          type: string
+          format: uuid
+          x-go-name: ServicePrincipalID
         fqdn:
           description: Fully qualified domain name to be used in the certificate
           type: string
       required:
-        - targetNamespaceType
-        - targetNamespaceId
+        - type
+        - deviceNamespaceId
+        - linkId
+        - appId
+        - servicePrincipalId
+        - fqdn
+    CertificateEnrollmentRequest:
+      oneOf:
+        - $ref: "#/components/schemas/CertificateEnrollmentRequestDeviceLinkedServicePrincipal"
+      discriminator:
+        propertyName: type
+        mapping:
+          device-linked-service-principal: "#/components/schemas/CertificateEnrollmentRequestDeviceLinkedServicePrincipal"
     CertificateEnrollmentReceipt:
       type: object
       properties:

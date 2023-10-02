@@ -51,6 +51,10 @@ func patchNsRelDocLinkedNamespacesApplication(ops *azcosmos.PatchOperations, doc
 	ops.AppendSet("/attributes/appId", doc.Attributes.AppID)
 }
 
+func patchNsRelDocLinkedNamespacesServicePrincipal(ops *azcosmos.PatchOperations, doc *NsRelDoc) {
+	ops.AppendSet("/linked/servicePrincipal", doc.LinkedNamespaces.ServicePrincipal)
+}
+
 /*
 func (s *adminServer) queryNsRelHasPermission(ctx context.Context, namespaceID uuid.UUID, permissionKey NamespacePermissionKey) ([]*NsRelDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
@@ -23,28 +21,11 @@ type PolicyDoc struct {
 }
 
 func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {
-	pd := new(PolicyDoc)
-	err := kmsdoc.AzCosmosRead(c, s.AzCosmosContainerClient(), namespaceID,
-		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicy, policyID), pd)
-	return pd, err
-}
-
-func (s *adminServer) deletePolicyDoc(c *gin.Context, namespaceID uuid.UUID, policyID uuid.UUID, purge bool) error {
-	return nil
+	return nil, nil
 }
 
 func (s *adminServer) listPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
-	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
-	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.policyType FROM c
-WHERE c.namespaceId = @namespaceId AND c.type = @type`,
-		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@namespaceId", Value: namespaceID.String()},
-				{Name: "@type", Value: kmsdoc.DocTypeNamePolicy},
-			},
-		})
-
-	return PagerToList[PolicyDoc](ctx, pager)
+	return nil, nil
 }
 
 func (doc *PolicyDoc) PopulatePolicyRef(r *PolicyRef) {

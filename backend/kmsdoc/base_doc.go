@@ -17,14 +17,14 @@ type KmsDocType byte
 const (
 	DocTypeUnknown KmsDocType = 90 // Z
 
-	DocTypeCert                KmsDocType = 67 // C
-	DocTypeMsGraphObject       KmsDocType = 71 // G
-	DocTypeLatestCertForPolicy KmsDocType = 76 // L
-	DocTypeDirectoryObject     KmsDocType = 79 // O, deprecated
-	DocTypePolicy              KmsDocType = 80 // P, deprecated
-	DocTypeNamespaceRelation   KmsDocType = 82 // R
-	DocTypePolicyState         KmsDocType = 83 // S, deprecated
-	DocTypeCertTemplate        KmsDocType = 84 // T
+	DocTypeCert                  KmsDocType = 67 // C
+	DocTypeMsGraphObject         KmsDocType = 71 // G
+	DocTypeLatestCertForTemplate KmsDocType = 76 // L
+	DocTypeDirectoryObject       KmsDocType = 79 // O, deprecated
+	DocTypePendingCert           KmsDocType = 80 // P,
+	DocTypeNamespaceRelation     KmsDocType = 82 // R
+	DocTypePolicyState           KmsDocType = 83 // S, deprecated
+	DocTypeCertTemplate          KmsDocType = 84 // T
 )
 
 type KmsDocTypeName string
@@ -32,14 +32,14 @@ type KmsDocTypeName string
 const (
 	DocTypeNameUnknown KmsDocTypeName = "unknown"
 
-	DocTypeNameCert                KmsDocTypeName = "cert"
-	DocTypeNameMsGraphObject       KmsDocTypeName = "msgraph-object"
-	DocTypeNameLatestCertForPolicy KmsDocTypeName = "cert-latest"
-	DocTypeNameDirectoryObject     KmsDocTypeName = "directory-object"
-	DocTypeNamePolicy              KmsDocTypeName = "policy"
-	DocTypeNameNamespaceRelation   KmsDocTypeName = "namespace-relation"
-	DocTypeNamePolicyState         KmsDocTypeName = "policy-state"
-	DocTypeNameCertTemplate        KmsDocTypeName = "cert-template"
+	DocTypeNameCert                  KmsDocTypeName = "cert"
+	DocTypeNameMsGraphObject         KmsDocTypeName = "msgraph-object"
+	DocTypeNameLatestCertForTemplate KmsDocTypeName = "cert-latest"
+	DocTypeNameDirectoryObject       KmsDocTypeName = "directory-object"
+	DocTypeNamePendingCert           KmsDocTypeName = "cert-pending"
+	DocTypeNameNamespaceRelation     KmsDocTypeName = "namespace-relation"
+	DocTypeNamePolicyState           KmsDocTypeName = "policy-state"
+	DocTypeNameCertTemplate          KmsDocTypeName = "cert-template"
 )
 
 // KmsDocID is a unique identifier for a KmsDoc, is comparable
@@ -168,14 +168,14 @@ func (doc *BaseDoc) StampDeletedWithAuth(c context.Context) time.Time {
 }
 
 var docTypeNameMap = map[KmsDocType]KmsDocTypeName{
-	DocTypeCert:                DocTypeNameCert,
-	DocTypeMsGraphObject:       DocTypeNameMsGraphObject,
-	DocTypeLatestCertForPolicy: DocTypeNameLatestCertForPolicy,
-	DocTypeDirectoryObject:     DocTypeNameDirectoryObject,
-	DocTypePolicy:              DocTypeNamePolicy,
-	DocTypeNamespaceRelation:   DocTypeNameNamespaceRelation,
-	DocTypePolicyState:         DocTypeNamePolicyState,
-	DocTypeCertTemplate:        DocTypeNameCertTemplate,
+	DocTypeCert:                  DocTypeNameCert,
+	DocTypeMsGraphObject:         DocTypeNameMsGraphObject,
+	DocTypeLatestCertForTemplate: DocTypeNameLatestCertForTemplate,
+	DocTypeDirectoryObject:       DocTypeNameDirectoryObject,
+	DocTypePendingCert:           DocTypeNamePendingCert,
+	DocTypeNamespaceRelation:     DocTypeNameNamespaceRelation,
+	DocTypePolicyState:           DocTypeNamePolicyState,
+	DocTypeCertTemplate:          DocTypeNameCertTemplate,
 }
 
 func (doc *BaseDoc) fillTypeName() {

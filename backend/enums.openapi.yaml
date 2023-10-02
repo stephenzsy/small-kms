@@ -29,10 +29,12 @@ components:
         - "id"
         - "path"
         - "uri"
+        - "alt-uri"
       x-enum-varnames:
         - CertFieldVar_Name_ID
         - CertFieldVar_Name_Path
         - CertFieldVar_Name_URI
+        - CertFieldVar_Name_AltURI
     CertificateFieldVarNameTokenRequest:
       type: string
       enum:
