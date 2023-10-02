@@ -12,9 +12,11 @@ import (
 )
 
 var (
-	ErrStatusBadRequest error = errors.New("invalid input")      // 404
-	ErrStatusNotFound   error = errors.New("resource not found") // 404
-	ErrStatusConflict         = errors.New("resource conflict")  // 409
+	ErrStatusUnauthorized = errors.New("unauthorized")       // 401
+	ErrStatusForbidden    = errors.New("forbidden")          // 403
+	ErrStatusBadRequest   = errors.New("invalid input")      // 404
+	ErrStatusNotFound     = errors.New("resource not found") // 404
+	ErrStatusConflict     = errors.New("resource conflict")  // 409
 )
 
 // Deprecated: use WrapAzNotFoundErr instead
@@ -69,6 +71,11 @@ func RespondError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, ErrStatusBadRequest):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	case errors.Is(err, ErrStatusUnauthorized):
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	case errors.Is(err, ErrStatusForbidden):
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 	case errors.Is(err, ErrStatusNotFound):
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	case errors.Is(err, ErrStatusConflict):

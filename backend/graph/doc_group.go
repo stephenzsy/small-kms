@@ -9,6 +9,11 @@ type GroupDoc struct {
 	GraphDoc
 }
 
+func GetProfileGraphSelectGroupDoc() (r []string) {
+	r = append(r, GetProfileGraphSelectGraphDoc()...)
+	return r
+}
+
 func (doc *GroupDoc) init(
 	tenantID uuid.UUID,
 	graphObj GraphProfileable,

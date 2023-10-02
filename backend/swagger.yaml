@@ -698,14 +698,14 @@ components:
           description: Client ID of the application
           type: string
           format: uuid
-          x-go-name: ApplicationID
+          x-go-name: AppID
         servicePrincipalId:
           description: Object ID of the service principal
           type: string
           format: uuid
           x-go-name: ServicePrincipalID
-        fqdn:
-          description: Fully qualified domain name to be used in the certificate
+        commonName:
+          description: Common Name to appear in the certificate
           type: string
       required:
         - type

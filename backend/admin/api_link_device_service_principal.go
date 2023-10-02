@@ -124,7 +124,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		relDoc = new(NsRelDoc)
 		relDoc.NamespaceID = nsID
 		relDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, deviceRelID)
-		relDoc.Status = NsRelStatusUnknown
+		relDoc.Status = NsRelStatusPending
 		relDoc.SourceNamespaceID = nsID
 		relDoc.LinkedNamespaces.Device = &nsID
 		relDoc.Attributes.DeviceID = &deviceDeviceID
@@ -234,6 +234,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	}
 
 	relDoc.LinkedNamespaces.ServicePrincipal = &spID
+	relDoc.Status = NsRelStatusEnabled
 	if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
 		patchNsRelDocLinkedNamespacesServicePrincipal); err != nil {
 		return nil, err

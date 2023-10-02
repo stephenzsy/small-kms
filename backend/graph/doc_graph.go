@@ -31,6 +31,10 @@ type GraphDoc struct {
 	DisplayName string           `json:"displayName"`
 }
 
+func GetProfileGraphSelectGraphDoc() []string {
+	return []string{"id", "displayName"}
+}
+
 func (doc *GraphDoc) GetDisplayName() string {
 	return doc.DisplayName
 }

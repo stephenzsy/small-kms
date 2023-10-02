@@ -13,6 +13,12 @@ type UserDoc struct {
 	UserPrincipalName string `json:"userPrincipalName"`
 }
 
+func GetProfileGraphSelectServiceUserDoc() (r []string) {
+	r = append(r, GetProfileGraphSelectGraphDoc()...)
+	r = append(r, "userPrincipalName")
+	return r
+}
+
 func (doc *UserDoc) init(
 	tenantID uuid.UUID,
 	graphObj GraphProfileable,

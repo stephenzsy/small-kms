@@ -2,17 +2,20 @@ package admin
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 type NsRelStatus string
 
 const (
-	NsRelStatusUnknown  NsRelStatus = "unknown"
-	NsRelStatusVerified NsRelStatus = "verified"
+	NsRelStatusPending  NsRelStatus = "pending"
+	NsRelStatusEnabled  NsRelStatus = "enabled"
+	NsRelStatusDisabled NsRelStatus = "disabled"
 	NsRelStatusError    NsRelStatus = "error"
 	NsRelStatusLink     NsRelStatus = "link"
 )
@@ -55,6 +58,10 @@ func patchNsRelDocLinkedNamespacesServicePrincipal(ops *azcosmos.PatchOperations
 	ops.AppendSet("/linked/servicePrincipal", doc.LinkedNamespaces.ServicePrincipal)
 }
 
+func patchNsRelDocLinkedStatus(ops *azcosmos.PatchOperations, doc *NsRelDoc) {
+	ops.AppendSet("/status", doc.Status)
+}
+
 /*
 func (s *adminServer) queryNsRelHasPermission(ctx context.Context, namespaceID uuid.UUID, permissionKey NamespacePermissionKey) ([]*NsRelDoc, error) {
 	partitionKey := azcosmos.NewPartitionKeyString(namespaceID.String())
@@ -76,11 +83,10 @@ func (s *adminServer) readNsRelWithFollow(ctx context.Context, nsID uuid.UUID, r
 	doc := new(NsRelDoc)
 	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, relID), doc)
-	if !follow || err == nil || doc.NamespaceID == nsID {
-		return doc, err
-	} else {
-		return s.readNsRelWithFollow(ctx, doc.NamespaceID, relID, false)
+	if !follow || err != nil || doc.NamespaceID == nsID {
+		return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:reldoc:%s", nsID, relID))
 	}
+	return s.readNsRelWithFollow(ctx, doc.NamespaceID, relID, false)
 }
 
 func (s *adminServer) readNsRel(ctx context.Context, nsID uuid.UUID, relID uuid.UUID) (*NsRelDoc, error) {

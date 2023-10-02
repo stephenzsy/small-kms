@@ -144,13 +144,13 @@ type CertificateEnrollmentRequest struct {
 // CertificateEnrollmentRequestDeviceLinkedServicePrincipal defines model for CertificateEnrollmentRequestDeviceLinkedServicePrincipal.
 type CertificateEnrollmentRequestDeviceLinkedServicePrincipal struct {
 	// AppId Client ID of the application
-	ApplicationID openapi_types.UUID `json:"appId"`
+	AppID openapi_types.UUID `json:"appId"`
+
+	// CommonName Common Name to appear in the certificate
+	CommonName *string `json:"commonName,omitempty"`
 
 	// DeviceNamespaceId Object ID of the device
 	DeviceNamespaceID openapi_types.UUID `json:"deviceNamespaceId"`
-
-	// Fqdn Fully qualified domain name to be used in the certificate
-	Fqdn string `json:"fqdn"`
 
 	// LinkId Unique ID of the device link
 	DeviceLinkID openapi_types.UUID `json:"linkId"`

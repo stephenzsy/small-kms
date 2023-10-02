@@ -14,6 +14,12 @@ type ServicePrincipalDoc struct {
 	AppID uuid.UUID `json:"appId"`
 }
 
+func GetProfileGraphSelectServicePrincipalDoc() (r []string) {
+	r = append(r, GetProfileGraphSelectGraphDoc()...)
+	r = append(r, "appId")
+	return r
+}
+
 func (doc *ServicePrincipalDoc) init(
 	tenantID uuid.UUID,
 	graphObj GraphProfileable,

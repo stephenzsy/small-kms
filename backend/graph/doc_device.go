@@ -20,6 +20,12 @@ type DeviceDoc struct {
 	IsCompliant            *bool   `json:"isCompliant,omitempty"`
 }
 
+func GetProfileGraphSelectDeviceDoc() (r []string) {
+	r = append(r, GetProfileGraphSelectGraphDoc()...)
+	r = append(r, "deviceId", "accountEnabled", "operatingSystem", "operatingSystemVersion", "trustType", "mdmAppId", "isCompliant")
+	return r
+}
+
 func (doc *DeviceDoc) init(
 	tenantID uuid.UUID,
 	graphObj GraphProfileable,
