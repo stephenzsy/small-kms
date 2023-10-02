@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphapplications "github.com/microsoftgraph/msgraph-sdk-go/applications"
 	msgraphdevices "github.com/microsoftgraph/msgraph-sdk-go/devices"
 	msgraphdirectoryobjects "github.com/microsoftgraph/msgraph-sdk-go/directoryobjects"
@@ -24,8 +25,22 @@ import (
 
 // extract owner name
 
+type contextKey string
+
+const (
+	graphClientContextKey contextKey = "graphClient"
+)
+
+func graphClienFromContext(c context.Context) *msgraph.GraphServiceClient {
+	return c.Value(graphClientContextKey).(*msgraph.GraphServiceClient)
+}
+
+func withGraphClient(c context.Context, client *msgraph.GraphServiceClient) context.Context {
+	return context.WithValue(c, graphClientContextKey, client)
+}
+
 func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Deviceable, map[TemplateVarName]string, error) {
-	obj, err := s.MsGraphClient().Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
+	obj, err := graphClienFromContext(c).Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphdevices.DeviceItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectDeviceDoc(),
 		},
@@ -40,7 +55,7 @@ func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params
 }
 
 func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Applicationable, map[TemplateVarName]string, error) {
-	obj, err := s.MsGraphClient().Applications().ByApplicationId(objectID.String()).Get(c, &msgraphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
+	obj, err := graphClienFromContext(c).Applications().ByApplicationId(objectID.String()).Get(c, &msgraphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphapplications.ApplicationItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
 		},
@@ -55,7 +70,7 @@ func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, p
 }
 
 func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.ServicePrincipalable, map[TemplateVarName]string, error) {
-	obj, err := s.MsGraphClient().ServicePrincipals().ByServicePrincipalId(objectID.String()).Get(c, &msgraphsp.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
+	obj, err := graphClienFromContext(c).ServicePrincipals().ByServicePrincipalId(objectID.String()).Get(c, &msgraphsp.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphsp.ServicePrincipalItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
 		},
@@ -70,7 +85,7 @@ func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UU
 }
 
 func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Groupable, map[TemplateVarName]string, error) {
-	obj, err := s.MsGraphClient().Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
+	obj, err := graphClienFromContext(c).Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphgroups.GroupItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectGroupDoc(),
 		},
@@ -87,7 +102,7 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 	requestBody := msgraphdirectoryobjects.NewItemCheckMemberGroupsPostRequestBody()
 	requestBody.SetGroupIds([]string{groupID.String()})
 
-	checkMemberGroups, err := s.MsGraphClient().DirectoryObjects().ByDirectoryObjectId(objectID.String()).CheckMemberGroups().Post(c, requestBody, nil)
+	checkMemberGroups, err := graphClienFromContext(c).DirectoryObjects().ByDirectoryObjectId(objectID.String()).CheckMemberGroups().Post(c, requestBody, nil)
 	if err != nil {
 		return false, err
 	}
@@ -103,6 +118,12 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateId uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) error {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
+
+	if graphClient, err := s.msGraphClient(c); err != nil {
+		return err
+	} else {
+		c = withGraphClient(c, graphClient)
+	}
 
 	// first check if AppID match
 	authCtx, ok := auth.GetAuthIdentity(c)
@@ -205,9 +226,9 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 		return
 	}
 
-	switch req.(type) {
+	switch req := req.(type) {
 	case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-		s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req.(CertificateEnrollmentRequestDeviceLinkedServicePrincipal))
+		s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
 
 	}
 

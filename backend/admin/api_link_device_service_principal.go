@@ -59,8 +59,15 @@ func (s *adminServer) GetDeviceServicePrincipalLinkV2(c *gin.Context, nsID uuid.
 
 func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsID uuid.UUID) (*NsRelDoc, error) {
 	log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - start", nsID)
-
 	defer log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - end", nsID)
+
+	graphClient, err := s.msGraphClient(c)
+	if err != nil {
+		return nil, err
+	}
+	c = withGraphClient(c, graphClient)
+
+	graphAppClient, err := s.msGraphAppClient()
 
 	// device require to have a profile
 	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeDevice)
@@ -70,8 +77,9 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	log.Info().Msgf("device %s: profile loaded", nsID)
 
 	// need to fetch device from graph
-	devGraphObj, err := s.graphService.GetGraphObjectByID(c, nsID)
+	device, err := graphClient.Devices().ByDeviceId(nsID.String()).Get(c, nil)
 	if err != nil {
+		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("device:%s", nsID))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// device is no longer available, schedule profile deletion
 			if deleteErr := s.graphService.DeleteGraphProfileDoc(c, graphProfileDoc); deleteErr != nil {
@@ -82,15 +90,6 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	}
 	log.Info().Msgf("device %s: loaded from msgraph", nsID)
 
-	// verify is device
-
-	device, ok := devGraphObj.(msgraphmodels.Deviceable)
-	if !ok {
-		if deleteErr := s.graphService.DeleteGraphProfileDoc(c, graphProfileDoc); deleteErr != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("%w: namespace is not a device: %s", common.ErrStatusBadRequest, nsID)
-	}
 	// device is verified, write new object to cosmos
 	deviceDoc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), device, graph.MsGraphOdataTypeDevice)
 	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), deviceDoc); err != nil {
@@ -147,16 +146,13 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	var appObj msgraphmodels.Applicationable
 	applicationID := utils.NilToDefault(relDoc.LinkedNamespaces.Application)
 	if applicationID != uuid.Nil {
-		if appGraphObj, err := s.graphService.GetGraphObjectByID(c, applicationID); err != nil {
+		if appObj, err = graphClient.Applications().ByApplicationId(applicationID.String()).Get(c, nil); err != nil {
+			err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("application:%s", applicationID))
 			if !errors.Is(err, common.ErrStatusNotFound) {
 				return nil, err
 			}
 			// not found, let appObj continue to be nil
 			log.Info().Msgf("device link %s: application not exist: %s", deviceRelID, applicationID)
-		} else if appObj, ok = appGraphObj.(msgraphmodels.Applicationable); !ok {
-			// not an application, need to create a new one
-			appObj = nil
-			log.Info().Msgf("device link %s: application type mismatch: %s", deviceRelID, applicationID)
 		} else {
 			log.Info().Msgf("device link %s: application loaded: %s", deviceRelID, applicationID)
 		}
@@ -169,7 +165,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		mApplication.SetSignInAudience(ToPtr("AzureADMyOrg"))
 		mApplication.SetTags([]string{fmt.Sprintf("linked-device-object-id-%s", nsID), "linked-service-small-kms"})
 		mApplication.SetIsFallbackPublicClient(ToPtr(true))
-		if appObj, err = s.MsGraphClient().Applications().Post(c, mApplication, nil); err != nil {
+		if appObj, err = graphAppClient.Applications().Post(c, mApplication, nil); err != nil {
 			return nil, err
 		}
 		if applicationID, err = uuid.Parse(utils.NilToDefault(appObj.GetId())); err != nil {
@@ -204,16 +200,13 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	spID := utils.NilToDefault(relDoc.LinkedNamespaces.ServicePrincipal)
 	var spObj msgraphmodels.ServicePrincipalable
 	if spID != uuid.Nil {
-		if spGraphObj, err := s.graphService.GetGraphObjectByID(c, spID); err != nil {
+		if spObj, err = graphClient.ServicePrincipalsWithAppId(ToPtr(applicationAppID.String())).Get(c, nil); err != nil {
+			err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("servicePrincipal:%s", spID))
 			if !errors.Is(err, common.ErrStatusNotFound) {
 				return nil, err
 			}
 			// not found, let appObj continue to be nil
 			log.Info().Msgf("device link %s: service principal not exist: %s", deviceRelID, spID)
-		} else if spObj, ok = spGraphObj.(msgraphmodels.ServicePrincipalable); !ok {
-			// not an application, need to create a new one
-			spObj = nil
-			log.Info().Msgf("device link %s: service principal type mismatch: %s", deviceRelID, spID)
 		} else {
 			log.Info().Msgf("device link %s: service principal loaded: %s", deviceRelID, spID)
 		}
@@ -224,7 +217,7 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		mSp := msgraphmodels.NewServicePrincipal()
 		mSp.SetAppId(appObj.GetAppId())
 
-		if spObj, err = s.MsGraphClient().ServicePrincipals().Post(c, mSp, nil); err != nil {
+		if spObj, err = graphAppClient.ServicePrincipals().Post(c, mSp, nil); err != nil {
 			return nil, err
 		}
 		if spID, err = uuid.Parse(utils.NilToDefault(spObj.GetId())); err != nil {
@@ -262,12 +255,7 @@ func (s *adminServer) CreateDeviceServicePrincipalLinkV2(c *gin.Context, nsID uu
 
 	r, err := s.createDeviceServicePrincipalLinkDoc(c, nsID)
 	if err != nil {
-		if errors.Is(err, common.ErrStatusNotFound) {
-			respondPublicError(c, http.StatusNotFound, err)
-			return
-		}
-
-		respondInternalError(c, err, "failed to get namespace relation")
+		common.RespondError(c, err)
 		return
 	}
 

@@ -19,6 +19,7 @@ const pca = new PublicClientApplication({
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`,
+
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -53,7 +54,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
           })
         : instance.loginRedirect({
             scopes: [import.meta.env.VITE_API_SCOPE],
-          });
+          },);
     }
   );
   useEffect(() => {
@@ -65,7 +66,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
         if (!accountRef.current) {
           acquireToken();
         }
-      }, 3000);
+      }, 1000);
       return () => clearTimeout(t);
     }
   }, [account, inProgress]);

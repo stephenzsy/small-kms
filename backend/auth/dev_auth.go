@@ -29,17 +29,17 @@ func HandleDevJWTMiddleware(ctx *gin.Context) {
 		ctx.JSON(401, gin.H{"error": "Invalid Authorization header"})
 		return
 	}
-	encodedJwt := strings.TrimPrefix(authHeader, "Bearer ")
+	a := authIdentity{
+		appRoles: make(map[string]bool),
+	}
+	a.bearerToken = strings.TrimPrefix(authHeader, "Bearer ")
 	claims := DevJwtClaims{}
 	parser := jwt.NewParser()
-	_, _, err := parser.ParseUnverified(encodedJwt, &claims)
+	_, _, err := parser.ParseUnverified(a.bearerToken, &claims)
 	if err != nil {
 		log.Warn().Err(err).Msg("Invalid Authorization header")
 		ctx.JSON(401, gin.H{"error": "Invalid Authorization header"})
 		return
-	}
-	a := authIdentity{
-		appRoles: make(map[string]bool),
 	}
 	a.appIDClaim, _ = uuid.Parse(claims.AppID)
 	a.msClientPrincipalID, _ = uuid.Parse(claims.ObjectID)

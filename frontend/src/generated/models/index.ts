@@ -5,6 +5,8 @@ export * from './CertificateEnrollPolicyParameters';
 export * from './CertificateEnrollmentReceipt';
 export * from './CertificateEnrollmentReplyFinalize';
 export * from './CertificateEnrollmentRequest';
+export * from './CertificateEnrollmentRequestDeviceLinkedServicePrincipal';
+export * from './CertificateEnrollmentTargetType';
 export * from './CertificateIdentifierType';
 export * from './CertificateInfo';
 export * from './CertificateIssuer';

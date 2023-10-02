@@ -3,7 +3,10 @@ package auth
 import (
 	"context"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 type ContextKey string
@@ -18,6 +21,7 @@ type AuthIdentity interface {
 	ClientPrincipalID() uuid.UUID
 	ClientPrincipalName() string
 	AppIDClaim() uuid.UUID
+	GetOnBehalfOfTokenCredential(s common.CommonConfig, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
 }
 
 type authIdentity struct {
@@ -25,6 +29,7 @@ type authIdentity struct {
 	msClientPrincipalName string
 	appRoles              map[string]bool
 	appIDClaim            uuid.UUID
+	bearerToken           string
 }
 
 func GetAuthIdentity(ctx context.Context) (identity AuthIdentity, ok bool) {
@@ -47,4 +52,8 @@ func (i authIdentity) ClientPrincipalName() string {
 
 func (i authIdentity) AppIDClaim() uuid.UUID {
 	return i.appIDClaim
+}
+
+func (i authIdentity) GetOnBehalfOfTokenCredential(s common.CommonConfig, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
+	return s.NewOnBehalfOfCredential(i.bearerToken, opts)
 }

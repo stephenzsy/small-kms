@@ -81,7 +81,7 @@ func RespondError(c *gin.Context, err error) {
 	case errors.Is(err, ErrStatusConflict):
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	default:
-		log.Error().Err(err).Msg("internal error")
+		log.Error().Err(err).Stack().Msg("internal error")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 	}
 }

@@ -12,50 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { exists, mapValues } from '../runtime';
-import type { NamespaceTypeShortName } from './NamespaceTypeShortName';
 import {
-    NamespaceTypeShortNameFromJSON,
-    NamespaceTypeShortNameFromJSONTyped,
-    NamespaceTypeShortNameToJSON,
-} from './NamespaceTypeShortName';
+    CertificateEnrollmentRequestDeviceLinkedServicePrincipal,
+    instanceOfCertificateEnrollmentRequestDeviceLinkedServicePrincipal,
+    CertificateEnrollmentRequestDeviceLinkedServicePrincipalFromJSON,
+    CertificateEnrollmentRequestDeviceLinkedServicePrincipalFromJSONTyped,
+    CertificateEnrollmentRequestDeviceLinkedServicePrincipalToJSON,
+} from './CertificateEnrollmentRequestDeviceLinkedServicePrincipal';
 
 /**
+ * @type CertificateEnrollmentRequest
  * 
  * @export
- * @interface CertificateEnrollmentRequest
  */
-export interface CertificateEnrollmentRequest {
-    /**
-     * 
-     * @type {NamespaceTypeShortName}
-     * @memberof CertificateEnrollmentRequest
-     */
-    targetNamespaceType: NamespaceTypeShortName;
-    /**
-     * Unique ID of the namespace to issue the certificate to
-     * @type {string}
-     * @memberof CertificateEnrollmentRequest
-     */
-    targetNamespaceId: string;
-    /**
-     * Fully qualified domain name to be used in the certificate
-     * @type {string}
-     * @memberof CertificateEnrollmentRequest
-     */
-    fqdn?: string;
-}
-
-/**
- * Check if a given object implements the CertificateEnrollmentRequest interface.
- */
-export function instanceOfCertificateEnrollmentRequest(value: object): boolean {
-    let isInstance = true;
-    isInstance = isInstance && "targetNamespaceType" in value;
-    isInstance = isInstance && "targetNamespaceId" in value;
-
-    return isInstance;
-}
+export type CertificateEnrollmentRequest = { type: 'device-linked-service-principal' } & CertificateEnrollmentRequestDeviceLinkedServicePrincipal;
 
 export function CertificateEnrollmentRequestFromJSON(json: any): CertificateEnrollmentRequest {
     return CertificateEnrollmentRequestFromJSONTyped(json, false);
@@ -65,12 +35,12 @@ export function CertificateEnrollmentRequestFromJSONTyped(json: any, ignoreDiscr
     if ((json === undefined) || (json === null)) {
         return json;
     }
-    return {
-        
-        'targetNamespaceType': NamespaceTypeShortNameFromJSON(json['targetNamespaceType']),
-        'targetNamespaceId': json['targetNamespaceId'],
-        'fqdn': !exists(json, 'fqdn') ? undefined : json['fqdn'],
-    };
+    switch (json['type']) {
+        case 'device-linked-service-principal':
+            return {...CertificateEnrollmentRequestDeviceLinkedServicePrincipalFromJSONTyped(json, true), type: 'device-linked-service-principal'};
+        default:
+            throw new Error(`No variant of CertificateEnrollmentRequest exists with 'type=${json['type']}'`);
+    }
 }
 
 export function CertificateEnrollmentRequestToJSON(value?: CertificateEnrollmentRequest | null): any {
@@ -80,11 +50,12 @@ export function CertificateEnrollmentRequestToJSON(value?: CertificateEnrollment
     if (value === null) {
         return null;
     }
-    return {
-        
-        'targetNamespaceType': NamespaceTypeShortNameToJSON(value.targetNamespaceType),
-        'targetNamespaceId': value.targetNamespaceId,
-        'fqdn': value.fqdn,
-    };
+    switch (value['type']) {
+        case 'device-linked-service-principal':
+            return CertificateEnrollmentRequestDeviceLinkedServicePrincipalToJSON(value);
+        default:
+            throw new Error(`No variant of CertificateEnrollmentRequest exists with 'type=${value['type']}'`);
+    }
+
 }
 

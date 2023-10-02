@@ -17,8 +17,15 @@ func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceId uuid.UUID)
 		return
 	}
 
-	obj, err := s.graphService.GetGraphObjectByID(c, namespaceId)
+	graphClient, err := s.msGraphClient(c)
 	if err != nil {
+		common.RespondError(c, err)
+		return
+	}
+
+	obj, err := graphClient.DirectoryObjects().ByDirectoryObjectId(namespaceId.String()).Get(c, nil)
+	if err != nil {
+		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("directoryObject:%s", namespaceId))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// delete the doc if it exists
 			profileDoc, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)

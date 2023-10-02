@@ -9,6 +9,8 @@ models/CertificateEnrollPolicyParameters.ts
 models/CertificateEnrollmentReceipt.ts
 models/CertificateEnrollmentReplyFinalize.ts
 models/CertificateEnrollmentRequest.ts
+models/CertificateEnrollmentRequestDeviceLinkedServicePrincipal.ts
+models/CertificateEnrollmentTargetType.ts
 models/CertificateIdentifierType.ts
 models/CertificateInfo.ts
 models/CertificateIssuer.ts

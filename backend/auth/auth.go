@@ -27,7 +27,7 @@ func HandleAadAuthMiddleware(ctx *gin.Context) {
 	var decodedClaims []byte
 	a.msClientPrincipalID, _ = uuid.Parse(ctx.Request.Header.Get("X-Ms-Client-Principal-Id"))
 	a.msClientPrincipalName = ctx.Request.Header.Get("X-Ms-Client-Principal-Name")
-
+	a.bearerToken = ctx.Request.Header.Get("Authorization")[7:]
 	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
 	if len(encodedPrincipal) == 0 {
 		log.Warn().Msg("No X-Ms-Client-Principal header found")
