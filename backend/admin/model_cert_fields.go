@@ -52,7 +52,7 @@ func sanitizeSANs(sans *CertificateSubjectAlternativeNames) *CertificateSubjectA
 	return sans
 }
 
-func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.Certificate, data map[string]string) {
+func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.Certificate, data *TemplateVarData) {
 	if sans == nil {
 		return
 	}
@@ -60,7 +60,7 @@ func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.C
 	cert.EmailAddresses = utils.NilIfZeroLen(
 		utils.FilterSlice(
 			utils.MapSlices(sans.EmailAddresses, func(emailAddrStr string) string {
-				return processTemplate("emailTmpl", emailAddrStr, data)
+				return processTemplate(emailAddrStr, data)
 			}),
 			func(emailAddrStr string) bool {
 				return len(emailAddrStr) > 0
@@ -69,7 +69,7 @@ func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.C
 	cert.URIs = utils.NilIfZeroLen[*url.URL](
 		utils.FilterSlice[*url.URL](
 			utils.MapSlices(sans.URIs, func(uriStr string) *url.URL {
-				uriStr = processTemplate("uriTmpl", uriStr, data)
+				uriStr = processTemplate(uriStr, data)
 				if len(uriStr) > 0 {
 					uri, _ := url.Parse(uriStr)
 					return uri

@@ -90,22 +90,22 @@ func (p *CertificateTemplateDocKeyProperties) setECDSA(crv CurveName) {
 	}
 }
 
-func (s *CertificateTemplateDocSubject) pkixName(tmplData map[string]string) (name pkix.Name) {
-	name.CommonName = processTemplate("subjectCN", s.CN, tmplData)
+func (s *CertificateTemplateDocSubject) pkixName(tmplData *TemplateVarData) (name pkix.Name) {
+	name.CommonName = processTemplate(s.CN, tmplData)
 	if s.C != nil && len(*s.C) > 0 {
-		a := processTemplate("subjectC", *s.C, tmplData)
+		a := processTemplate(*s.C, tmplData)
 		if len(a) > 0 {
 			name.Country = []string{a}
 		}
 	}
 	if s.O != nil && len(*s.O) > 0 {
-		a := processTemplate("subjectO", *s.O, tmplData)
+		a := processTemplate(*s.O, tmplData)
 		if len(a) > 0 {
 			name.Organization = []string{a}
 		}
 	}
 	if s.OU != nil && len(*s.OU) > 0 {
-		a := processTemplate("subjectOU", *s.OU, tmplData)
+		a := processTemplate(*s.OU, tmplData)
 		if len(a) > 0 {
 			name.OrganizationalUnit = []string{a}
 		}
@@ -324,7 +324,7 @@ createKey:
 }
 
 func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
-	nsType NamespaceTypeShortName, tmplData map[string]string) (azcertificates.CreateCertificateResponse, error) {
+	nsType NamespaceTypeShortName, tmplData *TemplateVarData) (azcertificates.CreateCertificateResponse, error) {
 	params := azcertificates.CreateCertificateParameters{}
 	x509Properties := azcertificates.X509CertificateProperties{
 		Subject:          ToPtr(doc.Subject.pkixName(tmplData).String()),

@@ -504,9 +504,13 @@ type RefType string
 // RefWithMetadata defines model for RefWithMetadata.
 type RefWithMetadata struct {
 	// Deleted Time when the object was deleted
-	Deleted       *time.Time             `json:"deleted,omitempty"`
+	Deleted *time.Time `json:"deleted,omitempty"`
+
+	// DisplayName Display name of the object
+	DisplayName   string                 `json:"displayName"`
 	ID            openapi_types.UUID     `json:"id"`
-	Metadata      map[string]string      `json:"metadata,omitempty"`
+	IsActive      *bool                  `json:"isActive,omitempty"`
+	IsDefault     *bool                  `json:"isDefault,omitempty"`
 	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
 	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
 	Type          RefType                `json:"type"`

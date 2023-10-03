@@ -11,7 +11,7 @@ import {
   Ref as RRef,
 } from "../generated";
 import { useRequest } from "ahooks";
-import { RefsTable } from "./RefsTable";
+import { RefTableColumn, RefsTable, displayNameColumn } from "./RefsTable";
 import { useMemo } from "react";
 import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 import { v5 as uuidv5 } from "uuid";
@@ -91,7 +91,18 @@ function CertificateTemplatesList({
           ))}
         </div>
       }
-      itemTitleMetadataKey="displayName"
+      columns={
+        [
+          displayNameColumn,
+          {
+            header: "Active",
+            metadataKey: "isActive",
+            render: (isActive) => {
+              return isActive ? "Yes" : "No";
+            },
+          } as RefTableColumn<"isActive">,
+        ] as RefTableColumn[]
+      }
       refActions={(ref) => (
         <Link
           to={`/admin/${ref.namespaceType}/${ref.namespaceId}/certificate-templates/${ref.id}`}

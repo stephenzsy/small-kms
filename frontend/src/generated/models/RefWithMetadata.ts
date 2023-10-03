@@ -75,11 +75,23 @@ export interface RefWithMetadata {
      */
     deleted?: Date;
     /**
-     * 
-     * @type {{ [key: string]: string; }}
+     * Display name of the object
+     * @type {string}
      * @memberof RefWithMetadata
      */
-    metadata?: { [key: string]: string; };
+    displayName: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RefWithMetadata
+     */
+    isDefault?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RefWithMetadata
+     */
+    isActive?: boolean;
 }
 
 /**
@@ -93,6 +105,7 @@ export function instanceOfRefWithMetadata(value: object): boolean {
     isInstance = isInstance && "namespaceType" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updated" in value;
+    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
@@ -114,7 +127,9 @@ export function RefWithMetadataFromJSONTyped(json: any, ignoreDiscriminator: boo
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
+        'displayName': json['displayName'],
+        'isDefault': !exists(json, 'isDefault') ? undefined : json['isDefault'],
+        'isActive': !exists(json, 'isActive') ? undefined : json['isActive'],
     };
 }
 
@@ -134,7 +149,9 @@ export function RefWithMetadataToJSON(value?: RefWithMetadata | null): any {
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
-        'metadata': value.metadata,
+        'displayName': value.displayName,
+        'isDefault': value.isDefault,
+        'isActive': value.isActive,
     };
 }
 

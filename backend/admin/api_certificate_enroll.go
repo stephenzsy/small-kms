@@ -1,17 +1,14 @@
 package admin
 
 import (
-	"bytes"
 	"context"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"net/http"
 	"net/url"
 	"strings"
-	"text/template"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -55,66 +52,74 @@ func withGraphClient(c context.Context, client *msgraph.GraphServiceClient) cont
 	return context.WithValue(c, graphClientContextKey, client)
 }
 
-func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Deviceable, map[string]string, error) {
+func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Deviceable, error) {
 	obj, err := graphClienFromContext(c).Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphdevices.DeviceItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectDeviceDoc(),
 		},
 	})
 	if err != nil {
-		return obj, nil, err
+		return obj, err
 	}
-	return obj, map[string]string{
-		TemplateVarNameDeviceURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/devices/%s", *obj.GetId()),
-		TemplateVarNameDeviceAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/devices(deviceId='{%s}')", *obj.GetDeviceId()),
-	}, nil
+	params.Device = ResourceTemplateVarData{
+		ID:     *obj.GetId(),
+		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/devices/%s", *obj.GetId()),
+		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/devices(deviceId='{%s}')", *obj.GetDeviceId()),
+	}
+	return obj, nil
 }
 
-func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Applicationable, map[string]string, error) {
+func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Applicationable, error) {
 	obj, err := graphClienFromContext(c).Applications().ByApplicationId(objectID.String()).Get(c, &msgraphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphapplications.ApplicationItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
 		},
 	})
 	if err != nil {
-		return obj, nil, err
+		return obj, err
 	}
-	return obj, map[string]string{
-		TemplateVarNameApplicationURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/applications/%s", *obj.GetId()),
-		TemplateVarNameApplicationAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/applications(appId='{%s}')", *obj.GetAppId()),
-	}, nil
+	params.Application = ResourceTemplateVarData{
+		ID:     *obj.GetId(),
+		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/applications/%s", *obj.GetId()),
+		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/applications(appId='{%s}')", *obj.GetAppId()),
+	}
+	return obj, nil
 }
 
-func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.ServicePrincipalable, map[string]string, error) {
+func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.ServicePrincipalable, error) {
 	obj, err := graphClienFromContext(c).ServicePrincipals().ByServicePrincipalId(objectID.String()).Get(c, &msgraphsp.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphsp.ServicePrincipalItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
 		},
 	})
 	if err != nil {
-		return obj, nil, err
+		return obj, err
 	}
-	return obj, map[string]string{
-		TemplateVarNameServicePrincipalURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals/%s", *obj.GetId()),
-		TemplateVarNameServicePrincipalAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='{%s}')", *obj.GetAppId()),
-	}, nil
+	params.ServicePrincipal = ResourceTemplateVarData{
+		ID:     *obj.GetId(),
+		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals/%s", *obj.GetId()),
+		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='{%s}')", *obj.GetAppId()),
+	}
+	return obj, nil
 }
 
-func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Groupable, map[string]string, error) {
+func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Groupable, error) {
 	obj, err := graphClienFromContext(c).Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphgroups.GroupItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectGroupDoc(),
 		},
 	})
 	if err != nil {
-		return obj, nil, err
+		return obj, err
 	}
-	return obj, map[string]string{
-		TemplateVarNameGroupURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", *obj.GetId()),
-	}, nil
+	params.Group = ResourceTemplateVarData{
+		ID:  *obj.GetId(),
+		URI: fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", *obj.GetId()),
+	}
+	return obj, nil
 }
 
-func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUID, groupID uuid.UUID, params *map[string]string) (bool, error) {
+func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUID, groupID uuid.UUID) (bool, error) {
 	requestBody := msgraphdirectoryobjects.NewItemCheckMemberGroupsPostRequestBody()
 	requestBody.SetGroupIds([]string{groupID.String()})
 
@@ -131,27 +136,25 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 	return false, nil
 }
 
-func processTemplate(name string, tmplStr string, data map[string]string) string {
-	if data == nil || !strings.Contains(tmplStr, "{{") || !strings.Contains(tmplStr, "}}") {
-		return strings.TrimSpace(tmplStr)
-	}
-	tmpl := template.New(name)
-	var err error
-	if tmpl, err = tmpl.Parse(tmplStr); err != nil {
-		return ""
-	}
-	buffer := bytes.NewBuffer(nil)
-	err = tmpl.Execute(buffer, data)
+func processTemplate(tmplStr string, data *TemplateVarData) string {
+	tmplStr = strings.TrimSpace(tmplStr)
+	tmpl, err := parseCertificateRequestTemplate(tmplStr)
 	if err != nil {
+		log.Warn().Err(err).Msgf("failed to parse template: %s", tmplStr)
 		return ""
 	}
-	if buffer.Len() > 0 {
-		return strings.TrimSpace(buffer.String())
+	if tmpl == nil {
+		return tmplStr
 	}
-	return ""
+	transformed, err := executeTemplate(tmpl, data)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to execute template: %s", tmplStr)
+		return ""
+	}
+	return transformed
 }
 
-func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data map[string]string) (certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
+func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *TemplateVarData) (certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
 	claims.SchemaVersion = 1
 	var cert *x509.Certificate
 	cert, certID, err = prepareUnsignedCertificateFromTemplate(NamespaceTypeShortName(""), uuid.Nil, template, data)
@@ -246,12 +249,11 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	log.Info().Msgf("link doc loaded and verified: %s", req.DeviceLinkID)
 
 	// prep parameters
-	params := make(map[string]string)
+	params := TemplateVarData{}
 	// verify against ms graph
-	if obj, deviceParams, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
+	if obj, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
 		return err
 	} else {
-		maps.Copy(params, deviceParams)
 		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeDevice)
 		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
 			return err
@@ -259,24 +261,19 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("device verified: %s", req.DeviceNamespaceID)
 
-	if _, appParams, err := s.verifyApplication(c, *relDoc.LinkedNamespaces.Application, &params); err != nil {
+	if _, err := s.verifyApplication(c, *relDoc.LinkedNamespaces.Application, &params); err != nil {
 		return err
-	} else {
-		maps.Copy(params, appParams)
 	}
 	log.Info().Msgf("application verified: %s", *relDoc.LinkedNamespaces.Application)
 
-	if _, appParams, err := s.verifyServicePrincipal(c, req.ServicePrincipalID, &params); err != nil {
+	if _, err := s.verifyServicePrincipal(c, req.ServicePrincipalID, &params); err != nil {
 		return err
-	} else {
-		maps.Copy(params, appParams)
 	}
 	log.Info().Msgf("service principal verified: %s", req.ServicePrincipalID)
 
-	if obj, appParams, err := s.verifyGroup(c, nsID, &params); err != nil {
+	if obj, err := s.verifyGroup(c, nsID, &params); err != nil {
 		return err
 	} else {
-		maps.Copy(params, appParams)
 		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeGroup)
 		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
 			return err
@@ -284,14 +281,14 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("group verified: %s", nsID)
 
-	if ok, err := s.verifyGroupMembership(c, req.DeviceNamespaceID, nsID, &params); err != nil {
+	if ok, err := s.verifyGroupMembership(c, req.DeviceNamespaceID, nsID); err != nil {
 		return err
 	} else if !ok {
 		return fmt.Errorf("%w: device is not a member of the group", common.ErrStatusBadRequest)
 	}
 	log.Info().Msgf("group membership verified: %s", nsID)
 
-	certID, claims, err := processCertificateEnrollmentClaims(templateDoc, params)
+	certID, claims, err := processCertificateEnrollmentClaims(templateDoc, &params)
 	if err != nil {
 		return err
 	}

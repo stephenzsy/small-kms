@@ -50,9 +50,12 @@ func GetID(identifier WellKnownIdentifier) uuid.UUID {
 	return uuid.UUID(idMap[identifier])
 }
 
-const (
-	DefaultCertTemplateName                                 = "default"
-	DefaultCertTemplateNameServicePrincipalClientCredential = "default-service-principal-client-credential"
+type WellKnownCertTemplateName string
 
+const (
+	DefaultCertTemplateName_GlobalDefault                    WellKnownCertTemplateName = "default"
+	DefaultCertTemplateName_ServicePrincipalClientCredential WellKnownCertTemplateName = "default-service-principal-client-credential"
+)
+const (
 	NSRelNameDASPLink = "device-application-service-principal-link"
 )

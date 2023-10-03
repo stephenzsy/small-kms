@@ -35,19 +35,7 @@ func PagerToList[D any](ctx context.Context, pager *azruntime.Pager[azcosmos.Que
 	return
 }
 
-func baseDocPopulateRefWithMetadata(d *kmsdoc.BaseDoc, ref *RefWithMetadata, nsType NamespaceTypeShortName) {
-	if d == nil || ref == nil {
-		return
-	}
-	ref.ID = d.ID.GetUUID()
-	ref.NamespaceID = d.NamespaceID
-	ref.Updated = d.Updated
-	ref.UpdatedBy = d.UpdatedBy
-	ref.NamespaceType = nsType
-	ref.Deleted = d.Deleted
-}
-
-func profileDocPopulateRefWithMetadata(d graph.GraphProfileDocument, ref *RefWithMetadata, nsType NamespaceTypeShortName) {
+func baseDocPopulateRefWithMetadata(d kmsdoc.KmsDocument, ref *RefWithMetadata, nsType NamespaceTypeShortName) {
 	if d == nil || ref == nil {
 		return
 	}
@@ -58,6 +46,12 @@ func profileDocPopulateRefWithMetadata(d graph.GraphProfileDocument, ref *RefWit
 	ref.UpdatedBy = fmt.Sprintf("%s/%s", updatedById, updatedByName)
 	ref.NamespaceType = nsType
 	ref.Deleted = d.GetDeleted()
-	ref.Metadata = make(map[string]string)
-	ref.Metadata[RefPropertyKeyDisplayName] = d.GetDisplayName()
+}
+
+func profileDocPopulateRefWithMetadata(d graph.GraphProfileDocument, ref *RefWithMetadata, nsType NamespaceTypeShortName) {
+	if d == nil || ref == nil {
+		return
+	}
+	baseDocPopulateRefWithMetadata(d, ref, nsType)
+	ref.DisplayName = d.GetDisplayName()
 }

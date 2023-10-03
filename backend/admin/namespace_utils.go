@@ -67,22 +67,3 @@ func validateNamespaceType(nsType NamespaceTypeShortName, nsID uuid.UUID) (bool,
 	}
 	return false, false
 }
-
-func validateNamespaceTypeWithDirDoc(nsType NamespaceTypeShortName, doc *DirectoryObjectDoc) bool {
-	if doc == nil {
-		return false
-	}
-	switch nsType {
-	case NSTypeServicePrincipal:
-		return doc.OdataType == string(NamespaceTypeMsGraphServicePrincipal)
-	case NSTypeGroup:
-		return doc.OdataType == string(NamespaceTypeMsGraphGroup)
-	case NSTypeDevice:
-		return doc.OdataType == string(NamespaceTypeMsGraphDevice)
-	case NSTypeUser:
-		return doc.OdataType == string(NamespaceTypeMsGraphUser)
-	case NSTypeApplication:
-		return doc.OdataType == string(NamespaceTypeMsGraphApplication)
-	}
-	return false
-}

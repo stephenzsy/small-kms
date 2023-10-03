@@ -103,9 +103,7 @@ export function useCertificateTemplateFormState(
 
   React.useEffect(() => {
     if (certTemplate) {
-      state.displayName.onChange?.(
-        certTemplate.ref.metadata?.["displayName"] ?? ""
-      );
+      state.displayName.onChange?.(certTemplate.ref.displayName ?? "");
       state.issuerNamespaceId.onChange?.(certTemplate.issuer.namespaceId);
       state.issuerTemplateId.onChange(
         certTemplate.issuer.templateId ?? uuidNil
@@ -162,7 +160,7 @@ export function CertificateIssuerSelector({
     () =>
       issuers?.map((issuer) => ({
         value: issuer.id,
-        title: issuer.metadata?.["displayName"] || issuer.id,
+        title: issuer.displayName || issuer.id,
       })),
     [issuers]
   );
@@ -207,7 +205,7 @@ export function CertificateIssuerTemplateSelector({
         ?.filter((issuer) => issuer.id !== uuidNil)
         .map((issuer) => ({
           value: issuer.id,
-          title: issuer.metadata?.["displayName"] || issuer.id,
+          title: issuer.displayName || issuer.id,
         })),
     [issuers]
   );
@@ -516,7 +514,7 @@ export default function CertificateTemplatePage() {
             </Link>
           </div>
         }
-        itemTitleMetadataKey="thumbprint"
+        columns={[{ header: "Thumbprint", metadataKey: "displayName" }]}
         refActions={(ref) => (
           <Link
             to={`/admin/${ref.namespaceType}/${ref.namespaceId}/certificate-templates/${ref.id}`}

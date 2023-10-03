@@ -48,7 +48,7 @@ func (s *adminServer) ListCertificatesByTemplateV2(c *gin.Context, nsType Namesp
 	for i, doc := range docs {
 		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
 		if doc.FingerprintSHA1Hex != "" {
-			r[i].Metadata = map[string]string{RefPropertyKeyThumbprint: doc.FingerprintSHA1Hex}
+			r[i].DisplayName = doc.FingerprintSHA1Hex
 		}
 		r[i].Type = RefTypeCertificate
 	}

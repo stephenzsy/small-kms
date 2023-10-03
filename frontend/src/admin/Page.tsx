@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { WellknownId } from "../constants";
 import { AdminApi, DirectoryApi, NamespaceTypeShortName } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { RefsTable } from "./RefsTable";
+import { RefTableColumn, RefsTable, displayNameColumn } from "./RefsTable";
 
 const namespaceIds = {
   rootCa: [WellknownId.nsRootCa, WellknownId.nsTestRootCa],
@@ -64,7 +64,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_IntCA]}
@@ -77,7 +77,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_ServicePrincipal]}
@@ -90,7 +90,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_Group]}
@@ -103,7 +103,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_Device]}
@@ -116,7 +116,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_User]}
@@ -129,7 +129,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
       <RefsTable
         items={allNs?.[NamespaceTypeShortName.NSType_Application]}
@@ -142,7 +142,7 @@ export default function AdminPage() {
             View
           </Link>
         )}
-        itemTitleMetadataKey="displayName"
+        columns={[displayNameColumn] as RefTableColumn[]}
       />
     </>
   );

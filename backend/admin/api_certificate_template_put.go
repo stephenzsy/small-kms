@@ -83,11 +83,11 @@ func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, 
 			case NSTypeRootCA,
 				NSTypeIntCA,
 				NSTypeServicePrincipal:
-				return common.DefaultCertTemplateName, true
+				return string(common.DefaultCertTemplateName_GlobalDefault), true
 			}
 		case nsType == NSTypeGroup &&
-			templateID == common.GetCanonicalCertificateTemplateID(nsID, common.DefaultCertTemplateNameServicePrincipalClientCredential):
-			return common.DefaultCertTemplateNameServicePrincipalClientCredential, true
+			templateID == common.GetCanonicalCertificateTemplateID(nsID, common.DefaultCertTemplateName_ServicePrincipalClientCredential):
+			return string(common.DefaultCertTemplateName_ServicePrincipalClientCredential), true
 		}
 	}
 	return "invalid", false

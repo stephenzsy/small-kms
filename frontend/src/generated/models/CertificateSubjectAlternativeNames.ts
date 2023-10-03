@@ -24,19 +24,7 @@ export interface CertificateSubjectAlternativeNames {
      * @type {Array<string>}
      * @memberof CertificateSubjectAlternativeNames
      */
-    dnsNames?: Array<string>;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof CertificateSubjectAlternativeNames
-     */
     emails?: Array<string>;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof CertificateSubjectAlternativeNames
-     */
-    ipAddrs?: Array<string>;
     /**
      * 
      * @type {Array<string>}
@@ -64,9 +52,7 @@ export function CertificateSubjectAlternativeNamesFromJSONTyped(json: any, ignor
     }
     return {
         
-        'dnsNames': !exists(json, 'dns_names') ? undefined : json['dns_names'],
         'emails': !exists(json, 'emails') ? undefined : json['emails'],
-        'ipAddrs': !exists(json, 'ipAddrs') ? undefined : json['ipAddrs'],
         'uris': !exists(json, 'uris') ? undefined : json['uris'],
     };
 }
@@ -80,9 +66,7 @@ export function CertificateSubjectAlternativeNamesToJSON(value?: CertificateSubj
     }
     return {
         
-        'dns_names': value.dnsNames,
         'emails': value.emails,
-        'ipAddrs': value.ipAddrs,
         'uris': value.uris,
     };
 }

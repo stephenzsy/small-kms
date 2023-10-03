@@ -129,7 +129,7 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 	docCuid := doc.GetCUID()
 	certInfo.Ref.ID = docCuid.GetUUID()
 	certInfo.Ref.Type = RefTypeCertificate
-	certInfo.Ref.Metadata = map[string]string{RefPropertyKeyThumbprint: doc.FingerprintSHA1Hex}
+	certInfo.Ref.DisplayName = doc.FingerprintSHA1Hex
 
 	if include != nil {
 		if len(certPemBlob) == 0 {

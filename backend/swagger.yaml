@@ -622,15 +622,19 @@ components:
               description: Time when the object was deleted
               type: string
               format: date-time
-            metadata:
-              type: object
-              additionalProperties:
-                type: string
-              x-go-type-skip-optional-pointer: true
+            displayName:
+              description: Display name of the object
+              type: string
+            isDefault:
+              type: boolean
+            isActive:
+              type: boolean
+          x-go-type-skip-optional-pointer: true
           required:
             - namespaceType
             - updated
             - updatedBy
+            - displayName
     CertificateTemplateParameters:
       type: object
       description: Certificate fields, may accept template substitutions

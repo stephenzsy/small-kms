@@ -55,7 +55,7 @@ func (alg JwkAlg) toAzKeysSignatureAlgorithm() azkeys.SignatureAlgorithm {
 }
 
 func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	tdoc *CertificateTemplateDoc, cert *x509.Certificate, tmplData map[string]string) (*certificateSigner, error) {
+	tdoc *CertificateTemplateDoc, cert *x509.Certificate, tmplData *TemplateVarData) (*certificateSigner, error) {
 	signer := certificateSigner{}
 	if tdoc.NamespaceID == tdoc.IssuerNamespaceID {
 		// root ca will create keys in key vault
@@ -127,7 +127,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 }
 
 func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
-	nsID uuid.UUID, t *CertificateTemplateDoc, tmplData map[string]string) (*x509.Certificate, uuid.UUID, error) {
+	nsID uuid.UUID, t *CertificateTemplateDoc, tmplData *TemplateVarData) (*x509.Certificate, uuid.UUID, error) {
 	// prep certificate
 	certID, err := uuid.NewRandom()
 	if err != nil {
@@ -172,7 +172,7 @@ func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
 
 // (nsType/nsID) must be verified prior to calling this function
 func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	t *CertificateTemplateDoc, tmplData map[string]string) (*CertDoc, []byte, error) {
+	t *CertificateTemplateDoc, tmplData *TemplateVarData) (*CertDoc, []byte, error) {
 	c, certID, err := prepareUnsignedCertificateFromTemplate(nsType, nsID, t, tmplData)
 	if err != nil {
 		return nil, nil, err
