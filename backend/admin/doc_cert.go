@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -56,7 +57,7 @@ func (doc *CertDoc) IsActive() bool {
 func (s *adminServer) readCertDoc(ctx context.Context, nsID uuid.UUID, docID kmsdoc.KmsDocID) (*CertDoc, error) {
 	doc := new(CertDoc)
 	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID, docID, doc)
-	return doc, err
+	return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:cert:%s", nsID, docID))
 }
 
 func (d *CertDoc) GetCUID() kmsdoc.KmsDocID {
@@ -109,7 +110,6 @@ func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azb
 func (s *adminServer) toCertificateInfo(ctx context.Context,
 	doc *CertDoc,
 	include *IncludeCertificateParameter,
-	nsType NamespaceTypeShortName,
 	certPemBlob []byte) (*CertificateInfo, error) {
 	if doc == nil {
 		return nil, nil

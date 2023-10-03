@@ -54,7 +54,67 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateTemplate"          
+                $ref: "#/components/schemas/CertificateTemplate"
+  /v2/{namespaceId}/certificate-templates/{templateId}/certificates:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
+    get:
+      tags:
+        - admin
+      summary: List certificates issued by template
+      operationId: ListCertificatesByTemplateV2
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+          x-go-type-name: IncludeCertificateParameter
+      tags:
+        - admin
+      summary: Create certificate
+      operationId: IssueCertificateByTemplateV2
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+  /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
+      - $ref: "#/components/parameters/IncludeCertificateParameter"
+    get:
+      tags:
+        - admin
+      summary: Get certificate
+      operationId: GetLatestCertificateByTemplateV2
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+  /v2/{namespaceId}/certificate-templates/{templateId}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/TemplateIdParameter"
+    post:
+      tags:
+        - admin
+      summary: Put certificate template
+      operationId: BeginEnrollCertificateV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateEnrollmentRequest"
+        required: true
+      responses:
+        201:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateEnrollmentReceipt"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceId}/link-service-principal:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -86,83 +146,8 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         409:
           $ref: "#/components/responses/ErrorResponse"
-  /v2/namespaces/{namespaceType}:
+  /v2/{namespaceId}/certificates/{certId}:
     parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-    get:
-      tags:
-        - admin
-      summary: List namespaces by type
-      operationId: ListNamespacesByTypeV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/enroll:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/TemplateIdParameter"
-    post:
-      tags:
-        - admin
-      summary: Put certificate template
-      operationId: BeginEnrollCertificateV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateEnrollmentRequest"
-        required: true
-      responses:
-        201:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateEnrollmentReceipt"
-        400:
-          $ref: "#/components/responses/ErrorResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/TemplateIdParameter"
-    get:
-      tags:
-        - admin
-      summary: List certificates issued by template
-      operationId: ListCertificatesByTemplateV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
-    post:
-      parameters:
-        - $ref: "#/components/parameters/IncludeCertificateParameter"
-          x-go-type-name: IncludeCertificateParameter
-      tags:
-        - admin
-      summary: Create certificate
-      operationId: IssueCertificateByTemplateV2
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/latest:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/TemplateIdParameter"
-      - $ref: "#/components/parameters/IncludeCertificateParameter"
-    get:
-      tags:
-        - admin
-      summary: Get certificate
-      operationId: GetLatestCertificateByTemplateV2
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
-  /v2/{namespaceType}/{namespaceId}/certificates/{certId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertIdParameter"
       - $ref: "#/components/parameters/IncludeCertificateParameter"
@@ -174,9 +159,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
-  /v2/{namespaceType}/{namespaceId}/certificates/{certId}/pending:
+  /v2/{namespaceId}/certificates/{certId}/pending:
     parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertIdParameter"
       - $ref: "#/components/parameters/IncludeCertificateParameter"
@@ -202,7 +186,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NamespaceInfo"
+                $ref: "#/components/schemas/NamespaceInfo"          
+  /v2/namespaces/{namespaceType}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+    get:
+      tags:
+        - admin
+      summary: List namespaces by type
+      operationId: ListNamespacesByTypeV2
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
+
   # /v1/{namespaceId}/hasPermission/{permissionKey}:
   #   parameters:
   #     - in: path
@@ -287,168 +283,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NamespaceProfile"
-  # /v1/my/hasPermission/{permissionKey}:
-  #   parameters:
-  #     - in: path
-  #       description: permission key
-  #       name: permissionKey
-  #       schema:
-  #         $ref: "#/components/schemas/NamespacePermissionKey"
-  #       required: true
-  #   get:
-  #     tags:
-  #       - directory
-  #     summary: My Has permission
-  #     operationId: MyHasPermissionV1
-  #     responses:
-  #       "200":
-  #         description: Permission response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 $ref: "#/components/schemas/NamespaceRef"
-  /v1/my/profiles:
-    get:
-      tags:
-        - directory
-      summary: Get my profiles
-      operationId: GetMyProfilesV1
-      responses:
-        "200":
-          description: Get my profiles info response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NamespaceProfile"
-    post:
-      tags:
-        - directory
-      summary: Sync my profiles
-      operationId: SyncMyProfilesV1
-      responses:
-        "200":
-          description: Get my profiles info response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NamespaceProfile"
-  /v1/{namespaceId}/policies:
-    get:
-      tags:
-        - policy
-      summary: List policies
-      operationId: ListPoliciesV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-      responses:
-        "200":
-          description: List policies response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PolicyRef"
-  /v1/{namespaceId}/policies/{policyIdentifier}:
-    # put:
-    #   tags:
-    #     - policy
-    #   summary: Put Policy
-    #   operationId: PutPolicyV1
-    #   parameters:
-    #     - in: path
-    #       name: namespaceId
-    #       schema:
-    #         type: string
-    #         format: uuid
-    #       required: true
-    #     - in: path
-    #       name: policyIdentifier
-    #       schema:
-    #         type: string
-    #       required: true
-    #   requestBody:
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: "#/components/schemas/PolicyParameters"
-    #     required: true
-    #   responses:
-    #     "200":
-    #       description: Certificate policy
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/Policy"
-    #     400:
-    #       $ref: "#/components/responses/ErrorResponse"
-    get:
-      tags:
-        - policy
-      summary: Get Certificate Policy
-      operationId: GetPolicyV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: path
-          name: policyIdentifier
-          schema:
-            type: string
-          required: true
-      responses:
-        "200":
-          description: Certificate policy
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-        404:
-          $ref: "#/components/responses/ErrorResponse"
-    # delete:
-    #   tags:
-    #     - policy
-    #   summary: Delete Certificate Policy
-    #   operationId: DeletePolicyV1
-    #   parameters:
-    #     - in: path
-    #       name: namespaceId
-    #       schema:
-    #         type: string
-    #         format: uuid
-    #       required: true
-    #     - in: path
-    #       name: policyIdentifier
-    #       schema:
-    #         type: string
-    #       required: true
-    #     - in: query
-    #       name: purge
-    #       schema:
-    #         type: boolean
-    #   responses:
-    #     200:
-    #       description: Certificate policy
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/Policy"
-    #     204:
-    #       description: No content
   /v1/{namespaceId}/policies/{policyId}/apply:
     post:
       tags:

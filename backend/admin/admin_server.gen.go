@@ -17,18 +17,6 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
-	// Get my profiles
-	// (GET /v1/my/profiles)
-	GetMyProfilesV1(c *gin.Context)
-	// Sync my profiles
-	// (POST /v1/my/profiles)
-	SyncMyProfilesV1(c *gin.Context)
-	// List policies
-	// (GET /v1/{namespaceId}/policies)
-	ListPoliciesV1(c *gin.Context, namespaceId openapi_types.UUID)
-	// Get Certificate Policy
-	// (GET /v1/{namespaceId}/policies/{policyIdentifier})
-	GetPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyIdentifier string)
 	// Apply policy
 	// (POST /v1/{namespaceId}/policies/{policyId}/apply)
 	ApplyPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
@@ -50,30 +38,30 @@ type ServerInterface interface {
 	// Put certificate template
 	// (PUT /v2/{namespaceId}/certificate-templates/{templateId})
 	PutCertificateTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
+	// List certificates issued by template
+	// (GET /v2/{namespaceId}/certificate-templates/{templateId}/certificates)
+	ListCertificatesByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
+	// Create certificate
+	// (POST /v2/{namespaceId}/certificate-templates/{templateId}/certificates)
+	IssueCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params IssueCertificateByTemplateV2Params)
+	// Get certificate
+	// (GET /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest)
+	GetLatestCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params GetLatestCertificateByTemplateV2Params)
+	// Put certificate template
+	// (POST /v2/{namespaceId}/certificate-templates/{templateId}/enroll)
+	BeginEnrollCertificateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
+	// Get certificate
+	// (GET /v2/{namespaceId}/certificates/{certId})
+	GetCertificateV2(c *gin.Context, namespaceId NamespaceIdParameter, certId CertIdParameter, params GetCertificateV2Params)
+	// complete certificate enrollment
+	// (POST /v2/{namespaceId}/certificates/{certId}/pending)
+	CompleteCertificateEnrollmentV2(c *gin.Context, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params)
 	// Link device service principal
 	// (GET /v2/{namespaceId}/link-service-principal)
 	GetDeviceServicePrincipalLinkV2(c *gin.Context, namespaceId NamespaceIdParameter)
 	// Link device service principal
 	// (POST /v2/{namespaceId}/link-service-principal)
 	CreateDeviceServicePrincipalLinkV2(c *gin.Context, namespaceId NamespaceIdParameter)
-	// List certificates issued by template
-	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates)
-	ListCertificatesByTemplateV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
-	// Create certificate
-	// (POST /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates)
-	IssueCertificateByTemplateV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params IssueCertificateByTemplateV2Params)
-	// Get certificate
-	// (GET /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/latest)
-	GetLatestCertificateByTemplateV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params GetLatestCertificateByTemplateV2Params)
-	// Put certificate template
-	// (POST /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/enroll)
-	BeginEnrollCertificateV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
-	// Get certificate
-	// (GET /v2/{namespaceType}/{namespaceId}/certificates/{certId})
-	GetCertificateV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params GetCertificateV2Params)
-	// complete certificate enrollment
-	// (POST /v2/{namespaceType}/{namespaceId}/certificates/{certId}/pending)
-	CompleteCertificateEnrollmentV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -98,97 +86,6 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
-}
-
-// GetMyProfilesV1 operation middleware
-func (siw *ServerInterfaceWrapper) GetMyProfilesV1(c *gin.Context) {
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetMyProfilesV1(c)
-}
-
-// SyncMyProfilesV1 operation middleware
-func (siw *ServerInterfaceWrapper) SyncMyProfilesV1(c *gin.Context) {
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.SyncMyProfilesV1(c)
-}
-
-// ListPoliciesV1 operation middleware
-func (siw *ServerInterfaceWrapper) ListPoliciesV1(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListPoliciesV1(c, namespaceId)
-}
-
-// GetPolicyV1 operation middleware
-func (siw *ServerInterfaceWrapper) GetPolicyV1(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "policyIdentifier" -------------
-	var policyIdentifier string
-
-	err = runtime.BindStyledParameter("simple", false, "policyIdentifier", c.Param("policyIdentifier"), &policyIdentifier)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter policyIdentifier: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetPolicyV1(c, namespaceId, policyIdentifier)
 }
 
 // ApplyPolicyV1 operation middleware
@@ -411,6 +308,260 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplateV2(c *gin.Context) {
 	siw.Handler.PutCertificateTemplateV2(c, namespaceId, templateId)
 }
 
+// ListCertificatesByTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificatesByTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId TemplateIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCertificatesByTemplateV2(c, namespaceId, templateId)
+}
+
+// IssueCertificateByTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) IssueCertificateByTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId TemplateIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params IssueCertificateByTemplateV2Params
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.IssueCertificateByTemplateV2(c, namespaceId, templateId, params)
+}
+
+// GetLatestCertificateByTemplateV2 operation middleware
+func (siw *ServerInterfaceWrapper) GetLatestCertificateByTemplateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId TemplateIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetLatestCertificateByTemplateV2Params
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetLatestCertificateByTemplateV2(c, namespaceId, templateId, params)
+}
+
+// BeginEnrollCertificateV2 operation middleware
+func (siw *ServerInterfaceWrapper) BeginEnrollCertificateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId TemplateIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.BeginEnrollCertificateV2(c, namespaceId, templateId)
+}
+
+// GetCertificateV2 operation middleware
+func (siw *ServerInterfaceWrapper) GetCertificateV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "certId" -------------
+	var certId CertIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "certId", c.Param("certId"), &certId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter certId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCertificateV2Params
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCertificateV2(c, namespaceId, certId, params)
+}
+
+// CompleteCertificateEnrollmentV2 operation middleware
+func (siw *ServerInterfaceWrapper) CompleteCertificateEnrollmentV2(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "certId" -------------
+	var certId CertIdParameter
+
+	err = runtime.BindStyledParameter("simple", false, "certId", c.Param("certId"), &certId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter certId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CompleteCertificateEnrollmentV2Params
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CompleteCertificateEnrollmentV2(c, namespaceId, certId, params)
+}
+
 // GetDeviceServicePrincipalLinkV2 operation middleware
 func (siw *ServerInterfaceWrapper) GetDeviceServicePrincipalLinkV2(c *gin.Context) {
 
@@ -463,314 +614,6 @@ func (siw *ServerInterfaceWrapper) CreateDeviceServicePrincipalLinkV2(c *gin.Con
 	siw.Handler.CreateDeviceServicePrincipalLinkV2(c, namespaceId)
 }
 
-// ListCertificatesByTemplateV2 operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificatesByTemplateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListCertificatesByTemplateV2(c, namespaceType, namespaceId, templateId)
-}
-
-// IssueCertificateByTemplateV2 operation middleware
-func (siw *ServerInterfaceWrapper) IssueCertificateByTemplateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params IssueCertificateByTemplateV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.IssueCertificateByTemplateV2(c, namespaceType, namespaceId, templateId, params)
-}
-
-// GetLatestCertificateByTemplateV2 operation middleware
-func (siw *ServerInterfaceWrapper) GetLatestCertificateByTemplateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetLatestCertificateByTemplateV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetLatestCertificateByTemplateV2(c, namespaceType, namespaceId, templateId, params)
-}
-
-// BeginEnrollCertificateV2 operation middleware
-func (siw *ServerInterfaceWrapper) BeginEnrollCertificateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.BeginEnrollCertificateV2(c, namespaceType, namespaceId, templateId)
-}
-
-// GetCertificateV2 operation middleware
-func (siw *ServerInterfaceWrapper) GetCertificateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "certId" -------------
-	var certId CertIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "certId", c.Param("certId"), &certId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter certId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetCertificateV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetCertificateV2(c, namespaceType, namespaceId, certId, params)
-}
-
-// CompleteCertificateEnrollmentV2 operation middleware
-func (siw *ServerInterfaceWrapper) CompleteCertificateEnrollmentV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "certId" -------------
-	var certId CertIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "certId", c.Param("certId"), &certId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter certId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params CompleteCertificateEnrollmentV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.CompleteCertificateEnrollmentV2(c, namespaceType, namespaceId, certId, params)
-}
-
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -799,10 +642,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
-	router.GET(options.BaseURL+"/v1/my/profiles", wrapper.GetMyProfilesV1)
-	router.POST(options.BaseURL+"/v1/my/profiles", wrapper.SyncMyProfilesV1)
-	router.GET(options.BaseURL+"/v1/:namespaceId/policies", wrapper.ListPoliciesV1)
-	router.GET(options.BaseURL+"/v1/:namespaceId/policies/:policyIdentifier", wrapper.GetPolicyV1)
 	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
 	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
 	router.POST(options.BaseURL+"/v2/namespaces/:namespaceId", wrapper.SyncNamespaceInfoV2)
@@ -810,12 +649,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)
+	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates", wrapper.ListCertificatesByTemplateV2)
+	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates", wrapper.IssueCertificateByTemplateV2)
+	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
+	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
+	router.GET(options.BaseURL+"/v2/:namespaceId/certificates/:certId", wrapper.GetCertificateV2)
+	router.POST(options.BaseURL+"/v2/:namespaceId/certificates/:certId/pending", wrapper.CompleteCertificateEnrollmentV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/link-service-principal", wrapper.GetDeviceServicePrincipalLinkV2)
 	router.POST(options.BaseURL+"/v2/:namespaceId/link-service-principal", wrapper.CreateDeviceServicePrincipalLinkV2)
-	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates", wrapper.ListCertificatesByTemplateV2)
-	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates", wrapper.IssueCertificateByTemplateV2)
-	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
-	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
-	router.GET(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificates/:certId", wrapper.GetCertificateV2)
-	router.POST(options.BaseURL+"/v2/:namespaceType/:namespaceId/certificates/:certId/pending", wrapper.CompleteCertificateEnrollmentV2)
 }

@@ -155,7 +155,7 @@ func processTemplate(tmplStr string, data *TemplateVarData) string {
 func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *TemplateVarData) (certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
 	claims.SchemaVersion = 1
 	var cert *x509.Certificate
-	cert, certID, err = prepareUnsignedCertificateFromTemplate(NamespaceTypeShortName(""), uuid.Nil, template, data)
+	cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, template, data)
 	if err != nil {
 		return
 	}
@@ -309,15 +309,7 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	return &pCertDoc, nil
 }
 
-func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
-
-	switch nsType {
-	case NSTypeGroup:
-		// pass
-	default:
-		respondPublicErrorMsg(c, http.StatusBadRequest, "namespace type not supported")
-		return
-	}
+func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
 
 	rawReq := CertificateEnrollmentRequest{}
 	if err := c.Bind(&rawReq); err != nil {
@@ -349,6 +341,6 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsType NamespaceT
 	c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
 }
 
-func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params) {
+func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params) {
 	// Your code here
 }

@@ -2,7 +2,7 @@ package admin
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -56,14 +57,14 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 	return
 }
 
-func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, params IssueCertificateByTemplateV2Params) {
+func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUID, templateID uuid.UUID, params IssueCertificateByTemplateV2Params) {
 	if !authAdminOnly(c) {
 		return
 	}
 
 	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID))
 	if readCertDocErr != nil {
-		if !common.IsAzNotFound(readCertDocErr) {
+		if !errors.Is(readCertDocErr, common.ErrStatusNotFound) {
 			respondInternalError(c, readCertDocErr, "failed to load existing certificate doc")
 			return
 		}
@@ -92,49 +93,38 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 	if len(shouldApplyReason) == 0 {
 		log.Info().Msg("certificate up-to-date, no need to apply certificate template")
 	} else {
-		// verify nsType with nsID
-		var dirOdataTypeVerify string
-		switch nsType {
-		case NSTypeRootCA, NSTypeIntCA:
-			// no verify of built in CA
-			if !isAllowedCaNamespace(nsID) {
-				respondPublicErrorMsg(c, http.StatusBadRequest, "namespace type is not valid for ID: "+nsID.String())
-				return
-			}
-		case NSTypeServicePrincipal:
-			dirOdataTypeVerify = "#microsoft.graph.servicePrincipal"
-		default:
-			respondPublicErrorMsg(c, http.StatusBadRequest, "unsupported namespace type")
-			return
-		}
-		if dirOdataTypeVerify != "" {
-			if nsID.Version() != 4 {
-				respondPublicErrorMsg(c, http.StatusBadRequest, "namespace ID must be UUID v4 for #microsoft.graph.servicePrincipal")
-				return
-			}
-			dirDoc, err := s.syncDirDoc(c, nsID)
+		if !isAllowedCaNamespace(nsID) {
+			// before issue certificate, verify both profile and object exist in graph
+			gc, err := s.msGraphClient(c)
 			if err != nil {
-				if common.IsAzNotFound(err) || common.IsGraphODataErrorNotFound(err) {
-					respondPublicError(c, http.StatusNotFound, err)
-					return
-				}
-				respondInternalError(c, err, "failed to sync directory object")
+				common.RespondError(c, err)
+			}
+			dirObj, err := gc.DirectoryObjects().ByDirectoryObjectId(nsID.String()).Get(c, nil)
+			if err != nil {
+				err = common.WrapMsGraphNotFoundErr(err, "dirobj:"+nsID.String())
+
+				common.RespondError(c, err)
 				return
 			}
-			if dirDoc.OdataType != dirOdataTypeVerify {
-				respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", nsType, nsID))
+
+			// store doc
+			doc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeAny)
+			if err != nil {
+				common.RespondError(c, err)
+			}
+			if gp, ok := dirObj.(graph.GraphProfileable); ok {
+				doc = s.graphService.NewGraphProfileDoc(s.TenantID(), gp)
+			}
+			// update profile doc
+			if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
+				common.RespondError(c, err)
 				return
 			}
 		}
-
 		// create certificate
-		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsType, nsID, templateDoc, nil)
+		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsID, templateDoc, nil)
 		if err != nil {
-			if common.IsAzNotFound(err) {
-				respondPublicError(c, http.StatusNotFound, err)
-				return
-			}
-			respondInternalError(c, err, "failed to create certificate from template")
+			common.RespondError(c, err)
 			return
 		}
 		successResponseCode = http.StatusCreated
@@ -162,7 +152,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsType Namesp
 		return
 	}
 
-	certInfo, err := s.toCertificateInfo(c, certDoc, params.IncludeCertificate, nsType, createCertPemBlob)
+	certInfo, err := s.toCertificateInfo(c, certDoc, params.IncludeCertificate, createCertPemBlob)
 	if err != nil {
 		respondInternalError(c, err, "failed to convert certificate to certificate info")
 		return

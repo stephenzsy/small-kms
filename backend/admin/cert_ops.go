@@ -54,12 +54,12 @@ func (alg JwkAlg) toAzKeysSignatureAlgorithm() azkeys.SignatureAlgorithm {
 	return azkeys.SignatureAlgorithmRS384
 }
 
-func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
+func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 	tdoc *CertificateTemplateDoc, cert *x509.Certificate, tmplData *TemplateVarData) (*certificateSigner, error) {
 	signer := certificateSigner{}
 	if tdoc.NamespaceID == tdoc.IssuerNamespaceID {
 		// root ca will create keys in key vault
-		keyBundle, err := tdoc.createAzKey(ctx, s.AzKeysClient(), nsType, cert)
+		keyBundle, err := tdoc.createAzKey(ctx, s.AzKeysClient(), false, cert)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 			}
 
 			// use create certificate to create managed key in key vault
-			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsType, tmplData)
+			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsID, tmplData)
 			if err != nil {
 				return nil, err
 			}
@@ -126,7 +126,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 	return &signer, nil
 }
 
-func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
+func prepareUnsignedCertificateFromTemplate(
 	nsID uuid.UUID, t *CertificateTemplateDoc, tmplData *TemplateVarData) (*x509.Certificate, uuid.UUID, error) {
 	// prep certificate
 	certID, err := uuid.NewRandom()
@@ -146,13 +146,13 @@ func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
 	if err != nil {
 		return nil, certID, err
 	}
-	if nsType == NSTypeRootCA {
+	if isAllowedRootCaNamespace(nsID) {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
 		c.MaxPathLen = 1
 		c.MaxPathLenZero = false
 		c.BasicConstraintsValid = true
-	} else if nsType == NSTypeIntCA {
+	} else if isAllowedCaNamespace(nsID) {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
 		c.MaxPathLenZero = true
@@ -171,15 +171,15 @@ func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
 }
 
 // (nsType/nsID) must be verified prior to calling this function
-func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
+func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsID uuid.UUID,
 	t *CertificateTemplateDoc, tmplData *TemplateVarData) (*CertDoc, []byte, error) {
-	c, certID, err := prepareUnsignedCertificateFromTemplate(nsType, nsID, t, tmplData)
+	c, certID, err := prepareUnsignedCertificateFromTemplate(nsID, t, tmplData)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// prep signer
-	signer, err := s.loadCertSigner(ctx, nsType, nsID, t, c, tmplData)
+	signer, err := s.loadCertSigner(ctx, nsID, t, c, tmplData)
 	if err != nil {
 		return nil, nil, err
 	}

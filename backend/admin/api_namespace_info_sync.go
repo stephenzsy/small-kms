@@ -28,7 +28,7 @@ func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceId uuid.UUID)
 		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("directoryObject:%s", namespaceId))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// delete the doc if it exists
-			profileDoc, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
+			profileDoc, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeAny)
 			if err == nil {
 				if err = kmsdoc.AzCosmosDelete(c, s.AzCosmosContainerClient(), profileDoc); err != nil {
 					respondInternalError(c, err, fmt.Sprintf("failed to delete directory object in cosmos: %s", namespaceId))

@@ -14,7 +14,7 @@ import (
 type MsGraphOdataType string
 
 const (
-	MsGraphOdataTypeNone MsGraphOdataType = ""
+	MsGraphOdataTypeAny MsGraphOdataType = ""
 
 	MsGraphOdataTypeDevice           MsGraphOdataType = "#microsoft.graph.device"
 	MsGraphOdataTypeUser             MsGraphOdataType = "#microsoft.graph.user"

@@ -30,7 +30,7 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceId uuid.
 	}
 	if needGraphValidation {
 		// will check if directory object is already sync, sync will performed prior to issuing certificates
-		graphObj, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
+		graphObj, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeAny)
 		if err != nil {
 			common.RespondError(c, err)
 			return

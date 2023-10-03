@@ -121,12 +121,6 @@ type ApplyPolicyRequest struct {
 	ForceRenewCertificate *bool `json:"forceRenewCertificate,omitempty"`
 }
 
-// CertificateEnrollPolicyParameters defines model for CertificateEnrollPolicyParameters.
-type CertificateEnrollPolicyParameters struct {
-	AllowedUsages       []CertificateUsage `json:"allowedUsages"`
-	MaxValidityInMonths int32              `json:"maxValidityInMonths"`
-}
-
 // CertificateEnrollmentReceipt defines model for CertificateEnrollmentReceipt.
 type CertificateEnrollmentReceipt struct {
 	// Expires Time when the enrollment expires
@@ -207,34 +201,10 @@ type CertificateIssuer struct {
 	TemplateID *openapi_types.UUID `json:"templateId,omitempty"`
 }
 
-// CertificateIssuerParameters defines model for CertificateIssuerParameters.
-type CertificateIssuerParameters struct {
-	// IssuerNamespaceId ID of the issuer namespace
-	IssuerNamespaceID openapi_types.UUID `json:"issuerNamespaceId"`
-
-	// IssuerPolicyIdentifier ID of the issuer policy
-	IssuerPolicyIdentifier *string `json:"issuerPolicyIdentifier,omitempty"`
-}
-
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
-}
-
-// CertificateRequestPolicyParameters defines model for CertificateRequestPolicyParameters.
-type CertificateRequestPolicyParameters struct {
-	// IssuerNamespaceId ID of the issuer namespace
-	IssuerNamespaceID openapi_types.UUID `json:"issuerNamespaceId"`
-
-	// IssuerPolicyIdentifier ID of the issuer policy
-	IssuerPolicyIdentifier  *string                             `json:"issuerPolicyIdentifier,omitempty"`
-	KeyProperties           *KeyProperties                      `json:"keyProperties,omitempty"`
-	LifetimeTrigger         *CertificateLifetimeTrigger         `json:"lifetimeTrigger,omitempty"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -349,16 +319,6 @@ type JwkProperties struct {
 	Y *string `json:"y,omitempty"`
 }
 
-// KeyProperties defines model for KeyProperties.
-type KeyProperties struct {
-	Crv     *CurveName `json:"crv,omitempty"`
-	KeySize *KeySize   `json:"key_size,omitempty"`
-	Kty     KeyType    `json:"kty"`
-
-	// ReuseKey Keep using the same key version if exists
-	ReuseKey *bool `json:"reuse_key,omitempty"`
-}
-
 // KeyType defines model for KeyType.
 type KeyType string
 
@@ -427,50 +387,6 @@ type NamespaceType string
 
 // NamespaceTypeShortName defines model for NamespaceTypeShortName.
 type NamespaceTypeShortName string
-
-// Policy defines model for Policy.
-type Policy struct {
-	CertEnroll  *CertificateEnrollPolicyParameters  `json:"certEnroll,omitempty"`
-	CertRequest *CertificateRequestPolicyParameters `json:"certRequest,omitempty"`
-
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	PolicyType  PolicyType         `json:"policyType"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string `json:"updatedBy"`
-}
-
-// PolicyParameters defines model for PolicyParameters.
-type PolicyParameters struct {
-	CertEnroll  *CertificateEnrollPolicyParameters  `json:"certEnroll,omitempty"`
-	CertRequest *CertificateRequestPolicyParameters `json:"certRequest,omitempty"`
-	PolicyType  PolicyType                          `json:"policyType"`
-}
-
-// PolicyRef defines model for PolicyRef.
-type PolicyRef struct {
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	PolicyType  PolicyType         `json:"policyType"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string `json:"updatedBy"`
-}
 
 // PolicyState defines model for PolicyState.
 type PolicyState struct {

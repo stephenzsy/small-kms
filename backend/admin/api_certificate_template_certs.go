@@ -10,7 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
-func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateID uuid.UUID, params GetLatestCertificateByTemplateV2Params) {
+func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsID uuid.UUID, templateID uuid.UUID, params GetLatestCertificateByTemplateV2Params) {
 	if !authAdminOnly(c) {
 		return
 	}
@@ -25,7 +25,7 @@ func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsType Na
 		return
 	}
 
-	certInfo, err := s.toCertificateInfo(c, certDoc, params.IncludeCertificate, nsType, nil)
+	certInfo, err := s.toCertificateInfo(c, certDoc, params.IncludeCertificate, nil)
 	if err != nil {
 		respondInternalError(c, err, "failed to convert certificate to certificate info")
 		return
@@ -34,7 +34,7 @@ func (s *adminServer) GetLatestCertificateByTemplateV2(c *gin.Context, nsType Na
 	c.JSON(http.StatusOK, certInfo)
 }
 
-func (s *adminServer) ListCertificatesByTemplateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
+func (s *adminServer) ListCertificatesByTemplateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
 	}

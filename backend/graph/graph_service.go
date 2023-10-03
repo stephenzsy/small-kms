@@ -50,6 +50,9 @@ func (s *graphService) GetGraphProfileDoc(c ctx.Context, objectID uuid.UUID, oda
 	if err := kmsdoc.AzCosmosRead(c, s.AzCosmosContainerClient(), s.TenantID(), docID, doc); err != nil {
 		return nil, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("graphobjectprofile/%s", objectID.String()))
 	}
+	if doc.GetDeleted() != nil && !doc.GetDeleted().IsZero() {
+		return nil, fmt.Errorf("%w:graphobjectprofile/%s:deleted", common.ErrStatusNotFound, objectID)
+	}
 	return doc, nil
 }
 

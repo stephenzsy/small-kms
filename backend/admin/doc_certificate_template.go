@@ -231,7 +231,7 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate() *CertificateTemplate 
 	return o
 }
 
-func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azkeys.Client, nsType NamespaceTypeShortName, cert *x509.Certificate) (r azkeys.KeyBundle, err error) {
+func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool, cert *x509.Certificate) (r azkeys.KeyBundle, err error) {
 	params := azkeys.CreateKeyParameters{
 		KeyOps: []*azkeys.KeyOperation{to.Ptr(azkeys.KeyOperationSign), to.Ptr(azkeys.KeyOperationVerify)},
 		KeyAttributes: &azkeys.KeyAttributes{
@@ -276,13 +276,7 @@ func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azke
 		return r, fmt.Errorf("nil key name")
 	}
 
-	switch nsType {
-	case NSTypeRootCA,
-		NSTypeIntCA:
-		params.KeyAttributes.Exportable = to.Ptr(false)
-	default:
-		params.KeyAttributes.Exportable = to.Ptr(true)
-	}
+	params.KeyAttributes.Exportable = to.Ptr(keyExportable)
 
 	if kp.ReuseKey != nil && *kp.ReuseKey {
 		// try get certificate
@@ -335,20 +329,16 @@ createKey:
 }
 
 func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
-	nsType NamespaceTypeShortName, tmplData *TemplateVarData) (azcertificates.CreateCertificateResponse, error) {
+	issueToNamespaceID uuid.UUID,
+	tmplData *TemplateVarData) (azcertificates.CreateCertificateResponse, error) {
 	params := azcertificates.CreateCertificateParameters{}
 	x509Properties := azcertificates.X509CertificateProperties{
 		Subject:          ToPtr(doc.Subject.pkixName(tmplData).String()),
 		ValidityInMonths: ToPtr(int32(doc.ValidityInMonths)),
 	}
 
-	keyProperties := doc.KeyProperties.getAzCertificatesKeyProperties()
-
-	if nsType == NSTypeIntCA {
-		keyProperties.Exportable = to.Ptr(false)
-	} else {
-		keyProperties.Exportable = to.Ptr(true)
-	}
+	keyExportable := !isAllowedCaNamespace(issueToNamespaceID)
+	keyProperties := doc.KeyProperties.getAzCertificatesKeyProperties(keyExportable)
 
 	params.CertificatePolicy = &azcertificates.CertificatePolicy{
 		Attributes: &azcertificates.CertificateAttributes{
@@ -361,17 +351,15 @@ func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, clie
 		},
 	}
 
-	switch nsType {
-	case NSTypeServicePrincipal:
-		params.Tags = map[string]*string{
-			"kms-access-principal-id": to.Ptr(doc.NamespaceID.String()),
-		}
+	params.Tags = map[string]*string{
+		"kms-access-principal-id": to.Ptr(issueToNamespaceID.String()),
 	}
 
 	return client.CreateCertificate(ctx, *doc.KeyStorePath, params, nil)
 }
 
-func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties() (r azcertificates.KeyProperties) {
+func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties(keyExportable bool,
+) (r azcertificates.KeyProperties) {
 	r.KeyType = ToPtr(azcertificates.KeyTypeRSA)
 	r.KeySize = ToPtr(int32(2048))
 	r.ReuseKey = p.ReuseKey
@@ -396,6 +384,7 @@ func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties() (
 			}
 		}
 	}
+	r.Exportable = to.Ptr(keyExportable)
 	return
 }
 
