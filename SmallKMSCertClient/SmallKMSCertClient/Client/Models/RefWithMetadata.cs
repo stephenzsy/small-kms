@@ -20,8 +20,6 @@ namespace SmallKms.Client.Models {
         public bool? IsActive { get; set; }
         /// <summary>The isDefault property</summary>
         public bool? IsDefault { get; set; }
-        /// <summary>The namespaceType property</summary>
-        public NamespaceTypeShortName? NamespaceType { get; set; }
         /// <summary>Time when the object was last updated</summary>
         public DateTimeOffset? Updated { get; set; }
         /// <summary>Unique ID of the user who last updated the object</summary>
@@ -49,7 +47,6 @@ namespace SmallKms.Client.Models {
                 {"displayName", n => { DisplayName = n.GetStringValue(); } },
                 {"isActive", n => { IsActive = n.GetBoolValue(); } },
                 {"isDefault", n => { IsDefault = n.GetBoolValue(); } },
-                {"namespaceType", n => { NamespaceType = n.GetEnumValue<NamespaceTypeShortName>(); } },
                 {"updated", n => { Updated = n.GetDateTimeOffsetValue(); } },
                 {"updatedBy", n => { UpdatedBy = n.GetStringValue(); } },
             };
@@ -65,7 +62,6 @@ namespace SmallKms.Client.Models {
             writer.WriteStringValue("displayName", DisplayName);
             writer.WriteBoolValue("isActive", IsActive);
             writer.WriteBoolValue("isDefault", IsDefault);
-            writer.WriteEnumValue<NamespaceTypeShortName>("namespaceType", NamespaceType);
             writer.WriteDateTimeOffsetValue("updated", Updated);
             writer.WriteStringValue("updatedBy", UpdatedBy);
         }

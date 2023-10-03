@@ -40,10 +40,7 @@ namespace SmallKms.Client {
             var builder = new V1RequestBuilder(PathParameters);
             var nonExecCommands = new List<Command>();
             nonExecCommands.Add(builder.BuildDiagnosticsNavCommand());
-            nonExecCommands.Add(builder.BuildMyNavCommand());
-            var cmds = builder.BuildCommand();
-            nonExecCommands.AddRange(cmds.Item2);
-            foreach (var cmd in nonExecCommands.OrderBy(static c => c.Name, StringComparer.Ordinal))
+            foreach (var cmd in nonExecCommands)
             {
                 command.AddCommand(cmd);
             }

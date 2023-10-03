@@ -1,6 +1,5 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './ApplyPolicyRequest';
 export * from './CertificateEnrollPolicyParameters';
 export * from './CertificateEnrollmentReceipt';
 export * from './CertificateEnrollmentReplyFinalize';
@@ -24,7 +23,6 @@ export * from './CertificateTemplate';
 export * from './CertificateTemplateAllOf';
 export * from './CertificateTemplateParameters';
 export * from './CertificateUsage';
-export * from './CreateDeviceServicePrincipalLinkV2400Response';
 export * from './CurveName';
 export * from './IncludeCertificate';
 export * from './JwkAlg';

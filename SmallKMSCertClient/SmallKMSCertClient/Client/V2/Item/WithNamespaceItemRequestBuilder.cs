@@ -2,6 +2,8 @@
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
+using SmallKms.Client.V2.Item.CertificateTemplates;
+using SmallKms.Client.V2.Item.Certificates;
 using SmallKms.Client.V2.Item.LinkServicePrincipal;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -16,17 +18,49 @@ namespace SmallKms.Client.V2.Item {
     /// </summary>
     public class WithNamespaceItemRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// Gets an item from the SmallKms.Client.v2.item.item collection
+        /// The certificates property
         /// </summary>
-        public Tuple<List<Command>, List<Command>> BuildCommand() {
-            return new(new(0), new(0));
+        public Command BuildCertificatesNavCommand() {
+            var command = new Command("certificates");
+            command.Description = "The certificates property";
+            var builder = new CertificatesRequestBuilder(PathParameters);
+            var nonExecCommands = new List<Command>();
+            var cmds = builder.BuildCommand();
+            nonExecCommands.AddRange(cmds.Item2);
+            foreach (var cmd in nonExecCommands.OrderBy(static c => c.Name, StringComparer.Ordinal))
+            {
+                command.AddCommand(cmd);
+            }
+            return command;
+        }
+        /// <summary>
+        /// The certificateTemplates property
+        /// </summary>
+        public Command BuildCertificateTemplatesNavCommand() {
+            var command = new Command("certificate-templates");
+            command.Description = "The certificateTemplates property";
+            var builder = new CertificateTemplatesRequestBuilder(PathParameters);
+            var execCommands = new List<Command>();
+            var nonExecCommands = new List<Command>();
+            execCommands.Add(builder.BuildListCommand());
+            var cmds = builder.BuildCommand();
+            execCommands.AddRange(cmds.Item1);
+            nonExecCommands.AddRange(cmds.Item2);
+            foreach (var cmd in execCommands)
+            {
+                command.AddCommand(cmd);
+            }
+            foreach (var cmd in nonExecCommands.OrderBy(static c => c.Name, StringComparer.Ordinal))
+            {
+                command.AddCommand(cmd);
+            }
+            return command;
         }
         /// <summary>
         /// The linkServicePrincipal property
         /// </summary>
-        public Command BuildLinkServicePrincipalByIdNavCommand() {
-            var withNamespaceIndexer = new WithNamespaceItemRequestBuilder(PathParameters);
-            var command = withNamespaceIndexer.BuildLinkServicePrincipalByIdNavCommand();
+        public Command BuildLinkServicePrincipalNavCommand() {
+            var command = new Command("link-service-principal");
             command.Description = "The linkServicePrincipal property";
             var builder = new LinkServicePrincipalRequestBuilder(PathParameters);
             var execCommands = new List<Command>();

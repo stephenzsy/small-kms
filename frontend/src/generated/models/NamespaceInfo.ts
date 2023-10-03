@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceType } from './NamespaceType';
+import type { NamespaceTypeShortName } from './NamespaceTypeShortName';
 import {
-    NamespaceTypeFromJSON,
-    NamespaceTypeFromJSONTyped,
-    NamespaceTypeToJSON,
-} from './NamespaceType';
+    NamespaceTypeShortNameFromJSON,
+    NamespaceTypeShortNameFromJSONTyped,
+    NamespaceTypeShortNameToJSON,
+} from './NamespaceTypeShortName';
 import type { RefWithMetadata } from './RefWithMetadata';
 import {
     RefWithMetadataFromJSON,
@@ -40,10 +40,10 @@ export interface NamespaceInfo {
     ref: RefWithMetadata;
     /**
      * 
-     * @type {NamespaceType}
+     * @type {NamespaceTypeShortName}
      * @memberof NamespaceInfo
      */
-    objectType: NamespaceType;
+    objectType: NamespaceTypeShortName;
 }
 
 /**
@@ -68,7 +68,7 @@ export function NamespaceInfoFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'ref': RefWithMetadataFromJSON(json['ref']),
-        'objectType': NamespaceTypeFromJSON(json['objectType']),
+        'objectType': NamespaceTypeShortNameFromJSON(json['objectType']),
     };
 }
 
@@ -82,7 +82,7 @@ export function NamespaceInfoToJSON(value?: NamespaceInfo | null): any {
     return {
         
         'ref': RefWithMetadataToJSON(value.ref),
-        'objectType': NamespaceTypeToJSON(value.objectType),
+        'objectType': NamespaceTypeShortNameToJSON(value.objectType),
     };
 }
 

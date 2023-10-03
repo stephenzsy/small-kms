@@ -9,7 +9,7 @@ namespace SmallKms.Client.Models {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The objectType property</summary>
-        public NamespaceType? ObjectType { get; set; }
+        public NamespaceTypeShortName? ObjectType { get; set; }
         /// <summary>The ref property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -37,7 +37,7 @@ namespace SmallKms.Client.Models {
         /// </summary>
         public IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>> {
-                {"objectType", n => { ObjectType = n.GetEnumValue<NamespaceType>(); } },
+                {"objectType", n => { ObjectType = n.GetEnumValue<NamespaceTypeShortName>(); } },
                 {"ref", n => { Ref = n.GetObjectValue<RefWithMetadata>(RefWithMetadata.CreateFromDiscriminatorValue); } },
             };
         }
@@ -47,7 +47,7 @@ namespace SmallKms.Client.Models {
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public void Serialize(ISerializationWriter writer) {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteEnumValue<NamespaceType>("objectType", ObjectType);
+            writer.WriteEnumValue<NamespaceTypeShortName>("objectType", ObjectType);
             writer.WriteObjectValue<RefWithMetadata>("ref", Ref);
             writer.WriteAdditionalData(AdditionalData);
         }

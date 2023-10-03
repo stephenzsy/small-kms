@@ -76,17 +76,6 @@ const (
 	KeyTypeRSA KeyType = "RSA"
 )
 
-// Defines values for NamespaceType.
-const (
-	NamespaceTypeBuiltInCaInt            NamespaceType = "#builtin.ca.intermediate"
-	NamespaceTypeBuiltInCaRoot           NamespaceType = "#builtin.ca.root"
-	NamespaceTypeMsGraphApplication      NamespaceType = "#microsoft.graph.application"
-	NamespaceTypeMsGraphDevice           NamespaceType = "#microsoft.graph.device"
-	NamespaceTypeMsGraphGroup            NamespaceType = "#microsoft.graph.group"
-	NamespaceTypeMsGraphServicePrincipal NamespaceType = "#microsoft.graph.servicePrincipal"
-	NamespaceTypeMsGraphUser             NamespaceType = "#microsoft.graph.user"
-)
-
 // Defines values for NamespaceTypeShortName.
 const (
 	NSTypeAny              NamespaceTypeShortName = "any"
@@ -99,11 +88,6 @@ const (
 	NSTypeUser             NamespaceTypeShortName = "user"
 )
 
-// Defines values for PolicyType.
-const (
-	PolicyTypeCertEnroll PolicyType = "certEnroll"
-)
-
 // Defines values for RefType.
 const (
 	RefTypeCertificate              RefType = "certificate"
@@ -111,15 +95,6 @@ const (
 	RefTypeCertificateTemplate      RefType = "certificate-template"
 	RefTypeNamespace                RefType = "namespace"
 )
-
-// ApplyPolicyRequest defines model for ApplyPolicyRequest.
-type ApplyPolicyRequest struct {
-	// CheckConsistency Check consistency of the policy
-	CheckConsistency *bool `json:"checkConsistency,omitempty"`
-
-	// ForceRenewCertificate Force certificate renewal
-	ForceRenewCertificate *bool `json:"forceRenewCertificate,omitempty"`
-}
 
 // CertificateEnrollmentReceipt defines model for CertificateEnrollmentReceipt.
 type CertificateEnrollmentReceipt struct {
@@ -324,101 +299,12 @@ type KeyType string
 
 // NamespaceInfo defines model for NamespaceInfo.
 type NamespaceInfo struct {
-	ObjectType NamespaceType   `json:"objectType"`
-	Ref        RefWithMetadata `json:"ref"`
+	ObjectType NamespaceTypeShortName `json:"objectType"`
+	Ref        RefWithMetadata        `json:"ref"`
 }
-
-// NamespaceProfile defines model for NamespaceProfile.
-type NamespaceProfile struct {
-	// AppId \#microsoft.graph.application appId
-	AppID *string `json:"appId,omitempty"`
-
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// DeviceId \#microsoft.graph.device deviceId
-	DeviceID        *string            `json:"deviceId,omitempty"`
-	DeviceOwnership *string            `json:"deviceOwnership,omitempty"`
-	DisplayName     string             `json:"displayName"`
-	ID              openapi_types.UUID `json:"id"`
-
-	// IsCompliant \#microsoft.graph.device isCompliant
-	IsCompliant *bool `json:"isCompliant,omitempty"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	ObjectType  NamespaceType      `json:"objectType"`
-
-	// OperatingSystem \#microsoft.graph.device operatingSystem
-	OperatingSystem *string `json:"operatingSystem,omitempty"`
-
-	// OperatingSystemVersion \#microsoft.graph.device operatingSystemVersion
-	OperatingSystemVersion *string `json:"operatingSystemVersion,omitempty"`
-	ServicePrincipalType   *string `json:"servicePrincipalType,omitempty"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy         string  `json:"updatedBy"`
-	UserPrincipalName *string `json:"userPrincipalName,omitempty"`
-}
-
-// NamespaceRef defines model for NamespaceRef.
-type NamespaceRef struct {
-	// Deleted Time when the policy was deleted
-	Deleted     *time.Time         `json:"deleted,omitempty"`
-	DisplayName string             `json:"displayName"`
-	ID          openapi_types.UUID `json:"id"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	ObjectType  NamespaceType      `json:"objectType"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string `json:"updatedBy"`
-}
-
-// NamespaceType defines model for NamespaceType.
-type NamespaceType string
 
 // NamespaceTypeShortName defines model for NamespaceTypeShortName.
 type NamespaceTypeShortName string
-
-// PolicyState defines model for PolicyState.
-type PolicyState struct {
-	CertRequest *PolicyStateCertRequest `json:"certRequest,omitempty"`
-
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-	Message string             `json:"message"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-	PolicyType  PolicyType         `json:"policyType"`
-	Status      *string            `json:"status,omitempty"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string `json:"updatedBy"`
-}
-
-// PolicyStateCertRequest defines model for PolicyStateCertRequest.
-type PolicyStateCertRequest struct {
-	LastAction      string             `json:"lastAction"`
-	LastCertExpires time.Time          `json:"lastCertExpires"`
-	LastCertID      openapi_types.UUID `json:"lastCertId"`
-	LastCertIssued  time.Time          `json:"lastCertIssued"`
-}
-
-// PolicyType defines model for PolicyType.
-type PolicyType string
 
 // Ref defines model for Ref.
 type Ref struct {
@@ -468,22 +354,6 @@ type RequestHeaderEntry struct {
 	Value []string `json:"value"`
 }
 
-// ResourceRef defines model for ResourceRef.
-type ResourceRef struct {
-	// Deleted Time when the policy was deleted
-	Deleted *time.Time         `json:"deleted,omitempty"`
-	ID      openapi_types.UUID `json:"id"`
-
-	// NamespaceId Unique ID of the namespace
-	NamespaceID openapi_types.UUID `json:"namespaceId"`
-
-	// Updated Time when the policy was last updated
-	Updated time.Time `json:"updated"`
-
-	// UpdatedBy Unique ID of the user who created the policy
-	UpdatedBy string `json:"updatedBy"`
-}
-
 // ServicePrincipalLinkedDevice defines model for ServicePrincipalLinkedDevice.
 type ServicePrincipalLinkedDevice struct {
 	ApplicationClientID openapi_types.UUID `json:"applicationClientId"`
@@ -523,6 +393,11 @@ type ErrorResponse map[string]interface{}
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
 
+// ListNamespacesByTypeV2Params defines parameters for ListNamespacesByTypeV2.
+type ListNamespacesByTypeV2Params struct {
+	NamespaceType NamespaceTypeParameter `form:"namespaceType" json:"namespaceType"`
+}
+
 // ListCertificateTemplatesV2Params defines parameters for ListCertificateTemplatesV2.
 type ListCertificateTemplatesV2Params struct {
 	IncludeDefaultForType *NamespaceTypeShortName `form:"includeDefaultForType,omitempty" json:"includeDefaultForType,omitempty"`
@@ -547,9 +422,6 @@ type GetCertificateV2Params struct {
 type CompleteCertificateEnrollmentV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
-
-// ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
-type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
 
 // PutCertificateTemplateV2JSONRequestBody defines body for PutCertificateTemplateV2 for application/json ContentType.
 type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters

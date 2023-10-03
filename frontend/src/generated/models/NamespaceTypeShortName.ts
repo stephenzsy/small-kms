@@ -18,7 +18,7 @@
  * @export
  */
 export const NamespaceTypeShortName = {
-    NSType_Unknown: 'unknown',
+    NSType_Any: 'any',
     NSType_RootCA: 'root-ca',
     NSType_IntCA: 'intermediate-ca',
     NSType_ServicePrincipal: 'service-principal',

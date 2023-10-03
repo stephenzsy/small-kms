@@ -22,7 +22,9 @@ namespace SmallKms.Client.V2 {
         public Tuple<List<Command>, List<Command>> BuildCommand() {
             var commands = new List<Command>();
             var builder = new WithNamespaceItemRequestBuilder(PathParameters);
-            commands.Add(builder.BuildLinkServicePrincipalByIdNavCommand());
+            commands.Add(builder.BuildCertificatesNavCommand());
+            commands.Add(builder.BuildCertificateTemplatesNavCommand());
+            commands.Add(builder.BuildLinkServicePrincipalNavCommand());
             return new(new(0), commands);
         }
         /// <summary>
@@ -32,9 +34,16 @@ namespace SmallKms.Client.V2 {
             var command = new Command("namespaces");
             command.Description = "The namespaces property";
             var builder = new NamespacesRequestBuilder(PathParameters);
+            var execCommands = new List<Command>();
             var nonExecCommands = new List<Command>();
+            execCommands.Add(builder.BuildListCommand());
             var cmds = builder.BuildCommand();
+            execCommands.AddRange(cmds.Item1);
             nonExecCommands.AddRange(cmds.Item2);
+            foreach (var cmd in execCommands)
+            {
+                command.AddCommand(cmd);
+            }
             foreach (var cmd in nonExecCommands.OrderBy(static c => c.Name, StringComparer.Ordinal))
             {
                 command.AddCommand(cmd);

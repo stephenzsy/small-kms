@@ -23,6 +23,7 @@ import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefsTable } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
+import { NamespaceContext } from "./NamespaceContext";
 
 export interface CertificateTemplateFormState {
   displayName: ValueStateMayBeFixed<string>;
@@ -45,7 +46,7 @@ export interface CertificateTemplateFormState {
 
 export function useCertificateTemplateFormState(
   certTemplate: CertificateTemplate | undefined,
-  nsType: NamespaceTypeShortName,
+  nsType: NamespaceTypeShortName | undefined,
   nsId: string,
   templateId: string
 ): CertificateTemplateFormState {
@@ -179,24 +180,21 @@ export function CertificateIssuerTemplateSelector({
   value,
   onChange,
   adminApi,
-  issuerNsType,
   issuerNsId,
 }: {
   adminApi: AdminApi;
   value: string;
   onChange: (value: string) => void;
-  issuerNsType: NamespaceTypeShortName;
   issuerNsId: string;
 }) {
   const { data: issuers } = useRequest(
     () => {
       return adminApi.listCertificateTemplatesV2({
-        namespaceType: issuerNsType,
         namespaceId: issuerNsId,
       });
     },
     {
-      refreshDeps: [issuerNsType, issuerNsId],
+      refreshDeps: [issuerNsId],
     }
   );
   const items = useMemo(
@@ -331,9 +329,6 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
           )}
           {props.issuerNamespaceId.value && (
             <CertificateIssuerTemplateSelector
-              issuerNsType={
-                nsType === "intermediate-ca" ? "root-ca" : "intermediate-ca"
-              }
               issuerNsId={props.issuerNamespaceId.value}
               adminApi={adminApi}
               value={props.issuerTemplateId.value}
@@ -409,11 +404,13 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
 }
 
 export default function CertificateTemplatePage() {
-  const { nsType, namespaceId, templateId } = useParams() as {
-    nsType: NamespaceTypeShortName;
+  const { namespaceId, templateId } = useParams() as {
     namespaceId: string;
     templateId: string;
   };
+
+  const { nsInfo } = React.useContext(NamespaceContext);
+  const nsType = nsInfo?.objectType;
 
   const adminApi = useAuthedClient(AdminApi);
   const { data, loading, run } = useRequest(
@@ -421,7 +418,6 @@ export default function CertificateTemplatePage() {
       if (!p) {
         try {
           return await adminApi.getCertificateTemplateV2({
-            namespaceType: nsType,
             namespaceId,
             templateId,
           });
@@ -433,15 +429,15 @@ export default function CertificateTemplatePage() {
         }
       } else {
         return await adminApi.putCertificateTemplateV2({
-          namespaceType: nsType,
           namespaceId,
           templateId,
           certificateTemplateParameters: p,
         });
       }
     },
-    { refreshDeps: [nsType, namespaceId, templateId] }
+    { refreshDeps: [namespaceId, templateId] }
   );
+
   const state = useCertificateTemplateFormState(
     data,
     nsType,
@@ -489,17 +485,16 @@ export default function CertificateTemplatePage() {
     () => {
       return adminApi.listCertificatesByTemplateV2({
         namespaceId,
-        namespaceType: nsType,
         templateId: templateId,
       });
     },
-    { refreshDeps: [nsType, namespaceId, templateId] }
+    { refreshDeps: [namespaceId, templateId] }
   );
 
   return (
     <>
       <h1>
-        {nsType}/{namespaceId}/certificate-templates/{templateId}
+        {namespaceId}/certificate-templates/{templateId}
       </h1>
       <RefsTable
         items={issuedCertificates}
@@ -507,7 +502,7 @@ export default function CertificateTemplatePage() {
         tableActions={
           <div>
             <Link
-              to={`/admin/${nsType}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
+              to={`/admin/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
               className="text-indigo-600 hover:text-indigo-900"
             >
               View latest certificate
@@ -517,7 +512,7 @@ export default function CertificateTemplatePage() {
         columns={[{ header: "Thumbprint", metadataKey: "displayName" }]}
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.namespaceType}/${ref.namespaceId}/certificate-templates/${ref.id}`}
+            to={`/admin/${ref.namespaceId}/certificate-templates/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -540,7 +535,7 @@ export default function CertificateTemplatePage() {
       >
         <CertificateTemplatesForm
           templateId={templateId}
-          nsType={nsType}
+          nsType={"root-ca"}
           adminApi={adminApi}
           {...state}
         />

@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceTypeShortName } from './NamespaceTypeShortName';
-import {
-    NamespaceTypeShortNameFromJSON,
-    NamespaceTypeShortNameFromJSONTyped,
-    NamespaceTypeShortNameToJSON,
-} from './NamespaceTypeShortName';
 import type { RefType } from './RefType';
 import {
     RefTypeFromJSON,
@@ -50,12 +44,6 @@ export interface RefWithMetadata {
      * @memberof RefWithMetadata
      */
     id: string;
-    /**
-     * 
-     * @type {NamespaceTypeShortName}
-     * @memberof RefWithMetadata
-     */
-    namespaceType: NamespaceTypeShortName;
     /**
      * Unique ID of the user who last updated the object
      * @type {string}
@@ -102,7 +90,6 @@ export function instanceOfRefWithMetadata(value: object): boolean {
     isInstance = isInstance && "namespaceId" in value;
     isInstance = isInstance && "type" in value;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "namespaceType" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "displayName" in value;
@@ -123,7 +110,6 @@ export function RefWithMetadataFromJSONTyped(json: any, ignoreDiscriminator: boo
         'namespaceId': json['namespaceId'],
         'type': RefTypeFromJSON(json['type']),
         'id': json['id'],
-        'namespaceType': NamespaceTypeShortNameFromJSON(json['namespaceType']),
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
@@ -145,7 +131,6 @@ export function RefWithMetadataToJSON(value?: RefWithMetadata | null): any {
         'namespaceId': value.namespaceId,
         'type': RefTypeToJSON(value.type),
         'id': value.id,
-        'namespaceType': NamespaceTypeShortNameToJSON(value.namespaceType),
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),

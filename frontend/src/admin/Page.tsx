@@ -1,7 +1,7 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
 import { WellknownId } from "../constants";
-import { AdminApi, DirectoryApi, NamespaceTypeShortName } from "../generated";
+import { AdminApi, NamespaceTypeShortName } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { RefTableColumn, RefsTable, displayNameColumn } from "./RefsTable";
 
@@ -11,7 +11,6 @@ const namespaceIds = {
 };
 
 export default function AdminPage() {
-  const client = useAuthedClient(DirectoryApi);
   const adminApi = useAuthedClient(AdminApi);
   const { data: allNs } = useRequest(
     async () => {
@@ -58,7 +57,7 @@ export default function AdminPage() {
         title="Root Certificate Authorities"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_RootCA}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -71,7 +70,7 @@ export default function AdminPage() {
         title="Intermediate Certificate Authorities"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_IntCA}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -84,7 +83,7 @@ export default function AdminPage() {
         title="Service Principals"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_ServicePrincipal}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -97,7 +96,7 @@ export default function AdminPage() {
         title="Groups"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_Group}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -110,7 +109,7 @@ export default function AdminPage() {
         title="Devices"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_Device}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -123,7 +122,7 @@ export default function AdminPage() {
         title="Users"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_User}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -136,7 +135,7 @@ export default function AdminPage() {
         title="Applications"
         refActions={(ref) => (
           <Link
-            to={`/admin/${NamespaceTypeShortName.NSType_Application}/${ref.id}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View

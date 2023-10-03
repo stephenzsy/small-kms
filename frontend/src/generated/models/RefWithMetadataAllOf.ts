@@ -13,25 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceTypeShortName } from './NamespaceTypeShortName';
-import {
-    NamespaceTypeShortNameFromJSON,
-    NamespaceTypeShortNameFromJSONTyped,
-    NamespaceTypeShortNameToJSON,
-} from './NamespaceTypeShortName';
-
 /**
  * 
  * @export
  * @interface RefWithMetadataAllOf
  */
 export interface RefWithMetadataAllOf {
-    /**
-     * 
-     * @type {NamespaceTypeShortName}
-     * @memberof RefWithMetadataAllOf
-     */
-    namespaceType: NamespaceTypeShortName;
     /**
      * Unique ID of the user who last updated the object
      * @type {string}
@@ -75,7 +62,6 @@ export interface RefWithMetadataAllOf {
  */
 export function instanceOfRefWithMetadataAllOf(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceType" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "displayName" in value;
@@ -93,7 +79,6 @@ export function RefWithMetadataAllOfFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'namespaceType': NamespaceTypeShortNameFromJSON(json['namespaceType']),
         'updatedBy': json['updatedBy'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
@@ -112,7 +97,6 @@ export function RefWithMetadataAllOfToJSON(value?: RefWithMetadataAllOf | null):
     }
     return {
         
-        'namespaceType': NamespaceTypeShortNameToJSON(value.namespaceType),
         'updatedBy': value.updatedBy,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),

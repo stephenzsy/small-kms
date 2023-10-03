@@ -97,7 +97,7 @@ paths:
       - $ref: "#/components/parameters/TemplateIdParameter"
     post:
       tags:
-        - admin
+        - enroll
       summary: Put certificate template
       operationId: BeginEnrollCertificateV2
       requestBody:
@@ -172,9 +172,32 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
+  /v2/namespaces:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+    get:
+      tags:
+        - admin
+      summary: List namespaces by type
+      operationId: ListNamespacesByTypeV2
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
   /v2/namespaces/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: Get namespace info with ms graph
+      operationId: GetNamespaceInfoV2
+      responses:
+        "200":
+          description: get namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamespaceInfo"
     post:
       tags:
         - admin
@@ -186,135 +209,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NamespaceInfo"          
-  /v2/namespaces/{namespaceType}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-    get:
-      tags:
-        - admin
-      summary: List namespaces by type
-      operationId: ListNamespacesByTypeV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
-
-  # /v1/{namespaceId}/hasPermission/{permissionKey}:
-  #   parameters:
-  #     - in: path
-  #       description: AAD directory object ID
-  #       name: namespaceId
-  #       schema:
-  #         type: string
-  #         format: uuid
-  #       required: true
-  #     - in: path
-  #       description: AAD directory object ID
-  #       name: permissionKey
-  #       schema:
-  #         $ref: "#/components/schemas/NamespacePermissionKey"
-  #       required: true
-  #   get:
-  #     tags:
-  #       - directory
-  #     summary: Has permission
-  #     operationId: HasPermissionV1
-  #     responses:
-  #       "200":
-  #         description: Permission response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 $ref: "#/components/schemas/NamespaceRef"
-  # /v1/{namespaceId}/permissions/{objectId}:
-  #   parameters:
-  #     - in: path
-  #       description: AAD directory object ID
-  #       name: namespaceId
-  #       schema:
-  #         type: string
-  #         format: uuid
-  #       required: true
-  #     - in: path
-  #       description: AAD directory object ID
-  #       name: objectId
-  #       schema:
-  #         type: string
-  #         format: uuid
-  #       required: true
-  #   put:
-  #     tags:
-  #       - directory
-  #     summary: Put permissions
-  #     operationId: PutPermissionsV1
-  #     requestBody:
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: "#/components/schemas/NamespacePermissions"
-  #       required: true
-  #     responses:
-  #       "200":
-  #         description: Permission response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/NamespacePermissions"
-  /v1/{namespaceId}/profile:
-    parameters:
-      - in: path
-        description: AAD directory object ID
-        name: namespaceId
-        schema:
-          type: string
-          format: uuid
-        required: true
-    get:
-      tags:
-        - directory
-      summary: Get namespace profile
-      operationId: GetNamespaceProfileV1
-      responses:
-        "200":
-          description: Get namespace resposne profile
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NamespaceProfile"
-  /v1/{namespaceId}/policies/{policyId}/apply:
-    post:
-      tags:
-        - policy
-      summary: Apply policy
-      operationId: ApplyPolicyV1
-      parameters:
-        - in: path
-          name: namespaceId
-          schema:
-            type: string
-            format: uuid
-          required: true
-        - in: path
-          name: policyId
-          schema:
-            type: string
-            format: uuid
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ApplyPolicyRequest"
-        required: false
-      responses:
-        "200":
-          description: Create certificate
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PolicyState"
+                $ref: "#/components/schemas/NamespaceInfo"
   /v1/diagnostics:
     get:
       tags:
@@ -344,7 +239,7 @@ components:
         format: uuid
       required: true
     NamespaceTypeParameter:
-      in: path
+      in: query
       name: namespaceType
       schema:
         $ref: "#/components/schemas/NamespaceTypeShortName"
@@ -642,7 +537,7 @@ components:
         ref:
           $ref: "#/components/schemas/RefWithMetadata"
         objectType:
-          $ref: "#/components/schemas/NamespaceType"
+          $ref: "#/components/schemas/NamespaceTypeShortName"
       required:
         - ref
         - objectType
@@ -683,15 +578,6 @@ components:
         - applicationOid
         - servicePrincipalId
         - status
-    ApplyPolicyRequest:
-      type: object
-      properties:
-        checkConsistency:
-          description: Check consistency of the policy
-          type: boolean
-        forceRenewCertificate:
-          description: Force certificate renewal
-          type: boolean
     CertificateSubject:
       type: object
       properties:

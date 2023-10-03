@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { JwkProperties } from './JwkProperties';
+import {
+    JwkPropertiesFromJSON,
+    JwkPropertiesFromJSONTyped,
+    JwkPropertiesToJSON,
+} from './JwkProperties';
 import type { RefWithMetadata } from './RefWithMetadata';
 import {
     RefWithMetadataFromJSON,
@@ -33,17 +39,41 @@ export interface CertificateEnrollmentReceipt {
      */
     ref: RefWithMetadata;
     /**
+     * Time when the enrollment expires
+     * @type {Date}
+     * @memberof CertificateEnrollmentReceipt
+     */
+    expires: Date;
+    /**
      * payload section of the certificate claims, in JWT format, base64url encoded
      * @type {string}
      * @memberof CertificateEnrollmentReceipt
      */
-    jwtPayload?: string;
+    jwtClaims: string;
+    /**
+     * Unique ID of the namespace of the certificate template
+     * @type {string}
+     * @memberof CertificateEnrollmentReceipt
+     */
+    templateNamespaceId: string;
     /**
      * Consistent derived ID (UUID v5) of the certificate template
      * @type {string}
      * @memberof CertificateEnrollmentReceipt
      */
-    templateId?: string;
+    templateId: string;
+    /**
+     * Unique ID of the user who requested the certificate
+     * @type {string}
+     * @memberof CertificateEnrollmentReceipt
+     */
+    requesterId: string;
+    /**
+     * 
+     * @type {JwkProperties}
+     * @memberof CertificateEnrollmentReceipt
+     */
+    keyProperties: JwkProperties;
 }
 
 /**
@@ -52,6 +82,12 @@ export interface CertificateEnrollmentReceipt {
 export function instanceOfCertificateEnrollmentReceipt(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "ref" in value;
+    isInstance = isInstance && "expires" in value;
+    isInstance = isInstance && "jwtClaims" in value;
+    isInstance = isInstance && "templateNamespaceId" in value;
+    isInstance = isInstance && "templateId" in value;
+    isInstance = isInstance && "requesterId" in value;
+    isInstance = isInstance && "keyProperties" in value;
 
     return isInstance;
 }
@@ -67,8 +103,12 @@ export function CertificateEnrollmentReceiptFromJSONTyped(json: any, ignoreDiscr
     return {
         
         'ref': RefWithMetadataFromJSON(json['ref']),
-        'jwtPayload': !exists(json, 'jwtPayload') ? undefined : json['jwtPayload'],
-        'templateId': !exists(json, 'templateId') ? undefined : json['templateId'],
+        'expires': (new Date(json['expires'])),
+        'jwtClaims': json['jwtClaims'],
+        'templateNamespaceId': json['templateNamespaceId'],
+        'templateId': json['templateId'],
+        'requesterId': json['requesterId'],
+        'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
     };
 }
 
@@ -82,8 +122,12 @@ export function CertificateEnrollmentReceiptToJSON(value?: CertificateEnrollment
     return {
         
         'ref': RefWithMetadataToJSON(value.ref),
-        'jwtPayload': value.jwtPayload,
+        'expires': (value.expires.toISOString()),
+        'jwtClaims': value.jwtClaims,
+        'templateNamespaceId': value.templateNamespaceId,
         'templateId': value.templateId,
+        'requesterId': value.requesterId,
+        'keyProperties': JwkPropertiesToJSON(value.keyProperties),
     };
 }
 

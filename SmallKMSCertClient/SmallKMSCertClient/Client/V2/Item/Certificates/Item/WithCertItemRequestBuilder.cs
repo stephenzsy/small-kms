@@ -5,7 +5,7 @@ using Microsoft.Kiota.Cli.Commons.Extensions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
 using SmallKms.Client.Models;
-using SmallKms.Client.V2.Namespaces.Item;
+using SmallKms.Client.V2.Item.Certificates.Item.Pending;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -14,31 +14,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-namespace SmallKms.Client.V2.Namespaces {
+namespace SmallKms.Client.V2.Item.Certificates.Item {
     /// <summary>
-    /// Builds and executes requests for operations under \v2\namespaces
+    /// Builds and executes requests for operations under \v2\{namespaceId}\certificates\{certId}
     /// </summary>
-    public class NamespacesRequestBuilder : BaseCliRequestBuilder {
+    public class WithCertItemRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// Gets an item from the SmallKms.Client.v2.namespaces.item collection
+        /// Get certificate
         /// </summary>
-        public Tuple<List<Command>, List<Command>> BuildCommand() {
-            var executables = new List<Command>();
-            var builder = new WithNamespaceItemRequestBuilder(PathParameters);
-            executables.Add(builder.BuildGetCommand());
-            executables.Add(builder.BuildPostCommand());
-            return new(executables, new(0));
-        }
-        /// <summary>
-        /// List namespaces by type
-        /// </summary>
-        public Command BuildListCommand() {
-            var command = new Command("list");
-            command.Description = "List namespaces by type";
-            var namespaceTypeOption = new Option<string>("--namespace-type") {
+        public Command BuildGetCommand() {
+            var command = new Command("get");
+            command.Description = "Get certificate";
+            var namespaceIdOption = new Option<string>("--namespace-id") {
             };
-            namespaceTypeOption.IsRequired = true;
-            command.AddOption(namespaceTypeOption);
+            namespaceIdOption.IsRequired = true;
+            command.AddOption(namespaceIdOption);
+            var certIdOption = new Option<string>("--cert-id") {
+            };
+            certIdOption.IsRequired = true;
+            command.AddOption(certIdOption);
+            var includeCertificateOption = new Option<string>("--include-certificate") {
+            };
+            includeCertificateOption.IsRequired = false;
+            command.AddOption(includeCertificateOption);
             var outputOption = new Option<FormatterType>("--output", () => FormatterType.JSON){
                 IsRequired = true
             };
@@ -53,7 +51,9 @@ namespace SmallKms.Client.V2.Namespaces {
             }, description: "Disable indentation for the JSON output formatter.");
             command.AddOption(jsonNoIndentOption);
             command.SetHandler(async (invocationContext) => {
-                var namespaceType = invocationContext.ParseResult.GetValueForOption(namespaceTypeOption);
+                var namespaceId = invocationContext.ParseResult.GetValueForOption(namespaceIdOption);
+                var certId = invocationContext.ParseResult.GetValueForOption(certIdOption);
+                var includeCertificate = invocationContext.ParseResult.GetValueForOption(includeCertificateOption);
                 var output = invocationContext.ParseResult.GetValueForOption(outputOption);
                 var query = invocationContext.ParseResult.GetValueForOption(queryOption);
                 var jsonNoIndent = invocationContext.ParseResult.GetValueForOption(jsonNoIndentOption);
@@ -62,8 +62,10 @@ namespace SmallKms.Client.V2.Namespaces {
                 var cancellationToken = invocationContext.GetCancellationToken();
                 var reqAdapter = invocationContext.GetRequestAdapter();
                 var requestInfo = ToGetRequestInformation(q => {
-                    if (!string.IsNullOrEmpty(namespaceType)) q.QueryParameters.NamespaceType = namespaceType;
+                    if (!string.IsNullOrEmpty(includeCertificate)) q.QueryParameters.IncludeCertificate = includeCertificate;
                 });
+                if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
+                if (certId is not null) requestInfo.PathParameters.Add("certId", certId);
                 var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
@@ -73,27 +75,42 @@ namespace SmallKms.Client.V2.Namespaces {
             return command;
         }
         /// <summary>
-        /// Instantiates a new NamespacesRequestBuilder and sets the default values.
+        /// The pending property
+        /// </summary>
+        public Command BuildPendingNavCommand() {
+            var command = new Command("pending");
+            command.Description = "The pending property";
+            var builder = new PendingRequestBuilder(PathParameters);
+            var execCommands = new List<Command>();
+            execCommands.Add(builder.BuildPostCommand());
+            foreach (var cmd in execCommands)
+            {
+                command.AddCommand(cmd);
+            }
+            return command;
+        }
+        /// <summary>
+        /// Instantiates a new WithCertItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
-        public NamespacesRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/namespaces{?namespaceType*}", pathParameters) {
+        public WithCertItemRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceId}/certificates/{certId}{?includeCertificate*}", pathParameters) {
         }
         /// <summary>
-        /// Instantiates a new NamespacesRequestBuilder and sets the default values.
+        /// Instantiates a new WithCertItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public NamespacesRequestBuilder(string rawUrl) : base("{+baseurl}/v2/namespaces{?namespaceType*}", rawUrl) {
+        public WithCertItemRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceId}/certificates/{certId}{?includeCertificate*}", rawUrl) {
         }
         /// <summary>
-        /// List namespaces by type
+        /// Get certificate
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>>? requestConfiguration = default) {
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<WithCertItemRequestBuilderGetQueryParameters>>? requestConfiguration = default) {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>> requestConfiguration = default) {
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<WithCertItemRequestBuilderGetQueryParameters>> requestConfiguration = default) {
 #endif
             var requestInfo = new RequestInformation {
                 HttpMethod = Method.GET,
@@ -102,7 +119,7 @@ namespace SmallKms.Client.V2.Namespaces {
             };
             requestInfo.Headers.Add("Accept", "application/json");
             if (requestConfiguration != null) {
-                var requestConfig = new RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>();
+                var requestConfig = new RequestConfiguration<WithCertItemRequestBuilderGetQueryParameters>();
                 requestConfiguration.Invoke(requestConfig);
                 requestInfo.AddQueryParameters(requestConfig.QueryParameters);
                 requestInfo.AddRequestOptions(requestConfig.Options);
@@ -111,15 +128,15 @@ namespace SmallKms.Client.V2.Namespaces {
             return requestInfo;
         }
         /// <summary>
-        /// List namespaces by type
+        /// Get certificate
         /// </summary>
-        public class NamespacesRequestBuilderGetQueryParameters {
+        public class WithCertItemRequestBuilderGetQueryParameters {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-            public string? NamespaceType { get; set; }
+            public string? IncludeCertificate { get; set; }
 #nullable restore
 #else
-            public string NamespaceType { get; set; }
+            public string IncludeCertificate { get; set; }
 #endif
         }
     }

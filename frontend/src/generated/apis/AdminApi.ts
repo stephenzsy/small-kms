@@ -15,12 +15,9 @@
 
 import * as runtime from '../runtime';
 import type {
-  CertificateEnrollmentReceipt,
-  CertificateEnrollmentRequest,
   CertificateInfo,
   CertificateTemplate,
   CertificateTemplateParameters,
-  CreateDeviceServicePrincipalLinkV2400Response,
   IncludeCertificate,
   NamespaceInfo,
   NamespaceTypeShortName,
@@ -28,18 +25,12 @@ import type {
   ServicePrincipalLinkedDevice,
 } from '../models';
 import {
-    CertificateEnrollmentReceiptFromJSON,
-    CertificateEnrollmentReceiptToJSON,
-    CertificateEnrollmentRequestFromJSON,
-    CertificateEnrollmentRequestToJSON,
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
     CertificateTemplateFromJSON,
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
     CertificateTemplateParametersToJSON,
-    CreateDeviceServicePrincipalLinkV2400ResponseFromJSON,
-    CreateDeviceServicePrincipalLinkV2400ResponseToJSON,
     IncludeCertificateFromJSON,
     IncludeCertificateToJSON,
     NamespaceInfoFromJSON,
@@ -52,14 +43,7 @@ import {
     ServicePrincipalLinkedDeviceToJSON,
 } from '../models';
 
-export interface BeginEnrollCertificateV2Request {
-    namespaceId: string;
-    templateId: string;
-    certificateEnrollmentRequest: CertificateEnrollmentRequest;
-}
-
 export interface CompleteCertificateEnrollmentV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     certId: string;
     includeCertificate?: IncludeCertificate;
@@ -70,13 +54,11 @@ export interface CreateDeviceServicePrincipalLinkV2Request {
 }
 
 export interface GetCertificateTemplateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
 }
 
 export interface GetCertificateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     certId: string;
     includeCertificate?: IncludeCertificate;
@@ -87,26 +69,27 @@ export interface GetDeviceServicePrincipalLinkV2Request {
 }
 
 export interface GetLatestCertificateByTemplateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
     includeCertificate?: IncludeCertificate;
 }
 
+export interface GetNamespaceInfoV2Request {
+    namespaceId: string;
+}
+
 export interface IssueCertificateByTemplateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
     includeCertificate?: IncludeCertificate;
 }
 
 export interface ListCertificateTemplatesV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
+    includeDefaultForType?: NamespaceTypeShortName;
 }
 
 export interface ListCertificatesByTemplateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
 }
@@ -116,7 +99,6 @@ export interface ListNamespacesByTypeV2Request {
 }
 
 export interface PutCertificateTemplateV2Request {
-    namespaceType: NamespaceTypeShortName;
     namespaceId: string;
     templateId: string;
     certificateTemplateParameters: CertificateTemplateParameters;
@@ -132,62 +114,9 @@ export interface SyncNamespaceInfoV2Request {
 export class AdminApi extends runtime.BaseAPI {
 
     /**
-     * Put certificate template
-     */
-    async beginEnrollCertificateV2Raw(requestParameters: BeginEnrollCertificateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateEnrollmentReceipt>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling beginEnrollCertificateV2.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling beginEnrollCertificateV2.');
-        }
-
-        if (requestParameters.certificateEnrollmentRequest === null || requestParameters.certificateEnrollmentRequest === undefined) {
-            throw new runtime.RequiredError('certificateEnrollmentRequest','Required parameter requestParameters.certificateEnrollmentRequest was null or undefined when calling beginEnrollCertificateV2.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v2/group/{namespaceId}/certificate-templates/{templateId}/enroll`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CertificateEnrollmentRequestToJSON(requestParameters.certificateEnrollmentRequest),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateEnrollmentReceiptFromJSON(jsonValue));
-    }
-
-    /**
-     * Put certificate template
-     */
-    async beginEnrollCertificateV2(requestParameters: BeginEnrollCertificateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateEnrollmentReceipt> {
-        const response = await this.beginEnrollCertificateV2Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * complete certificate enrollment
      */
     async completeCertificateEnrollmentV2Raw(requestParameters: CompleteCertificateEnrollmentV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling completeCertificateEnrollmentV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling completeCertificateEnrollmentV2.');
         }
@@ -213,7 +142,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificates/{certId}/pending`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certId"}}`, encodeURIComponent(String(requestParameters.certId))),
+            path: `/v2/{namespaceId}/certificates/{certId}/pending`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certId"}}`, encodeURIComponent(String(requestParameters.certId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -251,7 +180,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/device/{namespaceId}/link-service-principal`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v2/{namespaceId}/link-service-principal`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -272,10 +201,6 @@ export class AdminApi extends runtime.BaseAPI {
      * Get certificate template
      */
     async getCertificateTemplateV2Raw(requestParameters: GetCertificateTemplateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling getCertificateTemplateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateTemplateV2.');
         }
@@ -297,7 +222,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v2/{namespaceId}/certificate-templates/{templateId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -318,10 +243,6 @@ export class AdminApi extends runtime.BaseAPI {
      * Get certificate
      */
     async getCertificateV2Raw(requestParameters: GetCertificateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling getCertificateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateV2.');
         }
@@ -347,7 +268,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificates/{certId}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certId"}}`, encodeURIComponent(String(requestParameters.certId))),
+            path: `/v2/{namespaceId}/certificates/{certId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certId"}}`, encodeURIComponent(String(requestParameters.certId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -385,7 +306,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/device/{namespaceId}/link-service-principal`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v2/{namespaceId}/link-service-principal`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -406,10 +327,6 @@ export class AdminApi extends runtime.BaseAPI {
      * Get certificate
      */
     async getLatestCertificateByTemplateV2Raw(requestParameters: GetLatestCertificateByTemplateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling getLatestCertificateByTemplateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getLatestCertificateByTemplateV2.');
         }
@@ -435,7 +352,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates/latest`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -453,13 +370,47 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get namespace info with ms graph
+     */
+    async getNamespaceInfoV2Raw(requestParameters: GetNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NamespaceInfo>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getNamespaceInfoV2.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/namespaces/{namespaceId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => NamespaceInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Get namespace info with ms graph
+     */
+    async getNamespaceInfoV2(requestParameters: GetNamespaceInfoV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NamespaceInfo> {
+        const response = await this.getNamespaceInfoV2Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Create certificate
      */
     async issueCertificateByTemplateV2Raw(requestParameters: IssueCertificateByTemplateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling issueCertificateByTemplateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling issueCertificateByTemplateV2.');
         }
@@ -485,7 +436,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v2/{namespaceId}/certificate-templates/{templateId}/certificates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -506,15 +457,15 @@ export class AdminApi extends runtime.BaseAPI {
      * List certificate templates
      */
     async listCertificateTemplatesV2Raw(requestParameters: ListCertificateTemplatesV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RefWithMetadata>>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listCertificateTemplatesV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificateTemplatesV2.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.includeDefaultForType !== undefined) {
+            queryParameters['includeDefaultForType'] = requestParameters.includeDefaultForType;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -527,7 +478,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v2/{namespaceId}/certificate-templates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -548,10 +499,6 @@ export class AdminApi extends runtime.BaseAPI {
      * List certificates issued by template
      */
     async listCertificatesByTemplateV2Raw(requestParameters: ListCertificatesByTemplateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RefWithMetadata>>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling listCertificatesByTemplateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificatesByTemplateV2.');
         }
@@ -573,7 +520,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v2/{namespaceId}/certificate-templates/{templateId}/certificates`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -600,6 +547,10 @@ export class AdminApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.namespaceType !== undefined) {
+            queryParameters['namespaceType'] = requestParameters.namespaceType;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -611,7 +562,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))),
+            path: `/v2/namespaces`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -632,10 +583,6 @@ export class AdminApi extends runtime.BaseAPI {
      * Put certificate template
      */
     async putCertificateTemplateV2Raw(requestParameters: PutCertificateTemplateV2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.namespaceType === null || requestParameters.namespaceType === undefined) {
-            throw new runtime.RequiredError('namespaceType','Required parameter requestParameters.namespaceType was null or undefined when calling putCertificateTemplateV2.');
-        }
-
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateTemplateV2.');
         }
@@ -663,7 +610,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}`.replace(`{${"namespaceType"}}`, encodeURIComponent(String(requestParameters.namespaceType))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v2/{namespaceId}/certificate-templates/{templateId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -702,7 +649,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/graph-sync/{namespaceId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v2/namespaces/{namespaceId}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

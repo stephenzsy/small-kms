@@ -5,7 +5,7 @@ using Microsoft.Kiota.Cli.Commons.Extensions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
 using SmallKms.Client.Models;
-using SmallKms.Client.V2.Namespaces.Item;
+using SmallKms.Client.V2.Item.CertificateTemplates.Item;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -14,31 +14,38 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-namespace SmallKms.Client.V2.Namespaces {
+namespace SmallKms.Client.V2.Item.CertificateTemplates {
     /// <summary>
-    /// Builds and executes requests for operations under \v2\namespaces
+    /// Builds and executes requests for operations under \v2\{namespaceId}\certificate-templates
     /// </summary>
-    public class NamespacesRequestBuilder : BaseCliRequestBuilder {
+    public class CertificateTemplatesRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// Gets an item from the SmallKms.Client.v2.namespaces.item collection
+        /// Gets an item from the SmallKms.Client.v2.item.certificateTemplates.item collection
         /// </summary>
         public Tuple<List<Command>, List<Command>> BuildCommand() {
             var executables = new List<Command>();
-            var builder = new WithNamespaceItemRequestBuilder(PathParameters);
+            var commands = new List<Command>();
+            var builder = new WithTemplateItemRequestBuilder(PathParameters);
+            commands.Add(builder.BuildCertificatesNavCommand());
+            commands.Add(builder.BuildEnrollNavCommand());
             executables.Add(builder.BuildGetCommand());
-            executables.Add(builder.BuildPostCommand());
-            return new(executables, new(0));
+            executables.Add(builder.BuildPutCommand());
+            return new(executables, commands);
         }
         /// <summary>
-        /// List namespaces by type
+        /// List certificate templates
         /// </summary>
         public Command BuildListCommand() {
             var command = new Command("list");
-            command.Description = "List namespaces by type";
-            var namespaceTypeOption = new Option<string>("--namespace-type") {
+            command.Description = "List certificate templates";
+            var namespaceIdOption = new Option<string>("--namespace-id") {
             };
-            namespaceTypeOption.IsRequired = true;
-            command.AddOption(namespaceTypeOption);
+            namespaceIdOption.IsRequired = true;
+            command.AddOption(namespaceIdOption);
+            var includeDefaultForTypeOption = new Option<string>("--include-default-for-type") {
+            };
+            includeDefaultForTypeOption.IsRequired = false;
+            command.AddOption(includeDefaultForTypeOption);
             var outputOption = new Option<FormatterType>("--output", () => FormatterType.JSON){
                 IsRequired = true
             };
@@ -53,7 +60,8 @@ namespace SmallKms.Client.V2.Namespaces {
             }, description: "Disable indentation for the JSON output formatter.");
             command.AddOption(jsonNoIndentOption);
             command.SetHandler(async (invocationContext) => {
-                var namespaceType = invocationContext.ParseResult.GetValueForOption(namespaceTypeOption);
+                var namespaceId = invocationContext.ParseResult.GetValueForOption(namespaceIdOption);
+                var includeDefaultForType = invocationContext.ParseResult.GetValueForOption(includeDefaultForTypeOption);
                 var output = invocationContext.ParseResult.GetValueForOption(outputOption);
                 var query = invocationContext.ParseResult.GetValueForOption(queryOption);
                 var jsonNoIndent = invocationContext.ParseResult.GetValueForOption(jsonNoIndentOption);
@@ -62,8 +70,9 @@ namespace SmallKms.Client.V2.Namespaces {
                 var cancellationToken = invocationContext.GetCancellationToken();
                 var reqAdapter = invocationContext.GetRequestAdapter();
                 var requestInfo = ToGetRequestInformation(q => {
-                    if (!string.IsNullOrEmpty(namespaceType)) q.QueryParameters.NamespaceType = namespaceType;
+                    if (!string.IsNullOrEmpty(includeDefaultForType)) q.QueryParameters.IncludeDefaultForType = includeDefaultForType;
                 });
+                if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
                 var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
@@ -73,27 +82,27 @@ namespace SmallKms.Client.V2.Namespaces {
             return command;
         }
         /// <summary>
-        /// Instantiates a new NamespacesRequestBuilder and sets the default values.
+        /// Instantiates a new CertificateTemplatesRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
-        public NamespacesRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/namespaces{?namespaceType*}", pathParameters) {
+        public CertificateTemplatesRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceId}/certificate-templates{?includeDefaultForType*}", pathParameters) {
         }
         /// <summary>
-        /// Instantiates a new NamespacesRequestBuilder and sets the default values.
+        /// Instantiates a new CertificateTemplatesRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public NamespacesRequestBuilder(string rawUrl) : base("{+baseurl}/v2/namespaces{?namespaceType*}", rawUrl) {
+        public CertificateTemplatesRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceId}/certificate-templates{?includeDefaultForType*}", rawUrl) {
         }
         /// <summary>
-        /// List namespaces by type
+        /// List certificate templates
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>>? requestConfiguration = default) {
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<CertificateTemplatesRequestBuilderGetQueryParameters>>? requestConfiguration = default) {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>> requestConfiguration = default) {
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<CertificateTemplatesRequestBuilderGetQueryParameters>> requestConfiguration = default) {
 #endif
             var requestInfo = new RequestInformation {
                 HttpMethod = Method.GET,
@@ -102,7 +111,7 @@ namespace SmallKms.Client.V2.Namespaces {
             };
             requestInfo.Headers.Add("Accept", "application/json");
             if (requestConfiguration != null) {
-                var requestConfig = new RequestConfiguration<NamespacesRequestBuilderGetQueryParameters>();
+                var requestConfig = new RequestConfiguration<CertificateTemplatesRequestBuilderGetQueryParameters>();
                 requestConfiguration.Invoke(requestConfig);
                 requestInfo.AddQueryParameters(requestConfig.QueryParameters);
                 requestInfo.AddRequestOptions(requestConfig.Options);
@@ -111,15 +120,15 @@ namespace SmallKms.Client.V2.Namespaces {
             return requestInfo;
         }
         /// <summary>
-        /// List namespaces by type
+        /// List certificate templates
         /// </summary>
-        public class NamespacesRequestBuilderGetQueryParameters {
+        public class CertificateTemplatesRequestBuilderGetQueryParameters {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-            public string? NamespaceType { get; set; }
+            public string? IncludeDefaultForType { get; set; }
 #nullable restore
 #else
-            public string NamespaceType { get; set; }
+            public string IncludeDefaultForType { get; set; }
 #endif
         }
     }

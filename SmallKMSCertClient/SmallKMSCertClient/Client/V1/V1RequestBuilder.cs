@@ -3,8 +3,6 @@ using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
 using SmallKms.Client.V1.Diagnostics;
-using SmallKms.Client.V1.Item;
-using SmallKms.Client.V1.My;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -18,16 +16,6 @@ namespace SmallKms.Client.V1 {
     /// </summary>
     public class V1RequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// Gets an item from the SmallKms.Client.v1.item collection
-        /// </summary>
-        public Tuple<List<Command>, List<Command>> BuildCommand() {
-            var commands = new List<Command>();
-            var builder = new WithNamespaceItemRequestBuilder(PathParameters);
-            commands.Add(builder.BuildPoliciesNavCommand());
-            commands.Add(builder.BuildProfileNavCommand());
-            return new(new(0), commands);
-        }
-        /// <summary>
         /// The diagnostics property
         /// </summary>
         public Command BuildDiagnosticsNavCommand() {
@@ -37,21 +25,6 @@ namespace SmallKms.Client.V1 {
             var execCommands = new List<Command>();
             execCommands.Add(builder.BuildGetCommand());
             foreach (var cmd in execCommands)
-            {
-                command.AddCommand(cmd);
-            }
-            return command;
-        }
-        /// <summary>
-        /// The my property
-        /// </summary>
-        public Command BuildMyNavCommand() {
-            var command = new Command("my");
-            command.Description = "The my property";
-            var builder = new MyRequestBuilder(PathParameters);
-            var nonExecCommands = new List<Command>();
-            nonExecCommands.Add(builder.BuildProfilesNavCommand());
-            foreach (var cmd in nonExecCommands)
             {
                 command.AddCommand(cmd);
             }

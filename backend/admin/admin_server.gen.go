@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // ServerInterface represents all server handlers.
@@ -17,18 +16,15 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
-	// Apply policy
-	// (POST /v1/{namespaceId}/policies/{policyId}/apply)
-	ApplyPolicyV1(c *gin.Context, namespaceId openapi_types.UUID, policyId openapi_types.UUID)
-	// Get namespace profile
-	// (GET /v1/{namespaceId}/profile)
-	GetNamespaceProfileV1(c *gin.Context, namespaceId openapi_types.UUID)
+	// List namespaces by type
+	// (GET /v2/namespaces)
+	ListNamespacesByTypeV2(c *gin.Context, params ListNamespacesByTypeV2Params)
+	// Get namespace info with ms graph
+	// (GET /v2/namespaces/{namespaceId})
+	GetNamespaceInfoV2(c *gin.Context, namespaceId NamespaceIdParameter)
 	// Sync namespace info with ms graph
 	// (POST /v2/namespaces/{namespaceId})
 	SyncNamespaceInfoV2(c *gin.Context, namespaceId NamespaceIdParameter)
-	// List namespaces by type
-	// (GET /v2/namespaces/{namespaceType})
-	ListNamespacesByTypeV2(c *gin.Context, namespaceType NamespaceTypeParameter)
 	// List certificate templates
 	// (GET /v2/{namespaceId}/certificate-templates)
 	ListCertificateTemplatesV2(c *gin.Context, namespaceId NamespaceIdParameter, params ListCertificateTemplatesV2Params)
@@ -88,30 +84,30 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	siw.Handler.GetDiagnosticsV1(c)
 }
 
-// ApplyPolicyV1 operation middleware
-func (siw *ServerInterfaceWrapper) ApplyPolicyV1(c *gin.Context) {
+// ListNamespacesByTypeV2 operation middleware
+func (siw *ServerInterfaceWrapper) ListNamespacesByTypeV2(c *gin.Context) {
 
 	var err error
 
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "policyId" -------------
-	var policyId openapi_types.UUID
-
-	err = runtime.BindStyledParameter("simple", false, "policyId", c.Param("policyId"), &policyId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter policyId: %w", err), http.StatusBadRequest)
-		return
-	}
-
 	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListNamespacesByTypeV2Params
+
+	// ------------- Required query parameter "namespaceType" -------------
+
+	if paramValue := c.Query("namespaceType"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument namespaceType is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "namespaceType", c.Request.URL.Query(), &params.NamespaceType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
+		return
+	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -120,16 +116,16 @@ func (siw *ServerInterfaceWrapper) ApplyPolicyV1(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ApplyPolicyV1(c, namespaceId, policyId)
+	siw.Handler.ListNamespacesByTypeV2(c, params)
 }
 
-// GetNamespaceProfileV1 operation middleware
-func (siw *ServerInterfaceWrapper) GetNamespaceProfileV1(c *gin.Context) {
+// GetNamespaceInfoV2 operation middleware
+func (siw *ServerInterfaceWrapper) GetNamespaceInfoV2(c *gin.Context) {
 
 	var err error
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId openapi_types.UUID
+	var namespaceId NamespaceIdParameter
 
 	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -146,7 +142,7 @@ func (siw *ServerInterfaceWrapper) GetNamespaceProfileV1(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.GetNamespaceProfileV1(c, namespaceId)
+	siw.Handler.GetNamespaceInfoV2(c, namespaceId)
 }
 
 // SyncNamespaceInfoV2 operation middleware
@@ -173,32 +169,6 @@ func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
 	}
 
 	siw.Handler.SyncNamespaceInfoV2(c, namespaceId)
-}
-
-// ListNamespacesByTypeV2 operation middleware
-func (siw *ServerInterfaceWrapper) ListNamespacesByTypeV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceType" -------------
-	var namespaceType NamespaceTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceType", c.Param("namespaceType"), &namespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListNamespacesByTypeV2(c, namespaceType)
 }
 
 // ListCertificateTemplatesV2 operation middleware
@@ -642,10 +612,9 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
-	router.POST(options.BaseURL+"/v1/:namespaceId/policies/:policyId/apply", wrapper.ApplyPolicyV1)
-	router.GET(options.BaseURL+"/v1/:namespaceId/profile", wrapper.GetNamespaceProfileV1)
+	router.GET(options.BaseURL+"/v2/namespaces", wrapper.ListNamespacesByTypeV2)
+	router.GET(options.BaseURL+"/v2/namespaces/:namespaceId", wrapper.GetNamespaceInfoV2)
 	router.POST(options.BaseURL+"/v2/namespaces/:namespaceId", wrapper.SyncNamespaceInfoV2)
-	router.GET(options.BaseURL+"/v2/namespaces/:namespaceType", wrapper.ListNamespacesByTypeV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)

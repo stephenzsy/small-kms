@@ -2,17 +2,16 @@ import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
 import AdminPage from "./admin/Page";
-import PoliciesPage from "./admin/PoliciesPage";
 import RegisterPage from "./admin/RegisterPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import Layout from "./Layout";
 import { RouteIds } from "./route-constants";
+import { NamespaceContextProvider } from "./admin/NamespaceContext";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
-const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificateTemplatePage = React.lazy(
@@ -45,7 +44,12 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminPage /> },
           {
-            path: ":nsType/:namespaceId",
+            path: ":namespaceId",
+            element: (
+              <NamespaceContextProvider>
+                <Outlet />
+              </NamespaceContextProvider>
+            ),
             children: [
               { index: true, element: <NamespacePage /> },
               {
@@ -54,20 +58,11 @@ export const router = createBrowserRouter([
                   { index: true, element: <CertificateTemplatePage /> },
                   {
                     path: "certificates/:certId",
-                    element: <CertificatePage />,
                   },
                 ],
               },
             ],
           },
-          {
-            path: ":namespaceId/policies",
-            children: [
-              { index: true, element: <PoliciesPage /> },
-              { path: ":policyId", element: <PolicyPage /> },
-            ],
-          },
-
           {
             path: "register",
             element: <RegisterPage />,

@@ -1,10 +1,8 @@
 apis/AdminApi.ts
 apis/DiagnosticsApi.ts
-apis/DirectoryApi.ts
-apis/PolicyApi.ts
+apis/EnrollApi.ts
 apis/index.ts
 index.ts
-models/ApplyPolicyRequest.ts
 models/CertificateEnrollPolicyParameters.ts
 models/CertificateEnrollmentReceipt.ts
 models/CertificateEnrollmentReplyFinalize.ts
@@ -28,7 +26,6 @@ models/CertificateTemplate.ts
 models/CertificateTemplateAllOf.ts
 models/CertificateTemplateParameters.ts
 models/CertificateUsage.ts
-models/CreateDeviceServicePrincipalLinkV2400Response.ts
 models/CurveName.ts
 models/IncludeCertificate.ts
 models/JwkAlg.ts
