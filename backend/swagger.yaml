@@ -117,6 +117,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateEnrollmentReceipt"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"
@@ -786,6 +788,8 @@ components:
     ServicePrincipalLinkedDevice:
       type: object
       properties:
+        ref:
+          $ref: "#/components/schemas/RefWithMetadata"
         deviceOid:
           description: Object ID of the device
           type: string
@@ -808,12 +812,16 @@ components:
           type: string
           format: uuid
           x-go-name: ServicePrincipalID
+        status:
+          type: string
       required:
+        - ref
         - deviceOid
         - deviceId
         - applicationClientId
         - applicationOid
         - servicePrincipalId
+        - status
     ApplyPolicyRequest:
       type: object
       properties:
@@ -994,20 +1002,8 @@ components:
     CertificateSubjectAlternativeNames:
       type: object
       properties:
-        dns_names:
-          x-go-name: DNSNames
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
         emails:
           x-go-name: EmailAddresses
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-        ipAddrs:
-          x-go-name: IPAddresses
           type: array
           items:
             type: string

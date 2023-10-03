@@ -1,12 +1,20 @@
 package admin
 
 import (
+	"bytes"
 	"context"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
+	"net/url"
+	"strings"
+	"text/template"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphapplications "github.com/microsoftgraph/msgraph-sdk-go/applications"
@@ -27,6 +35,14 @@ import (
 
 type contextKey string
 
+type CertificateEnrollmentClaims struct {
+	jwt.RegisteredClaims
+	SchemaVersion           int      `json:"ver"`
+	SubjectAlternativeNames []string `json:"sans,omitempty"`
+	KeyUsages               []string `json:"key_ops"`
+	ExtendedUsages          []string `json:"ext_usages"`
+}
+
 const (
 	graphClientContextKey contextKey = "graphClient"
 )
@@ -39,7 +55,7 @@ func withGraphClient(c context.Context, client *msgraph.GraphServiceClient) cont
 	return context.WithValue(c, graphClientContextKey, client)
 }
 
-func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Deviceable, map[TemplateVarName]string, error) {
+func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Deviceable, map[string]string, error) {
 	obj, err := graphClienFromContext(c).Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphdevices.DeviceItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectDeviceDoc(),
@@ -48,13 +64,13 @@ func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params
 	if err != nil {
 		return obj, nil, err
 	}
-	return obj, map[TemplateVarName]string{
+	return obj, map[string]string{
 		TemplateVarNameDeviceURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/devices/%s", *obj.GetId()),
 		TemplateVarNameDeviceAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/devices(deviceId='{%s}')", *obj.GetDeviceId()),
 	}, nil
 }
 
-func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Applicationable, map[TemplateVarName]string, error) {
+func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Applicationable, map[string]string, error) {
 	obj, err := graphClienFromContext(c).Applications().ByApplicationId(objectID.String()).Get(c, &msgraphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphapplications.ApplicationItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
@@ -63,13 +79,13 @@ func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, p
 	if err != nil {
 		return obj, nil, err
 	}
-	return obj, map[TemplateVarName]string{
+	return obj, map[string]string{
 		TemplateVarNameApplicationURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/applications/%s", *obj.GetId()),
 		TemplateVarNameApplicationAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/applications(appId='{%s}')", *obj.GetAppId()),
 	}, nil
 }
 
-func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.ServicePrincipalable, map[TemplateVarName]string, error) {
+func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.ServicePrincipalable, map[string]string, error) {
 	obj, err := graphClienFromContext(c).ServicePrincipals().ByServicePrincipalId(objectID.String()).Get(c, &msgraphsp.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphsp.ServicePrincipalItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
@@ -78,13 +94,13 @@ func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UU
 	if err != nil {
 		return obj, nil, err
 	}
-	return obj, map[TemplateVarName]string{
+	return obj, map[string]string{
 		TemplateVarNameServicePrincipalURI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals/%s", *obj.GetId()),
 		TemplateVarNameServicePrincipalAltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='{%s}')", *obj.GetAppId()),
 	}, nil
 }
 
-func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *map[TemplateVarName]string) (msgraphmodels.Groupable, map[TemplateVarName]string, error) {
+func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *map[string]string) (msgraphmodels.Groupable, map[string]string, error) {
 	obj, err := graphClienFromContext(c).Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphgroups.GroupItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectGroupDoc(),
@@ -93,12 +109,12 @@ func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params 
 	if err != nil {
 		return obj, nil, err
 	}
-	return obj, map[TemplateVarName]string{
+	return obj, map[string]string{
 		TemplateVarNameGroupURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", *obj.GetId()),
 	}, nil
 }
 
-func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUID, groupID uuid.UUID, params *map[TemplateVarName]string) (bool, error) {
+func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUID, groupID uuid.UUID, params *map[string]string) (bool, error) {
 	requestBody := msgraphdirectoryobjects.NewItemCheckMemberGroupsPostRequestBody()
 	requestBody.SetGroupIds([]string{groupID.String()})
 
@@ -115,15 +131,68 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 	return false, nil
 }
 
+func processTemplate(name string, tmplStr string, data map[string]string) string {
+	if data == nil || !strings.Contains(tmplStr, "{{") || !strings.Contains(tmplStr, "}}") {
+		return strings.TrimSpace(tmplStr)
+	}
+	tmpl := template.New(name)
+	var err error
+	if tmpl, err = tmpl.Parse(tmplStr); err != nil {
+		return ""
+	}
+	buffer := bytes.NewBuffer(nil)
+	err = tmpl.Execute(buffer, data)
+	if err != nil {
+		return ""
+	}
+	if buffer.Len() > 0 {
+		return strings.TrimSpace(buffer.String())
+	}
+	return ""
+}
+
+func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data map[string]string) (certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
+	claims.SchemaVersion = 1
+	var cert *x509.Certificate
+	cert, certID, err = prepareUnsignedCertificateFromTemplate(NamespaceTypeShortName(""), uuid.Nil, template, data)
+	if err != nil {
+		return
+	}
+	claims.Subject = cert.Subject.String()
+	claims.NotBefore = jwt.NewNumericDate(cert.NotBefore)
+	claims.ExpiresAt = jwt.NewNumericDate(cert.NotAfter)
+	claims.ID = certID.String()
+	if len(cert.EmailAddresses) > 0 {
+		claims.SubjectAlternativeNames = append(claims.SubjectAlternativeNames, cert.EmailAddresses...)
+	}
+	if len(cert.URIs) > 0 {
+		claims.SubjectAlternativeNames = append(claims.SubjectAlternativeNames, utils.MapSlices(cert.URIs,
+			func(uri *url.URL) string { return uri.String() })...)
+	}
+	if cert.KeyUsage&x509.KeyUsageDigitalSignature != 0 {
+		claims.KeyUsages = append(claims.KeyUsages, "sign", "verify")
+	}
+	if cert.KeyUsage&x509.KeyUsageDataEncipherment != 0 {
+		claims.KeyUsages = append(claims.KeyUsages, "encrypt", "decrypt")
+	}
+	if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
+		claims.KeyUsages = append(claims.KeyUsages, "wrapKey", "unwrapKey")
+	}
+	claims.ExtendedUsages = utils.FilterSlice(utils.MapSlices(cert.ExtKeyUsage, func(u x509.ExtKeyUsage) string {
+		switch u {
+		case x509.ExtKeyUsageServerAuth:
+			return "1.3.6.1.5.5.7.3.1"
+		case x509.ExtKeyUsageClientAuth:
+			return "1.3.6.1.5.5.7.3.2"
+		}
+		return ""
+	}), func(u string) bool { return u != "" })
+	return
+}
+
 func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateId uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) error {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
-
-	if graphClient, err := s.msGraphClient(c); err != nil {
-		return err
-	} else {
-		c = withGraphClient(c, graphClient)
-	}
 
 	// first check if AppID match
 	authCtx, ok := auth.GetAuthIdentity(c)
@@ -136,6 +205,19 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	claimedAppId := authCtx.AppIDClaim()
 	if claimedAppId != req.AppID {
 		return fmt.Errorf("%w: appid is required in the authorization claim", common.ErrStatusUnauthorized)
+	}
+
+	// get template
+	templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateId)
+	if err != nil {
+		return err
+	}
+
+	// graph client in contextF
+	if graphClient, err := s.msGraphClient(c); err != nil {
+		return err
+	} else {
+		c = withGraphClient(c, graphClient)
 	}
 
 	// look up relDoc
@@ -153,7 +235,7 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 		return fmt.Errorf("%w: device object id invalid", common.ErrStatusBadRequest)
 	}
 	if spID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.ServicePrincipal); !nonNil || spID != req.ServicePrincipalID {
-		return fmt.Errorf("%w: service principal id dinvalid", common.ErrStatusBadRequest)
+		return fmt.Errorf("%w: service principal id invalid", common.ErrStatusBadRequest)
 	}
 	if appID, nonNil := utils.NonNilUUID(relDoc.Attributes.AppID); !nonNil || appID != req.AppID {
 		return fmt.Errorf("%w: application client id does invalid", common.ErrStatusBadRequest)
@@ -164,7 +246,7 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	log.Info().Msgf("link doc loaded and verified: %s", req.DeviceLinkID)
 
 	// prep parameters
-	params := make(map[TemplateVarName]string)
+	params := make(map[string]string)
 	// verify against ms graph
 	if obj, deviceParams, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
 		return err
@@ -209,6 +291,18 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("group membership verified: %s", nsID)
 
+	certID, claims, err := processCertificateEnrollmentClaims(templateDoc, params)
+	if err != nil {
+		return err
+	}
+	marshalled, err := json.Marshal(claims)
+	if err != nil {
+		return err
+	}
+	base64.RawURLEncoding.EncodeToString(marshalled)
+
+	log.Info().Msgf("certificate enrollment claims processed: %s, %s", certID, base64.RawURLEncoding.EncodeToString(marshalled))
+
 	return nil
 }
 
@@ -228,50 +322,16 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 
 	switch req := req.(type) {
 	case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-		s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
+		err = s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
 
+	}
+	if err != nil {
+		common.RespondError(c, err)
+		return
 	}
 
 	respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
 
-	/*
-		if p.ValidityInMonths < 1 || p.ValidityInMonths > 120 {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "validity in months must be between 1 and 120"})
-			return
-		}
-
-		// check enrollment policy
-		policyDoc, err := s.GetPolicyDoc(c, p.Issuer.IssuerNamespaceID, p.PolicyID)
-		if err != nil {
-			if common.IsAzNotFound(err) {
-				c.JSON(http.StatusNotFound, gin.H{"message": "no policy found for given issuer and policy id"})
-				return
-			}
-			log.Error().Err(err).Msg("Failed to get enrollment policy")
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-			return
-		}
-		if policyDoc.PolicyType != PolicyTypeCertEnroll {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "policy is not for certificate enrollment"})
-			return
-		}
-
-		// validate request against policy
-		if policyDoc.CertEnroll.MaxValidityInMonths < p.ValidityInMonths {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "validity in months exceeds policy limit"})
-			return
-		}
-		usageValidated := false
-		for _, usage := range policyDoc.CertEnroll.AllowedUsages {
-			if usage == p.Usage {
-				usageValidated = true
-				break
-			}
-		}
-		if !usageValidated {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "usage is not allowed by policy"})
-		}
-	*/
 }
 
 func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params) {

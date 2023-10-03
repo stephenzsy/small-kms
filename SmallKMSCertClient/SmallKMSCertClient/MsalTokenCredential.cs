@@ -74,7 +74,6 @@ namespace SmallKMSCertClient
 			if (account != null)
 			{
 				var result = await app.AcquireTokenSilent(loginScopes, account).ExecuteAsync();
-				Console.WriteLine(result.AccessToken);
 				return result;
 			}
 			throw new Exception("No account loaded");
@@ -97,7 +96,6 @@ namespace SmallKMSCertClient
 			AuthenticationResult result = await (useDeviceCode
 				? app.AcquireTokenWithDeviceCode(loginScopes, deviceCodeResult =>
 				{
-					Console.WriteLine(deviceCodeResult.Message);
 					return Task.FromResult(deviceCodeResult);
 				}).ExecuteAsync()
 				: app.AcquireTokenInteractive(loginScopes).ExecuteAsync());

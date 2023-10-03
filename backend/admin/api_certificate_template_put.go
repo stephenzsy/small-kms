@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -27,17 +28,9 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 	}
 	if isGraphValidationNeeded {
 		// will check if directory object is already sync, sync will performed prior to issuing certificates
-		dirObj, err := s.getDirectoryObjectDoc(c, namespaceId)
+		_, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
 		if err != nil {
-			if common.IsAzNotFound(err) {
-				respondPublicError(c, http.StatusNotFound, err)
-				return
-			}
-			respondInternalError(c, err, fmt.Sprintf("failed to get directory object: %s", namespaceId))
-			return
-		}
-		if !validateNamespaceTypeWithDirDoc(namespaceType, dirObj) {
-			respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", namespaceType, namespaceId))
+			common.RespondError(c, err)
 			return
 		}
 	}
@@ -98,19 +91,6 @@ func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, 
 		}
 	}
 	return "invalid", false
-}
-
-func validateCertFieldForVariable(s *string) (*common.CertificateFieldVar, bool, error) {
-	if s == nil {
-		return nil, false, nil
-	}
-	*s = strings.TrimSpace(*s)
-	if strings.HasPrefix(*s, "{{") && strings.HasSuffix(*s, "}}") {
-		// try parse variable
-		parsed, err := common.ParseCertificateFieldVar((*s)[2 : len(*s)-2])
-		return &parsed, true, err
-	}
-	return nil, false, nil
 }
 
 func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) (*CertificateTemplateDoc, error) {
@@ -211,19 +191,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 	}
 
 	doc.Subject = CertificateTemplateDocSubject{CertificateSubject: p.Subject}
-	var err error
-	if _, _, err = validateCertFieldForVariable(&doc.Subject.CertificateSubject.CN); err != nil {
-		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject CN", err)
-	}
-	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.OU); err != nil {
-		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject OU", err)
-	}
-	if _, _, err = validateCertFieldForVariable(doc.Subject.CertificateSubject.O); err != nil {
-		return nil, fmt.Errorf("%w, %s, %w", ErrCertificateTemplateVariable, "subject O", err)
-	}
-	if doc.SubjectAlternativeNames, err = sanitizeSANs(p.SubjectAlternativeNames); err != nil {
-		return nil, err
-	}
+	doc.SubjectAlternativeNames = sanitizeSANs(p.SubjectAlternativeNames)
 
 	if p.ValidityInMonths != nil {
 		if *p.ValidityInMonths < 0 && *p.ValidityInMonths > 120 {

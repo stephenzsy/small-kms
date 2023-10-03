@@ -42,7 +42,10 @@ namespace SmallKms.Client.V2.Group.Item.CertificateTemplates.Item.Enroll {
 #endif
             _ = body ?? throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
-            return await RequestAdapter.SendAsync<CertificateEnrollmentReceipt>(requestInfo, CertificateEnrollmentReceipt.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
+            var errorMapping = new Dictionary<string, ParsableFactory<IParsable>> {
+                {"400", CertificateEnrollmentReceipt400Error.CreateFromDiscriminatorValue},
+            };
+            return await RequestAdapter.SendAsync<CertificateEnrollmentReceipt>(requestInfo, CertificateEnrollmentReceipt.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Put certificate template

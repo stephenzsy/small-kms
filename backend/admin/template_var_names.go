@@ -1,13 +1,14 @@
 package admin
 
-type TemplateVarName string
-
 const (
-	TemplateVarNameDeviceURI              TemplateVarName = "device.uri"
-	TemplateVarNameDeviceAltURI           TemplateVarName = "device.altUri"
-	TemplateVarNameApplicationURI         TemplateVarName = "application.uri"
-	TemplateVarNameApplicationAltURI      TemplateVarName = "application.altUri"
-	TemplateVarNameServicePrincipalURI    TemplateVarName = "servicePrincipal.uri"
-	TemplateVarNameServicePrincipalAltURI TemplateVarName = "servicePrincipal.altUri"
-	TemplateVarNameGroupURI               TemplateVarName = "group.uri"
+	TemplateVarNameDeviceURI              string = "device.uri"
+	TemplateVarNameDeviceAltURI           string = "device.altUri"
+	TemplateVarNameApplicationURI         string = "application.uri"
+	TemplateVarNameApplicationAltURI      string = "application.altUri"
+	TemplateVarNameServicePrincipalID     string = "servicePrincipal.id"
+	TemplateVarNameServicePrincipalURI    string = "servicePrincipal.uri"
+	TemplateVarNameServicePrincipalAltURI string = "servicePrincipal.altUri"
+	TemplateVarNameGroupID                string = "group.id"
+	TemplateVarNameGroupURI               string = "group.uri"
+	TemplateVarNameRequestedName          string = "requested.name"
 )

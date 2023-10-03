@@ -9,15 +9,13 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"fmt"
 	"hash"
 	"math/big"
-	"net"
 	"net/url"
 	"slices"
 	"strings"
 
-	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 func sanitizeStringArray(ptr *[]string) {
@@ -28,179 +26,59 @@ func sanitizeStringArray(ptr *[]string) {
 		ptr = nil
 		return
 	}
-	trimmed := make([]string, 0, len(*ptr))
-	for _, s := range *ptr {
-		s = strings.TrimSpace(s)
-		if len(s) > 0 {
-			trimmed = append(trimmed, s)
-		}
+	for i, s := range *ptr {
+		(*ptr)[i] = strings.TrimSpace(s)
 	}
-	if len(trimmed) > 0 {
-		slices.SortFunc(trimmed, func(a, b string) int {
-			return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
-		})
-		*ptr = trimmed
-	}
-}
-
-type parsedSan[D net.IP | *url.URL] struct {
-	StringValue string
-	Parsed      D
-	Variable    *common.CertificateFieldVar
-}
-
-func sanitizeStringArrayWithParse[D net.IP | *url.URL](ptr *[]string, parseFunc func(string) (parsedSan[D], error), sortFunc func(a, b parsedSan[D]) int) ([]parsedSan[D], error) {
-	if ptr == nil || len(*ptr) == 0 {
+	*ptr = utils.FilterSlice(*ptr, func(s string) bool { return len(s) > 0 })
+	slices.SortFunc(*ptr, func(a, b string) int {
+		return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
+	})
+	*ptr = slices.Compact(*ptr)
+	if len(*ptr) == 0 {
 		*ptr = nil
-		return nil, nil
 	}
-	rslice := make([]parsedSan[D], 0, len(*ptr))
-	dedup := make(map[string]bool)
-	for _, s := range *ptr {
-		s = strings.TrimSpace(s)
-		if len(s) == 0 {
-			continue
-		}
-		if item, err := parseFunc(s); err != nil {
-			return nil, err
-		} else if !dedup[item.StringValue] {
-			dedup[item.StringValue] = true
-			rslice = append(rslice, item)
-		}
-	}
-	if len(rslice) == 0 {
-		*ptr = nil
-		return nil, nil
-	}
-	slices.SortFunc(rslice, sortFunc)
-	sortedStringSlice := make([]string, len(rslice))
-	for i, item := range rslice {
-		sortedStringSlice[i] = item.StringValue
-	}
-	*ptr = sortedStringSlice
-	return rslice, nil
 }
 
-type SANsSanitized struct {
-	CertificateSubjectAlternativeNames
-	parsedIPAddresses []parsedSan[net.IP]
-	parsedURLs        []parsedSan[*url.URL]
-}
-
-func parseSanIPAddr(s string) (p parsedSan[net.IP], err error) {
-	p.Parsed = net.ParseIP(s)
-	if p.Parsed == nil {
-		err = fmt.Errorf("invalid ip address: %s", s)
-		return
-	}
-	p.StringValue = p.Parsed.String()
-	return
-}
-
-func parseSanURL(s string) (p parsedSan[*url.URL], err error) {
-	p.Parsed, err = url.Parse(s)
-	if err != nil {
-		return
-	}
-	p.StringValue = p.Parsed.String()
-	return
-}
-
-func parseSanURLWithVariable(s string) (p parsedSan[*url.URL], err error) {
-	v, isVar, err := validateCertFieldForVariable(&s)
-	if err != nil {
-		return
-	}
-	if isVar {
-		p.Parsed = nil
-		p.StringValue = s
-		p.Variable = v
-		return
-	}
-	return parseSanURL(s)
-}
-
-func sanitizeSANs(sans *CertificateSubjectAlternativeNames) (*SANsSanitized, error) {
+func sanitizeSANs(sans *CertificateSubjectAlternativeNames) *CertificateSubjectAlternativeNames {
 	if sans == nil {
-		return nil, nil
+		return nil
 	}
 
-	sanitizeStringArray(&sans.DNSNames)
 	sanitizeStringArray(&sans.EmailAddresses)
-
-	parsedIPAddresses, err := sanitizeStringArrayWithParse[net.IP](&sans.IPAddresses,
-		parseSanIPAddr, func(a, b parsedSan[net.IP]) int {
-			// ipv4 before ipv6
-			lenDiff := len(a.Parsed) - len(b.Parsed)
-			if lenDiff != 0 {
-				return lenDiff
-			}
-			return slices.Compare(a.Parsed, b.Parsed)
-		})
-
-	if err != nil {
-		return nil, err
+	sanitizeStringArray(&sans.URIs)
+	if sans.EmailAddresses == nil && sans.URIs == nil {
+		return nil
 	}
-	parsedURLs, err := sanitizeStringArrayWithParse[*url.URL](&sans.URIs,
-		parseSanURLWithVariable, func(a, b parsedSan[*url.URL]) int {
-			return strings.Compare(a.StringValue, b.StringValue)
-		})
-	if err != nil {
-		return nil, err
-	}
-	if len(sans.DNSNames)+
-		len(sans.EmailAddresses)+
-		len(sans.IPAddresses)+
-		len(sans.URIs) == 0 {
-		return nil, nil
-	}
-	return &SANsSanitized{
-		CertificateSubjectAlternativeNames: *sans,
-		parsedIPAddresses:                  parsedIPAddresses,
-		parsedURLs:                         parsedURLs,
-	}, nil
+	return sans
 }
 
-func (a *SANsSanitized) Equals(b *SANsSanitized) bool {
-	if a == nil {
-		return b == nil
-	}
-	return slices.Equal(a.DNSNames, b.DNSNames) &&
-		slices.Equal(a.EmailAddresses, b.EmailAddresses) &&
-		slices.Equal(a.IPAddresses, b.IPAddresses) &&
-		slices.Equal(a.URIs, b.URIs)
-}
-
-func (sans *SANsSanitized) populateCertificate(cert *x509.Certificate, variableValues map[string]string) (err error) {
+func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.Certificate, data map[string]string) {
 	if sans == nil {
 		return
 	}
-	cert.DNSNames = sans.DNSNames
-	cert.EmailAddresses = sans.EmailAddresses
-	// reparse
-	cert.IPAddresses, err = common.SliceMapWithError(sans.IPAddresses, func(s string) (net.IP, error) {
-		p, err := parseSanIPAddr(s)
-		return p.Parsed, err
-	})
-	if err != nil {
-		return
-	}
-	cert.URIs, err = common.SliceMapWithError(sans.URIs, func(s string) (*url.URL, error) {
-		p, err := parseSanURL(s)
-		if err != nil {
-			return nil, err
-		}
-		if p.Variable != nil {
-			// make subsitution, and redo parsing
-			s, err = p.Variable.Substitute(variableValues)
-			if err != nil {
-				return nil, err
-			}
-			p, err = parseSanURL(s)
-		}
-		return p.Parsed, err
-	})
-	return
+
+	cert.EmailAddresses = utils.NilIfZeroLen(
+		utils.FilterSlice(
+			utils.MapSlices(sans.EmailAddresses, func(emailAddrStr string) string {
+				return processTemplate("emailTmpl", emailAddrStr, data)
+			}),
+			func(emailAddrStr string) bool {
+				return len(emailAddrStr) > 0
+			}))
+
+	cert.URIs = utils.NilIfZeroLen[*url.URL](
+		utils.FilterSlice[*url.URL](
+			utils.MapSlices(sans.URIs, func(uriStr string) *url.URL {
+				uriStr = processTemplate("uriTmpl", uriStr, data)
+				if len(uriStr) > 0 {
+					uri, _ := url.Parse(uriStr)
+					return uri
+				}
+				return nil
+			}),
+			func(uri *url.URL) bool {
+				return uri != nil
+			}))
 }
 
 func (p *JwkProperties) populateBriefFromCertificate(c *x509.Certificate) {

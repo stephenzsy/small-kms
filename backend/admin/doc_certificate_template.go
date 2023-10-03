@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -44,7 +45,7 @@ type CertificateTemplateDoc struct {
 	KeyProperties           CertificateTemplateDocKeyProperties   `json:"keyProperties"`
 	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
 	Subject                 CertificateTemplateDocSubject         `json:"subject"`
-	SubjectAlternativeNames *SANsSanitized                        `json:"sans,omitempty"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames   `json:"sans,omitempty"`
 	Usage                   CertificateUsage                      `json:"usage"`
 	ValidityInMonths        int32                                 `json:"validity_months"`
 	LifetimeTrigger         CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
@@ -62,7 +63,7 @@ func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.
 	doc := new(CertificateTemplateDoc)
 	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
 		kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateID), doc)
-	return doc, err
+	return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:cert-template:%s", nsID, templateID))
 }
 
 func (p *CertificateTemplateDocKeyProperties) setDefault() {
@@ -89,16 +90,25 @@ func (p *CertificateTemplateDocKeyProperties) setECDSA(crv CurveName) {
 	}
 }
 
-func (s *CertificateTemplateDocSubject) pkixName() (name pkix.Name) {
-	name.CommonName = s.CN
+func (s *CertificateTemplateDocSubject) pkixName(tmplData map[string]string) (name pkix.Name) {
+	name.CommonName = processTemplate("subjectCN", s.CN, tmplData)
 	if s.C != nil && len(*s.C) > 0 {
-		name.Country = []string{*s.C}
+		a := processTemplate("subjectC", *s.C, tmplData)
+		if len(a) > 0 {
+			name.Country = []string{a}
+		}
 	}
 	if s.O != nil && len(*s.O) > 0 {
-		name.Organization = []string{*s.O}
+		a := processTemplate("subjectO", *s.O, tmplData)
+		if len(a) > 0 {
+			name.Organization = []string{a}
+		}
 	}
 	if s.OU != nil && len(*s.OU) > 0 {
-		name.OrganizationalUnit = []string{*s.OU}
+		a := processTemplate("subjectOU", *s.OU, tmplData)
+		if len(a) > 0 {
+			name.OrganizationalUnit = []string{a}
+		}
 	}
 	return
 }
@@ -110,7 +120,7 @@ func (s *CertificateTemplateDocSubject) String() string {
 	if s.cachedString != nil {
 		return *s.cachedString
 	}
-	name := s.pkixName()
+	name := s.pkixName(nil)
 	str := name.String()
 	s.cachedString = &str
 	return str
@@ -153,13 +163,6 @@ func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
 	t.DaysBeforeExpiry = nil
 	t.LifetimePercentage = ToPtr(int32(80))
 }
-
-/*
-func (t *CertificateTemplateDocLifeTimeTrigger) setDisabled() {
-	t.DaysBeforeExpiry = ToPtr(int32(0))
-	t.LifetimePercentage = nil
-}
-*/
 
 func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLifetimeTrigger, validityInMonths int32) error {
 	if input == nil {
@@ -210,7 +213,7 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeSho
 	}
 	o.Subject = doc.Subject.CertificateSubject
 	if doc.SubjectAlternativeNames != nil {
-		o.SubjectAlternativeNames = &doc.SubjectAlternativeNames.CertificateSubjectAlternativeNames
+		o.SubjectAlternativeNames = doc.SubjectAlternativeNames
 	}
 	o.Usage = doc.Usage
 	o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
@@ -321,10 +324,10 @@ createKey:
 }
 
 func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
-	nsType NamespaceTypeShortName) (azcertificates.CreateCertificateResponse, error) {
+	nsType NamespaceTypeShortName, tmplData map[string]string) (azcertificates.CreateCertificateResponse, error) {
 	params := azcertificates.CreateCertificateParameters{}
 	x509Properties := azcertificates.X509CertificateProperties{
-		Subject:          ToPtr(doc.Subject.pkixName().String()),
+		Subject:          ToPtr(doc.Subject.pkixName(tmplData).String()),
 		ValidityInMonths: ToPtr(int32(doc.ValidityInMonths)),
 	}
 

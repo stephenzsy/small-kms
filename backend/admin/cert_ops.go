@@ -55,7 +55,7 @@ func (alg JwkAlg) toAzKeysSignatureAlgorithm() azkeys.SignatureAlgorithm {
 }
 
 func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	tdoc *CertificateTemplateDoc, cert *x509.Certificate) (*certificateSigner, error) {
+	tdoc *CertificateTemplateDoc, cert *x509.Certificate, tmplData map[string]string) (*certificateSigner, error) {
 	signer := certificateSigner{}
 	if tdoc.NamespaceID == tdoc.IssuerNamespaceID {
 		// root ca will create keys in key vault
@@ -108,7 +108,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 			}
 
 			// use create certificate to create managed key in key vault
-			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsType)
+			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsType, tmplData)
 			if err != nil {
 				return nil, err
 			}
@@ -126,27 +126,25 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsType NamespaceTypeSh
 	return &signer, nil
 }
 
-// (nsType/nsID) must be verified prior to calling this function
-func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
-	t *CertificateTemplateDoc, variableValues map[string]string) (*CertDoc, []byte, error) {
-
+func prepareUnsignedCertificateFromTemplate(nsType NamespaceTypeShortName,
+	nsID uuid.UUID, t *CertificateTemplateDoc, tmplData map[string]string) (*x509.Certificate, uuid.UUID, error) {
 	// prep certificate
 	certID, err := uuid.NewRandom()
 	if err != nil {
-		return nil, nil, err
+		return nil, certID, err
 	}
 	certSerial := big.Int{}
 	certSerial.SetBytes(certID[:])
 	now := time.Now()
 	c := x509.Certificate{
 		SerialNumber: &certSerial,
-		Subject:      t.Subject.pkixName(),
+		Subject:      t.Subject.pkixName(tmplData),
 		NotBefore:    now,
 		NotAfter:     now.AddDate(0, int(t.ValidityInMonths), 0),
 	}
-	err = t.SubjectAlternativeNames.populateCertificate(&c, variableValues)
+	t.SubjectAlternativeNames.populateCertificate(&c, tmplData)
 	if err != nil {
-		return nil, nil, err
+		return nil, certID, err
 	}
 	if nsType == NSTypeRootCA {
 		c.IsCA = true
@@ -169,15 +167,26 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType 
 		}
 	}
 
+	return &c, certID, err
+}
+
+// (nsType/nsID) must be verified prior to calling this function
+func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsType NamespaceTypeShortName, nsID uuid.UUID,
+	t *CertificateTemplateDoc, tmplData map[string]string) (*CertDoc, []byte, error) {
+	c, certID, err := prepareUnsignedCertificateFromTemplate(nsType, nsID, t, tmplData)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// prep signer
-	signer, err := s.loadCertSigner(ctx, nsType, nsID, t, &c)
+	signer, err := s.loadCertSigner(ctx, nsType, nsID, t, c, tmplData)
 	if err != nil {
 		return nil, nil, err
 	}
 	c.SignatureAlgorithm = signer.SignatureAlgorithm()
 	log.Info().Msgf("signer %s", signer.certCUID.String())
 	// Sign cert
-	certSigned, err := x509.CreateCertificate(nil, &c, signer.certificate, signer.certPubKey, signer.privateKey)
+	certSigned, err := x509.CreateCertificate(nil, c, signer.certificate, signer.certPubKey, signer.privateKey)
 	if err != nil {
 		return nil, nil, err
 	}

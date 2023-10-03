@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RefWithMetadata } from './RefWithMetadata';
+import {
+    RefWithMetadataFromJSON,
+    RefWithMetadataFromJSONTyped,
+    RefWithMetadataToJSON,
+} from './RefWithMetadata';
+
 /**
  * 
  * @export
  * @interface ServicePrincipalLinkedDevice
  */
 export interface ServicePrincipalLinkedDevice {
+    /**
+     * 
+     * @type {RefWithMetadata}
+     * @memberof ServicePrincipalLinkedDevice
+     */
+    ref: RefWithMetadata;
     /**
      * Object ID of the device
      * @type {string}
@@ -49,6 +62,12 @@ export interface ServicePrincipalLinkedDevice {
      * @memberof ServicePrincipalLinkedDevice
      */
     servicePrincipalId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServicePrincipalLinkedDevice
+     */
+    status: string;
 }
 
 /**
@@ -56,11 +75,13 @@ export interface ServicePrincipalLinkedDevice {
  */
 export function instanceOfServicePrincipalLinkedDevice(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "ref" in value;
     isInstance = isInstance && "deviceOid" in value;
     isInstance = isInstance && "deviceId" in value;
     isInstance = isInstance && "applicationOid" in value;
     isInstance = isInstance && "applicationClientId" in value;
     isInstance = isInstance && "servicePrincipalId" in value;
+    isInstance = isInstance && "status" in value;
 
     return isInstance;
 }
@@ -75,11 +96,13 @@ export function ServicePrincipalLinkedDeviceFromJSONTyped(json: any, ignoreDiscr
     }
     return {
         
+        'ref': RefWithMetadataFromJSON(json['ref']),
         'deviceOid': json['deviceOid'],
         'deviceId': json['deviceId'],
         'applicationOid': json['applicationOid'],
         'applicationClientId': json['applicationClientId'],
         'servicePrincipalId': json['servicePrincipalId'],
+        'status': json['status'],
     };
 }
 
@@ -92,11 +115,13 @@ export function ServicePrincipalLinkedDeviceToJSON(value?: ServicePrincipalLinke
     }
     return {
         
+        'ref': RefWithMetadataToJSON(value.ref),
         'deviceOid': value.deviceOid,
         'deviceId': value.deviceId,
         'applicationOid': value.applicationOid,
         'applicationClientId': value.applicationClientId,
         'servicePrincipalId': value.servicePrincipalId,
+        'status': value.status,
     };
 }
 

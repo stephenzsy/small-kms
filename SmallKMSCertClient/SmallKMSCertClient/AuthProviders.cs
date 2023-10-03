@@ -37,9 +37,10 @@ namespace SmallKMSCertClient
 			}
 		}
 
-		public Task AuthenticateRequestAsync(RequestInformation request, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
+		public async Task AuthenticateRequestAsync(RequestInformation request, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
 		{
-			return innerProvider.AuthenticateRequestAsync(request, additionalAuthenticationContext, cancellationToken);
+			var token = await this.tokenCredential.GetTokenAsync(new TokenRequestContext { }, cancellationToken);
+			request.Headers["Authorization"] = new string[]{ $"Bearer {token.Token}" };
 		}
 
 		internal Task Login(bool useDeviceCode = false)

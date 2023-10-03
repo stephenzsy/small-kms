@@ -23,10 +23,36 @@ namespace SmallKMSCertClient
 
 		private Command buildEnrollDeviceCmd()
 		{
-			var cmd = new Command("enroll-device", "Enroll this device to Small KMS provisioning a certificate to be used for authenticate as Microsoft Entra ID service principal");
+			Option groupIdOption = new Option<Guid>("--group-id", "Group ID");
+			Option templateIdOption = new Option<Guid>("--template-id", "Template ID");
+			Option appIdOption = new Option<Guid>("--app-id", "App client ID");
+			Option linkIdOption = new Option<Guid>("--link-id", "Device link ID");
+			Option deviceNamespaceIdOption = new Option<Guid>("--device-namespace-id", "Device object ID");
+			Option servicePrincipalIdOption = new Option<Guid>("--service-principal-id", "Service principal object ID");
 
-			cmd.SetHandler(() =>
-			serviceProvider.GetService<EnrollDeviceService>()?.StartEnrollment() ?? Task.CompletedTask);
+			var cmd = new Command("enroll-device", "Enroll this device to Small KMS provisioning a certificate to be used for authenticate as Microsoft Entra ID service principal");
+			cmd.AddOption(groupIdOption);
+			cmd.AddOption(templateIdOption);
+			cmd.AddOption(appIdOption);
+			cmd.AddOption(linkIdOption);
+			cmd.AddOption(deviceNamespaceIdOption);
+			cmd.AddOption(servicePrincipalIdOption);
+
+			cmd.SetHandler((Guid groupId, Guid templateId, Guid appId, Guid linkId, Guid deviceNamespaceId, Guid servicePrincipalId) =>
+			serviceProvider.GetService<EnrollDeviceService>()?.StartEnrollment(groupId, templateId, new SmallKms.Client.Models.CertificateEnrollmentRequestDeviceLinkedServicePrincipal
+			{
+				AppId = appId,
+				LinkId = linkId,
+				Type = SmallKms.Client.Models.CertificateEnrollmentTargetType.DeviceLinkedServicePrincipal,
+				DeviceNamespaceId = deviceNamespaceId,
+				ServicePrincipalId= servicePrincipalId,
+			}) ?? Task.CompletedTask,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)groupIdOption,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)templateIdOption,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)appIdOption,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)linkIdOption,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)deviceNamespaceIdOption,
+				(System.CommandLine.Binding.IValueDescriptor<Guid>)servicePrincipalIdOption);
 			return cmd;
 		}
 

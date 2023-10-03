@@ -241,9 +241,7 @@ type CertificateSubject struct {
 
 // CertificateSubjectAlternativeNames defines model for CertificateSubjectAlternativeNames.
 type CertificateSubjectAlternativeNames struct {
-	DNSNames       []string `json:"dns_names,omitempty"`
 	EmailAddresses []string `json:"emails,omitempty"`
-	IPAddresses    []string `json:"ipAddrs,omitempty"`
 	URIs           []string `json:"uris,omitempty"`
 }
 
@@ -564,7 +562,9 @@ type ServicePrincipalLinkedDevice struct {
 
 	// DeviceOid Object ID of the device
 	DeviceOID          openapi_types.UUID `json:"deviceOid"`
+	Ref                RefWithMetadata    `json:"ref"`
 	ServicePrincipalID openapi_types.UUID `json:"servicePrincipalId"`
+	Status             string             `json:"status"`
 }
 
 // CertIdParameter defines model for CertIdParameter.

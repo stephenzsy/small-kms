@@ -21,13 +21,17 @@ func (doc *NsRelDoc) toServicePrincipalLinkedDevice() *ServicePrincipalLinkedDev
 	if doc == nil {
 		return nil
 	}
-	return &ServicePrincipalLinkedDevice{
+
+	r := &ServicePrincipalLinkedDevice{
 		ApplicationClientID: utils.NilToDefault(doc.Attributes.AppID),
 		DeviceID:            utils.NilToDefault(doc.Attributes.DeviceID),
 		DeviceOID:           utils.NilToDefault(doc.LinkedNamespaces.Device),
 		ApplicationOID:      utils.NilToDefault(doc.LinkedNamespaces.Application),
 		ServicePrincipalID:  utils.NilToDefault(doc.LinkedNamespaces.ServicePrincipal),
+		Status:              string(doc.Status),
 	}
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r.Ref, NamespaceTypeShortName(NamespaceTypeMsGraphDevice))
+	return r
 }
 
 func (s *adminServer) getDeviceServicePrincipalLinkDoc(c context.Context, nsID uuid.UUID) (doc *NsRelDoc, relID uuid.UUID, err error) {
@@ -229,7 +233,8 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	relDoc.LinkedNamespaces.ServicePrincipal = &spID
 	relDoc.Status = NsRelStatusEnabled
 	if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
-		patchNsRelDocLinkedNamespacesServicePrincipal); err != nil {
+		patchNsRelDocLinkedNamespacesServicePrincipal,
+		patchNsRelDocLinkedStatus); err != nil {
 		return nil, err
 	}
 	log.Info().Msgf("device link %s: patched service principal: %s", deviceRelID, spID)

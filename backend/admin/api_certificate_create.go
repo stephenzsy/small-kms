@@ -34,9 +34,6 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 			*certDoc.KeyInfo.KeySize != *templateDoc.KeyProperties.KeySize) {
 		return "alg or key mismatch"
 	}
-	if !certDoc.SubjectAlternativeNames.Equals(templateDoc.SubjectAlternativeNames) {
-		return "subject alternative names mismatch"
-	}
 	if certDoc.Usage != templateDoc.Usage {
 		return "usage mismatch"
 	}
