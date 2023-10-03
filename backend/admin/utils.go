@@ -3,6 +3,8 @@ package admin
 import (
 	"encoding/base64"
 	"encoding/hex"
+
+	"github.com/stephenzsy/small-kms/backend/graph"
 )
 
 // Ptr returns a pointer to the provided value.
@@ -30,4 +32,20 @@ func base64UrlToHexStrPtr(s *string) *string {
 		return nil
 	}
 	return ToPtr(str)
+}
+
+func OdataTypeToNSType(odataType graph.MsGraphOdataType) NamespaceTypeShortName {
+	switch odataType {
+	case graph.MsGraphOdataTypeDevice:
+		return NSTypeDevice
+	case graph.MsGraphOdataTypeGroup:
+		return NSTypeGroup
+	case graph.MsGraphOdataTypeUser:
+		return NSTypeUser
+	case graph.MsGraphOdataTypeApplication:
+		return NSTypeApplication
+	case graph.MsGraphOdataTypeServicePrincipal:
+		return NSTypeServicePrincipal
+	}
+	return NSTypeAny
 }

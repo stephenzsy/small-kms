@@ -46,7 +46,7 @@ func (s *adminServer) ListCertificatesByTemplateV2(c *gin.Context, nsType Namesp
 	}
 	r := make([]RefWithMetadata, len(docs))
 	for i, doc := range docs {
-		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
+		baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i])
 		if doc.FingerprintSHA1Hex != "" {
 			r[i].DisplayName = doc.FingerprintSHA1Hex
 		}

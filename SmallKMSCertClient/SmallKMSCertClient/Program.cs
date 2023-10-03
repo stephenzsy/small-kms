@@ -1,22 +1,41 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using SmallKMSCertClient;
-using System.CommandLine;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
+﻿using System.CommandLine.Builder;
+using System.CommandLine.Parsing;
+using SmallKms.Client;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Cli.Commons.Extensions;
+using Microsoft.Kiota.Http.HttpClientLibrary;
+using Microsoft.Kiota.Serialization.Form;
+using Microsoft.Kiota.Serialization.Json;
+using Microsoft.Kiota.Serialization.Text;
+using Microsoft.Kiota.Authentication.Azure;
+using Azure.Identity;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder();
-builder.Configuration
-	.AddJsonFile(Path.Join(AppContext.BaseDirectory, "appsettings.json"), optional: true, reloadOnChange: true);
-builder.Services
-	.AddSingleton<AdminAuthProvider>()
-	.AddSingleton<EnrollDeviceService>()
-	.AddSingleton<CommandService>();
-var host = builder.Build();
+var rootCommand = new SmallKmsClient().BuildRootCommand();
+rootCommand.Description = "Small KMS CLI";
 
+var builder = new CommandLineBuilder(rootCommand)
+	.UseDefaults()
+	.UseRequestAdapter(context =>
+	{
+		var authProvider = new AzureIdentityAuthenticationProvider(new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+		{
+			ExcludeInteractiveBrowserCredential = false
+		}));
+		var adapter = new HttpClientRequestAdapter(authProvider);
+		adapter.BaseUrl = "http://localhost:9001";
 
-var rootCommand = new RootCommand("Small KMS certificate utils");
-host.Services.GetService<CommandService>()?.ConfigureCommand(rootCommand);
+		// Register default serializers
+		ApiClientBuilder.RegisterDefaultSerializer<JsonSerializationWriterFactory>();
+		ApiClientBuilder.RegisterDefaultSerializer<TextSerializationWriterFactory>();
+		ApiClientBuilder.RegisterDefaultSerializer<FormSerializationWriterFactory>();
 
-return await rootCommand.InvokeAsync(args);
+		// Register default deserializers
+		ApiClientBuilder.RegisterDefaultDeserializer<JsonParseNodeFactory>();
+		ApiClientBuilder.RegisterDefaultDeserializer<TextParseNodeFactory>();
+		ApiClientBuilder.RegisterDefaultDeserializer<FormParseNodeFactory>();
+
+		return adapter;
+	}).RegisterCommonServices();
+
+return await builder.Build().InvokeAsync(args);

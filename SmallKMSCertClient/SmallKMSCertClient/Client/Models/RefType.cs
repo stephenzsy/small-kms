@@ -9,5 +9,7 @@ namespace SmallKms.Client.Models {
         CertificateTemplate,
         [EnumMember(Value = "certificate")]
         Certificate,
+        [EnumMember(Value = "certificate-enrollment-receipt")]
+        CertificateEnrollmentReceipt,
     }
 }

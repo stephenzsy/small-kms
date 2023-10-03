@@ -89,13 +89,13 @@ const (
 
 // Defines values for NamespaceTypeShortName.
 const (
+	NSTypeAny              NamespaceTypeShortName = "any"
 	NSTypeApplication      NamespaceTypeShortName = "application"
 	NSTypeDevice           NamespaceTypeShortName = "device"
 	NSTypeGroup            NamespaceTypeShortName = "group"
 	NSTypeIntCA            NamespaceTypeShortName = "intermediate-ca"
 	NSTypeRootCA           NamespaceTypeShortName = "root-ca"
 	NSTypeServicePrincipal NamespaceTypeShortName = "service-principal"
-	NSTypeUnknown          NamespaceTypeShortName = "unknown"
 	NSTypeUser             NamespaceTypeShortName = "user"
 )
 
@@ -106,9 +106,10 @@ const (
 
 // Defines values for RefType.
 const (
-	RefTypeCertificate         RefType = "certificate"
-	RefTypeCertificateTemplate RefType = "certificate-template"
-	RefTypeNamespace           RefType = "namespace"
+	RefTypeCertificate              RefType = "certificate"
+	RefTypeCertificateEnrollReceipt RefType = "certificate-enrollment-receipt"
+	RefTypeCertificateTemplate      RefType = "certificate-template"
+	RefTypeNamespace                RefType = "namespace"
 )
 
 // ApplyPolicyRequest defines model for ApplyPolicyRequest.
@@ -128,12 +129,24 @@ type CertificateEnrollPolicyParameters struct {
 
 // CertificateEnrollmentReceipt defines model for CertificateEnrollmentReceipt.
 type CertificateEnrollmentReceipt struct {
-	// JwtPayload payload section of the certificate claims, in JWT format, base64url encoded
-	JwtPayload *string         `json:"jwtPayload,omitempty"`
-	Ref        RefWithMetadata `json:"ref"`
+	// Expires Time when the enrollment expires
+	Expires time.Time `json:"expires"`
+
+	// JwtClaims payload section of the certificate claims, in JWT format, base64url encoded
+	JwtClaims string `json:"jwtClaims"`
+
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	KeyProperties JwkProperties   `json:"keyProperties"`
+	Ref           RefWithMetadata `json:"ref"`
+
+	// RequesterId Unique ID of the user who requested the certificate
+	RequesterID openapi_types.UUID `json:"requesterId"`
 
 	// TemplateId Consistent derived ID (UUID v5) of the certificate template
-	TemplateID *openapi_types.UUID `json:"templateId,omitempty"`
+	TemplateID openapi_types.UUID `json:"templateId"`
+
+	// TemplateNamespaceId Unique ID of the namespace of the certificate template
+	TemplateNamespaceID openapi_types.UUID `json:"templateNamespaceId"`
 }
 
 // CertificateEnrollmentRequest defines model for CertificateEnrollmentRequest.
@@ -507,13 +520,12 @@ type RefWithMetadata struct {
 	Deleted *time.Time `json:"deleted,omitempty"`
 
 	// DisplayName Display name of the object
-	DisplayName   string                 `json:"displayName"`
-	ID            openapi_types.UUID     `json:"id"`
-	IsActive      *bool                  `json:"isActive,omitempty"`
-	IsDefault     *bool                  `json:"isDefault,omitempty"`
-	NamespaceID   openapi_types.UUID     `json:"namespaceId"`
-	NamespaceType NamespaceTypeShortName `json:"namespaceType"`
-	Type          RefType                `json:"type"`
+	DisplayName string             `json:"displayName"`
+	ID          openapi_types.UUID `json:"id"`
+	IsActive    *bool              `json:"isActive,omitempty"`
+	IsDefault   *bool              `json:"isDefault,omitempty"`
+	NamespaceID openapi_types.UUID `json:"namespaceId"`
+	Type        RefType            `json:"type"`
 
 	// Updated Time when the object was last updated
 	Updated time.Time `json:"updated"`
@@ -590,14 +602,15 @@ type TemplateIdParameter = openapi_types.UUID
 type CertificateResponse = CertificateInfo
 
 // ErrorResponse defines model for ErrorResponse.
-type ErrorResponse struct {
-	Code                 *string                `json:"code,omitempty"`
-	Message              *string                `json:"message,omitempty"`
-	AdditionalProperties map[string]interface{} `json:"-"`
-}
+type ErrorResponse map[string]interface{}
 
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
+
+// ListCertificateTemplatesV2Params defines parameters for ListCertificateTemplatesV2.
+type ListCertificateTemplatesV2Params struct {
+	IncludeDefaultForType *NamespaceTypeShortName `form:"includeDefaultForType,omitempty" json:"includeDefaultForType,omitempty"`
+}
 
 // IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
 type IssueCertificateByTemplateV2Params struct {
@@ -622,11 +635,11 @@ type CompleteCertificateEnrollmentV2Params struct {
 // ApplyPolicyV1JSONRequestBody defines body for ApplyPolicyV1 for application/json ContentType.
 type ApplyPolicyV1JSONRequestBody = ApplyPolicyRequest
 
-// BeginEnrollCertificateV2JSONRequestBody defines body for BeginEnrollCertificateV2 for application/json ContentType.
-type BeginEnrollCertificateV2JSONRequestBody = CertificateEnrollmentRequest
-
 // PutCertificateTemplateV2JSONRequestBody defines body for PutCertificateTemplateV2 for application/json ContentType.
 type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters
+
+// BeginEnrollCertificateV2JSONRequestBody defines body for BeginEnrollCertificateV2 for application/json ContentType.
+type BeginEnrollCertificateV2JSONRequestBody = CertificateEnrollmentRequest
 
 // Getter for additional properties for RequestDiagnostics_ServiceRuntime. Returns the specified
 // element and whether it was found
@@ -683,89 +696,6 @@ func (a RequestDiagnostics_ServiceRuntime) MarshalJSON() ([]byte, error) {
 	object["goVersion"], err = json.Marshal(a.GoVersion)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling 'goVersion': %w", err)
-	}
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for ErrorResponse. Returns the specified
-// element and whether it was found
-func (a ErrorResponse) Get(fieldName string) (value interface{}, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ErrorResponse
-func (a *ErrorResponse) Set(fieldName string, value interface{}) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]interface{})
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ErrorResponse to handle AdditionalProperties
-func (a *ErrorResponse) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if raw, found := object["code"]; found {
-		err = json.Unmarshal(raw, &a.Code)
-		if err != nil {
-			return fmt.Errorf("error reading 'code': %w", err)
-		}
-		delete(object, "code")
-	}
-
-	if raw, found := object["message"]; found {
-		err = json.Unmarshal(raw, &a.Message)
-		if err != nil {
-			return fmt.Errorf("error reading 'message': %w", err)
-		}
-		delete(object, "message")
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]interface{})
-		for fieldName, fieldBuf := range object {
-			var fieldVal interface{}
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ErrorResponse to handle AdditionalProperties
-func (a ErrorResponse) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	if a.Code != nil {
-		object["code"], err = json.Marshal(a.Code)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'code': %w", err)
-		}
-	}
-
-	if a.Message != nil {
-		object["message"], err = json.Marshal(a.Message)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'message': %w", err)
-		}
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

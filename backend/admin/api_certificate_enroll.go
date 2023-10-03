@@ -3,8 +3,6 @@ package admin
 import (
 	"context"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -193,58 +191,62 @@ func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *
 	return
 }
 
-func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateId uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) error {
+func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateId uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
 
 	// first check if AppID match
 	authCtx, ok := auth.GetAuthIdentity(c)
 	if !ok {
-		return fmt.Errorf("%w: no auth identity", common.ErrStatusUnauthorized)
+		return nil, fmt.Errorf("%w: no auth identity", common.ErrStatusUnauthorized)
+	}
+	requesterID := authCtx.ClientPrincipalID()
+	if requesterID == uuid.Nil {
+		return nil, fmt.Errorf("%w: client principal id is required", common.ErrStatusUnauthorized)
 	}
 	if req.AppID == uuid.Nil {
-		return fmt.Errorf("%w: application id is nil", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: application id is nil", common.ErrStatusBadRequest)
 	}
 	claimedAppId := authCtx.AppIDClaim()
 	if claimedAppId != req.AppID {
-		return fmt.Errorf("%w: appid is required in the authorization claim", common.ErrStatusUnauthorized)
+		return nil, fmt.Errorf("%w: appid is required in the authorization claim", common.ErrStatusUnauthorized)
 	}
 
 	// get template
 	templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// graph client in contextF
 	if graphClient, err := s.msGraphClient(c); err != nil {
-		return err
+		return nil, err
 	} else {
 		c = withGraphClient(c, graphClient)
 	}
 
 	// look up relDoc
 	if req.DeviceLinkID != common.GetCanonicalNamespaceRelationID(req.DeviceNamespaceID, common.NSRelNameDASPLink) {
-		return fmt.Errorf("%w: device link id is invalid", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: device link id is invalid", common.ErrStatusBadRequest)
 	}
 	relDoc, err := s.readNsRel(c, req.DeviceNamespaceID, req.DeviceLinkID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if relDoc.Status != NsRelStatusEnabled {
-		return fmt.Errorf("%w: device link is not enabled", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: device link is not enabled", common.ErrStatusBadRequest)
 	}
 	if deviceID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Device); !nonNil || deviceID != req.DeviceNamespaceID {
-		return fmt.Errorf("%w: device object id invalid", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: device object id invalid", common.ErrStatusBadRequest)
 	}
 	if spID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.ServicePrincipal); !nonNil || spID != req.ServicePrincipalID {
-		return fmt.Errorf("%w: service principal id invalid", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: service principal id invalid", common.ErrStatusBadRequest)
 	}
 	if appID, nonNil := utils.NonNilUUID(relDoc.Attributes.AppID); !nonNil || appID != req.AppID {
-		return fmt.Errorf("%w: application client id does invalid", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: application client id does invalid", common.ErrStatusBadRequest)
 	}
 	if _, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Application); !nonNil {
-		return fmt.Errorf("%w: application object id is nil", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: application object id is nil", common.ErrStatusBadRequest)
 	}
 	log.Info().Msgf("link doc loaded and verified: %s", req.DeviceLinkID)
 
@@ -252,58 +254,70 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	params := TemplateVarData{}
 	// verify against ms graph
 	if obj, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
-		return err
+		return nil, err
 	} else {
 		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeDevice)
 		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	log.Info().Msgf("device verified: %s", req.DeviceNamespaceID)
 
 	if _, err := s.verifyApplication(c, *relDoc.LinkedNamespaces.Application, &params); err != nil {
-		return err
+		return nil, err
 	}
 	log.Info().Msgf("application verified: %s", *relDoc.LinkedNamespaces.Application)
 
 	if _, err := s.verifyServicePrincipal(c, req.ServicePrincipalID, &params); err != nil {
-		return err
+		return nil, err
 	}
 	log.Info().Msgf("service principal verified: %s", req.ServicePrincipalID)
 
 	if obj, err := s.verifyGroup(c, nsID, &params); err != nil {
-		return err
+		return nil, err
 	} else {
 		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeGroup)
 		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	log.Info().Msgf("group verified: %s", nsID)
 
 	if ok, err := s.verifyGroupMembership(c, req.DeviceNamespaceID, nsID); err != nil {
-		return err
+		return nil, err
 	} else if !ok {
-		return fmt.Errorf("%w: device is not a member of the group", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w: device is not a member of the group", common.ErrStatusBadRequest)
 	}
 	log.Info().Msgf("group membership verified: %s", nsID)
 
 	certID, claims, err := processCertificateEnrollmentClaims(templateDoc, &params)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	marshalled, err := json.Marshal(claims)
+	claimsEncoded, err := encodeJwtJsonSegment(claims)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	base64.RawURLEncoding.EncodeToString(marshalled)
 
-	log.Info().Msgf("certificate enrollment claims processed: %s, %s", certID, base64.RawURLEncoding.EncodeToString(marshalled))
+	// store doc
+	pCertDoc := newPendingCertDoc(certID, claimsEncoded, templateDoc, req.ServicePrincipalID, requesterID)
+	if err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), &pCertDoc); err != nil {
+		return nil, err
+	}
+	log.Info().Msgf("pending document stored: %s", nsID)
 
-	return nil
+	return &pCertDoc, nil
 }
 
-func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
+func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) {
+
+	switch nsType {
+	case NSTypeGroup:
+		// pass
+	default:
+		respondPublicErrorMsg(c, http.StatusBadRequest, "namespace type not supported")
+		return
+	}
 
 	rawReq := CertificateEnrollmentRequest{}
 	if err := c.Bind(&rawReq); err != nil {
@@ -317,18 +331,22 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 		return
 	}
 
+	var pCertDoc *PendingCertDoc
+	var responseNsType NamespaceTypeShortName
 	switch req := req.(type) {
 	case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-		err = s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
-
+		pCertDoc, err = s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
+		responseNsType = NSTypeServicePrincipal
 	}
 	if err != nil {
 		common.RespondError(c, err)
 		return
 	}
 
-	respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
-
+	if pCertDoc == nil {
+		respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
+	}
+	c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
 }
 
 func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, namespaceType NamespaceTypeParameter, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params) {

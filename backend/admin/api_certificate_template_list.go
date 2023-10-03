@@ -10,34 +10,36 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func createDefaultCertificateTemplateIDs(nsType NamespaceTypeShortName, nsID uuid.UUID) []RefWithMetadata {
+func createDefaultCertificateTemplateIDs(nsTypePtr *NamespaceTypeShortName, nsID uuid.UUID) []RefWithMetadata {
+	if nsTypePtr == nil {
+		return nil
+	}
+	nsType := *nsTypePtr
 	switch nsType {
 	case NSTypeRootCA,
 		NSTypeIntCA:
 		return []RefWithMetadata{{
-			ID:            uuid.Nil,
-			DisplayName:   "default",
-			IsActive:      utils.ToPtr(false),
-			NamespaceID:   nsID,
-			Type:          RefTypeCertificateTemplate,
-			NamespaceType: nsType,
+			ID:          uuid.Nil,
+			DisplayName: "default",
+			IsActive:    utils.ToPtr(false),
+			NamespaceID: nsID,
+			Type:        RefTypeCertificateTemplate,
 		}}
 	case NSTypeGroup:
 		spID := common.GetCanonicalCertificateTemplateID(nsID, common.DefaultCertTemplateName_ServicePrincipalClientCredential)
 		return []RefWithMetadata{
 			{
-				ID:            spID,
-				DisplayName:   string(common.DefaultCertTemplateName_ServicePrincipalClientCredential),
-				IsActive:      utils.ToPtr(false),
-				NamespaceID:   nsID,
-				Type:          RefTypeCertificateTemplate,
-				NamespaceType: nsType,
+				ID:          spID,
+				DisplayName: string(common.DefaultCertTemplateName_ServicePrincipalClientCredential),
+				IsActive:    utils.ToPtr(false),
+				NamespaceID: nsID,
+				Type:        RefTypeCertificateTemplate,
 			}}
 	}
 	return nil
 }
 
-func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType NamespaceTypeShortName, nsID uuid.UUID) {
+func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsID uuid.UUID, params ListCertificateTemplatesV2Params) {
 	if !authAdminOnly(c) {
 		return
 	}
@@ -47,14 +49,15 @@ func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType Namespac
 		respondInternalError(c, err, fmt.Sprintf("failed to list certificate templates: %s", nsID))
 		return
 	}
-	defaultList := createDefaultCertificateTemplateIDs(nsType, nsID)
+
+	defaultList := createDefaultCertificateTemplateIDs(params.IncludeDefaultForType, nsID)
 	r := make([]RefWithMetadata, len(defaultList), len(docs)+len(defaultList))
 	copy(r, defaultList)
 	for _, doc := range docs {
 		if doc.ID.GetUUID().Version() != 4 {
 			for i := range defaultList {
 				if r[i].ID == doc.ID.GetUUID() {
-					baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i], nsType)
+					baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r[i])
 					r[i].DisplayName = doc.DisplayName
 					r[i].Type = RefTypeCertificateTemplate
 					r[i].IsActive = utils.ToPtr(doc.Deleted == nil || doc.Deleted.IsZero())
@@ -64,7 +67,7 @@ func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType Namespac
 		}
 		{
 			item := RefWithMetadata{}
-			baseDocPopulateRefWithMetadata(&doc.BaseDoc, &item, nsType)
+			baseDocPopulateRefWithMetadata(&doc.BaseDoc, &item)
 			item.DisplayName = doc.DisplayName
 			item.Type = RefTypeCertificateTemplate
 			item.IsActive = utils.ToPtr(doc.Deleted == nil || doc.Deleted.IsZero())
@@ -74,18 +77,4 @@ func (s *adminServer) ListCertificateTemplatesV2(c *gin.Context, nsType Namespac
 	}
 
 	c.JSON(http.StatusOK, r)
-}
-
-func (s *adminServer) GetCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
-	if !authAdminOnly(c) {
-		return
-	}
-
-	doc, err := s.readCertificateTemplateDoc(c, namespaceId, templateId)
-	if err != nil {
-		common.RespondError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, doc.toCertificateTemplate(namespaceType))
 }

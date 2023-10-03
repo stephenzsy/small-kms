@@ -24,9 +24,9 @@ namespace SmallKms.Client.Models {
         public string E { get; set; }
 #endif
         /// <summary>The key_ops property</summary>
-        public JwkKeyOperation? KeyOps { get; set; }
+        public JwkKeyOperation? Key_ops { get; set; }
         /// <summary>The key_size property</summary>
-        public int? KeySize { get; set; }
+        public int? Key_size { get; set; }
         /// <summary>Key ID</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -115,8 +115,8 @@ namespace SmallKms.Client.Models {
                 {"alg", n => { Alg = n.GetEnumValue<JwkAlg>(); } },
                 {"crv", n => { Crv = n.GetEnumValue<CurveName>(); } },
                 {"e", n => { E = n.GetStringValue(); } },
-                {"key_ops", n => { KeyOps = n.GetEnumValue<JwkKeyOperation>(); } },
-                {"key_size", n => { KeySize = n.GetIntValue(); } },
+                {"key_ops", n => { Key_ops = n.GetEnumValue<JwkKeyOperation>(); } },
+                {"key_size", n => { Key_size = n.GetIntValue(); } },
                 {"kid", n => { Kid = n.GetStringValue(); } },
                 {"kty", n => { Kty = n.GetEnumValue<KeyType>(); } },
                 {"n", n => { N = n.GetStringValue(); } },
@@ -137,8 +137,8 @@ namespace SmallKms.Client.Models {
             writer.WriteEnumValue<JwkAlg>("alg", Alg);
             writer.WriteEnumValue<CurveName>("crv", Crv);
             writer.WriteStringValue("e", E);
-            writer.WriteEnumValue<JwkKeyOperation>("key_ops", KeyOps);
-            writer.WriteIntValue("key_size", KeySize);
+            writer.WriteEnumValue<JwkKeyOperation>("key_ops", Key_ops);
+            writer.WriteIntValue("key_size", Key_size);
             writer.WriteStringValue("kid", Kid);
             writer.WriteEnumValue<KeyType>("kty", Kty);
             writer.WriteStringValue("n", N);

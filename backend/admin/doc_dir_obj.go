@@ -54,7 +54,7 @@ func toNsType(odataType graph.MsGraphOdataType) NamespaceTypeShortName {
 	case graph.MsGraphOdataTypeServicePrincipal:
 		return NSTypeServicePrincipal
 	}
-	return NSTypeUnknown
+	return NSTypeAny
 }
 
 func newNamespaceInfoFromProfileDoc(doc graph.GraphProfileDocument) *NamespaceInfo {
@@ -62,7 +62,7 @@ func newNamespaceInfoFromProfileDoc(doc graph.GraphProfileDocument) *NamespaceIn
 		return nil
 	}
 	p := new(NamespaceInfo)
-	profileDocPopulateRefWithMetadata(doc, &p.Ref, toNsType(doc.GetOdataType()))
+	profileDocPopulateRefWithMetadata(doc, &p.Ref)
 	return p
 }
 

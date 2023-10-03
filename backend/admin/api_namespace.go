@@ -62,7 +62,7 @@ func (s *adminServer) ListNamespacesByTypeV2(c *gin.Context, nsType NamespaceTyp
 
 	r := make([]RefWithMetadata, len(dirObjs))
 	for i, doc := range dirObjs {
-		profileDocPopulateRefWithMetadata(&doc, &r[i], nsType)
+		profileDocPopulateRefWithMetadata(&doc, &r[i])
 		r[i].Type = RefTypeNamespace
 	}
 

@@ -125,7 +125,7 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 		certInfo.SubjectAlternativeNames = doc.SubjectAlternativeNames
 	}
 
-	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &certInfo.Ref, nsType)
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &certInfo.Ref)
 	docCuid := doc.GetCUID()
 	certInfo.Ref.ID = docCuid.GetUUID()
 	certInfo.Ref.Type = RefTypeCertificate

@@ -16,8 +16,24 @@ namespace SmallKms.Client.Models {
         public Guid? DeviceId { get; set; }
         /// <summary>Object ID of the device</summary>
         public Guid? DeviceOid { get; set; }
+        /// <summary>The ref property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RefWithMetadata? Ref { get; set; }
+#nullable restore
+#else
+        public RefWithMetadata Ref { get; set; }
+#endif
         /// <summary>The servicePrincipalId property</summary>
         public Guid? ServicePrincipalId { get; set; }
+        /// <summary>The status property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Status { get; set; }
+#nullable restore
+#else
+        public string Status { get; set; }
+#endif
         /// <summary>
         /// Instantiates a new ServicePrincipalLinkedDevice and sets the default values.
         /// </summary>
@@ -41,7 +57,9 @@ namespace SmallKms.Client.Models {
                 {"applicationOid", n => { ApplicationOid = n.GetGuidValue(); } },
                 {"deviceId", n => { DeviceId = n.GetGuidValue(); } },
                 {"deviceOid", n => { DeviceOid = n.GetGuidValue(); } },
+                {"ref", n => { Ref = n.GetObjectValue<RefWithMetadata>(RefWithMetadata.CreateFromDiscriminatorValue); } },
                 {"servicePrincipalId", n => { ServicePrincipalId = n.GetGuidValue(); } },
+                {"status", n => { Status = n.GetStringValue(); } },
             };
         }
         /// <summary>
@@ -54,7 +72,9 @@ namespace SmallKms.Client.Models {
             writer.WriteGuidValue("applicationOid", ApplicationOid);
             writer.WriteGuidValue("deviceId", DeviceId);
             writer.WriteGuidValue("deviceOid", DeviceOid);
+            writer.WriteObjectValue<RefWithMetadata>("ref", Ref);
             writer.WriteGuidValue("servicePrincipalId", ServicePrincipalId);
+            writer.WriteStringValue("status", Status);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

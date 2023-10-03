@@ -52,18 +52,9 @@ func isTestCA(namespaceID uuid.UUID) bool {
 }
 
 // returns a tuple of (isValid, needs graph validation)
-func validateNamespaceType(nsType NamespaceTypeShortName, nsID uuid.UUID) (bool, bool) {
-	switch nsType {
-	case NSTypeRootCA:
-		return isAllowedRootCaNamespace(nsID), false
-	case NSTypeIntCA:
-		return isAllowedIntCaNamespace(nsID), false
-	case NSTypeServicePrincipal,
-		NSTypeGroup,
-		NSTypeDevice,
-		NSTypeUser,
-		NSTypeApplication:
-		return nsID.Version() == 4, true
+func isGraphValidationNeeded(nsID uuid.UUID) (bool, bool) {
+	if isAllowedCaNamespace(nsID) {
+		return true, false
 	}
-	return false, false
+	return nsID.Version() == 4, true
 }

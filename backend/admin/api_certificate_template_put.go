@@ -17,22 +17,25 @@ var (
 	ErrCertificateTemplateVariable = errors.New("certificate template variable field is invalid")
 )
 
-func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType NamespaceTypeShortName, namespaceId uuid.UUID, templateId uuid.UUID) {
+func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceId uuid.UUID, templateId uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
 	}
 
-	isValid, isGraphValidationNeeded := validateNamespaceType(namespaceType, namespaceId)
+	isValid, needGraphValidation := isGraphValidationNeeded(namespaceId)
+	var odataType graph.MsGraphOdataType
 	if !isValid {
-		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace type %s is not valid for ID: %s", namespaceType, namespaceId))
+		respondPublicErrorMsg(c, http.StatusBadRequest, fmt.Sprintf("namespace ID is not valid: %s", namespaceId))
+		return
 	}
-	if isGraphValidationNeeded {
+	if needGraphValidation {
 		// will check if directory object is already sync, sync will performed prior to issuing certificates
-		_, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
+		graphObj, err := s.graphService.GetGraphProfileDoc(c, namespaceId, graph.MsGraphOdataTypeNone)
 		if err != nil {
 			common.RespondError(c, err)
 			return
 		}
+		odataType = graphObj.GetOdataType()
 	}
 
 	templateParams := CertificateTemplateParameters{}
@@ -42,7 +45,7 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 		return
 	}
 
-	doc, err := templateParams.validateAndToDoc(namespaceType, namespaceId, templateId)
+	doc, err := templateParams.validateAndToDoc(odataType, namespaceId, templateId)
 	if err != nil {
 		respondPublicError(c, http.StatusBadRequest, err)
 		return
@@ -57,7 +60,7 @@ func (s *adminServer) PutCertificateTemplateV2(c *gin.Context, namespaceType Nam
 		return
 	}
 
-	c.JSON(http.StatusOK, doc.toCertificateTemplate(namespaceType))
+	c.JSON(http.StatusOK, doc.toCertificateTemplate())
 }
 
 func (p *CertificateTemplateParameters) populateDocIssuer(doc *CertificateTemplateDoc, issuerNsType NamespaceTypeShortName) {
@@ -93,10 +96,21 @@ func validateTemplateIdentifiers(nsType NamespaceTypeShortName, nsID uuid.UUID, 
 	return "invalid", false
 }
 
-func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeShortName, nsID uuid.UUID, templateId uuid.UUID) (*CertificateTemplateDoc, error) {
+func (p *CertificateTemplateParameters) validateAndToDoc(odataType graph.MsGraphOdataType, nsID uuid.UUID, templateId uuid.UUID) (*CertificateTemplateDoc, error) {
 	if p == nil {
 		return nil, nil
 	}
+
+	nsType := NSTypeAny
+	switch {
+	case isAllowedRootCaNamespace(nsID):
+		nsType = NSTypeRootCA
+	case isAllowedIntCaNamespace(nsID):
+		nsType = NSTypeIntCA
+	default:
+		nsType = OdataTypeToNSType(odataType)
+	}
+
 	displayName := p.DisplayName
 	if fixedName, ok := validateTemplateIdentifiers(nsType, nsID, templateId, displayName); ok {
 		displayName = fixedName
@@ -170,7 +184,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(nsType NamespaceTypeSho
 		}
 		// ignore input key properties for CA
 	default:
-		if err := doc.KeyProperties.fromInput(p.KeyProperties); err != nil {
+		if err := doc.KeyProperties.fromJwkProperties(p.KeyProperties); err != nil {
 			return nil, err
 		}
 		if p.Usage == UsageAADClientCredential && doc.KeyProperties.Kty == KeyTypeEC {

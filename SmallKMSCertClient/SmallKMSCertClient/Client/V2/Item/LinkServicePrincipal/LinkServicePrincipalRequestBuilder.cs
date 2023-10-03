@@ -5,7 +5,6 @@ using Microsoft.Kiota.Cli.Commons.Extensions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
 using SmallKms.Client.Models;
-using SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates.Latest;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -14,29 +13,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
+namespace SmallKms.Client.V2.Item.LinkServicePrincipal {
     /// <summary>
-    /// Builds and executes requests for operations under \v2\{namespaceType}\{namespaceId}\certificate-templates\{templateId}\certificates
+    /// Builds and executes requests for operations under \v2\{namespaceId}\link-service-principal
     /// </summary>
-    public class CertificatesRequestBuilder : BaseCliRequestBuilder {
+    public class LinkServicePrincipalRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// List certificates issued by template
+        /// Link device service principal
         /// </summary>
         public Command BuildGetCommand() {
             var command = new Command("get");
-            command.Description = "List certificates issued by template";
-            var namespaceTypeOption = new Option<string>("--namespace-type") {
-            };
-            namespaceTypeOption.IsRequired = true;
-            command.AddOption(namespaceTypeOption);
+            command.Description = "Link device service principal";
             var namespaceIdOption = new Option<string>("--namespace-id") {
             };
             namespaceIdOption.IsRequired = true;
             command.AddOption(namespaceIdOption);
-            var templateIdOption = new Option<string>("--template-id") {
-            };
-            templateIdOption.IsRequired = true;
-            command.AddOption(templateIdOption);
             var outputOption = new Option<FormatterType>("--output", () => FormatterType.JSON){
                 IsRequired = true
             };
@@ -51,9 +42,7 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             }, description: "Disable indentation for the JSON output formatter.");
             command.AddOption(jsonNoIndentOption);
             command.SetHandler(async (invocationContext) => {
-                var namespaceType = invocationContext.ParseResult.GetValueForOption(namespaceTypeOption);
                 var namespaceId = invocationContext.ParseResult.GetValueForOption(namespaceIdOption);
-                var templateId = invocationContext.ParseResult.GetValueForOption(templateIdOption);
                 var output = invocationContext.ParseResult.GetValueForOption(outputOption);
                 var query = invocationContext.ParseResult.GetValueForOption(queryOption);
                 var jsonNoIndent = invocationContext.ParseResult.GetValueForOption(jsonNoIndentOption);
@@ -63,9 +52,7 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
                 var reqAdapter = invocationContext.GetRequestAdapter();
                 var requestInfo = ToGetRequestInformation(q => {
                 });
-                if (namespaceType is not null) requestInfo.PathParameters.Add("namespaceType", namespaceType);
                 if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
-                if (templateId is not null) requestInfo.PathParameters.Add("templateId", templateId);
                 var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
@@ -75,42 +62,15 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             return command;
         }
         /// <summary>
-        /// The latest property
-        /// </summary>
-        public Command BuildLatestNavCommand() {
-            var command = new Command("latest");
-            command.Description = "The latest property";
-            var builder = new LatestRequestBuilder(PathParameters);
-            var execCommands = new List<Command>();
-            execCommands.Add(builder.BuildGetCommand());
-            foreach (var cmd in execCommands)
-            {
-                command.AddCommand(cmd);
-            }
-            return command;
-        }
-        /// <summary>
-        /// Create certificate
+        /// Link device service principal
         /// </summary>
         public Command BuildPostCommand() {
             var command = new Command("post");
-            command.Description = "Create certificate";
-            var namespaceTypeOption = new Option<string>("--namespace-type") {
-            };
-            namespaceTypeOption.IsRequired = true;
-            command.AddOption(namespaceTypeOption);
+            command.Description = "Link device service principal";
             var namespaceIdOption = new Option<string>("--namespace-id") {
             };
             namespaceIdOption.IsRequired = true;
             command.AddOption(namespaceIdOption);
-            var templateIdOption = new Option<string>("--template-id") {
-            };
-            templateIdOption.IsRequired = true;
-            command.AddOption(templateIdOption);
-            var includeCertificateOption = new Option<string>("--include-certificate") {
-            };
-            includeCertificateOption.IsRequired = false;
-            command.AddOption(includeCertificateOption);
             var outputOption = new Option<FormatterType>("--output", () => FormatterType.JSON){
                 IsRequired = true
             };
@@ -125,10 +85,7 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             }, description: "Disable indentation for the JSON output formatter.");
             command.AddOption(jsonNoIndentOption);
             command.SetHandler(async (invocationContext) => {
-                var namespaceType = invocationContext.ParseResult.GetValueForOption(namespaceTypeOption);
                 var namespaceId = invocationContext.ParseResult.GetValueForOption(namespaceIdOption);
-                var templateId = invocationContext.ParseResult.GetValueForOption(templateIdOption);
-                var includeCertificate = invocationContext.ParseResult.GetValueForOption(includeCertificateOption);
                 var output = invocationContext.ParseResult.GetValueForOption(outputOption);
                 var query = invocationContext.ParseResult.GetValueForOption(queryOption);
                 var jsonNoIndent = invocationContext.ParseResult.GetValueForOption(jsonNoIndentOption);
@@ -137,12 +94,13 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
                 var cancellationToken = invocationContext.GetCancellationToken();
                 var reqAdapter = invocationContext.GetRequestAdapter();
                 var requestInfo = ToPostRequestInformation(q => {
-                    if (!string.IsNullOrEmpty(includeCertificate)) q.QueryParameters.IncludeCertificate = includeCertificate;
                 });
-                if (namespaceType is not null) requestInfo.PathParameters.Add("namespaceType", namespaceType);
                 if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
-                if (templateId is not null) requestInfo.PathParameters.Add("templateId", templateId);
-                var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
+                var errorMapping = new Dictionary<string, ParsableFactory<IParsable>> {
+                    {"400", ServicePrincipalLinkedDevice400Error.CreateFromDiscriminatorValue},
+                    {"409", ServicePrincipalLinkedDevice409Error.CreateFromDiscriminatorValue},
+                };
+                var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: errorMapping, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
                 var formatter = outputFormatterFactory.GetFormatter(output);
@@ -151,19 +109,19 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             return command;
         }
         /// <summary>
-        /// Instantiates a new CertificatesRequestBuilder and sets the default values.
+        /// Instantiates a new LinkServicePrincipalRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
-        public CertificatesRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates{?includeCertificate*}", pathParameters) {
+        public LinkServicePrincipalRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceId}/link-service-principal", pathParameters) {
         }
         /// <summary>
-        /// Instantiates a new CertificatesRequestBuilder and sets the default values.
+        /// Instantiates a new LinkServicePrincipalRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public CertificatesRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/certificates{?includeCertificate*}", rawUrl) {
+        public LinkServicePrincipalRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceId}/link-service-principal", rawUrl) {
         }
         /// <summary>
-        /// List certificates issued by template
+        /// Link device service principal
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -189,15 +147,15 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             return requestInfo;
         }
         /// <summary>
-        /// Create certificate
+        /// Link device service principal
         /// </summary>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<CertificatesRequestBuilderPostQueryParameters>>? requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default) {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<CertificatesRequestBuilderPostQueryParameters>> requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default) {
 #endif
             var requestInfo = new RequestInformation {
                 HttpMethod = Method.POST,
@@ -206,25 +164,13 @@ namespace SmallKms.Client.V2.Item.Item.CertificateTemplates.Item.Certificates {
             };
             requestInfo.Headers.Add("Accept", "application/json");
             if (requestConfiguration != null) {
-                var requestConfig = new RequestConfiguration<CertificatesRequestBuilderPostQueryParameters>();
+                var requestConfig = new RequestConfiguration<DefaultQueryParameters>();
                 requestConfiguration.Invoke(requestConfig);
                 requestInfo.AddQueryParameters(requestConfig.QueryParameters);
                 requestInfo.AddRequestOptions(requestConfig.Options);
                 requestInfo.AddHeaders(requestConfig.Headers);
             }
             return requestInfo;
-        }
-        /// <summary>
-        /// Create certificate
-        /// </summary>
-        public class CertificatesRequestBuilderPostQueryParameters {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-            public string? IncludeCertificate { get; set; }
-#nullable restore
-#else
-            public string IncludeCertificate { get; set; }
-#endif
         }
     }
 }

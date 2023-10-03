@@ -2,7 +2,7 @@
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
-using SmallKms.Client.V2.Device.Item.LinkServicePrincipal;
+using SmallKms.Client.V2.Item.LinkServicePrincipal;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -10,16 +10,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-namespace SmallKms.Client.V2.Device.Item {
+namespace SmallKms.Client.V2.Item {
     /// <summary>
-    /// Builds and executes requests for operations under \v2\device\{namespaceId}
+    /// Builds and executes requests for operations under \v2\{namespaceId}
     /// </summary>
     public class WithNamespaceItemRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
+        /// Gets an item from the SmallKms.Client.v2.item.item collection
+        /// </summary>
+        public Tuple<List<Command>, List<Command>> BuildCommand() {
+            return new(new(0), new(0));
+        }
+        /// <summary>
         /// The linkServicePrincipal property
         /// </summary>
-        public Command BuildLinkServicePrincipalNavCommand() {
-            var command = new Command("link-service-principal");
+        public Command BuildLinkServicePrincipalByIdNavCommand() {
+            var withNamespaceIndexer = new WithNamespaceItemRequestBuilder(PathParameters);
+            var command = withNamespaceIndexer.BuildLinkServicePrincipalByIdNavCommand();
             command.Description = "The linkServicePrincipal property";
             var builder = new LinkServicePrincipalRequestBuilder(PathParameters);
             var execCommands = new List<Command>();
@@ -35,13 +42,13 @@ namespace SmallKms.Client.V2.Device.Item {
         /// Instantiates a new WithNamespaceItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
-        public WithNamespaceItemRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/device/{namespaceId}", pathParameters) {
+        public WithNamespaceItemRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceId}", pathParameters) {
         }
         /// <summary>
         /// Instantiates a new WithNamespaceItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public WithNamespaceItemRequestBuilder(string rawUrl) : base("{+baseurl}/v2/device/{namespaceId}", rawUrl) {
+        public WithNamespaceItemRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceId}", rawUrl) {
         }
     }
 }

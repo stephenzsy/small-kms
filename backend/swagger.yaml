@@ -6,52 +6,13 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /v2/device/{namespaceId}/link-service-principal:
+  /v2/{namespaceId}/certificate-templates:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Link device service principal
-      operationId: GetDeviceServicePrincipalLinkV2
-      responses:
-        200:
-          description: Link device service principal response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
-    post:
-      tags:
-        - admin
-      summary: Link device service principal
-      operationId: CreateDeviceServicePrincipalLinkV2
-      responses:
-        201:
-          description: Link device service principal response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
-        400:
-          $ref: "#/components/responses/ErrorResponse"
-        409:
-          $ref: "#/components/responses/ErrorResponse"
-  /v2/{namespaceType}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-    get:
-      tags:
-        - admin
-      summary: List namespaces by type
-      operationId: ListNamespacesByTypeV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - in: query
+        name: includeDefaultForType
+        schema:
+          $ref: "#/components/schemas/NamespaceTypeShortName"
     get:
       tags:
         - admin
@@ -60,9 +21,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/RefListResponse"
-  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}:
+  /v2/{namespaceId}/certificate-templates/{templateId}:
     parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/TemplateIdParameter"
     get:
@@ -94,9 +54,52 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateTemplate"
-  /v2/group/{namespaceId}/certificate-templates/{templateId}/enroll:
+                $ref: "#/components/schemas/CertificateTemplate"          
+  /v2/{namespaceId}/link-service-principal:
     parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: Link device service principal
+      operationId: GetDeviceServicePrincipalLinkV2
+      responses:
+        200:
+          description: Link device service principal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
+    post:
+      tags:
+        - admin
+      summary: Link device service principal
+      operationId: CreateDeviceServicePrincipalLinkV2
+      responses:
+        201:
+          description: Link device service principal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        409:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/namespaces/{namespaceType}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
+    get:
+      tags:
+        - admin
+      summary: List namespaces by type
+      operationId: ListNamespacesByTypeV2
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
+  /v2/{namespaceType}/{namespaceId}/certificate-templates/{templateId}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceTypeParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/TemplateIdParameter"
     post:
@@ -185,7 +188,7 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
-  /v2/graph-sync/{namespaceId}:
+  /v2/namespaces/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
     post:
@@ -543,7 +546,7 @@ components:
     NamespaceTypeShortName:
       type: string
       enum:
-        - unknown
+        - any
         - root-ca
         - intermediate-ca
         - service-principal
@@ -552,7 +555,7 @@ components:
         - user
         - application
       x-enum-varnames:
-        - NSType_Unknown
+        - NSType_Any
         - NSType_RootCA
         - NSType_IntCA
         - NSType_ServicePrincipal
@@ -583,10 +586,12 @@ components:
         - namespace
         - certificate-template
         - certificate
+        - certificate-enrollment-receipt
       x-enum-varnames:
         - RefTypeNamespace
         - RefTypeCertificateTemplate
         - RefTypeCertificate
+        - RefTypeCertificateEnrollReceipt
     Ref:
       type: object
       properties:
@@ -609,8 +614,6 @@ components:
         - $ref: "#/components/schemas/Ref"
         - type: object
           properties:
-            namespaceType:
-              $ref: "#/components/schemas/NamespaceTypeShortName"
             updatedBy:
               description: Unique ID of the user who last updated the object
               type: string
@@ -631,7 +634,6 @@ components:
               type: boolean
           x-go-type-skip-optional-pointer: true
           required:
-            - namespaceType
             - updated
             - updatedBy
             - displayName
@@ -732,17 +734,38 @@ components:
       properties:
         ref:
           $ref: "#/components/schemas/RefWithMetadata"
-        jwtPayload:
+        expires:
+          description: Time when the enrollment expires
+          type: string
+          format: date-time
+        jwtClaims:
           description: payload section of the certificate claims, in JWT format, base64url encoded
           type: string
+        templateNamespaceId:
+          description: Unique ID of the namespace of the certificate template
+          type: string
+          format: uuid
+          x-go-name: TemplateNamespaceID
         templateId:
           description: Consistent derived ID (UUID v5) of the certificate template
           type: string
           format: uuid
           x-go-name: TemplateID
+        requesterId:
+          description: Unique ID of the user who requested the certificate
+          type: string
+          format: uuid
+          x-go-name: RequesterID
+        keyProperties:
+          $ref: "#/components/schemas/JwkProperties"
       required:
         - ref
-        - payload
+        - expires
+        - jwtClaims
+        - templateNamespaceId
+        - templateId
+        - requesterId
+        - keyProperties
     CertificateEnrollmentReplyFinalize:
       type: object
       properties:
@@ -1385,11 +1408,6 @@ components:
         application/json:
           schema:
             type: object
-            properties:
-              code:
-                type: string
-              message:
-                type: string
             additionalProperties: true
     ErrorResponse:
       description: error response
@@ -1397,9 +1415,4 @@ components:
         application/json:
           schema:
             type: object
-            properties:
-              code:
-                type: string
-              message:
-                type: string
             additionalProperties: true

@@ -3,8 +3,8 @@ using System.Runtime.Serialization;
 using System;
 namespace SmallKms.Client.Models {
     public enum NamespaceTypeShortName {
-        [EnumMember(Value = "unknown")]
-        Unknown,
+        [EnumMember(Value = "any")]
+        Any,
         [EnumMember(Value = "root-ca")]
         RootCa,
         [EnumMember(Value = "intermediate-ca")]

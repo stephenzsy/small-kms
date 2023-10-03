@@ -50,7 +50,7 @@ namespace SmallKms.Client.Models {
         public CertificateLifetimeTrigger LifetimeTrigger { get; set; }
 #endif
         /// <summary>Keep using the same key version if exists</summary>
-        public bool? ReuseKey { get; set; }
+        public bool? Reuse_key { get; set; }
         /// <summary>The subject property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -70,7 +70,7 @@ namespace SmallKms.Client.Models {
         /// <summary>The usage property</summary>
         public CertificateUsage? Usage { get; set; }
         /// <summary>The validity_months property</summary>
-        public int? ValidityMonths { get; set; }
+        public int? Validity_months { get; set; }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
@@ -89,11 +89,11 @@ namespace SmallKms.Client.Models {
                 {"keyProperties", n => { KeyProperties = n.GetObjectValue<JwkProperties>(JwkProperties.CreateFromDiscriminatorValue); } },
                 {"keyStorePath", n => { KeyStorePath = n.GetStringValue(); } },
                 {"lifetimeTrigger", n => { LifetimeTrigger = n.GetObjectValue<CertificateLifetimeTrigger>(CertificateLifetimeTrigger.CreateFromDiscriminatorValue); } },
-                {"reuse_key", n => { ReuseKey = n.GetBoolValue(); } },
+                {"reuse_key", n => { Reuse_key = n.GetBoolValue(); } },
                 {"subject", n => { Subject = n.GetObjectValue<CertificateSubject>(CertificateSubject.CreateFromDiscriminatorValue); } },
                 {"subjectAlternativeNames", n => { SubjectAlternativeNames = n.GetObjectValue<CertificateSubjectAlternativeNames>(CertificateSubjectAlternativeNames.CreateFromDiscriminatorValue); } },
                 {"usage", n => { Usage = n.GetEnumValue<CertificateUsage>(); } },
-                {"validity_months", n => { ValidityMonths = n.GetIntValue(); } },
+                {"validity_months", n => { Validity_months = n.GetIntValue(); } },
             };
         }
         /// <summary>
@@ -108,11 +108,11 @@ namespace SmallKms.Client.Models {
             writer.WriteObjectValue<JwkProperties>("keyProperties", KeyProperties);
             writer.WriteStringValue("keyStorePath", KeyStorePath);
             writer.WriteObjectValue<CertificateLifetimeTrigger>("lifetimeTrigger", LifetimeTrigger);
-            writer.WriteBoolValue("reuse_key", ReuseKey);
+            writer.WriteBoolValue("reuse_key", Reuse_key);
             writer.WriteObjectValue<CertificateSubject>("subject", Subject);
             writer.WriteObjectValue<CertificateSubjectAlternativeNames>("subjectAlternativeNames", SubjectAlternativeNames);
             writer.WriteEnumValue<CertificateUsage>("usage", Usage);
-            writer.WriteIntValue("validity_months", ValidityMonths);
+            writer.WriteIntValue("validity_months", Validity_months);
         }
     }
 }

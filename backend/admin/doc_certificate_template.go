@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateTemplateDocKeyProperties struct {
@@ -126,7 +127,7 @@ func (s *CertificateTemplateDocSubject) String() string {
 	return str
 }
 
-func (p *CertificateTemplateDocKeyProperties) fromInput(input *JwkProperties) error {
+func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *JwkProperties) error {
 	if input == nil {
 		return nil
 	}
@@ -159,6 +160,16 @@ func (p *CertificateTemplateDocKeyProperties) fromInput(input *JwkProperties) er
 	return nil
 }
 
+func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *JwkProperties) {
+	if p == nil {
+		return
+	}
+	o.Alg = utils.ToPtr(p.Alg)
+	o.Kty = p.Kty
+	o.KeySize = p.KeySize
+	o.Crv = p.Crv
+}
+
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
 	t.DaysBeforeExpiry = nil
 	t.LifetimePercentage = ToPtr(int32(80))
@@ -186,12 +197,12 @@ func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLife
 	return nil
 }
 
-func (doc *CertificateTemplateDoc) toCertificateTemplate(nsType NamespaceTypeShortName) *CertificateTemplate {
+func (doc *CertificateTemplateDoc) toCertificateTemplate() *CertificateTemplate {
 	if doc == nil {
 		return nil
 	}
 	o := new(CertificateTemplate)
-	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &o.Ref, nsType)
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &o.Ref)
 	o.DisplayName = doc.DisplayName
 	o.Ref.Type = RefTypeCertificateTemplate
 	o.Issuer = CertificateIssuer{

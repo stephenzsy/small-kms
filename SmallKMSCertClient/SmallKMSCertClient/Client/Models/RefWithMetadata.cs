@@ -8,14 +8,18 @@ namespace SmallKms.Client.Models {
     public class RefWithMetadata : Ref, IParsable {
         /// <summary>Time when the object was deleted</summary>
         public DateTimeOffset? Deleted { get; set; }
-        /// <summary>The metadata property</summary>
+        /// <summary>Display name of the object</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RefWithMetadata_metadata? Metadata { get; set; }
+        public string? DisplayName { get; set; }
 #nullable restore
 #else
-        public RefWithMetadata_metadata Metadata { get; set; }
+        public string DisplayName { get; set; }
 #endif
+        /// <summary>The isActive property</summary>
+        public bool? IsActive { get; set; }
+        /// <summary>The isDefault property</summary>
+        public bool? IsDefault { get; set; }
         /// <summary>The namespaceType property</summary>
         public NamespaceTypeShortName? NamespaceType { get; set; }
         /// <summary>Time when the object was last updated</summary>
@@ -42,7 +46,9 @@ namespace SmallKms.Client.Models {
         public new IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers()) {
                 {"deleted", n => { Deleted = n.GetDateTimeOffsetValue(); } },
-                {"metadata", n => { Metadata = n.GetObjectValue<RefWithMetadata_metadata>(RefWithMetadata_metadata.CreateFromDiscriminatorValue); } },
+                {"displayName", n => { DisplayName = n.GetStringValue(); } },
+                {"isActive", n => { IsActive = n.GetBoolValue(); } },
+                {"isDefault", n => { IsDefault = n.GetBoolValue(); } },
                 {"namespaceType", n => { NamespaceType = n.GetEnumValue<NamespaceTypeShortName>(); } },
                 {"updated", n => { Updated = n.GetDateTimeOffsetValue(); } },
                 {"updatedBy", n => { UpdatedBy = n.GetStringValue(); } },
@@ -56,7 +62,9 @@ namespace SmallKms.Client.Models {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
             base.Serialize(writer);
             writer.WriteDateTimeOffsetValue("deleted", Deleted);
-            writer.WriteObjectValue<RefWithMetadata_metadata>("metadata", Metadata);
+            writer.WriteStringValue("displayName", DisplayName);
+            writer.WriteBoolValue("isActive", IsActive);
+            writer.WriteBoolValue("isDefault", IsDefault);
             writer.WriteEnumValue<NamespaceTypeShortName>("namespaceType", NamespaceType);
             writer.WriteDateTimeOffsetValue("updated", Updated);
             writer.WriteStringValue("updatedBy", UpdatedBy);

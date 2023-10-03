@@ -8,13 +8,23 @@ namespace SmallKms.Client.Models {
     public class CertificateEnrollmentReceipt : IAdditionalDataHolder, IParsable {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>Time when the enrollment expires</summary>
+        public DateTimeOffset? Expires { get; set; }
         /// <summary>payload section of the certificate claims, in JWT format, base64url encoded</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public string? JwtPayload { get; set; }
+        public string? JwtClaims { get; set; }
 #nullable restore
 #else
-        public string JwtPayload { get; set; }
+        public string JwtClaims { get; set; }
+#endif
+        /// <summary>Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public JwkProperties? KeyProperties { get; set; }
+#nullable restore
+#else
+        public JwkProperties KeyProperties { get; set; }
 #endif
         /// <summary>The ref property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -24,8 +34,12 @@ namespace SmallKms.Client.Models {
 #else
         public RefWithMetadata Ref { get; set; }
 #endif
+        /// <summary>Unique ID of the user who requested the certificate</summary>
+        public Guid? RequesterId { get; set; }
         /// <summary>Consistent derived ID (UUID v5) of the certificate template</summary>
         public Guid? TemplateId { get; set; }
+        /// <summary>Unique ID of the namespace of the certificate template</summary>
+        public Guid? TemplateNamespaceId { get; set; }
         /// <summary>
         /// Instantiates a new CertificateEnrollmentReceipt and sets the default values.
         /// </summary>
@@ -45,9 +59,13 @@ namespace SmallKms.Client.Models {
         /// </summary>
         public IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>> {
-                {"jwtPayload", n => { JwtPayload = n.GetStringValue(); } },
+                {"expires", n => { Expires = n.GetDateTimeOffsetValue(); } },
+                {"jwtClaims", n => { JwtClaims = n.GetStringValue(); } },
+                {"keyProperties", n => { KeyProperties = n.GetObjectValue<JwkProperties>(JwkProperties.CreateFromDiscriminatorValue); } },
                 {"ref", n => { Ref = n.GetObjectValue<RefWithMetadata>(RefWithMetadata.CreateFromDiscriminatorValue); } },
+                {"requesterId", n => { RequesterId = n.GetGuidValue(); } },
                 {"templateId", n => { TemplateId = n.GetGuidValue(); } },
+                {"templateNamespaceId", n => { TemplateNamespaceId = n.GetGuidValue(); } },
             };
         }
         /// <summary>
@@ -56,9 +74,13 @@ namespace SmallKms.Client.Models {
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public void Serialize(ISerializationWriter writer) {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteStringValue("jwtPayload", JwtPayload);
+            writer.WriteDateTimeOffsetValue("expires", Expires);
+            writer.WriteStringValue("jwtClaims", JwtClaims);
+            writer.WriteObjectValue<JwkProperties>("keyProperties", KeyProperties);
             writer.WriteObjectValue<RefWithMetadata>("ref", Ref);
+            writer.WriteGuidValue("requesterId", RequesterId);
             writer.WriteGuidValue("templateId", TemplateId);
+            writer.WriteGuidValue("templateNamespaceId", TemplateNamespaceId);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

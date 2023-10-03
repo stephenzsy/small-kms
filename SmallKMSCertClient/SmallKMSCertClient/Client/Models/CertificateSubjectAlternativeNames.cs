@@ -8,14 +8,6 @@ namespace SmallKms.Client.Models {
     public class CertificateSubjectAlternativeNames : IAdditionalDataHolder, IParsable {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The dns_names property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public List<string>? DnsNames { get; set; }
-#nullable restore
-#else
-        public List<string> DnsNames { get; set; }
-#endif
         /// <summary>The emails property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -23,14 +15,6 @@ namespace SmallKms.Client.Models {
 #nullable restore
 #else
         public List<string> Emails { get; set; }
-#endif
-        /// <summary>The ipAddrs property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public List<string>? IpAddrs { get; set; }
-#nullable restore
-#else
-        public List<string> IpAddrs { get; set; }
 #endif
         /// <summary>The uris property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -59,9 +43,7 @@ namespace SmallKms.Client.Models {
         /// </summary>
         public IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>> {
-                {"dns_names", n => { DnsNames = n.GetCollectionOfPrimitiveValues<string>()?.ToList(); } },
                 {"emails", n => { Emails = n.GetCollectionOfPrimitiveValues<string>()?.ToList(); } },
-                {"ipAddrs", n => { IpAddrs = n.GetCollectionOfPrimitiveValues<string>()?.ToList(); } },
                 {"uris", n => { Uris = n.GetCollectionOfPrimitiveValues<string>()?.ToList(); } },
             };
         }
@@ -71,9 +53,7 @@ namespace SmallKms.Client.Models {
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public void Serialize(ISerializationWriter writer) {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfPrimitiveValues<string>("dns_names", DnsNames);
             writer.WriteCollectionOfPrimitiveValues<string>("emails", Emails);
-            writer.WriteCollectionOfPrimitiveValues<string>("ipAddrs", IpAddrs);
             writer.WriteCollectionOfPrimitiveValues<string>("uris", Uris);
             writer.WriteAdditionalData(AdditionalData);
         }

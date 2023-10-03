@@ -9,9 +9,9 @@ namespace SmallKms.Client.Models {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The days_before_expiry property</summary>
-        public int? DaysBeforeExpiry { get; set; }
+        public int? Days_before_expiry { get; set; }
         /// <summary>The lifetime_percentage property</summary>
-        public int? LifetimePercentage { get; set; }
+        public int? Lifetime_percentage { get; set; }
         /// <summary>
         /// Instantiates a new CertificateLifetimeTrigger and sets the default values.
         /// </summary>
@@ -31,8 +31,8 @@ namespace SmallKms.Client.Models {
         /// </summary>
         public IDictionary<string, Action<IParseNode>> GetFieldDeserializers() {
             return new Dictionary<string, Action<IParseNode>> {
-                {"days_before_expiry", n => { DaysBeforeExpiry = n.GetIntValue(); } },
-                {"lifetime_percentage", n => { LifetimePercentage = n.GetIntValue(); } },
+                {"days_before_expiry", n => { Days_before_expiry = n.GetIntValue(); } },
+                {"lifetime_percentage", n => { Lifetime_percentage = n.GetIntValue(); } },
             };
         }
         /// <summary>
@@ -41,8 +41,8 @@ namespace SmallKms.Client.Models {
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public void Serialize(ISerializationWriter writer) {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteIntValue("days_before_expiry", DaysBeforeExpiry);
-            writer.WriteIntValue("lifetime_percentage", LifetimePercentage);
+            writer.WriteIntValue("days_before_expiry", Days_before_expiry);
+            writer.WriteIntValue("lifetime_percentage", Lifetime_percentage);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

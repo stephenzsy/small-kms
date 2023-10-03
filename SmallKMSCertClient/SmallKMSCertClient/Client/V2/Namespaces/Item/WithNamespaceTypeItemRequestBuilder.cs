@@ -5,7 +5,6 @@ using Microsoft.Kiota.Cli.Commons.Extensions;
 using Microsoft.Kiota.Cli.Commons.IO;
 using Microsoft.Kiota.Cli.Commons;
 using SmallKms.Client.Models;
-using SmallKms.Client.V2.Item.Item;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
@@ -14,29 +13,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-namespace SmallKms.Client.V2.Item {
+namespace SmallKms.Client.V2.Namespaces.Item {
     /// <summary>
-    /// Builds and executes requests for operations under \v2\{namespaceType}
+    /// Builds and executes requests for operations under \v2\namespaces\{namespaceType}
     /// </summary>
     public class WithNamespaceTypeItemRequestBuilder : BaseCliRequestBuilder {
         /// <summary>
-        /// Gets an item from the SmallKms.Client.v2.item.item collection
-        /// </summary>
-        public Tuple<List<Command>, List<Command>> BuildCommand() {
-            var executables = new List<Command>();
-            var commands = new List<Command>();
-            var builder = new WithNamespaceItemRequestBuilder(PathParameters);
-            commands.Add(builder.BuildCertificatesNavCommand());
-            commands.Add(builder.BuildCertificateTemplatesNavCommand());
-            commands.Add(builder.BuildLinkServicePrincipalNavCommand());
-            executables.Add(builder.BuildPostCommand());
-            return new(executables, commands);
-        }
-        /// <summary>
         /// List namespaces by type
         /// </summary>
-        public Command BuildListCommand() {
-            var command = new Command("list");
+        public Command BuildGetCommand() {
+            var command = new Command("get");
             command.Description = "List namespaces by type";
             var namespaceTypeOption = new Option<string>("--namespace-type") {
             };
@@ -79,13 +65,13 @@ namespace SmallKms.Client.V2.Item {
         /// Instantiates a new WithNamespaceTypeItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
-        public WithNamespaceTypeItemRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/{namespaceType}", pathParameters) {
+        public WithNamespaceTypeItemRequestBuilder(Dictionary<string, object> pathParameters) : base("{+baseurl}/v2/namespaces/{namespaceType}", pathParameters) {
         }
         /// <summary>
         /// Instantiates a new WithNamespaceTypeItemRequestBuilder and sets the default values.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
-        public WithNamespaceTypeItemRequestBuilder(string rawUrl) : base("{+baseurl}/v2/{namespaceType}", rawUrl) {
+        public WithNamespaceTypeItemRequestBuilder(string rawUrl) : base("{+baseurl}/v2/namespaces/{namespaceType}", rawUrl) {
         }
         /// <summary>
         /// List namespaces by type

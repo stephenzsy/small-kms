@@ -30,15 +30,13 @@ func (doc *NsRelDoc) toServicePrincipalLinkedDevice() *ServicePrincipalLinkedDev
 		ServicePrincipalID:  utils.NilToDefault(doc.LinkedNamespaces.ServicePrincipal),
 		Status:              string(doc.Status),
 	}
-	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r.Ref, NamespaceTypeShortName(NamespaceTypeMsGraphDevice))
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r.Ref)
 	return r
 }
 
 func (s *adminServer) getDeviceServicePrincipalLinkDoc(c context.Context, nsID uuid.UUID) (doc *NsRelDoc, relID uuid.UUID, err error) {
 	relID = common.GetCanonicalNamespaceRelationID(nsID, common.NSRelNameDASPLink)
-	if doc, err = s.readNsRel(c, nsID, relID); err != nil {
-		err = common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:rel:%s", nsID, relID))
-	}
+	doc, err = s.readNsRel(c, nsID, relID)
 	return
 }
 

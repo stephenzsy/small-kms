@@ -1,8 +1,9 @@
 package admin
 
 import (
-	"context"
-	"fmt"
+	"encoding/base64"
+	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
@@ -13,80 +14,55 @@ type PolicyDocSectionIssuerProperties struct {
 	IssuerPolicyID    uuid.UUID `json:"issuerPolicyId"`
 }
 
-type PolicyDoc struct {
+type PendingCertDoc struct {
 	kmsdoc.BaseDoc
-	Enabled    bool                        `json:"enabled"`
-	PolicyType PolicyType                  `json:"policyType"`
-	CertEnroll *PolicyCertEnrollDocSection `json:"certEnroll,omitempty"`
+	Expires             time.Time                           `json:"exp"` // indicates pending status expires
+	TemplateNamespaceID uuid.UUID                           `json:"templateNamespaceId"`
+	TemplateID          kmsdoc.KmsDocID                     `json:"templateId"`
+	JWT                 [3]string                           `json:"jwt"`         // base64url encoded JWT segments
+	RequesterID         uuid.UUID                           `json:"requesterId"` // must be matched to issue certificate
+	KeyProperties       CertificateTemplateDocKeyProperties `json:"keyProperties"`
+
+	Issued time.Time `json:"issued"`
 }
 
-func (s *adminServer) GetPolicyDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyDoc, error) {
-	return nil, nil
-}
-
-func (s *adminServer) listPoliciesByNamespace(ctx context.Context, namespaceID uuid.UUID) ([]*PolicyDoc, error) {
-	return nil, nil
-}
-
-func (doc *PolicyDoc) PopulatePolicyRef(r *PolicyRef) {
-	r.ID = doc.GetUUID()
-	r.NamespaceID = doc.NamespaceID
-	r.Updated = doc.Updated
-	r.UpdatedBy = doc.UpdatedBy
-	r.Deleted = doc.Deleted
-
-	r.PolicyType = doc.PolicyType
-}
-
-type PolicyStateStatus string
-
-const (
-	PolicyStateStatusSuccess PolicyStateStatus = "success"
-)
-
-type PolicyStateDoc struct {
-	kmsdoc.BaseDoc
-	PolicyType PolicyType        `json:"policyType"`
-	Status     PolicyStateStatus `json:"status"`
-	Message    string            `json:"message"`
-}
-
-func (s *adminServer) GetPolicyStateDoc(c context.Context, namespaceID uuid.UUID, policyID uuid.UUID) (*PolicyStateDoc, error) {
-	pd := new(PolicyStateDoc)
-	err := kmsdoc.AzCosmosRead(c, s.AzCosmosContainerClient(), namespaceID,
-		kmsdoc.NewKmsDocID(kmsdoc.DocTypePolicyState, policyID), pd)
-	return pd, err
-}
-
-func (doc *PolicyDoc) ToPolicy() *Policy {
-	if doc == nil {
-		return nil
+func encodeJwtJsonSegment[D any](jsonObj D) (string, error) {
+	marshalled, err := json.Marshal(jsonObj)
+	if err != nil {
+		return "", err
 	}
-	p := Policy{
-		ID:          doc.GetUUID(),
-		PolicyType:  doc.PolicyType,
-		NamespaceID: doc.NamespaceID,
-		Deleted:     doc.Deleted,
-		Updated:     doc.Updated,
-		UpdatedBy:   fmt.Sprintf("%s:%s", doc.UpdatedBy, doc.UpdatedByName),
-	}
-	switch doc.PolicyType {
-	case PolicyTypeCertEnroll:
-		p.CertEnroll = doc.CertEnroll.toCertificateEnrollPolicyParameters()
-	}
-	return &p
+	return base64.RawURLEncoding.EncodeToString(marshalled), nil
 }
 
-func (doc *PolicyStateDoc) ToPolicyState() *PolicyState {
-	if doc == nil {
-		return nil
+func newPendingCertDoc(
+	certID uuid.UUID,
+	claimsEncoded string,
+	templateDoc *CertificateTemplateDoc,
+	issueToNamespaceID uuid.UUID,
+	requesterID uuid.UUID) PendingCertDoc {
+	return PendingCertDoc{
+		BaseDoc: kmsdoc.BaseDoc{
+			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID),
+			NamespaceID: issueToNamespaceID,
+		},
+		Expires:             time.Now().Add(time.Hour * 24 * 7),
+		JWT:                 [3]string{"", claimsEncoded, ""},
+		TemplateNamespaceID: templateDoc.NamespaceID,
+		TemplateID:          templateDoc.ID,
+		RequesterID:         requesterID,
+		KeyProperties:       templateDoc.KeyProperties,
 	}
-	ps := PolicyState{
-		ID:          doc.GetUUID(),
-		PolicyType:  doc.PolicyType,
-		NamespaceID: doc.NamespaceID,
-		Updated:     doc.Updated,
-		UpdatedBy:   fmt.Sprintf("%s:%s", doc.UpdatedBy, doc.UpdatedByName),
-	}
-	return &ps
+}
+
+func (doc *PendingCertDoc) toReceipt(nsType NamespaceTypeShortName) *CertificateEnrollmentReceipt {
+	r := CertificateEnrollmentReceipt{}
+	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r.Ref)
+	r.Ref.Type = RefTypeCertificateEnrollReceipt
+	r.Expires = doc.Expires
+	r.TemplateID = doc.TemplateID.GetUUID()
+	r.TemplateNamespaceID = doc.TemplateNamespaceID
+	r.JwtClaims = doc.JWT[1]
+	r.RequesterID = doc.RequesterID
+	doc.KeyProperties.populateJwkProperties(&r.KeyProperties)
+	return &r
 }
