@@ -8,14 +8,6 @@ type WellKnownID uuid.UUID
 
 type WellKnownIdentifier int
 
-const (
-	IdentifierUnknown WellKnownIdentifier = iota
-
-	DefaultPolicyIdCertRequest
-	DefaultPolicyIdCertEnroll
-	DefaultPolicyIdCertAadAppCredential
-)
-
 var (
 	// nil is reserved
 
@@ -30,25 +22,7 @@ var (
 	WellKnownID_IntCAIntranet = uuid.MustParse("00000000-0000-0000-0000-000000000012")
 	WellKnownID_IntCAAadSp    = uuid.MustParse("00000000-0000-0000-0000-000000000013")
 	WellKnownID_TestIntCA     = uuid.MustParse("00000000-0000-0000-0000-0000000000ff")
-
-	WellKnownID_TenantDirectory = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
-
-	// default policy ids --1-1 ~ --1-f, deprecated
-	defaultPolicyIdCertRequest          = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000001"))
-	defaultPolicyIdCertEnroll           = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000002"))
-	defaultPolicyIdCertAadAppCredential = WellKnownID(uuid.MustParse("00000000-0000-0000-0001-000000000003"))
 )
-
-var idMap = map[WellKnownIdentifier]WellKnownID{
-
-	DefaultPolicyIdCertRequest:          defaultPolicyIdCertRequest,
-	DefaultPolicyIdCertEnroll:           defaultPolicyIdCertEnroll,
-	DefaultPolicyIdCertAadAppCredential: defaultPolicyIdCertAadAppCredential,
-}
-
-func GetID(identifier WellKnownIdentifier) uuid.UUID {
-	return uuid.UUID(idMap[identifier])
-}
 
 type WellKnownCertTemplateName string
 

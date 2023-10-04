@@ -13,10 +13,17 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.1
-	github.com/microsoftgraph/msgraph-sdk-go v1.19.0
+	github.com/joho/godotenv v1.5.1
+	github.com/microsoftgraph/msgraph-sdk-go v1.20.0
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/rs/zerolog v1.31.0
 )
+
+replace github.com/microsoft/go-crypto-winnative => ./endpoint-enroll/go-crypto-winnative
+replace github.com/stephenzsy/go-crypto-winnative => ./endpoint-enroll/go-crypto-winnative
+replace github.com/microsoft/go-crypto-winnative/internal => ./endpoint-enroll/go-crypto-winnative/internal
+replace github.com/microsoft/go-crypto-winnative/internal/syscall => ./endpoint-enroll/go-crypto-winnative/internal/syscall
+
 
 require (
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
@@ -44,7 +51,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/microsoft/kiota-abstractions-go v1.2.2 // indirect
+	github.com/microsoft/kiota-abstractions-go v1.2.3 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.0 // indirect
 	github.com/microsoft/kiota-http-go v1.1.0 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect

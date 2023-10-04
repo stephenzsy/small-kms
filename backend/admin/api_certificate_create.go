@@ -77,11 +77,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUI
 	// verify template
 	templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateID)
 	if err != nil {
-		if common.IsAzNotFound(err) {
-			respondPublicError(c, http.StatusNotFound, err)
-			return
-		}
-		respondInternalError(c, err, "failed to load template doc")
+		common.RespondError(c, err)
 		return
 	}
 	if !templateDoc.IsActive() {

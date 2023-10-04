@@ -80,7 +80,7 @@ func NewCommonConfig() (c commonConfig, err error) {
 	}
 
 	c.aadAppClientId = MustGetenv(DefaultEnvVarAppAzureClientId)
-	c.aadAppClientSecret = MustGetenv(DefaultEnvVarAppAzureClientSecret)
+	c.aadAppClientSecret = MustGetenvSecret(DefaultEnvVarAppAzureClientSecret)
 
 	c.confidentialAppCredential, err = azidentity.NewClientSecretCredential(c.tenantIDStr, c.aadAppClientId, c.aadAppClientSecret, nil)
 	if err != nil {
@@ -137,6 +137,15 @@ func MustGetenv(name string) (value string) {
 		log.Panicf("No variable %s configured", name)
 	}
 	log.Printf("Config %s = %s", name, value)
+	return
+}
+
+func MustGetenvSecret(name string) (value string) {
+	value = os.Getenv(name)
+	if len(value) == 0 {
+		log.Panicf("No variable %s configured", name)
+	}
+	log.Printf("Config %s = **********", name)
 	return
 }
 

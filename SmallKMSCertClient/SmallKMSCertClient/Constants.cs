@@ -39,7 +39,7 @@ namespace SmallKMSCertClient
 			var s = v;
 			s = s.Replace('+', '-');
 			s = s.Replace('/', '_');
-			s.Replace("=", "");
+			s = s.Replace("=", "");
 			return s;
 		}
 	}

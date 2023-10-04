@@ -166,7 +166,7 @@ paths:
       - $ref: "#/components/parameters/IncludeCertificateParameter"
     post:
       tags:
-        - admin
+        - enroll
       summary: complete certificate enrollment
       operationId: CompleteCertificateEnrollmentV2
       requestBody:
@@ -178,6 +178,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/namespaces:
     parameters:
       - $ref: "#/components/parameters/NamespaceTypeParameter"

@@ -15,6 +15,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/auth"
 )
@@ -23,6 +24,12 @@ func main() {
 	if len(os.Args) < 3 {
 		log.Println("Usage: smallkms <role> <listenerAddress>")
 		os.Exit(1)
+	}
+
+	// Find .env file
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
 	}
 
 	log.Println("Server started")

@@ -75,7 +75,10 @@ namespace SmallKms.Client.V2.Item.Certificates.Item.Pending {
                 if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
                 if (certId is not null) requestInfo.PathParameters.Add("certId", certId);
                 requestInfo.SetContentFromParsable(reqAdapter, "application/json", model);
-                var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
+                var errorMapping = new Dictionary<string, ParsableFactory<IParsable>> {
+                    {"400", CertificateInfo400Error.CreateFromDiscriminatorValue},
+                };
+                var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: errorMapping, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
                 var formatter = outputFormatterFactory.GetFormatter(output);

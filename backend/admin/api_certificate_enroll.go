@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -341,6 +342,40 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 	c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
 }
 
-func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, namespaceId NamespaceIdParameter, certId CertIdParameter, params CompleteCertificateEnrollmentV2Params) {
-	// Your code here
+func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.UUID, certID uuid.UUID, params CompleteCertificateEnrollmentV2Params) {
+	if _, ok := authNamespaceAdminOrSelf(c, nsID); !ok {
+		return
+	}
+
+	req := new(CertificateEnrollmentReplyFinalize)
+	if err := c.Bind(req); err != nil {
+		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pCertDoc, err := s.readPendingCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID))
+	if err != nil {
+		common.RespondError(c, err)
+	}
+
+	parser := jwt.NewParser()
+
+	completeToken := req.JwtHeader + "." + pCertDoc.JWT[1] + "." + req.JwtSignature
+	pubKeyPemBlock, _ := pem.Decode([]byte(req.PublicKeyPem))
+	pubKey, err := x509.ParsePKCS1PublicKey(pubKeyPemBlock.Bytes)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to parse public key: %s", req.PublicKeyPem)
+		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	_, err = parser.Parse(completeToken, func(_ *jwt.Token) (interface{}, error) {
+		return pubKey, nil
+	})
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to parse jwt token: %s", completeToken)
+		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
