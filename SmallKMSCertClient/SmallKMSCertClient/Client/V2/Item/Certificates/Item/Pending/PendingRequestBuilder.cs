@@ -36,6 +36,10 @@ namespace SmallKms.Client.V2.Item.Certificates.Item.Pending {
             };
             includeCertificateOption.IsRequired = false;
             command.AddOption(includeCertificateOption);
+            var bodyOption = new Option<string>("--body", description: "The request body") {
+            };
+            bodyOption.IsRequired = true;
+            command.AddOption(bodyOption);
             var outputOption = new Option<FormatterType>("--output", () => FormatterType.JSON){
                 IsRequired = true
             };
@@ -53,6 +57,7 @@ namespace SmallKms.Client.V2.Item.Certificates.Item.Pending {
                 var namespaceId = invocationContext.ParseResult.GetValueForOption(namespaceIdOption);
                 var certId = invocationContext.ParseResult.GetValueForOption(certIdOption);
                 var includeCertificate = invocationContext.ParseResult.GetValueForOption(includeCertificateOption);
+                var body = invocationContext.ParseResult.GetValueForOption(bodyOption) ?? string.Empty;
                 var output = invocationContext.ParseResult.GetValueForOption(outputOption);
                 var query = invocationContext.ParseResult.GetValueForOption(queryOption);
                 var jsonNoIndent = invocationContext.ParseResult.GetValueForOption(jsonNoIndentOption);
@@ -60,11 +65,16 @@ namespace SmallKms.Client.V2.Item.Certificates.Item.Pending {
                 IOutputFormatterFactory outputFormatterFactory = invocationContext.BindingContext.GetService(typeof(IOutputFormatterFactory)) as IOutputFormatterFactory ?? throw new ArgumentNullException("outputFormatterFactory");
                 var cancellationToken = invocationContext.GetCancellationToken();
                 var reqAdapter = invocationContext.GetRequestAdapter();
-                var requestInfo = ToPostRequestInformation(q => {
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(body));
+                var parseNode = ParseNodeFactoryRegistry.DefaultInstance.GetRootParseNode("application/json", stream);
+                var model = parseNode.GetObjectValue<CertificateEnrollmentReplyFinalize>(CertificateEnrollmentReplyFinalize.CreateFromDiscriminatorValue);
+                if (model is null) return; // Cannot create a POST request from a null model.
+                var requestInfo = ToPostRequestInformation(model, q => {
                     if (!string.IsNullOrEmpty(includeCertificate)) q.QueryParameters.IncludeCertificate = includeCertificate;
                 });
                 if (namespaceId is not null) requestInfo.PathParameters.Add("namespaceId", namespaceId);
                 if (certId is not null) requestInfo.PathParameters.Add("certId", certId);
+                requestInfo.SetContentFromParsable(reqAdapter, "application/json", model);
                 var response = await reqAdapter.SendPrimitiveAsync<Stream>(requestInfo, errorMapping: default, cancellationToken: cancellationToken) ?? Stream.Null;
                 response = (response != Stream.Null) ? await outputFilter.FilterOutputAsync(response, query, cancellationToken) : response;
                 var formatterOptions = output.GetOutputFormatterOptions(new FormatterOptionsModel(!jsonNoIndent));
@@ -88,14 +98,16 @@ namespace SmallKms.Client.V2.Item.Certificates.Item.Pending {
         /// <summary>
         /// complete certificate enrollment
         /// </summary>
+        /// <param name="body">The request body</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<PendingRequestBuilderPostQueryParameters>>? requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(CertificateEnrollmentReplyFinalize body, Action<RequestConfiguration<PendingRequestBuilderPostQueryParameters>>? requestConfiguration = default) {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(Action<RequestConfiguration<PendingRequestBuilderPostQueryParameters>> requestConfiguration = default) {
+        public RequestInformation ToPostRequestInformation(CertificateEnrollmentReplyFinalize body, Action<RequestConfiguration<PendingRequestBuilderPostQueryParameters>> requestConfiguration = default) {
 #endif
+            _ = body ?? throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation {
                 HttpMethod = Method.POST,
                 UrlTemplate = UrlTemplate,

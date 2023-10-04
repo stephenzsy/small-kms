@@ -169,6 +169,12 @@ paths:
         - admin
       summary: complete certificate enrollment
       operationId: CompleteCertificateEnrollmentV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateEnrollmentReplyFinalize"
+        required: true
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
@@ -506,13 +512,13 @@ components:
             signature section of the jwt, serves as proof of confirmation finalize the enrollment and being issued a certificate,
             with header and signature, signed with the key pair with the public key in the same request
           type: string
-        publicKey:
-          description: Public key in JWK format to be used to for certificate signing
-          $ref: "#/components/schemas/JwkProperties"
+        publicKeyPem:
+          description: public key encoded in pem
+          type: string
       required:
         - jwtHeader
         - jwtSignature
-        - publicKey
+        - publicKeyPem
     NamespaceType:
       type: string
       enum:

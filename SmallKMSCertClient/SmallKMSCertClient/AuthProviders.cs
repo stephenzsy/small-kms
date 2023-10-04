@@ -1,14 +1,17 @@
 ﻿using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client.Extensions.Msal;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Authentication.Azure;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace SmallKMSCertClient
 {
@@ -19,33 +22,33 @@ namespace SmallKMSCertClient
 	}
 
 
-	internal class AdminAuthProvider : IAuthenticationProvider
+	internal class OverrideHttpsTokenPovider : AzureIdentityAccessTokenProvider, IAccessTokenProvider, IDisposable
 	{
-		private readonly MsalTokenCredential tokenCredential;
-		private readonly AzureIdentityAuthenticationProvider innerProvider;
-		public AdminAuthProvider(IConfiguration config)
+
+		public OverrideHttpsTokenPovider(TokenCredential credential, string[]? allowedHosts = null, ObservabilityOptions? observabilityOptions = null, params string[] scopes) : base(credential, allowedHosts, observabilityOptions, scopes)
 		{
-			this.tokenCredential = new MsalTokenCredential(config);
-			this.innerProvider = new AzureIdentityAuthenticationProvider(this.tokenCredential);
 		}
 
-		public async Task EnsureLoggedIn()
+		public new Task<string> GetAuthorizationTokenAsync(Uri uri, Dictionary<string, object>? additionalAuthenticationContext = default, CancellationToken cancellationToken = default)
 		{
-			if (!await this.tokenCredential.IsLoggedIn())
+			if (uri.Scheme == "http")
 			{
-				throw new Exception("Not logged in");
+				var uribuider = new UriBuilder(uri) { Scheme = "https" };
+				uri = uribuider.Uri;
 			}
+			return base.GetAuthorizationTokenAsync(uri, additionalAuthenticationContext, cancellationToken);
 		}
 
-		public async Task AuthenticateRequestAsync(RequestInformation request, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
+
+	}
+
+	internal class OverrideHttpsAuthenticationPovider : BaseBearerTokenAuthenticationProvider
+	{
+
+		public OverrideHttpsAuthenticationPovider(TokenCredential credential, string[]? allowedHosts = null, ObservabilityOptions? observabilityOptions = null, params string[] scopes) :
+			base(new OverrideHttpsTokenPovider(credential, allowedHosts, observabilityOptions, scopes))
 		{
-			var token = await this.tokenCredential.GetTokenAsync(new TokenRequestContext { }, cancellationToken);
-			request.Headers["Authorization"] = new string[]{ $"Bearer {token.Token}" };
 		}
 
-		internal Task Login(bool useDeviceCode = false)
-		{
-			return this.tokenCredential.Login(useDeviceCode);
-		}
 	}
 }

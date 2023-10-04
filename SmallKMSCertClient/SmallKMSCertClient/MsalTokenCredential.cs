@@ -1,44 +1,49 @@
 ﻿using Azure.Core;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
-using Microsoft.Identity.Client.Broker;
 using Microsoft.Identity.Client.Extensions.Msal;
-using Microsoft.Identity.Client.NativeInterop;
-using Microsoft.Kiota.Http.HttpClientLibrary;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Spectre.Console;
+using System.CommandLine;
 
 namespace SmallKMSCertClient
 {
-	class MsalTokenCredential : TokenCredential
+	class MsalTokenCredential : Azure.Core.TokenCredential
 	{
 		private readonly IPublicClientApplication app;
-		private readonly string? accountIdentifier;
-		private readonly IEnumerable<string> loginScopes;
-		private IAccount? account;
-		private readonly IConfiguration configProvider;
-		public MsalTokenCredential(IConfiguration config)
-		{
-			this.configProvider = config;
-			var clientId = ConfigUtils.MustGet(config, "AZURE_CLIENT_ID");
-			this.loginScopes = new string[] { ConfigUtils.MustGet(config, "AZURE_LOGIN_SCOPE") };
+		private string? accountIdentifier;
 
+		public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+		{
+			return this.GetTokenImplAsync(requestContext, cancellationToken);
+		}
+
+		public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+		{
+			return GetTokenImplAsync(requestContext, cancellationToken).GetAwaiter().GetResult();
+		}
+
+
+		public MsalTokenCredential(DeviceCodeCredentialOptions opts)
+		{
 
 			this.app = PublicClientApplicationBuilder
-				.Create(clientId)
-				.WithTenantId(ConfigUtils.MustGet(config, "AZURE_TENANT_ID"))
+				.Create(opts.ClientId)
+				.WithTenantId(opts.TenantId)
 				.WithDefaultRedirectUri()
 				.Build();
 
-			this.accountIdentifier = config.GetValue<string>("AZURE_ACCOUNT_IDENTIFIER");
+			try
+			{
+				this.accountIdentifier = File.ReadAllText(Path.Join(AppContext.BaseDirectory, "accountIdentifier.txt")).Trim();
+			}
+			catch
+			{
+
+			}
 			this.registerCache();
 		}
-
 		private async void registerCache()
 		{
 
@@ -49,58 +54,31 @@ namespace SmallKMSCertClient
 			cacheHelper.RegisterCache(app.UserTokenCache);
 		}
 
-		public async Task<bool> IsLoggedIn()
+		private async ValueTask<AccessToken> GetTokenImplAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
 		{
-			try
+			var useDeviceCode = string.IsNullOrWhiteSpace(this.accountIdentifier);
+			if (!useDeviceCode)
 			{
-				return (await acquireTokenSilently()) != null;
-			}
-			catch
-			{ // swallow error
-			}
-			return false;
-		}
-
-		private async Task<AuthenticationResult> acquireTokenSilently()
-		{
-			if (account == null)
-			{
-				if (string.IsNullOrEmpty(accountIdentifier))
+				try
 				{
-					throw new Exception("No account identifier provided");
+					var account = await this.app.GetAccountAsync(this.accountIdentifier);
+					var tokenResultSilent = await this.app.AcquireTokenSilent(requestContext.Scopes, account).ExecuteAsync(cancellationToken);
+					return new AccessToken(tokenResultSilent.AccessToken, tokenResultSilent.ExpiresOn);
 				}
-				account = await app.GetAccountAsync(accountIdentifier);
-			}
-			if (account != null)
-			{
-				var result = await app.AcquireTokenSilent(loginScopes, account).ExecuteAsync();
-				return result;
-			}
-			throw new Exception("No account loaded");
-		}
-
-		public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
-		{
-			return GetTokenAsync(requestContext, cancellationToken).GetAwaiter().GetResult();
-		}
-
-		public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-		{
-			var authResult = await acquireTokenSilently();
-
-			return new AccessToken(authResult.AccessToken, authResult.ExpiresOn);
-		}
-
-		internal async Task Login(bool useDeviceCode = false)
-		{
-			AuthenticationResult result = await (useDeviceCode
-				? app.AcquireTokenWithDeviceCode(loginScopes, deviceCodeResult =>
+				catch (MsalUiRequiredException)
 				{
-					return Task.FromResult(deviceCodeResult);
-				}).ExecuteAsync()
-				: app.AcquireTokenInteractive(loginScopes).ExecuteAsync());
-			account = result.Account;
-			ConfigUtils.StoreConfiguration("AZURE_ACCOUNT_IDENTIFIER", account.HomeAccountId.Identifier);
+					useDeviceCode = true;
+				}
+			}
+			var tokenResult = await this.app.AcquireTokenWithDeviceCode(requestContext.Scopes, deviceCodeResult =>
+			{
+				Console.WriteLine(deviceCodeResult.Message);
+				return Task.FromResult(deviceCodeResult);
+			}).ExecuteAsync(cancellationToken);
+			this.accountIdentifier = tokenResult.Account.HomeAccountId.Identifier;
+			File.WriteAllText(Path.Join(AppContext.BaseDirectory, "accountIdentifier.txt"), this.accountIdentifier);
+			return new AccessToken(tokenResult.AccessToken, tokenResult.ExpiresOn);
 		}
+
 	}
 }

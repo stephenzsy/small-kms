@@ -118,6 +118,18 @@ type CertificateEnrollmentReceipt struct {
 	TemplateNamespaceID openapi_types.UUID `json:"templateNamespaceId"`
 }
 
+// CertificateEnrollmentReplyFinalize defines model for CertificateEnrollmentReplyFinalize.
+type CertificateEnrollmentReplyFinalize struct {
+	// JwtHeader header section of the certificate claims, in JWT format, base64url encoded
+	JwtHeader string `json:"jwtHeader"`
+
+	// JwtSignature signature section of the jwt, serves as proof of confirmation finalize the enrollment and being issued a certificate, with header and signature, signed with the key pair with the public key in the same request
+	JwtSignature string `json:"jwtSignature"`
+
+	// PublicKeyPem public key encoded in pem
+	PublicKeyPem string `json:"publicKeyPem"`
+}
+
 // CertificateEnrollmentRequest defines model for CertificateEnrollmentRequest.
 type CertificateEnrollmentRequest struct {
 	union json.RawMessage
@@ -428,6 +440,9 @@ type PutCertificateTemplateV2JSONRequestBody = CertificateTemplateParameters
 
 // BeginEnrollCertificateV2JSONRequestBody defines body for BeginEnrollCertificateV2 for application/json ContentType.
 type BeginEnrollCertificateV2JSONRequestBody = CertificateEnrollmentRequest
+
+// CompleteCertificateEnrollmentV2JSONRequestBody defines body for CompleteCertificateEnrollmentV2 for application/json ContentType.
+type CompleteCertificateEnrollmentV2JSONRequestBody = CertificateEnrollmentReplyFinalize
 
 // Getter for additional properties for RequestDiagnostics_ServiceRuntime. Returns the specified
 // element and whether it was found

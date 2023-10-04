@@ -10,32 +10,59 @@ using Microsoft.Kiota.Serialization.Json;
 using Microsoft.Kiota.Serialization.Text;
 using Microsoft.Kiota.Authentication.Azure;
 using Azure.Identity;
+using SmallKMSCertClient;
+using System.Net;
+using System.Runtime.Versioning;
 
-var rootCommand = new SmallKmsClient().BuildRootCommand();
-rootCommand.Description = "Small KMS CLI";
-
-var builder = new CommandLineBuilder(rootCommand)
-	.UseDefaults()
-	.UseRequestAdapter(context =>
+internal class Program
+{
+	[SupportedOSPlatform("windows")]
+	private static async Task<int> Main(string[] args)
 	{
-		var authProvider = new AzureIdentityAuthenticationProvider(new DefaultAzureCredential(new DefaultAzureCredentialOptions()
-		{
-			ExcludeInteractiveBrowserCredential = false
-		}));
-		var adapter = new HttpClientRequestAdapter(authProvider);
-		adapter.BaseUrl = "http://localhost:9001";
+		var rootCommand = new SmallKmsClient().BuildRootCommand();
+		rootCommand.Description = "Small KMS CLI";
 
-		// Register default serializers
-		ApiClientBuilder.RegisterDefaultSerializer<JsonSerializationWriterFactory>();
-		ApiClientBuilder.RegisterDefaultSerializer<TextSerializationWriterFactory>();
-		ApiClientBuilder.RegisterDefaultSerializer<FormSerializationWriterFactory>();
+		var builder = new CommandLineBuilder(rootCommand)
+			.UseDefaults()
+			.UseRequestAdapter(context =>
+			{
+				var options = new DeviceCodeCredentialOptions
+				{
+					TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "",
+					ClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "",
 
-		// Register default deserializers
-		ApiClientBuilder.RegisterDefaultDeserializer<JsonParseNodeFactory>();
-		ApiClientBuilder.RegisterDefaultDeserializer<TextParseNodeFactory>();
-		ApiClientBuilder.RegisterDefaultDeserializer<FormParseNodeFactory>();
+					DeviceCodeCallback = (code, cancellation) =>
+					{
+						Console.WriteLine(code.Message);
+						return Task.FromResult(0);
+					},
+					TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+					{
+						Name = "tokens.bin",
+						UnsafeAllowUnencryptedStorage = true,
+					}
+				};
+				var deviceCodeCredentials = new MsalTokenCredential(options);
+				var authProvider = new OverrideHttpsAuthenticationPovider(deviceCodeCredentials,
+					scopes: new string[] { Environment.GetEnvironmentVariable("SMALLKMS_LOGIN_SCOPE") ?? "" });
+				var adapter = new HttpClientRequestAdapter(authProvider);
+				adapter.BaseUrl = "http://localhost:9001";
 
-		return adapter;
-	}).RegisterCommonServices();
+				// Register default serializers
+				ApiClientBuilder.RegisterDefaultSerializer<JsonSerializationWriterFactory>();
+				ApiClientBuilder.RegisterDefaultSerializer<TextSerializationWriterFactory>();
+				ApiClientBuilder.RegisterDefaultSerializer<FormSerializationWriterFactory>();
 
-return await builder.Build().InvokeAsync(args);
+				// Register default deserializers
+				ApiClientBuilder.RegisterDefaultDeserializer<JsonParseNodeFactory>();
+				ApiClientBuilder.RegisterDefaultDeserializer<TextParseNodeFactory>();
+				ApiClientBuilder.RegisterDefaultDeserializer<FormParseNodeFactory>();
+
+				return adapter;
+			}).RegisterCommonServices();
+		builder.Command.AddCommand(new ViewRecieptCommand());
+		builder.Command.AddCommand(new EnrollCertificateCommand());
+
+		return await builder.Build().InvokeAsync(args);
+	}
+}
