@@ -19,12 +19,6 @@ require (
 	github.com/rs/zerolog v1.31.0
 )
 
-replace github.com/microsoft/go-crypto-winnative => ./endpoint-enroll/go-crypto-winnative
-replace github.com/stephenzsy/go-crypto-winnative => ./endpoint-enroll/go-crypto-winnative
-replace github.com/microsoft/go-crypto-winnative/internal => ./endpoint-enroll/go-crypto-winnative/internal
-replace github.com/microsoft/go-crypto-winnative/internal/syscall => ./endpoint-enroll/go-crypto-winnative/internal/syscall
-
-
 require (
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
@@ -51,6 +45,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/microsoft/go-crypto-winnative v0.0.0-20231002095030-968dd309bfab // indirect
 	github.com/microsoft/kiota-abstractions-go v1.2.3 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.0 // indirect
 	github.com/microsoft/kiota-http-go v1.1.0 // indirect

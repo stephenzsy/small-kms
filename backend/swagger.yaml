@@ -672,12 +672,6 @@ components:
             - issuerNamespace
             - issuer
             - createdBy
-    PolicyType:
-      type: string
-      enum:
-        - certEnroll
-      x-enum-varnames:
-        - PolicyType_CertEnroll
     ResourceRef:
       type: object
       properties:
@@ -726,23 +720,6 @@ components:
         - lastCertIssued
         - lastCertExpires
         - lastAction
-    PolicyState:
-      allOf:
-        - $ref: "#/components/schemas/ResourceRef"
-        - type: object
-          properties:
-            policyType:
-              $ref: "#/components/schemas/PolicyType"
-            status:
-              type: string
-            message:
-              type: string
-            certRequest:
-              $ref: "#/components/schemas/PolicyStateCertRequest"
-          required:
-            - policyType
-            - string
-            - message
     CertificateLifetimeTrigger:
       type: object
       properties:
@@ -1002,31 +979,6 @@ components:
       required:
         - allowedUsages
         - maxValidityInMonths
-    PolicyParameters:
-      type: object
-      properties:
-        policyType:
-          $ref: "#/components/schemas/PolicyType"
-        certRequest:
-          $ref: "#/components/schemas/CertificateRequestPolicyParameters"
-        certEnroll:
-          $ref: "#/components/schemas/CertificateEnrollPolicyParameters"
-      required:
-        - policyType
-    PolicyRef:
-      allOf:
-        - $ref: "#/components/schemas/ResourceRef"
-        - type: object
-          title: PolicyRefParameters
-          properties:
-            policyType:
-              $ref: "#/components/schemas/PolicyType"
-          required:
-            - policyType
-    Policy:
-      allOf:
-        - $ref: "#/components/schemas/PolicyRef"
-        - $ref: "#/components/schemas/PolicyParameters"
     NamespaceRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"

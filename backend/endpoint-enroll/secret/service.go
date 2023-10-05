@@ -1,12 +1,18 @@
 package secret
 
-import "runtime"
+import (
+	ctx "context"
+	"crypto/rsa"
+	"runtime"
+)
 
-type SecretsService interface {
-	GenerateRSAKey()
+type keySessionContextKey string
+
+type SecretService interface {
+	RS256SignHash(hash []byte, keyIdentifier string) (signature []byte, publicKey *rsa.PublicKey, err error)
 }
 
-func GetService() SecretsService {
+func GetService(context ctx.Context) SecretService {
 	if runtime.GOOS == "windows" {
 		return &WindowsSecretsService{}
 	}
