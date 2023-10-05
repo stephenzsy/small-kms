@@ -12,6 +12,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, nsID uuid.UUID, templateDoc *CertificateTemplateDoc, certDoc *CertDoc) (renewReason string) {
@@ -31,7 +32,7 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 		return "subject mismatch"
 	}
 	if certDoc.KeyInfo.Alg == nil || *certDoc.KeyInfo.Alg != templateDoc.KeyProperties.Alg ||
-		certDoc.KeyInfo.Kty == KeyTypeRSA && (certDoc.KeyInfo.KeySize == nil || templateDoc.KeyProperties.KeySize == nil ||
+		certDoc.KeyInfo.Kty == models.KeyTypeRSA && (certDoc.KeyInfo.KeySize == nil || templateDoc.KeyProperties.KeySize == nil ||
 			*certDoc.KeyInfo.KeySize != *templateDoc.KeyProperties.KeySize) {
 		return "alg or key mismatch"
 	}
@@ -118,7 +119,9 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUI
 			}
 		}
 		// create certificate
-		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsID, templateDoc, nil)
+		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsID, &certTemplateProcessor{
+			tmplDoc: templateDoc,
+		})
 		if err != nil {
 			common.RespondError(c, err)
 			return

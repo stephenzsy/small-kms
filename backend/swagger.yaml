@@ -383,7 +383,7 @@ components:
         issuer:
           $ref: "#/components/schemas/CertificateIssuer"
         keyProperties:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
         subject:
           $ref: "#/components/schemas/CertificateSubject"
         subjectAlternativeNames:
@@ -494,7 +494,7 @@ components:
           format: uuid
           x-go-name: RequesterID
         keyProperties:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
       required:
         - ref
         - expires
@@ -514,13 +514,12 @@ components:
             signature section of the jwt, serves as proof of confirmation finalize the enrollment and being issued a certificate,
             with header and signature, signed with the key pair with the public key in the same request
           type: string
-        publicKeyPem:
-          description: public key encoded in pem
-          type: string
+        publicKey:
+          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
       required:
         - jwtHeader
         - jwtSignature
-        - publicKeyPem
+        - publicKey
     NamespaceType:
       type: string
       enum:
@@ -610,12 +609,12 @@ components:
       properties:
         kty:
           x-go-name: KeyType
-          $ref: "#/components/schemas/KeyType"
+          $ref: "models.openapi.yaml#/components/schemas/JwtKty"
         key_size:
           x-go-name: KeySize
           $ref: "#/components/schemas/JwkKeySize"
         crv:
-          $ref: "#/components/schemas/CurveName"
+          $ref: "models.openapi.yaml#/components/schemas/JwtCrv"
           x-go-name: CurveName
         reuse_key:
           description: Keep using the same key version if exists
@@ -746,36 +745,6 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
-    KeyType:
-      type: string
-      enum:
-        - RSA
-        - EC
-      x-enum-varnames:
-        - KeyTypeRSA
-        - KeyTypeEC
-    CurveName:
-      type: string
-      enum:
-        - P-256
-        - P-384
-      x-enum-varnames:
-        - CurveNameP256
-        - CurveNameP384
-    JwkAlg:
-      type: string
-      enum:
-        - RS256
-        - RS384
-        - RS512
-        - ES256
-        - ES384
-      x-enum-varnames:
-        - AlgRS256
-        - AlgRS384
-        - AlgRS512
-        - AlgES256
-        - AlgES384
     JwkKeySize:
       type: integer
       format: int32
@@ -788,75 +757,6 @@ components:
         - KeySize_3072
         - KeySize_4096
       x-go-name: KeySize
-    JwkKeyOperation:
-      type: string
-      enum:
-        - sign
-        - verify
-        - encrypt
-        - decrypt
-        - wrapKey
-        - unwrapKey
-      x-enum-varnames:
-        - KeyOpSign
-        - KeyOpVerify
-        - KeyOpEncrypt
-        - KeyOpDecrypt
-        - KeyOpWrapKey
-        - KeyOpUnwrapKey
-      x-go-name: KeyOp
-    JwkProperties:
-      type: object
-      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-      properties:
-        alg:
-          $ref: "#/components/schemas/JwkAlg"
-        kty:
-          $ref: "#/components/schemas/KeyType"
-        key_size:
-          description: RSA key size
-          $ref: "#/components/schemas/JwkKeySize"
-        key_ops:
-          $ref: "#/components/schemas/JwkKeyOperation"
-        n:
-          description: RSA modulus
-          type: string
-        e:
-          description: RSA exponent
-          type: string
-        crv:
-          $ref: "#/components/schemas/CurveName"
-        x:
-          description: EC x coordinate
-          type: string
-        y:
-          description: EC y coordinate
-          type: string
-        kid:
-          description: Key ID
-          type: string
-          x-go-name: KeyID
-        x5u:
-          x-go-name: CertificateURL
-          description: X.509 certificate URL
-          type: string
-        x5c:
-          description: X.509 certificate chain
-          type: array
-          items:
-            type: string
-          x-go-name: CertificateChain
-          x-go-type-skip-optional-pointer: true
-        x5t:
-          description: X.509 certificate SHA-1 thumbprint
-          type: string
-          x-go-name: CertificateThumbprint
-        x5t#S256:
-          description: X.509 certificate SHA-256 thumbprint
-          type: string
-          x-go-name: CertificateThumbprintSHA256
-      required:
-        - kty
     CertificateRenewalParameters:
       type: object
       properties:
@@ -947,7 +847,7 @@ components:
         usage:
           $ref: "#/components/schemas/CertificateUsage"
         jwk:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
         pem:
           type: string
         template:

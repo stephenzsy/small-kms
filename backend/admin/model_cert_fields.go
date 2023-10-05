@@ -11,10 +11,10 @@ import (
 	"encoding/pem"
 	"hash"
 	"math/big"
-	"net/url"
 	"slices"
 	"strings"
 
+	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -52,50 +52,21 @@ func sanitizeSANs(sans *CertificateSubjectAlternativeNames) *CertificateSubjectA
 	return sans
 }
 
-func (sans *CertificateSubjectAlternativeNames) populateCertificate(cert *x509.Certificate, data *TemplateVarData) {
-	if sans == nil {
-		return
-	}
-
-	cert.EmailAddresses = utils.NilIfZeroLen(
-		utils.FilterSlice(
-			utils.MapSlices(sans.EmailAddresses, func(emailAddrStr string) string {
-				return processTemplate(emailAddrStr, data)
-			}),
-			func(emailAddrStr string) bool {
-				return len(emailAddrStr) > 0
-			}))
-
-	cert.URIs = utils.NilIfZeroLen[*url.URL](
-		utils.FilterSlice[*url.URL](
-			utils.MapSlices(sans.URIs, func(uriStr string) *url.URL {
-				uriStr = processTemplate(uriStr, data)
-				if len(uriStr) > 0 {
-					uri, _ := url.Parse(uriStr)
-					return uri
-				}
-				return nil
-			}),
-			func(uri *url.URL) bool {
-				return uri != nil
-			}))
-}
-
 func (p *JwkProperties) populateBriefFromCertificate(c *x509.Certificate) {
 	if p == nil || c == nil {
 		return
 	}
 	switch c.SignatureAlgorithm {
 	case x509.SHA256WithRSA:
-		p.Alg = ToPtr(AlgRS256)
+		p.Alg = ToPtr(models.AlgRS256)
 	case x509.SHA384WithRSA:
-		p.Alg = ToPtr(AlgRS384)
+		p.Alg = ToPtr(models.AlgRS384)
 	case x509.SHA512WithRSA:
-		p.Alg = ToPtr(AlgRS512)
+		p.Alg = ToPtr(models.AlgRS512)
 	case x509.ECDSAWithSHA256:
-		p.Alg = ToPtr(AlgES256)
+		p.Alg = ToPtr(models.AlgES256)
 	case x509.ECDSAWithSHA384:
-		p.Alg = ToPtr(AlgES384)
+		p.Alg = ToPtr(models.AlgES384)
 	}
 
 	switch c.PublicKeyAlgorithm {

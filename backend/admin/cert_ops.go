@@ -26,6 +26,7 @@ type certificateSigner struct {
 	certPubKey              crypto.PublicKey
 	createAzCertificateResp *azcertificates.CreateCertificateResponse
 	rootCAKeyBundle         *azkeys.KeyBundle
+	namespaceID             uuid.UUID
 }
 
 func (b *certificateSigner) SignatureAlgorithm() x509.SignatureAlgorithm {
@@ -44,33 +45,25 @@ func (b *certificateSigner) SignatureAlgorithm() x509.SignatureAlgorithm {
 	return x509.UnknownSignatureAlgorithm
 }
 
-func (alg JwkAlg) toAzKeysSignatureAlgorithm() azkeys.SignatureAlgorithm {
-	switch alg {
-	case AlgRS256:
-		return azkeys.SignatureAlgorithmRS256
-	case AlgRS512:
-		return azkeys.SignatureAlgorithmRS512
-	}
-	return azkeys.SignatureAlgorithmRS384
-}
-
 func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
-	tdoc *CertificateTemplateDoc, cert *x509.Certificate, tmplData *TemplateVarData) (*certificateSigner, error) {
+	tdoc *CertificateTemplateDoc, cert *x509.Certificate) (*certificateSigner, error) {
 	signer := certificateSigner{}
+	signer.namespaceID = tdoc.IssuerNamespaceID
 	if tdoc.NamespaceID == tdoc.IssuerNamespaceID {
 		// root ca will create keys in key vault
-		keyBundle, err := tdoc.createAzKey(ctx, s.AzKeysClient(), false, cert)
+		keyBundle, err := createAzKey(ctx, s.AzKeysClient(), false, tdoc.KeyProperties, tdoc.KeyStorePath, cert.NotAfter)
 		if err != nil {
 			return nil, err
 		}
 		signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
-			tdoc.KeyProperties.Alg.toAzKeysSignatureAlgorithm())
+			tdoc.KeyProperties.Alg.ToAzKeysSignatureAlgorithm())
 		if err != nil {
 			return nil, err
 		}
 		signer.certificate = cert
 		signer.certPubKey = signer.privateKey.publicKey
 		signer.rootCAKeyBundle = &keyBundle
+
 	} else {
 		// read certficate doc
 		certDoc, err := s.readCertDoc(ctx, tdoc.IssuerNamespaceID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, tdoc.IssuerTemplateID.GetUUID()))
@@ -102,13 +95,13 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 				return nil, err
 			}
 			signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
-				tdoc.KeyProperties.Alg.toAzKeysSignatureAlgorithm())
+				tdoc.KeyProperties.Alg.ToAzKeysSignatureAlgorithm())
 			if err != nil {
 				return nil, err
 			}
 
 			// use create certificate to create managed key in key vault
-			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsID, tmplData)
+			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsID, cert.Subject.String())
 			if err != nil {
 				return nil, err
 			}
@@ -127,7 +120,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 }
 
 func prepareUnsignedCertificateFromTemplate(
-	nsID uuid.UUID, t *CertificateTemplateDoc, tmplData *TemplateVarData) (*x509.Certificate, uuid.UUID, error) {
+	nsID uuid.UUID, tmplProcessor *certTemplateProcessor) (*x509.Certificate, uuid.UUID, error) {
 	// prep certificate
 	certID, err := uuid.NewRandom()
 	if err != nil {
@@ -138,11 +131,10 @@ func prepareUnsignedCertificateFromTemplate(
 	now := time.Now()
 	c := x509.Certificate{
 		SerialNumber: &certSerial,
-		Subject:      t.Subject.pkixName(tmplData),
 		NotBefore:    now,
-		NotAfter:     now.AddDate(0, int(t.ValidityInMonths), 0),
 	}
-	t.SubjectAlternativeNames.populateCertificate(&c, tmplData)
+	tmplProcessor.processTemplate(&c)
+
 	if err != nil {
 		return nil, certID, err
 	}
@@ -152,34 +144,52 @@ func prepareUnsignedCertificateFromTemplate(
 		c.MaxPathLen = 1
 		c.MaxPathLenZero = false
 		c.BasicConstraintsValid = true
+		c.ExtKeyUsage = nil
 	} else if isAllowedCaNamespace(nsID) {
 		c.IsCA = true
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
 		c.MaxPathLenZero = true
 		c.BasicConstraintsValid = true
+		c.ExtKeyUsage = nil
 	} else {
 		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
-		if t.Usage == UsageServerAndClient || t.Usage == UsageServerOnly {
-			c.ExtKeyUsage = append(c.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
-		}
-		if t.Usage == UsageServerAndClient || t.Usage == UsageClientOnly {
-			c.ExtKeyUsage = append(c.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
-		}
 	}
 
 	return &c, certID, err
 }
 
+func certificateSubjectAlternativeNamesToDoc(cert *x509.Certificate) (r *CertificateSubjectAlternativeNames) {
+	for _, s := range cert.EmailAddresses {
+		if r == nil {
+			r = new(CertificateSubjectAlternativeNames)
+		}
+		r.EmailAddresses = append(r.EmailAddresses, s)
+	}
+	for _, s := range cert.URIs {
+
+		if r == nil {
+			r = new(CertificateSubjectAlternativeNames)
+		}
+		r.URIs = append(r.URIs, s.String())
+	}
+	return r
+}
+
 // (nsType/nsID) must be verified prior to calling this function
 func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsID uuid.UUID,
-	t *CertificateTemplateDoc, tmplData *TemplateVarData) (*CertDoc, []byte, error) {
-	c, certID, err := prepareUnsignedCertificateFromTemplate(nsID, t, tmplData)
+	t *certTemplateProcessor) (*CertDoc, []byte, error) {
+	c, certID, err := prepareUnsignedCertificateFromTemplate(nsID, t)
 	if err != nil {
 		return nil, nil, err
 	}
+	return s.createCertificateFromTemplateWithCert(ctx, nsID, t.tmplDoc, c, certID)
+}
+
+func (s *adminServer) createCertificateFromTemplateWithCert(ctx context.Context, nsID uuid.UUID,
+	t *CertificateTemplateDoc, c *x509.Certificate, certID uuid.UUID) (*CertDoc, []byte, error) {
 
 	// prep signer
-	signer, err := s.loadCertSigner(ctx, nsID, t, c, tmplData)
+	signer, err := s.loadCertSigner(ctx, nsID, t, c)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -245,9 +255,9 @@ func (s *adminServer) createCertificateFromTemplate(ctx context.Context, nsID uu
 		SubjectBase:             t.Subject.String(),
 		NotBefore:               c.NotBefore,
 		NotAfter:                c.NotAfter,
-		SubjectAlternativeNames: t.SubjectAlternativeNames,
+		SubjectAlternativeNames: certificateSubjectAlternativeNamesToDoc(certParsed),
 		CertStorePath:           blobName, // certificate storage path in blob storage
-		IssuerNamespaceID:       t.IssuerNamespaceID,
+		IssuerNamespaceID:       signer.namespaceID,
 		IssuerCertificateID:     signer.certCUID,
 		CommonName:              certParsed.Subject.CommonName,
 	}

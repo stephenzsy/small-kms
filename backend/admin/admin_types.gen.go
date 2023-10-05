@@ -11,6 +11,7 @@ import (
 
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 )
 
 const (
@@ -32,48 +33,10 @@ const (
 	UsageServerOnly          CertificateUsage = "server-only"
 )
 
-// Defines values for CurveName.
-const (
-	CurveNameP256 CurveName = "P-256"
-	CurveNameP384 CurveName = "P-384"
-)
-
 // Defines values for IncludeCertificate.
 const (
 	IncludeJWK IncludeCertificate = "jwk"
 	IncludePEM IncludeCertificate = "pem"
-)
-
-// Defines values for JwkAlg.
-const (
-	AlgES256 JwkAlg = "ES256"
-	AlgES384 JwkAlg = "ES384"
-	AlgRS256 JwkAlg = "RS256"
-	AlgRS384 JwkAlg = "RS384"
-	AlgRS512 JwkAlg = "RS512"
-)
-
-// Defines values for KeyOp.
-const (
-	KeyOpDecrypt   KeyOp = "decrypt"
-	KeyOpEncrypt   KeyOp = "encrypt"
-	KeyOpSign      KeyOp = "sign"
-	KeyOpUnwrapKey KeyOp = "unwrapKey"
-	KeyOpVerify    KeyOp = "verify"
-	KeyOpWrapKey   KeyOp = "wrapKey"
-)
-
-// Defines values for KeySize.
-const (
-	KeySize2048 KeySize = 2048
-	KeySize3072 KeySize = 3072
-	KeySize4096 KeySize = 4096
-)
-
-// Defines values for KeyType.
-const (
-	KeyTypeEC  KeyType = "EC"
-	KeyTypeRSA KeyType = "RSA"
 )
 
 // Defines values for NamespaceTypeShortName.
@@ -105,8 +68,8 @@ type CertificateEnrollmentReceipt struct {
 	JwtClaims string `json:"jwtClaims"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties JwkProperties   `json:"keyProperties"`
-	Ref           RefWithMetadata `json:"ref"`
+	KeyProperties externalRef0.JwkProperties `json:"keyProperties"`
+	Ref           RefWithMetadata            `json:"ref"`
 
 	// RequesterId Unique ID of the user who requested the certificate
 	RequesterID openapi_types.UUID `json:"requesterId"`
@@ -126,8 +89,8 @@ type CertificateEnrollmentReplyFinalize struct {
 	// JwtSignature signature section of the jwt, serves as proof of confirmation finalize the enrollment and being issued a certificate, with header and signature, signed with the key pair with the public key in the same request
 	JwtSignature string `json:"jwtSignature"`
 
-	// PublicKeyPem public key encoded in pem
-	PublicKeyPem string `json:"publicKeyPem"`
+	// PublicKey Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	PublicKey externalRef0.JwkProperties `json:"publicKey"`
 }
 
 // CertificateEnrollmentRequest defines model for CertificateEnrollmentRequest.
@@ -164,7 +127,7 @@ type CertificateInfo struct {
 	IssuerCertificate Ref    `json:"issuerCertificate"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk *JwkProperties `json:"jwk,omitempty"`
+	Jwk *externalRef0.JwkProperties `json:"jwk,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -221,7 +184,7 @@ type CertificateTemplate struct {
 	Issuer      CertificateIssuer `json:"issuer"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyProperties   *externalRef0.JwkProperties `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 	Ref             RefWithMetadata             `json:"ref"`
@@ -240,7 +203,7 @@ type CertificateTemplateParameters struct {
 	Issuer      CertificateIssuer `json:"issuer"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyProperties   *externalRef0.JwkProperties `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 
@@ -255,59 +218,8 @@ type CertificateTemplateParameters struct {
 // CertificateUsage defines model for CertificateUsage.
 type CertificateUsage string
 
-// CurveName defines model for CurveName.
-type CurveName string
-
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// JwkAlg defines model for JwkAlg.
-type JwkAlg string
-
-// KeyOp defines model for JwkKeyOperation.
-type KeyOp string
-
-// KeySize defines model for JwkKeySize.
-type KeySize int32
-
-// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-type JwkProperties struct {
-	Alg *JwkAlg    `json:"alg,omitempty"`
-	Crv *CurveName `json:"crv,omitempty"`
-
-	// E RSA exponent
-	E       *string  `json:"e,omitempty"`
-	KeyOp   *KeyOp   `json:"key_ops,omitempty"`
-	KeySize *KeySize `json:"key_size,omitempty"`
-
-	// Kid Key ID
-	KeyID *string `json:"kid,omitempty"`
-	Kty   KeyType `json:"kty"`
-
-	// N RSA modulus
-	N *string `json:"n,omitempty"`
-
-	// X EC x coordinate
-	X *string `json:"x,omitempty"`
-
-	// X5c X.509 certificate chain
-	CertificateChain []string `json:"x5c,omitempty"`
-
-	// X5t X.509 certificate SHA-1 thumbprint
-	CertificateThumbprint *string `json:"x5t,omitempty"`
-
-	// X5tS256 X.509 certificate SHA-256 thumbprint
-	CertificateThumbprintSHA256 *string `json:"x5t#S256,omitempty"`
-
-	// X5u X.509 certificate URL
-	CertificateURL *string `json:"x5u,omitempty"`
-
-	// Y EC y coordinate
-	Y *string `json:"y,omitempty"`
-}
-
-// KeyType defines model for KeyType.
-type KeyType string
 
 // NamespaceInfo defines model for NamespaceInfo.
 type NamespaceInfo struct {

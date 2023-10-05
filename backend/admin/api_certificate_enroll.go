@@ -2,12 +2,14 @@ package admin
 
 import (
 	"context"
+	"crypto/rsa"
 	"crypto/x509"
-	"encoding/pem"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -20,6 +22,7 @@ import (
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	msgraphsp "github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
 	"github.com/rs/zerolog/log"
+	certtemplate "github.com/stephenzsy/small-kms/backend/admin/cert-template"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/graph"
@@ -51,7 +54,7 @@ func withGraphClient(c context.Context, client *msgraph.GraphServiceClient) cont
 	return context.WithValue(c, graphClientContextKey, client)
 }
 
-func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Deviceable, error) {
+func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.Deviceable, error) {
 	obj, err := graphClienFromContext(c).Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphdevices.DeviceItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectDeviceDoc(),
@@ -60,7 +63,7 @@ func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params
 	if err != nil {
 		return obj, err
 	}
-	params.Device = ResourceTemplateVarData{
+	params.Device = certtemplate.ResourceTemplateVarData{
 		ID:     *obj.GetId(),
 		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/devices/%s", *obj.GetId()),
 		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/devices(deviceId='{%s}')", *obj.GetDeviceId()),
@@ -68,7 +71,7 @@ func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params
 	return obj, nil
 }
 
-func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Applicationable, error) {
+func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.Applicationable, error) {
 	obj, err := graphClienFromContext(c).Applications().ByApplicationId(objectID.String()).Get(c, &msgraphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphapplications.ApplicationItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
@@ -77,7 +80,7 @@ func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, p
 	if err != nil {
 		return obj, err
 	}
-	params.Application = ResourceTemplateVarData{
+	params.Application = certtemplate.ResourceTemplateVarData{
 		ID:     *obj.GetId(),
 		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/applications/%s", *obj.GetId()),
 		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/applications(appId='{%s}')", *obj.GetAppId()),
@@ -85,7 +88,7 @@ func (s *adminServer) verifyApplication(c context.Context, objectID uuid.UUID, p
 	return obj, nil
 }
 
-func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.ServicePrincipalable, error) {
+func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.ServicePrincipalable, error) {
 	obj, err := graphClienFromContext(c).ServicePrincipals().ByServicePrincipalId(objectID.String()).Get(c, &msgraphsp.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphsp.ServicePrincipalItemRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId"},
@@ -94,7 +97,7 @@ func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UU
 	if err != nil {
 		return obj, err
 	}
-	params.ServicePrincipal = ResourceTemplateVarData{
+	params.ServicePrincipal = certtemplate.ResourceTemplateVarData{
 		ID:     *obj.GetId(),
 		URI:    fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals/%s", *obj.GetId()),
 		AltURI: fmt.Sprintf("https://graph.microsoft.com/v1.0/servicePrincipals(appId='{%s}')", *obj.GetAppId()),
@@ -102,7 +105,7 @@ func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UU
 	return obj, nil
 }
 
-func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *TemplateVarData) (msgraphmodels.Groupable, error) {
+func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.Groupable, error) {
 	obj, err := graphClienFromContext(c).Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphgroups.GroupItemRequestBuilderGetQueryParameters{
 			Select: graph.GetProfileGraphSelectGroupDoc(),
@@ -111,7 +114,7 @@ func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params 
 	if err != nil {
 		return obj, err
 	}
-	params.Group = ResourceTemplateVarData{
+	params.Group = certtemplate.ResourceTemplateVarData{
 		ID:  *obj.GetId(),
 		URI: fmt.Sprintf("https://graph.microsoft.com/v1.0/groups/%s", *obj.GetId()),
 	}
@@ -135,28 +138,12 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 	return false, nil
 }
 
-func processTemplate(tmplStr string, data *TemplateVarData) string {
-	tmplStr = strings.TrimSpace(tmplStr)
-	tmpl, err := parseCertificateRequestTemplate(tmplStr)
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse template: %s", tmplStr)
-		return ""
-	}
-	if tmpl == nil {
-		return tmplStr
-	}
-	transformed, err := executeTemplate(tmpl, data)
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to execute template: %s", tmplStr)
-		return ""
-	}
-	return transformed
-}
-
-func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *TemplateVarData) (certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
+func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *certtemplate.TemplateVarData) (cert *x509.Certificate, certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
 	claims.SchemaVersion = 1
-	var cert *x509.Certificate
-	cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, template, data)
+	cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, &certTemplateProcessor{
+		tmplDoc: template,
+		data:    data,
+	})
 	if err != nil {
 		return
 	}
@@ -192,9 +179,32 @@ func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *
 	return
 }
 
-func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateId uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
+func (pendingCertDoc *PendingCertDoc) populateCertificate(cert *x509.Certificate) {
+	cert.Subject = pendingCertDoc.Subject.pkixName()
+	cert.NotBefore = pendingCertDoc.NotBefore
+	cert.NotAfter = pendingCertDoc.NotAfter
+	cert.EmailAddresses = pendingCertDoc.SubjectAlternativeNames.EmailAddresses
+	cert.URIs = utils.MapSlices(pendingCertDoc.SubjectAlternativeNames.URIs, func(s string) *url.URL { u, _ := url.Parse(s); return u })
+	cert.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
+	switch pendingCertDoc.Usage {
+	case UsageServerAndClient:
+		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
+	case UsageServerOnly:
+		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
+	case UsageClientOnly:
+		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
+	}
+	certId := pendingCertDoc.ID.GetUUID()
+	cert.SerialNumber = big.NewInt(0).SetBytes(certId[:])
+}
+
+func (s *adminServer) processBeginEnrollCertForDASPLink(c common.ServiceContext, nsID uuid.UUID, templateID uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
+
+	bad := func(e error) (*PendingCertDoc, error) {
+		return nil, e
+	}
 
 	// first check if AppID match
 	authCtx, ok := auth.GetAuthIdentity(c)
@@ -214,12 +224,16 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 
 	// get template
-	templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateId)
+	template, err := certtemplate.LoadCertifictateTemplate(c, nsID, templateID)
 	if err != nil {
-		return nil, err
+		return bad(err)
+	}
+	// verify template is active
+	if !template.IsEnabled() {
+		return bad(fmt.Errorf("%w: template is not enabled", common.ErrStatusBadRequest))
 	}
 
-	// graph client in contextF
+	// graph client in context
 	if graphClient, err := s.msGraphClient(c); err != nil {
 		return nil, err
 	} else {
@@ -252,7 +266,7 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	log.Info().Msgf("link doc loaded and verified: %s", req.DeviceLinkID)
 
 	// prep parameters
-	params := TemplateVarData{}
+	params := certtemplate.TemplateVarData{}
 	// verify against ms graph
 	if obj, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
 		return nil, err
@@ -291,23 +305,24 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("group membership verified: %s", nsID)
 
-	certID, claims, err := processCertificateEnrollmentClaims(templateDoc, &params)
+	cert, err := template.CreateCertWithVariables(params)
 	if err != nil {
-		return nil, err
+		return bad(err)
 	}
-	claimsEncoded, err := encodeJwtJsonSegment(claims)
-	if err != nil {
-		return nil, err
-	}
+	// claimsEncoded, err := encodeJwtJsonSegment(cert.TODO()) // get jwt claims
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// store doc
-	pCertDoc := newPendingCertDoc(certID, claimsEncoded, templateDoc, req.ServicePrincipalID, requesterID)
-	if err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), &pCertDoc); err != nil {
-		return nil, err
-	}
+	// pCertDoc := newPendingCertDoc(certID, cert, claimsEncoded, templateDoc, req.ServicePrincipalID, requesterID)
+	// if err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), &pCertDoc); err != nil {
+	// 	return nil, err
+	// }
+	pCertDoc := cert.TODO().(*PendingCertDoc)
 	log.Info().Msgf("pending document stored: %s", nsID)
 
-	return &pCertDoc, nil
+	return pCertDoc, nil
 }
 
 func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
@@ -324,11 +339,13 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 		return
 	}
 
+	serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
+
 	var pCertDoc *PendingCertDoc
 	var responseNsType NamespaceTypeShortName
 	switch req := req.(type) {
 	case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-		pCertDoc, err = s.processBeginEnrollCertForDASPLink(c, nsID, templateId, req)
+		pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
 		responseNsType = NSTypeServicePrincipal
 	}
 	if err != nil {
@@ -361,21 +378,54 @@ func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.
 	parser := jwt.NewParser()
 
 	completeToken := req.JwtHeader + "." + pCertDoc.JWT[1] + "." + req.JwtSignature
-	pubKeyPemBlock, _ := pem.Decode([]byte(req.PublicKeyPem))
-	pubKey, err := x509.ParsePKCS1PublicKey(pubKeyPemBlock.Bytes)
+
+	pubKey := rsa.PublicKey{}
+	err = req.PublicKey.populateRsaPublicKey(&pubKey)
 	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse public key: %s", req.PublicKeyPem)
+		log.Warn().Err(err).Msgf("failed to parse public key: %s", *req.PublicKey.KeyID)
 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	_, err = parser.Parse(completeToken, func(_ *jwt.Token) (interface{}, error) {
-		return pubKey, nil
+		return &pubKey, nil
 	})
 	if err != nil {
 		log.Warn().Err(err).Msgf("failed to parse jwt token: %s", completeToken)
 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
 		return
 	}
+	decodedClaims, err := base64.RawStdEncoding.DecodeString(pCertDoc.JWT[1])
+	if err != nil {
+		respondInternalError(c, err, "failed to decode jwt claims")
+		return
+	}
+	claims := CertificateEnrollmentClaims{}
+	if err := json.Unmarshal(decodedClaims, &claims); err != nil {
+		respondInternalError(c, err, "failed to parse jwt claims")
+		return
+	}
+	cert := new(x509.Certificate)
+	pCertDoc.populateCertificate(cert)
+
+	//s.createCertificateFromTemplateWithCert(c, nsID, pCertDoc.TemplateDoc, cert, certID)
 
 	c.JSON(http.StatusOK, nil)
+}
+
+func (p *JwkProperties) populateRsaPublicKey(k *rsa.PublicKey) error {
+	if p == nil {
+		return nil
+	}
+	decE, err := base64.RawURLEncoding.DecodeString(*p.E)
+	if err != nil {
+		return err
+	}
+	decN, err := base64.RawURLEncoding.DecodeString(*p.N)
+	if err != nil {
+		return err
+	}
+
+	k.E = int(new(big.Int).SetBytes(decE).Int64())
+	k.N = new(big.Int).SetBytes(decN)
+	return nil
 }

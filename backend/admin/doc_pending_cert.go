@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -19,12 +20,19 @@ type PolicyDocSectionIssuerProperties struct {
 
 type PendingCertDoc struct {
 	kmsdoc.BaseDoc
-	Expires             time.Time                           `json:"exp"` // indicates pending status expires
-	TemplateNamespaceID uuid.UUID                           `json:"templateNamespaceId"`
-	TemplateID          kmsdoc.KmsDocID                     `json:"templateId"`
-	JWT                 [3]string                           `json:"jwt"`         // base64url encoded JWT segments
-	RequesterID         uuid.UUID                           `json:"requesterId"` // must be matched to issue certificate
-	KeyProperties       CertificateTemplateDocKeyProperties `json:"keyProperties"`
+	Expires                 time.Time                           `json:"exp"`                 // indicates pending status expires
+	TemplateNamespaceID     uuid.UUID                           `json:"templateNamespaceId"` // this is informational only
+	TemplateID              kmsdoc.KmsDocID                     `json:"templateId"`          // this is informational only
+	JWT                     [3]string                           `json:"jwt"`                 // base64url encoded JWT segments
+	RequesterID             uuid.UUID                           `json:"requesterId"`         // must be matched to issue certificate
+	KeyProperties           CertificateTemplateDocKeyProperties `json:"keyProperties"`
+	Usage                   CertificateUsage                    `json:"usage"`
+	Subject                 CertificateTemplateDocSubject       `json:"subject"`
+	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"sans,omitempty"`
+	NotBefore               time.Time                           `json:"notBefore"`
+	NotAfter                time.Time                           `json:"notAfter"`
+	IssuerNamespaceID       uuid.UUID                           `json:"issuerNamespaceId"`
+	IssuerTemplateID        kmsdoc.KmsDocID                     `json:"issuerTemplateId"`
 
 	Issued time.Time `json:"issued"`
 }
@@ -45,10 +53,17 @@ func encodeJwtJsonSegment[D any](jsonObj D) (string, error) {
 
 func newPendingCertDoc(
 	certID uuid.UUID,
+	cert *x509.Certificate,
 	claimsEncoded string,
 	templateDoc *CertificateTemplateDoc,
 	issueToNamespaceID uuid.UUID,
 	requesterID uuid.UUID) PendingCertDoc {
+	fisrtOrNil := func(s []string) *string {
+		if len(s) < 1 {
+			return nil
+		}
+		return &s[0]
+	}
 	return PendingCertDoc{
 		BaseDoc: kmsdoc.BaseDoc{
 			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID),
@@ -60,6 +75,20 @@ func newPendingCertDoc(
 		TemplateID:          templateDoc.ID,
 		RequesterID:         requesterID,
 		KeyProperties:       templateDoc.KeyProperties,
+		Usage:               templateDoc.Usage,
+		Subject: CertificateTemplateDocSubject{
+			CertificateSubject: CertificateSubject{
+				CN: cert.Subject.CommonName,
+				OU: fisrtOrNil(cert.Subject.OrganizationalUnit),
+				O:  fisrtOrNil(cert.Subject.Organization),
+				C:  fisrtOrNil(cert.Subject.Country),
+			},
+		},
+		SubjectAlternativeNames: certificateSubjectAlternativeNamesToDoc(cert),
+		NotBefore:               cert.NotBefore,
+		NotAfter:                cert.NotAfter,
+		IssuerNamespaceID:       templateDoc.IssuerNamespaceID,
+		IssuerTemplateID:        templateDoc.IssuerTemplateID,
 	}
 }
 

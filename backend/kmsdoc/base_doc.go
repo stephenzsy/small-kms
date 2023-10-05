@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 type KmsDocType byte
@@ -207,6 +208,17 @@ func AzCosmosUpsert[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerCl
 	return err
 }
 
+func AzCosmosReadItem[D KmsDocument](ctx common.ServiceContext, nsID uuid.UUID, docID KmsDocID, target D) error {
+	resp, err := common.GetAzCosmosContainerClient(ctx).ReadItem(ctx, azcosmos.NewPartitionKeyString(nsID.String()), docID.String(), nil)
+	if err != nil {
+		return common.WrapAzRsNotFoundErr(err, fmt.Sprintf("doc:%s/%s", nsID, docID))
+	}
+	err = json.Unmarshal(resp.Value, target)
+	target.SetETag(resp.ETag)
+	return err
+}
+
+// Deprecated: use AzCosmosReadItem instead
 func AzCosmosRead[D KmsDocument](ctx context.Context,
 	cc *azcosmos.ContainerClient,
 	namespaceID uuid.UUID,

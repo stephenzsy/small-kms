@@ -2,11 +2,11 @@ package admin
 
 import (
 	"context"
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -15,16 +15,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Alg      JwkAlg     `json:"alg"`
-	Kty      KeyType    `json:"kty"`
-	KeySize  *KeySize   `json:"key_size,omitempty"`
-	Crv      *CurveName `json:"crv,omitempty"`
-	ReuseKey *bool      `json:"reuse_key,omitempty"`
+	Alg      models.JwkAlg `json:"alg"`
+	Kty      KeyType       `json:"kty"`
+	KeySize  *KeySize      `json:"key_size,omitempty"`
+	Crv      *CurveName    `json:"crv,omitempty"`
+	ReuseKey *bool         `json:"reuse_key,omitempty"`
 }
 
 type CertificateTemplateDocLifeTimeTrigger struct {
@@ -50,6 +51,7 @@ type CertificateTemplateDoc struct {
 	Usage                   CertificateUsage                      `json:"usage"`
 	ValidityInMonths        int32                                 `json:"validity_months"`
 	LifetimeTrigger         CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
+	VariablesEnabeled       bool                                  `json:"variablesEnabeled"`
 }
 
 func (doc *CertificateTemplateDoc) IsActive() bool {
@@ -60,6 +62,7 @@ func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
 	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, doc.IssuerTemplateID.GetUUID())
 }
 
+// Deprecated: use service context to access
 func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {
 	doc := new(CertificateTemplateDoc)
 	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
@@ -68,13 +71,13 @@ func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.
 }
 
 func (p *CertificateTemplateDocKeyProperties) setDefault() {
-	p.Alg = AlgRS256
+	p.Alg = models.AlgRS256
 	p.Kty = KeyTypeRSA
 	p.KeySize = ToPtr(KeySize2048)
 	p.Crv = nil
 }
 
-func (p *CertificateTemplateDocKeyProperties) setRSA(alg JwkAlg, keySize KeySize) {
+func (p *CertificateTemplateDocKeyProperties) setRSA(alg models.JwkAlg, keySize KeySize) {
 	p.Alg = alg
 	p.Kty = KeyTypeRSA
 	p.KeySize = &keySize
@@ -82,34 +85,25 @@ func (p *CertificateTemplateDocKeyProperties) setRSA(alg JwkAlg, keySize KeySize
 }
 
 func (p *CertificateTemplateDocKeyProperties) setECDSA(crv CurveName) {
-	p.Alg = AlgES384
+	p.Alg = models.AlgES384
 	p.Kty = KeyTypeEC
 	p.Crv = &crv
 	p.KeySize = nil
 	if crv == CurveNameP256 {
-		p.Alg = AlgES256
+		p.Alg = models.AlgES256
 	}
 }
 
-func (s *CertificateTemplateDocSubject) pkixName(tmplData *TemplateVarData) (name pkix.Name) {
-	name.CommonName = processTemplate(s.CN, tmplData)
+func (s *CertificateTemplateDocSubject) pkixName() (name pkix.Name) {
+	name.CommonName = s.CN
 	if s.C != nil && len(*s.C) > 0 {
-		a := processTemplate(*s.C, tmplData)
-		if len(a) > 0 {
-			name.Country = []string{a}
-		}
+		name.Country = []string{*s.C}
 	}
 	if s.O != nil && len(*s.O) > 0 {
-		a := processTemplate(*s.O, tmplData)
-		if len(a) > 0 {
-			name.Organization = []string{a}
-		}
+		name.Organization = []string{*s.O}
 	}
 	if s.OU != nil && len(*s.OU) > 0 {
-		a := processTemplate(*s.OU, tmplData)
-		if len(a) > 0 {
-			name.OrganizationalUnit = []string{a}
-		}
+		name.OrganizationalUnit = []string{*s.OU}
 	}
 	return
 }
@@ -121,7 +115,7 @@ func (s *CertificateTemplateDocSubject) String() string {
 	if s.cachedString != nil {
 		return *s.cachedString
 	}
-	name := s.pkixName(nil)
+	name := s.pkixName()
 	str := name.String()
 	s.cachedString = &str
 	return str
@@ -135,9 +129,9 @@ func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *JwkProper
 		return errors.New("alg is nil")
 	}
 	switch *input.Alg {
-	case AlgRS256,
-		AlgRS384,
-		AlgRS512:
+	case models.AlgRS256,
+		models.AlgRS384,
+		models.AlgRS512:
 		if input.Kty != KeyTypeRSA {
 			return errors.New("alg is RSA but kty is not RSA")
 		}
@@ -146,12 +140,12 @@ func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *JwkProper
 		} else {
 			p.setRSA(*input.Alg, *input.KeySize)
 		}
-	case AlgES256:
+	case models.AlgES256:
 		if input.Crv != nil && *input.Crv != CurveNameP256 {
 			return errors.New("alg is ES256 but crv is not P256")
 		}
 		p.setECDSA(CurveNameP256)
-	case AlgES384:
+	case models.AlgES384:
 		if input.Crv != nil && *input.Crv != CurveNameP256 {
 			return errors.New("alg is ES384 but crv is not P384")
 		}
@@ -231,21 +225,24 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate() *CertificateTemplate 
 	return o
 }
 
-func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool, cert *x509.Certificate) (r azkeys.KeyBundle, err error) {
+func createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool,
+	kp CertificateTemplateDocKeyProperties,
+	keyStorePath *string,
+	notAfter time.Time) (r azkeys.KeyBundle, err error) {
 	params := azkeys.CreateKeyParameters{
 		KeyOps: []*azkeys.KeyOperation{to.Ptr(azkeys.KeyOperationSign), to.Ptr(azkeys.KeyOperationVerify)},
 		KeyAttributes: &azkeys.KeyAttributes{
 			Enabled: to.Ptr(true),
 		},
 	}
-	kp := doc.KeyProperties
+
 	switch kp.Kty {
 	case KeyTypeRSA:
 		params.Kty = to.Ptr(azkeys.KeyTypeRSA)
-		if doc.KeyProperties.KeySize == nil {
+		if kp.KeySize == nil {
 			return r, fmt.Errorf("key size null for RSA key")
 		}
-		switch *doc.KeyProperties.KeySize {
+		switch *kp.KeySize {
 		case KeySize2048:
 			params.KeySize = to.Ptr(int32(KeySize2048))
 		case KeySize3072:
@@ -253,26 +250,26 @@ func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azke
 		case KeySize4096:
 			params.KeySize = to.Ptr(int32(KeySize4096))
 		default:
-			return r, fmt.Errorf("unsupported key size %d", *doc.KeyProperties.KeySize)
+			return r, fmt.Errorf("unsupported key size %d", *kp.KeySize)
 		}
 	case KeyTypeEC:
 		params.Kty = to.Ptr(azkeys.KeyTypeEC)
-		if doc.KeyProperties.Crv == nil {
+		if kp.Crv == nil {
 			return r, fmt.Errorf("curve null for EC key")
 		}
-		switch *doc.KeyProperties.Crv {
+		switch *kp.Crv {
 		case CurveNameP256:
 			params.Curve = to.Ptr(azkeys.CurveNameP256)
 		case CurveNameP384:
 			params.Curve = to.Ptr(azkeys.CurveNameP384)
 		default:
-			return r, fmt.Errorf("unsupported curve %s", *doc.KeyProperties.Crv)
+			return r, fmt.Errorf("unsupported curve %s", *kp.Crv)
 		}
 	default:
-		return r, fmt.Errorf("unsupported key type %s", doc.KeyProperties.Kty)
+		return r, fmt.Errorf("unsupported key type %s", kp.Kty)
 	}
 
-	if doc.KeyStorePath == nil || len(*doc.KeyStorePath) <= 0 {
+	if keyStorePath == nil || len(*keyStorePath) <= 0 {
 		return r, fmt.Errorf("nil key name")
 	}
 
@@ -280,12 +277,12 @@ func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azke
 
 	if kp.ReuseKey != nil && *kp.ReuseKey {
 		// try get certificate
-		resp, err := client.GetKey(ctx, *doc.KeyStorePath, "", nil)
+		resp, err := client.GetKey(ctx, *keyStorePath, "", nil)
 		if err != nil {
 			return resp.KeyBundle, err
 		}
 		// verify key does not expire before certifiate
-		if resp.Attributes.Expires != nil && resp.Attributes.Expires.Before(cert.NotAfter) {
+		if resp.Attributes.Expires != nil && resp.Attributes.Expires.Before(notAfter) {
 			goto createKey
 		}
 		key := resp.Key
@@ -320,20 +317,22 @@ func (doc *CertificateTemplateDoc) createAzKey(ctx context.Context, client *azke
 		}
 		return resp.KeyBundle, err
 	} else {
-		params.KeyAttributes.Expires = to.Ptr(cert.NotAfter)
+		params.KeyAttributes.Expires = to.Ptr(notAfter)
 	}
 
 createKey:
-	resp, err := client.CreateKey(ctx, *doc.KeyStorePath, params, nil)
+	resp, err := client.CreateKey(ctx, *keyStorePath, params, nil)
 	return resp.KeyBundle, err
 }
 
-func (doc *CertificateTemplateDoc) createAzCertificate(ctx context.Context, client *azcertificates.Client,
+func (doc *CertificateTemplateDoc) createAzCertificate(
+	ctx context.Context,
+	client *azcertificates.Client,
 	issueToNamespaceID uuid.UUID,
-	tmplData *TemplateVarData) (azcertificates.CreateCertificateResponse, error) {
+	subject string) (azcertificates.CreateCertificateResponse, error) {
 	params := azcertificates.CreateCertificateParameters{}
 	x509Properties := azcertificates.X509CertificateProperties{
-		Subject:          ToPtr(doc.Subject.pkixName(tmplData).String()),
+		Subject:          utils.ToPtr(subject),
 		ValidityInMonths: ToPtr(int32(doc.ValidityInMonths)),
 	}
 

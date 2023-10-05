@@ -11,6 +11,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 var (
@@ -180,7 +181,7 @@ func (p *CertificateTemplateParameters) validateAndToDoc(odataType graph.MsGraph
 		if isTestCA(nsID) {
 			doc.KeyProperties.setECDSA(CurveNameP384)
 		} else {
-			doc.KeyProperties.setRSA(AlgRS384, KeySize4096)
+			doc.KeyProperties.setRSA(models.AlgRS384, KeySize4096)
 		}
 		// ignore input key properties for CA
 	default:

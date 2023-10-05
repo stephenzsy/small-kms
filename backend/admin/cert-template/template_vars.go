@@ -1,11 +1,10 @@
-package admin
+package certtemplate
 
 import (
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
-	"text/template"
 )
 
 const (
@@ -86,27 +85,4 @@ func preprocessTemplate(s string) (transformed string, hasTemplate bool, err err
 	}
 
 	return sb.String(), hasTemplate, nil
-}
-
-func parseCertificateRequestTemplate(s string) (*template.Template, error) {
-	transformed, hasTemplate, err := preprocessTemplate(s)
-	if err != nil {
-		return nil, err
-	}
-	if hasTemplate {
-		return template.New(s).Parse(transformed)
-	}
-	return nil, nil
-}
-
-func executeTemplate(t *template.Template, data *TemplateVarData) (string, error) {
-	if t == nil {
-		return "", nil
-	}
-	sb := strings.Builder{}
-	err := t.Execute(&sb, data)
-	if err != nil {
-		return "", err
-	}
-	return sb.String(), nil
 }

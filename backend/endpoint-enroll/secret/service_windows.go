@@ -33,7 +33,7 @@ func syscallErrnoIs(err error, expected syscall.Errno) bool {
 }
 
 // SignData implements SecretService.
-func (s *WindowsSecretsService) RS256SignHash(hash []byte, certName string) ([]byte, *rsa.PublicKey, error) {
+func (s *WindowsSecretsService) RS256SignHash(hash []byte, certName string, installToMachine bool) ([]byte, *rsa.PublicKey, error) {
 	badSyscall := func(e error, locator string) ([]byte, *rsa.PublicKey, error) {
 		return nil, nil, fmt.Errorf("%w:%s:%w", ErrWindowsSyscallFailure, locator, e)
 	}
@@ -46,7 +46,12 @@ func (s *WindowsSecretsService) RS256SignHash(hash []byte, certName string) ([]b
 	defer ncrypt.FreeObject(ncrypt.HANDLE(hProvider))
 
 	// open key
-	hKey, err := s.getPersistedRSAKey(hProvider, 2048, certName)
+	//ncrypt.NCRYPT_MACHINE_KEY_FLAG)
+	flag := uint32(0)
+	if installToMachine {
+		flag = ncrypt.NCRYPT_MACHINE_KEY_FLAG
+	}
+	hKey, err := s.getPersistedRSAKey(hProvider, 2048, certName, flag)
 	if err != nil {
 		return badSyscall(err, "openkey")
 	}
@@ -124,7 +129,7 @@ func utf16FromString(s string) []uint16 {
 }
 
 // GenerateRSAKey implements SecretsService.
-func (s *WindowsSecretsService) getPersistedRSAKey(hProvider ncrypt.PROV_HANDLE, keyLength int, keyName string) (hKey ncrypt.KEY_HANDLE, err error) {
+func (s *WindowsSecretsService) getPersistedRSAKey(hProvider ncrypt.PROV_HANDLE, keyLength int, keyName string, createKeyFlag uint32) (hKey ncrypt.KEY_HANDLE, err error) {
 
 	var keyNamePtr *uint16
 	if keyName != "" {
@@ -134,7 +139,7 @@ func (s *WindowsSecretsService) getPersistedRSAKey(hProvider ncrypt.PROV_HANDLE,
 		utf16PtrFromString(ncrypt.RSA_ALGORITHM),
 		keyNamePtr,
 		0,
-		0) //ncrypt.NCRYPT_MACHINE_KEY_FLAG)
+		createKeyFlag)
 	if err != nil {
 		if syscallErrnoIs(err, ncrypt.NTE_EXISTS) {
 			err = ncrypt.OpenKey(hProvider, &hKey, keyNamePtr, 0, 0)

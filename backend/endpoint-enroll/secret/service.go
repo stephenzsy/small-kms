@@ -9,7 +9,7 @@ import (
 type keySessionContextKey string
 
 type SecretService interface {
-	RS256SignHash(hash []byte, keyIdentifier string) (signature []byte, publicKey *rsa.PublicKey, err error)
+	RS256SignHash(hash []byte, keyIdentifier string, installToMachine bool) (signature []byte, publicKey *rsa.PublicKey, err error)
 }
 
 func GetService(context ctx.Context) SecretService {

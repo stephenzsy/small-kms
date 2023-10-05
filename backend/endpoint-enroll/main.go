@@ -21,10 +21,12 @@ func main() {
 		log.Fatalf("	install start			-- install starter credentials")
 		log.Fatalf("	install view			-- view install certificate enrollment receipt")
 		log.Fatalf("	install complete		-- complete starter certificate enrollment")
+		log.Fatalf("	install complete user	-- complete starter certificate enrollment, install to user store")
 
 		os.Exit(1)
 	}
-	receiptFilepathFlag := flag.String("receipt-file", "enroll-receipt.json", "output file path")
+	receiptFileName := "enroll-receipt.json"
+
 	flag.Parse()
 
 	switch os.Args[1] {
@@ -32,16 +34,16 @@ func main() {
 		switch os.Args[2] {
 		case "start":
 
-			file, err := os.OpenFile(*receiptFilepathFlag, os.O_CREATE|os.O_WRONLY, 0600)
+			file, err := os.OpenFile(receiptFileName, os.O_CREATE|os.O_WRONLY, 0600)
 			if err != nil {
 				panic(err)
 			}
 			defer file.Close()
-			if err := tasks.InstallStart(file, *receiptFilepathFlag); err != nil {
+			if err := tasks.InstallStart(file, receiptFileName); err != nil {
 				panic(err)
 			}
 		case "view":
-			file, err := os.OpenFile(*receiptFilepathFlag, os.O_RDONLY, 0600)
+			file, err := os.OpenFile(receiptFileName, os.O_RDONLY, 0600)
 			if err != nil {
 				panic(err)
 			}
@@ -49,11 +51,11 @@ func main() {
 				panic(err)
 			}
 		case "complete":
-			file, err := os.OpenFile(*receiptFilepathFlag, os.O_RDONLY, 0600)
+			file, err := os.OpenFile(receiptFileName, os.O_RDONLY, 0600)
 			if err != nil {
 				panic(err)
 			}
-			if err := tasks.InstallComplete(file); err != nil {
+			if err := tasks.InstallComplete(file, len(os.Args) >= 4 && (os.Args[3] == "user")); err != nil {
 				panic(err)
 			}
 		}

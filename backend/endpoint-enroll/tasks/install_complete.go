@@ -3,13 +3,20 @@ package tasks
 import (
 	"bytes"
 	"context"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 
+	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/client"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/secret"
+	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type JWTHeader struct {
@@ -17,29 +24,20 @@ type JWTHeader struct {
 	Typ string `json:"typ"`
 }
 
-func InstallComplete(receiptIn io.Reader) error {
+func InstallComplete(receiptIn io.Reader, installToUser bool) error {
 	receipt, err := readReceipt(receiptIn)
 	if err != nil {
 		return err
 	}
-	/*
 
-		tenantID := common.MustGetenv(common.DefaultEnvVarAzureTenantId)
-		clientID := uuid.MustParse(common.MustGetenv(common.DefaultEnvVarAzureClientId))
-		endpointClientID := common.MustGetenv(common.DefaultEnvVarAppAzureClientId)
+	tenantID := common.MustGetenv(common.DefaultEnvVarAzureTenantId)
+	clientID := uuid.MustParse(common.MustGetenv(common.DefaultEnvVarAzureClientId))
+	endpointClientID := common.MustGetenv(common.DefaultEnvVarAppAzureClientId)
 
-		templateGroupID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_TEMPLATE_GROUP_ID"))
-		templateID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_TEMPLATE_ID"))
-		deviceObjectID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_DEVICE_OBJECT_ID"))
-		deviceLinkID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_DEVICE_LINK_ID"))
-		servicePrincipalId := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_SERVICE_PRINCIPAL_ID"))
-	*/
-	//serviceClient, err := newServiceClientForInstall(clientID.String(), tenantID, endpointClientID)
+	serviceClient, err := newServiceClientForInstall(clientID.String(), tenantID, endpointClientID)
 	if err != nil {
 		return err
 	}
-
-	//body := client.CertificateEnrollmentReplyFinalize{}
 
 	// create key
 	ss := secret.GetService(context.Background())
@@ -57,7 +55,8 @@ func InstallComplete(receiptIn io.Reader) error {
 	buf.WriteByte('.')
 	buf.WriteString(receipt.JwtClaims)
 	hash := sha256.Sum256(buf.Bytes())
-	signature, pubkey, err := ss.RS256SignHash(hash[:], receipt.Ref.ID.String())
+	installToMachine := !installToUser
+	signature, pubkey, err := ss.RS256SignHash(hash[:], receipt.Ref.ID.String(), installToMachine)
 	if err != nil {
 		return err
 	}
@@ -71,5 +70,25 @@ func InstallComplete(receiptIn io.Reader) error {
 	fmt.Println(pubkey.E)
 	fmt.Println(base64.RawURLEncoding.EncodeToString(pubkey.N.Bytes()))
 
+	body := client.CertificateEnrollmentReplyFinalize{
+		JwtHeader:    headerEncoded,
+		JwtSignature: signatureEncoded,
+	}
+	rsaPublicKeyPopulateJwk(pubkey, &body.PublicKey)
+	serviceClient.CompleteCertificateEnrollmentV2(context.Background(), receipt.Ref.NamespaceID, receipt.Ref.ID, nil, body)
+
 	return nil
+}
+
+func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *models.JwkProperties) {
+	if pubkey == nil {
+		return
+	}
+	bigE := big.NewInt(int64(pubkey.E))
+
+	p.Alg = utils.ToPtr(models.AlgRS256)
+	p.Kty = "RSA"
+	p.E = utils.ToPtr(base64.RawURLEncoding.EncodeToString(bigE.Bytes()))
+	p.N = utils.ToPtr(base64.RawURLEncoding.EncodeToString(pubkey.N.Bytes()))
+	p.KeySize = utils.ToPtr(pubkey.Size() * 8)
 }

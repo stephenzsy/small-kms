@@ -1,3 +1,4 @@
- oapi-codegen.exe --package admin -generate types ./swagger.yaml  > admin/admin_types.gen.go
- oapi-codegen.exe --package admin -generate gin-server ./swagger.yaml  > admin/admin_server.gen.go
- oapi-codegen.exe --package client -generate types,client -include-tags enroll ./swagger.yaml  > endpoint-enroll/client/enroll_client.gen.go
+oapi-codegen.exe --package models -generate "types,skip-prune" ./models.openapi.yaml > models/shared_types.gen.go
+oapi-codegen.exe --package admin -generate types -import-mapping="models.openapi.yaml:github.com/stephenzsy/small-kms/backend/models" ./swagger.yaml  > admin/admin_types.gen.go
+oapi-codegen.exe --package admin -generate gin-server -import-mapping="models.openapi.yaml:github.com/stephenzsy/small-kms/backend/models" ./swagger.yaml  > admin/admin_server.gen.go
+oapi-codegen.exe --package client -generate "types,client" -import-mapping="models.openapi.yaml:github.com/stephenzsy/small-kms/backend/models" -include-tags enroll ./swagger.yaml  > endpoint-enroll/client/enroll_client.gen.go
