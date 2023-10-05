@@ -12,7 +12,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, nsID uuid.UUID, templateDoc *CertificateTemplateDoc, certDoc *CertDoc) (renewReason string) {
@@ -31,11 +30,11 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 	if certDoc.SubjectBase != templateDoc.Subject.String() {
 		return "subject mismatch"
 	}
-	if certDoc.KeyInfo.Alg == nil || *certDoc.KeyInfo.Alg != templateDoc.KeyProperties.Alg ||
-		certDoc.KeyInfo.Kty == models.KeyTypeRSA && (certDoc.KeyInfo.KeySize == nil || templateDoc.KeyProperties.KeySize == nil ||
-			*certDoc.KeyInfo.KeySize != *templateDoc.KeyProperties.KeySize) {
-		return "alg or key mismatch"
-	}
+	// if certDoc.KeyInfo.Alg == nil || *certDoc.KeyInfo.Alg != templateDoc.KeyProperties.Alg ||
+	// 	certDoc.KeyInfo.Kty == models.KeyTypeRSA && (certDoc.KeyInfo.KeySize == nil || templateDoc.KeyProperties.KeySize == nil ||
+	// 		*certDoc.KeyInfo.KeySize != *templateDoc.KeyProperties.KeySize) {
+	// 	return "alg or key mismatch"
+	// }
 	if certDoc.Usage != templateDoc.Usage {
 		return "usage mismatch"
 	}

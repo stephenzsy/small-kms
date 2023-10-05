@@ -5,13 +5,14 @@ import (
 	"github.com/stephenzsy/small-kms/backend/admin/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateTemplate interface {
 	IsEnabled() bool
 
 	CerateCert() (cert.Certificate, error)
-	CreateCertWithVariable() (cert.Certificate, error)
+	CreateCertWithVariables(TemplateVarData) (cert.Certificate, error)
 }
 
 type certificateTemplate struct {
@@ -29,7 +30,7 @@ func (*certificateTemplate) CerateCert() (cert.Certificate, error) {
 }
 
 // CreateCertWithVariable implements CertTmpl.
-func (*certificateTemplate) CreateCertWithVariable() (cert.Certificate, error) {
+func (*certificateTemplate) CreateCertWithVariables(TemplateVarData) (cert.Certificate, error) {
 	panic("unimplemented")
 }
 
@@ -44,4 +45,23 @@ func LoadCertifictateTemplate(c common.ServiceContext, nsID uuid.UUID, templateI
 	}
 
 	return &certificateTemplate{doc: &doc}, nil
+}
+
+type CreateCertificateTemplateParameters struct {
+	NamespaceID             uuid.UUID
+	TemplateID              uuid.UUID
+	Features                utils.Set[CertificateTemplateFlag]
+	DisplayName             string
+	IssuerNamespaceID       uuid.UUID
+	IssuerTemplateID        uuid.UUID
+	KeyProperties           CertificateTemplateDocKeyProperties
+	KeyStorePath            string
+	Subject                 CertificateTemplateDocSubject
+	SubjectAlternativeNames *CertificateTemplateDocSANs
+	ValidityInMonths        int32
+	LifetimeTrigger         *CertificateTemplateDocLifeTimeTrigger
+}
+
+func CreateTemplate(params CreateCertificateTemplateParameters) (CertificateTemplate, error) {
+	panic("unimplemented")
 }

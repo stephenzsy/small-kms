@@ -16,15 +16,6 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
-	// List namespaces by type
-	// (GET /v2/namespaces)
-	ListNamespacesByTypeV2(c *gin.Context, params ListNamespacesByTypeV2Params)
-	// Get namespace info with ms graph
-	// (GET /v2/namespaces/{namespaceId})
-	GetNamespaceInfoV2(c *gin.Context, namespaceId NamespaceIdParameter)
-	// Sync namespace info with ms graph
-	// (POST /v2/namespaces/{namespaceId})
-	SyncNamespaceInfoV2(c *gin.Context, namespaceId NamespaceIdParameter)
 	// List certificate templates
 	// (GET /v2/{namespaceId}/certificate-templates)
 	ListCertificateTemplatesV2(c *gin.Context, namespaceId NamespaceIdParameter, params ListCertificateTemplatesV2Params)
@@ -82,93 +73,6 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
-}
-
-// ListNamespacesByTypeV2 operation middleware
-func (siw *ServerInterfaceWrapper) ListNamespacesByTypeV2(c *gin.Context) {
-
-	var err error
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListNamespacesByTypeV2Params
-
-	// ------------- Required query parameter "namespaceType" -------------
-
-	if paramValue := c.Query("namespaceType"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument namespaceType is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "namespaceType", c.Request.URL.Query(), &params.NamespaceType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListNamespacesByTypeV2(c, params)
-}
-
-// GetNamespaceInfoV2 operation middleware
-func (siw *ServerInterfaceWrapper) GetNamespaceInfoV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetNamespaceInfoV2(c, namespaceId)
-}
-
-// SyncNamespaceInfoV2 operation middleware
-func (siw *ServerInterfaceWrapper) SyncNamespaceInfoV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.SyncNamespaceInfoV2(c, namespaceId)
 }
 
 // ListCertificateTemplatesV2 operation middleware
@@ -612,9 +516,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
-	router.GET(options.BaseURL+"/v2/namespaces", wrapper.ListNamespacesByTypeV2)
-	router.GET(options.BaseURL+"/v2/namespaces/:namespaceId", wrapper.GetNamespaceInfoV2)
-	router.POST(options.BaseURL+"/v2/namespaces/:namespaceId", wrapper.SyncNamespaceInfoV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)

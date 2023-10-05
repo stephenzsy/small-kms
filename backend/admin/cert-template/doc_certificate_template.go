@@ -6,18 +6,18 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
-type TemplateNamespaceProfileType string
+type CertificateTemplateFlag string
 
 const (
-	TemplateNamespaceProfileTypeRootCA         TemplateNamespaceProfileType = "root-ca"
-	TemplateNamespaceProfileTypeIntermediateCA TemplateNamespaceProfileType = "int-ca"
-	TemplateNamespaceProfileTypeGeneric        TemplateNamespaceProfileType = "generic" // both server and client
-	TemplateNamespaceProfileTypeClient         TemplateNamespaceProfileType = "client"  // client only
+	CertTmplFlagRestrictKtyRsa CertificateTemplateFlag = "kty-rsa"
+	CertTmplFlagDelegate       CertificateTemplateFlag = "delegate"
+	CertTmplFlagTest           CertificateTemplateFlag = "test"
+	CertTmplFlagHasKeyStore    CertificateTemplateFlag = "use-key-store"
+	CertTmplFlagKeyExportable  CertificateTemplateFlag = "key-exportable"
 )
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Alg      models.JwkAlg  `json:"alg"`
 	Kty      models.JwtKty  `json:"kty"`
 	KeySize  *int           `json:"key_size,omitempty"`
 	Crv      *models.JwtCrv `json:"crv,omitempty"`
@@ -43,15 +43,15 @@ type CertificateTemplateDocLifeTimeTrigger struct {
 
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
-	DisplayName             string                                `json:"displayName"`
-	IssuerNamespaceID       uuid.UUID                             `json:"issuerNamespaceId"`
-	IssuerTemplateID        kmsdoc.KmsDocID                       `json:"issuerTemplateId"`
-	KeyProperties           CertificateTemplateDocKeyProperties   `json:"keyProperties"`
-	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
-	Subject                 CertificateTemplateDocSubject         `json:"subject"`
-	SubjectAlternativeNames *CertificateTemplateDocSANs           `json:"sans,omitempty"`
-	ValidityInMonths        int32                                 `json:"validity_months"`
-	LifetimeTrigger         CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
-	ProfileType             TemplateNamespaceProfileType          `json:"profileType"`
-	Digest                  []byte                                `json:"version"` // checksum of fhte core fields of the template
+	DisplayName             string                                 `json:"displayName"`
+	IssuerNamespaceID       uuid.UUID                              `json:"issuerNamespaceId"`
+	IssuerTemplateID        kmsdoc.KmsDocID                        `json:"issuerTemplateId"`
+	Usages                  []models.CertificateUsage              `json:"usages"`
+	KeyProperties           CertificateTemplateDocKeyProperties    `json:"keyProperties"`
+	KeyStorePath            *string                                `json:"keyStorePath,omitempty"`
+	Subject                 CertificateTemplateDocSubject          `json:"subject"`
+	SubjectAlternativeNames *CertificateTemplateDocSANs            `json:"sans,omitempty"`
+	ValidityInMonths        int32                                  `json:"validity_months"`
+	LifetimeTrigger         *CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
+	Digest                  []byte                                 `json:"version"` // checksum of fhte core fields of the template
 }

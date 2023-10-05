@@ -85,20 +85,20 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 		if tdoc.KeyStorePath != nil && len(*tdoc.KeyStorePath) > 0 {
 
 			// load private key from key store
-			if certDoc.KeyInfo.KeyID == nil {
-				return nil, fmt.Errorf("issuer certificate %s does not have key ID", signer.certCUID.String())
-			}
-			signerKID := azkeys.ID(*certDoc.KeyInfo.KeyID)
+			// if certDoc.KeyInfo.KeyID == nil {
+			// 	return nil, fmt.Errorf("issuer certificate %s does not have key ID", signer.certCUID.String())
+			// }
+			// signerKID := azkeys.ID(*certDoc.KeyInfo.KeyID)
 
-			keyBundle, err := s.AzKeysClient().GetKey(ctx, signerKID.Name(), signerKID.Version(), nil)
-			if err != nil {
-				return nil, err
-			}
-			signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
-				tdoc.KeyProperties.Alg.ToAzKeysSignatureAlgorithm())
-			if err != nil {
-				return nil, err
-			}
+			// keyBundle, err := s.AzKeysClient().GetKey(ctx, signerKID.Name(), signerKID.Version(), nil)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
+			// 	tdoc.KeyProperties.Alg.ToAzKeysSignatureAlgorithm())
+			// if err != nil {
+			// 	return nil, err
+			// }
 
 			// use create certificate to create managed key in key vault
 			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsID, cert.Subject.String())
@@ -225,7 +225,7 @@ func (s *adminServer) createCertificateFromTemplateWithCert(ctx context.Context,
 	}
 
 	// finalize certificate on keyvault if there is an outstanding request
-	var mergeCertificateResponse *azcertificates.MergeCertificateResponse
+	//var mergeCertificateResponse *azcertificates.MergeCertificateResponse
 	if signer.createAzCertificateResp != nil {
 		mergeRequestCerts := make([][]byte, 1, 3)
 		mergeRequestCerts[0] = certSigned
@@ -234,13 +234,13 @@ func (s *adminServer) createCertificateFromTemplateWithCert(ctx context.Context,
 			mergeRequestCerts = append(mergeRequestCerts, block.Bytes)
 		}
 
-		azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, signer.createAzCertificateResp.ID.Name(), azcertificates.MergeCertificateParameters{
-			X509Certificates: mergeRequestCerts,
-		}, nil)
+		// azcMcResp, err := s.AzCertificatesClient().MergeCertificate(ctx, signer.createAzCertificateResp.ID.Name(), azcertificates.MergeCertificateParameters{
+		// 	X509Certificates: mergeRequestCerts,
+		// }, nil)
 		if err != nil {
 			return nil, nil, err
 		}
-		mergeCertificateResponse = &azcMcResp
+		//mergeCertificateResponse = &azcMcResp
 	}
 
 	blobName := fmt.Sprintf("%s/%s.pem", nsID, certID)
@@ -261,26 +261,26 @@ func (s *adminServer) createCertificateFromTemplateWithCert(ctx context.Context,
 		IssuerCertificateID:     signer.certCUID,
 		CommonName:              certParsed.Subject.CommonName,
 	}
-	certDoc.KeyInfo.populateBriefFromCertificate(certParsed)
-	certDoc.FingerprintSHA1Hex = base64UrlToHexStr(*certDoc.KeyInfo.CertificateThumbprint)
-	// populate x5u
-	if mergeCertificateResponse != nil {
-		certDoc.KeyInfo.KeyID = (*string)(mergeCertificateResponse.KID)
-		certDoc.KeyInfo.CertificateURL = (*string)(mergeCertificateResponse.ID)
-	} else if signer.rootCAKeyBundle != nil {
-		certDoc.KeyInfo.KeyID = (*string)(signer.rootCAKeyBundle.Key.KID)
-	}
+	// certDoc.KeyInfo.populateBriefFromCertificate(certParsed)
+	// certDoc.FingerprintSHA1Hex = base64UrlToHexStr(*certDoc.KeyInfo.CertificateThumbprint)
+	// // populate x5u
+	// if mergeCertificateResponse != nil {
+	// 	certDoc.KeyInfo.KeyID = (*string)(mergeCertificateResponse.KID)
+	// 	certDoc.KeyInfo.CertificateURL = (*string)(mergeCertificateResponse.ID)
+	// } else if signer.rootCAKeyBundle != nil {
+	// 	certDoc.KeyInfo.KeyID = (*string)(signer.rootCAKeyBundle.Key.KID)
+	// }
+
+	// // upload to blob
+	// certChainPemBlob := bb.Bytes()
+	// blobUrl, err := certDoc.storeCertificatePEMBlob(ctx, s.azBlobContainerClient, certChainPemBlob)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	// if certDoc.KeyInfo.CertificateURL == nil {
+	// 	certDoc.KeyInfo.CertificateURL = blobUrl
+	// }
 
 	// upload to blob
-	certChainPemBlob := bb.Bytes()
-	blobUrl, err := certDoc.storeCertificatePEMBlob(ctx, s.azBlobContainerClient, certChainPemBlob)
-	if err != nil {
-		return nil, nil, err
-	}
-	if certDoc.KeyInfo.CertificateURL == nil {
-		certDoc.KeyInfo.CertificateURL = blobUrl
-	}
-
-	// upload to blob
-	return &certDoc, certChainPemBlob, nil
+	return &certDoc, nil, nil
 }

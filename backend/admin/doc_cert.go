@@ -25,12 +25,12 @@ type CertDoc struct {
 	// alias for certs with L prefix
 	AliasID *kmsdoc.KmsDocID `json:"aliasId,omitempty"`
 
-	IssuerNamespaceID       uuid.UUID                           `json:"issuerNamespaceId"`
-	IssuerCertificateID     kmsdoc.KmsDocID                     `json:"issuerCertId"`
-	TemplateID              kmsdoc.KmsDocID                     `json:"templateId"`
-	Subject                 string                              `json:"subject"`
-	SubjectBase             string                              `json:"subjectBase"`
-	KeyInfo                 JwkProperties                       `json:"keyInfo"`
+	IssuerNamespaceID   uuid.UUID       `json:"issuerNamespaceId"`
+	IssuerCertificateID kmsdoc.KmsDocID `json:"issuerCertId"`
+	TemplateID          kmsdoc.KmsDocID `json:"templateId"`
+	Subject             string          `json:"subject"`
+	SubjectBase         string          `json:"subjectBase"`
+	// KeyInfo                 JwkProperties                       `json:"keyInfo"`
 	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"sans,omitempty"`
 	NotBefore               time.Time                           `json:"notBefore"`
 	NotAfter                time.Time                           `json:"notAfter"`
@@ -100,8 +100,8 @@ func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azb
 		},
 		Metadata: map[string]*string{
 			"issuer_id": to.Ptr(fmt.Sprintf("%s/%s", doc.IssuerNamespaceID, doc.IssuerCertificateID.GetUUID())),
-			"x5t":       base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprint),
-			"x5t_S256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
+			// "x5t":       base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprint),
+			// "x5t_S256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
 		},
 	})
 	return ToPtr(blockBlobClient.URL()), err
@@ -143,7 +143,7 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 		case IncludePEM:
 			certInfo.Pem = ToPtr(string(certPemBlob))
 		case IncludeJWK:
-			certInfo.Jwk.populateCertsFromPemBlob(certPemBlob)
+			// certInfo.Jwk.populateCertsFromPemBlob(certPemBlob)
 		}
 	}
 

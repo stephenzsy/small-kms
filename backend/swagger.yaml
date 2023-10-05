@@ -180,44 +180,6 @@ paths:
           $ref: "#/components/responses/CertificateResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
-  /v2/namespaces:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceTypeParameter"
-    get:
-      tags:
-        - admin
-      summary: List namespaces by type
-      operationId: ListNamespacesByTypeV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
-  /v2/namespaces/{namespaceId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Get namespace info with ms graph
-      operationId: GetNamespaceInfoV2
-      responses:
-        "200":
-          description: get namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NamespaceInfo"
-    post:
-      tags:
-        - admin
-      summary: Sync namespace info with ms graph
-      operationId: SyncNamespaceInfoV2
-      responses:
-        "200":
-          description: register namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NamespaceInfo"
   /v1/diagnostics:
     get:
       tags:
@@ -383,13 +345,15 @@ components:
         issuer:
           $ref: "#/components/schemas/CertificateIssuer"
         keyProperties:
-          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
-        subject:
-          $ref: "#/components/schemas/CertificateSubject"
-        subjectAlternativeNames:
-          $ref: "#/components/schemas/CertificateSubjectAlternativeNames"
-        usage:
-          $ref: "#/components/schemas/CertificateUsage"
+          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
+        subjectCommoneName:
+          description: Common name
+          type: string
+          x-go-name: SubjectCommonName
+        usages:
+          type: array
+          items:
+            $ref: "oapi-api.yml#/components/schemas/CertificateUsage"
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
@@ -400,15 +364,15 @@ components:
           type: string
         lifetimeTrigger:
           $ref: "#/components/schemas/CertificateLifetimeTrigger"
-        reuse_key:
-          description: Keep using the same key version if exists
-          type: boolean
-          x-go-name: ReuseKey
+        # reuse_key:
+        #   description: Keep using the same key version if exists
+        #   type: boolean
+        #   x-go-name: ReuseKey
       required:
         - displayName
         - issuer
-        - subject
-        - usage
+        - subjectCommoneName
+        - usages
     CertificateTemplate:
       allOf:
         - type: object
@@ -494,7 +458,7 @@ components:
           format: uuid
           x-go-name: RequesterID
         keyProperties:
-          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
+          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
       required:
         - ref
         - expires
@@ -515,7 +479,7 @@ components:
             with header and signature, signed with the key pair with the public key in the same request
           type: string
         publicKey:
-          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
+          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
       required:
         - jwtHeader
         - jwtSignature
@@ -609,12 +573,12 @@ components:
       properties:
         kty:
           x-go-name: KeyType
-          $ref: "models.openapi.yaml#/components/schemas/JwtKty"
+          $ref: "oapi-api.yml#/components/schemas/JwtKty"
         key_size:
           x-go-name: KeySize
           $ref: "#/components/schemas/JwkKeySize"
         crv:
-          $ref: "models.openapi.yaml#/components/schemas/JwtCrv"
+          $ref: "oapi-api.yml#/components/schemas/JwtCrv"
           x-go-name: CurveName
         reuse_key:
           description: Keep using the same key version if exists
@@ -847,7 +811,7 @@ components:
         usage:
           $ref: "#/components/schemas/CertificateUsage"
         jwk:
-          $ref: "models.openapi.yaml#/components/schemas/JwkProperties"
+          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
         pem:
           type: string
         template:

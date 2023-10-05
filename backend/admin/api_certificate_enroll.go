@@ -380,12 +380,12 @@ func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.
 	completeToken := req.JwtHeader + "." + pCertDoc.JWT[1] + "." + req.JwtSignature
 
 	pubKey := rsa.PublicKey{}
-	err = req.PublicKey.populateRsaPublicKey(&pubKey)
+	/*err = req.PublicKey.populateRsaPublicKey(&pubKey)
 	if err != nil {
 		log.Warn().Err(err).Msgf("failed to parse public key: %s", *req.PublicKey.KeyID)
 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
 		return
-	}
+	}*/
 	_, err = parser.Parse(completeToken, func(_ *jwt.Token) (interface{}, error) {
 		return &pubKey, nil
 	})
@@ -412,7 +412,8 @@ func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.
 	c.JSON(http.StatusOK, nil)
 }
 
-func (p *JwkProperties) populateRsaPublicKey(k *rsa.PublicKey) error {
+/*
+func (p *models.JwkProperties) populateRsaPublicKey(k *rsa.PublicKey) error {
 	if p == nil {
 		return nil
 	}
@@ -429,3 +430,4 @@ func (p *JwkProperties) populateRsaPublicKey(k *rsa.PublicKey) error {
 	k.N = new(big.Int).SetBytes(decN)
 	return nil
 }
+*/

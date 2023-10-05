@@ -202,9 +202,6 @@ type IncludeCertificateParameter = IncludeCertificate
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = openapi_types.UUID
 
-// NamespaceTypeParameter defines model for NamespaceTypeParameter.
-type NamespaceTypeParameter = NamespaceTypeShortName
-
 // TemplateIdParameter defines model for TemplateIdParameter.
 type TemplateIdParameter = openapi_types.UUID
 

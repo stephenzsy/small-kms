@@ -2,7 +2,6 @@ package admin
 
 import (
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"net/url"
 	"strings"
 	"text/template"
@@ -17,29 +16,29 @@ type certTemplateProcessor struct {
 	data    *certtemplate.TemplateVarData
 }
 
-func (p *certTemplateProcessor) processSubject() (name pkix.Name, err error) {
-	s := p.tmplDoc.Subject
-	name.CommonName = processTemplate(s.CN, p.data)
-	if s.C != nil && len(*s.C) > 0 {
-		a := processTemplate(*s.C, p.data)
-		if len(a) > 0 {
-			name.Country = []string{a}
-		}
-	}
-	if s.O != nil && len(*s.O) > 0 {
-		a := processTemplate(*s.O, p.data)
-		if len(a) > 0 {
-			name.Organization = []string{a}
-		}
-	}
-	if s.OU != nil && len(*s.OU) > 0 {
-		a := processTemplate(*s.OU, p.data)
-		if len(a) > 0 {
-			name.OrganizationalUnit = []string{a}
-		}
-	}
-	return
-}
+// func (p *certTemplateProcessor) processSubject() (name pkix.Name, err error) {
+// 	s := p.tmplDoc.Subject
+// 	name.CommonName = processTemplate(s.CN, p.data)
+// 	if s.C != nil && len(*s.C) > 0 {
+// 		a := processTemplate(*s.C, p.data)
+// 		if len(a) > 0 {
+// 			name.Country = []string{a}
+// 		}
+// 	}
+// 	if s.O != nil && len(*s.O) > 0 {
+// 		a := processTemplate(*s.O, p.data)
+// 		if len(a) > 0 {
+// 			name.Organization = []string{a}
+// 		}
+// 	}
+// 	if s.OU != nil && len(*s.OU) > 0 {
+// 		a := processTemplate(*s.OU, p.data)
+// 		if len(a) > 0 {
+// 			name.OrganizationalUnit = []string{a}
+// 		}
+// 	}
+// 	return
+// }
 
 func processTemplate(tmplStr string, data *certtemplate.TemplateVarData) string {
 	tmplStr = strings.TrimSpace(tmplStr)
@@ -114,10 +113,10 @@ func (p *certTemplateProcessor) processSubjectAltNames(cert *x509.Certificate, d
 }
 
 func (p *certTemplateProcessor) processTemplate(c *x509.Certificate) (err error) {
-	c.Subject, err = p.processSubject()
-	if err != nil {
-		return err
-	}
+	// c.Subject, err = p.processSubject()
+	// if err != nil {
+	// 	return err
+	// }
 	p.processSubjectAltNames(c, p.data)
 	c.NotAfter = c.NotBefore.AddDate(0, int(p.tmplDoc.ValidityInMonths), 0)
 	t := p.tmplDoc

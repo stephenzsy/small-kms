@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Admin API Shared
+  version: 0.1.1
+security:
+  - BearerAuth: []
+paths:
+  /v3/profile/{profileType}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileTypeParameter"
+    get:
+      tags:
+        - admin
+      summary: List profiles by type
+      operationId: ListProfiles
+      responses:
+        200:
+          $ref: "#/components/responses/RefListResponse"
+  /v3/profile/{profileType}/{identifier}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/IdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: Get namespace info with ms graph
+      operationId: GetProfile
+      responses:
+        "200":
+          description: get namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    post:
+      tags:
+        - admin
+      summary: Sync namespace info with ms graph
+      operationId: SyncProfile
+      responses:
+        "200":
+          description: register namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Identifier:
+      type: string
+      description: Identifier of the resource      
+    ProfileType:
+      type: string
+      enum:
+        - root-ca
+        - intermediate-ca
+        - service-principal
+        - group
+        - device
+        - user
+        - application
+      x-enum-varnames:
+        - ProfileTypeRootCA
+        - ProfileTypeIntermediateCA
+        - ProfileTypeServicePrincipal
+        - ProfileTypeGroup
+        - ProfileTypeDevice
+        - ProfileTypeUser
+        - ProfileTypeApplication
+    ResourceType:
+      type: string
+      enum:
+        - profile
+        - certificate-template        
+        - certificate
+        - certificate-enrollment-receipt
+      x-enum-varnames:
+        - ResourceTypeProfile
+        - ResourceTypeCertificateTemplate
+        - ResourceTypeCertificate
+        - ResourceTypeCertificateEnrollmentReceipt
+    ResourceRef:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ResourceType"
+        identifier:
+          $ref: "#/components/schemas/Identifier"
+        updated:
+          description: Time when the resoruce was last updated
+          type: string
+          format: date-time
+        deleted:
+          description: Time when the deleted was deleted
+          type: string
+          format: date-time         
+        metadata:
+          type: object
+          additionalProperties:
+            type: string 
+      required:
+        - type
+        - name
+    Profile:
+      type: object
+      properties:
+        ref:
+          $ref: "#/components/schemas/ResourceRef"
+        type:
+          $ref: "#/components/schemas/ProfileType"
+      required:
+        - ref
+        - type        
+    JwkAlg:
+      type: string
+      enum:
+        - RS256
+        - RS384
+        - RS512
+        - ES256
+        - ES384
+      x-enum-varnames:
+        - AlgRS256
+        - AlgRS384
+        - AlgRS512
+        - AlgES256
+        - AlgES384
+    JwtKty:
+      type: string
+      enum:
+        - RSA
+        - EC
+      x-enum-varnames:
+        - KeyTypeRSA
+        - KeyTypeEC
+    JwtCrv:
+      type: string
+      enum:
+        - P-256
+        - P-384
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+    JwkKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-enum-varnames:
+        - KeyOpSign
+        - KeyOpVerify
+        - KeyOpEncrypt
+        - KeyOpDecrypt
+        - KeyOpWrapKey
+        - KeyOpUnwrapKey
+      x-go-name: KeyOp
+    JwkProperties:
+      type: object
+      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+      properties:
+        alg:
+          $ref: "#/components/schemas/JwkAlg"
+        kty:
+          $ref: "#/components/schemas/JwtKty"
+        key_size:
+          description: RSA key size
+          type: integer
+        key_ops:
+          $ref: "#/components/schemas/JwkKeyOperation"
+        n:
+          description: RSA modulus
+          type: string
+        e:
+          description: RSA exponent
+          type: string
+        crv:
+          $ref: "#/components/schemas/JwtCrv"
+        x:
+          description: EC x coordinate
+          type: string
+        y:
+          description: EC y coordinate
+          type: string
+        kid:
+          description: Key ID
+          type: string
+          x-go-name: KeyID
+        x5u:
+          x-go-name: CertificateURL
+          description: X.509 certificate URL
+          type: string
+        x5c:
+          description: X.509 certificate chain
+          type: array
+          items:
+            type: string
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+          x-go-name: CertificateThumbprint
+        x5t#S256:
+          description: X.509 certificate SHA-256 thumbprint
+          type: string
+          x-go-name: CertificateThumbprintSHA256
+      required:
+        - kty
+    CertificateUsage:
+      type: string
+      enum:
+        - ca
+        - ca-root
+        - serverAuth
+        - clientAuth
+      x-enum-varnames:
+        - CertFeatCA
+        - CertFeatCARoot
+        - CertFeatServerAuth
+        - CertFeatClientAuth
+  parameters:
+    ProfileTypeParameter:
+      in: path
+      name: profileType
+      schema:
+        $ref: "#/components/schemas/ProfileType"
+      required: true
+    IdentifierParameter:
+      in: path
+      name: identifier
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      required: true      
+  responses:
+    RefListResponse:
+      description: List RefsResponse
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResourceRef"

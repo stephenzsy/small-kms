@@ -58,12 +58,12 @@ func newPendingCertDoc(
 	templateDoc *CertificateTemplateDoc,
 	issueToNamespaceID uuid.UUID,
 	requesterID uuid.UUID) PendingCertDoc {
-	fisrtOrNil := func(s []string) *string {
-		if len(s) < 1 {
-			return nil
-		}
-		return &s[0]
-	}
+	// fisrtOrNil := func(s []string) *string {
+	// 	if len(s) < 1 {
+	// 		return nil
+	// 	}
+	// 	return &s[0]
+	// }
 	return PendingCertDoc{
 		BaseDoc: kmsdoc.BaseDoc{
 			ID:          kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID),
@@ -76,13 +76,13 @@ func newPendingCertDoc(
 		RequesterID:         requesterID,
 		KeyProperties:       templateDoc.KeyProperties,
 		Usage:               templateDoc.Usage,
-		Subject: CertificateTemplateDocSubject{
-			CertificateSubject: CertificateSubject{
-				CN: cert.Subject.CommonName,
-				OU: fisrtOrNil(cert.Subject.OrganizationalUnit),
-				O:  fisrtOrNil(cert.Subject.Organization),
-				C:  fisrtOrNil(cert.Subject.Country),
-			},
+		Subject:             CertificateTemplateDocSubject{
+			// CertificateSubject: CertificateSubject{
+			// 	CN: cert.Subject.CommonName,
+			// 	OU: fisrtOrNil(cert.Subject.OrganizationalUnit),
+			// 	O:  fisrtOrNil(cert.Subject.Organization),
+			// 	C:  fisrtOrNil(cert.Subject.Country),
+			// },
 		},
 		SubjectAlternativeNames: certificateSubjectAlternativeNamesToDoc(cert),
 		NotBefore:               cert.NotBefore,

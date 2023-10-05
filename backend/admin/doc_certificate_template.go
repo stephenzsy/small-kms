@@ -21,11 +21,11 @@ import (
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Alg      models.JwkAlg `json:"alg"`
-	Kty      KeyType       `json:"kty"`
-	KeySize  *KeySize      `json:"key_size,omitempty"`
-	Crv      *CurveName    `json:"crv,omitempty"`
-	ReuseKey *bool         `json:"reuse_key,omitempty"`
+	Alg models.JwkAlg `json:"alg"`
+	// Kty      KeyType       `json:"kty"`
+	// KeySize  *KeySize      `json:"key_size,omitempty"`
+	// Crv      *CurveName    `json:"crv,omitempty"`
+	ReuseKey *bool `json:"reuse_key,omitempty"`
 }
 
 type CertificateTemplateDocLifeTimeTrigger struct {
@@ -34,7 +34,7 @@ type CertificateTemplateDocLifeTimeTrigger struct {
 }
 
 type CertificateTemplateDocSubject struct {
-	CertificateSubject
+	// CertificateSubject
 	cachedString *string
 }
 
@@ -72,39 +72,39 @@ func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.
 
 func (p *CertificateTemplateDocKeyProperties) setDefault() {
 	p.Alg = models.AlgRS256
-	p.Kty = KeyTypeRSA
-	p.KeySize = ToPtr(KeySize2048)
-	p.Crv = nil
+	// p.Kty = KeyTypeRSA
+	// p.KeySize = ToPtr(KeySize2048)
+	// p.Crv = nil
 }
 
-func (p *CertificateTemplateDocKeyProperties) setRSA(alg models.JwkAlg, keySize KeySize) {
+func (p *CertificateTemplateDocKeyProperties) setRSA(alg models.JwkAlg, keySize int) {
 	p.Alg = alg
-	p.Kty = KeyTypeRSA
-	p.KeySize = &keySize
-	p.Crv = nil
+	// p.Kty = KeyTypeRSA
+	// p.KeySize = &keySize
+	// p.Crv = nil
 }
 
-func (p *CertificateTemplateDocKeyProperties) setECDSA(crv CurveName) {
+func (p *CertificateTemplateDocKeyProperties) setECDSA(crv models.JwtCrv) {
 	p.Alg = models.AlgES384
-	p.Kty = KeyTypeEC
-	p.Crv = &crv
-	p.KeySize = nil
-	if crv == CurveNameP256 {
-		p.Alg = models.AlgES256
-	}
+	// p.Kty = KeyTypeEC
+	// p.Crv = &crv
+	// p.KeySize = nil
+	// if crv == CurveNameP256 {
+	// 	p.Alg = models.AlgES256
+	// }
 }
 
 func (s *CertificateTemplateDocSubject) pkixName() (name pkix.Name) {
-	name.CommonName = s.CN
-	if s.C != nil && len(*s.C) > 0 {
-		name.Country = []string{*s.C}
-	}
-	if s.O != nil && len(*s.O) > 0 {
-		name.Organization = []string{*s.O}
-	}
-	if s.OU != nil && len(*s.OU) > 0 {
-		name.OrganizationalUnit = []string{*s.OU}
-	}
+	// name.CommonName = s.CN
+	// if s.C != nil && len(*s.C) > 0 {
+	// 	name.Country = []string{*s.C}
+	// }
+	// if s.O != nil && len(*s.O) > 0 {
+	// 	name.Organization = []string{*s.O}
+	// }
+	// if s.OU != nil && len(*s.OU) > 0 {
+	// 	name.OrganizationalUnit = []string{*s.OU}
+	// }
 	return
 }
 
@@ -121,47 +121,47 @@ func (s *CertificateTemplateDocSubject) String() string {
 	return str
 }
 
-func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *JwkProperties) error {
-	if input == nil {
-		return nil
-	}
-	if input.Alg == nil {
-		return errors.New("alg is nil")
-	}
-	switch *input.Alg {
-	case models.AlgRS256,
-		models.AlgRS384,
-		models.AlgRS512:
-		if input.Kty != KeyTypeRSA {
-			return errors.New("alg is RSA but kty is not RSA")
-		}
-		if input.KeySize == nil {
-			p.setRSA(*input.Alg, KeySize2048)
-		} else {
-			p.setRSA(*input.Alg, *input.KeySize)
-		}
-	case models.AlgES256:
-		if input.Crv != nil && *input.Crv != CurveNameP256 {
-			return errors.New("alg is ES256 but crv is not P256")
-		}
-		p.setECDSA(CurveNameP256)
-	case models.AlgES384:
-		if input.Crv != nil && *input.Crv != CurveNameP256 {
-			return errors.New("alg is ES384 but crv is not P384")
-		}
-		p.setECDSA(CurveNameP384)
-	}
+func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *models.JwkProperties) error {
+	// if input == nil {
+	// 	return nil
+	// }
+	// if input.Alg == nil {
+	// 	return errors.New("alg is nil")
+	// }
+	// switch *input.Alg {
+	// case models.AlgRS256,
+	// 	models.AlgRS384,
+	// 	models.AlgRS512:
+	// 	if input.Kty != KeyTypeRSA {
+	// 		return errors.New("alg is RSA but kty is not RSA")
+	// 	}
+	// 	if input.KeySize == nil {
+	// 		p.setRSA(*input.Alg, KeySize2048)
+	// 	} else {
+	// 		p.setRSA(*input.Alg, *input.KeySize)
+	// 	}
+	// case models.AlgES256:
+	// 	if input.Crv != nil && *input.Crv != CurveNameP256 {
+	// 		return errors.New("alg is ES256 but crv is not P256")
+	// 	}
+	// 	p.setECDSA(CurveNameP256)
+	// case models.AlgES384:
+	// 	if input.Crv != nil && *input.Crv != CurveNameP256 {
+	// 		return errors.New("alg is ES384 but crv is not P384")
+	// 	}
+	// 	p.setECDSA(CurveNameP384)
+	// }
 	return nil
 }
 
-func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *JwkProperties) {
-	if p == nil {
-		return
-	}
-	o.Alg = utils.ToPtr(p.Alg)
-	o.Kty = p.Kty
-	o.KeySize = p.KeySize
-	o.Crv = p.Crv
+func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *models.JwkProperties) {
+	// if p == nil {
+	// 	return
+	// }
+	// o.Alg = utils.ToPtr(p.Alg)
+	// o.Kty = p.Kty
+	// o.KeySize = p.KeySize
+	// o.Crv = p.Crv
 }
 
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
@@ -204,24 +204,24 @@ func (doc *CertificateTemplateDoc) toCertificateTemplate() *CertificateTemplate 
 		NamespaceType: doc.IssuerNameSpaceType,
 		TemplateID:    ToPtr(doc.IssuerTemplateID.GetUUID()),
 	}
-	o.KeyProperties = &JwkProperties{
-		Alg:     ToPtr(doc.KeyProperties.Alg),
-		Kty:     doc.KeyProperties.Kty,
-		KeySize: doc.KeyProperties.KeySize,
-		Crv:     doc.KeyProperties.Crv,
-	}
-	o.ReuseKey = doc.KeyProperties.ReuseKey
-	o.KeyStorePath = doc.KeyStorePath
-	o.LifetimeTrigger = &CertificateLifetimeTrigger{
-		DaysBeforeExpiry:   doc.LifetimeTrigger.DaysBeforeExpiry,
-		LifetimePercentage: doc.LifetimeTrigger.LifetimePercentage,
-	}
-	o.Subject = doc.Subject.CertificateSubject
-	if doc.SubjectAlternativeNames != nil {
-		o.SubjectAlternativeNames = doc.SubjectAlternativeNames
-	}
-	o.Usage = doc.Usage
-	o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
+	// o.KeyProperties = &JwkProperties{
+	// 	Alg:     ToPtr(doc.KeyProperties.Alg),
+	// 	Kty:     doc.KeyProperties.Kty,
+	// 	KeySize: doc.KeyProperties.KeySize,
+	// 	Crv:     doc.KeyProperties.Crv,
+	// }
+	// o.ReuseKey = doc.KeyProperties.ReuseKey
+	// o.KeyStorePath = doc.KeyStorePath
+	// o.LifetimeTrigger = &CertificateLifetimeTrigger{
+	// 	DaysBeforeExpiry:   doc.LifetimeTrigger.DaysBeforeExpiry,
+	// 	LifetimePercentage: doc.LifetimeTrigger.LifetimePercentage,
+	// }
+	// o.Subject = doc.Subject.CertificateSubject
+	// if doc.SubjectAlternativeNames != nil {
+	// 	o.SubjectAlternativeNames = doc.SubjectAlternativeNames
+	// }
+	// o.Usage = doc.Usage
+	// o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
 	return o
 }
 
@@ -236,38 +236,38 @@ func createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool,
 		},
 	}
 
-	switch kp.Kty {
-	case KeyTypeRSA:
-		params.Kty = to.Ptr(azkeys.KeyTypeRSA)
-		if kp.KeySize == nil {
-			return r, fmt.Errorf("key size null for RSA key")
-		}
-		switch *kp.KeySize {
-		case KeySize2048:
-			params.KeySize = to.Ptr(int32(KeySize2048))
-		case KeySize3072:
-			params.KeySize = to.Ptr(int32(KeySize3072))
-		case KeySize4096:
-			params.KeySize = to.Ptr(int32(KeySize4096))
-		default:
-			return r, fmt.Errorf("unsupported key size %d", *kp.KeySize)
-		}
-	case KeyTypeEC:
-		params.Kty = to.Ptr(azkeys.KeyTypeEC)
-		if kp.Crv == nil {
-			return r, fmt.Errorf("curve null for EC key")
-		}
-		switch *kp.Crv {
-		case CurveNameP256:
-			params.Curve = to.Ptr(azkeys.CurveNameP256)
-		case CurveNameP384:
-			params.Curve = to.Ptr(azkeys.CurveNameP384)
-		default:
-			return r, fmt.Errorf("unsupported curve %s", *kp.Crv)
-		}
-	default:
-		return r, fmt.Errorf("unsupported key type %s", kp.Kty)
-	}
+	// switch kp.Kty {
+	// case KeyTypeRSA:
+	// 	params.Kty = to.Ptr(azkeys.KeyTypeRSA)
+	// 	if kp.KeySize == nil {
+	// 		return r, fmt.Errorf("key size null for RSA key")
+	// 	}
+	// 	switch *kp.KeySize {
+	// 	case KeySize2048:
+	// 		params.KeySize = to.Ptr(int32(KeySize2048))
+	// 	case KeySize3072:
+	// 		params.KeySize = to.Ptr(int32(KeySize3072))
+	// 	case KeySize4096:
+	// 		params.KeySize = to.Ptr(int32(KeySize4096))
+	// 	default:
+	// 		return r, fmt.Errorf("unsupported key size %d", *kp.KeySize)
+	// 	}
+	// case KeyTypeEC:
+	// 	params.Kty = to.Ptr(azkeys.KeyTypeEC)
+	// 	if kp.Crv == nil {
+	// 		return r, fmt.Errorf("curve null for EC key")
+	// 	}
+	// 	switch *kp.Crv {
+	// 	case CurveNameP256:
+	// 		params.Curve = to.Ptr(azkeys.CurveNameP256)
+	// 	case CurveNameP384:
+	// 		params.Curve = to.Ptr(azkeys.CurveNameP384)
+	// 	default:
+	// 		return r, fmt.Errorf("unsupported curve %s", *kp.Crv)
+	// 	}
+	// default:
+	// 	return r, fmt.Errorf("unsupported key type %s", kp.Kty)
+	// }
 
 	if keyStorePath == nil || len(*keyStorePath) <= 0 {
 		return r, fmt.Errorf("nil key name")
@@ -288,24 +288,24 @@ func createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool,
 		key := resp.Key
 		// verify key parameters
 		switch *key.Kty {
-		case azkeys.KeyTypeEC:
-			if kp.Kty != KeyTypeEC {
-				goto createKey
-			}
-			switch *key.Crv {
-			case azkeys.CurveNameP256:
-				if *kp.Crv != CurveNameP256 {
-					goto createKey
-				}
-			case azkeys.CurveNameP384:
-				if *kp.Crv != CurveNameP384 {
-					goto createKey
-				}
-			}
-		case azkeys.KeyTypeRSA:
-			if kp.Kty != KeyTypeRSA || len(key.N)*8 != int(*kp.KeySize) {
-				goto createKey
-			}
+		// case azkeys.KeyTypeEC:
+		// 	if kp.Kty != KeyTypeEC {
+		// 		goto createKey
+		// 	}
+		// 	switch *key.Crv {
+		// 	case azkeys.CurveNameP256:
+		// 		if *kp.Crv != CurveNameP256 {
+		// 			goto createKey
+		// 		}
+		// 	case azkeys.CurveNameP384:
+		// 		if *kp.Crv != CurveNameP384 {
+		// 			goto createKey
+		// 		}
+		// 	}
+		// case azkeys.KeyTypeRSA:
+		// 	if kp.Kty != KeyTypeRSA || len(key.N)*8 != int(*kp.KeySize) {
+		// 		goto createKey
+		// 	}
 		default:
 			goto createKey
 		}
@@ -362,27 +362,27 @@ func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties(key
 	r.KeyType = ToPtr(azcertificates.KeyTypeRSA)
 	r.KeySize = ToPtr(int32(2048))
 	r.ReuseKey = p.ReuseKey
-	switch p.Kty {
-	case KeyTypeRSA:
-		if p.KeySize != nil {
-			switch *p.KeySize {
-			case KeySize3072:
-				r.KeySize = ToPtr(int32(3072))
-			case KeySize4096:
-				r.KeySize = ToPtr(int32(4096))
-			}
-		}
-	case KeyTypeEC:
-		r.KeyType = ToPtr(azcertificates.KeyTypeEC)
-		r.KeySize = nil
-		r.Curve = ToPtr(azcertificates.CurveNameP256)
-		if p.Crv != nil {
-			switch *p.Crv {
-			case CurveNameP384:
-				r.Curve = ToPtr(azcertificates.CurveNameP384)
-			}
-		}
-	}
+	// switch p.Kty {
+	// case KeyTypeRSA:
+	// 	if p.KeySize != nil {
+	// 		switch *p.KeySize {
+	// 		case KeySize3072:
+	// 			r.KeySize = ToPtr(int32(3072))
+	// 		case KeySize4096:
+	// 			r.KeySize = ToPtr(int32(4096))
+	// 		}
+	// 	}
+	// case KeyTypeEC:
+	// 	r.KeyType = ToPtr(azcertificates.KeyTypeEC)
+	// 	r.KeySize = nil
+	// 	r.Curve = ToPtr(azcertificates.CurveNameP256)
+	// 	if p.Crv != nil {
+	// 		switch *p.Crv {
+	// 		case CurveNameP384:
+	// 			r.Curve = ToPtr(azcertificates.CurveNameP384)
+	// 		}
+	// 	}
+	// }
 	r.Exportable = to.Ptr(keyExportable)
 	return
 }

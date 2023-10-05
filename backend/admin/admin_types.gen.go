@@ -157,21 +157,6 @@ type CertificateLifetimeTrigger struct {
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
-// CertificateSubject defines model for CertificateSubject.
-type CertificateSubject struct {
-	// C Country or region
-	C *string `json:"c,omitempty"`
-
-	// Cn Common name
-	CN string `json:"cn"`
-
-	// O Organization
-	O *string `json:"o,omitempty"`
-
-	// Ou Organizational unit
-	OU *string `json:"ou,omitempty"`
-}
-
 // CertificateSubjectAlternativeNames defines model for CertificateSubjectAlternativeNames.
 type CertificateSubjectAlternativeNames struct {
 	EmailAddresses []string `json:"emails,omitempty"`
@@ -189,12 +174,10 @@ type CertificateTemplate struct {
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 	Ref             RefWithMetadata             `json:"ref"`
 
-	// ReuseKey Keep using the same key version if exists
-	ReuseKey                *bool                               `json:"reuse_key,omitempty"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
+	// SubjectCommoneName Common name
+	SubjectCommonName string                          `json:"subjectCommoneName"`
+	Usages            []externalRef0.CertificateUsage `json:"usages"`
+	ValidityInMonths  *int32                          `json:"validity_months,omitempty"`
 }
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
@@ -207,12 +190,10 @@ type CertificateTemplateParameters struct {
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 
-	// ReuseKey Keep using the same key version if exists
-	ReuseKey                *bool                               `json:"reuse_key,omitempty"`
-	Subject                 CertificateSubject                  `json:"subject"`
-	SubjectAlternativeNames *CertificateSubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usage                   CertificateUsage                    `json:"usage"`
-	ValidityInMonths        *int32                              `json:"validity_months,omitempty"`
+	// SubjectCommoneName Common name
+	SubjectCommonName string                          `json:"subjectCommoneName"`
+	Usages            []externalRef0.CertificateUsage `json:"usages"`
+	ValidityInMonths  *int32                          `json:"validity_months,omitempty"`
 }
 
 // CertificateUsage defines model for CertificateUsage.
@@ -220,12 +201,6 @@ type CertificateUsage string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// NamespaceInfo defines model for NamespaceInfo.
-type NamespaceInfo struct {
-	ObjectType NamespaceTypeShortName `json:"objectType"`
-	Ref        RefWithMetadata        `json:"ref"`
-}
 
 // NamespaceTypeShortName defines model for NamespaceTypeShortName.
 type NamespaceTypeShortName string
@@ -302,9 +277,6 @@ type IncludeCertificateParameter = IncludeCertificate
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = openapi_types.UUID
 
-// NamespaceTypeParameter defines model for NamespaceTypeParameter.
-type NamespaceTypeParameter = NamespaceTypeShortName
-
 // TemplateIdParameter defines model for TemplateIdParameter.
 type TemplateIdParameter = openapi_types.UUID
 
@@ -316,11 +288,6 @@ type ErrorResponse map[string]interface{}
 
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
-
-// ListNamespacesByTypeV2Params defines parameters for ListNamespacesByTypeV2.
-type ListNamespacesByTypeV2Params struct {
-	NamespaceType NamespaceTypeParameter `form:"namespaceType" json:"namespaceType"`
-}
 
 // ListCertificateTemplatesV2Params defines parameters for ListCertificateTemplatesV2.
 type ListCertificateTemplatesV2Params struct {
