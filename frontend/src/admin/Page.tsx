@@ -44,38 +44,31 @@ export default function AdminPage() {
 
   return (
     <>
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeRootCA]}
-        title="Root Certificate Authorities"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.identifier}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeIntermediateCA]}
-        title="Intermediate Certificate Authorities"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.identifier}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
+      {[
+        ProfileType.ProfileTypeRootCA,
+        ProfileType.ProfileTypeIntermediateCA,
+      ].map((t) => (
+        <RefsTable3
+          key={t}
+          items={allNs?.[t]}
+          title="Root Certificate Authorities"
+          refActions={(ref) => (
+            <Link
+              to={`/admin/${t}/${ref.id}`}
+              className="text-indigo-600 hover:text-indigo-900"
+            >
+              View
+            </Link>
+          )}
+          columns={[displayNameColumn] as RefTableColumn[]}
+        />
+      ))}
       <RefsTable3
         items={allNs?.[ProfileType.ProfileTypeServicePrincipal]}
         title="Service Principals"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.identifier}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -88,7 +81,7 @@ export default function AdminPage() {
         title="Groups"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.identifier}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -101,7 +94,7 @@ export default function AdminPage() {
         title="Devices"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.identifier}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -114,7 +107,7 @@ export default function AdminPage() {
         title="Users"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.identifier}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -127,7 +120,7 @@ export default function AdminPage() {
         title="Applications"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.identifier}`}
+            to={`/admin/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View

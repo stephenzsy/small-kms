@@ -29,7 +29,8 @@ type BaseDoc struct {
 	UpdatedBy     string     `json:"updatedBy"`
 	SchemaVersion int        `json:"schemaVersion"`
 
-	ETag azcore.ETag `json:"-"` // populated during read
+	ETag azcore.ETag `json:"-"`    // populated during read
+	Kind DocKind     `json:"kind"` // populate during write for index
 }
 
 func getDefaultQueryColumns() []string {
@@ -63,6 +64,7 @@ func (doc *BaseDoc) stampUpdatedWithAuth(c context.Context) time.Time {
 		callerPrincipalIdStr = identity.ClientPrincipalID().String()
 		callerPrincipalName = identity.ClientPrincipalName()
 	}
+	doc.Kind = doc.ID.kind
 	doc.Updated = time.Now()
 	doc.UpdatedBy = fmt.Sprintf("%s:%s", callerPrincipalIdStr, callerPrincipalName)
 	return doc.Updated

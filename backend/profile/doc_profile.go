@@ -69,7 +69,7 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 	if dirObjUuid, isUuid := id.TryGetUUID(); !isUuid || dirObjUuid.Version() != 4 {
 		return fmt.Errorf("invalid graph object id from api: %s", id.String())
 	}
-	d.ID = kmsdoc.NewDocIdentifier(kmsdoc.DocTypeDirectoryObject, id)
+	d.ID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, id)
 
 	switch dirObj := dirObj.(type) {
 	case gmodels.Deviceable:
@@ -101,7 +101,7 @@ func (d *ProfileDoc) toModel() (p *models.Profile) {
 		return nil
 	}
 	p = &models.Profile{
-		Identifier: d.ID.Identifier(),
+		Id: d.ID.Identifier(),
 		Metadata: &models.ResourceMetadata{
 			Updated:   utils.ToPtr(d.Updated),
 			UpdatedBy: utils.ToPtr(d.UpdatedBy),
@@ -114,4 +114,25 @@ func (d *ProfileDoc) toModel() (p *models.Profile) {
 	}
 
 	return p
+}
+
+func GetProfileInternalIDs(profileType models.ProfileType, identifier common.Identifier) (nsID kmsdoc.DocNsID, docID kmsdoc.DocID, err error) {
+	switch profileType {
+	case models.ProfileTypeRootCA:
+		nsID = docNsIDProfileBuiltIn
+		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCaRoot, identifier)
+	case models.ProfileTypeIntermediateCA:
+		nsID = docNsIDProfileBuiltIn
+		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCaInt, identifier)
+	case models.ProfileTypeApplication,
+		models.ProfileTypeDevice,
+		models.ProfileTypeServicePrincipal,
+		models.ProfileTypeUser,
+		models.ProfileTypeGroup:
+		nsID = docNsIDProfileTenant
+		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, identifier)
+	default:
+		err = fmt.Errorf("%w:invalid profile type", common.ErrStatusBadRequest)
+	}
+	return
 }

@@ -7,22 +7,23 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
-func getProfileDoc(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (doc *ProfileDoc, err error) {
-	if profileType == models.ProfileTypeRootCA {
-		if a, ok := rootCaProfileDocs[identifier]; ok {
-			return &a, nil
+func getProfileDoc(c common.ServiceContext, nsID kmsdoc.DocNsID, docID kmsdoc.DocID) (doc *ProfileDoc, err error) {
+	if nsID == docNsIDProfileBuiltIn {
+		if docID.Kind() == kmsdoc.DocKindCaRoot {
+			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
+				return &a, nil
+			}
+			return nil, common.ErrStatusNotFound
 		}
-		return nil, common.ErrStatusNotFound
-	}
-	if profileType == models.ProfileTypeIntermediateCA {
-		if a, ok := rootCaProfileDocs[identifier]; ok {
-			return &a, nil
+		if docID.Kind() == kmsdoc.DocKindCaInt {
+			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
+				return &a, nil
+			}
+			return nil, common.ErrStatusNotFound
 		}
-		return nil, common.ErrStatusNotFound
 	}
-
 	doc = &ProfileDoc{}
-	err = kmsdoc.Read(c, docNsIDProfileTenant, kmsdoc.NewDocIdentifier(kmsdoc.DocTypeDirectoryObject, identifier), doc)
+	err = kmsdoc.Read(c, docNsIDProfileTenant, docID, doc)
 	return
 }
 
@@ -31,7 +32,11 @@ func (*profileService) GetProfile(c common.ServiceContext, profileType models.Pr
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
 		return nil, err
 	}
-	doc, err := getProfileDoc(c, profileType, identifier)
+	nsID, docID, err := GetProfileInternalIDs(profileType, identifier)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := getProfileDoc(c, nsID, docID)
 	if err != nil {
 		return nil, err
 	}

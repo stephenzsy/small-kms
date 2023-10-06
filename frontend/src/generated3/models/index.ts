@@ -1,5 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './CertificateIssuer';
+export * from './CertificateLifetimeTrigger';
+export * from './CertificateTemplate';
+export * from './CertificateTemplateParameters';
 export * from './CertificateUsage';
 export * from './JwkAlg';
 export * from './JwkKeyOperation';

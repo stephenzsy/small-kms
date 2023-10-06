@@ -1,7 +1,10 @@
-.openapi-generator-ignore
 apis/AdminApi.ts
 apis/index.ts
 index.ts
+models/CertificateIssuer.ts
+models/CertificateLifetimeTrigger.ts
+models/CertificateTemplate.ts
+models/CertificateTemplateParameters.ts
 models/CertificateUsage.ts
 models/JwkAlg.ts
 models/JwkKeyOperation.ts

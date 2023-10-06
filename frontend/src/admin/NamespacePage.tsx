@@ -12,9 +12,6 @@ interface CreateDefaultLinkItem {
   title: string;
 }
 
-const groupSpDefaultTemplateName =
-  "default-service-principal-client-credential";
-
 function CertificateTemplatesList({
   nsType,
   namespaceId,
@@ -65,11 +62,12 @@ function CertificateTemplatesList({
 
 export default function NamespacePage() {
   const { namespaceId } = useParams() as {
+    profileType: string;
     namespaceId: string;
   };
 
   const { nsInfo } = React.useContext(NamespaceContext);
-  const nsType = nsInfo?.objectType;
+  const nsType = nsInfo?.type;
   return (
     <>
       <h1>{namespaceId}</h1>

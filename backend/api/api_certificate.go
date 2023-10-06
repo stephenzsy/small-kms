@@ -18,7 +18,11 @@ func (s *server) PutCertificateTemplate(c *gin.Context,
 		wrapResponse[*models.CertificateTemplate](c, http.StatusBadRequest, nil, err)
 		return
 	}
-	pc := s.profileService.WithProfileContext(s.ServiceContext(c), profileType, profileIdentifier)
+	pc, err := s.profileService.WithProfileContext(s.ServiceContext(c), profileType, profileIdentifier)
+	if err != nil {
+		wrapResponse[*models.CertificateTemplate](c, http.StatusBadRequest, nil, err)
+		return
+	}
 	res, err := s.certTemplateService.PutCertificateTemplate(pc, templateIdentifier, req)
 	wrapResponse(c, http.StatusOK, res, err)
 }

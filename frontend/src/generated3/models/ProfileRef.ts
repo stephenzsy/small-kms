@@ -43,7 +43,7 @@ export interface ProfileRef {
      * @type {string}
      * @memberof ProfileRef
      */
-    identifier: string;
+    id: string;
     /**
      * Display name of the resource
      * @type {string}
@@ -55,7 +55,7 @@ export interface ProfileRef {
      * @type {ResourceMetadata}
      * @memberof ProfileRef
      */
-    metadata: ResourceMetadata;
+    metadata?: ResourceMetadata;
 }
 
 /**
@@ -64,9 +64,8 @@ export interface ProfileRef {
 export function instanceOfProfileRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "type" in value;
-    isInstance = isInstance && "identifier" in value;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "metadata" in value;
 
     return isInstance;
 }
@@ -82,9 +81,9 @@ export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     return {
         
         'type': ProfileTypeFromJSON(json['type']),
-        'identifier': json['identifier'],
+        'id': json['id'],
         'displayName': json['displayName'],
-        'metadata': ResourceMetadataFromJSON(json['metadata']),
+        'metadata': !exists(json, 'metadata') ? undefined : ResourceMetadataFromJSON(json['metadata']),
     };
 }
 
@@ -98,7 +97,7 @@ export function ProfileRefToJSON(value?: ProfileRef | null): any {
     return {
         
         'type': ProfileTypeToJSON(value.type),
-        'identifier': value.identifier,
+        'id': value.id,
         'displayName': value.displayName,
         'metadata': ResourceMetadataToJSON(value.metadata),
     };

@@ -1,9 +1,9 @@
 package certtemplate
 
 import (
-	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
+	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateTemplateFlag string
@@ -18,40 +18,48 @@ const (
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Kty      models.JwtKty  `json:"kty"`
-	KeySize  *int           `json:"key_size,omitempty"`
-	Crv      *models.JwtCrv `json:"crv,omitempty"`
-	ReuseKey *bool          `json:"reuse_key,omitempty"`
-}
-
-type CertificateTemplateDocSubject struct {
-	CN string  `json:"cn"`
-	OU *string `json:"ou,omitempty"`
-	O  *string `json:"o,omitempty"`
-	C  *string `json:"c,omitempty"`
-}
-
-type CertificateTemplateDocSANs struct {
-	EmailAddresses []string `json:"emails,omitempty"`
-	URIs           []string `json:"uris,omitempty"`
-}
-
-type CertificateTemplateDocLifeTimeTrigger struct {
-	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
-	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
+	Alg     models.JwkAlg  `json:"alg"`
+	Kty     models.JwtKty  `json:"kty"`
+	KeySize *int           `json:"key_size,omitempty"`
+	Crv     *models.JwtCrv `json:"crv,omitempty"`
+	//ReuseKey *bool          `json:"reuse_key,omitempty"`
 }
 
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
-	DisplayName             string                                 `json:"displayName"`
-	IssuerNamespaceID       uuid.UUID                              `json:"issuerNamespaceId"`
-	IssuerTemplateID        kmsdoc.KmsDocID                        `json:"issuerTemplateId"`
-	Usages                  []models.CertificateUsage              `json:"usages"`
-	KeyProperties           CertificateTemplateDocKeyProperties    `json:"keyProperties"`
-	KeyStorePath            *string                                `json:"keyStorePath,omitempty"`
-	Subject                 CertificateTemplateDocSubject          `json:"subject"`
-	SubjectAlternativeNames *CertificateTemplateDocSANs            `json:"sans,omitempty"`
-	ValidityInMonths        int32                                  `json:"validity_months"`
-	LifetimeTrigger         *CertificateTemplateDocLifeTimeTrigger `json:"lifetimeTrigger"`
-	Digest                  []byte                                 `json:"version"` // checksum of fhte core fields of the template
+
+	IssuerNamespaceID kmsdoc.DocNsID                      `json:"issuerNamespaceId"`
+	IssuerTemplateID  kmsdoc.DocID                        `json:"issuerTemplateId"`
+	Usages            []models.CertificateUsage           `json:"usages"`
+	KeyProperties     CertificateTemplateDocKeyProperties `json:"keyProperties"`
+	KeyStorePath      *string                             `json:"keyStorePath,omitempty"`
+	SubjectCommonName string                              `json:"subjectCn"`
+	ValidityInMonths  int32                               `json:"validity_months"`
+	LifetimeTrigger   *models.CertificateLifetimeTrigger  `json:"lifetimeTrigger"`
+	Digest            []byte                              `json:"version"` // checksum of fhte core fields of the template
+}
+
+func (doc *CertificateTemplateDoc) toModel() *models.CertificateTemplate {
+	issuerProfileType := models.ProfileTypeIntermediateCA
+	if doc.IssuerNamespaceID.Kind() == kmsdoc.DocNsTypeCaRoot {
+		issuerProfileType = models.ProfileTypeRootCA
+	}
+	return &models.CertificateTemplate{
+		Issuer: &models.CertificateIssuer{
+			ProfileType: issuerProfileType,
+			ProfileId:   doc.IssuerNamespaceID.Identifier(),
+			TemplateId:  utils.ToPtr(doc.IssuerTemplateID.Identifier()),
+		},
+		KeyProperties: &models.JwkProperties{
+			Alg:     utils.ToPtr(doc.KeyProperties.Alg),
+			Kty:     doc.KeyProperties.Kty,
+			Crv:     doc.KeyProperties.Crv,
+			KeySize: doc.KeyProperties.KeySize,
+		},
+		KeyStorePath:      doc.KeyStorePath,
+		LifetimeTrigger:   doc.LifetimeTrigger,
+		SubjectCommonName: doc.SubjectCommonName,
+		Usages:            doc.Usages,
+		ValidityInMonths:  utils.ToPtr(doc.ValidityInMonths),
+	}
 }

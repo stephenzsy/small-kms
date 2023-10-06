@@ -1,24 +1,28 @@
 import { useRequest } from "ahooks";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { AdminApi, NamespaceInfo } from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
+import { AdminApi, Profile, ProfileType } from "../generated3";
+import { useAuthedClient } from "../utils/useCertsApi3";
 
 export const NamespaceContext = React.createContext<{
-  nsInfo: NamespaceInfo | undefined;
+  nsInfo: Profile | undefined;
 }>({ nsInfo: undefined });
 
 export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
-  const { namespaceId } = useParams() as {
+  const { namespaceId, profileType } = useParams() as {
     namespaceId: string;
+    profileType: ProfileType;
   };
   const adminApi = useAuthedClient(AdminApi);
   const { data: namespaceInfo } = useRequest(
     async () => {
-      return await adminApi.getNamespaceInfoV2({ namespaceId });
+      return await adminApi.getProfile({
+        profileType: profileType,
+        profileId: namespaceId,
+      });
     },
     {
-      refreshDeps: [namespaceId],
+      refreshDeps: [namespaceId, profileType],
     }
   );
 

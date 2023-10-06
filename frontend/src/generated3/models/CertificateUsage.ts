@@ -18,10 +18,10 @@
  * @export
  */
 export const CertificateUsage = {
-    CertFeatCA: 'ca',
-    CertFeatCARoot: 'ca-root',
-    CertFeatServerAuth: 'serverAuth',
-    CertFeatClientAuth: 'clientAuth'
+    CertUsageCA: 'ca',
+    CertUsageCARoot: 'caRoot',
+    CertUsageServerAuth: 'serverAuth',
+    CertUsageClientAuth: 'clientAuth'
 } as const;
 export type CertificateUsage = typeof CertificateUsage[keyof typeof CertificateUsage];
 

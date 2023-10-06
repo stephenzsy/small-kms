@@ -16,6 +16,10 @@ func (s *profileService) SyncProfile(c common.ServiceContext, profileType models
 		return nil, err
 	}
 
+	if id, ok := identifier.TryGetUUID(); !ok || id.Version() != 4 {
+		return nil, fmt.Errorf("%w:invalid profile id", common.ErrStatusBadRequest)
+	}
+
 	client, err := common.GetClientProvider(c).MsGraphDelegatedClient(c)
 	if err != nil {
 		return nil, err
@@ -26,7 +30,7 @@ func (s *profileService) SyncProfile(c common.ServiceContext, profileType models
 		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("directoryObject:%s", directoryObjId))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// delete existing profile if exists
-			err = kmsdoc.DeleteByKey(c, docNsIDProfileTenant, kmsdoc.NewDocIdentifier(kmsdoc.DocTypeDirectoryObject, identifier))
+			err = kmsdoc.DeleteByKey(c, docNsIDProfileTenant, kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, identifier))
 		}
 		return nil, err
 	}

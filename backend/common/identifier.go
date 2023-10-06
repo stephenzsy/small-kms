@@ -2,6 +2,8 @@ package common
 
 import (
 	"encoding"
+	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -38,7 +40,10 @@ func (identifier Identifier) MarshalText() ([]byte, error) {
 	return []byte(identifier.strVal), nil
 }
 
-func (identifier *Identifier) IsEmpty() bool {
+func (identifier *Identifier) IsNilOrEmpty() bool {
+	if identifier == nil {
+		return true
+	}
 	if identifier.isUuid {
 		return identifier.uuidVal == uuid.Nil
 	}
@@ -97,3 +102,30 @@ func UUIDIdentifierFromStringPtr(p *string) Identifier {
 
 var _ encoding.TextMarshaler = &Identifier{}
 var _ encoding.TextUnmarshaler = &Identifier{}
+
+func hasPartialPrefixFold(s, prefix string) bool {
+	cmpLen := len(prefix)
+	sLen := len(s)
+	if sLen < cmpLen {
+		cmpLen = sLen
+	}
+	return strings.EqualFold(s[:cmpLen], prefix[:cmpLen])
+}
+
+func (identifier Identifier) HasReservedIDOrPrefix() bool {
+	if identifier.isUuid {
+		return identifier.uuidVal.Version() != 4
+	}
+	lenStr := len(identifier.strVal)
+	if lenStr <= 3 {
+		return false
+	}
+	return hasPartialPrefixFold(identifier.strVal, "default") ||
+		hasPartialPrefixFold(identifier.strVal, "system")
+}
+
+var identifierRegex = regexp.MustCompile("[A-Za-z0-9_-]+")
+
+func (identifier Identifier) IsValid() bool {
+	return identifier.isUuid || identifierRegex.MatchString(identifier.strVal)
+}

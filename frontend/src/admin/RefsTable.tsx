@@ -146,9 +146,9 @@ export function RefsTable3(props: {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {items.map((r) => (
-                      <tr key={r.identifier}>
+                      <tr key={r.id}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                          <pre>{r.identifier}</pre>
+                          <pre>{r.id}</pre>
                         </td>
                         {columns.map((c) => (
                           <td

@@ -15,11 +15,17 @@
 
 import * as runtime from '../runtime';
 import type {
+  CertificateTemplate,
+  CertificateTemplateParameters,
   Profile,
   ProfileRef,
   ProfileType,
 } from '../models';
 import {
+    CertificateTemplateFromJSON,
+    CertificateTemplateToJSON,
+    CertificateTemplateParametersFromJSON,
+    CertificateTemplateParametersToJSON,
     ProfileFromJSON,
     ProfileToJSON,
     ProfileRefFromJSON,
@@ -30,16 +36,23 @@ import {
 
 export interface GetProfileRequest {
     profileType: ProfileType;
-    identifier: string;
+    profileId: string;
 }
 
 export interface ListProfilesRequest {
     profileType: ProfileType;
 }
 
+export interface PutCertificateTemplateRequest {
+    profileType: ProfileType;
+    profileId: string;
+    templateId: string;
+    certificateTemplateParameters: CertificateTemplateParameters;
+}
+
 export interface SyncProfileRequest {
     profileType: ProfileType;
-    identifier: string;
+    profileId: string;
 }
 
 /**
@@ -55,8 +68,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling getProfile.');
         }
 
-        if (requestParameters.identifier === null || requestParameters.identifier === undefined) {
-            throw new runtime.RequiredError('identifier','Required parameter requestParameters.identifier was null or undefined when calling getProfile.');
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling getProfile.');
         }
 
         const queryParameters: any = {};
@@ -72,7 +85,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profile/{profileType}/{identifier}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"identifier"}}`, encodeURIComponent(String(requestParameters.identifier))),
+            path: `/v3/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -110,7 +123,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profile/{profileType}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))),
+            path: `/v3/{profileType}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -128,6 +141,59 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Put certificate template
+     */
+    async putCertificateTemplateRaw(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
+        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
+            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling putCertificateTemplate.');
+        }
+
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling putCertificateTemplate.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling putCertificateTemplate.');
+        }
+
+        if (requestParameters.certificateTemplateParameters === null || requestParameters.certificateTemplateParameters === undefined) {
+            throw new runtime.RequiredError('certificateTemplateParameters','Required parameter requestParameters.certificateTemplateParameters was null or undefined when calling putCertificateTemplate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CertificateTemplateParametersToJSON(requestParameters.certificateTemplateParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateTemplateFromJSON(jsonValue));
+    }
+
+    /**
+     * Put certificate template
+     */
+    async putCertificateTemplate(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
+        const response = await this.putCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Sync namespace info with ms graph
      */
     async syncProfileRaw(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
@@ -135,8 +201,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling syncProfile.');
         }
 
-        if (requestParameters.identifier === null || requestParameters.identifier === undefined) {
-            throw new runtime.RequiredError('identifier','Required parameter requestParameters.identifier was null or undefined when calling syncProfile.');
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling syncProfile.');
         }
 
         const queryParameters: any = {};
@@ -152,7 +218,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profile/{profileType}/{identifier}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"identifier"}}`, encodeURIComponent(String(requestParameters.identifier))),
+            path: `/v3/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

@@ -73,6 +73,16 @@ const (
 	ResourceTypeProfile                      ResourceType = "profile"
 )
 
+// CertificateIssuer defines model for CertificateIssuer.
+type CertificateIssuer struct {
+	// ProfileId Identifier of the resource
+	ProfileId   Identifier  `json:"profileId"`
+	ProfileType ProfileType `json:"profileType"`
+
+	// TemplateId Identifier of the resource
+	TemplateId *Identifier `json:"templateId,omitempty"`
+}
+
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
@@ -84,22 +94,17 @@ type CertificateTemplate = CertificateTemplateParameters
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
 type CertificateTemplateParameters struct {
-	// IssuerProfileIdentifier Identifier of the resource
-	IssuerProfileIdentifier Identifier `json:"issuerProfileIdentifier"`
-
-	// IssuerTemplateIdentifier Identifier of the resource
-	IssuerTemplateIdentifier Identifier `json:"issuerTemplateIdentifier"`
+	Issuer *CertificateIssuer `json:"issuer,omitempty"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
-	Name            string                      `json:"name"`
 
-	// SubjectCommoneName Common name
-	SubjectCommoneName string             `json:"subjectCommoneName"`
-	Usages             []CertificateUsage `json:"usages"`
-	ValidityInMonths   *int32             `json:"validity_months,omitempty"`
+	// SubjectCommonName Common name
+	SubjectCommonName string             `json:"subjectCommonName"`
+	Usages            []CertificateUsage `json:"usages"`
+	ValidityInMonths  *int32             `json:"validity_months,omitempty"`
 }
 
 // CertificateUsage defines model for CertificateUsage.
@@ -166,10 +171,10 @@ type ProfileRef struct {
 	// DisplayName Display name of the resource
 	DisplayName string `json:"displayName"`
 
-	// Identifier Identifier of the resource
-	Identifier Identifier        `json:"identifier"`
-	Metadata   *ResourceMetadata `json:"metadata,omitempty"`
-	Type       ProfileType       `json:"type"`
+	// Id Identifier of the resource
+	Id       Identifier        `json:"id"`
+	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+	Type     ProfileType       `json:"type"`
 }
 
 // ProfileType defines model for ProfileType.

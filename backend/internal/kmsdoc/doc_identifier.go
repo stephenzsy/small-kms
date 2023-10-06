@@ -14,25 +14,22 @@ var ErrDocIdentifierInvalid = fmt.Errorf("invalid doc identifier")
 type DocNsType string
 
 const (
-	DocNsTypeProfile          DocNsType = "profile"
-	DocNsTypeCaRoot           DocNsType = "ca-root"
-	DocNsTypeCaInt            DocNsType = "ca-int"
-	DocNsTypeDevice           DocNsType = "device"
-	DocNsTypeApplication      DocNsType = "application"
-	DocNsTypeServicePrincipal DocNsType = "service-principal"
-	DocNsTypeUser             DocNsType = "user"
-	DocNsTypeGroup            DocNsType = "group"
+	DocNsTypeProfile   DocNsType = "profile"
+	DocNsTypeCaRoot    DocNsType = "ca-root"
+	DocNsTypeCaInt     DocNsType = "ca-int"
+	DocNSTypeDirectory DocNsType = "directory"
 )
 
-type DocType string
+type DocKind string
 
 const (
-	DocTypeCaRoot          DocType = "ca-root" // only for profile/builtin
-	DocTypeCaInt           DocType = "ca-int"  // only for profile/builtin
-	DocTypeDirectoryObject DocType = "object"  // only for profile/tenant
+	DocKindCaRoot              DocKind = "ca-root"       // only for profile/builtin
+	DocKindCaInt               DocKind = "ca-int"        // only for profile/builtin
+	DocKindDirectoryObject     DocKind = "object"        // only for profile/tenant
+	DocKindCertificateTemplate DocKind = "cert-template" //
 )
 
-type DocIdentifier[T DocNsType | DocType] struct {
+type DocIdentifier[T DocNsType | DocKind] struct {
 	kind       T
 	identifier common.Identifier
 }
@@ -64,7 +61,7 @@ func (d *DocIdentifier[T]) UnmarshalText(text []byte) (err error) {
 	return
 }
 
-func NewDocIdentifier[T DocNsType | DocType](t T, id common.Identifier) DocIdentifier[T] {
+func NewDocIdentifier[T DocNsType | DocKind](t T, id common.Identifier) DocIdentifier[T] {
 	return DocIdentifier[T]{kind: t, identifier: id}
 }
 
@@ -72,8 +69,8 @@ var _ encoding.TextMarshaler = &DocIdentifier[DocNsType]{}
 var _ encoding.TextUnmarshaler = &DocIdentifier[DocNsType]{}
 
 type DocNsID = DocIdentifier[DocNsType]
-type DocID = DocIdentifier[DocType]
+type DocID = DocIdentifier[DocKind]
 
-func StringDocIdentifier[T DocNsType | DocType](nsType T, id string) DocIdentifier[T] {
+func StringDocIdentifier[T DocNsType | DocKind](nsType T, id string) DocIdentifier[T] {
 	return DocIdentifier[T]{kind: nsType, identifier: common.StringIdentifier(id)}
 }

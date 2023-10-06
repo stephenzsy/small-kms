@@ -49,7 +49,11 @@ func (*profileService) ListProfiles(c common.ServiceContext, profileType models.
 	}, []azcosmos.QueryParameter{
 		{Name: "@profileType", Value: profileType},
 	})
-	return utils.PagerAllItems[*models.ProfileRef](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRef {
+	allItems, err := utils.PagerAllItems[*models.ProfileRef](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRef {
 		return doc.toModel()
 	}), c)
+	if allItems == nil {
+		allItems = make([]*models.ProfileRef, 0)
+	}
+	return allItems, err
 }

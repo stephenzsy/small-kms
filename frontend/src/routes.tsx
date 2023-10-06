@@ -1,18 +1,17 @@
 import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
+import { NamespaceContextProvider } from "./admin/NamespaceContext";
 import AdminPage from "./admin/Page";
 import RegisterPage from "./admin/RegisterPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import Layout from "./Layout";
 import { RouteIds } from "./route-constants";
-import { NamespaceContextProvider } from "./admin/NamespaceContext";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
-const PolicyPage = React.lazy(() => import("./admin/PolicyPage"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificateTemplatePage = React.lazy(
   () => import("./admin/CertificateTemplatePage")
@@ -44,7 +43,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminPage /> },
           {
-            path: ":namespaceId",
+            path: ":profileType/:namespaceId",
             element: (
               <NamespaceContextProvider>
                 <Outlet />

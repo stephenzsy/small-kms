@@ -17,14 +17,14 @@ type ServerInterface interface {
 	// (GET /v3/{profileType})
 	ListProfiles(c *gin.Context, profileType ProfileTypeParameter)
 	// Get namespace info with ms graph
-	// (GET /v3/{profileType}/{profileIdentifier})
-	GetProfile(c *gin.Context, profileType ProfileTypeParameter, profileIdentifier ProfileIdentifierParameter)
+	// (GET /v3/{profileType}/{profileId})
+	GetProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
 	// Sync namespace info with ms graph
-	// (POST /v3/{profileType}/{profileIdentifier})
-	SyncProfile(c *gin.Context, profileType ProfileTypeParameter, profileIdentifier ProfileIdentifierParameter)
+	// (POST /v3/{profileType}/{profileId})
+	SyncProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
 	// Put certificate template
-	// (PUT /v3/{profileType}/{profileIdentifier}/certificate-template/{templateIdentifier})
-	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileIdentifier ProfileIdentifierParameter, templateIdentifier CertificateTemplateIdentifierParameter)
+	// (PUT /v3/{profileType}/{profileId}/certificate-template/{templateId})
+	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -76,12 +76,12 @@ func (siw *ServerInterfaceWrapper) GetProfile(c *gin.Context) {
 		return
 	}
 
-	// ------------- Path parameter "profileIdentifier" -------------
-	var profileIdentifier ProfileIdentifierParameter
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileIdentifier", c.Param("profileIdentifier"), &profileIdentifier)
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileIdentifier: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -94,7 +94,7 @@ func (siw *ServerInterfaceWrapper) GetProfile(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.GetProfile(c, profileType, profileIdentifier)
+	siw.Handler.GetProfile(c, profileType, profileId)
 }
 
 // SyncProfile operation middleware
@@ -111,12 +111,12 @@ func (siw *ServerInterfaceWrapper) SyncProfile(c *gin.Context) {
 		return
 	}
 
-	// ------------- Path parameter "profileIdentifier" -------------
-	var profileIdentifier ProfileIdentifierParameter
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileIdentifier", c.Param("profileIdentifier"), &profileIdentifier)
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileIdentifier: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (siw *ServerInterfaceWrapper) SyncProfile(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.SyncProfile(c, profileType, profileIdentifier)
+	siw.Handler.SyncProfile(c, profileType, profileId)
 }
 
 // PutCertificateTemplate operation middleware
@@ -146,21 +146,21 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
 		return
 	}
 
-	// ------------- Path parameter "profileIdentifier" -------------
-	var profileIdentifier ProfileIdentifierParameter
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileIdentifier", c.Param("profileIdentifier"), &profileIdentifier)
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileIdentifier: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	// ------------- Path parameter "templateIdentifier" -------------
-	var templateIdentifier CertificateTemplateIdentifierParameter
+	// ------------- Path parameter "templateId" -------------
+	var templateId CertificateTemplateIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "templateIdentifier", c.Param("templateIdentifier"), &templateIdentifier)
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateIdentifier: %w", err), http.StatusBadRequest)
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.PutCertificateTemplate(c, profileType, profileIdentifier, templateIdentifier)
+	siw.Handler.PutCertificateTemplate(c, profileType, profileId, templateId)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -204,7 +204,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v3/:profileType", wrapper.ListProfiles)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileIdentifier", wrapper.GetProfile)
-	router.POST(options.BaseURL+"/v3/:profileType/:profileIdentifier", wrapper.SyncProfile)
-	router.PUT(options.BaseURL+"/v3/:profileType/:profileIdentifier/certificate-template/:templateIdentifier", wrapper.PutCertificateTemplate)
+	router.GET(options.BaseURL+"/v3/:profileType/:profileId", wrapper.GetProfile)
+	router.POST(options.BaseURL+"/v3/:profileType/:profileId", wrapper.SyncProfile)
+	router.PUT(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 }
