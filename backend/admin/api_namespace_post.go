@@ -58,16 +58,5 @@ func (s *adminServer) SyncNamespaceInfoV2(c *gin.Context, namespaceId uuid.UUID)
 		return
 	}
 
-	c.JSON(http.StatusOK, newNamespaceInfoFromProfileDoc(profileDoc))
-}
-
-func newNamespaceInfoFromProfileDoc(doc graph.GraphProfileDocument) *NamespaceInfo {
-	if doc == nil {
-		return nil
-	}
-	p := new(NamespaceInfo)
-	profileDocPopulateRefWithMetadata(doc, &p.Ref)
-	p.Ref.Type = RefTypeNamespace
-	p.ObjectType = OdataTypeToNSType(doc.GetOdataType())
-	return p
+	c.JSON(http.StatusOK, nil)
 }

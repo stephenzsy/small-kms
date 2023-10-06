@@ -4,6 +4,8 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -73,7 +75,7 @@ const (
 type CertificateUsage string
 
 // Identifier Identifier of the resource
-type Identifier = string
+type Identifier = NameOrUUIDIdentifier
 
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
@@ -126,26 +128,31 @@ type JwtCrv string
 type JwtKty string
 
 // Profile defines model for Profile.
-type Profile struct {
-	Ref  ResourceRef `json:"ref"`
-	Type ProfileType `json:"type"`
+type Profile = ProfileRef
+
+// ProfileRef defines model for ProfileRef.
+type ProfileRef struct {
+	// DisplayName Display name of the resource
+	DisplayName string `json:"displayName"`
+
+	// Identifier Identifier of the resource
+	Identifier Identifier       `json:"identifier"`
+	Metadata   ResourceMetadata `json:"metadata"`
+	Type       ProfileType      `json:"type"`
 }
 
 // ProfileType defines model for ProfileType.
 type ProfileType string
 
-// ResourceRef defines model for ResourceRef.
-type ResourceRef struct {
+// ResourceMetadata defines model for ResourceMetadata.
+type ResourceMetadata struct {
 	// Deleted Time when the deleted was deleted
 	Deleted *time.Time `json:"deleted,omitempty"`
 
-	// Identifier Identifier of the resource
-	Identifier *Identifier        `json:"identifier,omitempty"`
-	Metadata   *map[string]string `json:"metadata,omitempty"`
-	Type       ResourceType       `json:"type"`
-
 	// Updated Time when the resoruce was last updated
-	Updated *time.Time `json:"updated,omitempty"`
+	Updated              *time.Time        `json:"updated,omitempty"`
+	UpdatedBy            *string           `json:"updatedBy,omitempty"`
+	AdditionalProperties map[string]string `json:"-"`
 }
 
 // ResourceType defines model for ResourceType.
@@ -157,5 +164,100 @@ type IdentifierParameter = Identifier
 // ProfileTypeParameter defines model for ProfileTypeParameter.
 type ProfileTypeParameter = ProfileType
 
-// RefListResponse defines model for RefListResponse.
-type RefListResponse = []ResourceRef
+// Getter for additional properties for ResourceMetadata. Returns the specified
+// element and whether it was found
+func (a ResourceMetadata) Get(fieldName string) (value string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ResourceMetadata
+func (a *ResourceMetadata) Set(fieldName string, value string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ResourceMetadata to handle AdditionalProperties
+func (a *ResourceMetadata) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["deleted"]; found {
+		err = json.Unmarshal(raw, &a.Deleted)
+		if err != nil {
+			return fmt.Errorf("error reading 'deleted': %w", err)
+		}
+		delete(object, "deleted")
+	}
+
+	if raw, found := object["updated"]; found {
+		err = json.Unmarshal(raw, &a.Updated)
+		if err != nil {
+			return fmt.Errorf("error reading 'updated': %w", err)
+		}
+		delete(object, "updated")
+	}
+
+	if raw, found := object["updatedBy"]; found {
+		err = json.Unmarshal(raw, &a.UpdatedBy)
+		if err != nil {
+			return fmt.Errorf("error reading 'updatedBy': %w", err)
+		}
+		delete(object, "updatedBy")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ResourceMetadata to handle AdditionalProperties
+func (a ResourceMetadata) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Deleted != nil {
+		object["deleted"], err = json.Marshal(a.Deleted)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'deleted': %w", err)
+		}
+	}
+
+	if a.Updated != nil {
+		object["updated"], err = json.Marshal(a.Updated)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'updated': %w", err)
+		}
+	}
+
+	if a.UpdatedBy != nil {
+		object["updatedBy"], err = json.Marshal(a.UpdatedBy)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'updatedBy': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}

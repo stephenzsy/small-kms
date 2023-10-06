@@ -209,13 +209,15 @@ func AzCosmosUpsert[D KmsDocument](ctx context.Context, cc *azcosmos.ContainerCl
 }
 
 func AzCosmosReadItem[D KmsDocument](ctx common.ServiceContext, nsID uuid.UUID, docID KmsDocID, target D) error {
-	resp, err := common.GetAzCosmosContainerClient(ctx).ReadItem(ctx, azcosmos.NewPartitionKeyString(nsID.String()), docID.String(), nil)
-	if err != nil {
-		return common.WrapAzRsNotFoundErr(err, fmt.Sprintf("doc:%s/%s", nsID, docID))
-	}
-	err = json.Unmarshal(resp.Value, target)
-	target.SetETag(resp.ETag)
-	return err
+	/*
+		resp, err := common.GetAzCosmosContainerClient(ctx).ReadItem(ctx, azcosmos.NewPartitionKeyString(nsID.String()), docID.String(), nil)
+		if err != nil {
+			return common.WrapAzRsNotFoundErr(err, fmt.Sprintf("doc:%s/%s", nsID, docID))
+		}
+		err = json.Unmarshal(resp.Value, target)
+		target.SetETag(resp.ETag)
+		return err*/
+	return nil
 }
 
 // Deprecated: use AzCosmosReadItem instead

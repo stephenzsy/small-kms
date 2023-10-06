@@ -333,21 +333,21 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 		return
 	}
 
-	req, err := rawReq.ValueByDiscriminator()
+	_, err := rawReq.ValueByDiscriminator()
 	if err != nil {
 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
+	//serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
 
 	var pCertDoc *PendingCertDoc
 	var responseNsType NamespaceTypeShortName
-	switch req := req.(type) {
-	case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-		pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
-		responseNsType = NSTypeServicePrincipal
-	}
+	//	switch req := req.(type) {
+	// case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
+	// 	//pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
+	// 	responseNsType = NSTypeServicePrincipal
+	// }
 	if err != nil {
 		common.RespondError(c, err)
 		return

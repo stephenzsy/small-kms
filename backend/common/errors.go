@@ -12,9 +12,9 @@ import (
 )
 
 var (
+	ErrStatusBadRequest   = errors.New("invalid input")      // 400
 	ErrStatusUnauthorized = errors.New("unauthorized")       // 401
 	ErrStatusForbidden    = errors.New("forbidden")          // 403
-	ErrStatusBadRequest   = errors.New("invalid input")      // 404
 	ErrStatusNotFound     = errors.New("resource not found") // 404
 	ErrStatusConflict     = errors.New("resource conflict")  // 409
 )

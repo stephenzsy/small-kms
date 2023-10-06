@@ -15,7 +15,13 @@ paths:
       operationId: ListProfiles
       responses:
         200:
-          $ref: "#/components/responses/RefListResponse"
+          description: List RefsResponse
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfileRef"
   /v3/profile/{profileType}/{identifier}:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
@@ -53,7 +59,8 @@ components:
   schemas:
     Identifier:
       type: string
-      description: Identifier of the resource      
+      description: Identifier of the resource
+      x-go-type: NameOrUUIDIdentifier
     ProfileType:
       type: string
       enum:
@@ -76,7 +83,7 @@ components:
       type: string
       enum:
         - profile
-        - certificate-template        
+        - certificate-template
         - certificate
         - certificate-enrollment-receipt
       x-enum-varnames:
@@ -84,38 +91,41 @@ components:
         - ResourceTypeCertificateTemplate
         - ResourceTypeCertificate
         - ResourceTypeCertificateEnrollmentReceipt
-    ResourceRef:
+    ResourceMetadata:
       type: object
       properties:
-        type:
-          $ref: "#/components/schemas/ResourceType"
-        identifier:
-          $ref: "#/components/schemas/Identifier"
         updated:
           description: Time when the resoruce was last updated
           type: string
           format: date-time
+        updatedBy:
+          type: string
         deleted:
           description: Time when the deleted was deleted
           type: string
-          format: date-time         
-        metadata:
-          type: object
-          additionalProperties:
-            type: string 
-      required:
-        - type
-        - name
-    Profile:
+          format: date-time
+      additionalProperties:
+        type: string
+    ProfileRef:
       type: object
       properties:
-        ref:
-          $ref: "#/components/schemas/ResourceRef"
         type:
           $ref: "#/components/schemas/ProfileType"
+        identifier:
+          $ref: "#/components/schemas/Identifier"
+        displayName:
+          description: Display name of the resource
+          type: string
+        metadata:
+          $ref: "#/components/schemas/ResourceMetadata"
       required:
-        - ref
-        - type        
+        - type
+        - identifier
+        - displayName
+    Profile:
+      allOf:
+        - $ref: "#/components/schemas/ProfileRef"
+      x-go-type: ProfileRef  
     JwkAlg:
       type: string
       enum:
@@ -239,13 +249,4 @@ components:
       name: identifier
       schema:
         $ref: "#/components/schemas/Identifier"
-      required: true      
-  responses:
-    RefListResponse:
-      description: List RefsResponse
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResourceRef"
+      required: true

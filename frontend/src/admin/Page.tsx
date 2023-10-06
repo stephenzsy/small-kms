@@ -1,48 +1,40 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
-import { WellknownId } from "../constants";
-import { AdminApi, NamespaceTypeShortName } from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { RefTableColumn, RefsTable, displayNameColumn } from "./RefsTable";
-
-const namespaceIds = {
-  rootCa: [WellknownId.nsRootCa, WellknownId.nsTestRootCa],
-  intCa: [WellknownId.nsIntCaIntranet, WellknownId.nsTestIntCa],
-};
+import { AdminApi, ProfileType } from "../generated3";
+import { useAuthedClient } from "../utils/useCertsApi3";
+import {
+  RefTableColumn,
+  RefsTable,
+  RefsTable3,
+  displayNameColumn,
+} from "./RefsTable";
 
 export default function AdminPage() {
   const adminApi = useAuthedClient(AdminApi);
   const { data: allNs } = useRequest(
     async () => {
       return {
-        [NamespaceTypeShortName.NSType_RootCA]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_RootCA,
-          }),
-        [NamespaceTypeShortName.NSType_IntCA]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_IntCA,
-          }),
-        [NamespaceTypeShortName.NSType_ServicePrincipal]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_ServicePrincipal,
-          }),
-        [NamespaceTypeShortName.NSType_Group]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_Group,
-          }),
-        [NamespaceTypeShortName.NSType_Device]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_Device,
-          }),
-        [NamespaceTypeShortName.NSType_User]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_User,
-          }),
-        [NamespaceTypeShortName.NSType_Application]:
-          await adminApi.listNamespacesByTypeV2({
-            namespaceType: NamespaceTypeShortName.NSType_Application,
-          }),
+        [ProfileType.ProfileTypeRootCA]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeRootCA,
+        }),
+        [ProfileType.ProfileTypeIntermediateCA]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeIntermediateCA,
+        }),
+        [ProfileType.ProfileTypeServicePrincipal]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeServicePrincipal,
+        }),
+        [ProfileType.ProfileTypeGroup]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeGroup,
+        }),
+        [ProfileType.ProfileTypeDevice]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeDevice,
+        }),
+        [ProfileType.ProfileTypeUser]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeUser,
+        }),
+        [ProfileType.ProfileTypeApplication]: await adminApi.listProfiles({
+          profileType: ProfileType.ProfileTypeApplication,
+        }),
       };
     },
     {
@@ -52,12 +44,12 @@ export default function AdminPage() {
 
   return (
     <>
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_RootCA]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeRootCA]}
         title="Root Certificate Authorities"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -65,12 +57,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_IntCA]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeIntermediateCA]}
         title="Intermediate Certificate Authorities"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -78,12 +70,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_ServicePrincipal]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeServicePrincipal]}
         title="Service Principals"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -91,12 +83,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_Group]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeGroup]}
         title="Groups"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -104,12 +96,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_Device]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeDevice]}
         title="Devices"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -117,12 +109,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_User]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeUser]}
         title="Users"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View
@@ -130,12 +122,12 @@ export default function AdminPage() {
         )}
         columns={[displayNameColumn] as RefTableColumn[]}
       />
-      <RefsTable
-        items={allNs?.[NamespaceTypeShortName.NSType_Application]}
+      <RefsTable3
+        items={allNs?.[ProfileType.ProfileTypeApplication]}
         title="Applications"
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.id}`}
+            to={`/admin/${ref.identifier}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View

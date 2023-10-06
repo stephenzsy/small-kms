@@ -17,7 +17,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/admin"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 func main() {
@@ -58,6 +60,7 @@ func main() {
 			router.Use(auth.HandleAadAuthMiddleware)
 		}
 		admin.RegisterHandlers(router, admin.NewAdminServer())
+		models.RegisterHandlers(router, api.NewServer())
 	}
 
 	log.Fatal(router.Run(listenerAddress))

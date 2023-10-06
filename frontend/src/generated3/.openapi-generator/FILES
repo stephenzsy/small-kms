@@ -1,0 +1,17 @@
+.openapi-generator-ignore
+apis/AdminApi.ts
+apis/index.ts
+index.ts
+models/CertificateUsage.ts
+models/JwkAlg.ts
+models/JwkKeyOperation.ts
+models/JwkProperties.ts
+models/JwtCrv.ts
+models/JwtKty.ts
+models/Profile.ts
+models/ProfileRef.ts
+models/ProfileType.ts
+models/ResourceMetadata.ts
+models/ResourceType.ts
+models/index.ts
+runtime.ts
