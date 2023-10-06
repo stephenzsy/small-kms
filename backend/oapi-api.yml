@@ -5,7 +5,7 @@ info:
 security:
   - BearerAuth: []
 paths:
-  /v3/profile/{profileType}:
+  /v3/{profileType}:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
     get:
@@ -22,10 +22,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v3/profile/{profileType}/{identifier}:
+  /v3/{profileType}/{profileIdentifier}:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
-      - $ref: "#/components/parameters/IdentifierParameter"
+      - $ref: "#/components/parameters/ProfileIdentifierParameter"
     get:
       tags:
         - admin
@@ -50,6 +50,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
+  /v3/{profileType}/{profileIdentifier}/certificate-template/{templateIdentifier}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/ProfileIdentifierParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    put:
+      tags:
+        - admin
+      summary: Put certificate template
+      operationId: PutCertificateTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateTemplateParameters"
+        required: true
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
 components:
   securitySchemes:
     BearerAuth:
@@ -125,7 +148,7 @@ components:
     Profile:
       allOf:
         - $ref: "#/components/schemas/ProfileRef"
-      x-go-type: ProfileRef  
+      x-go-type: ProfileRef
     JwkAlg:
       type: string
       enum:
@@ -229,14 +252,67 @@ components:
       type: string
       enum:
         - ca
-        - ca-root
+        - caRoot
         - serverAuth
         - clientAuth
       x-enum-varnames:
-        - CertFeatCA
-        - CertFeatCARoot
-        - CertFeatServerAuth
-        - CertFeatClientAuth
+        - CertUsageCA
+        - CertUsageCARoot
+        - CertUsageServerAuth
+        - CertUsageClientAuth
+    CertificateLifetimeTrigger:
+      type: object
+      properties:
+        days_before_expiry:
+          x-go-name: DaysBeforeExpiry
+          type: integer
+          format: int32
+        lifetime_percentage:
+          x-go-name: LifetimePercentage
+          type: integer
+          format: int32
+    CertificateTemplateParameters:
+      type: object
+      description: Certificate fields, may accept template substitutions
+      properties:
+        name:
+          type: string
+        issuerProfileIdentifier:
+          $ref: "#/components/schemas/Identifier"
+        issuerTemplateIdentifier:
+          $ref: "#/components/schemas/Identifier"
+        keyProperties:
+          $ref: "#/components/schemas/JwkProperties"
+        subjectCommoneName:
+          description: Common name
+          type: string
+        usages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateUsage"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 120
+        keyStorePath:
+          type: string
+        lifetimeTrigger:
+          $ref: "#/components/schemas/CertificateLifetimeTrigger"
+        # reuse_key:
+        #   description: Keep using the same key version if exists
+        #   type: boolean
+        #   x-go-name: ReuseKey
+      required:
+        - name
+        - issuerProfileIdentifier
+        - issuerTemplateIdentifier
+        - subjectCommoneName
+        - usages
+    CertificateTemplate:
+      allOf:
+        - $ref: "#/components/schemas/CertificateTemplateParameters"
   parameters:
     ProfileTypeParameter:
       in: path
@@ -244,9 +320,15 @@ components:
       schema:
         $ref: "#/components/schemas/ProfileType"
       required: true
-    IdentifierParameter:
+    ProfileIdentifierParameter:
       in: path
-      name: identifier
+      name: profileIdentifier
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      required: true
+    CertificateTemplateIdentifierParameter:
+      in: path
+      name: templateIdentifier
       schema:
         $ref: "#/components/schemas/Identifier"
       required: true

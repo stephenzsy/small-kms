@@ -10,6 +10,7 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/profile"
@@ -17,25 +18,8 @@ import (
 
 type server struct {
 	common.CommonConfig
-	profileService profile.ProfileService
-}
-
-// GetProfile implements models.ServerInterface.
-func (s *server) GetProfile(c *gin.Context, profileType models.ProfileType, identifier models.Identifier) {
-	res, err := s.profileService.GetProfile(s.ServiceContext(c), profileType, identifier)
-	wrapResponse(c, http.StatusOK, res, err)
-}
-
-// ListProfiles implements models.ServerInterface.
-func (s *server) ListProfiles(c *gin.Context, profileType models.ProfileType) {
-	res, err := s.profileService.ListProfiles(s.ServiceContext(c), profileType)
-	wrapResponse(c, http.StatusOK, res, err)
-}
-
-// SyncProfile implements models.ServerInterface.
-func (s *server) SyncProfile(c *gin.Context, profileType models.ProfileType, identifier models.Identifier) {
-	res, err := s.profileService.SyncProfile(s.ServiceContext(c), profileType, identifier)
-	wrapResponse(c, http.StatusOK, res, err)
+	profileService      profile.ProfileService
+	certTemplateService certtemplate.CertificateTemplateService
 }
 
 func (s *server) ServiceContext(c ctx.Context) common.ServiceContext {
@@ -80,8 +64,9 @@ func NewServer() models.ServerInterface {
 		log.Panic().Err(err).Msg("failed to create common config")
 	}
 	s := server{
-		CommonConfig:   &commonConfig,
-		profileService: profile.NewProfileService(),
+		CommonConfig:        &commonConfig,
+		profileService:      profile.NewProfileService(),
+		certTemplateService: certtemplate.NewCertificateTemplateService(),
 	}
 	return &s
 }

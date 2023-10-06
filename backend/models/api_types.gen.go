@@ -15,10 +15,10 @@ const (
 
 // Defines values for CertificateUsage.
 const (
-	CertFeatCA         CertificateUsage = "ca"
-	CertFeatCARoot     CertificateUsage = "ca-root"
-	CertFeatClientAuth CertificateUsage = "clientAuth"
-	CertFeatServerAuth CertificateUsage = "serverAuth"
+	CertUsageCA         CertificateUsage = "ca"
+	CertUsageCARoot     CertificateUsage = "caRoot"
+	CertUsageClientAuth CertificateUsage = "clientAuth"
+	CertUsageServerAuth CertificateUsage = "serverAuth"
 )
 
 // Defines values for JwkAlg.
@@ -70,6 +70,35 @@ const (
 	ResourceTypeCertificateTemplate          ResourceType = "certificate-template"
 	ResourceTypeProfile                      ResourceType = "profile"
 )
+
+// CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
+type CertificateLifetimeTrigger struct {
+	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
+	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
+}
+
+// CertificateTemplate Certificate fields, may accept template substitutions
+type CertificateTemplate = CertificateTemplateParameters
+
+// CertificateTemplateParameters Certificate fields, may accept template substitutions
+type CertificateTemplateParameters struct {
+	// IssuerProfileIdentifier Identifier of the resource
+	IssuerProfileIdentifier Identifier `json:"issuerProfileIdentifier"`
+
+	// IssuerTemplateIdentifier Identifier of the resource
+	IssuerTemplateIdentifier Identifier `json:"issuerTemplateIdentifier"`
+
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
+	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
+	Name            string                      `json:"name"`
+
+	// SubjectCommoneName Common name
+	SubjectCommoneName string             `json:"subjectCommoneName"`
+	Usages             []CertificateUsage `json:"usages"`
+	ValidityInMonths   *int32             `json:"validity_months,omitempty"`
+}
 
 // CertificateUsage defines model for CertificateUsage.
 type CertificateUsage string
@@ -136,9 +165,9 @@ type ProfileRef struct {
 	DisplayName string `json:"displayName"`
 
 	// Identifier Identifier of the resource
-	Identifier Identifier       `json:"identifier"`
-	Metadata   ResourceMetadata `json:"metadata"`
-	Type       ProfileType      `json:"type"`
+	Identifier Identifier        `json:"identifier"`
+	Metadata   *ResourceMetadata `json:"metadata,omitempty"`
+	Type       ProfileType       `json:"type"`
 }
 
 // ProfileType defines model for ProfileType.
@@ -158,11 +187,17 @@ type ResourceMetadata struct {
 // ResourceType defines model for ResourceType.
 type ResourceType string
 
-// IdentifierParameter Identifier of the resource
-type IdentifierParameter = Identifier
+// CertificateTemplateIdentifierParameter Identifier of the resource
+type CertificateTemplateIdentifierParameter = Identifier
+
+// ProfileIdentifierParameter Identifier of the resource
+type ProfileIdentifierParameter = Identifier
 
 // ProfileTypeParameter defines model for ProfileTypeParameter.
 type ProfileTypeParameter = ProfileType
+
+// PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
+type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters
 
 // Getter for additional properties for ResourceMetadata. Returns the specified
 // element and whether it was found

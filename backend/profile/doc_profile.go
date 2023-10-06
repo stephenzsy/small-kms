@@ -104,7 +104,7 @@ func (d *ProfileDoc) toModel() (p *models.Profile) {
 	}
 	p = &models.Profile{
 		Identifier: d.DocID,
-		Metadata: models.ResourceMetadata{
+		Metadata: &models.ResourceMetadata{
 			Updated:   utils.ToPtr(d.Updated),
 			UpdatedBy: utils.ToPtr(d.UpdatedBy),
 			Deleted:   d.Deleted,
