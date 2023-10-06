@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	kmscommon "github.com/stephenzsy/small-kms/backend/common"
 )
 
 const (
@@ -104,7 +106,7 @@ type CertificateTemplateParameters struct {
 type CertificateUsage string
 
 // Identifier Identifier of the resource
-type Identifier = NameOrUUIDIdentifier
+type Identifier = kmscommon.Identifier
 
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string

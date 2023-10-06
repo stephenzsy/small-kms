@@ -11,7 +11,7 @@ import (
 type ProfileService interface {
 	GetProfile(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (*models.Profile, error)
 	SyncProfile(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (*models.Profile, error)
-	ListProfiles(c common.ServiceContext, profileType models.ProfileType) ([]models.ProfileRef, error)
+	ListProfiles(c common.ServiceContext, profileType models.ProfileType) ([]*models.ProfileRef, error)
 	WithProfileContext(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) common.ServiceContext
 }
 
@@ -35,7 +35,7 @@ type profileContext struct {
 }
 
 // Identifier implements ProfileContext.
-func (c *profileContext) Identifier() models.NameOrUUIDIdentifier {
+func (c *profileContext) Identifier() common.Identifier {
 	return c.identifier
 }
 

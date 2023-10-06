@@ -26,9 +26,7 @@ func (s *profileService) SyncProfile(c common.ServiceContext, profileType models
 		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("directoryObject:%s", directoryObjId))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// delete existing profile if exists
-			err = kmsdoc.DeleteByKeyFunc(c, func() (string, string) {
-				return getProfileDocKey(identifier)
-			})
+			err = kmsdoc.DeleteByKey(c, docNsIDProfileTenant, kmsdoc.NewDocIdentifier(kmsdoc.DocTypeDirectoryObject, identifier))
 		}
 		return nil, err
 	}

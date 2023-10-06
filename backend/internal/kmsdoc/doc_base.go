@@ -7,67 +7,49 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 )
-
-// document name space type
-type DocNsType string
-
-const (
-	DocNsTypeCaRoot           DocNsType = "ca-root"
-	DocNsTypeCaInt            DocNsType = "ca-int"
-	DocNsTypeDevice           DocNsType = "device"
-	DocNsTypeApplication      DocNsType = "application"
-	DocNsTypeServicePrincipal DocNsType = "service-principal"
-	DocNsTypeUser             DocNsType = "user"
-	DocNsTypeGroup            DocNsType = "group"
-	DocNsTypeTenant           DocNsType = "tenant"
-)
-
-type DocType string
-
-const (
-	DocTypeProfile DocType = "profile"
-)
-
-type BaseDoc struct {
-	NsType        DocNsType         `json:"nsType"`
-	NsID          models.Identifier `json:"nsId"`
-	DocType       DocType           `json:"docType"`
-	DocID         models.Identifier `json:"docId"`
-	Updated       time.Time         `json:"updated"`
-	Deleted       *time.Time        `json:"deleted"`
-	UpdatedBy     string            `json:"updatedBy"`
-	SchemaVersion int               `json:"schemaVersion"`
-
-	// document db used for storage in cosmos, to be populated prior to save
-	StorageID   string      `json:"id"`
-	NamespaceID string      `json:"namespaceId"`
-	ETag        azcore.ETag `json:"-"` // populated during read
-
-}
 
 type KmsDocument interface {
 	stampUpdatedWithAuth(context.Context) time.Time
-	getDBKeys() (azcosmos.PartitionKey, string)
 	setETag(azcore.ETag)
+	GetNamespaceID() DocNsID
+	GetID() DocID
 }
 
-func (doc *BaseDoc) getDBKeys() (azcosmos.PartitionKey, string) {
-	if doc.NsID.IsNilOrEmpty() {
-		doc.NamespaceID = string(doc.NsType)
-	} else {
-		doc.NamespaceID = string(doc.NsType) + "/" + doc.NsID.String()
+type BaseDoc struct {
+	NamespaceID DocNsID `json:"namespaceId"`
+	ID          DocID   `json:"id"`
+
+	Updated       time.Time  `json:"updated"`
+	Deleted       *time.Time `json:"deleted"`
+	UpdatedBy     string     `json:"updatedBy"`
+	SchemaVersion int        `json:"schemaVersion"`
+
+	ETag azcore.ETag `json:"-"` // populated during read
+}
+
+func getDefaultQueryColumns() []string {
+	return []string{
+		"namespaceId",
+		"id",
+		"updated",
+		"deleted",
+		"updatedBy",
 	}
-	if doc.DocType == "" {
-		doc.StorageID = string(doc.DocID.String())
-	} else {
-		doc.StorageID = string(doc.DocType) + "/" + doc.DocID.String()
-	}
-	return azcosmos.NewPartitionKeyString(doc.NamespaceID), doc.StorageID
+}
+
+// GetID implements KmsDocument.
+func (doc *BaseDoc) GetID() DocID {
+	return doc.ID
+}
+
+// GetNamespaceID implements KmsDocument.
+func (doc *BaseDoc) GetNamespaceID() DocNsID {
+	return doc.NamespaceID
 }
 
 func (doc *BaseDoc) setETag(etag azcore.ETag) {
@@ -86,15 +68,17 @@ func (doc *BaseDoc) stampUpdatedWithAuth(c context.Context) time.Time {
 	return doc.Updated
 }
 
-func ReadByKeyFunc[D KmsDocument](c common.ServiceContext, getKeys func() (string, string), doc D) error {
+var _ KmsDocument = (*BaseDoc)(nil)
+
+func Read[D KmsDocument](c common.ServiceContext, nsID DocNsID, id DocID, target D) error {
 	cc := common.GetClientProvider(c).AzCosmosContainerClient()
-	partitionKey, id := getKeys()
-	resp, err := cc.ReadItem(c, azcosmos.NewPartitionKeyString(partitionKey), id, nil)
+	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
+	resp, err := cc.ReadItem(c, partitionKey, id.String(), nil)
 	if err != nil {
 		return common.WrapAzRsNotFoundErr(err, fmt.Sprintf("doc:%s/%s", partitionKey, id))
 	}
-	err = json.Unmarshal(resp.Value, doc)
-	doc.setETag(resp.ETag)
+	err = json.Unmarshal(resp.Value, target)
+	target.setETag(resp.ETag)
 	return err
 }
 
@@ -105,7 +89,7 @@ func Upsert[D KmsDocument](c common.ServiceContext, doc D) error {
 	if err != nil {
 		return err
 	}
-	partitionKey, _ := doc.getDBKeys()
+	partitionKey := azcosmos.NewPartitionKeyString(doc.GetNamespaceID().String())
 	resp, err := cc.UpsertItem(c, partitionKey, content, nil)
 	if err != nil {
 		return err
@@ -115,15 +99,12 @@ func Upsert[D KmsDocument](c common.ServiceContext, doc D) error {
 }
 
 func Delete[D KmsDocument](c common.ServiceContext, doc D) (err error) {
-	cc := common.GetClientProvider(c).AzCosmosContainerClient()
-	partitionKey, id := doc.getDBKeys()
-	_, err = cc.DeleteItem(c, partitionKey, id, nil)
-	return err
+	return DeleteByKey(c, doc.GetNamespaceID(), doc.GetID())
 }
 
-func DeleteByKeyFunc(c common.ServiceContext, getKeys func() (string, string)) (err error) {
+func DeleteByKey(c common.ServiceContext, nsID DocNsID, id DocID) (err error) {
 	cc := common.GetClientProvider(c).AzCosmosContainerClient()
-	partitionKey, id := getKeys()
-	_, err = cc.DeleteItem(c, azcosmos.NewPartitionKeyString(partitionKey), id, nil)
+	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
+	_, err = cc.DeleteItem(c, partitionKey, id.String(), nil)
 	return err
 }

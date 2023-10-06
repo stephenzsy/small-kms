@@ -1,87 +1,55 @@
 package profile
 
 import (
+	"strings"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-var (
-	idCaRoot     = models.IdentifierFromString("default")
-	idCaRootTest = models.IdentifierFromString("test")
-)
-
-var (
-	idIntCaServices            = models.IdentifierFromString("services")
-	idIntCaIntranet            = models.IdentifierFromString("intranet")
-	idIntCaMsEntraClientSecret = models.IdentifierFromString("ms-entra-client-secret")
-	idIntCaTest                = models.IdentifierFromString("test")
-)
-
-var rootCaProfiles = map[models.Identifier]models.Profile{
-	idCaRoot: {
-		Type:        models.ProfileTypeRootCA,
-		Identifier:  idCaRoot,
-		DisplayName: "Default Root CA",
-	},
-	idCaRootTest: {
-		Type:        models.ProfileTypeRootCA,
-		Identifier:  idCaRootTest,
-		DisplayName: "Test Root CA",
-	},
-}
-
-var intCaProfiles = map[models.Identifier]models.Profile{
-	idIntCaServices: {
-		Type:        models.ProfileTypeIntermediateCA,
-		Identifier:  idIntCaServices,
-		DisplayName: "Intermediate CA - Services",
-	},
-	idIntCaIntranet: {
-		Type:        models.ProfileTypeIntermediateCA,
-		Identifier:  idIntCaIntranet,
-		DisplayName: "Intermediate CA - Intranet Access",
-	},
-	idIntCaMsEntraClientSecret: {
-		Type:        models.ProfileTypeIntermediateCA,
-		Identifier:  idIntCaMsEntraClientSecret,
-		DisplayName: "Intermediate CA - Microsoft Entra Client Secert",
-	},
-	idIntCaTest: {
-		Type:        models.ProfileTypeIntermediateCA,
-		Identifier:  idIntCaTest,
-		DisplayName: "Intermediate CA - Test",
-	},
-}
-
-func getBuiltInCaProfiles() []models.ProfileRef {
-	return []models.ProfileRef{
-		rootCaProfiles[idCaRoot],
-		rootCaProfiles[idCaRootTest],
+func getBuiltInRootCaProfiles() []ProfileDoc {
+	return []ProfileDoc{
+		rootCaProfileDocs[idCaRoot],
+		rootCaProfileDocs[idCaRootTest],
 	}
 }
 
-func getBuiltInIntermediateCaProfiles() []models.ProfileRef {
-	return []models.ProfileRef{
-		intCaProfiles[idIntCaServices],
-		intCaProfiles[idIntCaIntranet],
-		intCaProfiles[idIntCaMsEntraClientSecret],
-		intCaProfiles[idIntCaTest],
+func getBuiltInIntermediateCaProfiles() []ProfileDoc {
+	return []ProfileDoc{
+		intCaProfileDocs[idIntCaServices],
+		intCaProfileDocs[idIntCaIntranet],
+		intCaProfileDocs[idIntCaMsEntraClientSecret],
+		intCaProfileDocs[idIntCaTest],
 	}
 }
 
 // ListProfiles implements ProfileService.
-func (*profileService) ListProfiles(c common.ServiceContext, profileType models.ProfileType) ([]models.ProfileRef, error) {
+func (*profileService) ListProfiles(c common.ServiceContext, profileType models.ProfileType) ([]*models.ProfileRef, error) {
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
 		return nil, err
 	}
 
 	switch profileType {
 	case models.ProfileTypeRootCA:
-		return getBuiltInCaProfiles(), nil
+		return utils.MapSlices(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRef { return doc.toModel() }), nil
 	case models.ProfileTypeIntermediateCA:
-		return getBuiltInIntermediateCaProfiles(), nil
+		return utils.MapSlices(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRef { return doc.toModel() }), nil
 	}
-	return make([]models.ProfileRef, 0), nil
-	//	panic("unimplemented")
+	itemsPager := kmsdoc.QueryItemsPager[*ProfileDoc](c, docNsIDProfileTenant, func(items []string) []string {
+		return append(items, "displayName")
+	}, func(tbl string) string {
+		sb := strings.Builder{}
+		sb.WriteString(tbl)
+		sb.WriteString(".profileType = @profileType")
+		return sb.String()
+	}, []azcosmos.QueryParameter{
+		{Name: "@profileType", Value: profileType},
+	})
+	return utils.PagerAllItems[*models.ProfileRef](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRef {
+		return doc.toModel()
+	}), c)
 }

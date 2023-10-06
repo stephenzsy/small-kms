@@ -83,7 +83,10 @@ components:
     Identifier:
       type: string
       description: Identifier of the resource
-      x-go-type: NameOrUUIDIdentifier
+      x-go-type-import:
+        name: kmscommon
+        path: github.com/stephenzsy/small-kms/backend/common
+      x-go-type: kmscommon.Identifier
     ProfileType:
       type: string
       enum:

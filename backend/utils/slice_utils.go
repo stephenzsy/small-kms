@@ -1,12 +1,14 @@
 package utils
 
-func MapSlices[T any, U any](from []U, f func(U) T) []T {
+type MapFunc[T any, U any] func(U) T
+
+func MapSlices[T any, U any](from []U, mapFunc MapFunc[T, U]) []T {
 	if from == nil {
 		return nil
 	}
 	to := make([]T, len(from))
 	for i, v := range from {
-		to[i] = f(v)
+		to[i] = mapFunc(v)
 	}
 	return to
 }

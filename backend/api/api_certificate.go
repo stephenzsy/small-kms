@@ -10,8 +10,8 @@ import (
 // PutCertificateTemplate implements models.ServerInterface.
 func (s *server) PutCertificateTemplate(c *gin.Context,
 	profileType models.ProfileType,
-	profileIdentifier models.NameOrUUIDIdentifier,
-	templateIdentifier models.NameOrUUIDIdentifier) {
+	profileIdentifier models.Identifier,
+	templateIdentifier models.Identifier) {
 	req := models.CertificateTemplateParameters{}
 	err := c.BindJSON(&req)
 	if err != nil {
