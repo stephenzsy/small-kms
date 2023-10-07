@@ -1,5 +1,6 @@
 import { WellknownId } from "../constants";
-import { CertificateUsage, PolicyType } from "../generated";
+import { PolicyType } from "../generated";
+import { CertificateUsage } from "../generated3";
 
 export const nsDisplayNames: Record<string, string> = {
   [WellknownId.nsRootCa]: "Root CA",
@@ -31,10 +32,8 @@ export const policyTypeNames: Record<PolicyType, string> = {
 };
 
 export const certUsageNames: Record<CertificateUsage, string> = {
-  [CertificateUsage.Usage_ServerAndClient]: "Server and client",
-  [CertificateUsage.Usage_ServerOnly]: "Server only",
-  [CertificateUsage.Usage_ClientOnly]: "Client only",
-  [CertificateUsage.Usage_RootCA]: "Root CA",
-  [CertificateUsage.Usage_IntCA]: "Intermediate CA",
-  [CertificateUsage.Usage_AADClientCredential]: "AAD Client Credential",
+  [CertificateUsage.CertUsageCA]: "Certificate Authority",
+  [CertificateUsage.CertUsageCARoot]: "Root Certificate Authority",
+  [CertificateUsage.CertUsageClientAuth]: "Client Authentication",
+  [CertificateUsage.CertUsageServerAuth]: "Server Authentication",
 };

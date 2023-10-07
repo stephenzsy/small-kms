@@ -13,8 +13,8 @@ import {
   AdminApi,
   CertificateTemplate,
   CertificateTemplateParameters,
-  ProfileType,
   CertificateUsage,
+  ProfileType,
 } from "../generated3";
 import {
   ValueState,
@@ -30,27 +30,22 @@ import { RefsTable } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
 
 export interface CertificateTemplateFormState {
-  displayName: ValueStateMayBeFixed<string>;
   issuerNamespaceId: ValueStateMayBeFixed<string>;
   issuerTemplateId: ValueState<string>;
   subjectCN: ValueState<string>;
   validityInMonths: number;
   setValidityInMonths: (value: number) => void;
   keyStorePath: ValueStateMayBeFixed<string>;
-  certUsage: CertificateUsage;
-  setCertUsage: (value: CertificateUsage) => void;
+  certUsages: ValueStateMayBeFixed<ReadonlySet<CertificateUsage>>;
 }
 
 export function useCertificateTemplateFormState(
   certTemplate: CertificateTemplate | undefined,
-  nsType: NamespaceTypeShortName | undefined,
+  nsType: ProfileType | undefined,
   nsId: string,
   templateId: string
 ): CertificateTemplateFormState {
   const [validityInMonths, setValidityInMonths] = React.useState<number>(0);
-  const [certUsage, setCertUsage] = React.useState<CertificateUsage>(
-    CertificateUsage.Usage_ServerAndClient
-  );
 
   const randKeyStoreSuffix = useMemo(() => {
     return uuidv4().substring(0, 8);
@@ -68,13 +63,12 @@ export function useCertificateTemplateFormState(
     return undefined;
   }, [nsType, nsId]);
 
-  const state = {
-    displayName: useFixedValueState(useValueState(""), nsId || undefined),
+  const state: CertificateTemplateFormState = {
     issuerNamespaceId: useFixedValueState(
       useValueState(""),
       fixedIssuerNamespaceId
     ),
-    issuerTemplateId: useValueState(uuidNil),
+    issuerTemplateId: useValueState("default"),
     subjectCN: useValueState(""),
     validityInMonths,
     setValidityInMonths,
@@ -82,21 +76,40 @@ export function useCertificateTemplateFormState(
       useValueState(`${nsType}-${randKeyStoreSuffix}`),
       nsType === NamespaceTypeShortName.NSType_Group ? "" : undefined
     ),
-    certUsage,
-    setCertUsage,
+    certUsages: useFixedValueState(
+      useValueState(
+        (): ReadonlySet<CertificateUsage> =>
+          new Set([
+            CertificateUsage.CertUsageServerAuth,
+            CertificateUsage.CertUsageClientAuth,
+          ])
+      ),
+      nsType == ProfileType.ProfileTypeRootCA
+        ? new Set([
+            CertificateUsage.CertUsageCA,
+            CertificateUsage.CertUsageCARoot,
+          ])
+        : nsType == ProfileType.ProfileTypeIntermediateCA
+        ? new Set([CertificateUsage.CertUsageCA])
+        : templateId == "default-ms-entra-client-creds"
+        ? new Set([
+            CertificateUsage.CertUsageServerAuth,
+            CertificateUsage.CertUsageClientAuth,
+          ])
+        : undefined
+    ),
   };
 
   React.useEffect(() => {
     if (certTemplate) {
-      state.displayName.onChange?.(certTemplate.ref.displayName ?? "");
-      state.issuerNamespaceId.onChange?.(certTemplate.issuer.namespaceId);
-      state.issuerTemplateId.onChange(
-        certTemplate.issuer.templateId ?? uuidNil
-      );
+      // state.issuerNamespaceId.onChange?.(certTemplate.issuer.namespaceId);
+      // state.issuerTemplateId.onChange(
+      //   certTemplate.issuer.templateId ?? uuidNil
+      // );
       state.subjectCN.onChange(certTemplate.subjectCommonName);
       setValidityInMonths(certTemplate.validityMonths ?? 0);
       state.keyStorePath.onChange?.(certTemplate.keyStorePath ?? "");
-      setCertUsage(certTemplate.usages[0]);
+      state.certUsages.onChange?.(new Set(certTemplate.usages));
     }
   }, [certTemplate]);
 
@@ -254,35 +267,30 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
   const {
     validityInMonths,
     setValidityInMonths,
-    certUsage,
-    setCertUsage,
+    certUsages,
     nsType,
     adminApi,
   } = props;
   const certUsageInputOnChange = useMemoizedFn<
     (e: React.ChangeEvent<HTMLInputElement>) => void
   >((e) => {
-    if (e.target.checked) {
-      setCertUsage(e.target.value as any);
-    }
+    certUsages.onChange?.((prev) => {
+      const s = new Set([...prev]);
+      if (e.target.checked) {
+        s.add(e.target.value as CertificateUsage);
+      } else {
+        s.delete(e.target.value as CertificateUsage);
+      }
+      return s;
+    });
   });
 
   const certUsageIsChecked = useMemoizedFn((usage: CertificateUsage) => {
-    return usage === certUsage;
+    return certUsages.value.has(usage);
   });
   return (
     <div className="space-y-6 ">
       <h2 className="text-2xl font-semibold">Certificate template</h2>
-      {props.displayName.onChange && (
-        <InputField
-          className="pt-6"
-          labelContent="Display name"
-          placeholder=""
-          required
-          value={props.displayName.value}
-          onChange={props.displayName.onChange}
-        />
-      )}
       {nsType !== NamespaceTypeShortName.NSType_RootCA && (
         <div className="pt-6 space-y-4">
           {props.issuerNamespaceId.onChange && (
@@ -303,7 +311,7 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
         </div>
       )}
       <InputField
-        labelContent="Subject common bame (CN)"
+        labelContent="Subject common name (CN)"
         placeholder="Sample Common Name"
         required
         value={props.subjectCN.value}
@@ -331,7 +339,7 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
       {nsType !== NamespaceTypeShortName.NSType_RootCA &&
         nsType !== NamespaceTypeShortName.NSType_IntCA && (
           <CertificateUsageSelector
-            inputType="radio"
+            inputType="checkbox"
             onChange={certUsageInputOnChange}
             isChecked={certUsageIsChecked}
           />
@@ -400,12 +408,7 @@ export default function CertificateTemplatePage() {
           templateId: state.issuerTemplateId.value,
         },
         subjectCommonName: state.subjectCN.value,
-        usages:
-          profileType === ProfileType.ProfileTypeRootCA
-            ? [CertificateUsage.CertUsageCA, CertificateUsage.CertUsageCARoot]
-            : profileType === ProfileType.ProfileTypeIntermediateCA
-            ? [CertificateUsage.CertUsageCA]
-            : [state.certUsage],
+        usages: [...state.certUsages.value],
         keyStorePath: state.keyStorePath.value,
         validityMonths: state.validityInMonths,
       });

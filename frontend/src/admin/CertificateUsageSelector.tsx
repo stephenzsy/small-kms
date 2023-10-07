@@ -1,11 +1,10 @@
-import { CertificateUsage } from "../generated";
+import { CertificateUsage } from "../generated3";
 import { certUsageNames } from "./displayConstants";
 import { useId } from "react";
 
 export const configurableCertificateUsages: CertificateUsage[] = [
-  CertificateUsage.Usage_ServerAndClient,
-  CertificateUsage.Usage_ServerOnly,
-  CertificateUsage.Usage_ClientOnly,
+  CertificateUsage.CertUsageServerAuth,
+  CertificateUsage.CertUsageClientAuth,
 ];
 
 export function CertificateUsageSelector({
