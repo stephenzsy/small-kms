@@ -4,23 +4,56 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
-// GetProfile implements models.ServerInterface.
-func (s *server) GetProfile(c *gin.Context, profileType models.ProfileType, identifier models.Identifier) {
-	res, err := s.profileService.GetProfile(s.ServiceContext(c), profileType, identifier)
-	wrapResponse(c, http.StatusOK, res, err)
+// ListProfiles implements models.ServerInterface.
+func (s *server) ListProfiles(c *gin.Context, profileType models.NamespaceKind) {
+	respData, respErr := (func() ([]*models.ProfileRefComposed, error) {
+
+		if err := auth.AuthorizeAdminOnly(c); err != nil {
+			return nil, err
+		}
+
+		return profile.ListProfiles(c, profileType)
+	})()
+	wrapResponse(c, http.StatusOK, respData, respErr)
 }
 
-// ListProfiles implements models.ServerInterface.
-func (s *server) ListProfiles(c *gin.Context, profileType models.ProfileType) {
-	res, err := s.profileService.ListProfiles(s.ServiceContext(c), profileType)
-	wrapResponse(c, http.StatusOK, res, err)
+// GetProfile implements models.ServerInterface.
+func (s *server) GetProfile(c *gin.Context, profileType models.NamespaceKind, identifier models.Identifier) {
+	respData, respErr := (func() (*models.ProfileComposed, error) {
+
+		if err := auth.AuthorizeAdminOnly(c); err != nil {
+			return nil, err
+		}
+
+		sc, err := ns.WithNamespaceContext(c, profileType, identifier)
+		if err != nil {
+			return nil, err
+		}
+		return profile.GetProfile(sc)
+	})()
+	wrapResponse(c, http.StatusOK, respData, respErr)
 }
 
 // SyncProfile implements models.ServerInterface.
-func (s *server) SyncProfile(c *gin.Context, profileType models.ProfileType, identifier models.Identifier) {
-	res, err := s.profileService.SyncProfile(s.ServiceContext(c), profileType, identifier)
-	wrapResponse(c, http.StatusOK, res, err)
+func (s *server) SyncProfile(c *gin.Context, profileType models.NamespaceKind, identifier models.Identifier) {
+	respData, respErr := (func() (*models.ProfileComposed, error) {
+
+		if err := auth.AuthorizeAdminOnly(c); err != nil {
+			return nil, err
+		}
+
+		sc, err := ns.WithNamespaceContext(c, profileType, identifier)
+		if err != nil {
+			return nil, err
+		}
+		return profile.SyncProfile(sc)
+	})()
+	wrapResponse(c, http.StatusOK, respData, respErr)
+
 }

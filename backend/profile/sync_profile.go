@@ -4,20 +4,20 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 // SyncProfile implements ProfileService.
-func (s *profileService) SyncProfile(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (*models.Profile, error) {
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return nil, err
-	}
+func SyncProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
+
+	nsID := ns.GetNamespaceContext(c).GetID()
+	identifier := nsID.Identifier()
 
 	if id, ok := identifier.TryGetUUID(); !ok || id.Version() != 4 {
-		return nil, fmt.Errorf("%w:invalid profile id", common.ErrStatusBadRequest)
+		return nil, fmt.Errorf("%w:invalid profile id for sync", common.ErrStatusBadRequest)
 	}
 
 	client, err := common.GetClientProvider(c).MsGraphDelegatedClient(c)
@@ -26,11 +26,12 @@ func (s *profileService) SyncProfile(c common.ServiceContext, profileType models
 	}
 	directoryObjId := identifier.String()
 	dirObject, err := client.DirectoryObjects().ByDirectoryObjectId(directoryObjId).Get(c, nil)
+	profileLocator := resolveProfileLocatorFromNamespaceID(nsID)
 	if err != nil {
 		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("directoryObject:%s", directoryObjId))
 		if errors.Is(err, common.ErrStatusNotFound) {
 			// delete existing profile if exists
-			err = kmsdoc.DeleteByKey(c, docNsIDProfileTenant, kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, identifier))
+			err = kmsdoc.DeleteByRef(c, profileLocator)
 		}
 		return nil, err
 	}

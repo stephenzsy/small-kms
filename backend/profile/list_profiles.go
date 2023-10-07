@@ -2,7 +2,6 @@ package profile
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -26,20 +25,16 @@ func getBuiltInIntermediateCaProfiles() []ProfileDoc {
 }
 
 // ListProfiles implements ProfileService.
-func (*profileService) ListProfiles(c common.ServiceContext, profileType models.ProfileType) ([]*models.ProfileRef, error) {
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return nil, err
-	}
-
+func ListProfiles(c common.ServiceContext, profileType models.NamespaceKind) ([]*models.ProfileRefComposed, error) {
 	switch profileType {
-	case models.ProfileTypeRootCA:
-		return utils.MapSlices(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRef { return doc.toModel() }), nil
-	case models.ProfileTypeIntermediateCA:
-		return utils.MapSlices(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRef { return doc.toModel() }), nil
+	case models.NamespaceKindCaRoot:
+		return utils.MapSlices(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModelRef() }), nil
+	case models.NamespaceKindCaInt:
+		return utils.MapSlices(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModel() }), nil
 	}
 	itemsPager := kmsdoc.QueryItemsPager[*ProfileDoc](c,
 		docNsIDProfileTenant,
-		kmsdoc.DocKindDirectoryObject,
+		models.ResourceKindMsGraph,
 		func(items []string) []string {
 			return append(items, "displayName")
 		}, func(tbl string) string {
@@ -47,11 +42,11 @@ func (*profileService) ListProfiles(c common.ServiceContext, profileType models.
 		}, []azcosmos.QueryParameter{
 			{Name: "@profileType", Value: profileType},
 		})
-	allItems, err := utils.PagerAllItems[*models.ProfileRef](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRef {
+	allItems, err := utils.PagerAllItems[*models.ProfileRefComposed](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRefComposed {
 		return doc.toModel()
 	}), c)
 	if allItems == nil {
-		allItems = make([]*models.ProfileRef, 0)
+		allItems = make([]*models.ProfileRefComposed, 0)
 	}
 	return allItems, err
 }

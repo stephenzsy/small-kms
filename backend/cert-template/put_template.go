@@ -8,15 +8,15 @@ import (
 )
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func (s *certTmplService) PutCertificateTemplate(c common.ServiceContext,
-	templateID models.Identifier,
-	req models.CertificateTemplateParameters) (*models.CertificateTemplate, error) {
+func PutCertificateTemplate(c common.ServiceContext,
+	req models.CertificateTemplateParameters) (*models.CertificateTemplateComposed, error) {
 
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
 		return nil, err
 	}
 
-	doc, err := validatePutRequest(c, templateID, req)
+	locator := GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c)
+	doc, err := validatePutRequest(c, locator, req)
 	if err != nil {
 		return nil, err
 	}

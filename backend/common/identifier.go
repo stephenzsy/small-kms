@@ -1,11 +1,17 @@
 package common
 
 import (
+	"bytes"
 	"encoding"
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrInvalidIdentifier = fmt.Errorf("invalid identifier")
 )
 
 type Identifier struct {
@@ -25,8 +31,12 @@ func (identifier Identifier) IsUUID() bool {
 	return identifier.isUuid
 }
 
-func (identifier Identifier) GetUUID() uuid.UUID {
+func (identifier Identifier) UUID() uuid.UUID {
 	return identifier.uuidVal
+}
+
+func (identifier Identifier) UUIDPtr() *uuid.UUID {
+	return &identifier.uuidVal
 }
 
 func (identifier Identifier) TryGetUUID() (uuid.UUID, bool) {
@@ -74,10 +84,10 @@ func identifierFromTextBytes(text []byte) (identifier Identifier) {
 }
 
 // construct identifier from string, MUST NOT use possible uuid string or as will lead into type consistency
-func StringIdentifier(text string) Identifier {
+func StringIdentifier[T ~string](text T) Identifier {
 	return Identifier{
 		isUuid: false,
-		strVal: text,
+		strVal: string(text),
 	}
 }
 
@@ -129,3 +139,46 @@ var identifierRegex = regexp.MustCompile("[A-Za-z0-9_-]+")
 func (identifier Identifier) IsValid() bool {
 	return identifier.isUuid || identifierRegex.MatchString(identifier.strVal)
 }
+
+// immutable externally
+type IdentifierWithKind[K ~string] struct {
+	kind       K
+	identifier Identifier
+}
+
+func (d IdentifierWithKind[K]) String() string {
+	return string(d.kind) + ":" + d.identifier.String()
+}
+
+func (d IdentifierWithKind[K]) Kind() K {
+	return d.kind
+}
+
+func (d IdentifierWithKind[K]) Identifier() Identifier {
+	return d.identifier
+}
+
+func (d IdentifierWithKind[K]) MarshalText() (text []byte, err error) {
+	kindBytes := []byte(d.kind)
+	identifierBytes, err := d.identifier.MarshalText()
+	return bytes.Join([][]byte{kindBytes, identifierBytes}, []byte(":")), err
+}
+
+func (d *IdentifierWithKind[K]) UnmarshalText(text []byte) (err error) {
+	l := bytes.SplitN(text, []byte(":"), 2)
+	if len(l) != 2 {
+		return fmt.Errorf("%w:%s", ErrInvalidIdentifier, text)
+	}
+	*d = IdentifierWithKind[K]{
+		kind: K(l[0]),
+	}
+	d.identifier.UnmarshalText(l[1])
+	return
+}
+
+func NewIdentifierWithKind[K ~string](kind K, identifier Identifier) IdentifierWithKind[K] {
+	return IdentifierWithKind[K]{kind: kind, identifier: identifier}
+}
+
+var _ encoding.TextMarshaler = IdentifierWithKind[string]{}
+var _ encoding.TextUnmarshaler = (*IdentifierWithKind[string])(nil)

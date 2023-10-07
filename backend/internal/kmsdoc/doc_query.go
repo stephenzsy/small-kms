@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -47,8 +48,8 @@ func DefaultQueryGetWhereClause(string) string {
 
 func QueryItemsPager[D KmsDocument](
 	c common.ServiceContext,
-	nsID DocNsID,
-	kind DocKind,
+	nsID docNsIDType,
+	kind models.ResourceKind,
 	getColumns func(baseColumns []string) []string,
 	getWhereClause func(tableName string) string,
 	queryParameters []azcosmos.QueryParameter) *DocPager[D] {

@@ -1,32 +1,29 @@
 package certtemplate
 
 import (
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
+func getCertificateTemplateDocLocator(nsID models.NamespaceID, templateID common.Identifier) models.ResourceLocator {
+	return common.NewLocator(nsID, common.NewIdentifierWithKind(models.ResourceKindCertTemplate, templateID))
+}
+
 func getCertificateTemplateDoc(c common.ServiceContext,
-	templateID models.Identifier) (doc *CertificateTemplateDoc, err error) {
-	pc := profile.GetProfileContext(c)
-	nsID := pc.GetResourceDocNsID()
+	locator models.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
 
 	doc = new(CertificateTemplateDoc)
-	err = kmsdoc.Read(c, nsID, kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID), doc)
+	err = kmsdoc.Read(c, locator, doc)
 	return
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func (s *certTmplService) GetCertificateTemplate(c common.ServiceContext,
-	templateID models.Identifier) (*models.CertificateTemplate, error) {
+func GetCertificateTemplate(c common.ServiceContext,
+) (*models.CertificateTemplateComposed, error) {
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return nil, err
-	}
-
-	doc, err := getCertificateTemplateDoc(c, templateID)
+	templateLocator := GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c)
+	doc, err := getCertificateTemplateDoc(c, templateLocator)
 	if err != nil {
 		return nil, err
 	}

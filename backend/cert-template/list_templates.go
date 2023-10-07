@@ -6,59 +6,56 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
-	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getTemplateReservedDefault(id common.Identifier) *models.CertificateTemplateRef {
-	return &models.CertificateTemplateRef{
-		Id: id,
+func getTemplateReservedDefault(nsID models.NamespaceID, id common.Identifier) *models.CertificateTemplateRefComposed {
+	return &models.CertificateTemplateRefComposed{
+		ResourceRef: models.ResourceRef{
+			Id:      id,
+			Locator: common.NewLocator(nsID, common.NewIdentifierWithKind(models.ResourceKindCertTemplate, id)),
+		},
 	}
 }
 
 // ListCertificateTemplates implements CertificateTemplateService.
-func (*certTmplService) ListCertificateTemplates(c common.ServiceContext) ([]*models.CertificateTemplateRef, error) {
+func ListCertificateTemplates(c common.ServiceContext) ([]*models.CertificateTemplateRefComposed, error) {
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
 		return nil, err
 	}
 
-	pc := profile.GetProfileContext(c)
-	nsID := pc.GetResourceDocNsID()
-
-	nsCap, err := ns.GetNamespaceCapabilities(nsID)
-	if err != nil {
-		return nil, err
-	}
+	nsc := ns.GetNamespaceContext(c)
+	nsID := nsc.GetID()
 
 	itemsPager := kmsdoc.QueryItemsPager[*CertificateTemplateDoc](c,
 		nsID,
-		kmsdoc.DocKindCertificateTemplate,
+		models.ResourceKindCertTemplate,
 		func(items []string) []string {
 			return append(items, "subjectCn")
 		},
 		kmsdoc.DefaultQueryGetWhereClause,
 		nil)
-	mappedPager := utils.NewMappedPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRef {
+	mappedPager := utils.NewMappedPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
 		return doc.toModelRef()
 	})
-	allItems, err := utils.PagerAllItems[*models.CertificateTemplateRef](mappedPager, c)
+	allItems, err := utils.PagerAllItems[*models.CertificateTemplateRefComposed](mappedPager, c)
 	if err != nil {
 		return nil, err
 	}
-	reservedMapping := nsCap.GetReservedCertificateTemplateNames(pc.GetRequestProfileType())
+	reservedMapping := ns.GetReservedCertificateTemplateNames(nsID)
 	if reservedMapping != nil {
-		reservedDefaults := make([]*models.CertificateTemplateRef, len(reservedMapping))
+		reservedDefaults := make([]*models.CertificateTemplateRefComposed, len(reservedMapping))
 		for i, v := range reservedMapping {
-			reservedDefaults[v] = getTemplateReservedDefault(i)
+			reservedDefaults[v] = getTemplateReservedDefault(nsID, i)
 		}
-		return utils.ReservedFirst(allItems, reservedDefaults, func(item *models.CertificateTemplateRef) int {
+		return utils.ReservedFirst(allItems, reservedDefaults, func(item *models.CertificateTemplateRefComposed) int {
 			if ind, inMap := reservedMapping[item.Id]; inMap {
 				return ind
 			}
 			return -1
 		}), nil
 	} else if allItems == nil {
-		return make([]*models.CertificateTemplateRef, 0), nil
+		return make([]*models.CertificateTemplateRefComposed, 0), nil
 	} else {
 		return allItems, nil
 	}

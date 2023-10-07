@@ -22,29 +22,29 @@ const (
 	MsGraphOdataTypeServicePrincipal MsGraphOdataType = "#microsoft.graph.servicePrincipal"
 )
 
-var supportedMsGraphOdataTypeToDocNsID = map[MsGraphOdataType]models.ProfileType{
-	MsGraphOdataTypeDevice:           models.ProfileTypeDevice,
-	MsGraphOdataTypeUser:             models.ProfileTypeUser,
-	MsGraphOdataTypeGroup:            models.ProfileTypeGroup,
-	MsGraphOdataTypeApplication:      models.ProfileTypeApplication,
-	MsGraphOdataTypeServicePrincipal: models.ProfileTypeServicePrincipal,
+var supportedMsGraphOdataTypeToDocNsID = map[MsGraphOdataType]models.NamespaceKind{
+	MsGraphOdataTypeDevice:           models.NamespaceKindDevice,
+	MsGraphOdataTypeUser:             models.NamespaceKindUser,
+	MsGraphOdataTypeGroup:            models.NamespaceKindGroup,
+	MsGraphOdataTypeApplication:      models.NamespaceKindApplication,
+	MsGraphOdataTypeServicePrincipal: models.NamespaceKindServicePrincipal,
 }
 
 type ProfileDoc struct {
 	kmsdoc.BaseDoc
 
-	ProfileType            models.ProfileType `json:"profileType"`
-	OdataType              MsGraphOdataType   `json:"@odata.type"`
-	DispalyName            *string            `json:"displayName,omitempty"`            // all
-	AppID                  *string            `json:"appId,omitempty"`                  // application, service-principal
-	DeviceID               *string            `json:"deviceId,omitempty"`               // device
-	AccountEnabled         *bool              `json:"accountEnabled,omitempty"`         // device
-	OperatingSystem        *string            `json:"operatingSystem,omitempty"`        // device
-	OperatingSystemVersion *string            `json:"operatingSystemVersion,omitempty"` // device
-	TrustType              *string            `json:"trustType,omitempty"`              // device
-	MDMAppID               *string            `json:"mdmAppId,omitempty"`               // device
-	IsCompliant            *bool              `json:"isCompliant,omitempty"`            // device
-	UserPrincipalName      *string            `json:"userPrincipalName,omitempty"`      // user
+	ProfileType            models.NamespaceKind `json:"profileType"`
+	OdataType              MsGraphOdataType     `json:"@odata.type"`
+	DispalyName            *string              `json:"displayName,omitempty"`            // all
+	AppID                  *string              `json:"appId,omitempty"`                  // application, service-principal
+	DeviceID               *string              `json:"deviceId,omitempty"`               // device
+	AccountEnabled         *bool                `json:"accountEnabled,omitempty"`         // device
+	OperatingSystem        *string              `json:"operatingSystem,omitempty"`        // device
+	OperatingSystemVersion *string              `json:"operatingSystemVersion,omitempty"` // device
+	TrustType              *string              `json:"trustType,omitempty"`              // device
+	MDMAppID               *string              `json:"mdmAppId,omitempty"`               // device
+	IsCompliant            *bool                `json:"isCompliant,omitempty"`            // device
+	UserPrincipalName      *string              `json:"userPrincipalName,omitempty"`      // user
 }
 
 func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
@@ -69,7 +69,7 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 	if dirObjUuid, isUuid := id.TryGetUUID(); !isUuid || dirObjUuid.Version() != 4 {
 		return fmt.Errorf("invalid graph object id from api: %s", id.String())
 	}
-	d.ID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, id)
+	d.ID = common.NewIdentifierWithKind(models.ResourceKindMsGraph, id)
 
 	switch dirObj := dirObj.(type) {
 	case gmodels.Deviceable:
@@ -96,43 +96,25 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 	return nil
 }
 
-func (d *ProfileDoc) toModel() (p *models.Profile) {
+func (d *ProfileDoc) populateRef(dst *models.ProfileRefComposed) bool {
+	if ok := d.BaseDoc.PopulateResourceRef(&dst.ResourceRef); !ok {
+		return ok
+	}
+	dst.Type = d.ProfileType
+	dst.DisplayName = utils.NilToDefault(d.DispalyName)
+	return true
+}
+
+func (d *ProfileDoc) toModelRef() *models.ProfileRefComposed {
 	if d == nil {
 		return nil
 	}
-	p = &models.Profile{
-		Id: d.ID.Identifier(),
-		Metadata: &models.ResourceMetadata{
-			Updated:   utils.ToPtr(d.Updated),
-			UpdatedBy: utils.ToPtr(d.UpdatedBy),
-			Deleted:   d.Deleted,
-		},
-		Type: d.ProfileType,
-	}
-	if d.DispalyName != nil {
-		p.DisplayName = *d.DispalyName
-	}
+	p := models.ProfileComposed{}
+	d.populateRef(&p)
 
-	return p
+	return &p
 }
 
-func GetProfileInternalIDs(profileType models.ProfileType, identifier common.Identifier) (nsID kmsdoc.DocNsID, docID kmsdoc.DocID, err error) {
-	switch profileType {
-	case models.ProfileTypeRootCA:
-		nsID = docNsIDProfileBuiltIn
-		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCaRoot, identifier)
-	case models.ProfileTypeIntermediateCA:
-		nsID = docNsIDProfileBuiltIn
-		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCaInt, identifier)
-	case models.ProfileTypeApplication,
-		models.ProfileTypeDevice,
-		models.ProfileTypeServicePrincipal,
-		models.ProfileTypeUser,
-		models.ProfileTypeGroup:
-		nsID = docNsIDProfileTenant
-		docID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindDirectoryObject, identifier)
-	default:
-		err = fmt.Errorf("%w:invalid profile type", common.ErrStatusBadRequest)
-	}
-	return
+func (d *ProfileDoc) toModel() *models.ProfileComposed {
+	return d.toModelRef()
 }

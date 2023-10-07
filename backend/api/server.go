@@ -10,18 +10,12 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/cert"
-	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
 type server struct {
 	common.CommonConfig
-	profileService      profile.ProfileService
-	certTemplateService certtemplate.CertificateTemplateService
-	certService         cert.CertificateService
 }
 
 func (s *server) ServiceContext(c ctx.Context) common.ServiceContext {
@@ -66,10 +60,7 @@ func NewServer() models.ServerInterface {
 		log.Panic().Err(err).Msg("failed to create common config")
 	}
 	s := server{
-		CommonConfig:        &commonConfig,
-		profileService:      profile.NewProfileService(),
-		certTemplateService: certtemplate.NewCertificateTemplateService(),
-		certService:         cert.NewCertificateService(),
+		CommonConfig: &commonConfig,
 	}
 	return &s
 }

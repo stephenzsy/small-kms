@@ -1,21 +1,24 @@
 package profile
 
 import (
-	"github.com/stephenzsy/small-kms/backend/auth"
+	"fmt"
+
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getProfileDoc(c common.ServiceContext, nsID kmsdoc.DocNsID, docID kmsdoc.DocID) (doc *ProfileDoc, err error) {
-	if nsID == docNsIDProfileBuiltIn {
-		if docID.Kind() == kmsdoc.DocKindCaRoot {
+func getProfileDoc(c common.ServiceContext, locator models.ResourceLocator) (doc *ProfileDoc, err error) {
+	if locator.GetNamespaceID() == docNsIDProfileBuiltIn {
+		docID := locator.GetID()
+		if docID.Kind() == models.ResourceKindCaRoot {
 			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
 				return &a, nil
 			}
 			return nil, common.ErrStatusNotFound
 		}
-		if docID.Kind() == kmsdoc.DocKindCaInt {
+		if docID.Kind() == models.ResourceKindCaInt {
 			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
 				return &a, nil
 			}
@@ -23,20 +26,44 @@ func getProfileDoc(c common.ServiceContext, nsID kmsdoc.DocNsID, docID kmsdoc.Do
 		}
 	}
 	doc = &ProfileDoc{}
-	err = kmsdoc.Read(c, docNsIDProfileTenant, docID, doc)
+	err = kmsdoc.Read(c, locator, doc)
 	return
 }
 
+func resolveTenantProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
+	return models.NewResourceLocator(docNsIDProfileTenant, common.NewIdentifierWithKind(models.ResourceKindMsGraph, nsID.Identifier()))
+}
+
+func resolveProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
+	switch nsID.Kind() {
+	case models.NamespaceKindCaRoot:
+		return models.NewResourceLocator(docNsIDProfileBuiltIn, common.NewIdentifierWithKind(models.ResourceKindCaRoot, nsID.Identifier()))
+	case models.NamespaceKindCaInt:
+		return models.NewResourceLocator(docNsIDProfileBuiltIn, common.NewIdentifierWithKind(models.ResourceKindCaInt, nsID.Identifier()))
+	default:
+		return resolveTenantProfileLocatorFromNamespaceID(nsID)
+	}
+}
+
 // GetProfile implements ProfileService.
-func (*profileService) GetProfile(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (*models.Profile, error) {
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return nil, err
+func GetProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
+	nsID := ns.GetNamespaceContext(c).GetID()
+	var profileNsID models.NamespaceID
+	var resourceKind models.ResourceKind
+	switch nsID.Kind() {
+	case models.NamespaceKindCaRoot:
+		resourceKind = models.ResourceKindCaRoot
+		profileNsID = docNsIDProfileBuiltIn
+	case models.NamespaceKindCaInt:
+		resourceKind = models.ResourceKindCaInt
+		profileNsID = docNsIDProfileBuiltIn
+	case models.NamespaceKindProfile:
+		return nil, fmt.Errorf("profile.GetProfile: invalid namespace kind: %s", nsID.Kind())
+	default:
+		resourceKind = models.ResourceKindMsGraph
+		profileNsID = docNsIDProfileTenant
 	}
-	nsID, docID, err := GetProfileInternalIDs(profileType, identifier)
-	if err != nil {
-		return nil, err
-	}
-	doc, err := getProfileDoc(c, nsID, docID)
+	doc, err := getProfileDoc(c, models.NewResourceLocator(profileNsID, common.NewIdentifierWithKind(resourceKind, nsID.Identifier())))
 	if err != nil {
 		return nil, err
 	}
