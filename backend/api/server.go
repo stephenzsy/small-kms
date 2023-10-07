@@ -10,6 +10,7 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/cert"
 	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -20,6 +21,7 @@ type server struct {
 	common.CommonConfig
 	profileService      profile.ProfileService
 	certTemplateService certtemplate.CertificateTemplateService
+	certService         cert.CertificateService
 }
 
 func (s *server) ServiceContext(c ctx.Context) common.ServiceContext {
@@ -67,6 +69,7 @@ func NewServer() models.ServerInterface {
 		CommonConfig:        &commonConfig,
 		profileService:      profile.NewProfileService(),
 		certTemplateService: certtemplate.NewCertificateTemplateService(),
+		certService:         cert.NewCertificateService(),
 	}
 	return &s
 }

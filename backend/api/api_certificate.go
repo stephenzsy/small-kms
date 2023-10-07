@@ -49,3 +49,22 @@ func (s *server) ListCertificateTemplates(c *gin.Context, profileType models.Pro
 	res, err := s.certTemplateService.ListCertificateTemplates(pc)
 	wrapResponse(c, http.StatusOK, res, err)
 }
+
+// IssueCertificateFromTemplate implements models.ServerInterface.
+func (s *server) IssueCertificateFromTemplate(c *gin.Context,
+	profileType models.ProfileType,
+	profileId common.Identifier,
+	templateId common.Identifier,
+	params models.IssueCertificateFromTemplateParams) {
+	ctx, err := s.profileService.WithProfileContext(s.ServiceContext(c), profileType, profileId)
+	if err != nil {
+		wrapResponse[*models.CertificateInfo](c, http.StatusBadRequest, nil, err)
+		return
+	}
+	ctx, err = s.certTemplateService.WithCertificateTemplateContext(ctx, templateId)
+	if err != nil {
+		wrapResponse[*models.CertificateInfo](c, http.StatusBadRequest, nil, err)
+	}
+	res, err := s.certService.CreateCertificateFromTemplate(ctx, params)
+	wrapResponse(c, http.StatusOK, res, err)
+}

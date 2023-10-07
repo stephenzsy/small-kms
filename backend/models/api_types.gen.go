@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	kmscommon "github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -21,6 +22,12 @@ const (
 	CertUsageCARoot     CertificateUsage = "caRoot"
 	CertUsageClientAuth CertificateUsage = "clientAuth"
 	CertUsageServerAuth CertificateUsage = "serverAuth"
+)
+
+// Defines values for IncludeCertificate.
+const (
+	IncludeJWK IncludeCertificate = "jwk"
+	IncludePEM IncludeCertificate = "pem"
 )
 
 // Defines values for JwkAlg.
@@ -65,6 +72,37 @@ const (
 	ProfileTypeUser             ProfileType = "user"
 )
 
+// CertificateId defines model for CertificateId.
+type CertificateId = openapi_types.UUID
+
+// CertificateInfo defines model for CertificateInfo.
+type CertificateInfo struct {
+	Id                  CertificateId     `json:"id"`
+	Issuer              CertificateIssuer `json:"issuer"`
+	IssuerCertificateId CertificateId     `json:"issuerCertificateId"`
+
+	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	Jwk      *JwkProperties   `json:"jwk,omitempty"`
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// NotAfter Expiration date of the certificate
+	NotAfter time.Time `json:"notAfter"`
+
+	// NotBefore Expiration date of the certificate
+	NotBefore time.Time `json:"notBefore"`
+	Pem       *string   `json:"pem,omitempty"`
+
+	// SubjectCommonName Common name
+	SubjectCommonName string `json:"subjectCommonName"`
+
+	// TemplateId Identifier of the resource
+	TemplateId Identifier `json:"templateId"`
+
+	// Thumbprint X.509 certificate SHA-1 thumbprint
+	CertificateThumbprint string             `json:"thumbprint"`
+	Usages                []CertificateUsage `json:"usages"`
+}
+
 // CertificateIssuer defines model for CertificateIssuer.
 type CertificateIssuer struct {
 	// ProfileId Identifier of the resource
@@ -79,6 +117,24 @@ type CertificateIssuer struct {
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
+}
+
+// CertificateRef defines model for CertificateRef.
+type CertificateRef struct {
+	Id       CertificateId    `json:"id"`
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// NotAfter Expiration date of the certificate
+	NotAfter time.Time `json:"notAfter"`
+
+	// SubjectCommonName Common name
+	SubjectCommonName string `json:"subjectCommonName"`
+
+	// TemplateId Identifier of the resource
+	TemplateId Identifier `json:"templateId"`
+
+	// Thumbprint X.509 certificate SHA-1 thumbprint
+	CertificateThumbprint string `json:"thumbprint"`
 }
 
 // CertificateTemplate defines model for CertificateTemplate.
@@ -129,6 +185,9 @@ type CertificateUsage string
 
 // Identifier Identifier of the resource
 type Identifier = kmscommon.Identifier
+
+// IncludeCertificate defines model for IncludeCertificate.
+type IncludeCertificate string
 
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
@@ -211,11 +270,22 @@ type ResourceMetadata struct {
 // CertificateTemplateIdentifierParameter Identifier of the resource
 type CertificateTemplateIdentifierParameter = Identifier
 
+// IncludeCertificateParameter defines model for IncludeCertificateParameter.
+type IncludeCertificateParameter = IncludeCertificate
+
 // ProfileIdentifierParameter Identifier of the resource
 type ProfileIdentifierParameter = Identifier
 
 // ProfileTypeParameter defines model for ProfileTypeParameter.
 type ProfileTypeParameter = ProfileType
+
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = CertificateInfo
+
+// IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
+type IssueCertificateFromTemplateParams struct {
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+}
 
 // PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
 type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters

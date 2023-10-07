@@ -191,24 +191,24 @@ func validatePutRequest(c common.ServiceContext,
 		return nil, fmt.Errorf("%w:invalid template id", common.ErrStatusBadRequest)
 	}
 
-	pcs := profile.GetProfileContextService(c)
-	nsID := pcs.GetResourceDocNsID()
+	pc := profile.GetProfileContext(c)
+	nsID := pc.GetResourceDocNsID()
 
 	caps, err := ns.GetNamespaceCapabilities(nsID)
 	if err != nil {
 		return nil, fmt.Errorf("%w:bad certificate requester", common.ErrStatusBadRequest)
 	}
-	certCaps := caps.GetAllowedCertificateIssuersForTemplate(templateID, pcs.GetRequestProfileType())
+	certCaps := caps.GetAllowedCertificateIssuersForTemplate(templateID, pc.GetRequestProfileType())
 	doc, err := applyCertificateCapabilities(certCaps, templateID, req)
 	if err != nil {
 		return doc, err
 	}
 
-	profile, err := pcs.GetSelfProfileDoc(c)
+	profile, err := pc.GetSelfProfileDoc(c)
 	if err != nil {
 		return nil, err
 	}
-	if profile.ProfileType != pcs.GetRequestProfileType() {
+	if profile.ProfileType != pc.GetRequestProfileType() {
 		return nil, fmt.Errorf("%w:invalid profile: type mismatch", common.ErrStatusBadRequest)
 	}
 

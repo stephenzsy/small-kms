@@ -22,6 +22,10 @@ paths:
       parameters:
         - $ref: "#/components/parameters/IncludeCertificateParameter"
           x-go-type-name: IncludeCertificateParameter
+        - in: query
+          name: "reuseKey"
+          schema:
+            type: boolean
       tags:
         - admin
       summary: Create certificate

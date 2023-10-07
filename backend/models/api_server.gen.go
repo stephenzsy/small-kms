@@ -31,6 +31,9 @@ type ServerInterface interface {
 	// Put certificate template
 	// (PUT /v3/{profileType}/{profileId}/certificate-template/{templateId})
 	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
+	// Create certificate
+	// (POST /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificate)
+	IssueCertificateFromTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -261,6 +264,61 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
 	siw.Handler.PutCertificateTemplate(c, profileType, profileId, templateId)
 }
 
+// IssueCertificateFromTemplate operation middleware
+func (siw *ServerInterfaceWrapper) IssueCertificateFromTemplate(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "profileType" -------------
+	var profileType ProfileTypeParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId CertificateTemplateIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params IssueCertificateFromTemplateParams
+
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.IssueCertificateFromTemplate(c, profileType, profileId, templateId, params)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -294,4 +352,5 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template", wrapper.ListCertificateTemplates)
 	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
+	router.POST(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificate", wrapper.IssueCertificateFromTemplate)
 }

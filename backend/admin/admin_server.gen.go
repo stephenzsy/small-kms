@@ -137,6 +137,14 @@ func (siw *ServerInterfaceWrapper) IssueCertificateByTemplateV2(c *gin.Context) 
 		return
 	}
 
+	// ------------- Optional query parameter "reuseKey" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "reuseKey", c.Request.URL.Query(), &params.ReuseKey)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter reuseKey: %w", err), http.StatusBadRequest)
+		return
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {

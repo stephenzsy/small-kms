@@ -6,14 +6,14 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
-type ProfileContextService interface {
+type ProfileContext interface {
 	GetResourceDocNsID() kmsdoc.DocNsID
 	GetSelfProfileDoc(c common.ServiceContext) (*ProfileDoc, error)
 	GetProfileDoc(common.ServiceContext, kmsdoc.DocNsID, kmsdoc.DocID) (*ProfileDoc, error)
 	GetRequestProfileType() models.ProfileType
 }
 
-type profileContextService struct {
+type profileContext struct {
 	service            *profileService
 	profileNsID        kmsdoc.DocNsID
 	profileID          kmsdoc.DocID
@@ -21,12 +21,12 @@ type profileContextService struct {
 }
 
 // GetRequestProfileType implements ProfileContextService.
-func (p *profileContextService) GetRequestProfileType() models.ProfileType {
+func (p *profileContext) GetRequestProfileType() models.ProfileType {
 	return p.requestProfileType
 }
 
 // GetProfileDoc implements ProfileContextService.
-func (p *profileContextService) GetProfileDoc(c common.ServiceContext, nsID kmsdoc.DocNsID, docID kmsdoc.DocID) (*ProfileDoc, error) {
+func (p *profileContext) GetProfileDoc(c common.ServiceContext, nsID kmsdoc.DocNsID, docID kmsdoc.DocID) (*ProfileDoc, error) {
 	return getProfileDoc(c, nsID, docID)
 }
 
@@ -41,20 +41,20 @@ func GetResourceNsIDForProfile(profileID kmsdoc.DocID) kmsdoc.DocNsID {
 }
 
 // GetResourceDocNsID implements ProfileContextService.
-func (p *profileContextService) GetResourceDocNsID() kmsdoc.DocNsID {
+func (p *profileContext) GetResourceDocNsID() kmsdoc.DocNsID {
 	return GetResourceNsIDForProfile(p.profileID)
 }
 
 // GetSelfProfileDoc implements ProfileContextService.
-func (p *profileContextService) GetSelfProfileDoc(c common.ServiceContext) (*ProfileDoc, error) {
+func (p *profileContext) GetSelfProfileDoc(c common.ServiceContext) (*ProfileDoc, error) {
 	return getProfileDoc(c, p.profileNsID, p.profileID)
 }
 
-func (s *profileService) newProfileContext(profileType models.ProfileType, identifier common.Identifier) (c profileContextService, err error) {
+func (s *profileService) newProfileContext(profileType models.ProfileType, identifier common.Identifier) (c profileContext, err error) {
 	c.service = s
 	c.profileNsID, c.profileID, err = GetProfileInternalIDs(profileType, identifier)
 	c.requestProfileType = profileType
 	return
 }
 
-var _ ProfileContextService = (*profileContextService)(nil)
+var _ ProfileContext = (*profileContext)(nil)

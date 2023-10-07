@@ -103,6 +103,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+  /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificate:
+    parameters:
+      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/ProfileIdentifierParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+          x-go-type-name: IncludeCertificateParameter
+      tags:
+        - admin
+      summary: Create certificate
+      operationId: IssueCertificateFromTemplate
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
 components:
   securitySchemes:
     BearerAuth:
@@ -367,6 +383,71 @@ components:
       allOf:
         - $ref: "#/components/schemas/CertificateTemplateRef"
         - $ref: "#/components/schemas/CertificateTemplateParameters"
+    IncludeCertificate:
+      type: string
+      enum:
+        - jwk
+        - pem
+      x-enum-varnames:
+        - IncludeJWK
+        - IncludePEM
+    CertificateId:
+      type: string
+      format: uuid
+    CertificateRef:
+      type: object
+      properties:
+        id:
+          x-go-name: ID
+          $ref: "#/components/schemas/CertificateId"
+        metadata:
+          $ref: "#/components/schemas/ResourceMetadata"
+        thumbprint:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+          x-go-name: CertificateThumbprint
+        subjectCommonName:
+          description: Common name
+          type: string
+        notAfter:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        templateId:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - id
+        - metadata
+        - thumbprint
+        - subjectCommonName
+        - notAfter
+        - templateId
+    CertificateInfo:
+      allOf:
+        - $ref: "#/components/schemas/CertificateRef"
+        - type: object
+          properties:
+            notBefore:
+              description: Expiration date of the certificate
+              type: string
+              format: date-time
+            usages:
+              type: array
+              items:
+                $ref: "#/components/schemas/CertificateUsage"
+            issuer:
+              $ref: "#/components/schemas/CertificateIssuer"
+            jwk:
+              $ref: "#/components/schemas/JwkProperties"
+            pem:
+              type: string
+            issuerCertificateId:
+              $ref: "#/components/schemas/CertificateId"
+          required:
+            - notBefore
+            - usages
+            - issuer
+            - issuerCertificateId
   parameters:
     ProfileTypeParameter:
       in: path
@@ -386,3 +467,15 @@ components:
       schema:
         $ref: "#/components/schemas/Identifier"
       required: true
+    IncludeCertificateParameter:
+      in: query
+      name: "includeCertificate"
+      schema:
+        $ref: "#/components/schemas/IncludeCertificate"
+  responses:
+    CertificateResponse:
+      description: CertificateResponse
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificateInfo"

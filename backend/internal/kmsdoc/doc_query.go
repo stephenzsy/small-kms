@@ -29,7 +29,7 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 	if t.Items == nil {
 		return nil, nil
 	}
-	items = make([]D, 0, len(t.Items))
+	items = make([]D, len(t.Items))
 	for i, itemBytes := range t.Items {
 		if err = json.Unmarshal(itemBytes, &items[i]); err != nil {
 			err = fmt.Errorf("item failed to serialize: %w", err)

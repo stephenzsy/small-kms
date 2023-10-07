@@ -8,6 +8,16 @@ import (
 	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
+func getCertificateTemplateDoc(c common.ServiceContext,
+	templateID models.Identifier) (doc *CertificateTemplateDoc, err error) {
+	pc := profile.GetProfileContext(c)
+	nsID := pc.GetResourceDocNsID()
+
+	doc = new(CertificateTemplateDoc)
+	err = kmsdoc.Read(c, nsID, kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID), doc)
+	return
+}
+
 // PutCertificateTemplate implements CertificateTemplateService.
 func (s *certTmplService) GetCertificateTemplate(c common.ServiceContext,
 	templateID models.Identifier) (*models.CertificateTemplate, error) {
@@ -16,11 +26,8 @@ func (s *certTmplService) GetCertificateTemplate(c common.ServiceContext,
 		return nil, err
 	}
 
-	pcs := profile.GetProfileContextService(c)
-	nsID := pcs.GetResourceDocNsID()
-
-	doc := CertificateTemplateDoc{}
-	if err := kmsdoc.Read(c, nsID, kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID), &doc); err != nil {
+	doc, err := getCertificateTemplateDoc(c, templateID)
+	if err != nil {
 		return nil, err
 	}
 

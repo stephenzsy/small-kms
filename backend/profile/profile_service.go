@@ -26,12 +26,12 @@ type profileContextKeyType string
 const profileContextKey profileContextKeyType = "profileContext"
 
 func (s *profileService) WithProfileContext(c common.ServiceContext, profileType models.ProfileType, identifier models.Identifier) (common.ServiceContext, error) {
-	pcs, err := s.newProfileContext(profileType, identifier)
-	return context.WithValue(c, profileContextKey, &pcs), err
+	pc, err := s.newProfileContext(profileType, identifier)
+	return context.WithValue(c, profileContextKey, &pc), err
 }
 
-func GetProfileContextService(c common.ServiceContext) ProfileContextService {
-	if pc, ok := c.Value(profileContextKey).(ProfileContextService); ok {
+func GetProfileContext(c common.ServiceContext) ProfileContext {
+	if pc, ok := c.Value(profileContextKey).(ProfileContext); ok {
 		return pc
 	}
 	return nil

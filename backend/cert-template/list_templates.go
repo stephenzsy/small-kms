@@ -22,8 +22,8 @@ func (*certTmplService) ListCertificateTemplates(c common.ServiceContext) ([]*mo
 		return nil, err
 	}
 
-	pcs := profile.GetProfileContextService(c)
-	nsID := pcs.GetResourceDocNsID()
+	pc := profile.GetProfileContext(c)
+	nsID := pc.GetResourceDocNsID()
 
 	nsCap, err := ns.GetNamespaceCapabilities(nsID)
 	if err != nil {
@@ -45,7 +45,7 @@ func (*certTmplService) ListCertificateTemplates(c common.ServiceContext) ([]*mo
 	if err != nil {
 		return nil, err
 	}
-	reservedMapping := nsCap.GetReservedCertificateTemplateNames(pcs.GetRequestProfileType())
+	reservedMapping := nsCap.GetReservedCertificateTemplateNames(pc.GetRequestProfileType())
 	if reservedMapping != nil {
 		reservedDefaults := make([]*models.CertificateTemplateRef, len(reservedMapping))
 		for i, v := range reservedMapping {
