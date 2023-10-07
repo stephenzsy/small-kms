@@ -27,6 +27,7 @@ var _ KmsDocumentRef = (*docLocatorType)(nil)
 
 type KmsDocument interface {
 	KmsDocumentRef
+	GetLocator() models.ResourceLocator
 	stampUpdatedWithAuth(context.Context) TimeStorable
 	setETag(azcore.ETag)
 }
@@ -65,6 +66,10 @@ func (doc *BaseDoc) GetID() docIDType {
 // GetNamespaceID implements KmsDocument.
 func (doc *BaseDoc) GetNamespaceID() docNsIDType {
 	return doc.NamespaceID
+}
+
+func (doc *BaseDoc) GetLocator() models.ResourceLocator {
+	return models.NewResourceLocator(doc.NamespaceID, doc.ID)
 }
 
 func (doc *BaseDoc) setETag(etag azcore.ETag) {
