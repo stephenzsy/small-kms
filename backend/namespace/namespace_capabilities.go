@@ -17,7 +17,7 @@ var (
 type NamespaceID = kmsdoc.DocNsID
 
 type NamespaceCertificateTemplateCapabilities struct {
-	AllowedReservedNames       utils.Set[common.Identifier]
+	AllowedReservedNames       map[common.Identifier]int
 	AllowedIssuerNamespaces    utils.Set[NamespaceID]
 	AllowedUsages              utils.Set[models.CertificateUsage]
 	AllowVariables             bool
@@ -34,14 +34,38 @@ type NamespaceCertificateTemplateCapabilities struct {
 
 type NamespaceCapabilities interface {
 	GetAllowedCertificateIssuersForTemplate(templateID common.Identifier, expectedProfileType models.ProfileType) NamespaceCertificateTemplateCapabilities
+	GetReservedCertificateTemplateNames(expectedProfileType models.ProfileType) map[common.Identifier]int
 }
 
 type namespaceCapabilities struct {
 	nsID NamespaceID // must be validated
 }
 
+func (nc *namespaceCapabilities) GetReservedCertificateTemplateNames(expectedProfileType models.ProfileType) (r map[common.Identifier]int) {
+	switch nc.nsID.Kind() {
+	case kmsdoc.DocNsTypeCaRoot,
+		kmsdoc.DocNsTypeCaInt:
+		return map[common.Identifier]int{
+			common.StringIdentifier(string(CertTemplateNameDefault)): 0,
+		}
+	case kmsdoc.DocNSTypeDirectory:
+		switch expectedProfileType {
+		case models.ProfileTypeGroup:
+			return map[common.Identifier]int{
+				common.StringIdentifier(string(CertTemplateNameDefaultMsEntraClientCreds)): 0,
+				common.StringIdentifier(string(CertTemplateNameDefaultIntranetAccess)):     1,
+			}
+		case models.ProfileTypeServicePrincipal:
+			return map[common.Identifier]int{
+				common.StringIdentifier(string(CertTemplateNameDefault)):                   0,
+				common.StringIdentifier(string(CertTemplateNameDefaultMsEntraClientCreds)): 1,
+			}
+		}
+	}
+	return
+}
+
 func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templateID common.Identifier, expectedProfileType models.ProfileType) (cap NamespaceCertificateTemplateCapabilities) {
-	allowedNames := utils.NewSet[common.Identifier]()
 	allowedNs := utils.NewSet[NamespaceID]()
 	allowedUsages := utils.NewSet[models.CertificateUsage]()
 	cap.DefaultMaxValidityInMonths = 12
@@ -63,7 +87,6 @@ func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templat
 		}
 		cap.HasKeyStore = true
 		cap.KeyExportable = false
-		allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefault)))
 	case kmsdoc.DocNsTypeCaInt:
 		if nc.nsID.Identifier().String() == string(IntCaNameTest) {
 			allowedNs.Add(kmsdoc.NewDocIdentifier(kmsdoc.DocNsTypeCaRoot, common.StringIdentifier(string(RootCANameTest))))
@@ -77,7 +100,6 @@ func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templat
 		cap.HasKeyStore = true
 		cap.KeyExportable = false
 		allowedUsages.Add(models.CertUsageCA)
-		allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefault)))
 	case kmsdoc.DocNSTypeDirectory:
 		switch expectedProfileType {
 		case models.ProfileTypeGroup:
@@ -100,8 +122,6 @@ func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templat
 			}
 			cap.AllowVariables = true
 			cap.DelegateForMembers = true
-			allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefaultIntranetAccess)))
-			allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefaultMsEntraClientCreds)))
 		case models.ProfileTypeServicePrincipal:
 			if strings.HasPrefix(templateID.String(), "test") {
 				allowedNs.Add(kmsdoc.NewDocIdentifier(kmsdoc.DocNsTypeCaInt, common.StringIdentifier(string(IntCaNameTest))))
@@ -118,11 +138,9 @@ func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templat
 			allowedUsages.Add(models.CertUsageServerAuth)
 			cap.HasKeyStore = true
 			cap.KeyExportable = true
-			allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefault)))
-			allowedNames.Add(common.StringIdentifier(string(CertTemplateNameDefaultMsEntraClientCreds)))
 		}
 	}
-	cap.AllowedReservedNames = allowedNames
+	cap.AllowedReservedNames = nc.GetReservedCertificateTemplateNames(expectedProfileType)
 	cap.AllowedIssuerNamespaces = allowedNs
 	cap.AllowedUsages = allowedUsages
 	return
@@ -162,5 +180,7 @@ func GetNamespaceCapabilities(nsID NamespaceID) (NamespaceCapabilities, error) {
 	if err := validateNamespaceID(nsID); err != nil {
 		return nil, err
 	}
-	return &namespaceCapabilities{}, nil
+	return &namespaceCapabilities{
+		nsID: nsID,
+	}, nil
 }

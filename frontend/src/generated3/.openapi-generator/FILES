@@ -5,6 +5,7 @@ models/CertificateIssuer.ts
 models/CertificateLifetimeTrigger.ts
 models/CertificateTemplate.ts
 models/CertificateTemplateParameters.ts
+models/CertificateTemplateRef.ts
 models/CertificateUsage.ts
 models/JwkAlg.ts
 models/JwkKeyOperation.ts

@@ -22,6 +22,9 @@ type ServerInterface interface {
 	// Sync namespace info with ms graph
 	// (POST /v3/{profileType}/{profileId})
 	SyncProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
+	// List certificate templates
+	// (GET /v3/{profileType}/{profileId}/certificate-template)
+	ListCertificateTemplates(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
 	// Put certificate template
 	// (PUT /v3/{profileType}/{profileId}/certificate-template/{templateId})
 	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
@@ -132,6 +135,41 @@ func (siw *ServerInterfaceWrapper) SyncProfile(c *gin.Context) {
 	siw.Handler.SyncProfile(c, profileType, profileId)
 }
 
+// ListCertificateTemplates operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificateTemplates(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "profileType" -------------
+	var profileType ProfileTypeParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCertificateTemplates(c, profileType, profileId)
+}
+
 // PutCertificateTemplate operation middleware
 func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
 
@@ -206,5 +244,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v3/:profileType", wrapper.ListProfiles)
 	router.GET(options.BaseURL+"/v3/:profileType/:profileId", wrapper.GetProfile)
 	router.POST(options.BaseURL+"/v3/:profileType/:profileId", wrapper.SyncProfile)
+	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template", wrapper.ListCertificateTemplates)
 	router.PUT(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 }

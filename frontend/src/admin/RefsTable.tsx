@@ -96,12 +96,22 @@ export function RefsTable(props: {
   );
 }
 
-export function RefsTable3(props: {
-  items: ProfileRef[] | undefined;
-  columns?: RefTableColumn[];
+type RefTableItem = {
+  id: string;
+};
+
+export interface RefTableColumn3<T extends RefTableItem> {
+  columnKey: string;
+  header: string;
+  render: (item: T) => React.ReactNode;
+}
+
+export function RefsTable3<T extends RefTableItem>(props: {
+  items: T[] | undefined;
+  columns?: RefTableColumn3<T>[];
   title: string;
   tableActions?: React.ReactNode;
-  refActions?: (ref: ProfileRef) => React.ReactNode;
+  refActions?: (ref: T) => React.ReactNode;
 }) {
   const { title, tableActions, items, refActions, columns = [] } = props;
 
@@ -129,7 +139,7 @@ export function RefsTable3(props: {
                       </th>
                       {columns.map((c) => (
                         <th
-                          key={c.metadataKey}
+                          key={c.columnKey}
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
@@ -153,11 +163,9 @@ export function RefsTable3(props: {
                         {columns.map((c) => (
                           <td
                             className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
-                            key={c.metadataKey}
+                            key={c.columnKey}
                           >
-                            {c.render
-                              ? c.render(r.displayName)
-                              : r.displayName?.toString() ?? ""}
+                            {c.render(r)}
                           </td>
                         ))}
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0 space-x-4">

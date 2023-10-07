@@ -16,9 +16,6 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
-	// List certificate templates
-	// (GET /v2/{namespaceId}/certificate-templates)
-	ListCertificateTemplatesV2(c *gin.Context, namespaceId NamespaceIdParameter, params ListCertificateTemplatesV2Params)
 	// Get certificate template
 	// (GET /v2/{namespaceId}/certificate-templates/{templateId})
 	GetCertificateTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
@@ -73,43 +70,6 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
-}
-
-// ListCertificateTemplatesV2 operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificateTemplatesV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListCertificateTemplatesV2Params
-
-	// ------------- Optional query parameter "includeDefaultForType" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeDefaultForType", c.Request.URL.Query(), &params.IncludeDefaultForType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeDefaultForType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListCertificateTemplatesV2(c, namespaceId, params)
 }
 
 // GetCertificateTemplateV2 operation middleware
@@ -516,7 +476,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
-	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates", wrapper.ListCertificateTemplatesV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.GetCertificateTemplateV2)
 	router.PUT(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId", wrapper.PutCertificateTemplateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates", wrapper.ListCertificatesByTemplateV2)

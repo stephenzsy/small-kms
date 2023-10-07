@@ -1,13 +1,19 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
-import { AdminApi, ProfileType } from "../generated3";
+import { AdminApi, ProfileRef, ProfileType } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import {
   RefTableColumn,
+  RefTableColumn3,
   RefsTable,
   RefsTable3,
-  displayNameColumn,
 } from "./RefsTable";
+
+const displayNameColumn: RefTableColumn3<ProfileRef> = {
+  columnKey: "displayName",
+  header: "Display Name",
+  render: (item) => item.displayName,
+};
 
 export default function AdminPage() {
   const adminApi = useAuthedClient(AdminApi);
@@ -44,14 +50,24 @@ export default function AdminPage() {
 
   return (
     <>
-      {[
-        ProfileType.ProfileTypeRootCA,
-        ProfileType.ProfileTypeIntermediateCA,
-      ].map((t) => (
+      {(
+        [
+          [ProfileType.ProfileTypeRootCA, "Root Certificate Authorities"],
+          [
+            ProfileType.ProfileTypeIntermediateCA,
+            "Intermediate Certificate Authorities",
+          ],
+          [ProfileType.ProfileTypeServicePrincipal, "Service Principals"],
+          [ProfileType.ProfileTypeGroup, "Groups"],
+          [ProfileType.ProfileTypeDevice, "Devices"],
+          [ProfileType.ProfileTypeUser, "Users"],
+          [ProfileType.ProfileTypeApplication, "Applications"],
+        ] as Array<[ProfileType, string]>
+      ).map(([t, title]: [ProfileType, string]) => (
         <RefsTable3
           key={t}
           items={allNs?.[t]}
-          title="Root Certificate Authorities"
+          title={title}
           refActions={(ref) => (
             <Link
               to={`/admin/${t}/${ref.id}`}
@@ -60,74 +76,9 @@ export default function AdminPage() {
               View
             </Link>
           )}
-          columns={[displayNameColumn] as RefTableColumn[]}
+          columns={[displayNameColumn]}
         />
       ))}
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeServicePrincipal]}
-        title="Service Principals"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeGroup]}
-        title="Groups"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeDevice]}
-        title="Devices"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeUser]}
-        title="Users"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
-      <RefsTable3
-        items={allNs?.[ProfileType.ProfileTypeApplication]}
-        title="Applications"
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-        columns={[displayNameColumn] as RefTableColumn[]}
-      />
     </>
   );
 }

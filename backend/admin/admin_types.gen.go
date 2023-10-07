@@ -289,11 +289,6 @@ type ErrorResponse map[string]interface{}
 // RefListResponse defines model for RefListResponse.
 type RefListResponse = []RefWithMetadata
 
-// ListCertificateTemplatesV2Params defines parameters for ListCertificateTemplatesV2.
-type ListCertificateTemplatesV2Params struct {
-	IncludeDefaultForType *NamespaceTypeShortName `form:"includeDefaultForType,omitempty" json:"includeDefaultForType,omitempty"`
-}
-
 // IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
 type IssueCertificateByTemplateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`

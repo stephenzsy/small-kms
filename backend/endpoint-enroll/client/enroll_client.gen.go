@@ -45,18 +45,6 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// Defines values for NamespaceTypeShortName.
-const (
-	NSTypeAny              NamespaceTypeShortName = "any"
-	NSTypeApplication      NamespaceTypeShortName = "application"
-	NSTypeDevice           NamespaceTypeShortName = "device"
-	NSTypeGroup            NamespaceTypeShortName = "group"
-	NSTypeIntCA            NamespaceTypeShortName = "intermediate-ca"
-	NSTypeRootCA           NamespaceTypeShortName = "root-ca"
-	NSTypeServicePrincipal NamespaceTypeShortName = "service-principal"
-	NSTypeUser             NamespaceTypeShortName = "user"
-)
-
 // Defines values for RefType.
 const (
 	RefTypeCertificate              RefType = "certificate"
@@ -159,9 +147,6 @@ type CertificateUsage string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// NamespaceTypeShortName defines model for NamespaceTypeShortName.
-type NamespaceTypeShortName string
 
 // Ref defines model for Ref.
 type Ref struct {

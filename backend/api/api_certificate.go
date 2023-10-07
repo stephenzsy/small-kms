@@ -26,3 +26,14 @@ func (s *server) PutCertificateTemplate(c *gin.Context,
 	res, err := s.certTemplateService.PutCertificateTemplate(pc, templateIdentifier, req)
 	wrapResponse(c, http.StatusOK, res, err)
 }
+
+// ListProfiles implements models.ServerInterface.
+func (s *server) ListCertificateTemplates(c *gin.Context, profileType models.ProfileType, profileId models.Identifier) {
+	pc, err := s.profileService.WithProfileContext(s.ServiceContext(c), profileType, profileId)
+	if err != nil {
+		wrapResponse[*models.CertificateTemplate](c, http.StatusBadRequest, nil, err)
+		return
+	}
+	res, err := s.certTemplateService.ListCertificateTemplates(pc)
+	wrapResponse(c, http.StatusOK, res, err)
+}

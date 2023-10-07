@@ -3,7 +3,6 @@ package certtemplate
 import (
 	"crypto/md5"
 	"fmt"
-	"strings"
 
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -15,8 +14,10 @@ import (
 
 func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilities, templateID models.Identifier,
 	req models.CertificateTemplateParameters) (*CertificateTemplateDoc, error) {
-	if templateID.HasReservedIDOrPrefix() && !cap.AllowedReservedNames.Contains(templateID) {
-		return nil, fmt.Errorf("%w:reserved template id", common.ErrStatusBadRequest)
+	if templateID.HasReservedIDOrPrefix() {
+		if _, contains := cap.AllowedReservedNames[templateID]; !contains {
+			return nil, fmt.Errorf("%w:template id is reserved", common.ErrStatusBadRequest)
+		}
 	}
 	doc := CertificateTemplateDoc{}
 
@@ -158,20 +159,19 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		doc.LifetimeTrigger = nil
 	}
 
-	digestSb := strings.Builder{}
-	digestSb.WriteString(doc.IssuerNamespaceID.String())
-	digestSb.WriteString(doc.IssuerTemplateID.String())
-	digestSb.WriteString(doc.SubjectCommonName)
-	digestSb.WriteString(string(doc.KeyProperties.Alg))
-	digestSb.WriteString(string(doc.KeyProperties.Kty))
+	digest := md5.New()
+	digest.Write([]byte(doc.IssuerNamespaceID.String()))
+	digest.Write([]byte(doc.IssuerTemplateID.String()))
+	digest.Write([]byte(doc.SubjectCommonName))
+	digest.Write([]byte(string(doc.KeyProperties.Alg)))
+	digest.Write([]byte(string(doc.KeyProperties.Kty)))
 	switch doc.KeyProperties.Kty {
 	case models.KeyTypeRSA:
-		digestSb.WriteString(fmt.Sprintf("%d", *doc.KeyProperties.KeySize))
+		digest.Write([]byte(fmt.Sprintf("%d", *doc.KeyProperties.KeySize)))
 	case models.KeyTypeEC:
-		digestSb.WriteString(string(*doc.KeyProperties.Crv))
+		digest.Write([]byte(string(*doc.KeyProperties.Crv)))
 	}
-	digest := md5.Sum([]byte(digestSb.String()))
-	doc.Digest = digest[:]
+	doc.Digest = digest.Sum(nil)
 
 	return &doc, nil
 }

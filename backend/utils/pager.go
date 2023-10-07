@@ -63,3 +63,20 @@ func PagerAllItems[T any](pager ItemsPager[T], ctx context.Context) (items []T, 
 	}
 	return
 }
+
+func ReservedFirst[T any](
+	allItems []T,
+	reservedDefaults []T,
+	mapReservedIndex func(T) int) (items []T) {
+	items = make([]T, len(reservedDefaults), len(allItems)+len(reservedDefaults))
+	copy(items, reservedDefaults)
+	for _, item := range allItems {
+		if mappedIndex := mapReservedIndex(item); mappedIndex >= 0 && mappedIndex < len(items) {
+			items[mappedIndex] = item
+			continue
+		} else {
+			items = append(items, item)
+		}
+	}
+	return
+}

@@ -89,8 +89,23 @@ type CertificateLifetimeTrigger struct {
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
-// CertificateTemplate Certificate fields, may accept template substitutions
-type CertificateTemplate = CertificateTemplateParameters
+// CertificateTemplate defines model for CertificateTemplate.
+type CertificateTemplate struct {
+	// Id Identifier of the resource
+	Id     Identifier         `json:"id"`
+	Issuer *CertificateIssuer `json:"issuer,omitempty"`
+
+	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
+	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
+	Metadata        *ResourceMetadata           `json:"metadata,omitempty"`
+
+	// SubjectCommonName Common name
+	SubjectCommonName string             `json:"subjectCommonName"`
+	Usages            []CertificateUsage `json:"usages"`
+	ValidityInMonths  *int32             `json:"validity_months,omitempty"`
+}
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
 type CertificateTemplateParameters struct {
@@ -105,6 +120,16 @@ type CertificateTemplateParameters struct {
 	SubjectCommonName string             `json:"subjectCommonName"`
 	Usages            []CertificateUsage `json:"usages"`
 	ValidityInMonths  *int32             `json:"validity_months,omitempty"`
+}
+
+// CertificateTemplateRef defines model for CertificateTemplateRef.
+type CertificateTemplateRef struct {
+	// Id Identifier of the resource
+	Id       Identifier        `json:"id"`
+	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+
+	// SubjectCommonName Common name
+	SubjectCommonName string `json:"subjectCommonName"`
 }
 
 // CertificateUsage defines model for CertificateUsage.

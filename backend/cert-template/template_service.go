@@ -7,6 +7,7 @@ import (
 
 type CertificateTemplateService interface {
 	PutCertificateTemplate(common.ServiceContext, models.Identifier, models.CertificateTemplateParameters) (*models.CertificateTemplate, error)
+	ListCertificateTemplates(common.ServiceContext) ([]*models.CertificateTemplateRef, error)
 }
 
 type certTmplService struct {

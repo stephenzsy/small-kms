@@ -4,6 +4,7 @@ export * from './CertificateIssuer';
 export * from './CertificateLifetimeTrigger';
 export * from './CertificateTemplate';
 export * from './CertificateTemplateParameters';
+export * from './CertificateTemplateRef';
 export * from './CertificateUsage';
 export * from './JwkAlg';
 export * from './JwkKeyOperation';

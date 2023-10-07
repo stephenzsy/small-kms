@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   CertificateTemplate,
   CertificateTemplateParameters,
+  CertificateTemplateRef,
   Profile,
   ProfileRef,
   ProfileType,
@@ -26,6 +27,8 @@ import {
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
     CertificateTemplateParametersToJSON,
+    CertificateTemplateRefFromJSON,
+    CertificateTemplateRefToJSON,
     ProfileFromJSON,
     ProfileToJSON,
     ProfileRefFromJSON,
@@ -35,6 +38,11 @@ import {
 } from '../models';
 
 export interface GetProfileRequest {
+    profileType: ProfileType;
+    profileId: string;
+}
+
+export interface ListCertificateTemplatesRequest {
     profileType: ProfileType;
     profileId: string;
 }
@@ -99,6 +107,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List certificate templates
+     */
+    async listCertificateTemplatesRaw(requestParameters: ListCertificateTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateTemplateRef>>> {
+        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
+            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listCertificateTemplates.');
+        }
+
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling listCertificateTemplates.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{profileType}/{profileId}/certificate-template`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateTemplateRefFromJSON));
+    }
+
+    /**
+     * List certificate templates
+     */
+    async listCertificateTemplates(requestParameters: ListCertificateTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateTemplateRef>> {
+        const response = await this.listCertificateTemplatesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

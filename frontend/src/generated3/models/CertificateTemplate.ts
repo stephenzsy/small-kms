@@ -37,6 +37,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
+import type { ResourceMetadata } from './ResourceMetadata';
+import {
+    ResourceMetadataFromJSON,
+    ResourceMetadataFromJSONTyped,
+    ResourceMetadataToJSON,
+} from './ResourceMetadata';
 
 /**
  * 
@@ -44,6 +50,24 @@ import {
  * @interface CertificateTemplate
  */
 export interface CertificateTemplate {
+    /**
+     * Identifier of the resource
+     * @type {string}
+     * @memberof CertificateTemplate
+     */
+    id: string;
+    /**
+     * Common name
+     * @type {string}
+     * @memberof CertificateTemplate
+     */
+    subjectCommonName: string;
+    /**
+     * 
+     * @type {ResourceMetadata}
+     * @memberof CertificateTemplate
+     */
+    metadata?: ResourceMetadata;
     /**
      * 
      * @type {CertificateIssuer}
@@ -56,12 +80,6 @@ export interface CertificateTemplate {
      * @memberof CertificateTemplate
      */
     keyProperties?: JwkProperties;
-    /**
-     * Common name
-     * @type {string}
-     * @memberof CertificateTemplate
-     */
-    subjectCommonName: string;
     /**
      * 
      * @type {Array<CertificateUsage>}
@@ -93,6 +111,7 @@ export interface CertificateTemplate {
  */
 export function instanceOfCertificateTemplate(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "subjectCommonName" in value;
     isInstance = isInstance && "usages" in value;
 
@@ -109,9 +128,11 @@ export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
+        'id': json['id'],
+        'subjectCommonName': json['subjectCommonName'],
+        'metadata': !exists(json, 'metadata') ? undefined : ResourceMetadataFromJSON(json['metadata']),
         'issuer': !exists(json, 'issuer') ? undefined : CertificateIssuerFromJSON(json['issuer']),
         'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
-        'subjectCommonName': json['subjectCommonName'],
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
@@ -128,9 +149,11 @@ export function CertificateTemplateToJSON(value?: CertificateTemplate | null): a
     }
     return {
         
+        'id': value.id,
+        'subjectCommonName': value.subjectCommonName,
+        'metadata': ResourceMetadataToJSON(value.metadata),
         'issuer': CertificateIssuerToJSON(value.issuer),
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
-        'subjectCommonName': value.subjectCommonName,
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,

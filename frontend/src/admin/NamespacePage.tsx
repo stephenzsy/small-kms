@@ -1,30 +1,42 @@
 import { useRequest } from "ahooks";
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { AdminApi, NamespaceTypeShortName } from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
+import { AdminApi, CertificateTemplateRef, ProfileType } from "../generated3";
+import { useAuthedClient } from "../utils/useCertsApi3";
 import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
-import { RefTableColumn, RefsTable, displayNameColumn } from "./RefsTable";
+import {
+  RefTableColumn,
+  RefTableColumn3,
+  RefsTable,
+  RefsTable3,
+  displayNameColumn,
+} from "./RefsTable";
 
-interface CreateDefaultLinkItem {
-  id: string;
-  title: string;
-}
+const subjectCnColumn: RefTableColumn3<CertificateTemplateRef> = {
+  columnKey: "subjectCommonName",
+  header: "Subject Common Name",
+  render: (item) => item.subjectCommonName,
+};
+const enabledColumn: RefTableColumn3<CertificateTemplateRef> = {
+  columnKey: "enabled",
+  header: "Enabled",
+  render: (item) => (item.metadata && !item.metadata.deleted ? "Yes" : "No"),
+};
 
 function CertificateTemplatesList({
   nsType,
   namespaceId,
 }: {
-  nsType: NamespaceTypeShortName;
+  nsType: ProfileType;
   namespaceId: string;
 }) {
   const adminApi = useAuthedClient(AdminApi);
   const { data } = useRequest(
     async () => {
-      return await adminApi.listCertificateTemplatesV2({
-        includeDefaultForType: nsType,
-        namespaceId,
+      return await adminApi.listCertificateTemplates({
+        profileId: namespaceId,
+        profileType: nsType,
       });
     },
     {
@@ -33,24 +45,13 @@ function CertificateTemplatesList({
   );
 
   return (
-    <RefsTable
+    <RefsTable3
       items={data}
       title="Certificate Templates"
-      columns={
-        [
-          displayNameColumn,
-          {
-            header: "Active",
-            metadataKey: "isActive",
-            render: (isActive) => {
-              return isActive ? "Yes" : "No";
-            },
-          } as RefTableColumn<"isActive">,
-        ] as RefTableColumn[]
-      }
+      columns={[subjectCnColumn, enabledColumn]}
       refActions={(ref) => (
         <Link
-          to={`/admin/${ref.namespaceId}/certificate-templates/${ref.id}`}
+          to={`/admin/${nsType}/${namespaceId}/certificate-templates/${ref.id}`}
           className="text-indigo-600 hover:text-indigo-900"
         >
           View
@@ -62,7 +63,7 @@ function CertificateTemplatesList({
 
 export default function NamespacePage() {
   const { namespaceId } = useParams() as {
-    profileType: string;
+    profileType: ProfileType;
     namespaceId: string;
   };
 
@@ -72,13 +73,13 @@ export default function NamespacePage() {
     <>
       <h1>{namespaceId}</h1>
       <div>{nsType}</div>
-      {(nsType === "root-ca" ||
-        nsType === NamespaceTypeShortName.NSType_IntCA ||
-        nsType == NamespaceTypeShortName.NSType_ServicePrincipal ||
-        nsType == NamespaceTypeShortName.NSType_Group) && (
+      {(nsType === ProfileType.ProfileTypeRootCA ||
+        nsType === ProfileType.ProfileTypeIntermediateCA ||
+        nsType == ProfileType.ProfileTypeServicePrincipal ||
+        nsType == ProfileType.ProfileTypeDevice) && (
         <CertificateTemplatesList nsType={nsType} namespaceId={namespaceId} />
       )}
-      {nsType === NamespaceTypeShortName.NSType_Device && (
+      {nsType === ProfileType.ProfileTypeDevice && (
         <DeviceServicePrincipalLink namespaceId={namespaceId} />
       )}
     </>

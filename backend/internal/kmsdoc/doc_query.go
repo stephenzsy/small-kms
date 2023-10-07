@@ -41,11 +41,16 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 
 var _ utils.ItemsPager[KmsDocument] = (*DocPager[KmsDocument])(nil)
 
+func DefaultQueryGetWhereClause(string) string {
+	return ""
+}
+
 func QueryItemsPager[D KmsDocument](
 	c common.ServiceContext,
 	nsID DocNsID,
+	kind DocKind,
 	getColumns func(baseColumns []string) []string,
-	getAndClause func(tableName string) string,
+	getWhereClause func(tableName string) string,
 	queryParameters []azcosmos.QueryParameter) *DocPager[D] {
 	cc := common.GetClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
@@ -60,8 +65,8 @@ func QueryItemsPager[D KmsDocument](
 		queryBuilder.WriteString("c.")
 		queryBuilder.WriteString(column)
 	}
-	queryBuilder.WriteString(" FROM c WHERE c.namespaceId = @namespaceId")
-	andClause := getAndClause("c")
+	queryBuilder.WriteString(" FROM c WHERE c.namespaceId = @namespaceId AND c.kind = @kind")
+	andClause := getWhereClause("c")
 	if andClause != "" {
 		queryBuilder.WriteString(" AND (")
 		queryBuilder.WriteString(andClause)
@@ -69,6 +74,7 @@ func QueryItemsPager[D KmsDocument](
 	}
 
 	qp := []azcosmos.QueryParameter{
+		{Name: "@kind", Value: string(kind)},
 		{Name: "@namespaceId", Value: nsID.String()}}
 	qp = append(qp, queryParameters...)
 

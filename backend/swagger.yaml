@@ -6,21 +6,6 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /v2/{namespaceId}/certificate-templates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - in: query
-        name: includeDefaultForType
-        schema:
-          $ref: "#/components/schemas/NamespaceTypeShortName"
-    get:
-      tags:
-        - admin
-      summary: List certificate templates
-      operationId: ListCertificateTemplatesV2
-      responses:
-        200:
-          $ref: "#/components/responses/RefListResponse"
   /v2/{namespaceId}/certificate-templates/{templateId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

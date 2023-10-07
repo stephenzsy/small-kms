@@ -39,27 +39,46 @@ type CertificateTemplateDoc struct {
 	Digest            []byte                              `json:"version"` // checksum of fhte core fields of the template
 }
 
-func (doc *CertificateTemplateDoc) toModel() *models.CertificateTemplate {
+func (d *CertificateTemplateDoc) toModelRef() *models.CertificateTemplateRef {
+
+	return &models.CertificateTemplateRef{
+		Id: d.ID.Identifier(),
+		Metadata: &models.ResourceMetadata{
+			Updated:   utils.ToPtr(d.Updated),
+			UpdatedBy: utils.ToPtr(d.UpdatedBy),
+			Deleted:   d.Deleted,
+		},
+		SubjectCommonName: d.SubjectCommonName,
+	}
+}
+
+func (d *CertificateTemplateDoc) toModel() *models.CertificateTemplate {
 	issuerProfileType := models.ProfileTypeIntermediateCA
-	if doc.IssuerNamespaceID.Kind() == kmsdoc.DocNsTypeCaRoot {
+	if d.IssuerNamespaceID.Kind() == kmsdoc.DocNsTypeCaRoot {
 		issuerProfileType = models.ProfileTypeRootCA
 	}
 	return &models.CertificateTemplate{
+		Id: d.ID.Identifier(),
+		Metadata: &models.ResourceMetadata{
+			Updated:   utils.ToPtr(d.Updated),
+			UpdatedBy: utils.ToPtr(d.UpdatedBy),
+			Deleted:   d.Deleted,
+		},
+		SubjectCommonName: d.SubjectCommonName,
 		Issuer: &models.CertificateIssuer{
 			ProfileType: issuerProfileType,
-			ProfileId:   doc.IssuerNamespaceID.Identifier(),
-			TemplateId:  utils.ToPtr(doc.IssuerTemplateID.Identifier()),
+			ProfileId:   d.IssuerNamespaceID.Identifier(),
+			TemplateId:  utils.ToPtr(d.IssuerTemplateID.Identifier()),
 		},
 		KeyProperties: &models.JwkProperties{
-			Alg:     utils.ToPtr(doc.KeyProperties.Alg),
-			Kty:     doc.KeyProperties.Kty,
-			Crv:     doc.KeyProperties.Crv,
-			KeySize: doc.KeyProperties.KeySize,
+			Alg:     utils.ToPtr(d.KeyProperties.Alg),
+			Kty:     d.KeyProperties.Kty,
+			Crv:     d.KeyProperties.Crv,
+			KeySize: d.KeyProperties.KeySize,
 		},
-		KeyStorePath:      doc.KeyStorePath,
-		LifetimeTrigger:   doc.LifetimeTrigger,
-		SubjectCommonName: doc.SubjectCommonName,
-		Usages:            doc.Usages,
-		ValidityInMonths:  utils.ToPtr(doc.ValidityInMonths),
+		KeyStorePath:     d.KeyStorePath,
+		LifetimeTrigger:  d.LifetimeTrigger,
+		Usages:           d.Usages,
+		ValidityInMonths: utils.ToPtr(d.ValidityInMonths),
 	}
 }
