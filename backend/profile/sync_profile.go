@@ -4,11 +4,27 @@ import (
 	"errors"
 	"fmt"
 
+	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
+
+func StoreProfile(c common.ServiceContext, dirObject msgraphmodels.DirectoryObjectable) (*ProfileDoc, error) {
+	profileDoc := ProfileDoc{}
+	err := profileDoc.init(dirObject)
+	if err != nil {
+		return nil, err
+	}
+
+	err = kmsdoc.Upsert(c, &profileDoc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &profileDoc, nil
+}
 
 // SyncProfile implements ProfileService.
 func SyncProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
@@ -35,16 +51,9 @@ func SyncProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
 		}
 		return nil, err
 	}
-	profileDoc := ProfileDoc{}
-	err = profileDoc.init(dirObject)
+	pdoc, err := StoreProfile(c, dirObject)
 	if err != nil {
 		return nil, err
 	}
-
-	err = kmsdoc.Upsert(c, &profileDoc)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return pdoc.toModel(), nil
 }

@@ -19,5 +19,6 @@ func IssueCertificateFromTemplate(c common.ServiceContext,
 	if err != nil {
 		return nil, err
 	}
+	certDoc, err = issueCertificate(c, certDoc, params)
 	return certDoc.toModel(), nil
 }

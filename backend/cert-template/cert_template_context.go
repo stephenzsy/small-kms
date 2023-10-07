@@ -23,7 +23,7 @@ func (ctc *certTmplContext) GetCertificateTemplateLocator(c common.ServiceContex
 
 // GetCertificateTemplateDoc implements CertificateTemplateContext.
 func (ctc *certTmplContext) GetCertificateTemplateDoc(c common.ServiceContext) (*CertificateTemplateDoc, error) {
-	return getCertificateTemplateDoc(c, ctc.GetCertificateTemplateLocator(c))
+	return GetCertificateTemplateDoc(c, ctc.GetCertificateTemplateLocator(c))
 }
 
 func newCertificateTemplateContext(templateID common.Identifier) CertificateTemplateContext {

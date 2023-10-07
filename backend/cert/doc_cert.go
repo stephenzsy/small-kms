@@ -1,17 +1,21 @@
 package cert
 
 import (
+	"crypto/x509"
+	"fmt"
+
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateStatus string
 
 const (
-	CertStatusInitial CertificateStatus = ""
-	CertStatusPending CertificateStatus = "pending"
-	CertStatusIssued  CertificateStatus = "issued"
+	CertStatusInitialized CertificateStatus = "initialized"
+	CertStatusPending     CertificateStatus = "pending"
+	CertStatusIssued      CertificateStatus = "issued"
 )
 
 type ResourceLocator = models.ResourceLocator
@@ -31,9 +35,39 @@ type CertDoc struct {
 	KeyStorePath      *string                   `json:"keyStorePath,omitempty"`
 	CertStorePath     string                    `json:"certStorePath"` // certificate storage path in blob storage
 	Thumbprint        kmsdoc.HexStringStroable  `json:"thumbprint"`
+	PendingExpires    *kmsdoc.TimeStorable      `json:"pendingExpires"` // pending status expires time
 
 	Template ResourceLocator `json:"template"` // locator for certificate template doc
 	Issuer   ResourceLocator `json:"issuer"`   // locator for certificate doc for the actual issuer certificate
+}
+
+// PopulateX509 implements CertificateFieldsProvider.
+func (doc *CertDoc) PopulateX509(cert *x509.Certificate) error {
+	if doc.Status != CertStatusInitialized && doc.Status != CertStatusPending {
+		return fmt.Errorf("certficiate doc status error: %s", doc.Status)
+	}
+	cert.SerialNumber = doc.SerialNumber.BigInt()
+	cert.Subject.CommonName = doc.SubjectCommonName
+	cert.NotBefore = doc.NotBefore.Time()
+	cert.NotAfter = doc.NotAfter.Time()
+	usageSet := utils.NewSet(doc.Usages...)
+	if usageSet.Contains(models.CertUsageCA) {
+		cert.IsCA = true
+		if !usageSet.Contains(models.CertUsageCARoot) {
+			cert.MaxPathLen = 1
+		} else {
+			cert.MaxPathLenZero = true
+		}
+		cert.KeyUsage |= x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature
+	} else {
+		if usageSet.Contains(models.CertUsageClientAuth) {
+			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
+		}
+		if usageSet.Contains(models.CertUsageServerAuth) {
+			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
+		}
+	}
+	return nil
 }
 
 func (d *CertDoc) populateRef(dst *models.CertificateRefComposed) bool {
@@ -63,3 +97,5 @@ func (d *CertDoc) toModel() *models.CertificateInfoComposed {
 	r.Usages = d.Usages
 	return r
 }
+
+var _ CertificateFieldsProvider = (*CertDoc)(nil)
