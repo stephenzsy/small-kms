@@ -92,6 +92,7 @@ func newPendingCertDoc(
 	}
 }
 
+/*
 func (doc *PendingCertDoc) toReceipt(nsType NamespaceTypeShortName) *CertificateEnrollmentReceipt {
 	r := CertificateEnrollmentReceipt{}
 	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &r.Ref)
@@ -103,4 +104,4 @@ func (doc *PendingCertDoc) toReceipt(nsType NamespaceTypeShortName) *Certificate
 	r.RequesterID = doc.RequesterID
 	doc.KeyProperties.populateJwkProperties(&r.KeyProperties)
 	return &r
-}
+}*/

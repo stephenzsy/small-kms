@@ -21,6 +21,7 @@ type NamespaceCertificateTemplateCapabilities struct {
 	AllowedIssuerNamespaces    utils.Set[NamespaceID]
 	AllowedUsages              utils.Set[models.CertificateUsage]
 	AllowVariables             bool
+	SelfSigned                 bool
 	DefaultMaxValidityInMonths int
 	DefaultKeyType             models.JwtKty
 	DefaultKeySize             int
@@ -78,6 +79,7 @@ func (nc *namespaceCapabilities) GetAllowedCertificateIssuersForTemplate(templat
 		allowedNs.Add(nc.nsID)
 		allowedUsages.Add(models.CertUsageCA)
 		allowedUsages.Add(models.CertUsageCARoot)
+		cap.SelfSigned = true
 		if nc.nsID.Identifier().String() == string(RootCANameTest) {
 			cap.DefaultMaxValidityInMonths = 6
 			cap.DefaultKeyType = models.KeyTypeEC

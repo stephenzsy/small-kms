@@ -6,40 +6,6 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /v2/{namespaceId}/certificate-templates/{templateId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/TemplateIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Get certificate template
-      operationId: GetCertificateTemplateV2
-      responses:
-        200:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
-    put:
-      tags:
-        - admin
-      summary: Put certificate template
-      operationId: PutCertificateTemplateV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateTemplateParameters"
-        required: true
-      responses:
-        201:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
   /v2/{namespaceId}/certificate-templates/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -330,7 +296,7 @@ components:
         issuer:
           $ref: "#/components/schemas/CertificateIssuer"
         keyProperties:
-          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
+          $ref: "#/components/schemas/JwkProperties"
         subjectCommoneName:
           description: Common name
           type: string
@@ -338,7 +304,7 @@ components:
         usages:
           type: array
           items:
-            $ref: "oapi-api.yml#/components/schemas/CertificateUsage"
+            $ref: "#/components/schemas/CertificateUsage"
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
@@ -443,7 +409,7 @@ components:
           format: uuid
           x-go-name: RequesterID
         keyProperties:
-          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
+          $ref: "#/components/schemas/JwkProperties"
       required:
         - ref
         - expires
@@ -464,7 +430,7 @@ components:
             with header and signature, signed with the key pair with the public key in the same request
           type: string
         publicKey:
-          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
+          $ref: "#/components/schemas/JwkProperties"
       required:
         - jwtHeader
         - jwtSignature
@@ -558,12 +524,12 @@ components:
       properties:
         kty:
           x-go-name: KeyType
-          $ref: "oapi-api.yml#/components/schemas/JwtKty"
+          $ref: "#/components/schemas/JwtKty"
         key_size:
           x-go-name: KeySize
           $ref: "#/components/schemas/JwkKeySize"
         crv:
-          $ref: "oapi-api.yml#/components/schemas/JwtCrv"
+          $ref: "#/components/schemas/JwtCrv"
           x-go-name: CurveName
         reuse_key:
           description: Keep using the same key version if exists
@@ -796,7 +762,7 @@ components:
         usage:
           $ref: "#/components/schemas/CertificateUsage"
         jwk:
-          $ref: "oapi-api.yml#/components/schemas/JwkProperties"
+          $ref: "#/components/schemas/JwkProperties"
         pem:
           type: string
         template:
@@ -916,6 +882,105 @@ components:
       properties:
         allowEnrollDeviceCertificate:
           type: boolean
+    JwkAlg:
+      type: string
+      enum:
+        - RS256
+        - RS384
+        - RS512
+        - ES256
+        - ES384
+      x-enum-varnames:
+        - AlgRS256
+        - AlgRS384
+        - AlgRS512
+        - AlgES256
+        - AlgES384
+    JwtKty:
+      type: string
+      enum:
+        - RSA
+        - EC
+      x-enum-varnames:
+        - KeyTypeRSA
+        - KeyTypeEC
+    JwtCrv:
+      type: string
+      enum:
+        - P-256
+        - P-384
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+    JwkKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-enum-varnames:
+        - KeyOpSign
+        - KeyOpVerify
+        - KeyOpEncrypt
+        - KeyOpDecrypt
+        - KeyOpWrapKey
+        - KeyOpUnwrapKey
+      x-go-name: KeyOp          
+    JwkProperties:
+      type: object
+      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+      properties:
+        alg:
+          $ref: "#/components/schemas/JwkAlg"
+        kty:
+          $ref: "#/components/schemas/JwtKty"
+        key_size:
+          description: RSA key size
+          type: integer
+        key_ops:
+          $ref: "#/components/schemas/JwkKeyOperation"
+        n:
+          description: RSA modulus
+          type: string
+        e:
+          description: RSA exponent
+          type: string
+        crv:
+          $ref: "#/components/schemas/JwtCrv"
+        x:
+          description: EC x coordinate
+          type: string
+        y:
+          description: EC y coordinate
+          type: string
+        kid:
+          description: Key ID
+          type: string
+          x-go-name: KeyID
+        x5u:
+          x-go-name: CertificateURL
+          description: X.509 certificate URL
+          type: string
+        x5c:
+          description: X.509 certificate chain
+          type: array
+          items:
+            type: string
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+          x-go-name: CertificateThumbprint
+        x5t#S256:
+          description: X.509 certificate SHA-256 thumbprint
+          type: string
+          x-go-name: CertificateThumbprintSHA256
+      required:
+        - kty          
   responses:
     RefListResponse:
       description: List RefsResponse

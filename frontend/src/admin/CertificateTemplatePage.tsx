@@ -1,47 +1,44 @@
 import { useMemoizedFn, useRequest, useSet } from "ahooks";
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { v4 as uuidv4, version as uuidversion } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { Button } from "../components/Button";
 import { WellknownId, uuidNil } from "../constants";
+import {
+  AdminApi as AdminApiOld,
+  NamespaceTypeShortName,
+  ResponseError,
+} from "../generated";
 import {
   AdminApi,
   CertificateTemplate,
   CertificateTemplateParameters,
+  ProfileType,
   CertificateUsage,
-  NamespaceTypeShortName,
-  ResponseError,
-} from "../generated";
+} from "../generated3";
 import {
   ValueState,
   ValueStateMayBeFixed,
   useFixedValueState,
   useValueState,
 } from "../utils/formStateUtils";
-import { useAuthedClient } from "../utils/useCertsApi";
+import { useAuthedClient as useAuthedClientOld } from "../utils/useCertsApi";
+import { useAuthedClient } from "../utils/useCertsApi3";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefsTable } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
-import { NamespaceContext } from "./NamespaceContext";
 
 export interface CertificateTemplateFormState {
   displayName: ValueStateMayBeFixed<string>;
   issuerNamespaceId: ValueStateMayBeFixed<string>;
   issuerTemplateId: ValueState<string>;
   subjectCN: ValueState<string>;
-  subjectOU: string;
-  setSubjectOU: (value: string) => void;
-  subjectO: string;
-  setSubjectO: (value: string) => void;
-  subjectC: string;
-  setSubjectC: (value: string) => void;
   validityInMonths: number;
   setValidityInMonths: (value: number) => void;
   keyStorePath: ValueStateMayBeFixed<string>;
   certUsage: CertificateUsage;
   setCertUsage: (value: CertificateUsage) => void;
-  sanURIs: ReturnType<typeof useSet<string>>;
 }
 
 export function useCertificateTemplateFormState(
@@ -50,9 +47,6 @@ export function useCertificateTemplateFormState(
   nsId: string,
   templateId: string
 ): CertificateTemplateFormState {
-  const [subjectOU, setSubjectOU] = React.useState<string>("");
-  const [subjectO, setSubjectO] = React.useState<string>("");
-  const [subjectC, setSubjectC] = React.useState<string>("");
   const [validityInMonths, setValidityInMonths] = React.useState<number>(0);
   const [certUsage, setCertUsage] = React.useState<CertificateUsage>(
     CertificateUsage.Usage_ServerAndClient
@@ -75,22 +69,13 @@ export function useCertificateTemplateFormState(
   }, [nsType, nsId]);
 
   const state = {
-    displayName: useFixedValueState(
-      useValueState(""),
-      uuidversion(templateId) === 4 ? undefined : "default"
-    ),
+    displayName: useFixedValueState(useValueState(""), nsId || undefined),
     issuerNamespaceId: useFixedValueState(
       useValueState(""),
       fixedIssuerNamespaceId
     ),
     issuerTemplateId: useValueState(uuidNil),
     subjectCN: useValueState(""),
-    subjectOU,
-    setSubjectOU,
-    subjectO,
-    setSubjectO,
-    subjectC,
-    setSubjectC,
     validityInMonths,
     setValidityInMonths,
     keyStorePath: useFixedValueState(
@@ -99,7 +84,6 @@ export function useCertificateTemplateFormState(
     ),
     certUsage,
     setCertUsage,
-    sanURIs: useSet<string>(),
   };
 
   React.useEffect(() => {
@@ -109,23 +93,10 @@ export function useCertificateTemplateFormState(
       state.issuerTemplateId.onChange(
         certTemplate.issuer.templateId ?? uuidNil
       );
-      state.subjectCN.onChange(certTemplate.subject.cn);
-      setSubjectOU(certTemplate.subject.ou ?? "");
-      setSubjectO(certTemplate.subject.o ?? "");
-      setSubjectC(certTemplate.subject.c ?? "");
+      state.subjectCN.onChange(certTemplate.subjectCommonName);
       setValidityInMonths(certTemplate.validityMonths ?? 0);
       state.keyStorePath.onChange?.(certTemplate.keyStorePath ?? "");
-      setCertUsage(certTemplate.usage);
-      const [sanUriSet, { add: addSanUri, remove: removeSanUri }] =
-        state.sanURIs;
-      for (const san of sanUriSet) {
-        if (!certTemplate.subjectAlternativeNames?.uris?.includes(san)) {
-          removeSanUri(san);
-        }
-      }
-      for (const san of certTemplate.subjectAlternativeNames?.uris ?? []) {
-        addSanUri(san);
-      }
+      setCertUsage(certTemplate.usages[0]);
     }
   }, [certTemplate]);
 
@@ -135,7 +106,7 @@ export function useCertificateTemplateFormState(
 type CertificateTemplateFormProps = CertificateTemplateFormState & {
   nsType: NamespaceTypeShortName;
   templateId: string;
-  adminApi: AdminApi;
+  adminApi: AdminApiOld;
 };
 
 export function CertificateIssuerSelector({
@@ -143,7 +114,7 @@ export function CertificateIssuerSelector({
   onChange,
   adminApi,
 }: {
-  adminApi: AdminApi;
+  adminApi: AdminApiOld;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -182,7 +153,7 @@ export function CertificateIssuerTemplateSelector({
   adminApi,
   issuerNsId,
 }: {
-  adminApi: AdminApi;
+  adminApi: AdminApiOld;
   value: string;
   onChange: (value: string) => void;
   issuerNsId: string;
@@ -281,12 +252,6 @@ function SANList({
 
 export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
   const {
-    subjectOU,
-    setSubjectOU,
-    subjectO,
-    setSubjectO,
-    subjectC,
-    setSubjectC,
     validityInMonths,
     setValidityInMonths,
     certUsage,
@@ -306,7 +271,7 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
     return usage === certUsage;
   });
   return (
-    <div className="divide-y divide-neutral-200 space-y-6">
+    <div className="space-y-6 ">
       <h2 className="text-2xl font-semibold">Certificate template</h2>
       {props.displayName.onChange && (
         <InputField
@@ -337,43 +302,14 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
           )}
         </div>
       )}
-      <div className="pt-6 space-y-4">
-        <h3 className="text-base font-semibold leading-7 text-gray-900">
-          Subject
-        </h3>
-        <InputField
-          labelContent="Common Name (CN)"
-          placeholder="Sample Common Name"
-          required
-          value={props.subjectCN.value}
-          onChange={props.subjectCN.onChange}
-        />
-        <InputField
-          labelContent="Organizational Unit (OU)"
-          placeholder="Sample Organizational Unit"
-          value={subjectOU ?? ""}
-          onChange={setSubjectOU}
-        />
-        <InputField
-          labelContent="Organization (O)"
-          placeholder="Sample Organization"
-          value={subjectO ?? ""}
-          onChange={setSubjectO}
-        />
-        <InputField
-          labelContent="Country or Region (C)"
-          placeholder="US"
-          value={subjectC ?? ""}
-          onChange={setSubjectC}
-        />
-      </div>
-      <div>
-        <h3 className="text-base font-semibold leading-7 text-gray-900">
-          Subject Alternative Names (SANs)
-        </h3>
-        <SANList sansState={props.sanURIs} title="URIs" />
-      </div>
-      <div className="pt-6 space-y-6">
+      <InputField
+        labelContent="Subject common bame (CN)"
+        placeholder="Sample Common Name"
+        required
+        value={props.subjectCN.value}
+        onChange={props.subjectCN.onChange}
+      />
+      <div className="space-y-2">
         <InputField
           labelContent="Validity in months"
           type="number"
@@ -382,15 +318,16 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
           value={validityInMonths}
           onChange={setValidityInMonths as any}
         />
-        {props.keyStorePath.onChange && (
-          <InputField
-            labelContent="Key Store Path"
-            required={nsType !== NamespaceTypeShortName.NSType_Group}
-            value={props.keyStorePath.value}
-            onChange={props.keyStorePath.onChange}
-          />
-        )}
+        <div className="text-neutral-500">0 as default</div>
       </div>
+      {props.keyStorePath.onChange && (
+        <InputField
+          labelContent="Key Store Path"
+          required={nsType !== NamespaceTypeShortName.NSType_Group}
+          value={props.keyStorePath.value}
+          onChange={props.keyStorePath.onChange}
+        />
+      )}
       {nsType !== NamespaceTypeShortName.NSType_RootCA &&
         nsType !== NamespaceTypeShortName.NSType_IntCA && (
           <CertificateUsageSelector
@@ -404,21 +341,22 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
 }
 
 export default function CertificateTemplatePage() {
-  const { namespaceId, templateId } = useParams() as {
+  const { namespaceId, templateId, profileType } = useParams() as {
     namespaceId: string;
     templateId: string;
+    profileType: ProfileType;
   };
 
-  const { nsInfo } = React.useContext(NamespaceContext);
-  const nsType = nsInfo?.objectType;
-
+  const adminApiOld = useAuthedClientOld(AdminApiOld);
   const adminApi = useAuthedClient(AdminApi);
+
   const { data, loading, run } = useRequest(
     async (p?: CertificateTemplateParameters) => {
       if (!p) {
         try {
-          return await adminApi.getCertificateTemplateV2({
-            namespaceId,
+          return await adminApi.getCertificateTemplate({
+            profileType,
+            profileId: namespaceId,
             templateId,
           });
         } catch (e) {
@@ -428,9 +366,11 @@ export default function CertificateTemplatePage() {
           throw e;
         }
       } else {
-        return await adminApi.putCertificateTemplateV2({
-          namespaceId,
+        adminApi;
+        return await adminApi.putCertificateTemplate({
+          profileId: namespaceId,
           templateId,
+          profileType,
           certificateTemplateParameters: p,
         });
       }
@@ -440,7 +380,7 @@ export default function CertificateTemplatePage() {
 
   const state = useCertificateTemplateFormState(
     data,
-    nsType,
+    profileType,
     namespaceId,
     templateId
   );
@@ -448,34 +388,25 @@ export default function CertificateTemplatePage() {
   const onSubmit = useMemoizedFn<React.FormEventHandler<HTMLFormElement>>(
     (e) => {
       e.preventDefault();
-      const [sanUrisSet] = state.sanURIs;
-      const uris = sanUrisSet.size > 0 ? [...sanUrisSet] : undefined;
+
       run({
-        displayName: state.displayName.value,
         issuer: {
-          namespaceId: state.issuerNamespaceId.value,
-          namespaceType:
-            nsType === "root-ca" || nsType === "intermediate-ca"
+          profileId: state.issuerNamespaceId.value,
+          profileType:
+            profileType === ProfileType.ProfileTypeRootCA ||
+            profileType === ProfileType.ProfileTypeIntermediateCA
               ? NamespaceTypeShortName.NSType_RootCA
               : NamespaceTypeShortName.NSType_IntCA,
           templateId: state.issuerTemplateId.value,
         },
-        subject: {
-          cn: state.subjectCN.value,
-          ou: state.subjectOU || undefined,
-          o: state.subjectO || undefined,
-          c: state.subjectC || undefined,
-        },
-        usage:
-          nsType === "root-ca"
-            ? CertificateUsage.Usage_RootCA
-            : nsType === "intermediate-ca"
-            ? CertificateUsage.Usage_IntCA
-            : state.certUsage,
+        subjectCommonName: state.subjectCN.value,
+        usages:
+          profileType === ProfileType.ProfileTypeRootCA
+            ? [CertificateUsage.CertUsageCA, CertificateUsage.CertUsageCARoot]
+            : profileType === ProfileType.ProfileTypeIntermediateCA
+            ? [CertificateUsage.CertUsageCA]
+            : [state.certUsage],
         keyStorePath: state.keyStorePath.value,
-        subjectAlternativeNames: uris && {
-          uris,
-        },
         validityMonths: state.validityInMonths,
       });
     }
@@ -483,7 +414,7 @@ export default function CertificateTemplatePage() {
 
   const { data: issuedCertificates } = useRequest(
     () => {
-      return adminApi.listCertificatesByTemplateV2({
+      return adminApiOld.listCertificatesByTemplateV2({
         namespaceId,
         templateId: templateId,
       });
@@ -536,7 +467,7 @@ export default function CertificateTemplatePage() {
         <CertificateTemplatesForm
           templateId={templateId}
           nsType={"root-ca"}
-          adminApi={adminApi}
+          adminApi={adminApiOld}
           {...state}
         />
         <div className="pt-6 flex flex-row items-center gap-x-6 justify-end">

@@ -2,6 +2,7 @@ package certtemplate
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -32,7 +33,9 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 			return nil, fmt.Errorf("%w:invalid issuer namespace", common.ErrStatusBadRequest)
 		}
 	}
-	if req.Issuer == nil || req.Issuer.TemplateId == nil {
+	if cap.SelfSigned {
+		doc.IssuerTemplateID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID)
+	} else if req.Issuer == nil || req.Issuer.TemplateId == nil {
 		doc.IssuerTemplateID = kmsdoc.StringDocIdentifier(kmsdoc.DocKindCertificateTemplate, string(ns.CertTemplateNameDefault))
 	} else {
 		doc.IssuerTemplateID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, *req.Issuer.TemplateId)
@@ -123,6 +126,9 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 	if err != nil {
 		return nil, fmt.Errorf("%w:invalid subject common name", common.ErrStatusBadRequest)
 	}
+	if s == "" {
+		return nil, fmt.Errorf("%w:subject common name is required", common.ErrStatusBadRequest)
+	}
 	doc.SubjectCommonName = s
 	doc.ValidityInMonths = int32(cap.DefaultMaxValidityInMonths)
 	if req.ValidityInMonths != nil && *req.ValidityInMonths != 0 {
@@ -171,7 +177,7 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 	case models.KeyTypeEC:
 		digest.Write([]byte(string(*doc.KeyProperties.Crv)))
 	}
-	doc.Digest = digest.Sum(nil)
+	doc.Digest = hex.EncodeToString(digest.Sum(nil))
 
 	return &doc, nil
 }
@@ -206,5 +212,7 @@ func validatePutRequest(c common.ServiceContext,
 		return nil, fmt.Errorf("%w:invalid profile: type mismatch", common.ErrStatusBadRequest)
 	}
 
+	doc.NamespaceID = nsID
+	doc.ID = kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID)
 	return doc, nil
 }

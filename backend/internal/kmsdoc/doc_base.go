@@ -65,7 +65,7 @@ func (doc *BaseDoc) stampUpdatedWithAuth(c context.Context) time.Time {
 		callerPrincipalName = identity.ClientPrincipalName()
 	}
 	doc.Kind = doc.ID.kind
-	doc.Updated = time.Now()
+	doc.Updated = time.Now().UTC()
 	doc.UpdatedBy = fmt.Sprintf("%s:%s", callerPrincipalIdStr, callerPrincipalName)
 	return doc.Updated
 }

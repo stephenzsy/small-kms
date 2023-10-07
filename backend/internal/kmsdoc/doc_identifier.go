@@ -35,7 +35,7 @@ type DocIdentifier[T DocNsType | DocKind] struct {
 }
 
 func (d DocIdentifier[T]) String() string {
-	return string(d.kind) + "/" + d.identifier.String()
+	return string(d.kind) + ":" + d.identifier.String()
 }
 
 func (d DocIdentifier[T]) MarshalText() (text []byte, err error) {
@@ -52,7 +52,7 @@ func (d DocIdentifier[T]) Identifier() common.Identifier {
 
 func (d *DocIdentifier[T]) UnmarshalText(text []byte) (err error) {
 	id := string(text)
-	l := strings.SplitN(id, "/", 2)
+	l := strings.SplitN(id, ":", 2)
 	if len(l) != 2 {
 		return fmt.Errorf("%w:%s", ErrDocIdentifierInvalid, string(text))
 	}

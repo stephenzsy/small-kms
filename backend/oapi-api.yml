@@ -73,6 +73,18 @@ paths:
       - $ref: "#/components/parameters/ProfileTypeParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: Get certificate template
+      operationId: GetCertificateTemplate
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
     put:
       tags:
         - admin

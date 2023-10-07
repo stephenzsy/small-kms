@@ -5,25 +5,22 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func (s *certTmplService) PutCertificateTemplate(c common.ServiceContext,
-	templateID models.Identifier,
-	req models.CertificateTemplateParameters) (*models.CertificateTemplate, error) {
+func (s *certTmplService) GetCertificateTemplate(c common.ServiceContext,
+	templateID models.Identifier) (*models.CertificateTemplate, error) {
 
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
 		return nil, err
 	}
 
-	doc, err := validatePutRequest(c, templateID, req)
-	if err != nil {
-		return nil, err
-	}
+	pcs := profile.GetProfileContextService(c)
+	nsID := pcs.GetResourceDocNsID()
 
-	doc.SchemaVersion = 1
-	err = kmsdoc.Upsert(c, doc)
-	if err != nil {
+	doc := CertificateTemplateDoc{}
+	if err := kmsdoc.Read(c, nsID, kmsdoc.NewDocIdentifier(kmsdoc.DocKindCertificateTemplate, templateID), &doc); err != nil {
 		return nil, err
 	}
 

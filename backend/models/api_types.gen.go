@@ -65,14 +65,6 @@ const (
 	ProfileTypeUser             ProfileType = "user"
 )
 
-// Defines values for ResourceType.
-const (
-	ResourceTypeCertificate                  ResourceType = "certificate"
-	ResourceTypeCertificateEnrollmentReceipt ResourceType = "certificate-enrollment-receipt"
-	ResourceTypeCertificateTemplate          ResourceType = "certificate-template"
-	ResourceTypeProfile                      ResourceType = "profile"
-)
-
 // CertificateIssuer defines model for CertificateIssuer.
 type CertificateIssuer struct {
 	// ProfileId Identifier of the resource
@@ -215,9 +207,6 @@ type ResourceMetadata struct {
 	UpdatedBy            *string           `json:"updatedBy,omitempty"`
 	AdditionalProperties map[string]string `json:"-"`
 }
-
-// ResourceType defines model for ResourceType.
-type ResourceType string
 
 // CertificateTemplateIdentifierParameter Identifier of the resource
 type CertificateTemplateIdentifierParameter = Identifier

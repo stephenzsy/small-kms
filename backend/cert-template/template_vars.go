@@ -84,5 +84,5 @@ func preprocessTemplate(s string) (transformed string, hasTemplate bool, err err
 		}
 	}
 
-	return sb.String(), hasTemplate, nil
+	return strings.TrimSpace(sb.String()), hasTemplate, nil
 }

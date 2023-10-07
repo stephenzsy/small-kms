@@ -37,6 +37,12 @@ import {
     ProfileTypeToJSON,
 } from '../models';
 
+export interface GetCertificateTemplateRequest {
+    profileType: ProfileType;
+    profileId: string;
+    templateId: string;
+}
+
 export interface GetProfileRequest {
     profileType: ProfileType;
     profileId: string;
@@ -67,6 +73,52 @@ export interface SyncProfileRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Get certificate template
+     */
+    async getCertificateTemplateRaw(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
+        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
+            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling getCertificateTemplate.');
+        }
+
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling getCertificateTemplate.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling getCertificateTemplate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateTemplateFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate template
+     */
+    async getCertificateTemplate(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
+        const response = await this.getCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get namespace info with ms graph

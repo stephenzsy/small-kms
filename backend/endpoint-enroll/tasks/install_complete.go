@@ -74,7 +74,7 @@ func InstallComplete(receiptIn io.Reader, installToUser bool) error {
 		JwtHeader:    headerEncoded,
 		JwtSignature: signatureEncoded,
 	}
-	rsaPublicKeyPopulateJwk(pubkey, &body.PublicKey)
+	//rsaPublicKeyPopulateJwk(pubkey, &body.PublicKey)
 	serviceClient.CompleteCertificateEnrollmentV2(context.Background(), receipt.Ref.NamespaceID, receipt.Ref.ID, nil, body)
 
 	return nil

@@ -3,7 +3,6 @@ package admin
 import (
 	"context"
 	"crypto/x509/pkix"
-	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -40,9 +39,9 @@ type CertificateTemplateDocSubject struct {
 
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
-	DisplayName             string                                `json:"displayName"`
-	IssuerNamespaceID       uuid.UUID                             `json:"issuerNamespaceId"`
-	IssuerNameSpaceType     NamespaceTypeShortName                `json:"issuerNameSpaceType"`
+	DisplayName       string    `json:"displayName"`
+	IssuerNamespaceID uuid.UUID `json:"issuerNamespaceId"`
+	// IssuerNameSpaceType     NamespaceTypeShortName                `json:"issuerNameSpaceType"`
 	IssuerTemplateID        kmsdoc.KmsDocID                       `json:"issuerTemplateId"`
 	KeyProperties           CertificateTemplateDocKeyProperties   `json:"keyProperties"`
 	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
@@ -169,62 +168,29 @@ func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
 	t.LifetimePercentage = ToPtr(int32(80))
 }
 
-func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLifetimeTrigger, validityInMonths int32) error {
-	if input == nil {
-		return nil
-	}
-	if input.DaysBeforeExpiry != nil {
-		if *input.DaysBeforeExpiry < 0 || *input.DaysBeforeExpiry > validityInMonths*15 {
-			return errors.New("days_before_expiry must be between 0 and validity_months * 15")
+/*
+	func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLifetimeTrigger, validityInMonths int32) error {
+		if input == nil {
+			return nil
 		}
-		t.DaysBeforeExpiry = input.DaysBeforeExpiry
-		t.LifetimePercentage = nil
-		return nil
-	}
-	if input.LifetimePercentage != nil {
-		if *input.LifetimePercentage < 50 || *input.LifetimePercentage > 100 {
-			return errors.New("lifetime_percentage must be between 50 and 100")
+		if input.DaysBeforeExpiry != nil {
+			if *input.DaysBeforeExpiry < 0 || *input.DaysBeforeExpiry > validityInMonths*15 {
+				return errors.New("days_before_expiry must be between 0 and validity_months * 15")
+			}
+			t.DaysBeforeExpiry = input.DaysBeforeExpiry
+			t.LifetimePercentage = nil
+			return nil
 		}
-		t.DaysBeforeExpiry = nil
-		t.LifetimePercentage = input.LifetimePercentage
-	}
-	return nil
-}
-
-func (doc *CertificateTemplateDoc) toCertificateTemplate() *CertificateTemplate {
-	if doc == nil {
+		if input.LifetimePercentage != nil {
+			if *input.LifetimePercentage < 50 || *input.LifetimePercentage > 100 {
+				return errors.New("lifetime_percentage must be between 50 and 100")
+			}
+			t.DaysBeforeExpiry = nil
+			t.LifetimePercentage = input.LifetimePercentage
+		}
 		return nil
 	}
-	o := new(CertificateTemplate)
-	baseDocPopulateRefWithMetadata(&doc.BaseDoc, &o.Ref)
-	o.DisplayName = doc.DisplayName
-	o.Ref.Type = RefTypeCertificateTemplate
-	o.Issuer = CertificateIssuer{
-		NamespaceID:   doc.IssuerNamespaceID,
-		NamespaceType: doc.IssuerNameSpaceType,
-		TemplateID:    ToPtr(doc.IssuerTemplateID.GetUUID()),
-	}
-	// o.KeyProperties = &JwkProperties{
-	// 	Alg:     ToPtr(doc.KeyProperties.Alg),
-	// 	Kty:     doc.KeyProperties.Kty,
-	// 	KeySize: doc.KeyProperties.KeySize,
-	// 	Crv:     doc.KeyProperties.Crv,
-	// }
-	// o.ReuseKey = doc.KeyProperties.ReuseKey
-	// o.KeyStorePath = doc.KeyStorePath
-	// o.LifetimeTrigger = &CertificateLifetimeTrigger{
-	// 	DaysBeforeExpiry:   doc.LifetimeTrigger.DaysBeforeExpiry,
-	// 	LifetimePercentage: doc.LifetimeTrigger.LifetimePercentage,
-	// }
-	// o.Subject = doc.Subject.CertificateSubject
-	// if doc.SubjectAlternativeNames != nil {
-	// 	o.SubjectAlternativeNames = doc.SubjectAlternativeNames
-	// }
-	// o.Usage = doc.Usage
-	// o.ValidityInMonths = ToPtr(doc.ValidityInMonths)
-	return o
-}
-
+*/
 func createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool,
 	kp CertificateTemplateDocKeyProperties,
 	keyStorePath *string,

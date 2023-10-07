@@ -342,7 +342,7 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 	//serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
 
 	var pCertDoc *PendingCertDoc
-	var responseNsType NamespaceTypeShortName
+	//var responseNsType NamespaceTypeShortName
 	//	switch req := req.(type) {
 	// case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
 	// 	//pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
@@ -356,7 +356,7 @@ func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, t
 	if pCertDoc == nil {
 		respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
 	}
-	c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
+	//c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
 }
 
 func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.UUID, certID uuid.UUID, params CompleteCertificateEnrollmentV2Params) {
