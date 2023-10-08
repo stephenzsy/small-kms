@@ -90,9 +90,9 @@ type CertificateInfo struct {
 	Issuer ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk      JwkProperties     `json:"jwk"`
-	Locator  ResourceLocator   `json:"locator"`
-	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+	Jwk      JwkProperties          `json:"jwk"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -139,9 +139,9 @@ type CertificateRef struct {
 	Deleted *time.Time `json:"deleted,omitempty"`
 
 	// Id Identifier of the resource
-	Id       Identifier        `json:"id"`
-	Locator  ResourceLocator   `json:"locator"`
-	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+	Id       Identifier             `json:"id"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -185,7 +185,7 @@ type CertificateTemplate struct {
 	KeyStorePath    *string                    `json:"keyStorePath,omitempty"`
 	LifetimeTrigger CertificateLifetimeTrigger `json:"lifetimeTrigger"`
 	Locator         ResourceLocator            `json:"locator"`
-	Metadata        *ResourceMetadata          `json:"metadata,omitempty"`
+	Metadata        map[string]interface{}     `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -230,9 +230,9 @@ type CertificateTemplateRef struct {
 	Deleted *time.Time `json:"deleted,omitempty"`
 
 	// Id Identifier of the resource
-	Id       Identifier        `json:"id"`
-	Locator  ResourceLocator   `json:"locator"`
-	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+	Id       Identifier             `json:"id"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -328,10 +328,10 @@ type ProfileRef struct {
 	DisplayName string `json:"displayName"`
 
 	// Id Identifier of the resource
-	Id       Identifier        `json:"id"`
-	Locator  ResourceLocator   `json:"locator"`
-	Metadata *ResourceMetadata `json:"metadata,omitempty"`
-	Type     NamespaceKind     `json:"type"`
+	Id       Identifier             `json:"id"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Type     NamespaceKind          `json:"type"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -351,18 +351,15 @@ type ResourceKind string
 // ResourceLocator defines model for ResourceLocator.
 type ResourceLocator = kmscommon.Locator[NamespaceKind, ResourceKind]
 
-// ResourceMetadata defines model for ResourceMetadata.
-type ResourceMetadata map[string]string
-
 // ResourceRef defines model for ResourceRef.
 type ResourceRef struct {
 	// Deleted Time when the deleted was deleted
 	Deleted *time.Time `json:"deleted,omitempty"`
 
 	// Id Identifier of the resource
-	Id       Identifier        `json:"id"`
-	Locator  ResourceLocator   `json:"locator"`
-	Metadata *ResourceMetadata `json:"metadata,omitempty"`
+	Id       Identifier             `json:"id"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -383,6 +380,11 @@ type ProfileTypeParameter = NamespaceKind
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = CertificateInfo
+
+// ListProfilesParams defines parameters for ListProfiles.
+type ListProfilesParams struct {
+	ProfileType NamespaceKind `form:"profileType" json:"profileType"`
+}
 
 // IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
 type IssueCertificateFromTemplateParams struct {

@@ -170,7 +170,6 @@ func (d *CertDoc) populateRef(r *models.CertificateRefComposed) {
 	r.Template = d.Template
 }
 
-/*
 func (d *CertDoc) toModelRef() (r *models.CertificateRefComposed) {
 	if d == nil {
 		return nil
@@ -179,7 +178,6 @@ func (d *CertDoc) toModelRef() (r *models.CertificateRefComposed) {
 	d.populateRef(r)
 	return
 }
-*/
 
 func (d *CertDoc) toModel() *models.CertificateInfoComposed {
 	if d == nil {

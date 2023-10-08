@@ -26,7 +26,7 @@ import { useAuthedClient as useAuthedClientOld } from "../utils/useCertsApi";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
-import { RefsTable } from "./RefsTable";
+import { RefsTable3 } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
 
 export interface CertificateTemplateFormState {
@@ -419,8 +419,9 @@ export default function CertificateTemplatePage() {
 
   const { data: issuedCertificates } = useRequest(
     () => {
-      return adminApiOld.listCertificatesByTemplateV2({
-        namespaceId,
+      return adminApi.listCertificatesByTemplate({
+        profileId: namespaceId,
+        profileType,
         templateId: templateId,
       });
     },
@@ -432,7 +433,7 @@ export default function CertificateTemplatePage() {
       <h1>
         {namespaceId}/certificate-templates/{templateId}
       </h1>
-      <RefsTable
+      <RefsTable3
         items={issuedCertificates}
         title="Issued certificates"
         tableActions={
@@ -445,10 +446,16 @@ export default function CertificateTemplatePage() {
             </Link>
           </div>
         }
-        columns={[{ header: "Thumbprint", metadataKey: "displayName" }]}
+        columns={[
+          {
+            header: "Thumbprint",
+            render: (r) => r.thumbprint ?? "",
+            columnKey: "thumbprint",
+          },
+        ]}
         refActions={(ref) => (
           <Link
-            to={`/admin/${ref.namespaceId}/certificate-templates/${ref.id}`}
+            to={`/admin/${namespaceId}/certificate/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View

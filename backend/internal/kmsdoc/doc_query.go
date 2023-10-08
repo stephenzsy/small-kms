@@ -46,42 +46,54 @@ func DefaultQueryGetWhereClause(string) string {
 	return ""
 }
 
+type CosmosQueryBuilder struct {
+	ExtraColumns      []string
+	ExtraWhereClauses []string
+	OrderBy           string
+	ExtraParameters   []azcosmos.QueryParameter
+}
+
+func (b *CosmosQueryBuilder) BuildQuery(kind models.ResourceKind) (string, []azcosmos.QueryParameter) {
+	sb := strings.Builder{}
+	sb.WriteString("SELECT ")
+	for i, column := range queryDefaultColumns {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		sb.WriteString("c.")
+		sb.WriteString(column)
+	}
+	for _, column := range b.ExtraColumns {
+		sb.WriteString(",c.")
+		sb.WriteString(column)
+	}
+	sb.WriteString(" FROM c WHERE c.kind = @kind")
+	for _, clause := range b.ExtraWhereClauses {
+		sb.WriteString(" AND (")
+		sb.WriteString(clause)
+		sb.WriteString(")")
+	}
+	if b.OrderBy != "" {
+		sb.WriteString(" ORDER BY ")
+		sb.WriteString(b.OrderBy)
+	}
+	return sb.String(), append([]azcosmos.QueryParameter{
+		{Name: "@kind", Value: string(kind)}}, b.ExtraParameters...)
+}
+
 func QueryItemsPager[D KmsDocument](
 	c common.ServiceContext,
 	nsID docNsIDType,
 	kind models.ResourceKind,
-	getColumns func(baseColumns []string) []string,
-	getWhereClause func(tableName string) string,
-	queryParameters []azcosmos.QueryParameter) *DocPager[D] {
+	getQueryBuilder func(tableName string) CosmosQueryBuilder) *DocPager[D] {
 	cc := common.GetClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
+	qb := getQueryBuilder("c")
+	query, queryParameters := qb.BuildQuery(kind)
 
-	queryBuilder := strings.Builder{}
-	queryBuilder.WriteString("SELECT ")
-	columns := getColumns(getDefaultQueryColumns())
-	for i, column := range columns {
-		if i > 0 {
-			queryBuilder.WriteString(",")
-		}
-		queryBuilder.WriteString("c.")
-		queryBuilder.WriteString(column)
-	}
-	queryBuilder.WriteString(" FROM c WHERE c.namespaceId = @namespaceId AND c.kind = @kind")
-	andClause := getWhereClause("c")
-	if andClause != "" {
-		queryBuilder.WriteString(" AND (")
-		queryBuilder.WriteString(andClause)
-		queryBuilder.WriteString(")")
-	}
-
-	qp := []azcosmos.QueryParameter{
-		{Name: "@kind", Value: string(kind)},
-		{Name: "@namespaceId", Value: nsID.String()}}
-	qp = append(qp, queryParameters...)
-
-	azPager := cc.NewQueryItemsPager(queryBuilder.String(),
+	azPager := cc.NewQueryItemsPager(query,
 		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: qp,
+			QueryParameters: queryParameters,
 		})
 
 	return &DocPager[D]{innerPager: azPager}

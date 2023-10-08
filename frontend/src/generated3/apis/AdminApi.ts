@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   CertificateInfo,
+  CertificateRef,
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateTemplateRef,
@@ -27,6 +28,8 @@ import type {
 import {
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
+    CertificateRefFromJSON,
+    CertificateRefToJSON,
     CertificateTemplateFromJSON,
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
@@ -64,6 +67,12 @@ export interface IssueCertificateFromTemplateRequest {
 export interface ListCertificateTemplatesRequest {
     profileType: NamespaceKind;
     profileId: string;
+}
+
+export interface ListCertificatesByTemplateRequest {
+    profileType: NamespaceKind;
+    profileId: string;
+    templateId: string;
 }
 
 export interface ListProfilesRequest {
@@ -158,7 +167,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profile/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -208,7 +217,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}/certificate`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -250,7 +259,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/{profileType}/{profileId}/certificate-templates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -268,11 +277,19 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * List profiles by type
+     * List certificates issued by template
      */
-    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
+    async listCertificatesByTemplateRaw(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
         if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listProfiles.');
+            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listCertificatesByTemplate.');
+        }
+
+        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
+            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling listCertificatesByTemplate.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling listCertificatesByTemplate.');
         }
 
         const queryParameters: any = {};
@@ -288,7 +305,49 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))),
+            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRefFromJSON));
+    }
+
+    /**
+     * List certificates issued by template
+     */
+    async listCertificatesByTemplate(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
+        const response = await this.listCertificatesByTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List profiles by type
+     */
+    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
+        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
+            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listProfiles.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.profileType !== undefined) {
+            queryParameters['profileType'] = requestParameters.profileType;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/profiles`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -383,7 +442,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profile/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

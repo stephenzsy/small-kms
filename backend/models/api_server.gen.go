@@ -13,27 +13,30 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List profiles by type
-	// (GET /v3/{profileType})
-	ListProfiles(c *gin.Context, profileType ProfileTypeParameter)
 	// Get namespace info with ms graph
-	// (GET /v3/{profileType}/{profileId})
+	// (GET /v3/profile/{profileType}/{profileId})
 	GetProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
 	// Sync namespace info with ms graph
-	// (POST /v3/{profileType}/{profileId})
+	// (POST /v3/profile/{profileType}/{profileId})
 	SyncProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
-	// List certificate templates
-	// (GET /v3/{profileType}/{profileId}/certificate-template)
-	ListCertificateTemplates(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
+	// List profiles by type
+	// (GET /v3/profiles)
+	ListProfiles(c *gin.Context, params ListProfilesParams)
 	// Get certificate template
 	// (GET /v3/{profileType}/{profileId}/certificate-template/{templateId})
 	GetCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
 	// Put certificate template
 	// (PUT /v3/{profileType}/{profileId}/certificate-template/{templateId})
 	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
+	// List certificates issued by template
+	// (GET /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates)
+	ListCertificatesByTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
 	// Create certificate
-	// (POST /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificate)
+	// (POST /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates)
 	IssueCertificateFromTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams)
+	// List certificate templates
+	// (GET /v3/{profileType}/{profileId}/certificate-templates)
+	ListCertificateTemplates(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -44,32 +47,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// ListProfiles operation middleware
-func (siw *ServerInterfaceWrapper) ListProfiles(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "profileType" -------------
-	var profileType ProfileTypeParameter
-
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListProfiles(c, profileType)
-}
 
 // GetProfile operation middleware
 func (siw *ServerInterfaceWrapper) GetProfile(c *gin.Context) {
@@ -141,30 +118,30 @@ func (siw *ServerInterfaceWrapper) SyncProfile(c *gin.Context) {
 	siw.Handler.SyncProfile(c, profileType, profileId)
 }
 
-// ListCertificateTemplates operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificateTemplates(c *gin.Context) {
+// ListProfiles operation middleware
+func (siw *ServerInterfaceWrapper) ListProfiles(c *gin.Context) {
 
 	var err error
 
-	// ------------- Path parameter "profileType" -------------
-	var profileType ProfileTypeParameter
+	c.Set(BearerAuthScopes, []string{})
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListProfilesParams
+
+	// ------------- Required query parameter "profileType" -------------
+
+	if paramValue := c.Query("profileType"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument profileType is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "profileType", c.Request.URL.Query(), &params.ProfileType)
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
 		return
 	}
-
-	// ------------- Path parameter "profileId" -------------
-	var profileId ProfileIdentifierParameter
-
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -173,7 +150,7 @@ func (siw *ServerInterfaceWrapper) ListCertificateTemplates(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ListCertificateTemplates(c, profileType, profileId)
+	siw.Handler.ListProfiles(c, params)
 }
 
 // GetCertificateTemplate operation middleware
@@ -264,6 +241,50 @@ func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
 	siw.Handler.PutCertificateTemplate(c, profileType, profileId, templateId)
 }
 
+// ListCertificatesByTemplate operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificatesByTemplate(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "profileType" -------------
+	var profileType ProfileTypeParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId CertificateTemplateIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCertificatesByTemplate(c, profileType, profileId, templateId)
+}
+
 // IssueCertificateFromTemplate operation middleware
 func (siw *ServerInterfaceWrapper) IssueCertificateFromTemplate(c *gin.Context) {
 
@@ -319,6 +340,41 @@ func (siw *ServerInterfaceWrapper) IssueCertificateFromTemplate(c *gin.Context) 
 	siw.Handler.IssueCertificateFromTemplate(c, profileType, profileId, templateId, params)
 }
 
+// ListCertificateTemplates operation middleware
+func (siw *ServerInterfaceWrapper) ListCertificateTemplates(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "profileType" -------------
+	var profileType ProfileTypeParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "profileId" -------------
+	var profileId ProfileIdentifierParameter
+
+	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCertificateTemplates(c, profileType, profileId)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -346,11 +402,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/v3/:profileType", wrapper.ListProfiles)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileId", wrapper.GetProfile)
-	router.POST(options.BaseURL+"/v3/:profileType/:profileId", wrapper.SyncProfile)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template", wrapper.ListCertificateTemplates)
+	router.GET(options.BaseURL+"/v3/profile/:profileType/:profileId", wrapper.GetProfile)
+	router.POST(options.BaseURL+"/v3/profile/:profileType/:profileId", wrapper.SyncProfile)
+	router.GET(options.BaseURL+"/v3/profiles", wrapper.ListProfiles)
 	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
-	router.POST(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificate", wrapper.IssueCertificateFromTemplate)
+	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
+	router.POST(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.IssueCertificateFromTemplate)
+	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-templates", wrapper.ListCertificateTemplates)
 }

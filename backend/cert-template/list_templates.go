@@ -1,7 +1,6 @@
 package certtemplate
 
 import (
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -20,9 +19,6 @@ func getTemplateReservedDefault(nsID models.NamespaceID, id common.Identifier) *
 
 // ListCertificateTemplates implements CertificateTemplateService.
 func ListCertificateTemplates(c common.ServiceContext) ([]*models.CertificateTemplateRefComposed, error) {
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return nil, err
-	}
 
 	nsc := ns.GetNamespaceContext(c)
 	nsID := nsc.GetID()
@@ -30,11 +26,11 @@ func ListCertificateTemplates(c common.ServiceContext) ([]*models.CertificateTem
 	itemsPager := kmsdoc.QueryItemsPager[*CertificateTemplateDoc](c,
 		nsID,
 		models.ResourceKindCertTemplate,
-		func(items []string) []string {
-			return append(items, "subjectCn")
-		},
-		kmsdoc.DefaultQueryGetWhereClause,
-		nil)
+		func(tbl string) kmsdoc.CosmosQueryBuilder {
+			return kmsdoc.CosmosQueryBuilder{
+				ExtraColumns: []string{"subjectCn"},
+			}
+		})
 	mappedPager := utils.NewMappedPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
 		return doc.toModelRef()
 	})

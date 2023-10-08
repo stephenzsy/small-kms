@@ -8,9 +8,13 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v3/{profileType}:
+  /v3/profiles:
     parameters:
-      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - in: query
+        name: profileType
+        schema:
+          $ref: "#/components/schemas/NamespaceKind"
+        required: true
     get:
       tags:
         - admin
@@ -25,7 +29,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v3/{profileType}/{profileId}:
+  /v3/profile/{profileType}/{profileId}:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
@@ -53,7 +57,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
-  /v3/{profileType}/{profileId}/certificate-template:
+  /v3/{profileType}/{profileId}/certificate-templates:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
@@ -106,11 +110,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
-  /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificate:
+  /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: List certificates issued by template
+      operationId: ListCertificatesByTemplate
+      responses:
+        200:
+          description: CertificateResponse
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CertificateRef"
     post:
       parameters:
         - $ref: "#/components/parameters/IncludeCertificateParameter"
@@ -190,10 +208,6 @@ components:
         name: kmscommon
         path: github.com/stephenzsy/small-kms/backend/common
       x-go-type: kmscommon.Locator[NamespaceKind, ResourceKind]
-    ResourceMetadata:
-      type: object
-      additionalProperties:
-        type: string
     ResourceRef:
       type: object
       properties:
@@ -213,7 +227,9 @@ components:
           type: string
           format: date-time
         metadata:
-          $ref: "#/components/schemas/ResourceMetadata"
+          type: object
+          additionalProperties: true
+          x-go-type-skip-optional-pointer: true
       required:
         - id
         - locator

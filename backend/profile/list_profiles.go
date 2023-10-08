@@ -35,12 +35,13 @@ func ListProfiles(c common.ServiceContext, profileType models.NamespaceKind) ([]
 	itemsPager := kmsdoc.QueryItemsPager[*ProfileDoc](c,
 		docNsIDProfileTenant,
 		models.ResourceKindMsGraph,
-		func(items []string) []string {
-			return append(items, "displayName")
-		}, func(tbl string) string {
-			return tbl + ".profileType = @profileType"
-		}, []azcosmos.QueryParameter{
-			{Name: "@profileType", Value: profileType},
+		func(tbl string) kmsdoc.CosmosQueryBuilder {
+			return kmsdoc.CosmosQueryBuilder{
+				ExtraColumns:      []string{"profileType"},
+				ExtraWhereClauses: []string{tbl + ".profileType = @profileType"},
+				ExtraParameters: []azcosmos.QueryParameter{
+					{Name: "@profileType", Value: profileType},
+				}}
 		})
 	allItems, err := utils.PagerAllItems[*models.ProfileRefComposed](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRefComposed {
 		return doc.toModel()

@@ -22,7 +22,8 @@ export const ResourceKind = {
     ResourceKindCaInt: 'ca-int',
     ResourceKindMsGraph: 'ms-graph',
     ResourceKindCertTemplate: 'cert-template',
-    ResourceKindCert: 'cert'
+    ResourceKindCert: 'cert',
+    ResourceKindLatestCertForTemplate: 'latest-cert-for-template'
 } as const;
 export type ResourceKind = typeof ResourceKind[keyof typeof ResourceKind];
 

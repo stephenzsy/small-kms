@@ -105,3 +105,27 @@ func (s *server) IssueCertificateFromTemplate(c *gin.Context,
 	})()
 	wrapResponse(c, http.StatusOK, respData, respErr)
 }
+
+// ListCertificatesByTemplate implements models.ServerInterface.
+func (s *server) ListCertificatesByTemplate(c *gin.Context,
+	profileType models.NamespaceKind,
+	profileId common.Identifier,
+	templateID common.Identifier) {
+	respData, respErr := (func() ([]*models.CertificateRefComposed, error) {
+		if err := auth.AuthorizeAdminOnly(c); err != nil {
+			return nil, err
+		}
+
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
+		if err != nil {
+			return nil, err
+		}
+		sc, err = ct.WithCertificateTemplateContext(sc, templateID)
+		if err != nil {
+			return nil, err
+		}
+		return cert.ListCertificatesByTemplate(sc)
+	})()
+	wrapResponse(c, http.StatusOK, respData, respErr)
+}

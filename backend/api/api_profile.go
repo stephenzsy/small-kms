@@ -11,14 +11,15 @@ import (
 )
 
 // ListProfiles implements models.ServerInterface.
-func (s *server) ListProfiles(c *gin.Context, profileType models.NamespaceKind) {
+func (s *server) ListProfiles(c *gin.Context, params models.ListProfilesParams) {
 	respData, respErr := (func() ([]*models.ProfileRefComposed, error) {
 
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 		sc := s.ServiceContext(c)
-		return profile.ListProfiles(sc, profileType)
+
+		return profile.ListProfiles(sc, params.ProfileType)
 	})()
 	wrapResponse(c, http.StatusOK, respData, respErr)
 }

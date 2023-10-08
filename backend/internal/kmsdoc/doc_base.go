@@ -69,14 +69,12 @@ func (doc *BaseDoc) setAliasToWithETag(target models.ResourceLocator, etag azcor
 	doc.AliasToETag = &etag
 }
 
-func getDefaultQueryColumns() []string {
-	return []string{
-		"namespaceId",
-		"id",
-		"updated",
-		"deleted",
-		"updatedBy",
-	}
+var queryDefaultColumns = []string{
+	"namespaceId",
+	"id",
+	"updated",
+	"deleted",
+	"updatedBy",
 }
 
 // GetID implements KmsDocument.
