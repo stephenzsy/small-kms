@@ -75,8 +75,8 @@ func (p *azKeysSelfSignerProvider) Certificate() *x509.Certificate {
 	return p.cert
 }
 
-// ExtraCertificatesInChain implements SignerProvider.
-func (*azKeysSelfSignerProvider) ExtraCertificatesInChain() [][]byte {
+// CertificatesInChain implements SignerProvider.
+func (*azKeysSelfSignerProvider) CertificatesInChain() [][]byte {
 	return nil
 }
 

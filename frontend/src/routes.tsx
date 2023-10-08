@@ -43,28 +43,33 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminPage /> },
           {
-            path: ":profileType/:namespaceId",
-            element: (
-              <NamespaceContextProvider>
-                <Outlet />
-              </NamespaceContextProvider>
-            ),
+            path: ":profileType",
             children: [
-              { index: true, element: <NamespacePage /> },
               {
-                path: "certificate-templates/:templateId",
+                path: ":namespaceId",
+                element: (
+                  <NamespaceContextProvider>
+                    <Outlet />
+                  </NamespaceContextProvider>
+                ),
                 children: [
-                  { index: true, element: <CertificateTemplatePage /> },
+                  { index: true, element: <NamespacePage /> },
                   {
-                    path: "certificates/:certId",
+                    path: "certificate-templates/:templateId",
+                    children: [
+                      { index: true, element: <CertificateTemplatePage /> },
+                      {
+                        path: "certificates/:certId",
+                      },
+                    ],
                   },
                 ],
               },
+              {
+                path: "register",
+                element: <RegisterPage />,
+              },
             ],
-          },
-          {
-            path: "register",
-            element: <RegisterPage />,
           },
           {
             path: "enroll",

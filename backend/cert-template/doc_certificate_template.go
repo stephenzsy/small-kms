@@ -5,16 +5,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
-type CertificateTemplateFlag string
-
-const (
-	CertTmplFlagRestrictKtyRsa CertificateTemplateFlag = "kty-rsa"
-	CertTmplFlagDelegate       CertificateTemplateFlag = "delegate"
-	CertTmplFlagTest           CertificateTemplateFlag = "test"
-	CertTmplFlagHasKeyStore    CertificateTemplateFlag = "use-key-store"
-	CertTmplFlagKeyExportable  CertificateTemplateFlag = "key-exportable"
-)
-
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
 

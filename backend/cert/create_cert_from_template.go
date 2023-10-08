@@ -68,13 +68,19 @@ func issueCertificate(c common.ServiceContext,
 	var storageProvider StorageProvider = &azBlobStorageProvider{
 		blobKey: fmt.Sprintf("%s/%s.pem", *certDoc.KeyStorePath, certDoc.ID.Identifier()),
 	}
-	// now need to load signer certificate
+
+	switch nsID.Kind() {
+	case models.NamespaceKindServicePrincipal:
+		certDoc.CertSpec.keyExportable = true
+	default:
+		certDoc.CertSpec.keyExportable = false
+	}
+
 	switch nsID.Kind() {
 	case models.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
 		}
-		certDoc.CertSpec.keyExportable = false
 		selfSignProvider := newAzKeysSelfSignerProvider(certDoc)
 		signerProvider = selfSignProvider
 		csrProvider = selfSignProvider

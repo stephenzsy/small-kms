@@ -139,8 +139,8 @@ func (p *azKeysExistingCertSigner) CertificateChainPEM() []byte {
 	return p.certChainPemBlob
 }
 
-// ExtraCertificatesInChain implements SignerProvider.
-func (p *azKeysExistingCertSigner) ExtraCertificatesInChain() [][]byte {
+// CertificatesInChain implements SignerProvider.
+func (p *azKeysExistingCertSigner) CertificatesInChain() [][]byte {
 	return p.restX5c
 }
 
@@ -159,13 +159,15 @@ func (p *azKeysExistingCertSigner) LoadSigner(c common.ServiceContext) (signer c
 	if err != nil {
 		return nil, err
 	}
-	block, rest := pem.Decode(p.certChainPemBlob)
-	p.issuerCert, err = x509.ParseCertificate(block.Bytes)
+
+	p.restX5c = make([][]byte, 0, 2)
+	for block, rest := pem.Decode(p.certChainPemBlob); block != nil; block, rest = pem.Decode(rest) {
+		p.restX5c = append(p.restX5c, block.Bytes)
+	}
+
+	p.issuerCert, err = x509.ParseCertificate(p.restX5c[0])
 	if err != nil {
 		return nil, err
-	}
-	for block, rest = pem.Decode(rest); block != nil; block, rest = pem.Decode(rest) {
-		p.restX5c = append(p.restX5c, block.Bytes)
 	}
 
 	p.keyVaultSigner = &keyVaultSigner{

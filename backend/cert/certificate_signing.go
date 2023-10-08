@@ -30,7 +30,7 @@ type SignerProvider interface {
 	Locator() models.ResourceLocator
 	GetIssuerCertStorePath() string
 	CertificateChainPEM() []byte
-	ExtraCertificatesInChain() [][]byte
+	CertificatesInChain() [][]byte
 	X509SigningAlg() x509.SignatureAlgorithm
 }
 
@@ -66,7 +66,7 @@ func signCertificate(c common.ServiceContext,
 	if err != nil {
 		return nil, err
 	}
-	fullChain := append([][]byte{certCreated}, signerProvider.ExtraCertificatesInChain()...)
+	fullChain := append([][]byte{certCreated}, signerProvider.CertificatesInChain()...)
 	err = csrProvider.CollectCertificateChain(fullChain, certJwkSpec)
 	if err != nil {
 		return nil, err
