@@ -17,8 +17,8 @@ func (s *server) ListProfiles(c *gin.Context, profileType models.NamespaceKind) 
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
-
-		return profile.ListProfiles(c, profileType)
+		sc := s.ServiceContext(c)
+		return profile.ListProfiles(sc, profileType)
 	})()
 	wrapResponse(c, http.StatusOK, respData, respErr)
 }
@@ -30,8 +30,8 @@ func (s *server) GetProfile(c *gin.Context, profileType models.NamespaceKind, id
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
-
-		sc, err := ns.WithNamespaceContext(c, profileType, identifier)
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, identifier)
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +48,8 @@ func (s *server) SyncProfile(c *gin.Context, profileType models.NamespaceKind, i
 			return nil, err
 		}
 
-		sc, err := ns.WithNamespaceContext(c, profileType, identifier)
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, identifier)
 		if err != nil {
 			return nil, err
 		}

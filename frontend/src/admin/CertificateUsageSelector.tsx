@@ -17,7 +17,7 @@ export function CertificateUsageSelector({
   inputType: "radio" | "checkbox";
   availableUsages?: CertificateUsage[];
   onChange: React.ChangeEventHandler<HTMLInputElement>;
-  isChecked(usage: CertificateUsage): boolean;
+  isChecked: (usage: CertificateUsage) => boolean;
   label?: React.ReactNode;
 }) {
   const idBase = useId();

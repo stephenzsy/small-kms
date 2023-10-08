@@ -105,6 +105,7 @@ func issueCertificate(c common.ServiceContext,
 
 	var csrProvider CertificateRequestProvider
 	var signerProvider SignerProvider
+	var storageProvider StorageProvider
 	// now need to load signer certificate
 	switch nsID.Kind() {
 	case models.NamespaceKindCaRoot:
@@ -112,16 +113,20 @@ func issueCertificate(c common.ServiceContext,
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
 		}
 		certDoc.CertSpec.keyExportable = false
-		signerProvider = &azKeysSelfSignerProvider{
+		selfSignProvider := &azKeysSelfSignerProvider{
 			keyStorePath: *certDoc.KeyStorePath,
 			certSpec:     certDoc.CertSpec,
 			notAfter:     certDoc.NotAfter.Time(),
 		}
-		csrProvider = signerProvider.(CertificateRequestProvider)
+		signerProvider = selfSignProvider
+		csrProvider = selfSignProvider
+		storageProvider = &azBlobStorageProvider{
+			blobKey: fmt.Sprintf("%s/%s.pem", *certDoc.KeyStorePath, certDoc.ID.Identifier()),
+		}
 		// root is self signed, no need to load signer certificate
 	}
 
-	_, err := signCertificate(c, csrProvider, signerProvider, certDoc, nil)
+	_, err := signCertificate(c, csrProvider, signerProvider, certDoc, storageProvider)
 	if err != nil {
 		return nil, err
 	}

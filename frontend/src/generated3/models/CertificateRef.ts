@@ -13,87 +13,94 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-
 /**
  * 
  * @export
- * @interface Profile
+ * @interface CertificateRef
  */
-export interface Profile {
+export interface CertificateRef {
     /**
      * Identifier of the resource
      * @type {string}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     id: string;
     /**
      * 
      * @type {string}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     locator: string;
     /**
      * Time when the resoruce was last updated
      * @type {Date}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     updated?: Date;
     /**
      * 
      * @type {string}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     updatedBy?: string;
     /**
      * Time when the deleted was deleted
      * @type {Date}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     deleted?: Date;
     /**
      * 
      * @type {{ [key: string]: string; }}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
     metadata?: { [key: string]: string; };
     /**
-     * 
-     * @type {NamespaceKind}
-     * @memberof Profile
-     */
-    type: NamespaceKind;
-    /**
-     * Display name of the resource
+     * X.509 certificate SHA-1 thumbprint
      * @type {string}
-     * @memberof Profile
+     * @memberof CertificateRef
      */
-    displayName: string;
+    thumbprint: string;
+    /**
+     * Common name
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    subjectCommonName: string;
+    /**
+     * Expiration date of the certificate
+     * @type {Date}
+     * @memberof CertificateRef
+     */
+    notAfter: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    template: string;
 }
 
 /**
- * Check if a given object implements the Profile interface.
+ * Check if a given object implements the CertificateRef interface.
  */
-export function instanceOfProfile(value: object): boolean {
+export function instanceOfCertificateRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "locator" in value;
-    isInstance = isInstance && "type" in value;
-    isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "thumbprint" in value;
+    isInstance = isInstance && "subjectCommonName" in value;
+    isInstance = isInstance && "notAfter" in value;
+    isInstance = isInstance && "template" in value;
 
     return isInstance;
 }
 
-export function ProfileFromJSON(json: any): Profile {
-    return ProfileFromJSONTyped(json, false);
+export function CertificateRefFromJSON(json: any): CertificateRef {
+    return CertificateRefFromJSONTyped(json, false);
 }
 
-export function ProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): Profile {
+export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateRef {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -105,12 +112,14 @@ export function ProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
-        'type': NamespaceKindFromJSON(json['type']),
-        'displayName': json['displayName'],
+        'thumbprint': json['thumbprint'],
+        'subjectCommonName': json['subjectCommonName'],
+        'notAfter': (new Date(json['notAfter'])),
+        'template': json['template'],
     };
 }
 
-export function ProfileToJSON(value?: Profile | null): any {
+export function CertificateRefToJSON(value?: CertificateRef | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -125,8 +134,10 @@ export function ProfileToJSON(value?: Profile | null): any {
         'updatedBy': value.updatedBy,
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
-        'type': NamespaceKindToJSON(value.type),
-        'displayName': value.displayName,
+        'thumbprint': value.thumbprint,
+        'subjectCommonName': value.subjectCommonName,
+        'notAfter': (value.notAfter.toISOString()),
+        'template': value.template,
     };
 }
 

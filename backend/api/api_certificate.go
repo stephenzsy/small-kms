@@ -20,7 +20,8 @@ func (s *server) GetCertificateTemplate(c *gin.Context, profileType models.Names
 			return nil, err
 		}
 
-		sc, err := ns.WithNamespaceContext(c, profileType, profileId)
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +50,8 @@ func (s *server) PutCertificateTemplate(c *gin.Context,
 			return nil, fmt.Errorf("%w: invalid input body", common.ErrStatusBadRequest)
 		}
 
-		sc, err := ns.WithNamespaceContext(c, profileType, profileId)
+		sc := s.ServiceContext(c)
+		sc, err = ns.WithNamespaceContext(sc, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +71,8 @@ func (s *server) ListCertificateTemplates(c *gin.Context, profileType models.Nam
 			return nil, err
 		}
 
-		sc, err := ns.WithNamespaceContext(c, profileType, profileId)
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +92,8 @@ func (s *server) IssueCertificateFromTemplate(c *gin.Context,
 			return nil, err
 		}
 
-		sc, err := ns.WithNamespaceContext(c, profileType, profileId)
+		sc := s.ServiceContext(c)
+		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}

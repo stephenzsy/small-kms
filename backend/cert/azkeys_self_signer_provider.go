@@ -110,7 +110,12 @@ func (p *azKeysSelfSignerProvider) GetSigner(c common.ServiceContext) (crypto.Si
 	}
 	jwk := keyResp.Key
 
-	return newKeyVaultSigner(c, client, jwk, signingAlg)
+	signer, err := newKeyVaultSigner(c, client, jwk, signingAlg)
+	if err != nil {
+		return nil, err
+	}
+	p.signer = signer
+	return signer, nil
 }
 
 var _ SignerProvider = (*azKeysSelfSignerProvider)(nil)

@@ -38,6 +38,7 @@ type HexStringStroable []byte
 
 // MarshalText implements encoding.TextMarshaler.
 func (s HexStringStroable) MarshalText() (text []byte, _ error) {
+	text = make([]byte, hex.EncodedLen(len(s)))
 	hex.Encode(text, s)
 	return
 }

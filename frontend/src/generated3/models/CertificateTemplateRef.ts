@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { ResourceMetadata } from './ResourceMetadata';
-import {
-    ResourceMetadataFromJSON,
-    ResourceMetadataFromJSONTyped,
-    ResourceMetadataToJSON,
-} from './ResourceMetadata';
-
 /**
  * 
  * @export
@@ -33,17 +26,41 @@ export interface CertificateTemplateRef {
      */
     id: string;
     /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplateRef
+     */
+    locator: string;
+    /**
+     * Time when the resoruce was last updated
+     * @type {Date}
+     * @memberof CertificateTemplateRef
+     */
+    updated?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplateRef
+     */
+    updatedBy?: string;
+    /**
+     * Time when the deleted was deleted
+     * @type {Date}
+     * @memberof CertificateTemplateRef
+     */
+    deleted?: Date;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CertificateTemplateRef
+     */
+    metadata?: { [key: string]: string; };
+    /**
      * Common name
      * @type {string}
      * @memberof CertificateTemplateRef
      */
     subjectCommonName: string;
-    /**
-     * 
-     * @type {ResourceMetadata}
-     * @memberof CertificateTemplateRef
-     */
-    metadata?: ResourceMetadata;
 }
 
 /**
@@ -52,6 +69,7 @@ export interface CertificateTemplateRef {
 export function instanceOfCertificateTemplateRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "locator" in value;
     isInstance = isInstance && "subjectCommonName" in value;
 
     return isInstance;
@@ -68,8 +86,12 @@ export function CertificateTemplateRefFromJSONTyped(json: any, ignoreDiscriminat
     return {
         
         'id': json['id'],
+        'locator': json['locator'],
+        'updated': !exists(json, 'updated') ? undefined : (new Date(json['updated'])),
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
+        'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
         'subjectCommonName': json['subjectCommonName'],
-        'metadata': !exists(json, 'metadata') ? undefined : ResourceMetadataFromJSON(json['metadata']),
     };
 }
 
@@ -83,8 +105,12 @@ export function CertificateTemplateRefToJSON(value?: CertificateTemplateRef | nu
     return {
         
         'id': value.id,
+        'locator': value.locator,
+        'updated': value.updated === undefined ? undefined : (value.updated.toISOString()),
+        'updatedBy': value.updatedBy,
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
+        'metadata': value.metadata,
         'subjectCommonName': value.subjectCommonName,
-        'metadata': ResourceMetadataToJSON(value.metadata),
     };
 }
 

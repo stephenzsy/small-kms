@@ -14,7 +14,7 @@ import {
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateUsage,
-  ProfileType,
+  NamespaceKind,
 } from "../generated3";
 import {
   ValueState,
@@ -41,7 +41,7 @@ export interface CertificateTemplateFormState {
 
 export function useCertificateTemplateFormState(
   certTemplate: CertificateTemplate | undefined,
-  nsType: ProfileType | undefined,
+  nsType: NamespaceKind | undefined,
   nsId: string,
   templateId: string
 ): CertificateTemplateFormState {
@@ -53,9 +53,9 @@ export function useCertificateTemplateFormState(
 
   const fixedIssuerNamespaceId = useMemo(() => {
     switch (nsType) {
-      case NamespaceTypeShortName.NSType_RootCA:
+      case NamespaceKind.NamespaceKindCaRoot:
         return nsId;
-      case NamespaceTypeShortName.NSType_IntCA:
+      case NamespaceKind.NamespaceKindCaInt:
         return nsId === WellknownId.nsTestIntCa
           ? WellknownId.nsTestRootCa
           : WellknownId.nsRootCa;
@@ -84,12 +84,12 @@ export function useCertificateTemplateFormState(
             CertificateUsage.CertUsageClientAuth,
           ])
       ),
-      nsType == ProfileType.ProfileTypeRootCA
+      nsType == NamespaceKind.NamespaceKindCaRoot
         ? new Set([
             CertificateUsage.CertUsageCA,
             CertificateUsage.CertUsageCARoot,
           ])
-        : nsType == ProfileType.ProfileTypeIntermediateCA
+        : nsType == NamespaceKind.NamespaceKindCaInt
         ? new Set([CertificateUsage.CertUsageCA])
         : templateId == "default-ms-entra-client-creds"
         ? new Set([
@@ -352,7 +352,7 @@ export default function CertificateTemplatePage() {
   const { namespaceId, templateId, profileType } = useParams() as {
     namespaceId: string;
     templateId: string;
-    profileType: ProfileType;
+    profileType: NamespaceKind;
   };
 
   const adminApiOld = useAuthedClientOld(AdminApiOld);
@@ -386,6 +386,17 @@ export default function CertificateTemplatePage() {
     { refreshDeps: [namespaceId, templateId] }
   );
 
+  const { run: issueCert } = useRequest(
+    async () => {
+      await adminApi.issueCertificateFromTemplate({
+        profileId: namespaceId,
+        templateId,
+        profileType,
+      });
+    },
+    { manual: true }
+  );
+
   const state = useCertificateTemplateFormState(
     data,
     profileType,
@@ -398,15 +409,6 @@ export default function CertificateTemplatePage() {
       e.preventDefault();
 
       run({
-        issuer: {
-          profileId: state.issuerNamespaceId.value,
-          profileType:
-            profileType === ProfileType.ProfileTypeRootCA ||
-            profileType === ProfileType.ProfileTypeIntermediateCA
-              ? NamespaceTypeShortName.NSType_RootCA
-              : NamespaceTypeShortName.NSType_IntCA,
-          templateId: state.issuerTemplateId.value,
-        },
         subjectCommonName: state.subjectCN.value,
         usages: [...state.certUsages.value],
         keyStorePath: state.keyStorePath.value,
@@ -453,6 +455,11 @@ export default function CertificateTemplatePage() {
           </Link>
         )}
       />
+      <div className="rounded-lg bg-white shadow p-6 space-y-6">
+        <Button variant="primary" onClick={issueCert}>
+          Request certificate
+        </Button>
+      </div>
       <div className="rounded-lg bg-white shadow p-6 space-y-6">
         <h2>Current policy</h2>
         {loading ? (

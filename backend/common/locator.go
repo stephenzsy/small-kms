@@ -47,7 +47,7 @@ func (l *Locator[NK, K]) UnmarshalText(text []byte) error {
 	if len(parts) != 2 {
 		return fmt.Errorf("%w:%s", ErrInvalidLocator, text)
 	}
-	l = &Locator[NK, K]{}
+	*l = Locator[NK, K]{}
 	err := l.nsID.UnmarshalText(parts[0])
 	if err != nil {
 		return fmt.Errorf("%w:%w", ErrInvalidLocator, err)

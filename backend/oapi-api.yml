@@ -2,6 +2,9 @@ openapi: 3.0.3
 info:
   title: Small KMS Admin API Shared
   version: 0.1.1
+servers:
+  - url: https://example.com
+    description: Local server
 security:
   - BearerAuth: []
 paths:
@@ -173,54 +176,18 @@ components:
         name: kmscommon
         path: github.com/stephenzsy/small-kms/backend/common
       x-go-type: kmscommon.IdentifierWithKind[NamespaceKind]
-      properties:
-        kind:
-          $ref: "#/components/schemas/NamespaceKind"
-        identifier:
-          $ref: "#/components/schemas/Identifier"
-      required:
-        - kind
-        - identifier
     IdentifierWithResourceKind:
       type: string
       x-go-type-import:
         name: kmscommon
         path: github.com/stephenzsy/small-kms/backend/common
       x-go-type: kmscommon.IdentifierWithKind[ResourceKind]
-      properties:
-        kind:
-          $ref: "#/components/schemas/ResourceKind"
-        identifier:
-          $ref: "#/components/schemas/Identifier"
-      required:
-        - kind
-        - identifier
     ResourceLocator:
       type: string
       x-go-type-import:
         name: kmscommon
         path: github.com/stephenzsy/small-kms/backend/common
       x-go-type: kmscommon.Locator[NamespaceKind, ResourceKind]
-      properties:
-        namespaceId:
-          $ref: "#/components/schemas/IdentifierWithNamespaceKind"
-        id:
-          $ref: "#/components/schemas/IdentifierWithResourceKind"
-      required:
-        - namespaceId
-        - id
-    ResourceType:
-      type: string
-      enum:
-        - profile
-        - certificate-template
-        - certificate
-        - certificate-enrollment-receipt
-      x-enum-varnames:
-        - ResourceTypeProfile
-        - ResourceTypeCertificateTemplate
-        - ResourceTypeCertificate
-        - ResourceTypeCertificateEnrollmentReceipt
     ResourceMetadata:
       type: object
       additionalProperties:
@@ -389,21 +356,6 @@ components:
           x-go-name: LifetimePercentage
           type: integer
           format: int32
-    CertificateIssuer:
-      type: object
-      properties:
-        profileType:
-          $ref: "#/components/schemas/NamespaceKind"
-        profileId:
-          $ref: "#/components/schemas/Identifier"
-        templateId:
-          $ref: "#/components/schemas/Identifier"
-        certificateId:
-          description: Readonly certificate ID for issued certificate
-          $ref: "#/components/schemas/CertificateId"
-      required:
-        - profileType
-        - profileId
     CertificateTemplateRefFields:
       type: object
       properties:
@@ -484,9 +436,6 @@ components:
       x-enum-varnames:
         - IncludeJWK
         - IncludePEM
-    CertificateId:
-      type: string
-      format: uuid
     CertificateRefFields:
       type: object
       properties:

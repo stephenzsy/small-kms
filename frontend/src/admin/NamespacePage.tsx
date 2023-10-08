@@ -1,7 +1,7 @@
 import { useRequest } from "ahooks";
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { AdminApi, CertificateTemplateRef, ProfileType } from "../generated3";
+import { AdminApi, CertificateTemplateRef, NamespaceKind } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
@@ -28,7 +28,7 @@ function CertificateTemplatesList({
   nsType,
   namespaceId,
 }: {
-  nsType: ProfileType;
+  nsType: NamespaceKind;
   namespaceId: string;
 }) {
   const adminApi = useAuthedClient(AdminApi);
@@ -63,7 +63,7 @@ function CertificateTemplatesList({
 
 export default function NamespacePage() {
   const { namespaceId } = useParams() as {
-    profileType: ProfileType;
+    profileType: NamespaceKind;
     namespaceId: string;
   };
 
@@ -73,13 +73,13 @@ export default function NamespacePage() {
     <>
       <h1>{namespaceId}</h1>
       <div>{nsType}</div>
-      {(nsType === ProfileType.ProfileTypeRootCA ||
-        nsType === ProfileType.ProfileTypeIntermediateCA ||
-        nsType == ProfileType.ProfileTypeServicePrincipal ||
-        nsType == ProfileType.ProfileTypeDevice) && (
+      {(nsType === NamespaceKind.NamespaceKindCaRoot ||
+        nsType === NamespaceKind.NamespaceKindCaInt ||
+        nsType == NamespaceKind.NamespaceKindServicePrincipal ||
+        nsType == NamespaceKind.NamespaceKindDevice) && (
         <CertificateTemplatesList nsType={nsType} namespaceId={namespaceId} />
       )}
-      {nsType === ProfileType.ProfileTypeDevice && (
+      {nsType === NamespaceKind.NamespaceKindDevice && (
         <DeviceServicePrincipalLink namespaceId={namespaceId} />
       )}
     </>

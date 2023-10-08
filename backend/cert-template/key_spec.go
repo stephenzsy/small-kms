@@ -20,6 +20,7 @@ func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk Ce
 	case models.KeyTypeRSA:
 		k.KeySize = dk.KeySize
 		k.Crv = nil
+		k.Alg = dk.Alg
 	case models.KeyTypeEC:
 		k.Crv = dk.Crv
 		k.KeySize = nil

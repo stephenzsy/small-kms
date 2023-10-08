@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { CertificateLifetimeTrigger } from './CertificateLifetimeTrigger';
-import {
-    CertificateLifetimeTriggerFromJSON,
-    CertificateLifetimeTriggerFromJSONTyped,
-    CertificateLifetimeTriggerToJSON,
-} from './CertificateLifetimeTrigger';
 import type { CertificateUsage } from './CertificateUsage';
 import {
     CertificateUsageFromJSON,
@@ -35,111 +29,125 @@ import {
 /**
  * 
  * @export
- * @interface CertificateTemplate
+ * @interface CertificateInfo
  */
-export interface CertificateTemplate {
+export interface CertificateInfo {
     /**
      * Identifier of the resource
      * @type {string}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     id: string;
     /**
      * 
      * @type {string}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     locator: string;
     /**
      * Time when the resoruce was last updated
      * @type {Date}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     updated?: Date;
     /**
      * 
      * @type {string}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     updatedBy?: string;
     /**
      * Time when the deleted was deleted
      * @type {Date}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     deleted?: Date;
     /**
      * 
      * @type {{ [key: string]: string; }}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     metadata?: { [key: string]: string; };
     /**
+     * X.509 certificate SHA-1 thumbprint
+     * @type {string}
+     * @memberof CertificateInfo
+     */
+    thumbprint: string;
+    /**
      * Common name
      * @type {string}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     subjectCommonName: string;
     /**
-     * 
-     * @type {string}
-     * @memberof CertificateTemplate
+     * Expiration date of the certificate
+     * @type {Date}
+     * @memberof CertificateInfo
      */
-    issuerTemplate: string;
+    notAfter: Date;
     /**
      * 
-     * @type {JwkProperties}
-     * @memberof CertificateTemplate
+     * @type {string}
+     * @memberof CertificateInfo
      */
-    keyProperties: JwkProperties;
+    template: string;
+    /**
+     * Expiration date of the certificate
+     * @type {Date}
+     * @memberof CertificateInfo
+     */
+    notBefore: Date;
     /**
      * 
      * @type {Array<CertificateUsage>}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
     usages: Array<CertificateUsage>;
     /**
      * 
-     * @type {number}
-     * @memberof CertificateTemplate
+     * @type {string}
+     * @memberof CertificateInfo
      */
-    validityMonths: number;
+    issuer: string;
+    /**
+     * 
+     * @type {JwkProperties}
+     * @memberof CertificateInfo
+     */
+    jwk: JwkProperties;
     /**
      * 
      * @type {string}
-     * @memberof CertificateTemplate
+     * @memberof CertificateInfo
      */
-    keyStorePath?: string;
-    /**
-     * 
-     * @type {CertificateLifetimeTrigger}
-     * @memberof CertificateTemplate
-     */
-    lifetimeTrigger: CertificateLifetimeTrigger;
+    pem?: string;
 }
 
 /**
- * Check if a given object implements the CertificateTemplate interface.
+ * Check if a given object implements the CertificateInfo interface.
  */
-export function instanceOfCertificateTemplate(value: object): boolean {
+export function instanceOfCertificateInfo(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "locator" in value;
+    isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "subjectCommonName" in value;
-    isInstance = isInstance && "issuerTemplate" in value;
-    isInstance = isInstance && "keyProperties" in value;
+    isInstance = isInstance && "notAfter" in value;
+    isInstance = isInstance && "template" in value;
+    isInstance = isInstance && "notBefore" in value;
     isInstance = isInstance && "usages" in value;
-    isInstance = isInstance && "validityMonths" in value;
-    isInstance = isInstance && "lifetimeTrigger" in value;
+    isInstance = isInstance && "issuer" in value;
+    isInstance = isInstance && "jwk" in value;
 
     return isInstance;
 }
 
-export function CertificateTemplateFromJSON(json: any): CertificateTemplate {
-    return CertificateTemplateFromJSONTyped(json, false);
+export function CertificateInfoFromJSON(json: any): CertificateInfo {
+    return CertificateInfoFromJSONTyped(json, false);
 }
 
-export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateTemplate {
+export function CertificateInfoFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateInfo {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -151,17 +159,19 @@ export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator:
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
+        'thumbprint': json['thumbprint'],
         'subjectCommonName': json['subjectCommonName'],
-        'issuerTemplate': json['issuerTemplate'],
-        'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
+        'notAfter': (new Date(json['notAfter'])),
+        'template': json['template'],
+        'notBefore': (new Date(json['notBefore'])),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
-        'validityMonths': json['validity_months'],
-        'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
-        'lifetimeTrigger': CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
+        'issuer': json['issuer'],
+        'jwk': JwkPropertiesFromJSON(json['jwk']),
+        'pem': !exists(json, 'pem') ? undefined : json['pem'],
     };
 }
 
-export function CertificateTemplateToJSON(value?: CertificateTemplate | null): any {
+export function CertificateInfoToJSON(value?: CertificateInfo | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -176,13 +186,15 @@ export function CertificateTemplateToJSON(value?: CertificateTemplate | null): a
         'updatedBy': value.updatedBy,
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
+        'thumbprint': value.thumbprint,
         'subjectCommonName': value.subjectCommonName,
-        'issuerTemplate': value.issuerTemplate,
-        'keyProperties': JwkPropertiesToJSON(value.keyProperties),
+        'notAfter': (value.notAfter.toISOString()),
+        'template': value.template,
+        'notBefore': (value.notBefore.toISOString()),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
-        'validity_months': value.validityMonths,
-        'keyStorePath': value.keyStorePath,
-        'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
+        'issuer': value.issuer,
+        'jwk': JwkPropertiesToJSON(value.jwk),
+        'pem': value.pem,
     };
 }
 

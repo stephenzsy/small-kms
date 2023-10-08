@@ -57,7 +57,7 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		doc.Usages = intersect.Items()
 	}
 
-	if req.KeyProperties.Kty == models.KeyTypeEC && cap.RestrictKeyTypeRsa {
+	if req.KeyProperties != nil && req.KeyProperties.Kty == models.KeyTypeEC && cap.RestrictKeyTypeRsa {
 		return nil, fmt.Errorf("%w:invalid key type", common.ErrStatusBadRequest)
 	}
 	doc.KeySpec.initWithCreateTemplateInput(req.KeyProperties, CertKeySpec{

@@ -98,12 +98,18 @@ func (d *CertDoc) populateRef(dst *models.CertificateRefComposed) bool {
 }
 
 func (d *CertDoc) toModelRef() (r *models.CertificateRefComposed) {
+	if d == nil {
+		return nil
+	}
 	r = new(models.CertificateRefComposed)
 	d.populateRef(r)
 	return
 }
 
 func (d *CertDoc) toModel() *models.CertificateInfoComposed {
+	if d == nil {
+		return nil
+	}
 	r := new(models.CertificateInfoComposed)
 	d.populateRef(&r.CertificateRefComposed)
 	r.Issuer = d.Issuer

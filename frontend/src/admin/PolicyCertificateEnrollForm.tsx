@@ -1,7 +1,6 @@
 import { useMemoizedFn, useSetState } from "ahooks";
 import React from "react";
 import { CertificateUsage } from "../generated";
-import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { PolicyContext } from "./PolicyContext";
 
@@ -50,16 +49,6 @@ export function usePolicyCertEnrollFormState(): PolicyAadAppCredFormProps {
 }
 
 export function PolicyCertificateEnrollForm(props: PolicyAadAppCredFormProps) {
-  const { namespaceId } = React.useContext(PolicyContext);
-  const certUsageInputOnChange = useMemoizedFn<
-    (e: React.ChangeEvent<HTMLInputElement>) => void
-  >((e) => {
-    props.setCertificateUsages({ [e.target.value]: e.target.checked });
-  });
-
-  const certUsageIsChecked = useMemoizedFn((usage: CertificateUsage) => {
-    return !!props.certificateUsages[usage];
-  });
   return (
     <div className="divide-y divide-neutral-200 space-y-4">
       <h2 className="text-2xl font-semibold">Certificate Enrollment Policy</h2>
@@ -71,16 +60,6 @@ export function PolicyCertificateEnrollForm(props: PolicyAadAppCredFormProps) {
           placeholder="12"
           value={props.validityInMonths}
           onChange={props.setValidityInMonths as any}
-        />
-        <CertificateUsageSelector
-          inputType="checkbox"
-          onChange={certUsageInputOnChange}
-          isChecked={certUsageIsChecked}
-          label="Allowed certificate usages"
-          availableUsages={[
-            CertificateUsage.Usage_ServerAndClient,
-            CertificateUsage.Usage_ClientOnly,
-          ]}
         />
       </div>
     </div>

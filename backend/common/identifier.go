@@ -113,13 +113,13 @@ func UUIDIdentifierFromStringPtr(p *string) Identifier {
 var _ encoding.TextMarshaler = &Identifier{}
 var _ encoding.TextUnmarshaler = &Identifier{}
 
-func hasPartialPrefixFold(s, prefix string) bool {
-	cmpLen := len(prefix)
+func hasPrefixFold(s, prefix string) bool {
+	pLen := len(prefix)
 	sLen := len(s)
-	if sLen < cmpLen {
-		cmpLen = sLen
+	if sLen < pLen {
+		return false
 	}
-	return strings.EqualFold(s[:cmpLen], prefix[:cmpLen])
+	return strings.EqualFold(s[:pLen], prefix[:pLen])
 }
 
 func (identifier Identifier) HasReservedIDOrPrefix() bool {
@@ -130,8 +130,9 @@ func (identifier Identifier) HasReservedIDOrPrefix() bool {
 	if lenStr <= 3 {
 		return false
 	}
-	return hasPartialPrefixFold(identifier.strVal, "default") ||
-		hasPartialPrefixFold(identifier.strVal, "system")
+	return hasPrefixFold(identifier.strVal, "default") ||
+		hasPrefixFold(identifier.strVal, "system") ||
+		hasPrefixFold(identifier.strVal, "latest")
 }
 
 var identifierRegex = regexp.MustCompile("[A-Za-z0-9_-]+")

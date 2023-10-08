@@ -35,85 +35,81 @@ import {
 /**
  * Certificate fields, may accept template substitutions
  * @export
- * @interface CertificateTemplateParameters
+ * @interface CertificateTemplateFields
  */
-export interface CertificateTemplateParameters {
+export interface CertificateTemplateFields {
     /**
      * 
      * @type {string}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
-    issuerTemplate?: string;
+    issuerTemplate: string;
     /**
      * 
      * @type {JwkProperties}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
-    keyProperties?: JwkProperties;
-    /**
-     * Common name
-     * @type {string}
-     * @memberof CertificateTemplateParameters
-     */
-    subjectCommonName: string;
+    keyProperties: JwkProperties;
     /**
      * 
      * @type {Array<CertificateUsage>}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
     usages: Array<CertificateUsage>;
     /**
      * 
      * @type {number}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
-    validityMonths?: number;
+    validityMonths: number;
     /**
      * 
      * @type {string}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
     keyStorePath?: string;
     /**
      * 
      * @type {CertificateLifetimeTrigger}
-     * @memberof CertificateTemplateParameters
+     * @memberof CertificateTemplateFields
      */
-    lifetimeTrigger?: CertificateLifetimeTrigger;
+    lifetimeTrigger: CertificateLifetimeTrigger;
 }
 
 /**
- * Check if a given object implements the CertificateTemplateParameters interface.
+ * Check if a given object implements the CertificateTemplateFields interface.
  */
-export function instanceOfCertificateTemplateParameters(value: object): boolean {
+export function instanceOfCertificateTemplateFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "subjectCommonName" in value;
+    isInstance = isInstance && "issuerTemplate" in value;
+    isInstance = isInstance && "keyProperties" in value;
     isInstance = isInstance && "usages" in value;
+    isInstance = isInstance && "validityMonths" in value;
+    isInstance = isInstance && "lifetimeTrigger" in value;
 
     return isInstance;
 }
 
-export function CertificateTemplateParametersFromJSON(json: any): CertificateTemplateParameters {
-    return CertificateTemplateParametersFromJSONTyped(json, false);
+export function CertificateTemplateFieldsFromJSON(json: any): CertificateTemplateFields {
+    return CertificateTemplateFieldsFromJSONTyped(json, false);
 }
 
-export function CertificateTemplateParametersFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateTemplateParameters {
+export function CertificateTemplateFieldsFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateTemplateFields {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'issuerTemplate': !exists(json, 'issuerTemplate') ? undefined : json['issuerTemplate'],
-        'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
-        'subjectCommonName': json['subjectCommonName'],
+        'issuerTemplate': json['issuerTemplate'],
+        'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
-        'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
+        'validityMonths': json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
-        'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
+        'lifetimeTrigger': CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
     };
 }
 
-export function CertificateTemplateParametersToJSON(value?: CertificateTemplateParameters | null): any {
+export function CertificateTemplateFieldsToJSON(value?: CertificateTemplateFields | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -124,7 +120,6 @@ export function CertificateTemplateParametersToJSON(value?: CertificateTemplateP
         
         'issuerTemplate': value.issuerTemplate,
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
-        'subjectCommonName': value.subjectCommonName,
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,

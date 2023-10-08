@@ -13,87 +13,66 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-
 /**
  * 
  * @export
- * @interface Profile
+ * @interface ResourceRef
  */
-export interface Profile {
+export interface ResourceRef {
     /**
      * Identifier of the resource
      * @type {string}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     id: string;
     /**
      * 
      * @type {string}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     locator: string;
     /**
      * Time when the resoruce was last updated
      * @type {Date}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     updated?: Date;
     /**
      * 
      * @type {string}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     updatedBy?: string;
     /**
      * Time when the deleted was deleted
      * @type {Date}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     deleted?: Date;
     /**
      * 
      * @type {{ [key: string]: string; }}
-     * @memberof Profile
+     * @memberof ResourceRef
      */
     metadata?: { [key: string]: string; };
-    /**
-     * 
-     * @type {NamespaceKind}
-     * @memberof Profile
-     */
-    type: NamespaceKind;
-    /**
-     * Display name of the resource
-     * @type {string}
-     * @memberof Profile
-     */
-    displayName: string;
 }
 
 /**
- * Check if a given object implements the Profile interface.
+ * Check if a given object implements the ResourceRef interface.
  */
-export function instanceOfProfile(value: object): boolean {
+export function instanceOfResourceRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "locator" in value;
-    isInstance = isInstance && "type" in value;
-    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
 
-export function ProfileFromJSON(json: any): Profile {
-    return ProfileFromJSONTyped(json, false);
+export function ResourceRefFromJSON(json: any): ResourceRef {
+    return ResourceRefFromJSONTyped(json, false);
 }
 
-export function ProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): Profile {
+export function ResourceRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResourceRef {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -105,12 +84,10 @@ export function ProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
-        'type': NamespaceKindFromJSON(json['type']),
-        'displayName': json['displayName'],
     };
 }
 
-export function ProfileToJSON(value?: Profile | null): any {
+export function ResourceRefToJSON(value?: ResourceRef | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -125,8 +102,6 @@ export function ProfileToJSON(value?: Profile | null): any {
         'updatedBy': value.updatedBy,
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
-        'type': NamespaceKindToJSON(value.type),
-        'displayName': value.displayName,
     };
 }
 

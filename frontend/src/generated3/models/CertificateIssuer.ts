@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { ProfileType } from './ProfileType';
+import type { NamespaceKind } from './NamespaceKind';
 import {
-    ProfileTypeFromJSON,
-    ProfileTypeFromJSONTyped,
-    ProfileTypeToJSON,
-} from './ProfileType';
+    NamespaceKindFromJSON,
+    NamespaceKindFromJSONTyped,
+    NamespaceKindToJSON,
+} from './NamespaceKind';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface CertificateIssuer {
     /**
      * 
-     * @type {ProfileType}
+     * @type {NamespaceKind}
      * @memberof CertificateIssuer
      */
-    profileType: ProfileType;
+    profileType: NamespaceKind;
     /**
      * Identifier of the resource
      * @type {string}
@@ -44,6 +44,12 @@ export interface CertificateIssuer {
      * @memberof CertificateIssuer
      */
     templateId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateIssuer
+     */
+    certificateId?: string;
 }
 
 /**
@@ -67,9 +73,10 @@ export function CertificateIssuerFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'profileType': ProfileTypeFromJSON(json['profileType']),
+        'profileType': NamespaceKindFromJSON(json['profileType']),
         'profileId': json['profileId'],
         'templateId': !exists(json, 'templateId') ? undefined : json['templateId'],
+        'certificateId': !exists(json, 'certificateId') ? undefined : json['certificateId'],
     };
 }
 
@@ -82,9 +89,10 @@ export function CertificateIssuerToJSON(value?: CertificateIssuer | null): any {
     }
     return {
         
-        'profileType': ProfileTypeToJSON(value.profileType),
+        'profileType': NamespaceKindToJSON(value.profileType),
         'profileId': value.profileId,
         'templateId': value.templateId,
+        'certificateId': value.certificateId,
     };
 }
 

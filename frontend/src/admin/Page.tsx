@@ -1,6 +1,6 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
-import { AdminApi, ProfileRef, ProfileType } from "../generated3";
+import { AdminApi, ProfileRef, NamespaceKind } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import {
   RefTableColumn,
@@ -19,29 +19,22 @@ export default function AdminPage() {
   const adminApi = useAuthedClient(AdminApi);
   const { data: allNs } = useRequest(
     async () => {
-      return {
-        [ProfileType.ProfileTypeRootCA]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeRootCA,
-        }),
-        [ProfileType.ProfileTypeIntermediateCA]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeIntermediateCA,
-        }),
-        [ProfileType.ProfileTypeServicePrincipal]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeServicePrincipal,
-        }),
-        [ProfileType.ProfileTypeGroup]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeGroup,
-        }),
-        [ProfileType.ProfileTypeDevice]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeDevice,
-        }),
-        [ProfileType.ProfileTypeUser]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeUser,
-        }),
-        [ProfileType.ProfileTypeApplication]: await adminApi.listProfiles({
-          profileType: ProfileType.ProfileTypeApplication,
-        }),
-      };
+      const results = {} as any;
+      const l = [
+        NamespaceKind.NamespaceKindCaRoot,
+        NamespaceKind.NamespaceKindCaInt,
+        NamespaceKind.NamespaceKindServicePrincipal,
+        NamespaceKind.NamespaceKindGroup,
+        NamespaceKind.NamespaceKindDevice,
+        NamespaceKind.NamespaceKindUser,
+        NamespaceKind.NamespaceKindApplication,
+      ];
+      for (const nsType of l) {
+        results[nsType] = await adminApi.listProfiles({
+          profileType: nsType,
+        });
+      }
+      return results;
     },
     {
       refreshDeps: [],
@@ -52,18 +45,18 @@ export default function AdminPage() {
     <>
       {(
         [
-          [ProfileType.ProfileTypeRootCA, "Root Certificate Authorities"],
+          [NamespaceKind.NamespaceKindCaRoot, "Root Certificate Authorities"],
           [
-            ProfileType.ProfileTypeIntermediateCA,
+            NamespaceKind.NamespaceKindCaInt,
             "Intermediate Certificate Authorities",
           ],
-          [ProfileType.ProfileTypeServicePrincipal, "Service Principals"],
-          [ProfileType.ProfileTypeGroup, "Groups"],
-          [ProfileType.ProfileTypeDevice, "Devices"],
-          [ProfileType.ProfileTypeUser, "Users"],
-          [ProfileType.ProfileTypeApplication, "Applications"],
-        ] as Array<[ProfileType, string]>
-      ).map(([t, title]: [ProfileType, string]) => (
+          [NamespaceKind.NamespaceKindServicePrincipal, "Service Principals"],
+          [NamespaceKind.NamespaceKindGroup, "Groups"],
+          [NamespaceKind.NamespaceKindDevice, "Devices"],
+          [NamespaceKind.NamespaceKindUser, "Users"],
+          [NamespaceKind.NamespaceKindApplication, "Applications"],
+        ] as Array<[NamespaceKind, string]>
+      ).map(([t, title]: [NamespaceKind, string]) => (
         <RefsTable3
           key={t}
           items={allNs?.[t]}

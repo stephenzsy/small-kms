@@ -55,6 +55,13 @@ func signCertificate(c common.ServiceContext,
 		return nil, err
 	}
 
+	defer signerProvider.Close()
+	signerProvider.setCertificateTemplate(&certTemplate)
+	signer, err := signerProvider.GetSigner(c)
+	if err != nil {
+		return nil, err
+	}
+
 	defer csrProvider.Close()
 	publicKey := csrProvider.PublicKey()
 	certSpec := csrProvider.KeySpec()
@@ -72,12 +79,7 @@ func signCertificate(c common.ServiceContext,
 	default:
 		return nil, fmt.Errorf("%w:unsupported cert signature algorithm:%s", common.ErrStatusBadRequest, certSpec.Alg)
 	}
-	defer signerProvider.Close()
-	signerProvider.setCertificateTemplate(&certTemplate)
-	signer, err := signerProvider.GetSigner(c)
-	if err != nil {
-		return nil, err
-	}
+
 	certCreated, err := x509.CreateCertificate(nil,
 		&certTemplate,
 		signerProvider.Certificate(),
