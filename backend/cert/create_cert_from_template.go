@@ -65,7 +65,9 @@ func issueCertificate(c common.ServiceContext,
 
 	var csrProvider CertificateRequestProvider
 	var signerProvider SignerProvider
-	var storageProvider StorageProvider
+	var storageProvider StorageProvider = &azBlobStorageProvider{
+		blobKey: fmt.Sprintf("%s/%s.pem", *certDoc.KeyStorePath, certDoc.ID.Identifier()),
+	}
 	// now need to load signer certificate
 	switch nsID.Kind() {
 	case models.NamespaceKindCaRoot:
@@ -76,10 +78,16 @@ func issueCertificate(c common.ServiceContext,
 		selfSignProvider := newAzKeysSelfSignerProvider(certDoc)
 		signerProvider = selfSignProvider
 		csrProvider = selfSignProvider
-		storageProvider = &azBlobStorageProvider{
-			blobKey: fmt.Sprintf("%s/%s.pem", *certDoc.KeyStorePath, certDoc.ID.Identifier()),
+	case models.NamespaceKindCaInt,
+		models.NamespaceKindServicePrincipal:
+		issuerDoc, err := certDoc.readIssuerCertDoc(c)
+		if err != nil {
+			return nil, err
 		}
-		// root is self signed, no need to load signer certificate
+		csrProvider = newAzCertsCsrProvider(certDoc)
+		signerProvider = newAzKeysExistingCertSigner(issuerDoc)
+	default:
+		return nil, fmt.Errorf("%w: invalid namespace kind", common.ErrStatusBadRequest)
 	}
 
 	patch, err := signCertificate(c, csrProvider, signerProvider, storageProvider)

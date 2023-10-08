@@ -66,5 +66,19 @@ func NewLocator[NK ~string, K ~string](namespaceID IdentifierWithKind[NK], resou
 	}
 }
 
+func (c Locator[NK, K]) WithID(id IdentifierWithKind[K]) Locator[NK, K] {
+	return Locator[NK, K]{
+		nsID: c.nsID,
+		id:   id,
+	}
+}
+
+func (c Locator[NK, K]) WithIDKind(kind K) Locator[NK, K] {
+	return Locator[NK, K]{
+		nsID: c.nsID,
+		id:   c.id.WithKind(kind),
+	}
+}
+
 var _ encoding.TextMarshaler = Locator[string, string]{}
 var _ encoding.TextUnmarshaler = (*Locator[string, string])(nil)

@@ -41,8 +41,10 @@ func ListCertificatesByTemplate(c common.ServiceContext) ([]*models.CertificateR
 	if err != nil {
 		return nil, err
 	}
-	if latestDoc, err := getLatestCertificateByTemplateDoc(c, tmplLocator); err != nil && !errors.Is(err, common.ErrStatusNotFound) {
-		return nil, err
+	if latestDoc, err := getLatestCertificateByTemplateDoc(c, tmplLocator); err != nil {
+		if !errors.Is(err, common.ErrStatusNotFound) {
+			return nil, err
+		}
 	} else {
 		cmpId := latestDoc.AliasTo.GetID().Identifier()
 		matchedInd := slices.IndexFunc(allItems, func(item *models.CertificateRefComposed) bool {

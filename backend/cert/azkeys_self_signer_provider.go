@@ -3,7 +3,6 @@ package cert
 import (
 	"crypto"
 	"crypto/x509"
-	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/rs/zerolog/log"
@@ -21,6 +20,11 @@ type azKeysSelfSignerProvider struct {
 	keyCreated     *azkeys.ID
 	keepKeyVersion bool
 	ctx            common.ServiceContext
+}
+
+// X509SigningAlg implements SignerProvider.
+func (p *azKeysSelfSignerProvider) X509SigningAlg() x509.SignatureAlgorithm {
+	return p.certSpec.Alg.ToX509SignatureAlgorithm()
 }
 
 // Locator implements SignerProvider.
@@ -52,21 +56,6 @@ func (p *azKeysSelfSignerProvider) Load(c common.ServiceContext) (certTemplate *
 		return bad(err)
 	}
 
-	switch p.certSpec.Alg {
-	case models.AlgRS256:
-		p.cert.SignatureAlgorithm = x509.SHA256WithRSA
-	case models.AlgRS384:
-		p.cert.SignatureAlgorithm = x509.SHA384WithRSA
-	case models.AlgRS512:
-		p.cert.SignatureAlgorithm = x509.SHA512WithRSA
-	case models.AlgES256:
-		p.cert.SignatureAlgorithm = x509.ECDSAWithSHA256
-	case models.AlgES384:
-		p.cert.SignatureAlgorithm = x509.ECDSAWithSHA384
-	default:
-		return bad(fmt.Errorf("%w:unsupported cert signature algorithm:%s", common.ErrStatusBadRequest, p.certSpec.Alg))
-	}
-
 	return p.cert, p.signer.publicKey, &p.certSpec, err
 }
 
@@ -76,7 +65,7 @@ func (p *azKeysSelfSignerProvider) GetIssuerCertStorePath() string {
 }
 
 // CollectCertificateChain implements CertificateRequestProvider.
-func (p *azKeysSelfSignerProvider) CollectCertificateChain([][]byte) error {
+func (p *azKeysSelfSignerProvider) CollectCertificateChain([][]byte, *CertJwkSpec) error {
 	p.keepKeyVersion = true
 	return nil
 }

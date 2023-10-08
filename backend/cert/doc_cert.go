@@ -1,11 +1,13 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/x509"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/google/uuid"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -27,6 +29,7 @@ type ResourceLocator = models.ResourceLocator
 type CertJwkSpec struct {
 	ct.CertKeySpec
 	KID     string                   `json:"kid"`
+	X5u     *string                  `json:"x5u,omitempty"`
 	X5t     kmsdoc.Base64UrlStorable `json:"x5t,omitempty"`
 	X5tS256 kmsdoc.Base64UrlStorable `json:"x5t#S256,omitempty"`
 
@@ -95,6 +98,45 @@ func (d *CertDoc) patchSigned(c common.ServiceContext, patch *CertDocSigningPatc
 	d.CertSpec = patch.CertSpec
 
 	return nil
+}
+
+func (d *CertDoc) readIssuerCertDoc(c common.ServiceContext) (issuerDoc *CertDoc, err error) {
+	loadDocLocator := d.Issuer
+	switch loadDocLocator.GetID().Kind() {
+	case models.ResourceKindCertTemplate:
+		// load the latest from template
+		loadDocLocator = loadDocLocator.WithIDKind(models.ResourceKindLatestCertForTemplate)
+	case models.ResourceKindCert,
+		models.ResourceKindLatestCertForTemplate:
+		// ok
+	default:
+		return nil, fmt.Errorf("%w: invalid issuer locator", common.ErrStatusBadRequest)
+	}
+	issuerDoc = &CertDoc{}
+	err = kmsdoc.Read(c, loadDocLocator, issuerDoc)
+	return
+}
+
+func (doc *CertDoc) fetchCertificatePEMBlob(c common.ServiceContext) ([]byte, error) {
+	blobClient := common.GetClientProvider(c).AzBlobContainerClient()
+	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(c, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	downloadedData := bytes.Buffer{}
+	retryReader := get.NewRetryReader(c, &azblob.RetryReaderOptions{})
+	_, err = downloadedData.ReadFrom(retryReader)
+	if err != nil {
+		return nil, err
+	}
+
+	err = retryReader.Close()
+	if err != nil {
+		return nil, err
+
+	}
+	return downloadedData.Bytes(), nil
 }
 
 func createCertificateDoc(nsID models.NamespaceID,

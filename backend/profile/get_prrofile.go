@@ -17,9 +17,8 @@ func getProfileDoc(c common.ServiceContext, locator models.ResourceLocator) (doc
 				return &a, nil
 			}
 			return nil, common.ErrStatusNotFound
-		}
-		if docID.Kind() == models.ResourceKindCaInt {
-			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
+		} else if docID.Kind() == models.ResourceKindCaInt {
+			if a, ok := intCaProfileDocs[docID.Identifier()]; ok {
 				return &a, nil
 			}
 			return nil, common.ErrStatusNotFound

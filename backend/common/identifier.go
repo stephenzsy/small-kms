@@ -177,6 +177,13 @@ func (d *IdentifierWithKind[K]) UnmarshalText(text []byte) (err error) {
 	return
 }
 
+func (c IdentifierWithKind[K]) WithKind(kind K) IdentifierWithKind[K] {
+	return IdentifierWithKind[K]{
+		kind:       kind,
+		identifier: c.identifier,
+	}
+}
+
 func NewIdentifierWithKind[K ~string](kind K, identifier Identifier) IdentifierWithKind[K] {
 	return IdentifierWithKind[K]{kind: kind, identifier: identifier}
 }

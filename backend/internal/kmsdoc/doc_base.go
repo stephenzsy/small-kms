@@ -40,10 +40,6 @@ type KmsDocumentSnapshotable[D KmsDocument] interface {
 
 type DocFlag string
 
-const (
-	DocFlagAliasSnapshot DocFlag = "alias-snapshot"
-)
-
 type BaseDoc struct {
 	NamespaceID docNsIDType `json:"namespaceId"`
 	ID          docIDType   `json:"id"`
@@ -52,8 +48,6 @@ type BaseDoc struct {
 	Deleted       *time.Time `json:"deleted"`
 	UpdatedBy     string     `json:"updatedBy"`
 	SchemaVersion int        `json:"schemaVersion"`
-
-	Flags []DocFlag `json:"@flags,omitempty"`
 
 	AliasTo     *models.ResourceLocator  `json:"@alias.to,omitempty"`
 	AliasToETag *azcore.ETag             `json:"@alias.to.etag,omitempty"`
@@ -92,6 +86,12 @@ func (doc *BaseDoc) GetNamespaceID() docNsIDType {
 }
 
 func (doc *BaseDoc) GetLocator() models.ResourceLocator {
+	if doc == nil {
+		return models.ResourceLocator{}
+	}
+	if doc.AliasTo != nil {
+		return *doc.AliasTo
+	}
 	return models.NewResourceLocator(doc.NamespaceID, doc.ID)
 }
 

@@ -20,7 +20,7 @@ import (
 type CertificateRequestProvider interface {
 	Load(common.ServiceContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
 	Close()
-	CollectCertificateChain([][]byte) error
+	CollectCertificateChain([][]byte, *CertJwkSpec) error
 }
 
 type SignerProvider interface {
@@ -31,6 +31,7 @@ type SignerProvider interface {
 	GetIssuerCertStorePath() string
 	CertificateChainPEM() []byte
 	ExtraCertificatesInChain() [][]byte
+	X509SigningAlg() x509.SignatureAlgorithm
 }
 
 type StorageProvider interface {
@@ -55,6 +56,7 @@ func signCertificate(c common.ServiceContext,
 	if err != nil {
 		return nil, err
 	}
+	certTemplate.SignatureAlgorithm = signerProvider.X509SigningAlg()
 
 	certCreated, err := x509.CreateCertificate(nil,
 		certTemplate,
@@ -65,7 +67,7 @@ func signCertificate(c common.ServiceContext,
 		return nil, err
 	}
 	fullChain := append([][]byte{certCreated}, signerProvider.ExtraCertificatesInChain()...)
-	err = csrProvider.CollectCertificateChain(fullChain)
+	err = csrProvider.CollectCertificateChain(fullChain, certJwkSpec)
 	if err != nil {
 		return nil, err
 	}
