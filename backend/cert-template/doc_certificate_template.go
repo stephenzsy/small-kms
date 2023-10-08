@@ -25,7 +25,7 @@ type CertificateTemplateDoc struct {
 	SubjectCommonName string                            `json:"subjectCn"`
 	ValidityInMonths  int32                             `json:"validity_months"`
 	LifetimeTrigger   models.CertificateLifetimeTrigger `json:"lifetimeTrigger"`
-	Digest            string                            `json:"digest"` // checksum of fhte core fields of the template
+	Digest            kmsdoc.HexStringStroable          `json:"digest"` // checksum of fhte core fields of the template
 }
 
 func (d *CertificateTemplateDoc) populateRef(dst *models.CertificateTemplateRefComposed) bool {

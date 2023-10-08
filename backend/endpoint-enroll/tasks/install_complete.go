@@ -90,5 +90,5 @@ func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *models.JwkProperties) {
 	p.Kty = "RSA"
 	p.E = utils.ToPtr(base64.RawURLEncoding.EncodeToString(bigE.Bytes()))
 	p.N = utils.ToPtr(base64.RawURLEncoding.EncodeToString(pubkey.N.Bytes()))
-	p.KeySize = utils.ToPtr(pubkey.Size() * 8)
+	p.KeySize = utils.ToPtr(int32(pubkey.Size()) * 8)
 }

@@ -278,7 +278,7 @@ type JwkProperties struct {
 	KeyOp *KeyOp  `json:"key_ops,omitempty"`
 
 	// KeySize RSA key size
-	KeySize *int `json:"key_size,omitempty"`
+	KeySize *int32 `json:"key_size,omitempty"`
 
 	// Kid Key ID
 	KeyID *string `json:"kid,omitempty"`

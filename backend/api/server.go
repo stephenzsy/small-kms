@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/gin-gonic/gin"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
@@ -16,6 +18,13 @@ import (
 
 type server struct {
 	common.CommonConfig
+	azBlobClient          *azblob.Client
+	azBlobContainerClient *azblobcontainer.Client
+}
+
+// AzBlobContainerClient implements common.ClientProvider.
+func (s *server) AzBlobContainerClient() *azblobcontainer.Client {
+	return s.azBlobContainerClient
 }
 
 func (s *server) ServiceContext(c ctx.Context) common.ServiceContext {
@@ -62,5 +71,12 @@ func NewServer() models.ServerInterface {
 	s := server{
 		CommonConfig: &commonConfig,
 	}
+	storageBlobEndpoint := common.MustGetenv(common.DefualtEnvVarAzStroageBlobResourceEndpoint)
+	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
+	if err != nil {
+		log.Panic().Err(err).Msg("Failed to get az blob client")
+	}
+	s.azBlobContainerClient = s.azBlobClient.ServiceClient().NewContainerClient(common.GetEnvWithDefault("AZURE_STORAGEBLOB_CONTAINERNAME_CERTS", "certs"))
+
 	return &s
 }

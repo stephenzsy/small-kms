@@ -324,6 +324,7 @@ components:
         key_size:
           description: RSA key size
           type: integer
+          format: int32
         key_ops:
           $ref: "#/components/schemas/JwkKeyOperation"
         n:

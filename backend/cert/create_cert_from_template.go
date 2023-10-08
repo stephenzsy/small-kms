@@ -42,12 +42,15 @@ func createCertificate(c common.ServiceContext,
 		SerialNumber:      SerialNumberStorable(certID[:]),
 		SubjectCommonName: tmpl.SubjectCommonName,
 		Usages:            tmpl.Usages,
-		KeySpec:           tmpl.KeySpec,
-		KeyStorePath:      tmpl.KeyStorePath,
-		Template:          tmpl.GetLocator(),
-		Issuer:            tmpl.IssuerTemplate,
-		NotBefore:         kmsdoc.TimeStorable(now),
-		NotAfter:          kmsdoc.TimeStorable(now.AddDate(0, int(tmpl.ValidityInMonths), 0)),
+		CertSpec: CertJwtSpec{
+			CertKeySpec: tmpl.KeySpec,
+		},
+		KeyStorePath:   tmpl.KeyStorePath,
+		Template:       tmpl.GetLocator(),
+		Issuer:         tmpl.IssuerTemplate,
+		NotBefore:      kmsdoc.TimeStorable(now),
+		NotAfter:       kmsdoc.TimeStorable(now.AddDate(0, int(tmpl.ValidityInMonths), 0)),
+		TemplateDigest: tmpl.Digest,
 	}
 
 	return &doc, nil
@@ -100,16 +103,25 @@ func issueCertificate(c common.ServiceContext,
 		}
 	}
 
+	var csrProvider CertificateRequestProvider
+	var signerProvider SignerProvider
 	// now need to load signer certificate
-	if nsID.Kind() == models.NamespaceKindCaRoot {
+	switch nsID.Kind() {
+	case models.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
 		}
+		certDoc.CertSpec.keyExportable = false
+		signerProvider = &azKeysSelfSignerProvider{
+			keyStorePath: *certDoc.KeyStorePath,
+			certSpec:     certDoc.CertSpec,
+			notAfter:     certDoc.NotAfter.Time(),
+		}
+		csrProvider = signerProvider.(CertificateRequestProvider)
 		// root is self signed, no need to load signer certificate
-
 	}
 
-	_, err := signCertificate(c, nil, nil, certDoc, nil)
+	_, err := signCertificate(c, csrProvider, signerProvider, certDoc, nil)
 	if err != nil {
 		return nil, err
 	}

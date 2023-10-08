@@ -2,7 +2,6 @@ package certtemplate
 
 import (
 	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -118,6 +117,11 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		}
 	}
 
+	doc.Digest = doc.computeFieldsDigest()
+	return &doc, nil
+}
+
+func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 	digest := md5.New()
 	digest.Write([]byte(doc.IssuerTemplate.String()))
 	digest.Write([]byte(doc.SubjectCommonName))
@@ -129,9 +133,7 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 	case models.KeyTypeEC:
 		digest.Write([]byte(string(*doc.KeySpec.Crv)))
 	}
-	doc.Digest = hex.EncodeToString(digest.Sum(nil))
-
-	return &doc, nil
+	return digest.Sum(nil)
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.

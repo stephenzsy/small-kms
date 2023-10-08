@@ -20,6 +20,14 @@ const (
 
 type ResourceLocator = models.ResourceLocator
 
+type CertJwtSpec struct {
+	ct.CertKeySpec
+	X5t     kmsdoc.Base64UrlStorable `json:"x5t,omitempty"`
+	X5tS256 kmsdoc.Base64UrlStorable `json:"x5t#S256,omitempty"`
+
+	keyExportable bool
+}
+
 type CertDoc struct {
 	kmsdoc.BaseDoc
 
@@ -31,14 +39,22 @@ type CertDoc struct {
 	NotBefore         kmsdoc.TimeStorable       `json:"notBefore"`
 	NotAfter          kmsdoc.TimeStorable       `json:"notAfter"`
 	Usages            []models.CertificateUsage `json:"usages"`
-	KeySpec           ct.CertKeySpec            `json:"keySpec"`
+	CertSpec          CertJwtSpec               `json:"certSpec"`
 	KeyStorePath      *string                   `json:"keyStorePath,omitempty"`
 	CertStorePath     string                    `json:"certStorePath"` // certificate storage path in blob storage
 	Thumbprint        kmsdoc.HexStringStroable  `json:"thumbprint"`
 	PendingExpires    *kmsdoc.TimeStorable      `json:"pendingExpires"` // pending status expires time
+	TemplateDigest    kmsdoc.HexStringStroable  `json:"digest"`         // checksum of fhte core fields of certificate
 
 	Template ResourceLocator `json:"template"` // locator for certificate template doc
 	Issuer   ResourceLocator `json:"issuer"`   // locator for certificate doc for the actual issuer certificate
+}
+
+type CertDocSigningPatch struct {
+	CertSpec      CertJwtSpec
+	CertStorePath string
+	Thumbprint    []byte
+	Issuer        ResourceLocator
 }
 
 // PopulateX509 implements CertificateFieldsProvider.
@@ -75,10 +91,9 @@ func (d *CertDoc) populateRef(dst *models.CertificateRefComposed) bool {
 		return ok
 	}
 	dst.SubjectCommonName = d.SubjectCommonName
-	dst.Thumbprint = d.Thumbprint.String()
+	dst.Thumbprint = d.Thumbprint.HexString()
 	dst.NotAfter = d.NotAfter.Time()
 	dst.Template = d.Template
-	dst.Thumbprint = d.Thumbprint.String()
 	return true
 }
 
@@ -92,10 +107,19 @@ func (d *CertDoc) toModel() *models.CertificateInfoComposed {
 	r := new(models.CertificateInfoComposed)
 	d.populateRef(&r.CertificateRefComposed)
 	r.Issuer = d.Issuer
-	d.KeySpec.PopulateKeyProperties(&r.Jwk)
+	d.CertSpec.PopulateKeyProperties(&r.Jwk)
 	r.NotBefore = d.NotBefore.Time()
 	r.Usages = d.Usages
 	return r
 }
 
 var _ CertificateFieldsProvider = (*CertDoc)(nil)
+
+func (k *CertJwtSpec) PopulateKeyProperties(r *models.JwkProperties) {
+	if k == nil || r == nil {
+		return
+	}
+	k.CertKeySpec.PopulateKeyProperties(r)
+	r.CertificateThumbprint = k.X5t.StringPtr()
+	r.CertificateThumbprintSHA256 = k.X5tS256.StringPtr()
+}

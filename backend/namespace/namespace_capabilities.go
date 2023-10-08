@@ -22,7 +22,7 @@ type NamespaceCertificateTemplateCapabilities struct {
 	SelfSigned                 bool
 	DefaultMaxValidityInMonths int
 	DefaultKeyType             models.JwtKty
-	DefaultKeySize             int
+	DefaultKeySize             int32
 	DefaultRsaAlgorithm        models.JwkAlg
 	DefaultCrv                 models.JwtCrv
 	HasKeyStore                bool

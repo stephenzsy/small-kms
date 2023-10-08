@@ -8,7 +8,7 @@ import (
 type CertKeySpec struct {
 	Alg     models.JwkAlg  `json:"alg"`
 	Kty     models.JwtKty  `json:"kty"`
-	KeySize *int           `json:"key_size,omitempty"`
+	KeySize *int32         `json:"key_size,omitempty"`
 	Crv     *models.JwtCrv `json:"crv,omitempty"`
 }
 
