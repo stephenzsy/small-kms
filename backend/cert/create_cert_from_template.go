@@ -2,9 +2,7 @@ package cert
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -18,44 +16,6 @@ var (
 	ErrInvalidContext = fmt.Errorf("invalid context")
 )
 
-func createCertificate(c common.ServiceContext,
-	params models.IssueCertificateFromTemplateParams) (*CertDoc, error) {
-
-	nsID := ns.GetNamespaceContext(c).GetID()
-	ctc := ct.GetCertificateTemplateContext(c)
-	tmpl, err := ctc.GetCertificateTemplateDoc(c)
-	if err != nil {
-		return nil, err
-	}
-
-	certID, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
-	now := time.Now().UTC()
-	doc := CertDoc{
-		BaseDoc: kmsdoc.BaseDoc{
-			NamespaceID: nsID,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCert, common.UUIDIdentifier(certID)),
-		},
-		Status:            CertStatusInitialized,
-		SerialNumber:      SerialNumberStorable(certID[:]),
-		SubjectCommonName: tmpl.SubjectCommonName,
-		Usages:            tmpl.Usages,
-		CertSpec: CertJwtSpec{
-			CertKeySpec: tmpl.KeySpec,
-		},
-		KeyStorePath:   tmpl.KeyStorePath,
-		Template:       tmpl.GetLocator(),
-		Issuer:         tmpl.IssuerTemplate,
-		NotBefore:      kmsdoc.TimeStorable(now),
-		NotAfter:       kmsdoc.TimeStorable(now.AddDate(0, int(tmpl.ValidityInMonths), 0)),
-		TemplateDigest: tmpl.Digest,
-	}
-
-	return &doc, nil
-}
-
 func issueCertificate(c common.ServiceContext,
 	certDoc *CertDoc,
 	params models.IssueCertificateFromTemplateParams) (*CertDoc, error) {
@@ -65,19 +25,19 @@ func issueCertificate(c common.ServiceContext,
 	// verify template
 	if tmplDoc, err := ctc.GetCertificateTemplateDoc(c); err != nil {
 		return nil, err
-	} else if utils.IsTimeNotNilOrZero(tmplDoc.Deleted.TimePtr()) {
+	} else if utils.IsTimeNotNilOrZero(tmplDoc.Deleted) {
 		return nil, fmt.Errorf("%w: template not found", common.ErrStatusNotFound)
 	}
 	// verify issuer template still active
 	if issuerTmplDoc, err := ct.GetCertificateTemplateDoc(c, certDoc.Issuer); err != nil {
 		return nil, err
-	} else if utils.IsTimeNotNilOrZero(issuerTmplDoc.Deleted.TimePtr()) {
+	} else if utils.IsTimeNotNilOrZero(issuerTmplDoc.Deleted) {
 		return nil, fmt.Errorf("%w: issuer template not found", common.ErrStatusNotFound)
 	}
 	// verify profile
 	if pdoc, err := profile.GetResourceProfileDoc(c); err != nil {
 		return nil, err
-	} else if utils.IsTimeNotNilOrZero(pdoc.Deleted.TimePtr()) {
+	} else if utils.IsTimeNotNilOrZero(pdoc.Deleted) {
 		return nil, fmt.Errorf("%w: profile not found", common.ErrStatusNotFound)
 	}
 	// verify graph
@@ -113,11 +73,7 @@ func issueCertificate(c common.ServiceContext,
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
 		}
 		certDoc.CertSpec.keyExportable = false
-		selfSignProvider := &azKeysSelfSignerProvider{
-			keyStorePath: *certDoc.KeyStorePath,
-			certSpec:     certDoc.CertSpec,
-			notAfter:     certDoc.NotAfter.Time(),
-		}
+		selfSignProvider := newAzKeysSelfSignerProvider(certDoc)
 		signerProvider = selfSignProvider
 		csrProvider = selfSignProvider
 		storageProvider = &azBlobStorageProvider{
@@ -126,10 +82,21 @@ func issueCertificate(c common.ServiceContext,
 		// root is self signed, no need to load signer certificate
 	}
 
-	_, err := signCertificate(c, csrProvider, signerProvider, certDoc, storageProvider)
+	patch, err := signCertificate(c, csrProvider, signerProvider, storageProvider)
+	if err != nil {
+		return nil, err
+	}
+	err = certDoc.patchSigned(c, patch)
+	if err != nil {
+		return nil, err
+	}
+	certDocLatestLinkLocator := models.NewResourceLocator(nsID, models.NewResourceIdentifier(models.ResourceKindLatestCertForTemplate,
+		certDoc.Template.GetID().Identifier()))
+
+	_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)
 	if err != nil {
 		return nil, err
 	}
 
-	panic("unimplemented")
+	return certDoc, nil
 }

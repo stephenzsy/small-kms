@@ -18,25 +18,19 @@ import (
 )
 
 type CertificateRequestProvider interface {
-	PublicKey() any
+	Load(common.ServiceContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
 	Close()
 	CollectCertificateChain([][]byte) error
-	KeySpec() CertJwtSpec
 }
 
 type SignerProvider interface {
+	// this call also populate other fields in the signer provider
+	LoadSigner(common.ServiceContext) (crypto.Signer, error)
 	Certificate() *x509.Certificate
-	GetSigner(common.ServiceContext) (crypto.Signer, error)
-	Locator() ResourceLocator
-	Close()
+	Locator() models.ResourceLocator
+	GetIssuerCertStorePath() string
 	CertificateChainPEM() []byte
 	ExtraCertificatesInChain() [][]byte
-	// used only for self signing
-	setCertificateTemplate(*x509.Certificate)
-}
-
-type CertificateFieldsProvider interface {
-	PopulateX509(cert *x509.Certificate) error
 }
 
 type StorageProvider interface {
@@ -47,41 +41,23 @@ type StorageProvider interface {
 func signCertificate(c common.ServiceContext,
 	csrProvider CertificateRequestProvider,
 	signerProvider SignerProvider,
-	certificateFieldsProvider CertificateFieldsProvider,
 	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
-	certTemplate := x509.Certificate{}
-	err := certificateFieldsProvider.PopulateX509(&certTemplate)
-	if err != nil {
-		return nil, err
-	}
 
-	defer signerProvider.Close()
-	signerProvider.setCertificateTemplate(&certTemplate)
-	signer, err := signerProvider.GetSigner(c)
-	if err != nil {
-		return nil, err
-	}
-
+	// load certificate public key first, in case of our implementation of self signer requires key created before signing
 	defer csrProvider.Close()
-	publicKey := csrProvider.PublicKey()
-	certSpec := csrProvider.KeySpec()
-	switch certSpec.Alg {
-	case models.AlgRS256:
-		certTemplate.SignatureAlgorithm = x509.SHA256WithRSA
-	case models.AlgRS384:
-		certTemplate.SignatureAlgorithm = x509.SHA384WithRSA
-	case models.AlgRS512:
-		certTemplate.SignatureAlgorithm = x509.SHA512WithRSA
-	case models.AlgES256:
-		certTemplate.SignatureAlgorithm = x509.ECDSAWithSHA256
-	case models.AlgES384:
-		certTemplate.SignatureAlgorithm = x509.ECDSAWithSHA384
-	default:
-		return nil, fmt.Errorf("%w:unsupported cert signature algorithm:%s", common.ErrStatusBadRequest, certSpec.Alg)
+	certTemplate, publicKey, certJwkSpec, err := csrProvider.Load(c)
+
+	if err != nil {
+		return nil, err
+	}
+
+	signer, err := signerProvider.LoadSigner(c)
+	if err != nil {
+		return nil, err
 	}
 
 	certCreated, err := x509.CreateCertificate(nil,
-		&certTemplate,
+		certTemplate,
 		signerProvider.Certificate(),
 		publicKey,
 		signer)
@@ -89,7 +65,11 @@ func signCertificate(c common.ServiceContext,
 		return nil, err
 	}
 	fullChain := append([][]byte{certCreated}, signerProvider.ExtraCertificatesInChain()...)
-	csrProvider.CollectCertificateChain(fullChain)
+	err = csrProvider.CollectCertificateChain(fullChain)
+	if err != nil {
+		return nil, err
+	}
+
 	pemBuf := bytes.Buffer{}
 	err = pem.Encode(&pemBuf, &pem.Block{Type: "CERTIFICATE", Bytes: certCreated})
 	if err != nil {
@@ -97,17 +77,15 @@ func signCertificate(c common.ServiceContext,
 	}
 	pemBuf.Write(signerProvider.CertificateChainPEM())
 	x5t := sha1.Sum(certCreated)
-	x5ts256 := sha256.Sum256(certCreated)
-	blobKey, err := storageProvider.StoreCertificateChainPEM(c, pemBuf.Bytes(), x5t[:], signerProvider.Locator().String())
+	x5tS256 := sha256.Sum256(certCreated)
+	certJwkSpec.X5t = x5t[:]
+	certJwkSpec.X5tS256 = x5tS256[:]
+	blobKey, err := storageProvider.StoreCertificateChainPEM(c, pemBuf.Bytes(), x5t[:], signerProvider.GetIssuerCertStorePath())
 	if err != nil {
 		return nil, err
 	}
 	return &CertDocSigningPatch{
-		CertSpec: CertJwtSpec{
-			CertKeySpec: certSpec.CertKeySpec,
-			X5t:         x5t[:],
-			X5tS256:     x5ts256[:],
-		},
+		CertSpec:      *certJwkSpec,
 		Thumbprint:    x5t[:],
 		CertStorePath: blobKey,
 		Issuer:        signerProvider.Locator(),
@@ -128,8 +106,8 @@ func (p *azBlobStorageProvider) StoreCertificateChainPEM(c common.ServiceContext
 			BlobContentType: to.Ptr("application/x-pem-file"),
 		},
 		Metadata: map[string]*string{
-			"issuer_id": to.Ptr(issuerLocaterStr),
-			"x5t":       to.Ptr(hex.EncodeToString(x5t)),
+			"issuer": &issuerLocaterStr,
+			"x5t":    to.Ptr(hex.EncodeToString(x5t)),
 		},
 	})
 	return p.blobKey, err

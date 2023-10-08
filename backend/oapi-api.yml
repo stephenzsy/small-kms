@@ -164,12 +164,14 @@ components:
         - ms-graph
         - cert-template
         - cert
+        - latest-cert-for-template
       x-enum-varnames:
         - ResourceKindCaRoot
         - ResourceKindCaInt
         - ResourceKindMsGraph
         - ResourceKindCertTemplate
         - ResourceKindCert
+        - ResourceKindLatestCertForTemplate
     IdentifierWithNamespaceKind:
       type: string
       x-go-type-import:

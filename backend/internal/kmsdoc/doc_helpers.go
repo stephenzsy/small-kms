@@ -78,6 +78,13 @@ func (s *Base64UrlStorable) UnmarshalText(text []byte) (err error) {
 	return
 }
 
+func (s *Base64UrlStorable) Base64UrlEncodedString() string {
+	if s == nil {
+		return ""
+	}
+	return base64.RawStdEncoding.EncodeToString(*s)
+}
+
 func (s *Base64UrlStorable) StringPtr() *string {
 	if s == nil {
 		return nil

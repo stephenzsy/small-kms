@@ -30,3 +30,11 @@ type ProfileType = NamespaceKind
 func NewResourceLocator(namespaceID NamespaceID, resourceID ResourceID) ResourceLocator {
 	return common.NewLocator(namespaceID, resourceID)
 }
+
+func NewNamespaceIdentifier(kind NamespaceKind, id string) NamespaceID {
+	return common.NewIdentifierWithKind(kind, common.StringIdentifier(id))
+}
+
+func NewResourceIdentifier(kind ResourceKind, identifier common.Identifier) ResourceID {
+	return common.NewIdentifierWithKind(kind, identifier)
+}

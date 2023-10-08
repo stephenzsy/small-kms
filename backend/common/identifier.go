@@ -138,7 +138,7 @@ func (identifier Identifier) HasReservedIDOrPrefix() bool {
 var identifierRegex = regexp.MustCompile("[A-Za-z0-9_-]+")
 
 func (identifier Identifier) IsValid() bool {
-	return identifier.isUuid || identifierRegex.MatchString(identifier.strVal)
+	return identifier.isUuid || (len(identifier.strVal) < 128 && identifierRegex.MatchString(identifier.strVal))
 }
 
 // immutable externally

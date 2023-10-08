@@ -72,11 +72,12 @@ const (
 
 // Defines values for ResourceKind.
 const (
-	ResourceKindCaInt        ResourceKind = "ca-int"
-	ResourceKindCaRoot       ResourceKind = "ca-root"
-	ResourceKindCert         ResourceKind = "cert"
-	ResourceKindCertTemplate ResourceKind = "cert-template"
-	ResourceKindMsGraph      ResourceKind = "ms-graph"
+	ResourceKindCaInt                 ResourceKind = "ca-int"
+	ResourceKindCaRoot                ResourceKind = "ca-root"
+	ResourceKindCert                  ResourceKind = "cert"
+	ResourceKindCertTemplate          ResourceKind = "cert-template"
+	ResourceKindLatestCertForTemplate ResourceKind = "latest-cert-for-template"
+	ResourceKindMsGraph               ResourceKind = "ms-graph"
 )
 
 // CertificateInfo defines model for CertificateInfo.

@@ -28,12 +28,12 @@ type CertificateTemplateDoc struct {
 	Digest            kmsdoc.HexStringStroable          `json:"digest"` // checksum of fhte core fields of the template
 }
 
-func (d *CertificateTemplateDoc) populateRef(dst *models.CertificateTemplateRefComposed) bool {
-	if ok := d.BaseDoc.PopulateResourceRef(&dst.ResourceRef); !ok {
-		return ok
+func (d *CertificateTemplateDoc) populateRef(r *models.CertificateTemplateRefComposed) {
+	if d == nil || r == nil {
+		return
 	}
-	dst.SubjectCommonName = d.SubjectCommonName
-	return true
+	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
+	r.SubjectCommonName = d.SubjectCommonName
 }
 
 func (d *CertificateTemplateDoc) toModelRef() (r *models.CertificateTemplateRefComposed) {

@@ -96,13 +96,13 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 	return nil
 }
 
-func (d *ProfileDoc) populateRef(dst *models.ProfileRefComposed) bool {
-	if ok := d.BaseDoc.PopulateResourceRef(&dst.ResourceRef); !ok {
-		return ok
+func (d *ProfileDoc) populateRef(r *models.ProfileRefComposed) {
+	if d == nil || r == nil {
+		return
 	}
-	dst.Type = d.ProfileType
-	dst.DisplayName = utils.NilToDefault(d.DispalyName)
-	return true
+	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
+	r.Type = d.ProfileType
+	r.DisplayName = utils.NilToDefault(d.DispalyName)
 }
 
 func (d *ProfileDoc) toModelRef() *models.ProfileRefComposed {
