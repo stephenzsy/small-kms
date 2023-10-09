@@ -1,7 +1,6 @@
 package common
 
 import (
-	"context"
 	ctx "context"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -21,6 +20,6 @@ type ServiceClientProvider interface {
 	AzKeysClient() *azkeys.Client
 	AzCertificatesClient() *azcertificates.Client
 	MsGraphServerClient() *msgraphsdkgo.GraphServiceClient
-	MsGraphDelegatedClient(context.Context) (*msgraphsdkgo.GraphServiceClient, error)
+	MsGraphDelegatedClient(ctx.Context) (*msgraphsdkgo.GraphServiceClient, error)
 	AzBlobContainerClient() *azblobcontainer.Client
 }

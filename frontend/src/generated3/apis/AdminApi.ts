@@ -49,6 +49,12 @@ import {
     ProfileRefToJSON,
 } from '../models';
 
+export interface CreateManagedNamespaceRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    targetNamespaceKind: NamespaceKind;
+}
+
 export interface CreateProfileOperationRequest {
     namespaceKind: NamespaceKind;
     createProfileRequest: CreateProfileRequest;
@@ -72,7 +78,7 @@ export interface GetCertificateTemplateRequest {
 
 export interface GetProfileRequest {
     namespaceKind: NamespaceKind;
-    profileId: string;
+    namespaceId: string;
 }
 
 export interface IssueCertificateFromTemplateRequest {
@@ -105,13 +111,59 @@ export interface PutCertificateTemplateRequest {
 
 export interface SyncProfileRequest {
     namespaceKind: NamespaceKind;
-    profileId: string;
+    namespaceId: string;
 }
 
 /**
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Create managed namespace
+     */
+    async createManagedNamespaceRaw(requestParameters: CreateManagedNamespaceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createManagedNamespace.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createManagedNamespace.');
+        }
+
+        if (requestParameters.targetNamespaceKind === null || requestParameters.targetNamespaceKind === undefined) {
+            throw new runtime.RequiredError('targetNamespaceKind','Required parameter requestParameters.targetNamespaceKind was null or undefined when calling createManagedNamespace.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"targetNamespaceKind"}}`, encodeURIComponent(String(requestParameters.targetNamespaceKind))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Create managed namespace
+     */
+    async createManagedNamespace(requestParameters: CreateManagedNamespaceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.createManagedNamespaceRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Create Managed Application
@@ -274,8 +326,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getProfile.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling getProfile.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getProfile.');
         }
 
         const queryParameters: any = {};
@@ -291,7 +343,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}/{profileId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profiles/{namespaceKind}/{namespaceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -541,8 +593,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling syncProfile.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling syncProfile.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncProfile.');
         }
 
         const queryParameters: any = {};
@@ -558,7 +610,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}/{profileId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profiles/{namespaceKind}/{namespaceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

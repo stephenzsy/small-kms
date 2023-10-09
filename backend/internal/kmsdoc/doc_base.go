@@ -51,9 +51,10 @@ type BaseDoc struct {
 	UpdatedBy     string     `json:"updatedBy"`
 	SchemaVersion int        `json:"schemaVersion"`
 
-	AliasTo     *models.ResourceLocator  `json:"@alias.to,omitempty"`
-	AliasToETag *azcore.ETag             `json:"@alias.to.etag,omitempty"`
-	AliasFrom   []models.ResourceLocator `json:"@alias.from,omitempty"`
+	AliasTo     *models.ResourceLocator                         `json:"@alias.to,omitempty"`
+	AliasToETag *azcore.ETag                                    `json:"@alias.to.etag,omitempty"`
+	Owner       models.ResourceLocator                          `json:"@owner,omitempty"`
+	Owns        map[models.NamespaceKind]models.ResourceLocator `json:"@owns,omitempty"`
 
 	ETag azcore.ETag         `json:"-"`    // populated during read
 	Kind models.ResourceKind `json:"kind"` // populate during write for index
@@ -187,11 +188,12 @@ func DeleteByRef(c RequestContext, locator KmsDocumentRef) (err error) {
 }
 
 func Patch[D KmsDocument](c RequestContext, locator models.ResourceLocator, doc D,
-	patchOps azcosmos.PatchOperations) error {
+	patchOps azcosmos.PatchOperations,
+	opts *azcosmos.ItemOptions) error {
 	cc := c.ServiceClientProvider().AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	stampUpdatedWithAuthPatchOps(c, &patchOps)
-	resp, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, nil)
+	resp, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, opts)
 	if err != nil {
 		return err
 	}

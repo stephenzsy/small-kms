@@ -20,11 +20,14 @@ type ServerInterface interface {
 	// (POST /v3/profiles/{namespaceKind})
 	CreateProfile(ctx echo.Context, namespaceKind NamespaceKindParameter) error
 	// Get namespace info with ms graph
-	// (GET /v3/profiles/{namespaceKind}/{profileId})
-	GetProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter) error
+	// (GET /v3/profiles/{namespaceKind}/{namespaceId})
+	GetProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
 	// Sync namespace info with ms graph
-	// (POST /v3/profiles/{namespaceKind}/{profileId})
-	SyncProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter) error
+	// (POST /v3/profiles/{namespaceKind}/{namespaceId})
+	SyncProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
+	// Create managed namespace
+	// (POST /v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind})
+	CreateManagedNamespace(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, targetNamespaceKind NamespaceKind) error
 	// Get certificate
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId})
 	GetCertificate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params GetCertificateParams) error
@@ -97,18 +100,18 @@ func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "profileId" -------------
-	var profileId ProfileIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetProfile(ctx, namespaceKind, profileId)
+	err = w.Handler.GetProfile(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -123,18 +126,52 @@ func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "profileId" -------------
-	var profileId ProfileIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.SyncProfile(ctx, namespaceKind, profileId)
+	err = w.Handler.SyncProfile(ctx, namespaceKind, namespaceId)
+	return err
+}
+
+// CreateManagedNamespace converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateManagedNamespace(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "targetNamespaceKind" -------------
+	var targetNamespaceKind NamespaceKind
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "targetNamespaceKind", runtime.ParamLocationPath, ctx.Param("targetNamespaceKind"), &targetNamespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter targetNamespaceKind: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateManagedNamespace(ctx, namespaceKind, namespaceId, targetNamespaceKind)
 	return err
 }
 
@@ -394,8 +431,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)
-	router.GET(baseURL+"/v3/profiles/:namespaceKind/:profileId", wrapper.GetProfile)
-	router.POST(baseURL+"/v3/profiles/:namespaceKind/:profileId", wrapper.SyncProfile)
+	router.GET(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.GetProfile)
+	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.SyncProfile)
+	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId/managed/:targetNamespaceKind", wrapper.CreateManagedNamespace)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)
 	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)

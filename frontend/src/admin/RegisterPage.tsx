@@ -28,7 +28,7 @@ export default function RegisterPage() {
   const { run: registerNs, loading: registerNsLoading } = useRequest(
     async (oid: string) => {
       await client.syncProfile({
-        profileId: oid,
+        namespaceId: oid,
         namespaceKind: profileType,
       });
       return oid;

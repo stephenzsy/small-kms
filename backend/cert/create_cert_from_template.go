@@ -53,7 +53,7 @@ func issueCertificate(c RequestContext,
 		if err != nil {
 			return nil, err
 		}
-		pdoc, err := profile.StoreProfile(c, dirObj)
+		pdoc, err := profile.StoreProfile(c, dirObj, nil, nil)
 		if err != nil {
 			return nil, err
 		}

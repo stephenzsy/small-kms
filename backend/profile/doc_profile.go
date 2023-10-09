@@ -30,24 +30,30 @@ var supportedMsGraphOdataTypeToDocNsID = map[MsGraphOdataType]models.NamespaceKi
 	MsGraphOdataTypeServicePrincipal: models.NamespaceKindServicePrincipal,
 }
 
+type ProfileDocGraphData struct {
+	DispalyName            *string `json:"displayName,omitempty"`            // all
+	AppID                  *string `json:"appId,omitempty"`                  // application, service-principal
+	DeviceID               *string `json:"deviceId,omitempty"`               // device
+	AccountEnabled         *bool   `json:"accountEnabled,omitempty"`         // device
+	OperatingSystem        *string `json:"operatingSystem,omitempty"`        // device
+	OperatingSystemVersion *string `json:"operatingSystemVersion,omitempty"` // device
+	TrustType              *string `json:"trustType,omitempty"`              // device
+	MDMAppID               *string `json:"mdmAppId,omitempty"`               // device
+	IsCompliant            *bool   `json:"isCompliant,omitempty"`            // device
+	UserPrincipalName      *string `json:"userPrincipalName,omitempty"`      // user
+}
+
 type ProfileDoc struct {
 	kmsdoc.BaseDoc
 
 	ProfileType models.NamespaceKind `json:"profileType"`
 
-	IsAppManaged *bool `json:"isAppManaged"` // field in the doc to indicate object is managed my this app
-
-	OdataType              MsGraphOdataType `json:"@odata.type"`
-	DispalyName            *string          `json:"displayName,omitempty"`            // all
-	AppID                  *string          `json:"appId,omitempty"`                  // application, service-principal
-	DeviceID               *string          `json:"deviceId,omitempty"`               // device
-	AccountEnabled         *bool            `json:"accountEnabled,omitempty"`         // device
-	OperatingSystem        *string          `json:"operatingSystem,omitempty"`        // device
-	OperatingSystemVersion *string          `json:"operatingSystemVersion,omitempty"` // device
-	TrustType              *string          `json:"trustType,omitempty"`              // device
-	MDMAppID               *string          `json:"mdmAppId,omitempty"`               // device
-	IsCompliant            *bool            `json:"isCompliant,omitempty"`            // device
-	UserPrincipalName      *string          `json:"userPrincipalName,omitempty"`      // user
+	GraphSyncCode string               `json:"graphSyncCode"` // field in the doc to indicate object is managed my this app
+	Graph         *ProfileDocGraphData `json:"graph,omitempty"`
+	IsAppManaged  *bool                `json:"isAppManaged"` // field in the doc to indicate object is managed my this app
+	DispalyName   string               `json:"displayName"`
+	OdataType     MsGraphOdataType     `json:"@odata.type"`
+	IsBuiltIn     bool                 `json:"-"` // builtin does not persist in DB
 }
 
 func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
@@ -74,27 +80,34 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 	}
 	d.ID = common.NewIdentifierWithKind(models.ResourceKindMsGraph, id)
 
+	g := ProfileDocGraphData{}
+	d.Graph = &g
 	switch dirObj := dirObj.(type) {
 	case gmodels.Deviceable:
-		d.DispalyName = dirObj.GetDisplayName()
-		d.DeviceID = dirObj.GetDeviceId()
-		d.AccountEnabled = dirObj.GetAccountEnabled()
-		d.OperatingSystem = dirObj.GetOperatingSystem()
-		d.OperatingSystemVersion = dirObj.GetOperatingSystemVersion()
-		d.TrustType = dirObj.GetTrustType()
-		d.MDMAppID = dirObj.GetMdmAppId()
-		d.IsCompliant = dirObj.GetIsCompliant()
+		g.DispalyName = dirObj.GetDisplayName()
+		d.DispalyName = utils.NilToDefault(g.DispalyName)
+		g.DeviceID = dirObj.GetDeviceId()
+		g.AccountEnabled = dirObj.GetAccountEnabled()
+		g.OperatingSystem = dirObj.GetOperatingSystem()
+		g.OperatingSystemVersion = dirObj.GetOperatingSystemVersion()
+		g.TrustType = dirObj.GetTrustType()
+		g.MDMAppID = dirObj.GetMdmAppId()
+		g.IsCompliant = dirObj.GetIsCompliant()
 	case gmodels.Userable:
-		d.DispalyName = dirObj.GetDisplayName()
-		d.UserPrincipalName = dirObj.GetUserPrincipalName()
+		g.DispalyName = dirObj.GetDisplayName()
+		d.DispalyName = utils.NilToDefault(g.DispalyName)
+		g.UserPrincipalName = dirObj.GetUserPrincipalName()
 	case gmodels.Groupable:
-		d.DispalyName = dirObj.GetDisplayName()
+		g.DispalyName = dirObj.GetDisplayName()
+		d.DispalyName = utils.NilToDefault(g.DispalyName)
 	case gmodels.Applicationable:
-		d.DispalyName = dirObj.GetDisplayName()
-		d.AppID = dirObj.GetAppId()
+		g.DispalyName = dirObj.GetDisplayName()
+		d.DispalyName = utils.NilToDefault(g.DispalyName)
+		g.AppID = dirObj.GetAppId()
 	case gmodels.ServicePrincipalable:
-		d.DispalyName = dirObj.GetDisplayName()
-		d.AppID = dirObj.GetAppId()
+		g.DispalyName = dirObj.GetDisplayName()
+		d.DispalyName = utils.NilToDefault(g.DispalyName)
+		g.AppID = dirObj.GetAppId()
 	}
 	return nil
 }
@@ -105,7 +118,8 @@ func (d *ProfileDoc) populateRef(r *models.ProfileRefComposed) {
 	}
 	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
 	r.Type = d.ProfileType
-	r.DisplayName = utils.NilToDefault(d.DispalyName)
+	r.DisplayName = d.DispalyName
+	r.IsAppManaged = d.IsAppManaged
 }
 
 func (d *ProfileDoc) toModelRef() *models.ProfileRefComposed {

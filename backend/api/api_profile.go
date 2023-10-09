@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
@@ -42,7 +43,7 @@ func (s *server) GetProfile(ec echo.Context, profileType models.NamespaceKind, i
 }
 
 // SyncProfile implements models.ServerInterface.
-func (s *server) SyncProfile(ec echo.Context, profileType models.NamespaceKind, identifier models.Identifier) error {
+func (s *server) SyncProfile(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId models.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.ProfileComposed, error) {
 
@@ -50,7 +51,7 @@ func (s *server) SyncProfile(ec echo.Context, profileType models.NamespaceKind, 
 			return nil, err
 		}
 
-		c, err := ns.WithNamespaceContext(c, profileType, identifier)
+		c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 		if err != nil {
 			return nil, err
 		}
@@ -76,5 +77,25 @@ func (*server) CreateProfile(ctx echo.Context, namespaceKind models.NamespaceKin
 	}
 
 	result, err := profile.CreateProfile(c, namespaceKind, req)
+	return wrapResponse[*models.ProfileComposed](c, http.StatusOK, result, err)
+}
+
+// CreateManagedNamespace implements models.ServerInterface.
+func (*server) CreateManagedNamespace(ctx echo.Context,
+	namespaceKind models.NamespaceKind,
+	namespaceId common.Identifier,
+	targetNamespaceKind models.NamespaceKind) error {
+	bad := func(e error) error {
+		return wrapResponse[*models.ProfileComposed](ctx, http.StatusOK, nil, e)
+	}
+	c := ctx.(RequestContext)
+
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+
+	}
+
+	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	result, err := profile.CreateManagedProfile(c, targetNamespaceKind)
 	return wrapResponse[*models.ProfileComposed](c, http.StatusOK, result, err)
 }

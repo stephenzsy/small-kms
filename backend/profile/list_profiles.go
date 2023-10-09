@@ -36,7 +36,7 @@ func ListProfiles(c RequestContext, profileType models.NamespaceKind) ([]*models
 		models.ResourceKindMsGraph,
 		func(tbl string) kmsdoc.CosmosQueryBuilder {
 			return kmsdoc.CosmosQueryBuilder{
-				ExtraColumns:      []string{"displayName"},
+				ExtraColumns:      []string{"displayName", "isAppManaged"},
 				ExtraWhereClauses: []string{tbl + ".profileType = @profileType"},
 				ExtraParameters: []azcosmos.QueryParameter{
 					{Name: "@profileType", Value: profileType},

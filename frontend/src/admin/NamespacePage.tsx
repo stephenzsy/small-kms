@@ -3,7 +3,10 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { AdminApi, CertificateTemplateRef, NamespaceKind } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
-import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
+import {
+  ApplicationServicePrincipalLink,
+  DeviceServicePrincipalLink,
+} from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
 import {
   RefTableColumn,
@@ -81,6 +84,9 @@ export default function NamespacePage() {
       )}
       {nsType === NamespaceKind.NamespaceKindDevice && (
         <DeviceServicePrincipalLink namespaceId={namespaceId} />
+      )}
+      {nsType === NamespaceKind.NamespaceKindApplication && (
+        <ApplicationServicePrincipalLink namespaceId={namespaceId} />
       )}
     </>
   );

@@ -38,6 +38,12 @@ export interface ProfileRefFields {
      * @memberof ProfileRefFields
      */
     displayName: string;
+    /**
+     * Whether the resource is managed by the application
+     * @type {boolean}
+     * @memberof ProfileRefFields
+     */
+    isAppManaged?: boolean;
 }
 
 /**
@@ -63,6 +69,7 @@ export function ProfileRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'type': NamespaceKindFromJSON(json['type']),
         'displayName': json['displayName'],
+        'isAppManaged': !exists(json, 'isAppManaged') ? undefined : json['isAppManaged'],
     };
 }
 
@@ -77,6 +84,7 @@ export function ProfileRefFieldsToJSON(value?: ProfileRefFields | null): any {
         
         'type': NamespaceKindToJSON(value.type),
         'displayName': value.displayName,
+        'isAppManaged': value.isAppManaged,
     };
 }
 

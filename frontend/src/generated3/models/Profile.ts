@@ -74,6 +74,12 @@ export interface Profile {
      * @memberof Profile
      */
     displayName: string;
+    /**
+     * Whether the resource is managed by the application
+     * @type {boolean}
+     * @memberof Profile
+     */
+    isAppManaged?: boolean;
 }
 
 /**
@@ -107,6 +113,7 @@ export function ProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
         'type': NamespaceKindFromJSON(json['type']),
         'displayName': json['displayName'],
+        'isAppManaged': !exists(json, 'isAppManaged') ? undefined : json['isAppManaged'],
     };
 }
 
@@ -127,6 +134,7 @@ export function ProfileToJSON(value?: Profile | null): any {
         'metadata': value.metadata,
         'type': NamespaceKindToJSON(value.type),
         'displayName': value.displayName,
+        'isAppManaged': value.isAppManaged,
     };
 }
 

@@ -53,16 +53,21 @@ func IsGraphODataErrorNotFound(err error) bool {
 	return false
 }
 
+func ExtractGraphODataErrorCode(err error) (errorCode *string, odErr *odataerrors.ODataError, ok bool) {
+	ok = errors.As(err, &odErr)
+	if ok {
+		errorCode = odErr.GetErrorEscaped().GetCode()
+	}
+	return
+}
+
 func WrapMsGraphNotFoundErr(err error, resourceDescriptor string) error {
 	if err == nil || errors.Is(err, ErrStatusNotFound) {
 		return err
 	}
-	var odErr *odataerrors.ODataError
-	if errors.As(err, &odErr) {
-		errCode := odErr.GetErrorEscaped().GetCode()
-		if errCode != nil && *errCode == "Request_ResourceNotFound" {
-			return fmt.Errorf("%w: graph %s, %w", ErrStatusNotFound, resourceDescriptor, err)
-		}
+	errCode, _, ok := ExtractGraphODataErrorCode(err)
+	if ok && errCode != nil && *errCode == "Request_ResourceNotFound" {
+		return fmt.Errorf("%w: graph %s, %w", ErrStatusNotFound, resourceDescriptor, err)
 	}
 	return err
 }

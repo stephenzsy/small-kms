@@ -27,6 +27,9 @@ type injectedEchoContext struct {
 
 // ServiceClientProvider implements RequestContext.
 func (c injectedEchoContext) ServiceClientProvider() ServiceClientProvider {
+	if c.isElevated {
+		return c.inner.(ServerContext)
+	}
 	return c.Value(serverContextKey).(ServerContext)
 }
 

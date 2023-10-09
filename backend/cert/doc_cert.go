@@ -86,7 +86,7 @@ func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) erro
 	patchOps.AppendRemove("/pendingExpires")
 	patchOps.AppendSet("/certSpec", patch.CertSpec)
 
-	err := kmsdoc.Patch(c, d.GetLocator(), d, patchOps)
+	err := kmsdoc.Patch(c, d.GetLocator(), d, patchOps, nil)
 	if err != nil {
 		return err
 	}

@@ -350,10 +350,13 @@ type ProfileRef struct {
 	DisplayName string `json:"displayName"`
 
 	// Id Identifier of the resource
-	Id       Identifier             `json:"id"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Type     NamespaceKind          `json:"type"`
+	Id Identifier `json:"id"`
+
+	// IsAppManaged Whether the resource is managed by the application
+	IsAppManaged *bool                  `json:"isAppManaged,omitempty"`
+	Locator      ResourceLocator        `json:"locator"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	Type         NamespaceKind          `json:"type"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -363,8 +366,11 @@ type ProfileRef struct {
 // ProfileRefFields defines model for ProfileRefFields.
 type ProfileRefFields struct {
 	// DisplayName Display name of the resource
-	DisplayName string        `json:"displayName"`
-	Type        NamespaceKind `json:"type"`
+	DisplayName string `json:"displayName"`
+
+	// IsAppManaged Whether the resource is managed by the application
+	IsAppManaged *bool         `json:"isAppManaged,omitempty"`
+	Type         NamespaceKind `json:"type"`
 }
 
 // ResourceKind defines model for ResourceKind.
