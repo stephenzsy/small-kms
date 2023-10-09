@@ -13,15 +13,18 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get namespace info with ms graph
-	// (GET /v3/profile/{profileType}/{profileId})
-	GetProfile(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
-	// Sync namespace info with ms graph
-	// (POST /v3/profile/{profileType}/{profileId})
-	SyncProfile(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
 	// List profiles by type
-	// (GET /v3/profiles)
-	ListProfiles(ctx echo.Context, params ListProfilesParams) error
+	// (GET /v3/profiles/{namespaceKind})
+	ListProfiles(ctx echo.Context, namespaceKind NamespaceKindParameter) error
+	// Create Managed Application
+	// (POST /v3/profiles/{namespaceKind})
+	CreateProfile(ctx echo.Context, namespaceKind NamespaceKindParameter) error
+	// Get namespace info with ms graph
+	// (GET /v3/profiles/{namespaceKind}/{profileId})
+	GetProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter) error
+	// Sync namespace info with ms graph
+	// (POST /v3/profiles/{namespaceKind}/{profileId})
+	SyncProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter) error
 	// Get certificate
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId})
 	GetCertificate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params GetCertificateParams) error
@@ -47,15 +50,51 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
+// ListProfiles converts echo context to params.
+func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListProfiles(ctx, namespaceKind)
+	return err
+}
+
+// CreateProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateProfile(ctx, namespaceKind)
+	return err
+}
+
 // GetProfile converts echo context to params.
 func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "profileType" -------------
-	var profileType ProfileTypeParameter
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
@@ -69,19 +108,19 @@ func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetProfile(ctx, profileType, profileId)
+	err = w.Handler.GetProfile(ctx, namespaceKind, profileId)
 	return err
 }
 
 // SyncProfile converts echo context to params.
 func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "profileType" -------------
-	var profileType ProfileTypeParameter
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
@@ -95,27 +134,7 @@ func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.SyncProfile(ctx, profileType, profileId)
-	return err
-}
-
-// ListProfiles converts echo context to params.
-func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListProfilesParams
-	// ------------- Required query parameter "profileType" -------------
-
-	err = runtime.BindQueryParameter("form", true, true, "profileType", ctx.QueryParams(), &params.ProfileType)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListProfiles(ctx, params)
+	err = w.Handler.SyncProfile(ctx, namespaceKind, profileId)
 	return err
 }
 
@@ -373,9 +392,10 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v3/profile/:profileType/:profileId", wrapper.GetProfile)
-	router.POST(baseURL+"/v3/profile/:profileType/:profileId", wrapper.SyncProfile)
-	router.GET(baseURL+"/v3/profiles", wrapper.ListProfiles)
+	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
+	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)
+	router.GET(baseURL+"/v3/profiles/:namespaceKind/:profileId", wrapper.GetProfile)
+	router.POST(baseURL+"/v3/profiles/:namespaceKind/:profileId", wrapper.SyncProfile)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)
 	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)

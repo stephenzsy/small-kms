@@ -31,7 +31,7 @@ export default function AdminPage() {
       ];
       for (const nsType of l) {
         results[nsType] = await adminApi.listProfiles({
-          profileType: nsType,
+          namespaceKind: nsType,
         });
       }
       return results;
@@ -69,6 +69,16 @@ export default function AdminPage() {
               View
             </Link>
           )}
+          tableActions={
+            t == NamespaceKind.NamespaceKindApplication && (
+              <Link
+                to={`/admin/${t}/register`}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                Register
+              </Link>
+            )
+          }
           columns={[displayNameColumn]}
         />
       ))}

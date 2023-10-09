@@ -17,7 +17,7 @@ export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
   const { data: namespaceInfo } = useRequest(
     async () => {
       return await adminApi.getProfile({
-        profileType: profileType,
+        namespaceKind: profileType,
         profileId: namespaceId,
       });
     },

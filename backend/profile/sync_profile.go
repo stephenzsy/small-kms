@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 func StoreProfile(c RequestContext, dirObject msgraphmodels.DirectoryObjectable) (*ProfileDoc, error) {
@@ -56,4 +57,39 @@ func SyncProfile(c RequestContext) (*models.ProfileComposed, error) {
 		return nil, err
 	}
 	return pdoc.toModel(), nil
+}
+
+func createManagedApplication(c RequestContext, req models.CreateManagedApplicationProfileRequest) (*Profile, error) {
+	if req.Name == "" {
+		return nil, fmt.Errorf("%w:invalid name", common.ErrStatusBadRequest)
+	}
+	app := msgraphmodels.NewApplication()
+	app.SetDisplayName(&req.Name)
+	app.SetSignInAudience(utils.ToPtr("AzureADMyOrg"))
+	client := c.ServiceClientProvider().MsGraphServerClient()
+	applicationable, err := client.Applications().Post(c, app, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	profileDoc := ProfileDoc{}
+	err = profileDoc.init(applicationable)
+	if err != nil {
+		return nil, err
+	}
+	profileDoc.IsAppManaged = utils.ToPtr(true)
+	err = kmsdoc.Upsert(c, &profileDoc)
+	return profileDoc.toModel(), err
+}
+
+func CreateProfile(c RequestContext, namespaceKind models.NamespaceKind, req CreateProfileRequest) (*Profile, error) {
+	// validate name
+	if req, err := req.AsCreateManagedApplicationProfileRequest(); err == nil {
+		if namespaceKind != models.NamespaceKindApplication {
+			return nil, fmt.Errorf("%w:invalid namespace kind for creating managed application profile", common.ErrStatusBadRequest)
+		}
+		return createManagedApplication(c, req)
+	}
+	discriminiator, _ := req.Discriminator()
+	return nil, fmt.Errorf("%w:bad request type: %s", common.ErrStatusBadRequest, discriminiator)
 }

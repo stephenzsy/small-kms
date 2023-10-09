@@ -205,6 +205,12 @@ resource "azurerm_container_app" "backend" {
         name  = "APP_AZURE_CLIENT_ID"
         value = data.azuread_application.authApp.application_id
       }
+
+      env {
+        name        = "APP_AZURE_CLIENT_SECRET"
+        secret_name = "microsoft-provider-authentication-secret"
+      }
+
     }
   }
 

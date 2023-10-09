@@ -9,8 +9,6 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-type RequestContext = common.RequestContext
-
 func getProfileDoc(c RequestContext, locator models.ResourceLocator) (doc *ProfileDoc, err error) {
 	if locator.GetNamespaceID() == docNsIDProfileBuiltIn {
 		docID := locator.GetID()

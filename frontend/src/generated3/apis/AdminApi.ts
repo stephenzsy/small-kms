@@ -20,6 +20,7 @@ import type {
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateTemplateRef,
+  CreateProfileRequest,
   IncludeCertificate,
   NamespaceKind,
   Profile,
@@ -36,6 +37,8 @@ import {
     CertificateTemplateParametersToJSON,
     CertificateTemplateRefFromJSON,
     CertificateTemplateRefToJSON,
+    CreateProfileRequestFromJSON,
+    CreateProfileRequestToJSON,
     IncludeCertificateFromJSON,
     IncludeCertificateToJSON,
     NamespaceKindFromJSON,
@@ -45,6 +48,11 @@ import {
     ProfileRefFromJSON,
     ProfileRefToJSON,
 } from '../models';
+
+export interface CreateProfileOperationRequest {
+    namespaceKind: NamespaceKind;
+    createProfileRequest: CreateProfileRequest;
+}
 
 export interface GetCertificateRequest {
     namespaceKind: NamespaceKind;
@@ -63,7 +71,7 @@ export interface GetCertificateTemplateRequest {
 }
 
 export interface GetProfileRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
     profileId: string;
 }
 
@@ -85,7 +93,7 @@ export interface ListCertificatesByTemplateRequest {
 }
 
 export interface ListProfilesRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
 }
 
 export interface PutCertificateTemplateRequest {
@@ -96,7 +104,7 @@ export interface PutCertificateTemplateRequest {
 }
 
 export interface SyncProfileRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
     profileId: string;
 }
 
@@ -104,6 +112,51 @@ export interface SyncProfileRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Create Managed Application
+     */
+    async createProfileRaw(requestParameters: CreateProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createProfile.');
+        }
+
+        if (requestParameters.createProfileRequest === null || requestParameters.createProfileRequest === undefined) {
+            throw new runtime.RequiredError('createProfileRequest','Required parameter requestParameters.createProfileRequest was null or undefined when calling createProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/profiles/{namespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateProfileRequestToJSON(requestParameters.createProfileRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Create Managed Application
+     */
+    async createProfile(requestParameters: CreateProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.createProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get certificate
@@ -217,8 +270,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Get namespace info with ms graph
      */
     async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling getProfile.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getProfile.');
         }
 
         if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
@@ -238,7 +291,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profile/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profiles/{namespaceKind}/{profileId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -393,15 +446,11 @@ export class AdminApi extends runtime.BaseAPI {
      * List profiles by type
      */
     async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listProfiles.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listProfiles.');
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.profileType !== undefined) {
-            queryParameters['profileType'] = requestParameters.profileType;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -414,7 +463,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profiles`,
+            path: `/v3/profiles/{namespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -488,8 +537,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Sync namespace info with ms graph
      */
     async syncProfileRaw(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling syncProfile.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling syncProfile.');
         }
 
         if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
@@ -509,7 +558,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profile/{profileType}/{profileId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/profiles/{namespaceKind}/{profileId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

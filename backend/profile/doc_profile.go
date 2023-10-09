@@ -33,18 +33,21 @@ var supportedMsGraphOdataTypeToDocNsID = map[MsGraphOdataType]models.NamespaceKi
 type ProfileDoc struct {
 	kmsdoc.BaseDoc
 
-	ProfileType            models.NamespaceKind `json:"profileType"`
-	OdataType              MsGraphOdataType     `json:"@odata.type"`
-	DispalyName            *string              `json:"displayName,omitempty"`            // all
-	AppID                  *string              `json:"appId,omitempty"`                  // application, service-principal
-	DeviceID               *string              `json:"deviceId,omitempty"`               // device
-	AccountEnabled         *bool                `json:"accountEnabled,omitempty"`         // device
-	OperatingSystem        *string              `json:"operatingSystem,omitempty"`        // device
-	OperatingSystemVersion *string              `json:"operatingSystemVersion,omitempty"` // device
-	TrustType              *string              `json:"trustType,omitempty"`              // device
-	MDMAppID               *string              `json:"mdmAppId,omitempty"`               // device
-	IsCompliant            *bool                `json:"isCompliant,omitempty"`            // device
-	UserPrincipalName      *string              `json:"userPrincipalName,omitempty"`      // user
+	ProfileType models.NamespaceKind `json:"profileType"`
+
+	IsAppManaged *bool `json:"isAppManaged"` // field in the doc to indicate object is managed my this app
+
+	OdataType              MsGraphOdataType `json:"@odata.type"`
+	DispalyName            *string          `json:"displayName,omitempty"`            // all
+	AppID                  *string          `json:"appId,omitempty"`                  // application, service-principal
+	DeviceID               *string          `json:"deviceId,omitempty"`               // device
+	AccountEnabled         *bool            `json:"accountEnabled,omitempty"`         // device
+	OperatingSystem        *string          `json:"operatingSystem,omitempty"`        // device
+	OperatingSystemVersion *string          `json:"operatingSystemVersion,omitempty"` // device
+	TrustType              *string          `json:"trustType,omitempty"`              // device
+	MDMAppID               *string          `json:"mdmAppId,omitempty"`               // device
+	IsCompliant            *bool            `json:"isCompliant,omitempty"`            // device
+	UserPrincipalName      *string          `json:"userPrincipalName,omitempty"`      // user
 }
 
 func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {

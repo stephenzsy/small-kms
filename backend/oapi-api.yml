@@ -8,13 +8,9 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v3/profiles:
+  /v3/profiles/{namespaceKind}:
     parameters:
-      - in: query
-        name: profileType
-        schema:
-          $ref: "#/components/schemas/NamespaceKind"
-        required: true
+      - $ref: "#/components/parameters/NamespaceKindParameter"
     get:
       tags:
         - admin
@@ -29,9 +25,27 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v3/profile/{profileType}/{profileId}:
+    post:
+      tags:
+        - admin
+      summary: Create Managed Application
+      operationId: CreateProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfileRequest"
+        required: true
+      responses:
+        201:
+          description: ProfileRef
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /v3/profiles/{namespaceKind}/{profileId}:
     parameters:
-      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
     get:
       tags:
@@ -149,12 +163,12 @@ paths:
           name: "templateId"
           schema:
             $ref: "#/components/schemas/Identifier"
-          required: false          
+          required: false
         - in: query
           name: "templateNamespaceKind"
           schema:
             $ref: "#/components/schemas/NamespaceKind"
-          required: false          
+          required: false
         - in: query
           name: "templateNamespaceId"
           schema:
@@ -171,21 +185,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateInfo"
-  # /v2/{namespaceId}/link-service-principal:
-  #   parameters:
-  #     - $ref: "#/components/parameters/NamespaceIdParameter"
-  #   get:
-  #     tags:
-  #       - admin
-  #     summary: Link device service principal
-  #     operationId: GetDeviceServicePrincipalLinkV2
-  #     responses:
-  #       200:
-  #         description: Link device service principal response
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
 components:
   securitySchemes:
     BearerAuth:
@@ -297,6 +296,29 @@ components:
     Profile:
       allOf:
         - $ref: "#/components/schemas/ProfileRef"
+    CreateProfileRequestType:
+      type: string
+      enum:
+        - managed-application
+      x-enum-varnames:
+        - ProfileTypeManagedApplication
+    CreateManagedApplicationProfileRequest:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/CreateProfileRequestType"
+        name:
+          type: string
+      required:
+        - type
+        - name
+    CreateProfileRequest:
+      oneOf:
+        - $ref: "#/components/schemas/CreateManagedApplicationProfileRequest"
+      discriminator:
+        propertyName: type
+        mapping:
+          managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
     JwkAlg:
       type: string
       enum:
@@ -575,7 +597,7 @@ components:
       name: certificateId
       schema:
         $ref: "#/components/schemas/Identifier"
-      required: true      
+      required: true
     ProfileIdentifierParameter:
       in: path
       name: profileId

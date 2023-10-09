@@ -11,7 +11,7 @@ import (
 )
 
 // ListProfiles implements models.ServerInterface.
-func (s *server) ListProfiles(ec echo.Context, params models.ListProfilesParams) error {
+func (s *server) ListProfiles(ec echo.Context, namespaceKind models.NamespaceKind) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() ([]*models.ProfileRefComposed, error) {
 
@@ -19,7 +19,7 @@ func (s *server) ListProfiles(ec echo.Context, params models.ListProfilesParams)
 			return nil, err
 		}
 
-		return profile.ListProfiles(c, params.ProfileType)
+		return profile.ListProfiles(c, namespaceKind)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
@@ -57,4 +57,24 @@ func (s *server) SyncProfile(ec echo.Context, profileType models.NamespaceKind, 
 		return profile.SyncProfile(c)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
+}
+
+// CreateProfile implements models.ServerInterface.
+func (*server) CreateProfile(ctx echo.Context, namespaceKind models.NamespaceKind) error {
+	bad := func(e error) error {
+		return wrapResponse[*models.ProfileComposed](ctx, http.StatusOK, nil, e)
+	}
+	c := ctx.(RequestContext)
+
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+	}
+
+	req := models.CreateProfileRequest{}
+	if err := c.Bind(&req); err != nil {
+		return bad(err)
+	}
+
+	result, err := profile.CreateProfile(c, namespaceKind, req)
+	return wrapResponse[*models.ProfileComposed](c, http.StatusOK, result, err)
 }

@@ -4,8 +4,11 @@
 package models
 
 import (
+	"encoding/json"
+	"errors"
 	"time"
 
+	"github.com/oapi-codegen/runtime"
 	kmscommon "github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -19,6 +22,11 @@ const (
 	CertUsageCARoot     CertificateUsage = "caRoot"
 	CertUsageClientAuth CertificateUsage = "clientAuth"
 	CertUsageServerAuth CertificateUsage = "serverAuth"
+)
+
+// Defines values for CreateProfileRequestType.
+const (
+	ProfileTypeManagedApplication CreateProfileRequestType = "managed-application"
 )
 
 // Defines values for IncludeCertificate.
@@ -251,6 +259,20 @@ type CertificateTemplateRefFields struct {
 // CertificateUsage defines model for CertificateUsage.
 type CertificateUsage string
 
+// CreateManagedApplicationProfileRequest defines model for CreateManagedApplicationProfileRequest.
+type CreateManagedApplicationProfileRequest struct {
+	Name string                   `json:"name"`
+	Type CreateProfileRequestType `json:"type"`
+}
+
+// CreateProfileRequest defines model for CreateProfileRequest.
+type CreateProfileRequest struct {
+	union json.RawMessage
+}
+
+// CreateProfileRequestType defines model for CreateProfileRequestType.
+type CreateProfileRequestType string
+
 // Identifier Identifier of the resource
 type Identifier = kmscommon.Identifier
 
@@ -390,11 +412,6 @@ type ProfileTypeParameter = NamespaceKind
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = CertificateInfo
 
-// ListProfilesParams defines parameters for ListProfiles.
-type ListProfilesParams struct {
-	ProfileType NamespaceKind `form:"profileType" json:"profileType"`
-}
-
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {
 	IncludeCertificate    *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
@@ -403,5 +420,67 @@ type GetCertificateParams struct {
 	TemplateNamespaceId   *Identifier                  `form:"templateNamespaceId,omitempty" json:"templateNamespaceId,omitempty"`
 }
 
+// CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.
+type CreateProfileJSONRequestBody = CreateProfileRequest
+
 // PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
 type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters
+
+// AsCreateManagedApplicationProfileRequest returns the union data inside the CreateProfileRequest as a CreateManagedApplicationProfileRequest
+func (t CreateProfileRequest) AsCreateManagedApplicationProfileRequest() (CreateManagedApplicationProfileRequest, error) {
+	var body CreateManagedApplicationProfileRequest
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateManagedApplicationProfileRequest overwrites any union data inside the CreateProfileRequest as the provided CreateManagedApplicationProfileRequest
+func (t *CreateProfileRequest) FromCreateManagedApplicationProfileRequest(v CreateManagedApplicationProfileRequest) error {
+	v.Type = "managed-application"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCreateManagedApplicationProfileRequest performs a merge with any union data inside the CreateProfileRequest, using the provided CreateManagedApplicationProfileRequest
+func (t *CreateProfileRequest) MergeCreateManagedApplicationProfileRequest(v CreateManagedApplicationProfileRequest) error {
+	v.Type = "managed-application"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CreateProfileRequest) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateProfileRequest) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "managed-application":
+		return t.AsCreateManagedApplicationProfileRequest()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t CreateProfileRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CreateProfileRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
