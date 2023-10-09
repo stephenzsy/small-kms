@@ -46,6 +46,16 @@ import {
     ProfileRefToJSON,
 } from '../models';
 
+export interface GetCertificateRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    certificateId: string;
+    includeCertificate?: IncludeCertificate;
+    templateId?: string;
+    templateNamespaceKind?: NamespaceKind;
+    templateNamespaceId?: string;
+}
+
 export interface GetCertificateTemplateRequest {
     profileType: NamespaceKind;
     profileId: string;
@@ -61,7 +71,6 @@ export interface IssueCertificateFromTemplateRequest {
     profileType: NamespaceKind;
     profileId: string;
     templateId: string;
-    includeCertificate?: IncludeCertificate;
 }
 
 export interface ListCertificateTemplatesRequest {
@@ -95,6 +104,68 @@ export interface SyncProfileRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Get certificate
+     */
+    async getCertificateRaw(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificate.');
+        }
+
+        if (requestParameters.certificateId === null || requestParameters.certificateId === undefined) {
+            throw new runtime.RequiredError('certificateId','Required parameter requestParameters.certificateId was null or undefined when calling getCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.includeCertificate !== undefined) {
+            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
+        }
+
+        if (requestParameters.templateId !== undefined) {
+            queryParameters['templateId'] = requestParameters.templateId;
+        }
+
+        if (requestParameters.templateNamespaceKind !== undefined) {
+            queryParameters['templateNamespaceKind'] = requestParameters.templateNamespaceKind;
+        }
+
+        if (requestParameters.templateNamespaceId !== undefined) {
+            queryParameters['templateNamespaceId'] = requestParameters.templateNamespaceId;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certificateId"}}`, encodeURIComponent(String(requestParameters.certificateId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate
+     */
+    async getCertificate(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
+        const response = await this.getCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get certificate template
@@ -201,10 +272,6 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.includeCertificate !== undefined) {
-            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

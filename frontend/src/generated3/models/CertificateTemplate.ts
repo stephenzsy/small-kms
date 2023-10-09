@@ -70,10 +70,10 @@ export interface CertificateTemplate {
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: string; }}
+     * @type {{ [key: string]: any; }}
      * @memberof CertificateTemplate
      */
-    metadata?: { [key: string]: string; };
+    metadata?: { [key: string]: any; };
     /**
      * Common name
      * @type {string}

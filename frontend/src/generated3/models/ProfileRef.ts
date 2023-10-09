@@ -58,10 +58,10 @@ export interface ProfileRef {
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: string; }}
+     * @type {{ [key: string]: any; }}
      * @memberof ProfileRef
      */
-    metadata?: { [key: string]: string; };
+    metadata?: { [key: string]: any; };
     /**
      * 
      * @type {NamespaceKind}

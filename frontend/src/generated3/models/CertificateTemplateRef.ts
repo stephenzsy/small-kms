@@ -51,10 +51,10 @@ export interface CertificateTemplateRef {
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: string; }}
+     * @type {{ [key: string]: any; }}
      * @memberof CertificateTemplateRef
      */
-    metadata?: { [key: string]: string; };
+    metadata?: { [key: string]: any; };
     /**
      * Common name
      * @type {string}

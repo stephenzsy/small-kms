@@ -51,10 +51,10 @@ export interface CertificateRef {
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: string; }}
+     * @type {{ [key: string]: any; }}
      * @memberof CertificateRef
      */
-    metadata?: { [key: string]: string; };
+    metadata?: { [key: string]: any; };
     /**
      * X.509 certificate SHA-1 thumbprint
      * @type {string}

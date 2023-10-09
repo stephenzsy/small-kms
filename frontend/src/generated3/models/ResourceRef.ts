@@ -51,10 +51,10 @@ export interface ResourceRef {
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: string; }}
+     * @type {{ [key: string]: any; }}
      * @memberof ResourceRef
      */
-    metadata?: { [key: string]: string; };
+    metadata?: { [key: string]: any; };
 }
 
 /**
