@@ -9,11 +9,11 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-type ContextKey string
+type contextKey string
 
 const (
-	appAuthIdentityContextKey string = "smallkms.appAuthIdentity"
-	roleKeyAppAdmin           string = "App.Admin"
+	appAuthIdentityContextKey contextKey = "smallkms.appAuthIdentity"
+	roleKeyAppAdmin           string     = "App.Admin"
 )
 
 type AuthIdentity interface {

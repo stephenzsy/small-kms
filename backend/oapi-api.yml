@@ -140,6 +140,21 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
+  # /v2/{namespaceId}/link-service-principal:
+  #   parameters:
+  #     - $ref: "#/components/parameters/NamespaceIdParameter"
+  #   get:
+  #     tags:
+  #       - admin
+  #     summary: Link device service principal
+  #     operationId: GetDeviceServicePrincipalLinkV2
+  #     responses:
+  #       200:
+  #         description: Link device service principal response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/ServicePrincipalLinkedDevice"
 components:
   securitySchemes:
     BearerAuth:

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
@@ -14,7 +14,8 @@ import (
 )
 
 // GetCertificateTemplate implements models.ServerInterface.
-func (s *server) GetCertificateTemplate(c *gin.Context, profileType models.NamespaceKind, profileId common.Identifier, templateID common.Identifier) {
+func (s *server) GetCertificateTemplate(ec echo.Context, profileType models.NamespaceKind, profileId common.Identifier, templateID common.Identifier) error {
+	c := ec.Request().Context()
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
@@ -31,21 +32,22 @@ func (s *server) GetCertificateTemplate(c *gin.Context, profileType models.Names
 		}
 		return ct.GetCertificateTemplate(sc)
 	})()
-	wrapResponse(c, http.StatusOK, respData, respErr)
+	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
 // PutCertificateTemplate implements models.ServerInterface.
-func (s *server) PutCertificateTemplate(c *gin.Context,
+func (s *server) PutCertificateTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
-	templateID common.Identifier) {
+	templateID common.Identifier) error {
+	c := ec.Request().Context()
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 
 		req := models.CertificateTemplateParameters{}
-		err := c.BindJSON(&req)
+		err := ec.Bind(&req)
 		if err != nil {
 			return nil, fmt.Errorf("%w: invalid input body", common.ErrStatusBadRequest)
 		}
@@ -61,12 +63,14 @@ func (s *server) PutCertificateTemplate(c *gin.Context,
 		}
 		return ct.PutCertificateTemplate(sc, req)
 	})()
-	wrapResponse(c, http.StatusOK, respData, respErr)
+	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
 // ListProfiles implements models.ServerInterface.
-func (s *server) ListCertificateTemplates(c *gin.Context, profileType models.NamespaceKind, profileId common.Identifier) {
+func (s *server) ListCertificateTemplates(ec echo.Context, profileType models.NamespaceKind, profileId common.Identifier) error {
+	c := ec.Request().Context()
 	respData, respErr := (func() ([]*models.CertificateTemplateRefComposed, error) {
+
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
@@ -78,15 +82,16 @@ func (s *server) ListCertificateTemplates(c *gin.Context, profileType models.Nam
 		}
 		return ct.ListCertificateTemplates(sc)
 	})()
-	wrapResponse(c, http.StatusOK, respData, respErr)
+	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
 // IssueCertificateFromTemplate implements models.ServerInterface.
-func (s *server) IssueCertificateFromTemplate(c *gin.Context,
+func (s *server) IssueCertificateFromTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
 	templateID common.Identifier,
-	params models.IssueCertificateFromTemplateParams) {
+	params models.IssueCertificateFromTemplateParams) error {
+	c := ec.Request().Context()
 	respData, respErr := (func() (*models.CertificateInfoComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
@@ -103,14 +108,15 @@ func (s *server) IssueCertificateFromTemplate(c *gin.Context,
 		}
 		return cert.IssueCertificateFromTemplate(sc, params)
 	})()
-	wrapResponse(c, http.StatusOK, respData, respErr)
+	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
 // ListCertificatesByTemplate implements models.ServerInterface.
-func (s *server) ListCertificatesByTemplate(c *gin.Context,
+func (s *server) ListCertificatesByTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
-	templateID common.Identifier) {
+	templateID common.Identifier) error {
+	c := ec.Request().Context()
 	respData, respErr := (func() ([]*models.CertificateRefComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
@@ -127,5 +133,5 @@ func (s *server) ListCertificatesByTemplate(c *gin.Context,
 		}
 		return cert.ListCertificatesByTemplate(sc)
 	})()
-	wrapResponse(c, http.StatusOK, respData, respErr)
+	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }

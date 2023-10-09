@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/auth"
@@ -31,23 +31,25 @@ func (s *server) ServiceContext(c ctx.Context) common.ServiceContext {
 	return common.WithClientProvider(c, s)
 }
 
-func wrapResponse[T interface{}](c *gin.Context, defaultStatus int, data T, err error) {
+type H = map[string]string
+
+func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err error) error {
 	switch {
 	case err == nil:
-		c.JSON(defaultStatus, data)
+		return c.JSON(defaultStatus, data)
 	case errors.Is(err, common.ErrStatusBadRequest):
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusBadRequest, H{"error": err.Error()})
 	case errors.Is(err, common.ErrStatusUnauthorized):
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusUnauthorized, H{"error": err.Error()})
 	case errors.Is(err, common.ErrStatusForbidden):
-		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusForbidden, H{"error": err.Error()})
 	case errors.Is(err, common.ErrStatusNotFound):
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
 	case errors.Is(err, common.ErrStatusConflict):
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
 	default:
-		log.Error().Err(err).Stack().Msg("internal error")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		c.Logger().Error("internal error", err)
+		return c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
 	}
 }
 

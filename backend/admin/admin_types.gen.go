@@ -303,9 +303,6 @@ type CertificateResponse = CertificateInfo
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse map[string]interface{}
 
-// RefListResponse defines model for RefListResponse.
-type RefListResponse = []RefWithMetadata
-
 // IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
 type IssueCertificateByTemplateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`

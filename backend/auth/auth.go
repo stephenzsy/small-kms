@@ -1,12 +1,13 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
+	"github.com/labstack/echo/v4"
 )
 
 type msClientPrincipalClaims struct {
@@ -18,43 +19,56 @@ type msClientPrincipal struct {
 	Claims []msClientPrincipalClaims `json:"claims"`
 }
 
-func HandleAadAuthMiddleware(ctx *gin.Context) {
-	a := authIdentity{
-		appRoles: make(map[string]bool),
-	}
-	// Intercept the headers here
-	var err error
-	var decodedClaims []byte
-	a.msClientPrincipalID, _ = uuid.Parse(ctx.Request.Header.Get("X-Ms-Client-Principal-Id"))
-	a.msClientPrincipalName = ctx.Request.Header.Get("X-Ms-Client-Principal-Name")
-	a.bearerToken = ctx.Request.Header.Get("Authorization")[7:]
-	encodedPrincipal := ctx.Request.Header.Get("X-Ms-Client-Principal")
-	if len(encodedPrincipal) == 0 {
-		log.Warn().Msg("No X-Ms-Client-Principal header found")
-		goto afterParsePrincipalClaims
-	}
-	decodedClaims, err = base64.StdEncoding.DecodeString(encodedPrincipal)
-	if err != nil {
-		log.Warn().Msg("Error decoding X-Ms-Client-Principal header")
-		goto afterParsePrincipalClaims
-	}
-	{
-		p := msClientPrincipal{}
-		if err = json.Unmarshal(decodedClaims, &p); err != nil {
-			log.Warn().Msgf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
+func ProxiedAADAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		a := authIdentity{
+			appRoles: make(map[string]bool),
+		}
+
+		// Intercept the headers here
+		var err error
+		var decodedClaims []byte
+		headers := c.Request().Header
+		a.msClientPrincipalID, err = uuid.Parse(headers.Get("X-Ms-Client-Principal-Id"))
+		if err != nil {
+			c.Logger().Errorf("Error parsing X-Ms-Client-Principal-Id header: %s", err.Error())
+			return c.NoContent(http.StatusUnauthorized)
+		}
+		a.msClientPrincipalName = headers.Get("X-Ms-Client-Principal-Name")
+		a.bearerToken = headers.Get("Authorization")[7:]
+		encodedPrincipal := headers.Get("X-Ms-Client-Principal")
+		if len(encodedPrincipal) == 0 {
+			c.Logger().Warn("No X-Ms-Client-Principal header found")
 			goto afterParsePrincipalClaims
-		} else {
-			for _, c := range p.Claims {
-				switch c.Type {
-				case "appid":
-					a.appIDClaim, _ = uuid.Parse(c.Value)
-				case "roles":
-					a.appRoles[c.Value] = true
+		}
+		decodedClaims, err = base64.StdEncoding.DecodeString(encodedPrincipal)
+		if err != nil {
+			c.Logger().Warn("Error decoding X-Ms-Client-Principal header")
+			goto afterParsePrincipalClaims
+		}
+		{
+			p := msClientPrincipal{}
+			if err = json.Unmarshal(decodedClaims, &p); err != nil {
+				c.Logger().Warnf("Error unmarshal X-Ms-Client-Principal header: %s", encodedPrincipal)
+				goto afterParsePrincipalClaims
+			} else {
+				for _, c := range p.Claims {
+					switch c.Type {
+					case "appid":
+						a.appIDClaim, _ = uuid.Parse(c.Value)
+					case "roles":
+						a.appRoles[c.Value] = true
+					}
 				}
 			}
 		}
+	afterParsePrincipalClaims:
+		ctx := c.Request().Context()
+		ctx = context.WithValue(ctx, appAuthIdentityContextKey, a)
+		c.SetRequest(c.Request().WithContext(ctx))
+		return next(c)
 	}
-afterParsePrincipalClaims:
-	ctx.Set(appAuthIdentityContextKey, a)
-	ctx.Next()
 }
+
+var _ echo.MiddlewareFunc = ProxiedAADAuth

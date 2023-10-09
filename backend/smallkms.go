@@ -13,10 +13,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/stephenzsy/small-kms/backend/admin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -42,26 +41,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := gin.Default()
-
 	switch role {
 	case "admin":
+		e := echo.New()
+		e.Use(middleware.Logger())
+		e.Use(middleware.Recover())
 		if os.Getenv("ENABLE_CORS") == "true" {
-			corsConfig := cors.DefaultConfig()
-			corsConfig.AllowAllOrigins = true
-			corsConfig.AllowHeaders = append(corsConfig.AllowHeaders,
-				"Authorization", "X-Ms-Client-Principal", "X-Ms-Client-Principal-Name", "X-Ms-Client-Principal-Id")
-			corsConfig.AllowCredentials = true
-			router.Use(cors.New(corsConfig))
+			e.Use(middleware.CORS())
 		}
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
-			router.Use(auth.HandleDevJWTMiddleware)
+			e.Use(auth.UnverifiedAADJwtAuth)
 		} else {
-			router.Use(auth.HandleAadAuthMiddleware)
+			e.Use(auth.ProxiedAADAuth)
 		}
-		admin.RegisterHandlers(router, admin.NewAdminServer())
-		models.RegisterHandlers(router, api.NewServer())
+
+		models.RegisterHandlers(e, api.NewServer())
+		e.Logger.Fatal(e.Start(listenerAddress))
 	}
 
-	log.Fatal(router.Run(listenerAddress))
 }

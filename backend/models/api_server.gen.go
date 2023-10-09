@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -15,399 +15,313 @@ import (
 type ServerInterface interface {
 	// Get namespace info with ms graph
 	// (GET /v3/profile/{profileType}/{profileId})
-	GetProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
+	GetProfile(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
 	// Sync namespace info with ms graph
 	// (POST /v3/profile/{profileType}/{profileId})
-	SyncProfile(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
+	SyncProfile(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
 	// List profiles by type
 	// (GET /v3/profiles)
-	ListProfiles(c *gin.Context, params ListProfilesParams)
+	ListProfiles(ctx echo.Context, params ListProfilesParams) error
 	// Get certificate template
 	// (GET /v3/{profileType}/{profileId}/certificate-template/{templateId})
-	GetCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
+	GetCertificateTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// Put certificate template
 	// (PUT /v3/{profileType}/{profileId}/certificate-template/{templateId})
-	PutCertificateTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
+	PutCertificateTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// List certificates issued by template
 	// (GET /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates)
-	ListCertificatesByTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter)
+	ListCertificatesByTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// Create certificate
 	// (POST /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates)
-	IssueCertificateFromTemplate(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams)
+	IssueCertificateFromTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams) error
 	// List certificate templates
 	// (GET /v3/{profileType}/{profileId}/certificate-templates)
-	ListCertificateTemplates(c *gin.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter)
+	ListCertificateTemplates(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
 }
 
-// ServerInterfaceWrapper converts contexts to parameters.
+// ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler            ServerInterface
-	HandlerMiddlewares []MiddlewareFunc
-	ErrorHandler       func(*gin.Context, error, int)
+	Handler ServerInterface
 }
 
-type MiddlewareFunc func(c *gin.Context)
-
-// GetProfile operation middleware
-func (siw *ServerInterfaceWrapper) GetProfile(c *gin.Context) {
-
+// GetProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetProfile(c, profileType, profileId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetProfile(ctx, profileType, profileId)
+	return err
 }
 
-// SyncProfile operation middleware
-func (siw *ServerInterfaceWrapper) SyncProfile(c *gin.Context) {
-
+// SyncProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.SyncProfile(c, profileType, profileId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.SyncProfile(ctx, profileType, profileId)
+	return err
 }
 
-// ListProfiles operation middleware
-func (siw *ServerInterfaceWrapper) ListProfiles(c *gin.Context) {
-
+// ListProfiles converts echo context to params.
+func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
 	var err error
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ListProfilesParams
-
 	// ------------- Required query parameter "profileType" -------------
 
-	if paramValue := c.Query("profileType"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandler(c, fmt.Errorf("Query argument profileType is required, but not found"), http.StatusBadRequest)
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "profileType", c.Request.URL.Query(), &params.ProfileType)
+	err = runtime.BindQueryParameter("form", true, true, "profileType", ctx.QueryParams(), &params.ProfileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListProfiles(c, params)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListProfiles(ctx, params)
+	return err
 }
 
-// GetCertificateTemplate operation middleware
-func (siw *ServerInterfaceWrapper) GetCertificateTemplate(c *gin.Context) {
-
+// GetCertificateTemplate converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificateTemplate(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
 	// ------------- Path parameter "templateId" -------------
 	var templateId CertificateTemplateIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetCertificateTemplate(c, profileType, profileId, templateId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificateTemplate(ctx, profileType, profileId, templateId)
+	return err
 }
 
-// PutCertificateTemplate operation middleware
-func (siw *ServerInterfaceWrapper) PutCertificateTemplate(c *gin.Context) {
-
+// PutCertificateTemplate converts echo context to params.
+func (w *ServerInterfaceWrapper) PutCertificateTemplate(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
 	// ------------- Path parameter "templateId" -------------
 	var templateId CertificateTemplateIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.PutCertificateTemplate(c, profileType, profileId, templateId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutCertificateTemplate(ctx, profileType, profileId, templateId)
+	return err
 }
 
-// ListCertificatesByTemplate operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificatesByTemplate(c *gin.Context) {
-
+// ListCertificatesByTemplate converts echo context to params.
+func (w *ServerInterfaceWrapper) ListCertificatesByTemplate(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
 	// ------------- Path parameter "templateId" -------------
 	var templateId CertificateTemplateIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListCertificatesByTemplate(c, profileType, profileId, templateId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListCertificatesByTemplate(ctx, profileType, profileId, templateId)
+	return err
 }
 
-// IssueCertificateFromTemplate operation middleware
-func (siw *ServerInterfaceWrapper) IssueCertificateFromTemplate(c *gin.Context) {
-
+// IssueCertificateFromTemplate converts echo context to params.
+func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
 	// ------------- Path parameter "templateId" -------------
 	var templateId CertificateTemplateIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params IssueCertificateFromTemplateParams
-
 	// ------------- Optional query parameter "includeCertificate" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", ctx.QueryParams(), &params.IncludeCertificate)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeCertificate: %s", err))
 	}
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.IssueCertificateFromTemplate(c, profileType, profileId, templateId, params)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.IssueCertificateFromTemplate(ctx, profileType, profileId, templateId, params)
+	return err
 }
 
-// ListCertificateTemplates operation middleware
-func (siw *ServerInterfaceWrapper) ListCertificateTemplates(c *gin.Context) {
-
+// ListCertificateTemplates converts echo context to params.
+func (w *ServerInterfaceWrapper) ListCertificateTemplates(ctx echo.Context) error {
 	var err error
-
 	// ------------- Path parameter "profileType" -------------
 	var profileType ProfileTypeParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileType", c.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileType: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
 	var profileId ProfileIdentifierParameter
 
-	err = runtime.BindStyledParameter("simple", false, "profileId", c.Param("profileId"), &profileId)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileId", runtime.ParamLocationPath, ctx.Param("profileId"), &profileId)
 	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter profileId: %w", err), http.StatusBadRequest)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileId: %s", err))
 	}
 
-	c.Set(BearerAuthScopes, []string{})
+	ctx.Set(BearerAuthScopes, []string{})
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.ListCertificateTemplates(c, profileType, profileId)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListCertificateTemplates(ctx, profileType, profileId)
+	return err
 }
 
-// GinServerOptions provides options for the Gin server.
-type GinServerOptions struct {
-	BaseURL      string
-	Middlewares  []MiddlewareFunc
-	ErrorHandler func(*gin.Context, error, int)
+// This is a simple interface which specifies echo.Route addition functions which
+// are present on both echo.Echo and echo.Group, since we want to allow using
+// either of them for path registration
+type EchoRouter interface {
+	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
-// RegisterHandlers creates http.Handler with routing matching OpenAPI spec.
-func RegisterHandlers(router gin.IRouter, si ServerInterface) {
-	RegisterHandlersWithOptions(router, si, GinServerOptions{})
+// RegisterHandlers adds each server route to the EchoRouter.
+func RegisterHandlers(router EchoRouter, si ServerInterface) {
+	RegisterHandlersWithBaseURL(router, si, "")
 }
 
-// RegisterHandlersWithOptions creates http.Handler with additional options
-func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options GinServerOptions) {
-	errorHandler := options.ErrorHandler
-	if errorHandler == nil {
-		errorHandler = func(c *gin.Context, err error, statusCode int) {
-			c.JSON(statusCode, gin.H{"msg": err.Error()})
-		}
-	}
+// Registers handlers, and prepends BaseURL to the paths, so that the paths
+// can be served under a prefix.
+func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler:            si,
-		HandlerMiddlewares: options.Middlewares,
-		ErrorHandler:       errorHandler,
+		Handler: si,
 	}
 
-	router.GET(options.BaseURL+"/v3/profile/:profileType/:profileId", wrapper.GetProfile)
-	router.POST(options.BaseURL+"/v3/profile/:profileType/:profileId", wrapper.SyncProfile)
-	router.GET(options.BaseURL+"/v3/profiles", wrapper.ListProfiles)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
-	router.PUT(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
-	router.POST(options.BaseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.IssueCertificateFromTemplate)
-	router.GET(options.BaseURL+"/v3/:profileType/:profileId/certificate-templates", wrapper.ListCertificateTemplates)
+	router.GET(baseURL+"/v3/profile/:profileType/:profileId", wrapper.GetProfile)
+	router.POST(baseURL+"/v3/profile/:profileType/:profileId", wrapper.SyncProfile)
+	router.GET(baseURL+"/v3/profiles", wrapper.ListProfiles)
+	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
+	router.PUT(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
+	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
+	router.POST(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.IssueCertificateFromTemplate)
+	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-templates", wrapper.ListCertificateTemplates)
+
 }
