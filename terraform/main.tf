@@ -134,6 +134,26 @@ resource "azurerm_container_app" "backend" {
   resource_group_name          = data.azurerm_resource_group.default.name
   revision_mode                = "Single"
 
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+
+    target_port = 9000
+    transport   = "auto"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+
+  }
+
+  identity {
+    identity_ids = [azurerm_user_assigned_identity.backendManagedIdentity.id]
+    type         = "UserAssigned"
+  }
+
+
   template {
     container {
       name   = "examplecontainerapp"
@@ -142,7 +162,15 @@ resource "azurerm_container_app" "backend" {
       memory = "0.5Gi"
     }
   }
+
+
+  lifecycle {
+    ignore_changes = [
+      secret,
+    ]
+  }
 }
+
 
 resource "azurerm_storage_account" "default" {
   name                     = join("", ["smallkms", replace(random_pet.default.id, "-", "")])
