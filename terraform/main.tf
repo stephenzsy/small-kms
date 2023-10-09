@@ -148,6 +148,11 @@ resource "azurerm_container_app" "backend" {
 
   }
 
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = azurerm_user_assigned_identity.backendManagedIdentity.id
+  }
+
   identity {
     identity_ids = [azurerm_user_assigned_identity.backendManagedIdentity.id]
     type         = "UserAssigned"
@@ -155,11 +160,42 @@ resource "azurerm_container_app" "backend" {
 
 
   template {
+    max_replicas = 2
     container {
-      name   = "examplecontainerapp"
-      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+      name   = "smallkms-be"
+      image  = "${azurerm_container_registry.acr.login_server}/smallkms/backend:latest"
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.backendManagedIdentity.client_id
+      }
+
+      env {
+        name  = "AZURE_TENANT_ID"
+        value = data.azurerm_client_config.current.tenant_id
+      }
+
+      env {
+        name  = "AZURE_KEYVAULT_RESOURCEENDPOINT"
+        value = azurerm_key_vault.default.vault_uri
+      }
+
+      env {
+        name  = "AZURE_STORAGEBLOB_RESOURCEENDPOINT"
+        value = azurerm_storage_account.default.primary_blob_endpoint
+      }
+
+      env {
+        name  = "AZURE_COSMOS_RESOURCEENDPOINT"
+        value = data.azurerm_cosmosdb_account.default.endpoint
+      }
+
+      env {
+        name  = "AZURE_COSMOS_DATABASE_ID"
+        value = azurerm_cosmosdb_sql_database.db.name
+      }
     }
   }
 
@@ -167,6 +203,7 @@ resource "azurerm_container_app" "backend" {
   lifecycle {
     ignore_changes = [
       secret,
+      ingress[0].custom_domain,
     ]
   }
 }
@@ -200,9 +237,21 @@ resource "azurerm_user_assigned_identity" "deployment" {
   resource_group_name = data.azurerm_resource_group.default.name
 }
 
-resource "azurerm_role_assignment" "example" {
+resource "azurerm_role_assignment" "deploymentAcrPush" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
+  principal_id         = azurerm_user_assigned_identity.deployment.principal_id
+}
+
+resource "azurerm_role_assignment" "appAcrPull" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.backendManagedIdentity.principal_id
+}
+
+resource "azurerm_role_assignment" "deploymentContainerApp" {
+  scope                = azurerm_container_app.backend.id
+  role_definition_name = "Contributor"
   principal_id         = azurerm_user_assigned_identity.deployment.principal_id
 }
 
