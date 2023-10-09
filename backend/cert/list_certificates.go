@@ -12,14 +12,14 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getLatestCertificateByTemplateDoc(c common.ServiceContext, templateLocator models.ResourceLocator) (doc *CertDoc, err error) {
+func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator models.ResourceLocator) (doc *CertDoc, err error) {
 	doc = &CertDoc{}
 	err = kmsdoc.Read[*CertDoc](c,
 		common.NewLocator(templateLocator.GetNamespaceID(), common.NewIdentifierWithKind(models.ResourceKindLatestCertForTemplate, templateLocator.GetID().Identifier())), doc)
 	return
 }
 
-func ListCertificatesByTemplate(c common.ServiceContext) ([]*models.CertificateRefComposed, error) {
+func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefComposed, error) {
 
 	nsID := ns.GetNamespaceContext(c).GetID()
 	ctc := ct.GetCertificateTemplateContext(c)

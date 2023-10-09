@@ -6,9 +6,11 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-type CertificateTemplateContext interface {
-	GetCertificateTemplateLocator(common.ServiceContext) models.ResourceLocator
-	GetCertificateTemplateDoc(common.ServiceContext) (*CertificateTemplateDoc, error)
+type RequestContext = common.RequestContext
+
+type CertificateTemplateService interface {
+	GetCertificateTemplateLocator(RequestContext) models.ResourceLocator
+	GetCertificateTemplateDoc(RequestContext) (*CertificateTemplateDoc, error)
 }
 
 type certTmplContext struct {
@@ -16,17 +18,17 @@ type certTmplContext struct {
 }
 
 // GetCertificateTemplateLocator implements CertificateTemplateContext.
-func (ctc *certTmplContext) GetCertificateTemplateLocator(c common.ServiceContext) models.ResourceLocator {
+func (ctc *certTmplContext) GetCertificateTemplateLocator(c RequestContext) models.ResourceLocator {
 	nsID := ns.GetNamespaceContext(c).GetID()
 	return getCertificateTemplateDocLocator(nsID, ctc.templateID)
 }
 
 // GetCertificateTemplateDoc implements CertificateTemplateContext.
-func (ctc *certTmplContext) GetCertificateTemplateDoc(c common.ServiceContext) (*CertificateTemplateDoc, error) {
+func (ctc *certTmplContext) GetCertificateTemplateDoc(c RequestContext) (*CertificateTemplateDoc, error) {
 	return GetCertificateTemplateDoc(c, ctc.GetCertificateTemplateLocator(c))
 }
 
-func newCertificateTemplateContext(templateID common.Identifier) CertificateTemplateContext {
+func newCertificateTemplateService(templateID common.Identifier) CertificateTemplateService {
 	return &certTmplContext{
 		templateID: templateID,
 	}

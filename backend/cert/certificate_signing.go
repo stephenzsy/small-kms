@@ -18,14 +18,14 @@ import (
 )
 
 type CertificateRequestProvider interface {
-	Load(common.ServiceContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
+	Load(RequestContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
 	Close()
 	CollectCertificateChain([][]byte, *CertJwkSpec) error
 }
 
 type SignerProvider interface {
 	// this call also populate other fields in the signer provider
-	LoadSigner(common.ServiceContext) (crypto.Signer, error)
+	LoadSigner(RequestContext) (crypto.Signer, error)
 	Certificate() *x509.Certificate
 	Locator() models.ResourceLocator
 	GetIssuerCertStorePath() string
@@ -35,11 +35,11 @@ type SignerProvider interface {
 }
 
 type StorageProvider interface {
-	StoreCertificateChainPEM(c common.ServiceContext, pemBlob []byte, x5t []byte,
+	StoreCertificateChainPEM(c RequestContext, pemBlob []byte, x5t []byte,
 		issuerLocatorStr string) (string, error)
 }
 
-func signCertificate(c common.ServiceContext,
+func signCertificate(c RequestContext,
 	csrProvider CertificateRequestProvider,
 	signerProvider SignerProvider,
 	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
@@ -98,11 +98,11 @@ type azBlobStorageProvider struct {
 	blobKey string
 }
 
-func (p *azBlobStorageProvider) StoreCertificateChainPEM(c common.ServiceContext, pem, x5t []byte, issuerLocaterStr string) (string, error) {
+func (p *azBlobStorageProvider) StoreCertificateChainPEM(c RequestContext, pem, x5t []byte, issuerLocaterStr string) (string, error) {
 	if p.blobKey == "" {
 		return "", fmt.Errorf("%w:empty blob name", common.ErrStatusBadRequest)
 	}
-	blockBlobClient := common.GetClientProvider(c).AzBlobContainerClient().NewBlockBlobClient(p.blobKey)
+	blockBlobClient := c.ServiceClientProvider().AzBlobContainerClient().NewBlockBlobClient(p.blobKey)
 	_, err := blockBlobClient.UploadBuffer(c, pem, &blockblob.UploadBufferOptions{
 		HTTPHeaders: &blob.HTTPHeaders{
 			BlobContentType: to.Ptr("application/x-pem-file"),

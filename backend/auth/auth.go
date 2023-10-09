@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 type msClientPrincipalClaims struct {
@@ -64,9 +64,7 @@ func ProxiedAADAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 	afterParsePrincipalClaims:
-		ctx := c.Request().Context()
-		ctx = context.WithValue(ctx, appAuthIdentityContextKey, a)
-		c.SetRequest(c.Request().WithContext(ctx))
+		c = common.EchoContextWithValue(c, appAuthIdentityContextKey, a)
 		return next(c)
 	}
 }

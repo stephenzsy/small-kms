@@ -113,26 +113,24 @@ func UUIDIdentifierFromStringPtr(p *string) Identifier {
 var _ encoding.TextMarshaler = &Identifier{}
 var _ encoding.TextUnmarshaler = &Identifier{}
 
-func hasPrefixFold(s, prefix string) bool {
-	pLen := len(prefix)
-	sLen := len(s)
-	if sLen < pLen {
-		return false
-	}
-	return strings.EqualFold(s[:pLen], prefix[:pLen])
+var reservedPrefixes map[string]bool = map[string]bool{
+	"default":  true,
+	"system":   true,
+	"latest":   true,
+	"template": true,
+	"self":     true,
 }
 
 func (identifier Identifier) HasReservedIDOrPrefix() bool {
 	if identifier.isUuid {
 		return identifier.uuidVal.Version() != 4
 	}
-	lenStr := len(identifier.strVal)
+	s := identifier.strVal
+	lenStr := len(s)
 	if lenStr <= 3 {
 		return false
 	}
-	return hasPrefixFold(identifier.strVal, "default") ||
-		hasPrefixFold(identifier.strVal, "system") ||
-		hasPrefixFold(identifier.strVal, "latest")
+	return reservedPrefixes[strings.ToLower(s)]
 }
 
 var identifierRegex = regexp.MustCompile("[A-Za-z0-9_-]+")

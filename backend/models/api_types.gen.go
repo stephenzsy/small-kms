@@ -366,11 +366,20 @@ type ResourceRef struct {
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
 
+// CertificateIdPathParameter Identifier of the resource
+type CertificateIdPathParameter = Identifier
+
 // CertificateTemplateIdentifierParameter Identifier of the resource
 type CertificateTemplateIdentifierParameter = Identifier
 
 // IncludeCertificateParameter defines model for IncludeCertificateParameter.
 type IncludeCertificateParameter = IncludeCertificate
+
+// NamespaceIdParameter Identifier of the resource
+type NamespaceIdParameter = Identifier
+
+// NamespaceKindParameter defines model for NamespaceKindParameter.
+type NamespaceKindParameter = NamespaceKind
 
 // ProfileIdentifierParameter Identifier of the resource
 type ProfileIdentifierParameter = Identifier
@@ -386,9 +395,12 @@ type ListProfilesParams struct {
 	ProfileType NamespaceKind `form:"profileType" json:"profileType"`
 }
 
-// IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
-type IssueCertificateFromTemplateParams struct {
-	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+// GetCertificateParams defines parameters for GetCertificate.
+type GetCertificateParams struct {
+	IncludeCertificate    *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	TemplateId            *Identifier                  `form:"templateId,omitempty" json:"templateId,omitempty"`
+	TemplateNamespaceKind *NamespaceKind               `form:"templateNamespaceKind,omitempty" json:"templateNamespaceKind,omitempty"`
+	TemplateNamespaceId   *Identifier                  `form:"templateNamespaceId,omitempty" json:"templateNamespaceId,omitempty"`
 }
 
 // PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.

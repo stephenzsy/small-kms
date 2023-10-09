@@ -65,8 +65,12 @@ func NewCommonConfig() (c commonConfig, err error) {
 	c.tenantID = uuid.MustParse(MustGetenv(DefaultEnvVarAzureTenantId))
 	c.tenantIDStr = c.tenantID.String()
 
-	cosmosEndpoint := MustGetenv(DefualtEnvVarAzCosmosResourceEndpoint)
-	c.azCosmosClient, err = azcosmos.NewClient(cosmosEndpoint, c.DefaultAzCredential(), nil)
+	if cosmosConnStr, ok := os.LookupEnv("AZURE_COSMOS_CONNECTION_STRING"); ok {
+		c.azCosmosClient, err = azcosmos.NewClientFromConnectionString(cosmosConnStr, nil)
+	} else {
+		cosmosEndpoint := MustGetenv(DefualtEnvVarAzCosmosResourceEndpoint)
+		c.azCosmosClient, err = azcosmos.NewClient(cosmosEndpoint, c.DefaultAzCredential(), nil)
+	}
 	if err != nil {
 		log.Panicf("Failed to get az cosmos client: %s", err.Error())
 	}

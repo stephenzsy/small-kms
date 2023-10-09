@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	ctx "context"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -10,26 +11,16 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
-type serviceContextKey string
+type ServerContext interface {
+	ctx.Context
+	ServiceClientProvider
+}
 
-const (
-	clientProviderContextKey serviceContextKey = "serviceProvider"
-)
-
-type ClientProvider interface {
+type ServiceClientProvider interface {
 	AzCosmosContainerClient() *azcosmos.ContainerClient
 	AzKeysClient() *azkeys.Client
 	AzCertificatesClient() *azcertificates.Client
-	MsGraphDelegatedClient(ctx.Context) (*msgraphsdkgo.GraphServiceClient, error)
+	MsGraphServerClient() *msgraphsdkgo.GraphServiceClient
+	MsGraphDelegatedClient(context.Context) (*msgraphsdkgo.GraphServiceClient, error)
 	AzBlobContainerClient() *azblobcontainer.Client
-}
-
-type ServiceContext ctx.Context
-
-func WithClientProvider(parent ctx.Context, provider ClientProvider) ServiceContext {
-	return ctx.WithValue(parent, clientProviderContextKey, provider)
-}
-
-func GetClientProvider(s ServiceContext) ClientProvider {
-	return s.Value(clientProviderContextKey).(ClientProvider)
 }

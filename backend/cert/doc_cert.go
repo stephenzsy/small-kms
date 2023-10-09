@@ -77,7 +77,7 @@ type CertDocSigningPatch struct {
 	Issuer        ResourceLocator
 }
 
-func (d *CertDoc) patchSigned(c common.ServiceContext, patch *CertDocSigningPatch) error {
+func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) error {
 	patchOps := azcosmos.PatchOperations{}
 	patchOps.AppendSet("/thumbprint", patch.Thumbprint.HexString())
 	patchOps.AppendSet("/certStorePath", patch.CertStorePath)
@@ -100,7 +100,7 @@ func (d *CertDoc) patchSigned(c common.ServiceContext, patch *CertDocSigningPatc
 	return nil
 }
 
-func (d *CertDoc) readIssuerCertDoc(c common.ServiceContext) (issuerDoc *CertDoc, err error) {
+func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err error) {
 	loadDocLocator := d.Issuer
 	switch loadDocLocator.GetID().Kind() {
 	case models.ResourceKindCertTemplate:
@@ -117,8 +117,8 @@ func (d *CertDoc) readIssuerCertDoc(c common.ServiceContext) (issuerDoc *CertDoc
 	return
 }
 
-func (doc *CertDoc) fetchCertificatePEMBlob(c common.ServiceContext) ([]byte, error) {
-	blobClient := common.GetClientProvider(c).AzBlobContainerClient()
+func (doc *CertDoc) fetchCertificatePEMBlob(c RequestContext) ([]byte, error) {
+	blobClient := c.ServiceClientProvider().AzBlobContainerClient()
 	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(c, nil)
 	if err != nil {
 		return nil, err
@@ -140,8 +140,7 @@ func (doc *CertDoc) fetchCertificatePEMBlob(c common.ServiceContext) ([]byte, er
 }
 
 func createCertificateDoc(nsID models.NamespaceID,
-	tmpl *ct.CertificateTemplateDoc,
-	params models.IssueCertificateFromTemplateParams) (*CertDoc, error) {
+	tmpl *ct.CertificateTemplateDoc) (*CertDoc, error) {
 
 	certID, err := uuid.NewRandom()
 	if err != nil {

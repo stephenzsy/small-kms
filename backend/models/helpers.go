@@ -49,6 +49,10 @@ func NewResourceLocator(namespaceID NamespaceID, resourceID ResourceID) Resource
 	return common.NewLocator(namespaceID, resourceID)
 }
 
+func NewNamespaceID(kind NamespaceKind, identifier common.Identifier) NamespaceID {
+	return common.NewIdentifierWithKind(kind, identifier)
+}
+
 func NewNamespaceIdentifier(kind NamespaceKind, id string) NamespaceID {
 	return common.NewIdentifierWithKind(kind, common.StringIdentifier(id))
 }

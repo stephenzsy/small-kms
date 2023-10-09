@@ -40,6 +40,10 @@ variable "gha_subject_identifier" {
   type = string
 }
 
+variable "aad_auth_app_id" {
+  type = string
+}
+
 data "azurerm_resource_group" "default" {
   name = var.resource_group_name
 }
@@ -196,6 +200,11 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_COSMOS_DATABASE_ID"
         value = azurerm_cosmosdb_sql_database.db.name
       }
+
+      env {
+        name  = "APP_AZURE_CLIENT_ID"
+        value = data.azuread_application.authApp.application_id
+      }
     }
   }
 
@@ -204,6 +213,7 @@ resource "azurerm_container_app" "backend" {
     ignore_changes = [
       secret,
       ingress[0].custom_domain,
+      template[0].container[0].image,
     ]
   }
 }
@@ -262,4 +272,8 @@ resource "azurerm_federated_identity_credential" "deploymentGHA" {
   issuer              = "https://token.actions.githubusercontent.com"
   parent_id           = azurerm_user_assigned_identity.deployment.id
   subject             = var.gha_subject_identifier
+}
+
+data "azuread_application" "authApp" {
+  application_id = var.aad_auth_app_id
 }

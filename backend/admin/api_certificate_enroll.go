@@ -198,7 +198,7 @@ func (pendingCertDoc *PendingCertDoc) populateCertificate(cert *x509.Certificate
 	cert.SerialNumber = big.NewInt(0).SetBytes(certId[:])
 }
 
-func (s *adminServer) processBeginEnrollCertForDASPLink(c common.ServiceContext, nsID uuid.UUID, templateID uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
+func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateID uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
 

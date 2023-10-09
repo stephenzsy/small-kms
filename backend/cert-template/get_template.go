@@ -12,7 +12,7 @@ func getCertificateTemplateDocLocator(nsID models.NamespaceID, templateID common
 	return common.NewLocator(nsID, common.NewIdentifierWithKind(models.ResourceKindCertTemplate, templateID))
 }
 
-func GetCertificateTemplateDoc(c common.ServiceContext,
+func GetCertificateTemplateDoc(c RequestContext,
 	locator models.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
 
 	if locator.GetID().Kind() != models.ResourceKindCertTemplate {
@@ -25,7 +25,7 @@ func GetCertificateTemplateDoc(c common.ServiceContext,
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func GetCertificateTemplate(c common.ServiceContext,
+func GetCertificateTemplate(c RequestContext,
 ) (*models.CertificateTemplateComposed, error) {
 
 	templateLocator := GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c)

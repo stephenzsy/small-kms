@@ -18,7 +18,7 @@ func getTemplateReservedDefault(nsID models.NamespaceID, id common.Identifier) *
 }
 
 // ListCertificateTemplates implements CertificateTemplateService.
-func ListCertificateTemplates(c common.ServiceContext) ([]*models.CertificateTemplateRefComposed, error) {
+func ListCertificateTemplates(c RequestContext) ([]*models.CertificateTemplateRefComposed, error) {
 
 	nsc := ns.GetNamespaceContext(c)
 	nsID := nsc.GetID()

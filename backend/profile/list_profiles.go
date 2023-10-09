@@ -2,7 +2,6 @@ package profile
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -25,7 +24,7 @@ func getBuiltInIntermediateCaProfiles() []ProfileDoc {
 }
 
 // ListProfiles implements ProfileService.
-func ListProfiles(c common.ServiceContext, profileType models.NamespaceKind) ([]*models.ProfileRefComposed, error) {
+func ListProfiles(c RequestContext, profileType models.NamespaceKind) ([]*models.ProfileRefComposed, error) {
 	switch profileType {
 	case models.NamespaceKindCaRoot:
 		return utils.MapSlices(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModelRef() }), nil

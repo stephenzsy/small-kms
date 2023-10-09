@@ -15,22 +15,21 @@ import (
 
 // GetCertificateTemplate implements models.ServerInterface.
 func (s *server) GetCertificateTemplate(ec echo.Context, profileType models.NamespaceKind, profileId common.Identifier, templateID common.Identifier) error {
-	c := ec.Request().Context()
+	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 
-		sc := s.ServiceContext(c)
-		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
+		c, err := ns.WithNamespaceContext(c, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
-		sc, err = ct.WithCertificateTemplateContext(sc, templateID)
+		c, err = ct.WithCertificateTemplateContext(c, templateID)
 		if err != nil {
 			return nil, err
 		}
-		return ct.GetCertificateTemplate(sc)
+		return ct.GetCertificateTemplate(c)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
@@ -40,7 +39,7 @@ func (s *server) PutCertificateTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
 	templateID common.Identifier) error {
-	c := ec.Request().Context()
+	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
@@ -52,35 +51,33 @@ func (s *server) PutCertificateTemplate(ec echo.Context,
 			return nil, fmt.Errorf("%w: invalid input body", common.ErrStatusBadRequest)
 		}
 
-		sc := s.ServiceContext(c)
-		sc, err = ns.WithNamespaceContext(sc, profileType, profileId)
+		c, err = ns.WithNamespaceContext(c, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
-		sc, err = ct.WithCertificateTemplateContext(sc, templateID)
+		c, err = ct.WithCertificateTemplateContext(c, templateID)
 		if err != nil {
 			return nil, err
 		}
-		return ct.PutCertificateTemplate(sc, req)
+		return ct.PutCertificateTemplate(c, req)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
 // ListProfiles implements models.ServerInterface.
 func (s *server) ListCertificateTemplates(ec echo.Context, profileType models.NamespaceKind, profileId common.Identifier) error {
-	c := ec.Request().Context()
+	c := ec.(RequestContext)
 	respData, respErr := (func() ([]*models.CertificateTemplateRefComposed, error) {
 
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 
-		sc := s.ServiceContext(c)
-		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
+		c, err := ns.WithNamespaceContext(c, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
-		return ct.ListCertificateTemplates(sc)
+		return ct.ListCertificateTemplates(c)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
@@ -89,24 +86,22 @@ func (s *server) ListCertificateTemplates(ec echo.Context, profileType models.Na
 func (s *server) IssueCertificateFromTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
-	templateID common.Identifier,
-	params models.IssueCertificateFromTemplateParams) error {
-	c := ec.Request().Context()
+	templateID common.Identifier) error {
+	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.CertificateInfoComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 
-		sc := s.ServiceContext(c)
-		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
+		c, err := ns.WithNamespaceContext(c, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
-		sc, err = ct.WithCertificateTemplateContext(sc, templateID)
+		c, err = ct.WithCertificateTemplateContext(c, templateID)
 		if err != nil {
 			return nil, err
 		}
-		return cert.IssueCertificateFromTemplate(sc, params)
+		return cert.IssueCertificateFromTemplate(c)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
@@ -116,22 +111,40 @@ func (s *server) ListCertificatesByTemplate(ec echo.Context,
 	profileType models.NamespaceKind,
 	profileId common.Identifier,
 	templateID common.Identifier) error {
-	c := ec.Request().Context()
+	c := ec.(RequestContext)
 	respData, respErr := (func() ([]*models.CertificateRefComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}
 
-		sc := s.ServiceContext(c)
-		sc, err := ns.WithNamespaceContext(sc, profileType, profileId)
+		c, err := ns.WithNamespaceContext(c, profileType, profileId)
 		if err != nil {
 			return nil, err
 		}
-		sc, err = ct.WithCertificateTemplateContext(sc, templateID)
+		c, err = ct.WithCertificateTemplateContext(c, templateID)
 		if err != nil {
 			return nil, err
 		}
-		return cert.ListCertificatesByTemplate(sc)
+		return cert.ListCertificatesByTemplate(c)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
+}
+
+// GetCertificate implements models.ServerInterface.
+func (s *server) GetCertificate(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier, certificateId common.Identifier, params models.GetCertificateParams) error {
+	bad := func(e error) error {
+		return wrapResponse[*models.CertificateInfoComposed](ec, http.StatusOK, nil, e)
+	}
+	c := ec.(RequestContext)
+
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+	}
+	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return bad(err)
+	}
+
+	result, err := cert.GetCertificate(c, certificateId, params)
+	return wrapResponse[*models.CertificateInfoComposed](c, http.StatusOK, result, err)
 }

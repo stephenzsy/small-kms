@@ -130,9 +130,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/CertificateRef"
     post:
-      parameters:
-        - $ref: "#/components/parameters/IncludeCertificateParameter"
-          x-go-type-name: IncludeCertificateParameter
       tags:
         - admin
       summary: Create certificate
@@ -140,6 +137,40 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
+  /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateIdPathParameter"
+    get:
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+        - in: query
+          name: "templateId"
+          schema:
+            $ref: "#/components/schemas/Identifier"
+          required: false          
+        - in: query
+          name: "templateNamespaceKind"
+          schema:
+            $ref: "#/components/schemas/NamespaceKind"
+          required: false          
+        - in: query
+          name: "templateNamespaceId"
+          schema:
+            $ref: "#/components/schemas/Identifier"
+          required: false
+      tags:
+        - admin
+      summary: Get certificate
+      operationId: GetCertificate
+      responses:
+        200:
+          description: CertificateResponse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateInfo"
   # /v2/{namespaceId}/link-service-principal:
   #   parameters:
   #     - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -507,7 +538,6 @@ components:
         issuer:
           description: locator for issuer certificate
           $ref: "#/components/schemas/ResourceLocator"
-
         jwk:
           $ref: "#/components/schemas/JwkProperties"
         pem:
@@ -522,12 +552,30 @@ components:
         - $ref: "#/components/schemas/CertificateRef"
         - $ref: "#/components/schemas/CertificateInfoFields"
   parameters:
+    NamespaceKindParameter:
+      in: path
+      name: namespaceKind
+      schema:
+        $ref: "#/components/schemas/NamespaceKind"
+      required: true
     ProfileTypeParameter:
       in: path
       name: profileType
       schema:
         $ref: "#/components/schemas/NamespaceKind"
       required: true
+    NamespaceIdParameter:
+      in: path
+      name: namespaceId
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      required: true
+    CertificateIdPathParameter:
+      in: path
+      name: certificateId
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      required: true      
     ProfileIdentifierParameter:
       in: path
       name: profileId

@@ -11,7 +11,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func StoreProfile(c common.ServiceContext, dirObject msgraphmodels.DirectoryObjectable) (*ProfileDoc, error) {
+func StoreProfile(c RequestContext, dirObject msgraphmodels.DirectoryObjectable) (*ProfileDoc, error) {
 	profileDoc := ProfileDoc{}
 	err := profileDoc.init(dirObject)
 	if err != nil {
@@ -27,7 +27,7 @@ func StoreProfile(c common.ServiceContext, dirObject msgraphmodels.DirectoryObje
 }
 
 // SyncProfile implements ProfileService.
-func SyncProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
+func SyncProfile(c RequestContext) (*models.ProfileComposed, error) {
 
 	nsID := ns.GetNamespaceContext(c).GetID()
 	identifier := nsID.Identifier()
@@ -36,7 +36,7 @@ func SyncProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
 		return nil, fmt.Errorf("%w:invalid profile id for sync", common.ErrStatusBadRequest)
 	}
 
-	client, err := common.GetClientProvider(c).MsGraphDelegatedClient(c)
+	client, err := c.ServiceClientProvider().MsGraphDelegatedClient(c)
 	if err != nil {
 		return nil, err
 	}

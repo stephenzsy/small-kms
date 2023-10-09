@@ -16,9 +16,8 @@ var (
 	ErrInvalidContext = fmt.Errorf("invalid context")
 )
 
-func issueCertificate(c common.ServiceContext,
-	certDoc *CertDoc,
-	params models.IssueCertificateFromTemplateParams) (*CertDoc, error) {
+func issueCertificate(c RequestContext,
+	certDoc *CertDoc) (*CertDoc, error) {
 
 	ctc := ct.GetCertificateTemplateContext(c)
 	nsID := ns.GetNamespaceContext(c).GetID()
@@ -46,7 +45,7 @@ func issueCertificate(c common.ServiceContext,
 		// ok
 	default:
 		// verify graph
-		gc, err := common.GetClientProvider(c).MsGraphDelegatedClient(c)
+		gc, err := c.ServiceClientProvider().MsGraphDelegatedClient(c)
 		if err != nil {
 			return nil, err
 		}

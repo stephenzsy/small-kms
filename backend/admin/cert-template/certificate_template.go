@@ -1,10 +1,10 @@
 package certtemplate
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/admin/cert"
-	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -34,15 +34,9 @@ func (*certificateTemplate) CreateCertWithVariables(TemplateVarData) (cert.Certi
 	panic("unimplemented")
 }
 
-func LoadCertifictateTemplate(c common.ServiceContext, nsID uuid.UUID, templateID uuid.UUID) (CertificateTemplate, error) {
-	bad := func(e error) (CertificateTemplate, error) {
-		return nil, e
-	}
+func LoadCertifictateTemplate(c context.Context, nsID uuid.UUID, templateID uuid.UUID) (CertificateTemplate, error) {
 
 	doc := CertificateTemplateDoc{}
-	if err := kmsdoc.AzCosmosReadItem(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateID), &doc); err != nil {
-		return bad(err)
-	}
 
 	return &certificateTemplate{doc: &doc}, nil
 }

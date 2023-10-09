@@ -8,6 +8,8 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
+type RequestContext = common.RequestContext
+
 /*
 type certServiceContextKey string
 
@@ -16,8 +18,7 @@ const (
 )
 */
 // IssueCertificateFromTemplate implements CertificateService.
-func IssueCertificateFromTemplate(c common.ServiceContext,
-	params models.IssueCertificateFromTemplateParams) (*models.CertificateInfoComposed, error) {
+func IssueCertificateFromTemplate(c RequestContext) (*models.CertificateInfoComposed, error) {
 
 	nsID := ns.GetNamespaceContext(c).GetID()
 	ctc := ct.GetCertificateTemplateContext(c)
@@ -26,7 +27,7 @@ func IssueCertificateFromTemplate(c common.ServiceContext,
 		return nil, err
 	}
 
-	certDoc, err := createCertificateDoc(nsID, tmpl, params)
+	certDoc, err := createCertificateDoc(nsID, tmpl)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +38,7 @@ func IssueCertificateFromTemplate(c common.ServiceContext,
 		return nil, err
 	}
 
-	certDoc, err = issueCertificate(c, certDoc, params)
+	certDoc, err = issueCertificate(c, certDoc)
 	if err != nil {
 		return nil, err
 	}

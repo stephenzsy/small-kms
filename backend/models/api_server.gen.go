@@ -22,6 +22,9 @@ type ServerInterface interface {
 	// List profiles by type
 	// (GET /v3/profiles)
 	ListProfiles(ctx echo.Context, params ListProfilesParams) error
+	// Get certificate
+	// (GET /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId})
+	GetCertificate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params GetCertificateParams) error
 	// Get certificate template
 	// (GET /v3/{profileType}/{profileId}/certificate-template/{templateId})
 	GetCertificateTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -33,7 +36,7 @@ type ServerInterface interface {
 	ListCertificatesByTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// Create certificate
 	// (POST /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates)
-	IssueCertificateFromTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams) error
+	IssueCertificateFromTemplate(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// List certificate templates
 	// (GET /v3/{profileType}/{profileId}/certificate-templates)
 	ListCertificateTemplates(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
@@ -113,6 +116,70 @@ func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.ListProfiles(ctx, params)
+	return err
+}
+
+// GetCertificate converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "certificateId" -------------
+	var certificateId CertificateIdPathParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "certificateId", runtime.ParamLocationPath, ctx.Param("certificateId"), &certificateId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter certificateId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCertificateParams
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", ctx.QueryParams(), &params.IncludeCertificate)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeCertificate: %s", err))
+	}
+
+	// ------------- Optional query parameter "templateId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "templateId", ctx.QueryParams(), &params.TemplateId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
+	}
+
+	// ------------- Optional query parameter "templateNamespaceKind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "templateNamespaceKind", ctx.QueryParams(), &params.TemplateNamespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateNamespaceKind: %s", err))
+	}
+
+	// ------------- Optional query parameter "templateNamespaceId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "templateNamespaceId", ctx.QueryParams(), &params.TemplateNamespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateNamespaceId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceId, certificateId, params)
 	return err
 }
 
@@ -247,17 +314,8 @@ func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) 
 
 	ctx.Set(BearerAuthScopes, []string{})
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params IssueCertificateFromTemplateParams
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", ctx.QueryParams(), &params.IncludeCertificate)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeCertificate: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.IssueCertificateFromTemplate(ctx, profileType, profileId, templateId, params)
+	err = w.Handler.IssueCertificateFromTemplate(ctx, profileType, profileId, templateId)
 	return err
 }
 
@@ -318,6 +376,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v3/profile/:profileType/:profileId", wrapper.GetProfile)
 	router.POST(baseURL+"/v3/profile/:profileType/:profileId", wrapper.SyncProfile)
 	router.GET(baseURL+"/v3/profiles", wrapper.ListProfiles)
+	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)
 	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)

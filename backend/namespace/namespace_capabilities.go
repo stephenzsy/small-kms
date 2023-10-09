@@ -1,7 +1,6 @@
 package ns
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -181,12 +180,13 @@ func validateNamespaceID(nsID models.NamespaceID) error {
 }
 
 type contextKey string
+type RequestContext = common.RequestContext
 
 const (
 	namespaceContextKey contextKey = "namespaceContext"
 )
 
-func WithNamespaceContext(parent common.ServiceContext, unverifiedKind models.NamespaceKind, unverifiedIdentifier common.Identifier) (common.ServiceContext, error) {
+func WithNamespaceContext(parent RequestContext, unverifiedKind models.NamespaceKind, unverifiedIdentifier common.Identifier) (RequestContext, error) {
 	if !unverifiedIdentifier.IsValid() {
 		return parent, fmt.Errorf("%w:invalid namespace identifier", common.ErrStatusBadRequest)
 	}
@@ -194,12 +194,12 @@ func WithNamespaceContext(parent common.ServiceContext, unverifiedKind models.Na
 	if err := validateNamespaceID(nsID); err != nil {
 		return parent, err
 	}
-	return context.WithValue(parent, namespaceContextKey, &namespaceContext{
+	return common.RequestContextWithValue(parent, namespaceContextKey, &namespaceContext{
 		nsID: nsID,
 	}), nil
 }
 
-func GetNamespaceContext(c common.ServiceContext) NamespaceContext {
+func GetNamespaceContext(c RequestContext) NamespaceContext {
 	if nc, ok := c.Value(namespaceContextKey).(NamespaceContext); ok {
 		return nc
 	}

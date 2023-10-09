@@ -10,6 +10,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
@@ -46,16 +48,19 @@ func main() {
 		e := echo.New()
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
+
 		if os.Getenv("ENABLE_CORS") == "true" {
 			e.Use(middleware.CORS())
 		}
+		e.Use(common.InjectAppContext)
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 			e.Use(auth.UnverifiedAADJwtAuth)
 		} else {
 			e.Use(auth.ProxiedAADAuth)
 		}
-
-		models.RegisterHandlers(e, api.NewServer())
+		server, serverMiddleWare := api.NewServer(context.Background())
+		e.Use(serverMiddleWare)
+		models.RegisterHandlers(e, server)
 		e.Logger.Fatal(e.Start(listenerAddress))
 	}
 

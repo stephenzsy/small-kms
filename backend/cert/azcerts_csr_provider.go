@@ -21,19 +21,19 @@ type azCertsCsrProvider struct {
 	cert                    *x509.Certificate
 	csr                     *x509.CertificateRequest
 	certOperationInProgress string
-	ctx                     common.ServiceContext
+	eCtx                    RequestContext
 }
 
 // Close implements CertificateRequestProvider.
 func (p *azCertsCsrProvider) Close() {
 	if p.client != nil && p.certOperationInProgress != "" {
-		p.client.DeleteCertificate(p.ctx, p.certOperationInProgress, nil)
+		p.client.DeleteCertificate(p.eCtx, p.certOperationInProgress, nil)
 	}
 }
 
 // CollectCertificateChain implements CertificateRequestProvider.
 func (p *azCertsCsrProvider) CollectCertificateChain(x5c [][]byte, ioCertSpec *CertJwkSpec) error {
-	resp, err := p.client.MergeCertificate(p.ctx, p.certOperationInProgress, azcertificates.MergeCertificateParameters{
+	resp, err := p.client.MergeCertificate(p.eCtx, p.certOperationInProgress, azcertificates.MergeCertificateParameters{
 		X509Certificates: x5c,
 	}, nil)
 	if err != nil {
@@ -46,8 +46,8 @@ func (p *azCertsCsrProvider) CollectCertificateChain(x5c [][]byte, ioCertSpec *C
 }
 
 // Load implements CertificateRequestProvider.
-func (p *azCertsCsrProvider) Load(c common.ServiceContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
-	p.ctx = c
+func (p *azCertsCsrProvider) Load(c RequestContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
+	p.eCtx = c.Elevate()
 	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
 		return nil, nil, nil, e
 	}
@@ -91,7 +91,7 @@ func (p *azCertsCsrProvider) Load(c common.ServiceContext) (certTemplate *x509.C
 		},
 	}
 
-	p.client = common.GetClientProvider(c).AzCertificatesClient()
+	p.client = c.ServiceClientProvider().AzCertificatesClient()
 	certName := *p.certDoc.KeyStorePath
 	resp, err := p.client.CreateCertificate(c, certName, csp, nil)
 	if err != nil {
@@ -150,7 +150,7 @@ func (p *azKeysExistingCertSigner) GetIssuerCertStorePath() string {
 }
 
 // LoadSigner implements SignerProvider.
-func (p *azKeysExistingCertSigner) LoadSigner(c common.ServiceContext) (signer crypto.Signer, err error) {
+func (p *azKeysExistingCertSigner) LoadSigner(c RequestContext) (signer crypto.Signer, err error) {
 	kidStr := p.issuerCertDoc.CertSpec.KID
 	if kidStr == "" {
 		return nil, fmt.Errorf("empty key id from issuer")
@@ -172,7 +172,7 @@ func (p *azKeysExistingCertSigner) LoadSigner(c common.ServiceContext) (signer c
 
 	p.keyVaultSigner = &keyVaultSigner{
 		ctx:        c,
-		keysClient: common.GetClientProvider(c).AzKeysClient(),
+		keysClient: c.ServiceClientProvider().AzKeysClient(),
 		jwk: &azkeys.JSONWebKey{
 			KID: utils.ToPtr(azkeys.ID(p.issuerCertDoc.CertSpec.KID)),
 		},

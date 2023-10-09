@@ -9,7 +9,9 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getProfileDoc(c common.ServiceContext, locator models.ResourceLocator) (doc *ProfileDoc, err error) {
+type RequestContext = common.RequestContext
+
+func getProfileDoc(c RequestContext, locator models.ResourceLocator) (doc *ProfileDoc, err error) {
 	if locator.GetNamespaceID() == docNsIDProfileBuiltIn {
 		docID := locator.GetID()
 		if docID.Kind() == models.ResourceKindCaRoot {
@@ -45,7 +47,7 @@ func resolveProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.Resour
 }
 
 // GetProfile implements ProfileService.
-func GetProfile(c common.ServiceContext) (*models.ProfileComposed, error) {
+func GetProfile(c RequestContext) (*models.ProfileComposed, error) {
 	nsID := ns.GetNamespaceContext(c).GetID()
 	var profileNsID models.NamespaceID
 	var resourceKind models.ResourceKind

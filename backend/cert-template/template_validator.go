@@ -137,7 +137,7 @@ func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func validatePutRequest(c common.ServiceContext,
+func validatePutRequest(c RequestContext,
 	locator models.ResourceLocator,
 	req models.CertificateTemplateParameters) (*CertificateTemplateDoc, error) {
 

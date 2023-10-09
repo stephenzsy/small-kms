@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"context"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 type DevJwtClaims struct {
@@ -45,9 +45,7 @@ func UnverifiedAADJwtAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		for _, r := range claims.Roles {
 			a.appRoles[r] = true
 		}
-		ctx := c.Request().Context()
-		ctx = context.WithValue(ctx, appAuthIdentityContextKey, a)
-		c.SetRequest(c.Request().WithContext(ctx))
+		c = common.EchoContextWithValue(c, appAuthIdentityContextKey, a)
 		return next(c)
 	}
 }

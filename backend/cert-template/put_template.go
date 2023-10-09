@@ -2,13 +2,12 @@ package certtemplate
 
 import (
 	"github.com/stephenzsy/small-kms/backend/auth"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 // PutCertificateTemplate implements CertificateTemplateService.
-func PutCertificateTemplate(c common.ServiceContext,
+func PutCertificateTemplate(c RequestContext,
 	req models.CertificateTemplateParameters) (*models.CertificateTemplateComposed, error) {
 
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
