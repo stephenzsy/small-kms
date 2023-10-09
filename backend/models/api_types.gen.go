@@ -16,6 +16,11 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for AgentHostRole.
+const (
+	AgentHostRoleRadiusServer AgentHostRole = "radiusServer"
+)
+
 // Defines values for CertificateUsage.
 const (
 	CertUsageCA         CertificateUsage = "ca"
@@ -87,6 +92,14 @@ const (
 	ResourceKindLatestCertForTemplate ResourceKind = "latest-cert-for-template"
 	ResourceKindMsGraph               ResourceKind = "ms-graph"
 )
+
+// AgentCheckInResult defines model for AgentCheckInResult.
+type AgentCheckInResult struct {
+	Message *string `json:"message,omitempty"`
+}
+
+// AgentHostRole defines model for AgentHostRole.
+type AgentHostRole string
 
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo struct {
@@ -417,6 +430,11 @@ type ProfileTypeParameter = NamespaceKind
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = CertificateInfo
+
+// AgentCheckInParams defines parameters for AgentCheckIn.
+type AgentCheckInParams struct {
+	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
+}
 
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {

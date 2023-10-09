@@ -8,6 +8,28 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /v3/agent/check-in:
+    get:
+      tags:
+        - agent
+      parameters:
+        - in: query
+          name: hostRoles
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgentHostRole"
+          required: false
+      operationId: AgentCheckIn
+      responses:
+        200:
+          description: Agent check in response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentCheckInResult"
+        204:
+          description: No content
   /v3/profiles/{namespaceKind}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -597,6 +619,17 @@ components:
       allOf:
         - $ref: "#/components/schemas/CertificateRef"
         - $ref: "#/components/schemas/CertificateInfoFields"
+    AgentHostRole:
+      type: string
+      enum:
+        - radiusServer
+      x-enum-varnames:
+        - AgentHostRoleRadiusServer
+    AgentCheckInResult:
+      type: object
+      properties:
+        message:
+          type: string
   parameters:
     NamespaceKindParameter:
       in: path

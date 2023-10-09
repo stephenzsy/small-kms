@@ -25,7 +25,6 @@ type certificateSigner struct {
 	certCUID                kmsdoc.KmsDocID
 	certPubKey              crypto.PublicKey
 	createAzCertificateResp *azcertificates.CreateCertificateResponse
-	rootCAKeyBundle         *azkeys.KeyBundle
 	namespaceID             uuid.UUID
 }
 
@@ -50,19 +49,6 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 	signer := certificateSigner{}
 	signer.namespaceID = tdoc.IssuerNamespaceID
 	if tdoc.NamespaceID == tdoc.IssuerNamespaceID {
-		// root ca will create keys in key vault
-		keyBundle, err := createAzKey(ctx, s.AzKeysClient(), false, tdoc.KeyProperties, tdoc.KeyStorePath, cert.NotAfter)
-		if err != nil {
-			return nil, err
-		}
-		signer.privateKey, err = newKeyVaultSigner(ctx, s.AzKeysClient(), keyBundle.Key,
-			tdoc.KeyProperties.Alg.ToAzKeysSignatureAlgorithm())
-		if err != nil {
-			return nil, err
-		}
-		signer.certificate = cert
-		signer.certPubKey = signer.privateKey.publicKey
-		signer.rootCAKeyBundle = &keyBundle
 
 	} else {
 		// read certficate doc

@@ -4,13 +4,10 @@ import (
 	"context"
 	"crypto/x509/pkix"
 	"fmt"
-	"slices"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
@@ -166,129 +163,6 @@ func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *models.Jw
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
 	t.DaysBeforeExpiry = nil
 	t.LifetimePercentage = ToPtr(int32(80))
-}
-
-/*
-	func (t *CertificateTemplateDocLifeTimeTrigger) fromInput(input *CertificateLifetimeTrigger, validityInMonths int32) error {
-		if input == nil {
-			return nil
-		}
-		if input.DaysBeforeExpiry != nil {
-			if *input.DaysBeforeExpiry < 0 || *input.DaysBeforeExpiry > validityInMonths*15 {
-				return errors.New("days_before_expiry must be between 0 and validity_months * 15")
-			}
-			t.DaysBeforeExpiry = input.DaysBeforeExpiry
-			t.LifetimePercentage = nil
-			return nil
-		}
-		if input.LifetimePercentage != nil {
-			if *input.LifetimePercentage < 50 || *input.LifetimePercentage > 100 {
-				return errors.New("lifetime_percentage must be between 50 and 100")
-			}
-			t.DaysBeforeExpiry = nil
-			t.LifetimePercentage = input.LifetimePercentage
-		}
-		return nil
-	}
-*/
-func createAzKey(ctx context.Context, client *azkeys.Client, keyExportable bool,
-	kp CertificateTemplateDocKeyProperties,
-	keyStorePath *string,
-	notAfter time.Time) (r azkeys.KeyBundle, err error) {
-	params := azkeys.CreateKeyParameters{
-		KeyOps: []*azkeys.KeyOperation{to.Ptr(azkeys.KeyOperationSign), to.Ptr(azkeys.KeyOperationVerify)},
-		KeyAttributes: &azkeys.KeyAttributes{
-			Enabled: to.Ptr(true),
-		},
-	}
-
-	// switch kp.Kty {
-	// case KeyTypeRSA:
-	// 	params.Kty = to.Ptr(azkeys.KeyTypeRSA)
-	// 	if kp.KeySize == nil {
-	// 		return r, fmt.Errorf("key size null for RSA key")
-	// 	}
-	// 	switch *kp.KeySize {
-	// 	case KeySize2048:
-	// 		params.KeySize = to.Ptr(int32(KeySize2048))
-	// 	case KeySize3072:
-	// 		params.KeySize = to.Ptr(int32(KeySize3072))
-	// 	case KeySize4096:
-	// 		params.KeySize = to.Ptr(int32(KeySize4096))
-	// 	default:
-	// 		return r, fmt.Errorf("unsupported key size %d", *kp.KeySize)
-	// 	}
-	// case KeyTypeEC:
-	// 	params.Kty = to.Ptr(azkeys.KeyTypeEC)
-	// 	if kp.Crv == nil {
-	// 		return r, fmt.Errorf("curve null for EC key")
-	// 	}
-	// 	switch *kp.Crv {
-	// 	case CurveNameP256:
-	// 		params.Curve = to.Ptr(azkeys.CurveNameP256)
-	// 	case CurveNameP384:
-	// 		params.Curve = to.Ptr(azkeys.CurveNameP384)
-	// 	default:
-	// 		return r, fmt.Errorf("unsupported curve %s", *kp.Crv)
-	// 	}
-	// default:
-	// 	return r, fmt.Errorf("unsupported key type %s", kp.Kty)
-	// }
-
-	if keyStorePath == nil || len(*keyStorePath) <= 0 {
-		return r, fmt.Errorf("nil key name")
-	}
-
-	params.KeyAttributes.Exportable = to.Ptr(keyExportable)
-
-	if kp.ReuseKey != nil && *kp.ReuseKey {
-		// try get certificate
-		resp, err := client.GetKey(ctx, *keyStorePath, "", nil)
-		if err != nil {
-			return resp.KeyBundle, err
-		}
-		// verify key does not expire before certifiate
-		if resp.Attributes.Expires != nil && resp.Attributes.Expires.Before(notAfter) {
-			goto createKey
-		}
-		key := resp.Key
-		// verify key parameters
-		switch *key.Kty {
-		// case azkeys.KeyTypeEC:
-		// 	if kp.Kty != KeyTypeEC {
-		// 		goto createKey
-		// 	}
-		// 	switch *key.Crv {
-		// 	case azkeys.CurveNameP256:
-		// 		if *kp.Crv != CurveNameP256 {
-		// 			goto createKey
-		// 		}
-		// 	case azkeys.CurveNameP384:
-		// 		if *kp.Crv != CurveNameP384 {
-		// 			goto createKey
-		// 		}
-		// 	}
-		// case azkeys.KeyTypeRSA:
-		// 	if kp.Kty != KeyTypeRSA || len(key.N)*8 != int(*kp.KeySize) {
-		// 		goto createKey
-		// 	}
-		default:
-			goto createKey
-		}
-		// verify key ops
-		if !slices.ContainsFunc(key.KeyOps, func(op *azkeys.KeyOperation) bool {
-			return *op == azkeys.KeyOperationSign
-		}) {
-			goto createKey
-		}
-		return resp.KeyBundle, err
-	} else {
-		params.KeyAttributes.Expires = to.Ptr(notAfter)
-	}
-
-createKey:
-	resp, err := client.CreateKey(ctx, *keyStorePath, params, nil)
-	return resp.KeyBundle, err
 }
 
 func (doc *CertificateTemplateDoc) createAzCertificate(

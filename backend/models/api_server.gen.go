@@ -13,6 +13,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (GET /v3/agent/check-in)
+	AgentCheckIn(ctx echo.Context, params AgentCheckInParams) error
 	// List profiles by type
 	// (GET /v3/profiles/{namespaceKind})
 	ListProfiles(ctx echo.Context, namespaceKind NamespaceKindParameter) error
@@ -51,6 +54,26 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// AgentCheckIn converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentCheckIn(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AgentCheckInParams
+	// ------------- Optional query parameter "hostRoles" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "hostRoles", ctx.QueryParams(), &params.HostRoles)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter hostRoles: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AgentCheckIn(ctx, params)
+	return err
 }
 
 // ListProfiles converts echo context to params.
@@ -429,6 +452,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/v3/agent/check-in", wrapper.AgentCheckIn)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.GetProfile)

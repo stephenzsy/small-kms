@@ -96,6 +96,9 @@ func (*server) CreateManagedNamespace(ctx echo.Context,
 	}
 
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return bad(err)
+	}
 	result, err := profile.CreateManagedProfile(c, targetNamespaceKind)
 	return wrapResponse[*models.ProfileComposed](c, http.StatusOK, result, err)
 }
