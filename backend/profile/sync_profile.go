@@ -42,6 +42,7 @@ func upsertProfileDoc(c RequestContext, profileDoc *ProfileDoc, odataErrorCode *
 	ops := azcosmos.PatchOperations{}
 	if graphErr != nil {
 		ops.AppendSet("/graphSyncCode", odataErrorCode)
+		profileDoc.GraphSyncCode = *odataErrorCode
 	} else {
 		ops.AppendSet("/graphSyncCode", "")
 		ops.AppendSet("/graph", profileDoc.Graph)

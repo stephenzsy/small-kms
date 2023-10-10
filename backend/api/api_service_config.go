@@ -24,3 +24,18 @@ func (*server) GetServiceConfig(ctx echo.Context) error {
 	result, err := admin.GetServiceConfig(c)
 	return wrapResponse[*models.ServiceConfigComposed](c, http.StatusOK, result, err)
 }
+
+// PatchServiceConfig implements models.ServerInterface.
+func (*server) PatchServiceConfig(ctx echo.Context, configPath models.PatchServiceConfigParamsConfigPath) error {
+	bad := func(e error) error {
+		return wrapResponse[*models.ServiceConfigComposed](ctx, http.StatusOK, nil, e)
+	}
+	c := ctx.(RequestContext)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+
+	}
+
+	result, err := admin.PatchServiceConfig(c, configPath)
+	return wrapResponse[*models.ServiceConfigComposed](c, http.StatusOK, result, err)
+}

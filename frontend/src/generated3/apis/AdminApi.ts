@@ -94,7 +94,7 @@ export interface IssueCertificateFromTemplateRequest {
 }
 
 export interface ListCertificateTemplatesRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
     profileId: string;
 }
 
@@ -112,6 +112,11 @@ export interface ListKeyVaultRoleAssignmentsRequest {
 
 export interface ListProfilesRequest {
     namespaceKind: NamespaceKind;
+}
+
+export interface PatchServiceConfigRequest {
+    configPath: PatchServiceConfigConfigPathEnum;
+    body: any | null;
 }
 
 export interface PutCertificateTemplateRequest {
@@ -456,8 +461,8 @@ export class AdminApi extends runtime.BaseAPI {
      * List certificate templates
      */
     async listCertificateTemplatesRaw(requestParameters: ListCertificateTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateTemplateRef>>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listCertificateTemplates.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificateTemplates.');
         }
 
         if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
@@ -477,7 +482,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-templates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/{namespaceKind}/{profileId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -625,6 +630,51 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update service config
+     */
+    async patchServiceConfigRaw(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
+        if (requestParameters.configPath === null || requestParameters.configPath === undefined) {
+            throw new runtime.RequiredError('configPath','Required parameter requestParameters.configPath was null or undefined when calling patchServiceConfig.');
+        }
+
+        if (requestParameters.body === null || requestParameters.body === undefined) {
+            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling patchServiceConfig.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/service/config/{configPath}`.replace(`{${"configPath"}}`, encodeURIComponent(String(requestParameters.configPath))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ServiceConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Update service config
+     */
+    async patchServiceConfig(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
+        const response = await this.patchServiceConfigRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Put certificate template
      */
     async putCertificateTemplateRaw(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
@@ -720,3 +770,14 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
 }
+
+/**
+ * @export
+ */
+export const PatchServiceConfigConfigPathEnum = {
+    ServiceConfigPathAzureSubscriptionId: 'azureSubscriptionId',
+    ServiceConfigPathKeyvaultArmResourceId: 'keyvaultArmResourceId',
+    ServiceConfigPathAppRoleIds: 'appRoleIds',
+    ServiceConfigPathAzureContainerRegistry: 'azureContainerRegistry'
+} as const;
+export type PatchServiceConfigConfigPathEnum = typeof PatchServiceConfigConfigPathEnum[keyof typeof PatchServiceConfigConfigPathEnum];

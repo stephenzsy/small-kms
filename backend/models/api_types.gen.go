@@ -95,6 +95,14 @@ const (
 	ResourceKindReserved              ResourceKind = "reserved"
 )
 
+// Defines values for PatchServiceConfigParamsConfigPath.
+const (
+	ServiceConfigPathAppRoleIds             PatchServiceConfigParamsConfigPath = "appRoleIds"
+	ServiceConfigPathAzureContainerRegistry PatchServiceConfigParamsConfigPath = "azureContainerRegistry"
+	ServiceConfigPathAzureSubscriptionId    PatchServiceConfigParamsConfigPath = "azureSubscriptionId"
+	ServiceConfigPathKeyvaultArmResourceId  PatchServiceConfigParamsConfigPath = "keyvaultArmResourceId"
+)
+
 // AgentCheckInResult defines model for AgentCheckInResult.
 type AgentCheckInResult struct {
 	Message *string `json:"message,omitempty"`
@@ -476,9 +484,6 @@ type NamespaceKindParameter = NamespaceKind
 // ProfileIdentifierParameter Identifier of the resource
 type ProfileIdentifierParameter = Identifier
 
-// ProfileTypeParameter defines model for ProfileTypeParameter.
-type ProfileTypeParameter = NamespaceKind
-
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = CertificateInfo
 
@@ -486,6 +491,12 @@ type CertificateResponse = CertificateInfo
 type AgentCheckInParams struct {
 	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
 }
+
+// PatchServiceConfigJSONBody defines parameters for PatchServiceConfig.
+type PatchServiceConfigJSONBody = interface{}
+
+// PatchServiceConfigParamsConfigPath defines parameters for PatchServiceConfig.
+type PatchServiceConfigParamsConfigPath string
 
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {
@@ -497,6 +508,9 @@ type GetCertificateParams struct {
 
 // CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.
 type CreateProfileJSONRequestBody = CreateProfileRequest
+
+// PatchServiceConfigJSONRequestBody defines body for PatchServiceConfig for application/json ContentType.
+type PatchServiceConfigJSONRequestBody = PatchServiceConfigJSONBody
 
 // PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
 type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters

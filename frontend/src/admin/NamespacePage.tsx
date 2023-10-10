@@ -9,11 +9,8 @@ import {
 } from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
 import {
-  RefTableColumn,
   RefTableColumn3,
-  RefsTable,
-  RefsTable3,
-  displayNameColumn,
+  RefsTable3
 } from "./RefsTable";
 
 const subjectCnColumn: RefTableColumn3<CertificateTemplateRef> = {
@@ -39,7 +36,7 @@ function CertificateTemplatesList({
     async () => {
       return await adminApi.listCertificateTemplates({
         profileId: namespaceId,
-        profileType: nsType,
+        namespaceKind: nsType,
       });
     },
     {

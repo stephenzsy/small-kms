@@ -1,6 +1,9 @@
 package admin
 
 import (
+	"fmt"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -10,6 +13,7 @@ import (
 
 type RequestContext = common.RequestContext
 type ServiceConfig = models.ServiceConfigComposed
+type PatchServiceConfigParamsConfigPath = models.PatchServiceConfigParamsConfigPath
 
 type ServiceConfigDoc struct {
 	kmsdoc.BaseDoc
@@ -62,4 +66,35 @@ func GetServiceConfig(c RequestContext) (*ServiceConfig, error) {
 		}
 	}
 	return doc.toModel(), nil
+}
+
+func PatchServiceConfig(c RequestContext, configPath PatchServiceConfigParamsConfigPath) (*ServiceConfig, error) {
+	var err error
+	doc := ServiceConfigDoc{}
+	var patchData any
+	switch configPath {
+	case models.ServiceConfigPathKeyvaultArmResourceId:
+		err = c.Bind(&doc.KeyvaultArmResourceId)
+		patchData = &doc.KeyvaultArmResourceId
+	case models.ServiceConfigPathAzureSubscriptionId:
+		err = c.Bind(&doc.AzureSubscriptionId)
+		patchData = &doc.AzureSubscriptionId
+	case models.ServiceConfigPathAzureContainerRegistry:
+		err = c.Bind(&doc.AzureContainerRegistry)
+		patchData = &doc.AzureContainerRegistry
+	case models.ServiceConfigPathAppRoleIds:
+		err = c.Bind(&doc.AppRoleIds)
+		patchData = &doc.AppRoleIds
+	default:
+		return nil, fmt.Errorf("%w:invalid config path", common.ErrStatusBadRequest)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w:invalid input body", common.ErrStatusBadRequest)
+	}
+	ops := azcosmos.PatchOperations{}
+	ops.AppendSet("/"+string(configPath), patchData)
+	err = kmsdoc.Patch(c, serviceConfigDocLocator, &doc, ops, &azcosmos.ItemOptions{
+		EnableContentResponseOnWrite: true,
+	})
+	return doc.toModel(), err
 }

@@ -16,7 +16,7 @@ const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificateTemplatePage = React.lazy(
   () => import("./admin/CertificateTemplatePage")
 );
-const ServicePage = React.lazy(() => import("./service/page"));
+const ServicePage = React.lazy(() => import("./service/Page"));
 
 export const router = createBrowserRouter([
   {

@@ -482,9 +482,6 @@ type NamespaceKindParameter = NamespaceKind
 // ProfileIdentifierParameter Identifier of the resource
 type ProfileIdentifierParameter = Identifier
 
-// ProfileTypeParameter defines model for ProfileTypeParameter.
-type ProfileTypeParameter = NamespaceKind
-
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = CertificateInfo
 

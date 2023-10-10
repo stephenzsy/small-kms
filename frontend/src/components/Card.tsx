@@ -29,7 +29,7 @@ export function CartTitle(props: PropsWithChildren<CardTitleProps>) {
 
 export function CardSection(props: PropsWithChildren<{}>) {
   return (
-    <div className="border-t border-neutral-200 px-4 py-6">
+    <div className="border-t border-neutral-200 px-4 py-6 max-w-full overflow-x-auto">
       {props.children}
     </div>
   );

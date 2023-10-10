@@ -34,6 +34,9 @@ type ServerInterface interface {
 	// Get service config
 	// (GET /v3/service/config)
 	GetServiceConfig(ctx echo.Context) error
+	// Update service config
+	// (PATCH /v3/service/config/{configPath})
+	PatchServiceConfig(ctx echo.Context, configPath PatchServiceConfigParamsConfigPath) error
 	// Get certificate template
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
 	GetCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -53,8 +56,8 @@ type ServerInterface interface {
 	// (POST /v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates)
 	IssueCertificateFromTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter, templateId CertificateTemplateIdentifierParameter) error
 	// List certificate templates
-	// (GET /v3/{profileType}/{profileId}/certificate-templates)
-	ListCertificateTemplates(ctx echo.Context, profileType ProfileTypeParameter, profileId ProfileIdentifierParameter) error
+	// (GET /v3/{namespaceKind}/{profileId}/certificate-templates)
+	ListCertificateTemplates(ctx echo.Context, namespaceKind NamespaceKindParameter, profileId ProfileIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -212,6 +215,24 @@ func (w *ServerInterfaceWrapper) GetServiceConfig(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetServiceConfig(ctx)
+	return err
+}
+
+// PatchServiceConfig converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchServiceConfig(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "configPath" -------------
+	var configPath PatchServiceConfigParamsConfigPath
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "configPath", runtime.ParamLocationPath, ctx.Param("configPath"), &configPath)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configPath: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchServiceConfig(ctx, configPath)
 	return err
 }
 
@@ -452,12 +473,12 @@ func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) 
 // ListCertificateTemplates converts echo context to params.
 func (w *ServerInterfaceWrapper) ListCertificateTemplates(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "profileType" -------------
-	var profileType ProfileTypeParameter
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileType", runtime.ParamLocationPath, ctx.Param("profileType"), &profileType)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileType: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
 	// ------------- Path parameter "profileId" -------------
@@ -471,7 +492,7 @@ func (w *ServerInterfaceWrapper) ListCertificateTemplates(ctx echo.Context) erro
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificateTemplates(ctx, profileType, profileId)
+	err = w.Handler.ListCertificateTemplates(ctx, namespaceKind, profileId)
 	return err
 }
 
@@ -510,12 +531,13 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.SyncProfile)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId/managed/:targetNamespaceKind", wrapper.CreateManagedNamespace)
 	router.GET(baseURL+"/v3/service/config", wrapper.GetServiceConfig)
+	router.PATCH(baseURL+"/v3/service/config/:configPath", wrapper.PatchServiceConfig)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.ListKeyVaultRoleAssignments)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)
 	router.GET(baseURL+"/v3/:namespaceKind/:profileId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
 	router.POST(baseURL+"/v3/:namespaceKind/:profileId/certificate-template/:templateId/certificates", wrapper.IssueCertificateFromTemplate)
-	router.GET(baseURL+"/v3/:profileType/:profileId/certificate-templates", wrapper.ListCertificateTemplates)
+	router.GET(baseURL+"/v3/:namespaceKind/:profileId/certificate-templates", wrapper.ListCertificateTemplates)
 
 }

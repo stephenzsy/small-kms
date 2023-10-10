@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -157,7 +156,7 @@ func Create[D KmsDocument](c RequestContext, doc D) error {
 		return err
 	}
 	doc.setETag(resp.ETag)
-	return err
+	return nil
 }
 
 func Upsert[D KmsDocument](c RequestContext, doc D) error {
@@ -173,7 +172,7 @@ func Upsert[D KmsDocument](c RequestContext, doc D) error {
 		return err
 	}
 	doc.setETag(resp.ETag)
-	return err
+	return nil
 }
 
 func Delete[D KmsDocument](c RequestContext, doc D) (err error) {
@@ -198,7 +197,10 @@ func Patch[D KmsDocument](c RequestContext, locator models.ResourceLocator, doc 
 		return err
 	}
 	doc.setETag(resp.ETag)
-	return err
+	if opts != nil && opts.EnableContentResponseOnWrite {
+		return json.Unmarshal(resp.Value, doc)
+	}
+	return nil
 }
 
 func (d *BaseDoc) PopulateResourceRef(r *models.ResourceRef) {

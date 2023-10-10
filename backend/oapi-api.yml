@@ -114,9 +114,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
-  /v3/{profileType}/{profileId}/certificate-templates:
+  /v3/{namespaceKind}/{profileId}/certificate-templates:
     parameters:
-      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
     get:
       tags:
@@ -254,6 +254,41 @@ paths:
         - agent
       summary: Get service config
       operationId: GetServiceConfig
+      responses:
+        200:
+          description: ServiceConfig
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceConfig"
+  /v3/service/config/{configPath}:
+    patch:
+      tags:
+        - admin
+      parameters:
+        - in: path
+          name: configPath
+          schema:
+            title: ServiceConfigPath
+            type: string
+            enum:
+              - azureSubscriptionId
+              - keyvaultArmResourceId
+              - appRoleIds
+              - azureContainerRegistry
+            x-enum-varnames:
+              - ServiceConfigPathAzureSubscriptionId
+              - ServiceConfigPathKeyvaultArmResourceId
+              - ServiceConfigPathAppRoleIds
+              - ServiceConfigPathAzureContainerRegistry
+          required: true
+      summary: Update service config
+      operationId: PatchServiceConfig
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+        required: true
       responses:
         200:
           description: ServiceConfig
@@ -725,12 +760,6 @@ components:
     NamespaceKindParameter:
       in: path
       name: namespaceKind
-      schema:
-        $ref: "#/components/schemas/NamespaceKind"
-      required: true
-    ProfileTypeParameter:
-      in: path
-      name: profileType
       schema:
         $ref: "#/components/schemas/NamespaceKind"
       required: true

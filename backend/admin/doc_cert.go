@@ -3,17 +3,13 @@ package admin
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
@@ -86,25 +82,6 @@ func (doc *CertDoc) fetchCertificatePEMBlob(ctx context.Context, blobClient *azb
 
 	}
 	return downloadedData.Bytes(), nil
-}
-
-func (doc *CertDoc) storeCertificatePEMBlob(ctx context.Context, blobClient *azblobcontainer.Client, b []byte) (*string, error) {
-	blobName := doc.CertStorePath
-	if blobName == "" {
-		return nil, errors.New("empty blob name")
-	}
-	blockBlobClient := blobClient.NewBlockBlobClient(blobName)
-	_, err := blockBlobClient.UploadBuffer(ctx, b, &blockblob.UploadBufferOptions{
-		HTTPHeaders: &blob.HTTPHeaders{
-			BlobContentType: to.Ptr("application/x-pem-file"),
-		},
-		Metadata: map[string]*string{
-			"issuer_id": to.Ptr(fmt.Sprintf("%s/%s", doc.IssuerNamespaceID, doc.IssuerCertificateID.GetUUID())),
-			// "x5t":       base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprint),
-			// "x5t_S256":  base64UrlToHexStrPtr(doc.KeyInfo.CertificateThumbprintSHA256),
-		},
-	})
-	return ToPtr(blockBlobClient.URL()), err
 }
 
 func (s *adminServer) toCertificateInfo(ctx context.Context,
