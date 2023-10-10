@@ -17,12 +17,15 @@ import * as runtime from '../runtime';
 import type {
   AgentCheckInResult,
   AgentHostRole,
+  ServiceConfig,
 } from '../models';
 import {
     AgentCheckInResultFromJSON,
     AgentCheckInResultToJSON,
     AgentHostRoleFromJSON,
     AgentHostRoleToJSON,
+    ServiceConfigFromJSON,
+    ServiceConfigToJSON,
 } from '../models';
 
 export interface AgentCheckInRequest {
@@ -67,6 +70,40 @@ export class AgentApi extends runtime.BaseAPI {
      */
     async agentCheckIn(requestParameters: AgentCheckInRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentCheckInResult> {
         const response = await this.agentCheckInRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get service config
+     */
+    async getServiceConfigRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/service/config`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ServiceConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Get service config
+     */
+    async getServiceConfig(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
+        const response = await this.getServiceConfigRaw(initOverrides);
         return await response.value();
     }
 

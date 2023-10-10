@@ -100,6 +100,10 @@ resource "azurerm_user_assigned_identity" "backendManagedIdentity" {
   location            = data.azurerm_resource_group.default.location
   name                = "smallkms-backend-${random_pet.default.id}"
   resource_group_name = data.azurerm_resource_group.default.name
+
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "random_uuid" "backendIdentitySqlRoleAssignmentName" {}
@@ -121,6 +125,10 @@ resource "azurerm_key_vault" "default" {
   purge_protection_enabled   = false
   enable_rbac_authorization  = true
   sku_name                   = "standard"
+
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "default" {
@@ -128,6 +136,10 @@ resource "azurerm_log_analytics_workspace" "default" {
   location            = data.azurerm_resource_group.default.location
   resource_group_name = data.azurerm_resource_group.default.name
   retention_in_days   = 30
+
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_container_app_environment" "backend" {
@@ -135,6 +147,10 @@ resource "azurerm_container_app_environment" "backend" {
   location                   = data.azurerm_resource_group.default.location
   resource_group_name        = data.azurerm_resource_group.default.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
+
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_container_app" "backend" {
@@ -169,6 +185,7 @@ resource "azurerm_container_app" "backend" {
 
 
   template {
+    min_replicas = 1
     max_replicas = 2
     container {
       name   = "smallkms-be"
@@ -236,6 +253,9 @@ resource "azurerm_container_app" "backend" {
       template[0].container[0].image,
     ]
   }
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 
@@ -245,6 +265,9 @@ resource "azurerm_storage_account" "default" {
   resource_group_name      = data.azurerm_resource_group.default.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_storage_container" "certs" {
@@ -259,12 +282,18 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name = data.azurerm_resource_group.default.name
   sku                 = "Basic"
   admin_enabled       = false
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_user_assigned_identity" "deployment" {
   location            = data.azurerm_resource_group.default.location
   name                = "smallkms-deployment-${random_pet.default.id}"
   resource_group_name = data.azurerm_resource_group.default.name
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }
 
 resource "azurerm_role_assignment" "deploymentAcrPush" {
@@ -296,4 +325,14 @@ resource "azurerm_federated_identity_credential" "deploymentGHA" {
 
 data "azuread_application" "authApp" {
   application_id = var.aad_auth_app_id
+}
+
+resource "azurerm_servicebus_namespace" "default" {
+  name                = "smallkms-sbns-${random_pet.default.id}"
+  location            = data.azurerm_resource_group.default.location
+  resource_group_name = data.azurerm_resource_group.default.name
+  sku                 = "Basic"
+  tags = {
+    "deployment" = random_pet.default.id
+  }
 }

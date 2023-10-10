@@ -3,6 +3,7 @@ package certtemplate
 import (
 	"crypto/md5"
 	"fmt"
+	"strings"
 
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -71,6 +72,9 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		doc.KeyStorePath = req.KeyStorePath
 		if doc.KeyStorePath == nil || *doc.KeyStorePath == "" {
 			return nil, fmt.Errorf("%w:key store path is required", common.ErrStatusBadRequest)
+		}
+		if strings.HasPrefix(strings.ToLower(*doc.KeyStorePath), "reserved") {
+			return nil, fmt.Errorf("%w:key store path is reserved", common.ErrStatusBadRequest)
 		}
 	}
 

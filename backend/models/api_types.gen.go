@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	kmscommon "github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -91,6 +92,7 @@ const (
 	ResourceKindCertTemplate          ResourceKind = "cert-template"
 	ResourceKindLatestCertForTemplate ResourceKind = "latest-cert-for-template"
 	ResourceKindMsGraph               ResourceKind = "ms-graph"
+	ResourceKindReserved              ResourceKind = "reserved"
 )
 
 // AgentCheckInResult defines model for AgentCheckInResult.
@@ -412,6 +414,48 @@ type ResourceRef struct {
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
+}
+
+// ServiceConfig defines model for ServiceConfig.
+type ServiceConfig struct {
+	AppRoleIds struct {
+		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
+		AppAdmin        openapi_types.UUID `json:"App.Admin"`
+	} `json:"appRoleIds"`
+	AzureContainerRegistry struct {
+		ArmResourceId string `json:"armResourceId"`
+		LoginServer   string `json:"loginServer"`
+		Name          string `json:"name"`
+	} `json:"azureContainerRegistry"`
+	AzureSubscriptionId string `json:"azureSubscriptionId"`
+
+	// Deleted Time when the deleted was deleted
+	Deleted *time.Time `json:"deleted,omitempty"`
+
+	// Id Identifier of the resource
+	Id                    Identifier             `json:"id"`
+	KeyvaultArmResourceId string                 `json:"keyvaultArmResourceId"`
+	Locator               ResourceLocator        `json:"locator"`
+	Metadata              map[string]interface{} `json:"metadata,omitempty"`
+
+	// Updated Time when the resoruce was last updated
+	Updated   *time.Time `json:"updated,omitempty"`
+	UpdatedBy *string    `json:"updatedBy,omitempty"`
+}
+
+// ServiceConfigFields defines model for ServiceConfigFields.
+type ServiceConfigFields struct {
+	AppRoleIds struct {
+		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
+		AppAdmin        openapi_types.UUID `json:"App.Admin"`
+	} `json:"appRoleIds"`
+	AzureContainerRegistry struct {
+		ArmResourceId string `json:"armResourceId"`
+		LoginServer   string `json:"loginServer"`
+		Name          string `json:"name"`
+	} `json:"azureContainerRegistry"`
+	AzureSubscriptionId   string `json:"azureSubscriptionId"`
+	KeyvaultArmResourceId string `json:"keyvaultArmResourceId"`
 }
 
 // CertificateIdPathParameter Identifier of the resource

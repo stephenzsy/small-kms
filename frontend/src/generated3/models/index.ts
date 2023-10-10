@@ -29,3 +29,7 @@ export * from './ProfileRef';
 export * from './ProfileRefFields';
 export * from './ResourceKind';
 export * from './ResourceRef';
+export * from './ServiceConfig';
+export * from './ServiceConfigAcrInfo';
+export * from './ServiceConfigAppRoleIds';
+export * from './ServiceConfigFields';

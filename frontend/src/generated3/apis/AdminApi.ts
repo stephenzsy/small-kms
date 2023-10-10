@@ -26,6 +26,7 @@ import type {
   NamespaceKind,
   Profile,
   ProfileRef,
+  ServiceConfig,
 } from '../models';
 import {
     CertificateInfoFromJSON,
@@ -50,6 +51,8 @@ import {
     ProfileToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
+    ServiceConfigFromJSON,
+    ServiceConfigToJSON,
 } from '../models';
 
 export interface CreateManagedNamespaceRequest {
@@ -85,7 +88,7 @@ export interface GetProfileRequest {
 }
 
 export interface IssueCertificateFromTemplateRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
     profileId: string;
     templateId: string;
 }
@@ -96,7 +99,7 @@ export interface ListCertificateTemplatesRequest {
 }
 
 export interface ListCertificatesByTemplateRequest {
-    profileType: NamespaceKind;
+    namespaceKind: NamespaceKind;
     profileId: string;
     templateId: string;
 }
@@ -370,11 +373,45 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get service config
+     */
+    async getServiceConfigRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/service/config`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ServiceConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Get service config
+     */
+    async getServiceConfig(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
+        const response = await this.getServiceConfigRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Create certificate
      */
     async issueCertificateFromTemplateRaw(requestParameters: IssueCertificateFromTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling issueCertificateFromTemplate.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling issueCertificateFromTemplate.');
         }
 
         if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
@@ -398,7 +435,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -461,8 +498,8 @@ export class AdminApi extends runtime.BaseAPI {
      * List certificates issued by template
      */
     async listCertificatesByTemplateRaw(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling listCertificatesByTemplate.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificatesByTemplate.');
         }
 
         if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
@@ -486,7 +523,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,

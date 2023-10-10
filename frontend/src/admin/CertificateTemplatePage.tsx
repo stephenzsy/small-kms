@@ -396,7 +396,7 @@ export default function CertificateTemplatePage() {
       await adminApi.issueCertificateFromTemplate({
         profileId: namespaceId,
         templateId,
-        profileType: namespaceKind,
+        namespaceKind,
       });
     },
     { manual: true }
@@ -426,7 +426,7 @@ export default function CertificateTemplatePage() {
     () => {
       return adminApi.listCertificatesByTemplate({
         profileId: namespaceId,
-        profileType: namespaceKind,
+        namespaceKind,
         templateId: templateId,
       });
     },
@@ -520,7 +520,9 @@ export default function CertificateTemplatePage() {
             </div>
           </CardSection>
           <CardSection>
-            <pre className="w-full overflow-auto">{JSON.stringify(roleAssignments, undefined, 2)}</pre>
+            <pre className="w-full overflow-auto">
+              {JSON.stringify(roleAssignments, undefined, 2)}
+            </pre>
           </CardSection>
         </Card>
       )}

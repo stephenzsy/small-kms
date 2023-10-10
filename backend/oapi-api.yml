@@ -186,9 +186,9 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyVaultRoleAssignment"
-  /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates:
+  /v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates:
     parameters:
-      - $ref: "#/components/parameters/ProfileTypeParameter"
+      - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/ProfileIdentifierParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
     get:
@@ -247,6 +247,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateInfo"
+  /v3/service/config:
+    get:
+      tags:
+        - admin
+        - agent
+      summary: Get service config
+      operationId: GetServiceConfig
+      responses:
+        200:
+          description: ServiceConfig
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceConfig"
 components:
   securitySchemes:
     BearerAuth:
@@ -284,6 +298,7 @@ components:
     ResourceKind:
       type: string
       enum:
+        - reserved
         - ca-root
         - ca-int
         - ms-graph
@@ -291,6 +306,7 @@ components:
         - cert
         - latest-cert-for-template
       x-enum-varnames:
+        - ResourceKindReserved
         - ResourceKindCaRoot
         - ResourceKindCaInt
         - ResourceKindMsGraph
@@ -662,6 +678,49 @@ components:
       properties:
         message:
           type: string
+    ServiceConfig:
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/ServiceConfigFields"
+    ServiceConfigFields:
+      type: object
+      properties:
+        azureSubscriptionId:
+          type: string
+        keyvaultArmResourceId:
+          type: string
+        appRoleIds:
+          type: object
+          title: ServiceConfigAppRoleIds
+          properties:
+            "App.Admin":
+              type: string
+              format: uuid
+            "Agent.ActiveHost":
+              type: string
+              format: uuid
+          required:
+            - "App.Admin"
+            - "Agent.ActiveHost"
+        azureContainerRegistry:
+          title: ServiceConfigAcrInfo
+          type: object
+          properties:
+            loginServer:
+              type: string
+            name:
+              type: string
+            armResourceId:
+              type: string
+          required:
+            - loginServer
+            - name
+            - armResourceId
+      required:
+        - azureSubscriptionId
+        - keyvaultArmResourceId
+        - appRoleIds
+        - azureContainerRegistry
   parameters:
     NamespaceKindParameter:
       in: path

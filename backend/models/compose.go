@@ -26,3 +26,8 @@ type CertificateInfoComposed struct {
 	CertificateRefComposed
 	CertificateInfoFields
 }
+
+type ServiceConfigComposed struct {
+	ResourceRef
+	ServiceConfigFields
+}

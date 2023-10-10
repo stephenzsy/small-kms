@@ -31,5 +31,9 @@ models/ProfileRef.ts
 models/ProfileRefFields.ts
 models/ResourceKind.ts
 models/ResourceRef.ts
+models/ServiceConfig.ts
+models/ServiceConfigAcrInfo.ts
+models/ServiceConfigAppRoleIds.ts
+models/ServiceConfigFields.ts
 models/index.ts
 runtime.ts

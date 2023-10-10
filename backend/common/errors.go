@@ -31,6 +31,17 @@ func IsAzNotFound(err error) bool {
 	return false
 }
 
+func IsAzCosmosNotFound(err error) (error, bool) {
+	if err == nil {
+		return nil, false
+	}
+	var respErr *azcore.ResponseError
+	if errors.As(err, &respErr) && respErr.StatusCode == http.StatusNotFound {
+		return respErr, true
+	}
+	return err, false
+}
+
 func WrapAzRsNotFoundErr(err error, resourceDescriptor string) error {
 	if err == nil || errors.Is(err, ErrStatusNotFound) {
 		return err

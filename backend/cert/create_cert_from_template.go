@@ -103,7 +103,7 @@ func issueCertificate(c RequestContext,
 	if err != nil {
 		return nil, err
 	}
-	certDocLatestLinkLocator := models.NewResourceLocator(nsID, models.NewResourceIdentifier(models.ResourceKindLatestCertForTemplate,
+	certDocLatestLinkLocator := models.NewResourceLocator(nsID, models.NewResourceID(models.ResourceKindLatestCertForTemplate,
 		certDoc.Template.GetID().Identifier()))
 
 	_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)

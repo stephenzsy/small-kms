@@ -57,7 +57,7 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 	return
 }
 
-func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUID, templateID uuid.UUID, params IssueCertificateByTemplateV2Params) {
+func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUID, templateID uuid.UUID) {
 	if !authAdminOnly(c) {
 		return
 	}
@@ -150,7 +150,7 @@ func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUI
 		return
 	}
 
-	certInfo, err := s.toCertificateInfo(c, certDoc, params.IncludeCertificate, createCertPemBlob)
+	certInfo, err := s.toCertificateInfo(c, certDoc, nil, createCertPemBlob)
 	if err != nil {
 		respondInternalError(c, err, "failed to convert certificate to certificate info")
 		return

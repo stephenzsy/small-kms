@@ -18,6 +18,7 @@
  * @export
  */
 export const ResourceKind = {
+    ResourceKindReserved: 'reserved',
     ResourceKindCaRoot: 'ca-root',
     ResourceKindCaInt: 'ca-int',
     ResourceKindMsGraph: 'ms-graph',

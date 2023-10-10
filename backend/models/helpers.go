@@ -53,10 +53,10 @@ func NewNamespaceID(kind NamespaceKind, identifier common.Identifier) NamespaceI
 	return common.NewIdentifierWithKind(kind, identifier)
 }
 
-func NewNamespaceIdentifier(kind NamespaceKind, id string) NamespaceID {
+func NewNamespaceStringID(kind NamespaceKind, id string) NamespaceID {
 	return common.NewIdentifierWithKind(kind, common.StringIdentifier(id))
 }
 
-func NewResourceIdentifier(kind ResourceKind, identifier common.Identifier) ResourceID {
+func NewResourceID(kind ResourceKind, identifier common.Identifier) ResourceID {
 	return common.NewIdentifierWithKind(kind, identifier)
 }

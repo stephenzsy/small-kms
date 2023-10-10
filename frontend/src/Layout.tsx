@@ -85,6 +85,18 @@ export default function Layout(props: PropsWithChildren<{}>) {
                             Admin
                           </Link>
                         )}
+                        {isAdmin && (
+                          <Link
+                            to="/admin/service"
+                            className={classNames(
+                              "text-gray-300 hover:bg-gray-700 hover:text-white",
+                              "rounded-md px-3 py-2 text-sm font-medium"
+                            )}
+                          >
+                            Service
+                          </Link>
+                        )}
+                        F
                       </div>
                     </div>
                   </div>

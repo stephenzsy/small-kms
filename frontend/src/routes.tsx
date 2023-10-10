@@ -16,6 +16,7 @@ const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificateTemplatePage = React.lazy(
   () => import("./admin/CertificateTemplatePage")
 );
+const ServicePage = React.lazy(() => import("./service/page"));
 
 export const router = createBrowserRouter([
   {
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
                 element: <RegisterPage />,
               },
             ],
+          },
+          {
+            path: "service",
+            element: <ServicePage />,
           },
           {
             path: "enroll",
