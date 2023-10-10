@@ -16,12 +16,18 @@
 import * as runtime from '../runtime';
 import type {
   AgentCheckInResult,
+  AgentConfigName,
+  AgentConfiguration,
   AgentHostRole,
   ServiceConfig,
 } from '../models';
 import {
     AgentCheckInResultFromJSON,
     AgentCheckInResultToJSON,
+    AgentConfigNameFromJSON,
+    AgentConfigNameToJSON,
+    AgentConfigurationFromJSON,
+    AgentConfigurationToJSON,
     AgentHostRoleFromJSON,
     AgentHostRoleToJSON,
     ServiceConfigFromJSON,
@@ -30,6 +36,10 @@ import {
 
 export interface AgentCheckInRequest {
     hostRoles?: Array<AgentHostRole>;
+}
+
+export interface AgentGetConfigurationRequest {
+    configName: AgentConfigName;
 }
 
 /**
@@ -70,6 +80,44 @@ export class AgentApi extends runtime.BaseAPI {
      */
     async agentCheckIn(requestParameters: AgentCheckInRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentCheckInResult> {
         const response = await this.agentCheckInRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async agentGetConfigurationRaw(requestParameters: AgentGetConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling agentGetConfiguration.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/agent/config/{configName}`.replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigurationFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async agentGetConfiguration(requestParameters: AgentGetConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
+        const response = await this.agentGetConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

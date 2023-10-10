@@ -14,9 +14,11 @@ type contextKey string
 const (
 	appAuthIdentityContextKey contextKey = "smallkms.appAuthIdentity"
 	roleKeyAppAdmin           string     = "App.Admin"
+	roleKeyAgentActiveHost    string     = "Agent.ActiveHost"
 )
 
 type AuthIdentity interface {
+	HasAppRole(role string) bool
 	HasAdminRole() bool
 	ClientPrincipalID() uuid.UUID
 	ClientPrincipalName() string
@@ -36,6 +38,10 @@ func GetAuthIdentity(ctx context.Context) (identity AuthIdentity, ok bool) {
 	ctxValue := ctx.Value(appAuthIdentityContextKey)
 	identity, ok = ctxValue.(AuthIdentity)
 	return
+}
+
+func (i authIdentity) HasAppRole(role string) bool {
+	return i.appRoles[role]
 }
 
 func (i authIdentity) HasAdminRole() bool {

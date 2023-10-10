@@ -2,7 +2,7 @@ import { useRequest } from "ahooks";
 import { useEffect, useState, type PropsWithChildren } from "react";
 import { InputField } from "../admin/InputField";
 import { Button } from "../components/Button";
-import { Card, CardSection, CartTitle } from "../components/Card";
+import { Card, CardSection, CardTitle } from "../components/Card";
 import {
   AdminApi,
   PatchServiceConfigConfigPathEnum,
@@ -75,7 +75,7 @@ export default function ServicePage() {
 
   return (
     <Card>
-      <CartTitle>Service configuration</CartTitle>
+      <CardTitle>Service configuration</CardTitle>
       <CardSection>
         Current configuration:
         <pre>{JSON.stringify(ServiceConfigToJSON(serviceConfig), null, 2)}</pre>

@@ -24,7 +24,8 @@ export const ResourceKind = {
     ResourceKindMsGraph: 'ms-graph',
     ResourceKindCertTemplate: 'cert-template',
     ResourceKindCert: 'cert',
-    ResourceKindLatestCertForTemplate: 'latest-cert-for-template'
+    ResourceKindLatestCertForTemplate: 'latest-cert-for-template',
+    ResourceKindAgentConfig: 'agent-config'
 } as const;
 export type ResourceKind = typeof ResourceKind[keyof typeof ResourceKind];
 

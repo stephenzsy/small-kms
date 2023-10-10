@@ -30,6 +30,52 @@ paths:
                 $ref: "#/components/schemas/AgentCheckInResult"
         204:
           description: No content
+  /v3/agent/config/{configName}:
+    parameters:
+      - in: path
+        name: configName
+        schema:
+          $ref: "#/components/schemas/AgentConfigName"
+        required: true
+    get:
+      tags:
+        - agent
+      summary: Get agent autoconfig
+      operationId: AgentGetConfiguration
+      responses:
+        200:
+          $ref: "#/components/responses/AgentConfigurationResponse"
+  /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - in: path
+        name: configName
+        schema:
+          $ref: "#/components/schemas/AgentConfigName"
+        required: true
+    get:
+      tags:
+        - admin
+      summary: Get agent autoconfig
+      operationId: GetAgentConfiguration
+      responses:
+        200:
+          $ref: "#/components/responses/AgentConfigurationResponse"
+    put:
+      tags:
+        - admin
+      summary: Get agent autoconfig
+      operationId: PutAgentConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentConfigurationParameters"
+        required: true
+      responses:
+        200:
+          $ref: "#/components/responses/AgentConfigurationResponse"
   /v3/profiles/{namespaceKind}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -114,10 +160,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
-  /v3/{namespaceKind}/{profileId}/certificate-templates:
+  /v3/{namespaceKind}/{namespaceId}/certificate-templates:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/ProfileIdentifierParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -186,10 +232,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyVaultRoleAssignment"
-  /v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates:
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/ProfileIdentifierParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
     get:
       tags:
@@ -303,6 +349,48 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    AgentConfigName:
+      type: string
+      enum:
+        - agent-active-host-bootstrap
+      x-enum-varnames:
+        - AgentConfigNameActiveHostBootstrap
+    AgentConfiguration:
+      type: object
+      properties:
+        config:
+          $ref: "#/components/schemas/AgentConfigurationParameters"
+        version:
+          type: string
+          description: >
+            Version of the agent, md5 checksum of fields in the configuration
+      required:
+        - config
+        - version
+    AgentConfigurationParameters:
+      oneOf:
+        - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+      discriminator:
+        propertyName: name
+        mapping:
+          agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+    AgentConfigurationAgentActiveHostBootstrap:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentConfigName"
+        controllerContainer:
+          $ref: "#/components/schemas/AgentConfigurationActiveHostControllerContainer"
+      required:
+        - name
+        - controllerContainer
+    AgentConfigurationActiveHostControllerContainer:
+      type: object
+      properties:
+        imageRefStr:
+          type: string
+      required:
+        - imageRefStr
     Identifier:
       type: string
       description: Identifier of the resource
@@ -340,6 +428,7 @@ components:
         - cert-template
         - cert
         - latest-cert-for-template
+        - agent-config
       x-enum-varnames:
         - ResourceKindReserved
         - ResourceKindCaRoot
@@ -348,6 +437,7 @@ components:
         - ResourceKindCertTemplate
         - ResourceKindCert
         - ResourceKindLatestCertForTemplate
+        - ResourceKindAgentConfig
     IdentifierWithNamespaceKind:
       type: string
       x-go-type-import:
@@ -775,12 +865,6 @@ components:
       schema:
         $ref: "#/components/schemas/Identifier"
       required: true
-    ProfileIdentifierParameter:
-      in: path
-      name: profileId
-      schema:
-        $ref: "#/components/schemas/Identifier"
-      required: true
     CertificateTemplateIdentifierParameter:
       in: path
       name: templateId
@@ -793,6 +877,12 @@ components:
       schema:
         $ref: "#/components/schemas/IncludeCertificate"
   responses:
+    AgentConfigurationResponse:
+      description: Agent autoconfig response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentConfiguration"
     CertificateResponse:
       description: CertificateResponse
       content:

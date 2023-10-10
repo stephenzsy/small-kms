@@ -113,12 +113,20 @@ func UUIDIdentifierFromStringPtr(p *string) Identifier {
 var _ encoding.TextMarshaler = &Identifier{}
 var _ encoding.TextUnmarshaler = &Identifier{}
 
+const (
+	reservedPrefixDefault  = "default"
+	reservedPrefixSystem   = "system"
+	reservedPrefixReserved = "reserved"
+)
+
 var reservedPrefixes map[string]bool = map[string]bool{
-	"default":  true,
-	"system":   true,
-	"latest":   true,
-	"template": true,
-	"self":     true,
+	reservedPrefixDefault:  true,
+	reservedPrefixSystem:   true,
+	reservedPrefixReserved: true,
+	"latest":               true,
+	"template":             true,
+	"self":                 true,
+	"global":               true,
 }
 
 func (identifier Identifier) HasReservedIDOrPrefix() bool {

@@ -12,7 +12,7 @@ export function Card(props: PropsWithChildren<CardTitleProps>) {
   );
 }
 
-export function CartTitle(props: PropsWithChildren<CardTitleProps>) {
+export function CardTitle(props: PropsWithChildren<CardTitleProps>) {
   return (
     <div className="px-4 py-6 sm:px-6">
       <h3 className="text-base font-semibold leading-7 text-gray-900">

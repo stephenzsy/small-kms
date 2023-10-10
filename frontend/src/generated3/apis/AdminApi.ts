@@ -15,6 +15,9 @@
 
 import * as runtime from '../runtime';
 import type {
+  AgentConfigName,
+  AgentConfiguration,
+  AgentConfigurationParameters,
   CertificateInfo,
   CertificateRef,
   CertificateTemplate,
@@ -29,6 +32,12 @@ import type {
   ServiceConfig,
 } from '../models';
 import {
+    AgentConfigNameFromJSON,
+    AgentConfigNameToJSON,
+    AgentConfigurationFromJSON,
+    AgentConfigurationToJSON,
+    AgentConfigurationParametersFromJSON,
+    AgentConfigurationParametersToJSON,
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
     CertificateRefFromJSON,
@@ -66,6 +75,12 @@ export interface CreateProfileOperationRequest {
     createProfileRequest: CreateProfileRequest;
 }
 
+export interface GetAgentConfigurationRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    configName: AgentConfigName;
+}
+
 export interface GetCertificateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -89,18 +104,18 @@ export interface GetProfileRequest {
 
 export interface IssueCertificateFromTemplateRequest {
     namespaceKind: NamespaceKind;
-    profileId: string;
+    namespaceId: string;
     templateId: string;
 }
 
 export interface ListCertificateTemplatesRequest {
     namespaceKind: NamespaceKind;
-    profileId: string;
+    namespaceId: string;
 }
 
 export interface ListCertificatesByTemplateRequest {
     namespaceKind: NamespaceKind;
-    profileId: string;
+    namespaceId: string;
     templateId: string;
 }
 
@@ -117,6 +132,13 @@ export interface ListProfilesRequest {
 export interface PatchServiceConfigRequest {
     configPath: PatchServiceConfigConfigPathEnum;
     body: any | null;
+}
+
+export interface PutAgentConfigurationRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    configName: AgentConfigName;
+    agentConfigurationParameters: AgentConfigurationParameters;
 }
 
 export interface PutCertificateTemplateRequest {
@@ -224,6 +246,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createProfile(requestParameters: CreateProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.createProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async getAgentConfigurationRaw(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentConfiguration.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfiguration.');
+        }
+
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling getAgentConfiguration.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigurationFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
+        const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -419,8 +487,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling issueCertificateFromTemplate.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling issueCertificateFromTemplate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling issueCertificateFromTemplate.');
         }
 
         if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
@@ -440,7 +508,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -465,8 +533,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificateTemplates.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling listCertificateTemplates.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificateTemplates.');
         }
 
         const queryParameters: any = {};
@@ -482,7 +550,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{profileId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))),
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -507,8 +575,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificatesByTemplate.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling listCertificatesByTemplate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificatesByTemplate.');
         }
 
         if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
@@ -528,7 +596,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{profileId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -671,6 +739,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async patchServiceConfig(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
         const response = await this.patchServiceConfigRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async putAgentConfigurationRaw(requestParameters: PutAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentConfiguration.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentConfiguration.');
+        }
+
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling putAgentConfiguration.');
+        }
+
+        if (requestParameters.agentConfigurationParameters === null || requestParameters.agentConfigurationParameters === undefined) {
+            throw new runtime.RequiredError('agentConfigurationParameters','Required parameter requestParameters.agentConfigurationParameters was null or undefined when calling putAgentConfiguration.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentConfigurationParametersToJSON(requestParameters.agentConfigurationParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigurationFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent autoconfig
+     */
+    async putAgentConfiguration(requestParameters: PutAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
+        const response = await this.putAgentConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

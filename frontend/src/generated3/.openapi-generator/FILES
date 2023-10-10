@@ -3,6 +3,11 @@ apis/AgentApi.ts
 apis/index.ts
 index.ts
 models/AgentCheckInResult.ts
+models/AgentConfigName.ts
+models/AgentConfiguration.ts
+models/AgentConfigurationActiveHostControllerContainer.ts
+models/AgentConfigurationAgentActiveHostBootstrap.ts
+models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
 models/CertificateInfo.ts
 models/CertificateInfoFields.ts

@@ -1,6 +1,11 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './AgentCheckInResult';
+export * from './AgentConfigName';
+export * from './AgentConfiguration';
+export * from './AgentConfigurationActiveHostControllerContainer';
+export * from './AgentConfigurationAgentActiveHostBootstrap';
+export * from './AgentConfigurationParameters';
 export * from './AgentHostRole';
 export * from './CertificateInfo';
 export * from './CertificateInfoFields';

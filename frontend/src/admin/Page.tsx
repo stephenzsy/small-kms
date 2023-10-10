@@ -1,12 +1,10 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
-import { AdminApi, ProfileRef, NamespaceKind } from "../generated3";
+import { AdminApi, NamespaceKind, ProfileRef } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import {
-  RefTableColumn,
   RefTableColumn3,
-  RefsTable,
-  RefsTable3,
+  RefsTable3
 } from "./RefsTable";
 
 const displayNameColumn: RefTableColumn3<ProfileRef> = {

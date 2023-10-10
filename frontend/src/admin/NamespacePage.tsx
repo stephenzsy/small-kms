@@ -8,10 +8,8 @@ import {
   DeviceServicePrincipalLink,
 } from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
-import {
-  RefTableColumn3,
-  RefsTable3
-} from "./RefsTable";
+import { RefTableColumn3, RefsTable3 } from "./RefsTable";
+import { AgentConfigurationForm } from "./AgentConfigurationForm";
 
 const subjectCnColumn: RefTableColumn3<CertificateTemplateRef> = {
   columnKey: "subjectCommonName",
@@ -21,7 +19,7 @@ const subjectCnColumn: RefTableColumn3<CertificateTemplateRef> = {
 const enabledColumn: RefTableColumn3<CertificateTemplateRef> = {
   columnKey: "enabled",
   header: "Enabled",
-  render: (item) => (item.metadata && !item.metadata.deleted ? "Yes" : "No"),
+  render: (item) => (!item.deleted && item.updated ? "Yes" : "No"),
 };
 
 function CertificateTemplatesList({
@@ -35,7 +33,7 @@ function CertificateTemplatesList({
   const { data } = useRequest(
     async () => {
       return await adminApi.listCertificateTemplates({
-        profileId: namespaceId,
+        namespaceId,
         namespaceKind: nsType,
       });
     },
@@ -84,6 +82,12 @@ export default function NamespacePage() {
       )}
       {nsType === NamespaceKind.NamespaceKindApplication && (
         <ApplicationServicePrincipalLink namespaceId={namespaceId} />
+      )}
+      {nsType === NamespaceKind.NamespaceKindServicePrincipal && (
+        <AgentConfigurationForm
+          namespaceId={namespaceId}
+          namespaceKind={nsType}
+        />
       )}
     </>
   );

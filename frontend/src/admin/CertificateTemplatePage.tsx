@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "../components/Button";
+import { Card, CardSection, CardTitle } from "../components/Card";
 import { WellknownId, uuidNil } from "../constants";
 import {
   AdminApi as AdminApiOld,
@@ -28,7 +29,6 @@ import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefsTable3 } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
-import { Card, CardSection, CartTitle } from "../components/Card";
 
 export interface CertificateTemplateFormState {
   issuerNamespaceId: ValueStateMayBeFixed<string>;
@@ -394,7 +394,7 @@ export default function CertificateTemplatePage() {
   const { run: issueCert } = useRequest(
     async () => {
       await adminApi.issueCertificateFromTemplate({
-        profileId: namespaceId,
+        namespaceId,
         templateId,
         namespaceKind,
       });
@@ -425,7 +425,7 @@ export default function CertificateTemplatePage() {
   const { data: issuedCertificates } = useRequest(
     () => {
       return adminApi.listCertificatesByTemplate({
-        profileId: namespaceId,
+        namespaceId,
         namespaceKind,
         templateId: templateId,
       });
@@ -511,7 +511,7 @@ export default function CertificateTemplatePage() {
       </form>
       {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
         <Card>
-          <CartTitle>Azure role assignments</CartTitle>
+          <CardTitle>Azure role assignments</CardTitle>
           <CardSection>
             <div>
               <Button variant="primary" onClick={getRoleAssignments}>
