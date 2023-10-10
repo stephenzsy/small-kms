@@ -52,19 +52,20 @@ func main() {
 	var x509Certs []*x509.Certificate
 	for block, rest := pem.Decode(bundleBytes); block != nil; block, rest = pem.Decode(rest) {
 		if block.Type == "PRIVATE KEY" {
-			privateKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+			privateKey, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 			if err != nil {
 				{
 					log.Panicf("Failed to parse private key: %v\n", err)
 				}
-			} else if block.Type == "CERTIFICATE" {
-				cert, err := x509.ParseCertificate(block.Bytes)
-				if err != nil {
-					log.Panicf("Failed to parse certificate: %v\n", err)
-				}
-				x509Certs = append(x509Certs, cert)
 			}
+		} else if block.Type == "CERTIFICATE" {
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				log.Panicf("Failed to parse certificate: %v\n", err)
+			}
+			x509Certs = append(x509Certs, cert)
 		}
+
 	}
 
 	creds, err := azidentity.NewClientCertificateCredential(tenantID, clientID, x509Certs, privateKey, nil)

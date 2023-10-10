@@ -348,6 +348,13 @@ type JwtCrv string
 // JwtKty defines model for JwtKty.
 type JwtKty string
 
+// KeyVaultRoleAssignment defines model for KeyVaultRoleAssignment.
+type KeyVaultRoleAssignment struct {
+	Id               string `json:"id"`
+	PrincipalId      string `json:"principalId"`
+	RoleDefinitionId string `json:"roleDefinitionId"`
+}
+
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
 

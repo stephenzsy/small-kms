@@ -3,9 +3,12 @@ package certtemplate
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 func getCertificateTemplateDocLocator(nsID models.NamespaceID, templateID common.Identifier) models.ResourceLocator {
@@ -35,4 +38,51 @@ func GetCertificateTemplate(c RequestContext,
 	}
 
 	return doc.toModel(), nil
+}
+
+func ListKeyVaultRoleAssignments(c RequestContext) ([]*models.KeyVaultRoleAssignment, error) {
+	doc, err := GetCertificateTemplateDoc(c, GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c))
+	if err != nil {
+		return nil, err
+	}
+	if doc.KeyStorePath == nil || *doc.KeyStorePath == "" {
+		return nil, fmt.Errorf("%w: key store path is empty", common.ErrStatusBadRequest)
+	}
+	clientProvider := c.ServiceClientProvider()
+	raClient, err := clientProvider.ArmRoleAssignmentsDelegatedClient(c)
+	if err != nil {
+		return nil, err
+	}
+	nsID := GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c).GetNamespaceID()
+	filterParam := fmt.Sprintf("assignedTo('{%s}')", nsID.Identifier().UUID().String())
+	scope := fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/certificates/%s",
+		clientProvider.AzSubscriptionID(),
+		clientProvider.AzResourceGroupName(),
+		clientProvider.AzKeyvaultName(),
+		*doc.KeyStorePath)
+	log.Info().Msgf("Lookup role assignments for scope: %s", scope)
+	pager := raClient.NewListForScopePager(
+		scope,
+		&armauthorization.RoleAssignmentsClientListForScopeOptions{
+			Filter: &filterParam,
+		},
+	)
+
+	itemsPager := utils.NewMappedPager[[]*armauthorization.RoleAssignment, armauthorization.RoleAssignmentsClientListForScopeResponse](
+		pager,
+		func(resp armauthorization.RoleAssignmentsClientListForScopeResponse) []*armauthorization.RoleAssignment {
+			return resp.Value
+		})
+	return utils.PagerAllItems[*models.KeyVaultRoleAssignment](
+		utils.NewMappedItemsPager[*models.KeyVaultRoleAssignment, *armauthorization.RoleAssignment](
+			itemsPager, func(item *armauthorization.RoleAssignment) *models.KeyVaultRoleAssignment {
+				if item == nil {
+					return nil
+				}
+				return &models.KeyVaultRoleAssignment{
+					Id:               *item.ID,
+					PrincipalId:      *item.Properties.PrincipalID,
+					RoleDefinitionId: *item.Properties.RoleDefinitionID,
+				}
+			}), c)
 }

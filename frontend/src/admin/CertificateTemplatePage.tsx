@@ -28,6 +28,7 @@ import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefsTable3 } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
+import { Card, CardSection, CartTitle } from "../components/Card";
 
 export interface CertificateTemplateFormState {
   issuerNamespaceId: ValueStateMayBeFixed<string>;
@@ -349,7 +350,11 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
 }
 
 export default function CertificateTemplatePage() {
-  const { namespaceId, templateId, profileType } = useParams() as {
+  const {
+    namespaceId,
+    templateId,
+    profileType: namespaceKind,
+  } = useParams() as {
     namespaceId: string;
     templateId: string;
     profileType: NamespaceKind;
@@ -363,8 +368,8 @@ export default function CertificateTemplatePage() {
       if (!p) {
         try {
           return await adminApi.getCertificateTemplate({
-            profileType,
-            profileId: namespaceId,
+            namespaceKind,
+            namespaceId,
             templateId,
           });
         } catch (e) {
@@ -376,9 +381,9 @@ export default function CertificateTemplatePage() {
       } else {
         adminApi;
         return await adminApi.putCertificateTemplate({
-          profileId: namespaceId,
+          namespaceId,
           templateId,
-          profileType,
+          namespaceKind,
           certificateTemplateParameters: p,
         });
       }
@@ -391,7 +396,7 @@ export default function CertificateTemplatePage() {
       await adminApi.issueCertificateFromTemplate({
         profileId: namespaceId,
         templateId,
-        profileType,
+        profileType: namespaceKind,
       });
     },
     { manual: true }
@@ -399,7 +404,7 @@ export default function CertificateTemplatePage() {
 
   const state = useCertificateTemplateFormState(
     data,
-    profileType,
+    namespaceKind,
     namespaceId,
     templateId
   );
@@ -421,11 +426,22 @@ export default function CertificateTemplatePage() {
     () => {
       return adminApi.listCertificatesByTemplate({
         profileId: namespaceId,
-        profileType,
+        profileType: namespaceKind,
         templateId: templateId,
       });
     },
     { refreshDeps: [namespaceId, templateId] }
+  );
+
+  const { data: roleAssignments, run: getRoleAssignments } = useRequest(
+    () => {
+      return adminApi.listKeyVaultRoleAssignments({
+        namespaceId,
+        namespaceKind,
+        templateId: templateId,
+      });
+    },
+    { refreshDeps: [namespaceId, templateId], manual: true }
   );
 
   return (
@@ -493,6 +509,21 @@ export default function CertificateTemplatePage() {
           </Button>
         </div>
       </form>
+      {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
+        <Card>
+          <CartTitle>Azure role assignments</CartTitle>
+          <CardSection>
+            <div>
+              <Button variant="primary" onClick={getRoleAssignments}>
+                Get current assignments
+              </Button>
+            </div>
+          </CardSection>
+          <CardSection>
+            <pre className="w-full overflow-auto">{JSON.stringify(roleAssignments, undefined, 2)}</pre>
+          </CardSection>
+        </Card>
+      )}
     </>
   );
 }

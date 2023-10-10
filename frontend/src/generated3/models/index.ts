@@ -1,5 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AgentCheckInResult';
+export * from './AgentHostRole';
 export * from './CertificateInfo';
 export * from './CertificateInfoFields';
 export * from './CertificateLifetimeTrigger';
@@ -20,6 +22,7 @@ export * from './JwkKeyOperation';
 export * from './JwkProperties';
 export * from './JwtCrv';
 export * from './JwtKty';
+export * from './KeyVaultRoleAssignment';
 export * from './NamespaceKind';
 export * from './Profile';
 export * from './ProfileRef';

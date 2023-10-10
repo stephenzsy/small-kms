@@ -4,27 +4,29 @@ import (
 	"context"
 )
 
-type ItemsPager[T any] interface {
+type Pager[T any] interface {
 	More() bool
-	NextPage(c context.Context) (items []T, err error)
+	NextPage(c context.Context) (page T, err error)
 }
 
-type wrappedItemsPager[T any] struct {
-	items   []T
-	hasRead bool
+type ItemsPager[T any] Pager[[]T]
+
+type mappedPager[T any, U any] struct {
+	from    Pager[U]
+	mapFunc MapFunc[T, U]
 }
 
-func (p *wrappedItemsPager[T]) More() bool {
-	return !p.hasRead
+func NewMappedPager[T any, U any](from Pager[U], mapFunc MapFunc[T, U]) Pager[T] {
+	return &mappedPager[T, U]{from: from, mapFunc: mapFunc}
 }
 
-func (p *wrappedItemsPager[T]) NextPage(c context.Context) (items []T, err error) {
-	p.hasRead = true
-	return p.items, nil
+func (p *mappedPager[T, U]) More() bool {
+	return p.from.More()
 }
 
-func NewWrappedPager[T any](items []T) ItemsPager[T] {
-	return &wrappedItemsPager[T]{items: items}
+func (p *mappedPager[T, U]) NextPage(c context.Context) (items T, err error) {
+	r, err := p.from.NextPage(c)
+	return p.mapFunc(r), err
 }
 
 type mappedItemsPager[T any, U any] struct {
@@ -49,7 +51,7 @@ func (p *mappedItemsPager[T, U]) NextPage(c context.Context) (items []T, err err
 
 var _ ItemsPager[string] = (*mappedItemsPager[string, any])(nil)
 
-func NewMappedPager[T any, U any](from ItemsPager[U], f MapFunc[T, U]) ItemsPager[T] {
+func NewMappedItemsPager[T any, U any](from ItemsPager[U], f MapFunc[T, U]) ItemsPager[T] {
 	return &mappedItemsPager[T, U]{from: from, mapFunc: f}
 }
 
@@ -57,7 +59,7 @@ func PagerAllItems[T any](pager ItemsPager[T], ctx context.Context) (items []T, 
 	for pager.More() {
 		t, scanErr := pager.NextPage(ctx)
 		if scanErr != nil {
-			return nil, err
+			return nil, scanErr
 		}
 		items = append(items, t...)
 	}

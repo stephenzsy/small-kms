@@ -44,6 +44,11 @@ variable "aad_auth_app_id" {
   type = string
 }
 
+variable "azure_subscription_id" {
+  type = string
+}
+
+
 data "azurerm_resource_group" "default" {
   name = var.resource_group_name
 }
@@ -211,6 +216,15 @@ resource "azurerm_container_app" "backend" {
         secret_name = "microsoft-provider-authentication-secret"
       }
 
+      env {
+        name  = "AZURE_SUBSCRIPTION_ID"
+        value = var.azure_subscription_id
+      }
+
+      env {
+        name  = "AZURE_RESOURCE_GROUP_NAME"
+        value = data.azurerm_resource_group.default.name
+      }
     }
   }
 

@@ -16,9 +16,6 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v1/diagnostics)
 	GetDiagnosticsV1(c *gin.Context)
-	// Create certificate
-	// (POST /v2/{namespaceId}/certificate-templates/{templateId}/certificates)
-	IssueCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params IssueCertificateByTemplateV2Params)
 	// Get certificate
 	// (GET /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest)
 	GetLatestCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params GetLatestCertificateByTemplateV2Params)
@@ -61,60 +58,6 @@ func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
 	}
 
 	siw.Handler.GetDiagnosticsV1(c)
-}
-
-// IssueCertificateByTemplateV2 operation middleware
-func (siw *ServerInterfaceWrapper) IssueCertificateByTemplateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params IssueCertificateByTemplateV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Optional query parameter "reuseKey" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "reuseKey", c.Request.URL.Query(), &params.ReuseKey)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter reuseKey: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.IssueCertificateByTemplateV2(c, namespaceId, templateId, params)
 }
 
 // GetLatestCertificateByTemplateV2 operation middleware
@@ -370,7 +313,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
-	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates", wrapper.IssueCertificateByTemplateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificates/:certId", wrapper.GetCertificateV2)

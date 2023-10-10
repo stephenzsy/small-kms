@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,30 @@ type server struct {
 	azBlobClient          *azblob.Client
 	azBlobContainerClient *azblobcontainer.Client
 	serverMsGraphClient   *msgraphsdkgo.GraphServiceClient
+}
+
+// MsGraphDelegatedClient implements common.ClientProvider.
+func (s *server) MsGraphDelegatedClient(c ctx.Context) (*msgraphsdkgo.GraphServiceClient, error) {
+	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
+		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
+			return nil, err
+		} else {
+			return msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
+		}
+	}
+	return nil, fmt.Errorf("%w: no auth header to authenticate to graph service", common.ErrStatusUnauthorized)
+}
+
+// AzKeyvaultRBACDelegatedClient implements common.ServerContext.
+func (s *server) ArmRoleAssignmentsDelegatedClient(c ctx.Context) (*armauthorization.RoleAssignmentsClient, error) {
+	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
+		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
+			return nil, err
+		} else {
+			return armauthorization.NewRoleAssignmentsClient(s.AzSubscriptionID(), creds, nil)
+		}
+	}
+	return nil, fmt.Errorf("%w: no auth header to authenticate to keyvault rbac", common.ErrStatusUnauthorized)
 }
 
 // Deadline implements common.ServerContext.
@@ -78,18 +103,6 @@ func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err 
 	}
 }
 
-// MsGraphDelegatedClient implements common.ClientProvider.
-func (s *server) MsGraphDelegatedClient(c ctx.Context) (*msgraphsdkgo.GraphServiceClient, error) {
-	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
-		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
-			return nil, err
-		} else {
-			return msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
-		}
-	}
-	return nil, fmt.Errorf("%w: no auth header to authenticate to graph service", common.ErrStatusUnauthorized)
-}
-
 func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
@@ -120,3 +133,5 @@ func (s *server) InjectServerContext() echo.MiddlewareFunc {
 		}
 	}
 }
+
+var _ common.ServiceClientProvider = (*server)(nil)

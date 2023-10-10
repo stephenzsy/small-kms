@@ -1,6 +1,9 @@
 apis/AdminApi.ts
+apis/AgentApi.ts
 apis/index.ts
 index.ts
+models/AgentCheckInResult.ts
+models/AgentHostRole.ts
 models/CertificateInfo.ts
 models/CertificateInfoFields.ts
 models/CertificateLifetimeTrigger.ts
@@ -21,6 +24,7 @@ models/JwkKeyOperation.ts
 models/JwkProperties.ts
 models/JwtCrv.ts
 models/JwtKty.ts
+models/KeyVaultRoleAssignment.ts
 models/NamespaceKind.ts
 models/Profile.ts
 models/ProfileRef.ts

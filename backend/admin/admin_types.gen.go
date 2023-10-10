@@ -303,12 +303,6 @@ type CertificateResponse = CertificateInfo
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse map[string]interface{}
 
-// IssueCertificateByTemplateV2Params defines parameters for IssueCertificateByTemplateV2.
-type IssueCertificateByTemplateV2Params struct {
-	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	ReuseKey           *bool                        `form:"reuseKey,omitempty" json:"reuseKey,omitempty"`
-}
-
 // GetLatestCertificateByTemplateV2Params defines parameters for GetLatestCertificateByTemplateV2.
 type GetLatestCertificateByTemplateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`

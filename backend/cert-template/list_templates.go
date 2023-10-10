@@ -31,7 +31,7 @@ func ListCertificateTemplates(c RequestContext) ([]*models.CertificateTemplateRe
 				ExtraColumns: []string{"subjectCn"},
 			}
 		})
-	mappedPager := utils.NewMappedPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
+	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
 		return doc.toModelRef()
 	})
 	allItems, err := utils.PagerAllItems[*models.CertificateTemplateRefComposed](mappedPager, c)

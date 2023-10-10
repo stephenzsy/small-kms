@@ -42,9 +42,10 @@ func ListProfiles(c RequestContext, profileType models.NamespaceKind) ([]*models
 					{Name: "@profileType", Value: profileType},
 				}}
 		})
-	allItems, err := utils.PagerAllItems[*models.ProfileRefComposed](utils.NewMappedPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRefComposed {
-		return doc.toModel()
-	}), c)
+	allItems, err := utils.PagerAllItems[*models.ProfileRefComposed](
+		utils.NewMappedItemsPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRefComposed {
+			return doc.toModel()
+		}), c)
 	if allItems == nil {
 		allItems = make([]*models.ProfileRefComposed, 0)
 	}

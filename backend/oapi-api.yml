@@ -132,10 +132,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateTemplateRef"
-  /v3/{profileType}/{profileId}/certificate-template/{templateId}:
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}:
     parameters:
-      - $ref: "#/components/parameters/ProfileTypeParameter"
-      - $ref: "#/components/parameters/ProfileIdentifierParameter"
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
     get:
       tags:
@@ -167,6 +167,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: List keyvault role assignments
+      operationId: ListKeyVaultRoleAssignments
+      responses:
+        200:
+          description: List keyvault roles assignments response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KeyVaultRoleAssignment"
   /v3/{profileType}/{profileId}/certificate-template/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/ProfileTypeParameter"
@@ -379,22 +398,6 @@ components:
         - AlgRS512
         - AlgES256
         - AlgES384
-    JwtKty:
-      type: string
-      enum:
-        - RSA
-        - EC
-      x-enum-varnames:
-        - KeyTypeRSA
-        - KeyTypeEC
-    JwtCrv:
-      type: string
-      enum:
-        - P-256
-        - P-384
-      x-enum-varnames:
-        - CurveNameP256
-        - CurveNameP384
     JwkKeyOperation:
       type: string
       enum:
@@ -465,6 +468,35 @@ components:
           x-go-name: CertificateThumbprintSHA256
       required:
         - kty
+    JwtCrv:
+      type: string
+      enum:
+        - P-256
+        - P-384
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+    JwtKty:
+      type: string
+      enum:
+        - RSA
+        - EC
+      x-enum-varnames:
+        - KeyTypeRSA
+        - KeyTypeEC
+    KeyVaultRoleAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        roleDefinitionId:
+          type: string
+        principalId:
+          type: string
+      required:
+        - id
+        - roleDefinitionId
+        - principalId
     CertificateUsage:
       type: string
       enum:

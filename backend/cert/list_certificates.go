@@ -34,7 +34,7 @@ func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefCompo
 				OrderBy:      tbl + ".notBefore DESC",
 			}
 		})
-	mappedPager := utils.NewMappedPager(itemsPager, func(doc *CertDoc) *models.CertificateRefComposed {
+	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertDoc) *models.CertificateRefComposed {
 		return doc.toModelRef()
 	})
 	allItems, err := utils.PagerAllItems[*models.CertificateRefComposed](mappedPager, c)

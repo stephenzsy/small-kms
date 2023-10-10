@@ -22,6 +22,7 @@ import type {
   CertificateTemplateRef,
   CreateProfileRequest,
   IncludeCertificate,
+  KeyVaultRoleAssignment,
   NamespaceKind,
   Profile,
   ProfileRef,
@@ -41,6 +42,8 @@ import {
     CreateProfileRequestToJSON,
     IncludeCertificateFromJSON,
     IncludeCertificateToJSON,
+    KeyVaultRoleAssignmentFromJSON,
+    KeyVaultRoleAssignmentToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
     ProfileFromJSON,
@@ -71,8 +74,8 @@ export interface GetCertificateRequest {
 }
 
 export interface GetCertificateTemplateRequest {
-    profileType: NamespaceKind;
-    profileId: string;
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
     templateId: string;
 }
 
@@ -98,13 +101,19 @@ export interface ListCertificatesByTemplateRequest {
     templateId: string;
 }
 
+export interface ListKeyVaultRoleAssignmentsRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    templateId: string;
+}
+
 export interface ListProfilesRequest {
     namespaceKind: NamespaceKind;
 }
 
 export interface PutCertificateTemplateRequest {
-    profileType: NamespaceKind;
-    profileId: string;
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
     templateId: string;
     certificateTemplateParameters: CertificateTemplateParameters;
 }
@@ -276,12 +285,12 @@ export class AdminApi extends runtime.BaseAPI {
      * Get certificate template
      */
     async getCertificateTemplateRaw(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling getCertificateTemplate.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificateTemplate.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling getCertificateTemplate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateTemplate.');
         }
 
         if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
@@ -301,7 +310,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -495,6 +504,52 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * List keyvault role assignments
+     */
+    async listKeyVaultRoleAssignmentsRaw(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<KeyVaultRoleAssignment>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listKeyVaultRoleAssignments.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listKeyVaultRoleAssignments.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling listKeyVaultRoleAssignments.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(KeyVaultRoleAssignmentFromJSON));
+    }
+
+    /**
+     * List keyvault role assignments
+     */
+    async listKeyVaultRoleAssignments(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<KeyVaultRoleAssignment>> {
+        const response = await this.listKeyVaultRoleAssignmentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List profiles by type
      */
     async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
@@ -536,12 +591,12 @@ export class AdminApi extends runtime.BaseAPI {
      * Put certificate template
      */
     async putCertificateTemplateRaw(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.profileType === null || requestParameters.profileType === undefined) {
-            throw new runtime.RequiredError('profileType','Required parameter requestParameters.profileType was null or undefined when calling putCertificateTemplate.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateTemplate.');
         }
 
-        if (requestParameters.profileId === null || requestParameters.profileId === undefined) {
-            throw new runtime.RequiredError('profileId','Required parameter requestParameters.profileId was null or undefined when calling putCertificateTemplate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateTemplate.');
         }
 
         if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
@@ -567,7 +622,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{profileType}/{profileId}/certificate-template/{templateId}`.replace(`{${"profileType"}}`, encodeURIComponent(String(requestParameters.profileType))).replace(`{${"profileId"}}`, encodeURIComponent(String(requestParameters.profileId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

@@ -2,7 +2,9 @@ package common
 
 import (
 	"log"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -23,10 +25,13 @@ const (
 	DefualtEnvVarAzKeyvaultResourceEndpoint    = "AZURE_KEYVAULT_RESOURCEENDPOINT"
 	DefualtEnvVarAzStroageBlobResourceEndpoint = "AZURE_STORAGEBLOB_RESOURCEENDPOINT"
 	DefaultEnvVarAzureManagedIdentityClientId  = "AZURE_MANAGED_IDENTITY_CLIENT_ID"
+	DefualtEnvVarAzSubscriptionID              = "AZURE_SUBSCRIPTION_ID"
+	DefaultEnvVarAzResourceGroupName           = "AZURE_RESOURCE_GROUP_NAME"
 )
 
 type commonConfig struct {
 	defaultAzCerdential          azcore.TokenCredential
+	azKeyvaultName               string
 	keyvaultEndpoint             string
 	azKeysClient                 *azkeys.Client
 	azCertificatesClient         *azcertificates.Client
@@ -38,6 +43,23 @@ type commonConfig struct {
 	aadAppClientId               string
 	aadAppClientSecret           string
 	confidentialAppCredential    azcore.TokenCredential
+	subscriptionId               string
+	azResourceGroupName          string
+}
+
+// AzKeyVaultName implements CommonConfig.
+func (s *commonConfig) AzKeyvaultName() string {
+	return s.azKeyvaultName
+}
+
+// AzResourceGroupName implements CommonConfig.
+func (c *commonConfig) AzResourceGroupName() string {
+	return c.azResourceGroupName
+}
+
+// SubscriptionID implements CommonConfig.
+func (s *commonConfig) AzSubscriptionID() string {
+	return s.subscriptionId
 }
 
 func NewCommonConfig() (c commonConfig, err error) {
@@ -53,6 +75,13 @@ func NewCommonConfig() (c commonConfig, err error) {
 		return
 	}
 	c.keyvaultEndpoint = MustGetenv(DefualtEnvVarAzKeyvaultResourceEndpoint)
+	{
+		parsed, _ := url.Parse(c.keyvaultEndpoint)
+		c.azKeyvaultName = strings.Split(parsed.Host, ".")[0]
+		if len(c.azKeyvaultName) == 0 {
+			log.Panicf("unable to parse keyvault name from key vault url")
+		}
+	}
 	c.azKeysClient, err = azkeys.NewClient(c.keyvaultEndpoint, c.defaultAzCerdential, nil)
 	if err != nil {
 		return
@@ -85,6 +114,8 @@ func NewCommonConfig() (c commonConfig, err error) {
 
 	c.aadAppClientId = MustGetenv(DefaultEnvVarAppAzureClientId)
 	c.aadAppClientSecret = MustGetenvSecret(DefaultEnvVarAppAzureClientSecret)
+	c.subscriptionId = MustGetenv(DefualtEnvVarAzSubscriptionID)
+	c.azResourceGroupName = MustGetenv(DefaultEnvVarAzResourceGroupName)
 
 	c.confidentialAppCredential, err = azidentity.NewClientSecretCredential(c.tenantIDStr, c.aadAppClientId, c.aadAppClientSecret, nil)
 	if err != nil {
@@ -95,16 +126,24 @@ func NewCommonConfig() (c commonConfig, err error) {
 
 type CommonConfig interface {
 	DefaultAzCredential() azcore.TokenCredential
+	AzKeyvaultEndpoint() string
+	AzKeyvaultName() string
 	AzKeysClient() *azkeys.Client
 	AzCertificatesClient() *azcertificates.Client
 	AzCosmosContainerClient() *azcosmos.ContainerClient
 	TenantID() uuid.UUID
+	AzSubscriptionID() string
+	AzResourceGroupName() string
 	ConfidentialAppCredential() azcore.TokenCredential
 	NewOnBehalfOfCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (*azidentity.OnBehalfOfCredential, error)
 }
 
 func (c *commonConfig) DefaultAzCredential() azcore.TokenCredential {
 	return c.defaultAzCerdential
+}
+
+func (c *commonConfig) AzKeyvaultEndpoint() string {
+	return c.keyvaultEndpoint
 }
 
 func (c *commonConfig) AzKeysClient() *azkeys.Client {
@@ -134,6 +173,8 @@ func (c *commonConfig) NewOnBehalfOfCredential(userAssertion string,
 		userAssertion,
 		c.aadAppClientSecret, opts)
 }
+
+var _ CommonConfig = (*commonConfig)(nil)
 
 func MustGetenv(name string) (value string) {
 	value = os.Getenv(name)
