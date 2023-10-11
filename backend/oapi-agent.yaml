@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Admin API
+  version: 0.1.1
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/docker/info:
+    get:
+      tags:
+        - agent
+        - docker
+      description: Get docker info
+      operationId: GetDockerInfo
+      responses:
+        200:
+          description: DockerInfo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DockerInfo"
+components:
+  schemas:
+    DockerInfo:
+      type: object
+      x-go-type: types.Info
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"

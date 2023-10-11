@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Small KMS Admin API Shared
+  title: Small KMS Admin API
   version: 0.1.1
 servers:
   - url: https://example.com

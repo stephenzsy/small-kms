@@ -14,6 +14,7 @@ COPY . ./
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o server
+RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server ./agent
 
 FROM alpine:3.18
 
@@ -21,8 +22,7 @@ RUN apk add --no-cache ca-certificates
 
 # Copy our static executable.
 COPY --from=builder /app/server /server
-
-EXPOSE 9000/TCP
+COPY --from=builder /app/agent-server /agnet-server
 
 # Run
 CMD ["/server", "admin", ":9000"]

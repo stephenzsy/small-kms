@@ -158,7 +158,7 @@ func main() {
 	// Find .env file
 	skipDockerPullPtr := flag.Bool("skip-docker-pull", false, "skip docker pull")
 	envFilePathPtr := flag.String("env", "", "path to .env file")
-
+	skipTlsPtr := flag.Bool("skip-tls", false, "skip tls")
 	flag.Parse()
 
 	if *envFilePathPtr != "" {
@@ -177,6 +177,9 @@ func main() {
 				bootstrapActiveHost(*skipDockerPullPtr)
 				return
 			}
+		case "server":
+			bootstrapServer(args[1], *skipTlsPtr)
+			return
 		}
 	}
 

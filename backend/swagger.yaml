@@ -167,7 +167,6 @@ components:
         - group
         - device
         - user
-        - application
       x-enum-varnames:
         - NSType_Any
         - NSType_RootCA
@@ -176,7 +175,6 @@ components:
         - NSType_Group
         - NSType_Device
         - NSType_User
-        - NSType_Application
     CertificateIssuer:
       type: object
       properties:
