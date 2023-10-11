@@ -19,7 +19,7 @@ type azKeysSelfSignerProvider struct {
 	signer         *keyVaultSigner
 	keyCreated     *azkeys.ID
 	keepKeyVersion bool
-	eCtx           RequestContext
+	eCtx           common.ElevatedContext
 }
 
 // X509SigningAlg implements SignerProvider.
@@ -33,20 +33,20 @@ func (p *azKeysSelfSignerProvider) Locator() common.Locator[models.NamespaceKind
 }
 
 // Load implements CertificateRequestProvider.
-func (p *azKeysSelfSignerProvider) Load(c RequestContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
+func (p *azKeysSelfSignerProvider) Load(c common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
 
 	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
 		return nil, nil, nil, e
 	}
 
-	p.eCtx = c.Elevate()
 	p.cert, err = p.certDoc.createX509Certificate()
 	if err != nil {
 		return bad(err)
 	}
 	p.certSpec = p.certDoc.CertSpec
 
-	p.signer, p.keyCreated, err = createAzKeysSigner(c, &p.certSpec,
+	p.eCtx = c
+	p.signer, p.keyCreated, err = createAzKeysSigner(p.eCtx, &p.certSpec,
 		*p.certDoc.KeyStorePath,
 		&azkeys.KeyAttributes{
 			Expires:    p.certDoc.NotAfter.TimePtr(),
@@ -96,23 +96,23 @@ func (p *azKeysSelfSignerProvider) Close() {
 			},
 		}, nil)
 		if err != nil {
-			p.eCtx.Logger().Errorf("%s:failed to disable key version: %s", err, *p.keyCreated)
+			log.Error().Err(err).Msgf("%s:failed to disable key version: %s", err, *p.keyCreated)
 		}
 	}
 }
 
 // Signer implements SignerProvider.
-func (p *azKeysSelfSignerProvider) LoadSigner(RequestContext) (crypto.Signer, error) {
+func (p *azKeysSelfSignerProvider) LoadSigner(common.ElevatedContext) (crypto.Signer, error) {
 	return p.signer, nil
 }
 
-func createAzKeysSigner(c RequestContext, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyVaultSigner, *azkeys.ID, error) {
+func createAzKeysSigner(c common.ElevatedContext, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyVaultSigner, *azkeys.ID, error) {
 	var keyCreated *azkeys.ID
 	bad := func(e error) (*keyVaultSigner, *azkeys.ID, error) {
 		return nil, keyCreated, e
 	}
 
-	client := c.ServiceClientProvider().AzKeysClient()
+	client := common.GetAdminServerClientProvider(c).AzKeysClient()
 	var signingAlg azkeys.SignatureAlgorithm
 	params := azkeys.CreateKeyParameters{}
 	switch ioCertJwkSpec.Kty {

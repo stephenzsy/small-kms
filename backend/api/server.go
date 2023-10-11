@@ -3,52 +3,55 @@ package api
 import (
 	ctx "context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/labstack/echo/v4"
-	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 type server struct {
-	common.CommonConfig
-	serverContext         ctx.Context
-	azBlobClient          *azblob.Client
-	azBlobContainerClient *azblobcontainer.Client
-	serverMsGraphClient   *msgraphsdkgo.GraphServiceClient
+	common.CommonServer
+	serverContext     ctx.Context
+	clients           clientProvider
+	appIdentity       common.AzureAppConfidentialIdentity
+	subscriptionId    string
+	resourceGroupName string
+	//serverMsGraphClient *msgraphsdkgo.GraphServiceClient
 }
 
-// MsGraphDelegatedClient implements common.ClientProvider.
-func (s *server) MsGraphDelegatedClient(c ctx.Context) (*msgraphsdkgo.GraphServiceClient, error) {
-	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
-		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
-			return nil, err
-		} else {
-			return msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
-		}
-	}
-	return nil, fmt.Errorf("%w: no auth header to authenticate to graph service", common.ErrStatusUnauthorized)
+// ConfidentialAppIdentity implements common.ConfidentialAppIdentityProvider.
+func (s *server) ConfidentialAppIdentity() common.AzureAppConfidentialIdentity {
+	return s.appIdentity
 }
 
-// AzKeyvaultRBACDelegatedClient implements common.ServerContext.
-func (s *server) ArmRoleAssignmentsDelegatedClient(c ctx.Context) (*armauthorization.RoleAssignmentsClient, error) {
-	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
-		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
-			return nil, err
-		} else {
-			return armauthorization.NewRoleAssignmentsClient(s.AzSubscriptionID(), creds, nil)
-		}
-	}
-	return nil, fmt.Errorf("%w: no auth header to authenticate to keyvault rbac", common.ErrStatusUnauthorized)
-}
+// // MsGraphDelegatedClient implements common.ClientProvider.
+// func (s *server) MsGraphDelegatedClient(c ctx.Context) (*msgraphsdkgo.GraphServiceClient, error) {
+// 	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
+// 		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
+// 			return nil, err
+// 		} else {
+// 			return msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
+// 		}
+// 	}
+// 	return nil, fmt.Errorf("%w: no auth header to authenticate to graph service", common.ErrStatusUnauthorized)
+// }
+
+// // AzKeyvaultRBACDelegatedClient implements common.ServerContext.
+// func (s *server) ArmRoleAssignmentsDelegatedClient(c ctx.Context) (*armauthorization.RoleAssignmentsClient, error) {
+// 	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
+// 		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
+// 			return nil, err
+// 		} else {
+// 			return armauthorization.NewRoleAssignmentsClient(s.AzSubscriptionID(), creds, nil)
+// 		}
+// 	}
+// 	return nil, fmt.Errorf("%w: no auth header to authenticate to keyvault rbac", common.ErrStatusUnauthorized)
+// }
 
 // Deadline implements common.ServerContext.
 func (s *server) Deadline() (deadline time.Time, ok bool) {
@@ -65,19 +68,9 @@ func (s *server) Err() error {
 	return s.serverContext.Err()
 }
 
-// MsGraphServerClient implements common.ServerContext.
-func (s *server) MsGraphServerClient() *msgraphsdkgo.GraphServiceClient {
-	return s.serverMsGraphClient
-}
-
 // Value implements common.ServerContext.
 func (s *server) Value(key any) any {
 	return s.serverContext.Value(key)
-}
-
-// AzBlobContainerClient implements common.ClientProvider.
-func (s *server) AzBlobContainerClient() *azblobcontainer.Client {
-	return s.azBlobContainerClient
 }
 
 type H = map[string]string
@@ -103,25 +96,59 @@ func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err 
 	}
 }
 
+type appConfidentialIdentity struct {
+	tenantID               string
+	clientID               string
+	clientSecret           string
+	clientSecretCredential *azidentity.ClientSecretCredential
+}
+
+// GetOnBehalfOfTokenCredential implements common.AzureAppConfidentialIdentity.
+func (i *appConfidentialIdentity) GetOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
+	return azidentity.NewOnBehalfOfCredentialWithSecret(i.tenantID, i.clientID, userAssertion, i.clientSecret, opts)
+}
+
+// TokenCredential implements common.AzureAppConfidentialIdentity.
+func (i *appConfidentialIdentity) TokenCredential() azcore.TokenCredential {
+	return i.clientSecretCredential
+}
+
+var _ common.AzureAppConfidentialIdentity = (*appConfidentialIdentity)(nil)
+
 func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
+
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
-		log.Panic().Err(err).Msg("failed to create common config")
+		log.Panic().Err(err).Msg("failed to create common server")
 	}
+
 	s := server{
-		CommonConfig:  &commonConfig,
+		CommonServer:  &commonConfig,
 		serverContext: c,
 	}
-	storageBlobEndpoint := common.MustGetenv(common.DefualtEnvVarAzStroageBlobResourceEndpoint)
-	s.azBlobClient, err = azblob.NewClient(storageBlobEndpoint, s.DefaultAzCredential(), nil)
-	if err != nil {
-		log.Panic().Err(err).Msg("Failed to get az blob client")
+
+	appId := appConfidentialIdentity{}
+	if appId.tenantID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzTenantID, ""); appId.tenantID == "" {
+		log.Panic().Msg("No app tenant ID found in environment variable")
 	}
-	s.azBlobContainerClient = s.azBlobClient.ServiceClient().NewContainerClient(common.GetEnvWithDefault("AZURE_STORAGEBLOB_CONTAINERNAME_CERTS", "certs"))
-	s.serverMsGraphClient, err = msgraphsdkgo.NewGraphServiceClientWithCredentials(s.ConfidentialAppCredential(), nil)
-	if err != nil {
-		log.Panic().Err(err).Msg("Failed to get ms graph client")
+	if appId.clientID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientID, ""); appId.clientID == "" {
+		log.Panic().Msg("No app client ID found in environment variable")
 	}
+	if appId.clientSecret = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientSecret, ""); appId.clientSecret == "" {
+		log.Panic().Msg("No app client secret found in environment variable")
+	}
+	if appId.clientSecretCredential, err = azidentity.NewClientSecretCredential(
+		appId.tenantID, appId.clientID, appId.clientSecret, nil); err != nil {
+		log.Panic().Err(err).Msg("Failed to create app client secret credential")
+	}
+	s.appIdentity = &appId
+
+	if s.clients, err = newServerClientProvider(&s); err != nil {
+		log.Panic().Err(err).Msg("failed to create client provider")
+	}
+
+	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
+	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
 
 	return &s, s.InjectServerContext()
 }
@@ -129,9 +156,15 @@ func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
 func (s *server) InjectServerContext() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			return next(common.EchoContextWithServerContext(c, s))
+			rc := common.EchoContextWithServerContext(c, s)
+			rc = common.WithAdminServerClientProvider(rc, &s.clients)
+			rc = common.WithAdminServerRequestClientProvider(rc, &requestClientProvider{
+				parent:            s,
+				credentialContext: rc,
+			})
+			return next(rc)
 		}
 	}
 }
 
-var _ common.ServiceClientProvider = (*server)(nil)
+var _ common.ConfidentialAppIdentityProvider = (*server)(nil)

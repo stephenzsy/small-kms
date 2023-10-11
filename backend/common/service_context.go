@@ -3,28 +3,40 @@ package common
 import (
 	ctx "context"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
-	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
+
+type AzureIdentity interface {
+	TokenCredential() azcore.TokenCredential
+}
+
+type AzureAppConfidentialIdentity interface {
+	AzureIdentity
+	GetOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
+}
+
+type ServiceIdentityProvider interface {
+	ServiceIdentity() AzureIdentity
+}
+
+type ConfidentialAppIdentityProvider interface {
+	ConfidentialAppIdentity() AzureAppConfidentialIdentity
+}
 
 type ServerContext interface {
 	ctx.Context
-	ServiceClientProvider
+	ServiceIdentity() AzureIdentity
+	//ServiceClientProvider
+	//ServiceIdentityProvider
 }
 
-type ServiceClientProvider interface {
-	AzCosmosContainerClient() *azcosmos.ContainerClient
-	AzKeyvaultName() string
-	AzKeysClient() *azkeys.Client
-	AzCertificatesClient() *azcertificates.Client
-	MsGraphServerClient() *msgraphsdkgo.GraphServiceClient
-	MsGraphDelegatedClient(ctx.Context) (*msgraphsdkgo.GraphServiceClient, error)
-	AzBlobContainerClient() *azblobcontainer.Client
-	AzSubscriptionID() string
-	AzResourceGroupName() string
-	ArmRoleAssignmentsDelegatedClient(ctx.Context) (*armauthorization.RoleAssignmentsClient, error)
-}
+// type ServiceClientProvider interface {
+
+// 	MsGraphServerClient() *msgraphsdkgo.GraphServiceClient
+// 	MsGraphDelegatedClient(ctx.Context) (*msgraphsdkgo.GraphServiceClient, error)
+// 	AzBlobContainerClient() *azblobcontainer.Client
+// 	AzSubscriptionID() string
+// 	AzResourceGroupName() string
+// 	ArmRoleAssignmentsDelegatedClient(ctx.Context) (*armauthorization.RoleAssignmentsClient, error)
+// }

@@ -5,11 +5,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -38,9 +36,7 @@ type PendingCertDoc struct {
 }
 
 func (s *adminServer) readPendingCertDoc(ctx context.Context, nsID uuid.UUID, docID kmsdoc.KmsDocID) (*PendingCertDoc, error) {
-	doc := new(PendingCertDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID, docID, doc)
-	return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:cert:%s", nsID, docID))
+	return nil, nil
 }
 
 func encodeJwtJsonSegment[D any](jsonObj D) (string, error) {

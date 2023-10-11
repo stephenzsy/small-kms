@@ -4,13 +4,25 @@ import (
 	"context"
 	"crypto"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
+	"flag"
+	"fmt"
+	"io"
 	"log"
+	"net/url"
 	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/docker/docker/api/types"
+	dockerclient "github.com/docker/docker/client"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
+	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
 )
 
 const DefaultEnvVarTenantID = "AZURE_TENANT_ID"
@@ -19,12 +31,60 @@ const DefaultEnvVarCertBundlePath = "AZURE_CERT_BUNDLE"
 const DefaultEnvVarApiBaseUrl = "SMALLKMS_API_BASE_URL"
 const DefaultEnvVarApiScope = "SMALLKMS_API_SCOPE"
 
-func main() {
-	// Find .env file
-	err := godotenv.Load("./.env")
+func getDockerClient() *dockerclient.Client {
+	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithVersion("1.43"))
 	if err != nil {
-		log.Printf("Error loading .env file: %s\n", err)
+		panic(err)
 	}
+	return cli
+}
+
+type dockerRegistryAuth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func dockerPull(ctx context.Context, creds azcore.TokenCredential, tenantID, imageRef string) {
+	parsedUrl, err := url.Parse("https://" + imageRef)
+	if err != nil {
+		log.Panicf("Failed to parse image ref: %v\n", err)
+	}
+	registryLoginUrl := parsedUrl.Host
+	log.Printf("Registry login url: %s\n", registryLoginUrl)
+
+	registryEndpoint := "https://" + registryLoginUrl
+
+	acrAuthCli := acr.NewAuthenticationClient(registryEndpoint, creds, &acr.AuthenticationClientOptions{
+		TenantID: tenantID,
+	})
+	token, err := acrAuthCli.ExchagneAADTokenForACRRefreshToken(ctx, registryLoginUrl)
+	if err != nil {
+		log.Panicf("Failed to exchange token: %v\n", err)
+	}
+
+	dcli := getDockerClient()
+	dra := dockerRegistryAuth{
+		Username: uuid.Nil.String(),
+		Password: *token.RefreshToken,
+	}
+	dockerRegistryAuthJson, err := json.Marshal(dra)
+	if err != nil {
+		panic(err)
+	}
+
+	out, err := dcli.ImagePull(context.Background(), imageRef, types.ImagePullOptions{
+		RegistryAuth: base64.RawURLEncoding.EncodeToString(dockerRegistryAuthJson),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	defer out.Close()
+
+	io.Copy(os.Stdout, out)
+}
+
+func bootstrapActiveHost(skipDockerPullPtr bool) {
 
 	var clientID, tenantID, bundlePath, apiBaseUrl, apiScope string
 	var ok bool
@@ -64,9 +124,12 @@ func main() {
 				log.Panicf("Failed to parse certificate: %v\n", err)
 			}
 			x509Certs = append(x509Certs, cert)
+			break
 		}
 
 	}
+
+	ctx := context.Background()
 
 	creds, err := azidentity.NewClientCertificateCredential(tenantID, clientID, x509Certs, privateKey, nil)
 	if err != nil {
@@ -76,9 +139,47 @@ func main() {
 	if err != nil {
 		log.Panicf("Failed to create client: %v\n", err)
 	}
-	resp, err := client.AgentCheckIn(context.Background(), nil)
+	resp, err := client.AgentGetConfigurationWithResponse(ctx, agentclient.AgentConfigNameActiveHostBootstrap)
 	if err != nil {
 		log.Panicf("Failed to check in: %v\n", err)
 	}
-	log.Println("Responded with", resp.Status, "and", resp.Body, "body")
+
+	config, err := resp.JSON200.Config.AsAgentConfigurationAgentActiveHostBootstrap()
+	if err != nil {
+		log.Panicf("Failed to parse config: %v\n", err)
+	}
+
+	if !skipDockerPullPtr {
+		dockerPull(ctx, creds, tenantID, config.ControllerContainer.ImageRefStr)
+	}
+}
+
+func main() {
+	// Find .env file
+	skipDockerPullPtr := flag.Bool("skip-docker-pull", false, "skip docker pull")
+	envFilePathPtr := flag.String("env", "", "path to .env file")
+
+	flag.Parse()
+
+	if *envFilePathPtr != "" {
+		err := godotenv.Load(*envFilePathPtr)
+		if err != nil {
+			log.Printf("Error loading environment file: %s: %s\n", *envFilePathPtr, err.Error())
+		}
+	}
+
+	args := flag.Args()
+	if len(args) >= 2 {
+		switch args[0] {
+		case "bootstrap":
+			switch args[1] {
+			case "active-host":
+				bootstrapActiveHost(*skipDockerPullPtr)
+				return
+			}
+		}
+	}
+
+	fmt.Printf("Usage: %s bootstrap active-host\n", os.Args[0])
+
 }

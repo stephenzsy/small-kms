@@ -9,6 +9,7 @@ import (
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -85,7 +86,7 @@ func QueryItemsPager[D KmsDocument](
 	nsID docNsIDType,
 	kind models.ResourceKind,
 	getQueryBuilder func(tableName string) CosmosQueryBuilder) *DocPager[D] {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
 	qb := getQueryBuilder("c")
 	query, queryParameters := qb.BuildQuery(kind)

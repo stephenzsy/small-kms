@@ -7,7 +7,6 @@ import (
 
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -45,12 +44,4 @@ func baseDocPopulateRefWithMetadata(d kmsdoc.KmsDocument, ref *RefWithMetadata) 
 	updatedById, updatedByName := d.GetUpdatedBy()
 	ref.UpdatedBy = fmt.Sprintf("%s/%s", updatedById, updatedByName)
 	ref.Deleted = d.GetDeleted()
-}
-
-func profileDocPopulateRefWithMetadata(d graph.GraphProfileDocument, ref *RefWithMetadata) {
-	if d == nil || ref == nil {
-		return
-	}
-	baseDocPopulateRefWithMetadata(d, ref)
-	ref.DisplayName = d.GetDisplayName()
 }

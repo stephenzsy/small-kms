@@ -37,9 +37,9 @@ func newServiceClientForInstall(
 }
 
 func InstallStart(out io.Writer, outDescription string) error {
-	tenantID := common.MustGetenv(common.DefaultEnvVarAzureTenantId)
-	clientID := uuid.MustParse(common.MustGetenv(common.DefaultEnvVarAzureClientId))
-	endpointClientID := common.MustGetenv(common.DefaultEnvVarAppAzureClientId)
+	tenantID := common.MustGetenv(common.IdentityEnvVarNameAzTenantID)
+	clientID := uuid.MustParse(common.MustGetenv(common.IdentityEnvVarNameAzClientID))
+	endpointClientID := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientID, "")
 	templateGroupID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_TEMPLATE_GROUP_ID"))
 	templateID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_TEMPLATE_ID"))
 	deviceObjectID := uuid.MustParse(common.MustGetenv("SMALLKMS_ENROLL_DEVICE_OBJECT_ID"))

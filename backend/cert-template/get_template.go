@@ -48,18 +48,15 @@ func ListKeyVaultRoleAssignments(c RequestContext) ([]*models.KeyVaultRoleAssign
 	if doc.KeyStorePath == nil || *doc.KeyStorePath == "" {
 		return nil, fmt.Errorf("%w: key store path is empty", common.ErrStatusBadRequest)
 	}
-	clientProvider := c.ServiceClientProvider()
-	raClient, err := clientProvider.ArmRoleAssignmentsDelegatedClient(c)
+	delegatedClientProvider := common.GetAdminServerRequestClientProvider(c)
+	raClient, err := delegatedClientProvider.ArmRoleAssignmentsClient()
 	if err != nil {
 		return nil, err
 	}
-	nsID := GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c).GetNamespaceID()
+	templateContext := GetCertificateTemplateContext(c)
+	nsID := templateContext.GetCertificateTemplateLocator(c).GetNamespaceID()
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", nsID.Identifier().UUID().String())
-	scope := fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/certificates/%s",
-		clientProvider.AzSubscriptionID(),
-		clientProvider.AzResourceGroupName(),
-		clientProvider.AzKeyvaultName(),
-		*doc.KeyStorePath)
+	scope := delegatedClientProvider.GetKeyvaultCertificateResourceScopeID(*doc.KeyStorePath)
 	log.Info().Msgf("Lookup role assignments for scope: %s", scope)
 	pager := raClient.NewListForScopePager(
 		scope,

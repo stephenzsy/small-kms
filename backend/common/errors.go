@@ -19,6 +19,10 @@ var (
 	ErrStatusConflict     = errors.New("resource conflict")  // 409
 )
 
+var (
+	ErrMissingEnvVar = errors.New("missing env var")
+)
+
 // Deprecated: use WrapAzNotFoundErr instead
 func IsAzNotFound(err error) bool {
 	var respErr *azcore.ResponseError

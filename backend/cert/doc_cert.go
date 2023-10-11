@@ -2,6 +2,7 @@ package cert
 
 import (
 	"bytes"
+	"context"
 	"crypto/x509"
 	"fmt"
 	"time"
@@ -117,8 +118,8 @@ func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err e
 	return
 }
 
-func (doc *CertDoc) fetchCertificatePEMBlob(c RequestContext) ([]byte, error) {
-	blobClient := c.ServiceClientProvider().AzBlobContainerClient()
+func (doc *CertDoc) fetchCertificatePEMBlob(c context.Context) ([]byte, error) {
+	blobClient := common.GetAdminServerClientProvider(c).CertsAzBlobContainerClient()
 	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(c, nil)
 	if err != nil {
 		return nil, err

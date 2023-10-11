@@ -3,13 +3,10 @@ package admin
 import (
 	"context"
 	"crypto/x509/pkix"
-	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -56,14 +53,6 @@ func (doc *CertificateTemplateDoc) IsActive() bool {
 
 func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
 	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, doc.IssuerTemplateID.GetUUID())
-}
-
-// Deprecated: use service context to access
-func (s *adminServer) readCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID, templateID uuid.UUID) (*CertificateTemplateDoc, error) {
-	doc := new(CertificateTemplateDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
-		kmsdoc.NewKmsDocID(kmsdoc.DocTypeCertTemplate, templateID), doc)
-	return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:cert-template:%s", nsID, templateID))
 }
 
 func (p *CertificateTemplateDocKeyProperties) setDefault() {
@@ -225,19 +214,4 @@ func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties(key
 	// }
 	r.Exportable = to.Ptr(keyExportable)
 	return
-}
-
-func (s *adminServer) listCertificateTemplateDoc(ctx context.Context, nsID uuid.UUID) ([]*CertificateTemplateDoc, error) {
-	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
-	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.displayName FROM c
-WHERE c.namespaceId = @namespaceId
-  AND c.type = @type`,
-		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@namespaceId", Value: nsID.String()},
-				{Name: "@type", Value: kmsdoc.DocTypeNameCertTemplate},
-			},
-		})
-
-	return PagerToList[CertificateTemplateDoc](ctx, pager)
 }

@@ -2,11 +2,9 @@ package admin
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -80,13 +78,7 @@ WHERE c.namespaceId = @namespaceId
 */
 
 func (s *adminServer) readNsRelWithFollow(ctx context.Context, nsID uuid.UUID, relID uuid.UUID, follow bool) (*NsRelDoc, error) {
-	doc := new(NsRelDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID,
-		kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, relID), doc)
-	if !follow || err != nil || doc.NamespaceID == nsID {
-		return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:reldoc:%s", nsID, relID))
-	}
-	return s.readNsRelWithFollow(ctx, doc.NamespaceID, relID, false)
+	return nil, nil
 }
 
 func (s *adminServer) readNsRel(ctx context.Context, nsID uuid.UUID, relID uuid.UUID) (*NsRelDoc, error) {

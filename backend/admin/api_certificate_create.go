@@ -2,16 +2,9 @@ package admin
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/graph"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
 func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, nsID uuid.UUID, templateDoc *CertificateTemplateDoc, certDoc *CertDoc) (renewReason string) {
@@ -55,106 +48,4 @@ func (s *adminServer) shouldCreateCertificateForTemplate(ctx context.Context, ns
 		}
 	}
 	return
-}
-
-func (s *adminServer) IssueCertificateByTemplateV2(c *gin.Context, nsID uuid.UUID, templateID uuid.UUID) {
-	if !authAdminOnly(c) {
-		return
-	}
-
-	certDoc, readCertDocErr := s.readCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID))
-	if readCertDocErr != nil {
-		if !errors.Is(readCertDocErr, common.ErrStatusNotFound) {
-			respondInternalError(c, readCertDocErr, "failed to load existing certificate doc")
-			return
-		}
-		certDoc = nil
-	}
-
-	var createCertPemBlob []byte
-	// create certificate
-	successResponseCode := http.StatusOK
-	// verify template
-	templateDoc, err := s.readCertificateTemplateDoc(c, nsID, templateID)
-	if err != nil {
-		common.RespondError(c, err)
-		return
-	}
-	if !templateDoc.IsActive() {
-		respondPublicErrorMsg(c, http.StatusBadRequest, "template is not active")
-		return
-	}
-
-	shouldApplyReason := s.shouldCreateCertificateForTemplate(c, nsID, templateDoc, certDoc)
-	if len(shouldApplyReason) == 0 {
-		log.Info().Msg("certificate up-to-date, no need to apply certificate template")
-	} else {
-		if !isAllowedCaNamespace(nsID) {
-			// before issue certificate, verify both profile and object exist in graph
-			gc, err := s.msGraphClient(c)
-			if err != nil {
-				common.RespondError(c, err)
-			}
-			dirObj, err := gc.DirectoryObjects().ByDirectoryObjectId(nsID.String()).Get(c, nil)
-			if err != nil {
-				err = common.WrapMsGraphNotFoundErr(err, "dirobj:"+nsID.String())
-
-				common.RespondError(c, err)
-				return
-			}
-
-			// store doc
-			doc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeAny)
-			if err != nil {
-				common.RespondError(c, err)
-			}
-			if gp, ok := dirObj.(graph.GraphProfileable); ok {
-				doc = s.graphService.NewGraphProfileDoc(s.TenantID(), gp)
-			}
-			// update profile doc
-			if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
-				common.RespondError(c, err)
-				return
-			}
-		}
-		// create certificate
-		certDoc, createCertPemBlob, err = s.createCertificateFromTemplate(c, nsID, &certTemplateProcessor{
-			tmplDoc: templateDoc,
-		})
-		if err != nil {
-			common.RespondError(c, err)
-			return
-		}
-		successResponseCode = http.StatusCreated
-
-		// psersist certificate in cosmos
-		err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), certDoc)
-		if err != nil {
-			respondInternalError(c, err, "failed to store certificate metadata")
-			return
-		}
-
-		// persist latest certificate for template
-		certDocL := *certDoc
-		certDocL.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, templateID)
-		certDocL.AliasID = &certDoc.ID
-		err = kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), &certDocL)
-		if err != nil {
-			respondInternalError(c, err, "failed to store certificate metadata for template")
-			return
-		}
-	}
-
-	if certDoc == nil {
-		respondPublicErrorMsg(c, http.StatusNotFound, "certificate does not exist")
-		return
-	}
-
-	certInfo, err := s.toCertificateInfo(c, certDoc, nil, createCertPemBlob)
-	if err != nil {
-		respondInternalError(c, err, "failed to convert certificate to certificate info")
-		return
-	}
-
-	c.JSON(successResponseCode, certInfo)
 }

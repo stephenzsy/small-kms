@@ -87,16 +87,7 @@ func (s *adminServer) loadCertSigner(ctx context.Context, nsID uuid.UUID,
 			// }
 
 			// use create certificate to create managed key in key vault
-			azCertResp, err := tdoc.createAzCertificate(ctx, s.AzCertificatesClient(), nsID, cert.Subject.String())
-			if err != nil {
-				return nil, err
-			}
-			signer.createAzCertificateResp = &azCertResp
-			csr, err := x509.ParseCertificateRequest(azCertResp.CSR)
-			if err != nil {
-				return nil, err
-			}
-			signer.certPubKey = csr.PublicKey
+
 		} else {
 			// load public key from certificate chain
 			return nil, errors.New("not implemented for non key vault distribution")

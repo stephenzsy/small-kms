@@ -13,9 +13,6 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get diagnostics
-	// (GET /v1/diagnostics)
-	GetDiagnosticsV1(c *gin.Context)
 	// Get certificate
 	// (GET /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest)
 	GetLatestCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params GetLatestCertificateByTemplateV2Params)
@@ -44,21 +41,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// GetDiagnosticsV1 operation middleware
-func (siw *ServerInterfaceWrapper) GetDiagnosticsV1(c *gin.Context) {
-
-	c.Set(BearerAuthScopes, []string{})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetDiagnosticsV1(c)
-}
 
 // GetLatestCertificateByTemplateV2 operation middleware
 func (siw *ServerInterfaceWrapper) GetLatestCertificateByTemplateV2(c *gin.Context) {
@@ -312,7 +294,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/v1/diagnostics", wrapper.GetDiagnosticsV1)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/certificates/:certId", wrapper.GetCertificateV2)

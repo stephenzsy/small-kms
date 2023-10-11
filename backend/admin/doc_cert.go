@@ -3,15 +3,12 @@ package admin
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
 
@@ -51,9 +48,7 @@ func (doc *CertDoc) IsActive() bool {
 }
 
 func (s *adminServer) readCertDoc(ctx context.Context, nsID uuid.UUID, docID kmsdoc.KmsDocID) (*CertDoc, error) {
-	doc := new(CertDoc)
-	err := kmsdoc.AzCosmosRead(ctx, s.AzCosmosContainerClient(), nsID, docID, doc)
-	return doc, common.WrapAzRsNotFoundErr(err, fmt.Sprintf("%s:cert:%s", nsID, docID))
+	return nil, nil
 }
 
 func (d *CertDoc) GetCUID() kmsdoc.KmsDocID {
@@ -140,16 +135,5 @@ func (s *adminServer) toCertificateInfo(ctx context.Context,
 }
 
 func (s *adminServer) listCertificateDocs(ctx context.Context, nsID uuid.UUID) ([]*CertDoc, error) {
-	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
-	pager := s.AzCosmosContainerClient().NewQueryItemsPager(`SELECT `+kmsdoc.GetBaseDocQueryColumns("c")+`,c.fingerprint FROM c
-WHERE c.namespaceId = @namespaceId
-  AND c.type = @type`,
-		partitionKey, &azcosmos.QueryOptions{
-			QueryParameters: []azcosmos.QueryParameter{
-				{Name: "@namespaceId", Value: nsID.String()},
-				{Name: "@type", Value: kmsdoc.DocTypeNameCert},
-			},
-		})
-
-	return PagerToList[CertDoc](ctx, pager)
+	return nil, nil
 }

@@ -25,7 +25,6 @@ import (
 	certtemplate "github.com/stephenzsy/small-kms/backend/admin/cert-template"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -57,7 +56,7 @@ func withGraphClient(c context.Context, client *msgraph.GraphServiceClient) cont
 func (s *adminServer) verifyDevice(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.Deviceable, error) {
 	obj, err := graphClienFromContext(c).Devices().ByDeviceId(objectID.String()).Get(c, &msgraphdevices.DeviceItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphdevices.DeviceItemRequestBuilderGetQueryParameters{
-			Select: graph.GetProfileGraphSelectDeviceDoc(),
+			//Select: graph.GetProfileGraphSelectDeviceDoc(),
 		},
 	})
 	if err != nil {
@@ -108,7 +107,7 @@ func (s *adminServer) verifyServicePrincipal(c context.Context, objectID uuid.UU
 func (s *adminServer) verifyGroup(c context.Context, objectID uuid.UUID, params *certtemplate.TemplateVarData) (msgraphmodels.Groupable, error) {
 	obj, err := graphClienFromContext(c).Groups().ByGroupId(objectID.String()).Get(c, &msgraphgroups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &msgraphgroups.GroupItemRequestBuilderGetQueryParameters{
-			Select: graph.GetProfileGraphSelectGroupDoc(),
+			//Select: graph.GetProfileGraphSelectGroupDoc(),
 		},
 	})
 	if err != nil {
@@ -268,13 +267,13 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	// prep parameters
 	params := certtemplate.TemplateVarData{}
 	// verify against ms graph
-	if obj, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
+	if _, err := s.verifyDevice(c, req.DeviceNamespaceID, &params); err != nil {
 		return nil, err
 	} else {
-		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeDevice)
-		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
-			return nil, err
-		}
+		// doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeDevice)
+		// if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
+		// 	return nil, err
+		// }
 	}
 	log.Info().Msgf("device verified: %s", req.DeviceNamespaceID)
 
@@ -288,13 +287,13 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("service principal verified: %s", req.ServicePrincipalID)
 
-	if obj, err := s.verifyGroup(c, nsID, &params); err != nil {
+	if _, err := s.verifyGroup(c, nsID, &params); err != nil {
 		return nil, err
-	} else {
-		doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeGroup)
-		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
-			return nil, err
-		}
+		// } else {
+		// 	doc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), obj, graph.MsGraphOdataTypeGroup)
+		// 	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), doc); err != nil {
+		// 		return nil, err
+		// 	}
 	}
 	log.Info().Msgf("group verified: %s", nsID)
 

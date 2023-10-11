@@ -23,7 +23,7 @@ type AuthIdentity interface {
 	ClientPrincipalID() uuid.UUID
 	ClientPrincipalName() string
 	AppIDClaim() uuid.UUID
-	GetOnBehalfOfTokenCredential(s common.CommonConfig, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
+	GetOnBehalfOfTokenCredential(common.AzureAppConfidentialIdentity, *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
 }
 
 type authIdentity struct {
@@ -60,6 +60,6 @@ func (i authIdentity) AppIDClaim() uuid.UUID {
 	return i.appIDClaim
 }
 
-func (i authIdentity) GetOnBehalfOfTokenCredential(s common.CommonConfig, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
-	return s.NewOnBehalfOfCredential(i.bearerToken, opts)
+func (i authIdentity) GetOnBehalfOfTokenCredential(s common.AzureAppConfidentialIdentity, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
+	return s.GetOnBehalfOfTokenCredential(i.bearerToken, opts)
 }

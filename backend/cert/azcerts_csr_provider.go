@@ -21,7 +21,7 @@ type azCertsCsrProvider struct {
 	cert                    *x509.Certificate
 	csr                     *x509.CertificateRequest
 	certOperationInProgress string
-	eCtx                    RequestContext
+	eCtx                    common.ElevatedContext
 }
 
 // Close implements CertificateRequestProvider.
@@ -46,8 +46,7 @@ func (p *azCertsCsrProvider) CollectCertificateChain(x5c [][]byte, ioCertSpec *C
 }
 
 // Load implements CertificateRequestProvider.
-func (p *azCertsCsrProvider) Load(c RequestContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
-	p.eCtx = c.Elevate()
+func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
 	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
 		return nil, nil, nil, e
 	}
@@ -91,9 +90,10 @@ func (p *azCertsCsrProvider) Load(c RequestContext) (certTemplate *x509.Certific
 		},
 	}
 
-	p.client = c.ServiceClientProvider().AzCertificatesClient()
+	p.client = common.GetAdminServerClientProvider(c).AzCertificatesClient()
 	certName := *p.certDoc.KeyStorePath
-	resp, err := p.client.CreateCertificate(c, certName, csp, nil)
+	p.eCtx = c
+	resp, err := p.client.CreateCertificate(p.eCtx, certName, csp, nil)
 	if err != nil {
 		return bad(err)
 	}
@@ -150,7 +150,7 @@ func (p *azKeysExistingCertSigner) GetIssuerCertStorePath() string {
 }
 
 // LoadSigner implements SignerProvider.
-func (p *azKeysExistingCertSigner) LoadSigner(c RequestContext) (signer crypto.Signer, err error) {
+func (p *azKeysExistingCertSigner) LoadSigner(c common.ElevatedContext) (signer crypto.Signer, err error) {
 	kidStr := p.issuerCertDoc.CertSpec.KID
 	if kidStr == "" {
 		return nil, fmt.Errorf("empty key id from issuer")
@@ -172,7 +172,7 @@ func (p *azKeysExistingCertSigner) LoadSigner(c RequestContext) (signer crypto.S
 
 	p.keyVaultSigner = &keyVaultSigner{
 		ctx:        c,
-		keysClient: c.ServiceClientProvider().AzKeysClient(),
+		keysClient: common.GetAdminServerClientProvider(c).AzKeysClient(),
 		jwk: &azkeys.JSONWebKey{
 			KID: utils.ToPtr(azkeys.ID(p.issuerCertDoc.CertSpec.KID)),
 		},

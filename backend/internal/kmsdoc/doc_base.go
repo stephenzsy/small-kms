@@ -131,7 +131,7 @@ func stampUpdatedWithAuthPatchOps(c context.Context, patchOps *azcosmos.PatchOpe
 var _ KmsDocument = (*BaseDoc)(nil)
 
 func Read[D KmsDocument](c RequestContext, locator models.ResourceLocator, target D) error {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	id := locator.GetID().String()
 	resp, err := cc.ReadItem(c, partitionKey, id, nil)
@@ -144,7 +144,7 @@ func Read[D KmsDocument](c RequestContext, locator models.ResourceLocator, targe
 }
 
 func Create[D KmsDocument](c RequestContext, doc D) error {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	doc.stampUpdatedWithAuth(c)
 	content, err := json.Marshal(doc)
 	if err != nil {
@@ -159,8 +159,8 @@ func Create[D KmsDocument](c RequestContext, doc D) error {
 	return nil
 }
 
-func Upsert[D KmsDocument](c RequestContext, doc D) error {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+func Upsert[D KmsDocument](c context.Context, doc D) error {
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	doc.stampUpdatedWithAuth(c)
 	content, err := json.Marshal(doc)
 	if err != nil {
@@ -175,21 +175,21 @@ func Upsert[D KmsDocument](c RequestContext, doc D) error {
 	return nil
 }
 
-func Delete[D KmsDocument](c RequestContext, doc D) (err error) {
+func Delete[D KmsDocument](c context.Context, doc D) (err error) {
 	return DeleteByRef(c, doc)
 }
 
-func DeleteByRef(c RequestContext, locator KmsDocumentRef) (err error) {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+func DeleteByRef(c context.Context, locator KmsDocumentRef) (err error) {
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	_, err = cc.DeleteItem(c, partitionKey, locator.GetID().String(), nil)
 	return err
 }
 
-func Patch[D KmsDocument](c RequestContext, locator models.ResourceLocator, doc D,
+func Patch[D KmsDocument](c context.Context, locator models.ResourceLocator, doc D,
 	patchOps azcosmos.PatchOperations,
 	opts *azcosmos.ItemOptions) error {
-	cc := c.ServiceClientProvider().AzCosmosContainerClient()
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	stampUpdatedWithAuthPatchOps(c, &patchOps)
 	resp, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, opts)
@@ -214,7 +214,7 @@ func (d *BaseDoc) PopulateResourceRef(r *models.ResourceRef) {
 	r.Deleted = d.Deleted
 }
 
-func UpsertAliasWithSnapshot[D KmsDocumentSnapshotable[D]](c RequestContext, doc D, aliasLocator models.ResourceLocator) (docClone D, err error) {
+func UpsertAliasWithSnapshot[D KmsDocumentSnapshotable[D]](c context.Context, doc D, aliasLocator models.ResourceLocator) (docClone D, err error) {
 	etag := doc.GetETag()
 	if etag == "" {
 		return docClone, fmt.Errorf("missing etag, target document must be saved to cosmosdb first")

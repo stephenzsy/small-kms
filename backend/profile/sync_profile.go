@@ -69,7 +69,7 @@ func SyncProfile(c RequestContext) (*models.ProfileComposed, error) {
 		return nil, fmt.Errorf("%w:invalid profile id for sync", common.ErrStatusBadRequest)
 	}
 
-	client, err := c.ServiceClientProvider().MsGraphDelegatedClient(c)
+	client, err := common.GetAdminServerRequestClientProvider(c).MsGraphClient()
 	if err != nil {
 		return nil, err
 	}
@@ -96,24 +96,27 @@ func createManagedApplication(c RequestContext, req models.CreateManagedApplicat
 	app := msgraphmodels.NewApplication()
 	app.SetDisplayName(&req.Name)
 	app.SetSignInAudience(utils.ToPtr("AzureADMyOrg"))
-	client := c.ServiceClientProvider().MsGraphServerClient()
-	applicationable, err := client.Applications().Post(c, app, nil)
-	if err != nil {
-		return nil, err
-	}
+	client := common.GetAdminServerClientProvider(c).MsGraphClient()
+	if c := c.Elevate(); true {
+		applicationable, err := client.Applications().Post(c, app, nil)
+		if err != nil {
+			return nil, err
+		}
 
-	profileDoc := ProfileDoc{}
-	err = profileDoc.init(applicationable)
-	if err != nil {
-		return nil, err
+		profileDoc := ProfileDoc{}
+		err = profileDoc.init(applicationable)
+		if err != nil {
+			return nil, err
+		}
+		profileDoc.IsAppManaged = utils.ToPtr(true)
+		err = kmsdoc.Upsert(c, &profileDoc)
+		return profileDoc.toModel(), err
 	}
-	profileDoc.IsAppManaged = utils.ToPtr(true)
-	err = kmsdoc.Upsert(c, &profileDoc)
-	return profileDoc.toModel(), err
+	return nil, nil
 }
 
 func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *ProfileDoc) (*Profile, error) {
-	delegatedClient, err := c.ServiceClientProvider().MsGraphDelegatedClient(c)
+	delegatedClient, err := common.GetAdminServerRequestClientProvider(c).MsGraphClient()
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +138,8 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 		// create service principal
 		mSp := msgraphmodels.NewServicePrincipal()
 		mSp.SetAppId(ownerDoc.Graph.AppID)
-		client := c.ServiceClientProvider().MsGraphServerClient()
-		sp, err = client.ServicePrincipals().Post(c, mSp, nil)
+		client := common.GetAdminServerClientProvider(c).MsGraphClient()
+		sp, err = client.ServicePrincipals().Post(c.Elevate(), mSp, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -148,23 +151,25 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 	}
 	profileDoc.IsAppManaged = utils.ToPtr(true)
 	profileDoc.Owner = ownerDoc.GetLocator()
-	cElevated := c.Elevate() // elevate to avoid cancellation
-	err = kmsdoc.Upsert(cElevated, &profileDoc)
-	if err != nil {
-		return nil, err
-	}
-	patchOps := azcosmos.PatchOperations{}
-	if ownerDoc.Owns == nil {
-		patchOps.AppendSet("/@owns", map[NamespaceKind]models.ResourceLocator{
-			models.NamespaceKindServicePrincipal: profileDoc.GetLocator(),
+	if c := c.Elevate(); true {
+		err = kmsdoc.Upsert(c, &profileDoc)
+		if err != nil {
+			return nil, err
+		}
+		patchOps := azcosmos.PatchOperations{}
+		if ownerDoc.Owns == nil {
+			patchOps.AppendSet("/@owns", map[NamespaceKind]models.ResourceLocator{
+				models.NamespaceKindServicePrincipal: profileDoc.GetLocator(),
+			})
+		} else {
+			patchOps.AppendSet(fmt.Sprintf("/@owns/%s", models.NamespaceKindServicePrincipal), profileDoc.GetLocator())
+		}
+		err = kmsdoc.Patch(c, ownerDoc.GetLocator(), ownerDoc, patchOps, &azcosmos.ItemOptions{
+			IfMatchEtag: &ownerDoc.ETag,
 		})
-	} else {
-		patchOps.AppendSet(fmt.Sprintf("/@owns/%s", models.NamespaceKindServicePrincipal), profileDoc.GetLocator())
+		return profileDoc.toModel(), err
 	}
-	err = kmsdoc.Patch(cElevated, ownerDoc.GetLocator(), ownerDoc, patchOps, &azcosmos.ItemOptions{
-		IfMatchEtag: &ownerDoc.ETag,
-	})
-	return profileDoc.toModel(), err
+	return nil, nil
 }
 
 func CreateProfile(c RequestContext, namespaceKind models.NamespaceKind, req CreateProfileRequest) (*Profile, error) {

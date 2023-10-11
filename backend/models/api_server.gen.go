@@ -19,6 +19,9 @@ type ServerInterface interface {
 	// Get agent autoconfig
 	// (GET /v3/agent/config/{configName})
 	AgentGetConfiguration(ctx echo.Context, configName AgentConfigName) error
+	// Get diagnostics
+	// (GET /v3/diagnostics)
+	GetDiagnostics(ctx echo.Context) error
 	// List profiles by type
 	// (GET /v3/profiles/{namespaceKind})
 	ListProfiles(ctx echo.Context, namespaceKind NamespaceKindParameter) error
@@ -109,6 +112,17 @@ func (w *ServerInterfaceWrapper) AgentGetConfiguration(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.AgentGetConfiguration(ctx, configName)
+	return err
+}
+
+// GetDiagnostics converts echo context to params.
+func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetDiagnostics(ctx)
 	return err
 }
 
@@ -621,6 +635,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v3/agent/check-in", wrapper.AgentCheckIn)
 	router.GET(baseURL+"/v3/agent/config/:configName", wrapper.AgentGetConfiguration)
+	router.GET(baseURL+"/v3/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.GetProfile)

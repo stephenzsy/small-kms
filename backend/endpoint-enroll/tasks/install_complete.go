@@ -30,9 +30,9 @@ func InstallComplete(receiptIn io.Reader, installToUser bool) error {
 		return err
 	}
 
-	tenantID := common.MustGetenv(common.DefaultEnvVarAzureTenantId)
-	clientID := uuid.MustParse(common.MustGetenv(common.DefaultEnvVarAzureClientId))
-	endpointClientID := common.MustGetenv(common.DefaultEnvVarAppAzureClientId)
+	tenantID := common.MustGetenv(common.IdentityEnvVarNameAzTenantID)
+	clientID := uuid.MustParse(common.MustGetenv(common.IdentityEnvVarNameAzClientID))
+	endpointClientID := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientID, "")
 
 	serviceClient, err := newServiceClientForInstall(clientID.String(), tenantID, endpointClientID)
 	if err != nil {

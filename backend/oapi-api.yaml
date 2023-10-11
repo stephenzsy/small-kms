@@ -342,6 +342,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceConfig"
+  /v3/diagnostics:
+    get:
+      tags:
+        - diagnostics
+      summary: Get diagnostics
+      operationId: GetDiagnostics
+      responses:
+        "200":
+          description: Diagnostics response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestDiagnostics"
 components:
   securitySchemes:
     BearerAuth:
@@ -846,6 +859,38 @@ components:
         - keyvaultArmResourceId
         - appRoleIds
         - azureContainerRegistry
+    RequestHeaderEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+      required:
+        - key
+        - value        
+    RequestDiagnostics:
+      type: object
+      properties:
+        requestHeaders:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestHeaderEntry"
+        serviceRuntime:
+          type: object
+          title: ServiceRuntime
+          properties:
+            goVersion:
+              type: string
+          required:
+            - goVersion
+          additionalProperties:
+            type: string
+      required:
+        - requestHeaders
+        - serviceRuntime
   parameters:
     NamespaceKindParameter:
       in: path

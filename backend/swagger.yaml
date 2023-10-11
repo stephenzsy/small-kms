@@ -108,19 +108,6 @@ paths:
           $ref: "#/components/responses/CertificateResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
-  /v1/diagnostics:
-    get:
-      tags:
-        - diagnostics
-      summary: Get diagnostics
-      operationId: GetDiagnosticsV1
-      responses:
-        "200":
-          description: Diagnostics response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RequestDiagnostics"
 security:
   - BearerAuth: []
 components:
@@ -811,38 +798,6 @@ components:
               description: \#microsoft.graph.application appId
               x-go-name: AppID
               type: string
-    RequestHeaderEntry:
-      type: object
-      properties:
-        key:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-      required:
-        - key
-        - value
-    RequestDiagnostics:
-      type: object
-      properties:
-        requestHeaders:
-          type: array
-          items:
-            $ref: "#/components/schemas/RequestHeaderEntry"
-        serviceRuntime:
-          type: object
-          title: ServiceRuntime
-          properties:
-            goVersion:
-              type: string
-          required:
-            - goVersion
-          additionalProperties:
-            type: string
-      required:
-        - requestHeaders
-        - serviceRuntime
     MyProfile:
       type: object
       properties:
@@ -905,7 +860,7 @@ components:
         - KeyOpDecrypt
         - KeyOpWrapKey
         - KeyOpUnwrapKey
-      x-go-name: KeyOp          
+      x-go-name: KeyOp
     JwkProperties:
       type: object
       description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
@@ -957,7 +912,7 @@ components:
           type: string
           x-go-name: CertificateThumbprintSHA256
       required:
-        - kty          
+        - kty
   responses:
     RefListResponse:
       description: List RefsResponse

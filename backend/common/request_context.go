@@ -2,21 +2,36 @@ package common
 
 import (
 	ctx "context"
+	"errors"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
-type ElevatedRequestContext interface {
-	ServerContext() ServerContext
+var (
+	ErrContextNotSafeForMutationr = errors.New("context not safe for mutation")
+)
+
+type elevatedContext struct {
+	ctx.Context
 }
+
+func (c elevatedContext) IsElevated() bool {
+	return true
+}
+
+type ElevatedContext interface {
+	ctx.Context
+	IsElevated() bool
+}
+
+var _ ElevatedContext = elevatedContext{}
 
 type RequestContext interface {
 	echo.Context
 	ctx.Context
 	IsElevated() bool
-	Elevate() RequestContext
-	ServiceClientProvider() ServiceClientProvider
+	Elevate() ElevatedContext
 }
 
 type injectedEchoContext struct {
@@ -25,26 +40,14 @@ type injectedEchoContext struct {
 	isElevated bool
 }
 
-// ServiceClientProvider implements RequestContext.
-func (c injectedEchoContext) ServiceClientProvider() ServiceClientProvider {
-	if c.isElevated {
-		return c.inner.(ServerContext)
-	}
-	return c.Value(serverContextKey).(ServerContext)
-}
-
 // IsElevated implements RequestContext.
 func (c injectedEchoContext) IsElevated() bool {
 	return c.isElevated
 }
 
 // Elevate implements RequestContext.
-func (c injectedEchoContext) Elevate() RequestContext {
-	return injectedEchoContext{
-		Context:    c.Context,
-		inner:      c.Value(serverContextKey).(ServerContext),
-		isElevated: true,
-	}
+func (c injectedEchoContext) Elevate() ElevatedContext {
+	return elevatedContext{c.Value(serverContextKey).(ServerContext)}
 }
 
 // Deadline implements InjectedEchoContext.

@@ -12,7 +12,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/graph"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -75,31 +74,14 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	}
 
 	// device require to have a profile
-	graphProfileDoc, err := s.graphService.GetGraphProfileDoc(c, nsID, graph.MsGraphOdataTypeDevice)
-	if err != nil {
-		return nil, fmt.Errorf("%w: device must be registered first", err)
-	}
-	log.Info().Msgf("device %s: profile loaded", nsID)
 
-	// need to fetch device from graph
-	device, err := graphClient.Devices().ByDeviceId(nsID.String()).Get(c, nil)
-	if err != nil {
-		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("device:%s", nsID))
-		if errors.Is(err, common.ErrStatusNotFound) {
-			// device is no longer available, schedule profile deletion
-			if deleteErr := s.graphService.DeleteGraphProfileDoc(c, graphProfileDoc); deleteErr != nil {
-				err = deleteErr
-			}
-		}
-		return nil, err
-	}
 	log.Info().Msgf("device %s: loaded from msgraph", nsID)
 
-	// device is verified, write new object to cosmos
-	deviceDoc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), device, graph.MsGraphOdataTypeDevice)
-	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), deviceDoc); err != nil {
-		return nil, err
-	}
+	// // device is verified, write new object to cosmos
+	// deviceDoc := s.graphService.NewGraphProfileDocWithType(s.TenantID(), device, graph.MsGraphOdataTypeDevice)
+	// if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), deviceDoc); err != nil {
+	// 	return nil, err
+	// }
 
 	log.Info().Msgf("device %s: verified and profile persisted", nsID)
 
@@ -119,11 +101,6 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		log.Info().Msgf("device link %s: existing loaded", deviceRelID)
 	}
 
-	// patch relations docs
-	deviceDeviceID, err := uuid.Parse(utils.NilToDefault(device.GetDeviceId()))
-	if err != nil {
-		return nil, fmt.Errorf("%w: failed to parse deviceId", err)
-	}
 	if relDoc == nil {
 		relDoc = new(NsRelDoc)
 		relDoc.NamespaceID = nsID
@@ -131,19 +108,17 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 		relDoc.Status = NsRelStatusPending
 		relDoc.SourceNamespaceID = nsID
 		relDoc.LinkedNamespaces.Device = &nsID
-		relDoc.Attributes.DeviceID = &deviceDeviceID
-		if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), relDoc); err != nil {
-			return nil, err
-		}
+		// if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), relDoc); err != nil {
+		// 	return nil, err
+		// }
 	} else {
 		relDoc.SourceNamespaceID = nsID
 		relDoc.LinkedNamespaces.Device = &nsID
-		relDoc.Attributes.DeviceID = &deviceDeviceID
-		if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
-			patchNsRelDocSourceNamespaceID,
-			patchNsRelDocLinkedNamespacesDevice); err != nil {
-			return nil, err
-		}
+		// if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
+		// 	patchNsRelDocSourceNamespaceID,
+		// 	patchNsRelDocLinkedNamespacesDevice); err != nil {
+		// 	return nil, err
+		// }
 	}
 	log.Info().Msgf("device link %s: patched device: %s", deviceRelID, nsID)
 
@@ -184,10 +159,10 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	}
 	relDoc.LinkedNamespaces.Application = &applicationID
 	relDoc.Attributes.AppID = &applicationAppID
-	if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
-		patchNsRelDocLinkedNamespacesApplication); err != nil {
-		return nil, err
-	}
+	// if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
+	// 	patchNsRelDocLinkedNamespacesApplication); err != nil {
+	// 	return nil, err
+	// }
 	log.Info().Msgf("device link %s: patched application: %s", deviceRelID, applicationID)
 
 	// create a link dock for application
@@ -196,9 +171,9 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	appLinkDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, common.GetCanonicalNamespaceRelationID(applicationID, common.NSRelNameDASPLink))
 	appLinkDoc.SourceNamespaceID = nsID
 	appLinkDoc.Status = NsRelStatusLink
-	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), appLinkDoc); err != nil {
-		return nil, err
-	}
+	// if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), appLinkDoc); err != nil {
+	// 	return nil, err
+	// }
 	log.Info().Msgf("device link %s: application link created: %s", deviceRelID, applicationID)
 
 	// look up service principal
@@ -230,11 +205,11 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 
 	relDoc.LinkedNamespaces.ServicePrincipal = &spID
 	relDoc.Status = NsRelStatusEnabled
-	if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
-		patchNsRelDocLinkedNamespacesServicePrincipal,
-		patchNsRelDocLinkedStatus); err != nil {
-		return nil, err
-	}
+	// if err := kmsdoc.AzCosmosPatch(c, s.AzCosmosContainerClient(), relDoc,
+	// 	patchNsRelDocLinkedNamespacesServicePrincipal,
+	// 	patchNsRelDocLinkedStatus); err != nil {
+	// 	return nil, err
+	// }
 	log.Info().Msgf("device link %s: patched service principal: %s", deviceRelID, spID)
 
 	// create a link dock for application
@@ -243,9 +218,9 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	spLinkDoc.ID = kmsdoc.NewKmsDocID(kmsdoc.DocTypeNamespaceRelation, common.GetCanonicalNamespaceRelationID(spID, common.NSRelNameDASPLink))
 	spLinkDoc.SourceNamespaceID = nsID
 	spLinkDoc.Status = NsRelStatusLink
-	if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), appLinkDoc); err != nil {
-		return nil, err
-	}
+	// if err := kmsdoc.AzCosmosUpsert(c, s.AzCosmosContainerClient(), appLinkDoc); err != nil {
+	// 	return nil, err
+	// }
 	log.Info().Msgf("device link %s: service principal link created: %s", deviceRelID, spID)
 
 	return relDoc, nil

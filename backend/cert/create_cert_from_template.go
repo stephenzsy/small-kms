@@ -45,7 +45,7 @@ func issueCertificate(c RequestContext,
 		// ok
 	default:
 		// verify graph
-		gc, err := c.ServiceClientProvider().MsGraphDelegatedClient(c)
+		gc, err := common.GetAdminServerRequestClientProvider(c).MsGraphClient()
 		if err != nil {
 			return nil, err
 		}
