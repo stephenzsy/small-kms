@@ -250,7 +250,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/CertificateRef"
+                  $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
     post:
       tags:
         - admin
@@ -417,31 +417,6 @@ components:
           type: string
       required:
         - imageRefStr
-    ResourceRef:
-      type: object
-      properties:
-        id:
-          x-go-name: ID
-          $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-        locator:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        updated:
-          description: Time when the resoruce was last updated
-          type: string
-          format: date-time
-        updatedBy:
-          type: string
-        deleted:
-          description: Time when the deleted was deleted
-          type: string
-          format: date-time
-        metadata:
-          type: object
-          additionalProperties: true
-          x-go-type-skip-optional-pointer: true
-      required:
-        - id
-        - locator
     ProfileRefFields:
       type: object
       properties:
@@ -458,7 +433,7 @@ components:
         - displayName
     ProfileRef:
       allOf:
-        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/ProfileRefFields"
     Profile:
       allOf:
@@ -620,7 +595,7 @@ components:
         - subjectCommonName
     CertificateTemplateRef:
       allOf:
-        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/CertificateTemplateRefFields"
     CertificateTemplateParameters:
       type: object
@@ -690,30 +665,6 @@ components:
       x-enum-varnames:
         - IncludeJWK
         - IncludePEM
-    CertificateRefFields:
-      type: object
-      properties:
-        thumbprint:
-          description: X.509 certificate SHA-1 thumbprint
-          type: string
-        subjectCommonName:
-          description: Common name
-          type: string
-        notAfter:
-          description: Expiration date of the certificate
-          type: string
-          format: date-time
-        template:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-      required:
-        - thumbprint
-        - subjectCommonName
-        - notAfter
-        - template
-    CertificateRef:
-      allOf:
-        - $ref: "#/components/schemas/ResourceRef"
-        - $ref: "#/components/schemas/CertificateRefFields"
     CertificateInfoFields:
       type: object
       properties:
@@ -739,7 +690,7 @@ components:
         - issuer
     CertificateInfo:
       allOf:
-        - $ref: "#/components/schemas/CertificateRef"
+        - $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
         - $ref: "#/components/schemas/CertificateInfoFields"
     AgentHostRole:
       type: string
@@ -754,7 +705,7 @@ components:
           type: string
     ServiceConfig:
       allOf:
-        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/ServiceConfigFields"
     ServiceConfigFields:
       type: object

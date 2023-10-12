@@ -1,14 +1,18 @@
 package models
 
+import "github.com/stephenzsy/small-kms/backend/shared"
+
+type Identifier = shared.Identifier
+
 type ProfileRefComposed struct {
-	ResourceRef
+	shared.ResourceRef
 	ProfileRefFields
 }
 
 type ProfileComposed = ProfileRefComposed
 
 type CertificateTemplateRefComposed struct {
-	ResourceRef
+	shared.ResourceRef
 	CertificateTemplateRefFields
 }
 
@@ -17,17 +21,12 @@ type CertificateTemplateComposed struct {
 	CertificateTemplateFields
 }
 
-type CertificateRefComposed struct {
-	ResourceRef
-	CertificateRefFields
-}
-
 type CertificateInfoComposed struct {
-	CertificateRefComposed
+	shared.CertificateRef
 	CertificateInfoFields
 }
 
 type ServiceConfigComposed struct {
-	ResourceRef
+	shared.ResourceRef
 	ServiceConfigFields
 }

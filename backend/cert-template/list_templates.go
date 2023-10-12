@@ -10,7 +10,7 @@ import (
 
 func getTemplateReservedDefault(nsID shared.NamespaceIdentifier, id shared.Identifier) *models.CertificateTemplateRefComposed {
 	return &models.CertificateTemplateRefComposed{
-		ResourceRef: models.ResourceRef{
+		ResourceRef: shared.ResourceRef{
 			Id:      id,
 			Locator: shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, id)),
 		},
@@ -26,10 +26,8 @@ func ListCertificateTemplates(c RequestContext) ([]*models.CertificateTemplateRe
 	itemsPager := kmsdoc.QueryItemsPager[*CertificateTemplateDoc](c,
 		nsID,
 		shared.ResourceKindCertTemplate,
-		func(tbl string) kmsdoc.CosmosQueryBuilder {
-			return kmsdoc.CosmosQueryBuilder{
-				ExtraColumns: []string{"subjectCn"},
-			}
+		kmsdoc.CosmosQueryBuilder{
+			ExtraColumns: []string{"c.subjectCn"},
 		})
 	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
 		return doc.toModelRef()

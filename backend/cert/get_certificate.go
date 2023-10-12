@@ -20,11 +20,7 @@ func NewLatestCertificateForTemplateID(certId shared.Identifier) shared.Resource
 	return shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, certId)
 }
 
-type NamespaceID = models.NamespaceID
-type ResourceID = models.ResourceID
-type Identifier = common.Identifier
-
-func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID NamespaceID, templateIdentifier Identifier) Identifier {
+func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID shared.NamespaceIdentifier, templateIdentifier shared.Identifier) shared.Identifier {
 	uuidValue := uuid.NewSHA1(uuid.NameSpaceURL, []byte(fmt.Sprintf("%s/%s", referencedNamespaceID.String(), templateIdentifier.String())))
 	return shared.UUIDIdentifier(uuidValue)
 }

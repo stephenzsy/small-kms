@@ -42,10 +42,6 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 
 var _ utils.ItemsPager[KmsDocument] = (*DocPager[KmsDocument])(nil)
 
-func DefaultQueryGetWhereClause(string) string {
-	return ""
-}
-
 type CosmosQueryBuilder struct {
 	ExtraColumns      []string
 	ExtraWhereClauses []string
@@ -60,11 +56,10 @@ func (b *CosmosQueryBuilder) BuildQuery(kind shared.ResourceKind) (string, []azc
 		if i > 0 {
 			sb.WriteString(",")
 		}
-		sb.WriteString("c.")
 		sb.WriteString(column)
 	}
 	for _, column := range b.ExtraColumns {
-		sb.WriteString(",c.")
+		sb.WriteString(",")
 		sb.WriteString(column)
 	}
 	sb.WriteString(" FROM c WHERE c.kind = @kind")
@@ -85,10 +80,9 @@ func QueryItemsPager[D KmsDocument](
 	c RequestContext,
 	nsID shared.NamespaceIdentifier,
 	kind shared.ResourceKind,
-	getQueryBuilder func(tableName string) CosmosQueryBuilder) *DocPager[D] {
+	qb CosmosQueryBuilder) *DocPager[D] {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())
-	qb := getQueryBuilder("c")
 	query, queryParameters := qb.BuildQuery(kind)
 
 	azPager := cc.NewQueryItemsPager(query,

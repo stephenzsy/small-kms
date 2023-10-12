@@ -117,14 +117,17 @@ type AgentHostRole string
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time                   `json:"deleted,omitempty"`
-	Id      externalRef0.Identifier      `json:"id"`
-	Issuer  externalRef0.ResourceLocator `json:"issuer"`
+	Deleted *time.Time `json:"deleted,omitempty"`
+	Id      Identifier `json:"id"`
+
+	// IsIssued Whether the certificate has been issued
+	IsIssued bool                         `json:"isIssued"`
+	Issuer   externalRef0.ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk      JwkProperties                `json:"jwk"`
-	Locator  externalRef0.ResourceLocator `json:"locator"`
-	Metadata map[string]interface{}       `json:"metadata,omitempty"`
+	Jwk      JwkProperties          `json:"jwk"`
+	Locator  ResourceLocator        `json:"locator"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -134,8 +137,8 @@ type CertificateInfo struct {
 	Pem       *string   `json:"pem,omitempty"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string                       `json:"subjectCommonName"`
-	Template          externalRef0.ResourceLocator `json:"template"`
+	SubjectCommonName string          `json:"subjectCommonName"`
+	Template          ResourceLocator `json:"template"`
 
 	// Thumbprint X.509 certificate SHA-1 thumbprint
 	Thumbprint string `json:"thumbprint"`
@@ -165,55 +168,19 @@ type CertificateLifetimeTrigger struct {
 	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
 }
 
-// CertificateRef defines model for CertificateRef.
-type CertificateRef struct {
-	// Deleted Time when the deleted was deleted
-	Deleted  *time.Time                   `json:"deleted,omitempty"`
-	Id       externalRef0.Identifier      `json:"id"`
-	Locator  externalRef0.ResourceLocator `json:"locator"`
-	Metadata map[string]interface{}       `json:"metadata,omitempty"`
-
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string                       `json:"subjectCommonName"`
-	Template          externalRef0.ResourceLocator `json:"template"`
-
-	// Thumbprint X.509 certificate SHA-1 thumbprint
-	Thumbprint string `json:"thumbprint"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// CertificateRefFields defines model for CertificateRefFields.
-type CertificateRefFields struct {
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string                       `json:"subjectCommonName"`
-	Template          externalRef0.ResourceLocator `json:"template"`
-
-	// Thumbprint X.509 certificate SHA-1 thumbprint
-	Thumbprint string `json:"thumbprint"`
-}
-
 // CertificateTemplate defines model for CertificateTemplate.
 type CertificateTemplate struct {
 	// Deleted Time when the deleted was deleted
 	Deleted        *time.Time                   `json:"deleted,omitempty"`
-	Id             externalRef0.Identifier      `json:"id"`
+	Id             Identifier                   `json:"id"`
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   JwkProperties                `json:"keyProperties"`
-	KeyStorePath    *string                      `json:"keyStorePath,omitempty"`
-	LifetimeTrigger CertificateLifetimeTrigger   `json:"lifetimeTrigger"`
-	Locator         externalRef0.ResourceLocator `json:"locator"`
-	Metadata        map[string]interface{}       `json:"metadata,omitempty"`
+	KeyProperties   JwkProperties              `json:"keyProperties"`
+	KeyStorePath    *string                    `json:"keyStorePath,omitempty"`
+	LifetimeTrigger CertificateLifetimeTrigger `json:"lifetimeTrigger"`
+	Locator         ResourceLocator            `json:"locator"`
+	Metadata        map[string]interface{}     `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -397,19 +364,6 @@ type RequestDiagnostics_ServiceRuntime struct {
 type RequestHeaderEntry struct {
 	Key   string   `json:"key"`
 	Value []string `json:"value"`
-}
-
-// ResourceRef defines model for ResourceRef.
-type ResourceRef struct {
-	// Deleted Time when the deleted was deleted
-	Deleted  *time.Time                   `json:"deleted,omitempty"`
-	Id       externalRef0.Identifier      `json:"id"`
-	Locator  externalRef0.ResourceLocator `json:"locator"`
-	Metadata map[string]interface{}       `json:"metadata,omitempty"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
 
 // ServiceConfig defines model for ServiceConfig.

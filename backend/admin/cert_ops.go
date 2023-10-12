@@ -115,22 +115,22 @@ func prepareUnsignedCertificateFromTemplate(
 	if err != nil {
 		return nil, certID, err
 	}
-	if isAllowedRootCaNamespace(nsID) {
-		c.IsCA = true
-		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
-		c.MaxPathLen = 1
-		c.MaxPathLenZero = false
-		c.BasicConstraintsValid = true
-		c.ExtKeyUsage = nil
-	} else if isAllowedCaNamespace(nsID) {
-		c.IsCA = true
-		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
-		c.MaxPathLenZero = true
-		c.BasicConstraintsValid = true
-		c.ExtKeyUsage = nil
-	} else {
-		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
-	}
+	// if isAllowedRootCaNamespace(nsID) {
+	// 	c.IsCA = true
+	// 	c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
+	// 	c.MaxPathLen = 1
+	// 	c.MaxPathLenZero = false
+	// 	c.BasicConstraintsValid = true
+	// 	c.ExtKeyUsage = nil
+	// } else if isAllowedCaNamespace(nsID) {
+	// 	c.IsCA = true
+	// 	c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign
+	// 	c.MaxPathLenZero = true
+	// 	c.BasicConstraintsValid = true
+	// 	c.ExtKeyUsage = nil
+	// } else {
+	// 	c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
+	// }
 
 	return &c, certID, err
 }

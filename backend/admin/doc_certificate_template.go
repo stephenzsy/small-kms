@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"context"
 	"crypto/x509/pkix"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -9,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateTemplateDocKeyProperties struct {
@@ -152,38 +150,6 @@ func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *models.Jw
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
 	t.DaysBeforeExpiry = nil
 	t.LifetimePercentage = ToPtr(int32(80))
-}
-
-func (doc *CertificateTemplateDoc) createAzCertificate(
-	ctx context.Context,
-	client *azcertificates.Client,
-	issueToNamespaceID uuid.UUID,
-	subject string) (azcertificates.CreateCertificateResponse, error) {
-	params := azcertificates.CreateCertificateParameters{}
-	x509Properties := azcertificates.X509CertificateProperties{
-		Subject:          utils.ToPtr(subject),
-		ValidityInMonths: ToPtr(int32(doc.ValidityInMonths)),
-	}
-
-	keyExportable := !isAllowedCaNamespace(issueToNamespaceID)
-	keyProperties := doc.KeyProperties.getAzCertificatesKeyProperties(keyExportable)
-
-	params.CertificatePolicy = &azcertificates.CertificatePolicy{
-		Attributes: &azcertificates.CertificateAttributes{
-			Enabled: to.Ptr(true),
-		},
-		KeyProperties:             &keyProperties,
-		X509CertificateProperties: &x509Properties,
-		SecretProperties: &azcertificates.SecretProperties{
-			ContentType: to.Ptr("application/x-pem-file"),
-		},
-	}
-
-	params.Tags = map[string]*string{
-		"kms-access-principal-id": to.Ptr(issueToNamespaceID.String()),
-	}
-
-	return client.CreateCertificate(ctx, *doc.KeyStorePath, params, nil)
 }
 
 func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties(keyExportable bool,

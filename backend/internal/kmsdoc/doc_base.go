@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -54,7 +53,7 @@ type BaseDoc struct {
 	Owns        map[shared.NamespaceKind]shared.ResourceLocator `json:"@owns,omitempty"`
 
 	ETag azcore.ETag         `json:"-"`    // populated during read
-	Kind models.ResourceKind `json:"kind"` // populate during write for index
+	Kind shared.ResourceKind `json:"kind"` // populate during write for index
 }
 
 // setAliasToWithETag implements KmsDocument.
@@ -64,11 +63,11 @@ func (doc *BaseDoc) setAliasToWithETag(target shared.ResourceLocator, etag azcor
 }
 
 var queryDefaultColumns = []string{
-	"namespaceId",
-	"id",
-	"updated",
-	"deleted",
-	"updatedBy",
+	"c.namespaceId",
+	"c.id",
+	"c.updated",
+	"c.deleted",
+	"c.updatedBy",
 }
 
 // GetID implements KmsDocument.
@@ -92,7 +91,7 @@ func (doc *BaseDoc) GetLocator() shared.ResourceLocator {
 	if doc.AliasTo != nil {
 		return *doc.AliasTo
 	}
-	return models.NewResourceLocator(doc.NamespaceID, doc.ID)
+	return shared.NewResourceLocator(doc.NamespaceID, doc.ID)
 }
 
 func (doc *BaseDoc) setETag(etag azcore.ETag) {
@@ -201,12 +200,12 @@ func Patch[D KmsDocument](c context.Context, locator shared.ResourceLocator, doc
 	return nil
 }
 
-func (d *BaseDoc) PopulateResourceRef(r *models.ResourceRef) {
+func (d *BaseDoc) PopulateResourceRef(r *shared.ResourceRef) {
 	if d == nil || r == nil {
 		return
 	}
 	r.Id = d.ID.Identifier()
-	r.Locator = models.NewResourceLocator(d.NamespaceID, d.ID)
+	r.Locator = shared.NewResourceLocator(d.NamespaceID, d.ID)
 	r.Updated = &d.Updated
 	r.UpdatedBy = &d.UpdatedBy
 	r.Deleted = d.Deleted

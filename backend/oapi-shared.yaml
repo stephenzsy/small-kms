@@ -5,6 +5,35 @@ info:
 paths: {}
 components:
   schemas:
+    CertificateRef:
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/CertificateRefFields"
+        - x-go-type: certificateRefComposed
+    CertificateRefFields:
+      type: object
+      properties:
+        thumbprint:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+        subjectCommonName:
+          description: Common name
+          type: string
+        notAfter:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        template:
+          $ref: "#/components/schemas/ResourceLocator"
+        isIssued:
+          description: Whether the certificate has been issued
+          type: boolean
+      required:
+        - thumbprint
+        - subjectCommonName
+        - notAfter
+        - template
+        - isIssued
     CertificateUsage:
       type: string
       enum:
@@ -47,8 +76,8 @@ components:
         - NamespaceKindDevice
         - NamespaceKindUser
         - NamespaceKindApplication
-    ResourceIdentifer:
-      type: string        
+    ResourceIdentifier:
+      type: string
       x-go-type: identifierWithKind[ResourceKind]
     ResourceKind:
       type: string
@@ -71,8 +100,33 @@ components:
         - ResourceKindLatestCertForTemplate
         - ResourceKindAgentConfig
     ResourceLocator:
-      type: string      
-      x-go-type: locator[NamespaceKind, ResourceKind]  
+      type: string
+      x-go-type: locator[NamespaceKind, ResourceKind]
+    ResourceRef:
+      type: object
+      properties:
+        id:
+          x-go-name: ID
+          $ref: "#/components/schemas/Identifier"
+        locator:
+          $ref: "#/components/schemas/ResourceLocator"
+        updated:
+          description: Time when the resoruce was last updated
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+        deleted:
+          description: Time when the deleted was deleted
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+          x-go-type-skip-optional-pointer: true
+      required:
+        - id
+        - locator
     WellknownCertificateTemplateName:
       type: string
       enum:

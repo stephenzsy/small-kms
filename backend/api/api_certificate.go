@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 // GetCertificate implements models.ServerInterface.
@@ -61,7 +62,7 @@ func (s *server) ListCertificatesByTemplate(ec echo.Context,
 	profileId common.Identifier,
 	templateID common.Identifier) error {
 	c := ec.(RequestContext)
-	respData, respErr := (func() ([]*models.CertificateRefComposed, error) {
+	respData, respErr := (func() ([]*shared.CertificateRef, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
 			return nil, err
 		}

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"slices"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -20,7 +20,7 @@ func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator shared.
 	return
 }
 
-func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefComposed, error) {
+func ListCertificatesByTemplate(c RequestContext) ([]*shared.CertificateRef, error) {
 
 	nsID := ns.GetNamespaceContext(c).GetID()
 	ctc := ct.GetCertificateTemplateContext(c)
@@ -29,16 +29,20 @@ func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefCompo
 	itemsPager := kmsdoc.QueryItemsPager[*CertDoc](c,
 		nsID,
 		shared.ResourceKindCert,
-		func(tbl string) kmsdoc.CosmosQueryBuilder {
-			return kmsdoc.CosmosQueryBuilder{
-				ExtraColumns: []string{"thumbprint"},
-				OrderBy:      tbl + ".notBefore DESC",
-			}
+		kmsdoc.CosmosQueryBuilder{
+			ExtraColumns: []string{"c.thumbprint", queryColumnStatus},
+			ExtraWhereClauses: []string{
+				queryColumnTemplate + " = @templateId",
+			},
+			OrderBy: "c.notBefore DESC",
+			ExtraParameters: []azcosmos.QueryParameter{
+				{Name: "@templateId", Value: tmplLocator.String()},
+			},
 		})
-	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertDoc) *models.CertificateRefComposed {
+	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertDoc) *shared.CertificateRef {
 		return doc.toModelRef()
 	})
-	allItems, err := utils.PagerAllItems[*models.CertificateRefComposed](mappedPager, c)
+	allItems, err := utils.PagerAllItems[*shared.CertificateRef](mappedPager, c)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +52,7 @@ func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefCompo
 		}
 	} else {
 		cmpId := latestDoc.AliasTo.GetID().Identifier()
-		matchedInd := slices.IndexFunc(allItems, func(item *models.CertificateRefComposed) bool {
+		matchedInd := slices.IndexFunc(allItems, func(item *shared.CertificateRef) bool {
 			return item.Id == cmpId
 		})
 		if matchedInd >= 0 {
@@ -62,7 +66,7 @@ func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefCompo
 		}
 	}
 	if allItems == nil {
-		return make([]*models.CertificateRefComposed, 0), nil
+		return make([]*shared.CertificateRef, 0), nil
 	}
 	return allItems, nil
 }

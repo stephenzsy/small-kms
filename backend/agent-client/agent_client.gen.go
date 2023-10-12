@@ -69,19 +69,6 @@ type AgentConfigurationParameters struct {
 // AgentHostRole defines model for AgentHostRole.
 type AgentHostRole string
 
-// ResourceRef defines model for ResourceRef.
-type ResourceRef struct {
-	// Deleted Time when the deleted was deleted
-	Deleted  *time.Time                   `json:"deleted,omitempty"`
-	Id       externalRef0.Identifier      `json:"id"`
-	Locator  externalRef0.ResourceLocator `json:"locator"`
-	Metadata map[string]interface{}       `json:"metadata,omitempty"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
 	AppRoleIds struct {

@@ -26,8 +26,6 @@ const (
 	CertStatusIssued      CertificateStatus = "issued"
 )
 
-type ResourceLocator = models.ResourceLocator
-
 type CertJwkSpec struct {
 	ct.CertKeySpec
 	KID     string                   `json:"kid"`
@@ -37,6 +35,9 @@ type CertJwkSpec struct {
 
 	keyExportable bool
 }
+
+const queryColumnTemplate = "c.template"
+const queryColumnStatus = "c.status"
 
 type CertDoc struct {
 	kmsdoc.BaseDoc
@@ -55,8 +56,8 @@ type CertDoc struct {
 	Thumbprint        kmsdoc.HexStringStroable  `json:"thumbprint"`
 	PendingExpires    *kmsdoc.TimeStorable      `json:"pendingExpires"` // pending status expires time
 	TemplateDigest    kmsdoc.HexStringStroable  `json:"templateDigest"` // copied from template doc
-	Template          ResourceLocator           `json:"template"`       // locator for certificate template doc
-	Issuer            ResourceLocator           `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
+	Template          shared.ResourceLocator    `json:"template"`       // locator for certificate template doc
+	Issuer            shared.ResourceLocator    `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
 }
 
 // SnapshotWithNewLocator implements kmsdoc.KmsDocumentSnapshotable.
@@ -76,7 +77,7 @@ type CertDocSigningPatch struct {
 	CertSpec      CertJwkSpec
 	CertStorePath string
 	Thumbprint    kmsdoc.HexStringStroable
-	Issuer        ResourceLocator
+	Issuer        shared.ResourceLocator
 }
 
 func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) error {
@@ -141,7 +142,7 @@ func (doc *CertDoc) fetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 	return downloadedData.Bytes(), nil
 }
 
-func createCertificateDoc(nsID models.NamespaceID,
+func createCertificateDoc(nsID shared.NamespaceIdentifier,
 	tmpl *ct.CertificateTemplateDoc) (*CertDoc, error) {
 
 	certID, err := uuid.NewRandom()
@@ -202,7 +203,7 @@ func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
 	return &cert, nil
 }
 
-func (d *CertDoc) populateRef(r *models.CertificateRefComposed) {
+func (d *CertDoc) populateRef(r *shared.CertificateRef) {
 	if d == nil || r == nil {
 		return
 	}
@@ -211,13 +212,14 @@ func (d *CertDoc) populateRef(r *models.CertificateRefComposed) {
 	r.Thumbprint = d.Thumbprint.HexString()
 	r.NotAfter = d.NotAfter.Time()
 	r.Template = d.Template
+	r.IsIssued = d.Status == CertStatusIssued
 }
 
-func (d *CertDoc) toModelRef() (r *models.CertificateRefComposed) {
+func (d *CertDoc) toModelRef() (r *shared.CertificateRef) {
 	if d == nil {
 		return nil
 	}
-	r = new(models.CertificateRefComposed)
+	r = new(shared.CertificateRef)
 	d.populateRef(r)
 	return
 }
@@ -227,7 +229,7 @@ func (d *CertDoc) toModel() *models.CertificateInfoComposed {
 		return nil
 	}
 	r := new(models.CertificateInfoComposed)
-	d.populateRef(&r.CertificateRefComposed)
+	d.populateRef(&r.CertificateRef)
 	r.Issuer = d.Issuer
 	d.CertSpec.PopulateKeyProperties(&r.Jwk)
 	r.NotBefore = d.NotBefore.Time()
