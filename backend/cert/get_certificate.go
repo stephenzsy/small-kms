@@ -25,7 +25,7 @@ func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID shared.Namespa
 	return shared.UUIDIdentifier(uuidValue)
 }
 
-func GetCertificate(c RequestContext, certificateId common.Identifier, params models.GetCertificateParams) (*models.CertificateInfoComposed, error) {
+func GetCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) (*models.CertificateInfoComposed, error) {
 	var certDocLocator models.ResourceLocator
 	if certificateId.IsUUID() {
 		nsID := ns.GetNamespaceContext(c).GetID()

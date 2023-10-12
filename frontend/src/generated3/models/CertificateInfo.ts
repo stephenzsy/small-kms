@@ -93,6 +93,12 @@ export interface CertificateInfo {
      */
     template: string;
     /**
+     * Whether the certificate has been issued
+     * @type {boolean}
+     * @memberof CertificateInfo
+     */
+    isIssued: boolean;
+    /**
      * Expiration date of the certificate
      * @type {Date}
      * @memberof CertificateInfo
@@ -135,6 +141,7 @@ export function instanceOfCertificateInfo(value: object): boolean {
     isInstance = isInstance && "subjectCommonName" in value;
     isInstance = isInstance && "notAfter" in value;
     isInstance = isInstance && "template" in value;
+    isInstance = isInstance && "isIssued" in value;
     isInstance = isInstance && "notBefore" in value;
     isInstance = isInstance && "usages" in value;
     isInstance = isInstance && "issuer" in value;
@@ -163,6 +170,7 @@ export function CertificateInfoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'subjectCommonName': json['subjectCommonName'],
         'notAfter': (new Date(json['notAfter'])),
         'template': json['template'],
+        'isIssued': json['isIssued'],
         'notBefore': (new Date(json['notBefore'])),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'issuer': json['issuer'],
@@ -190,6 +198,7 @@ export function CertificateInfoToJSON(value?: CertificateInfo | null): any {
         'subjectCommonName': value.subjectCommonName,
         'notAfter': (value.notAfter.toISOString()),
         'template': value.template,
+        'isIssued': value.isIssued,
         'notBefore': (value.notBefore.toISOString()),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'issuer': value.issuer,

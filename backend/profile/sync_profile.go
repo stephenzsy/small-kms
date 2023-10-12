@@ -151,7 +151,7 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 		return nil, err
 	}
 	profileDoc.IsAppManaged = utils.ToPtr(true)
-	profileDoc.Owner = ownerDoc.GetLocator()
+	profileDoc.Owner = utils.ToPtr(ownerDoc.GetLocator())
 	if c := c.Elevate(); true {
 		err = kmsdoc.Upsert(c, &profileDoc)
 		if err != nil {

@@ -51,6 +51,20 @@ components:
     Identifier:
       type: string
       x-go-type: identifierImpl
+    JwkAlg:
+      type: string
+      enum:
+        - RS256
+        - RS384
+        - RS512
+        - ES256
+        - ES384
+      x-enum-varnames:
+        - AlgRS256
+        - AlgRS384
+        - AlgRS512
+        - AlgES256
+        - AlgES384      
     NamespaceIdentifier:
       type: string
       x-go-type: identifierWithKind[NamespaceKind]

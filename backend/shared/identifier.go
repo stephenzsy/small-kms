@@ -193,14 +193,14 @@ func (c identifierWithKind[K]) WithKind(kind K) identifierWithKind[K] {
 var _ encoding.TextMarshaler = identifierWithKind[string]{}
 var _ encoding.TextUnmarshaler = (*identifierWithKind[string])(nil)
 
-func NewNamespaceIdentifier(kind NamespaceKind, identifier identifierImpl) identifierWithKind[NamespaceKind] {
+func NewNamespaceIdentifier(kind NamespaceKind, identifier Identifier) identifierWithKind[NamespaceKind] {
 	return identifierWithKind[NamespaceKind]{
 		kind:       kind,
 		identifier: identifier,
 	}
 }
 
-func NewResourceIdentifier(kind ResourceKind, identifier identifierImpl) identifierWithKind[ResourceKind] {
+func NewResourceIdentifier(kind ResourceKind, identifier Identifier) identifierWithKind[ResourceKind] {
 	return identifierWithKind[ResourceKind]{
 		kind:       kind,
 		identifier: identifier,

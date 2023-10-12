@@ -43,6 +43,12 @@ export interface CertificateRefFields {
      * @memberof CertificateRefFields
      */
     template: string;
+    /**
+     * Whether the certificate has been issued
+     * @type {boolean}
+     * @memberof CertificateRefFields
+     */
+    isIssued: boolean;
 }
 
 /**
@@ -54,6 +60,7 @@ export function instanceOfCertificateRefFields(value: object): boolean {
     isInstance = isInstance && "subjectCommonName" in value;
     isInstance = isInstance && "notAfter" in value;
     isInstance = isInstance && "template" in value;
+    isInstance = isInstance && "isIssued" in value;
 
     return isInstance;
 }
@@ -72,6 +79,7 @@ export function CertificateRefFieldsFromJSONTyped(json: any, ignoreDiscriminator
         'subjectCommonName': json['subjectCommonName'],
         'notAfter': (new Date(json['notAfter'])),
         'template': json['template'],
+        'isIssued': json['isIssued'],
     };
 }
 
@@ -88,6 +96,7 @@ export function CertificateRefFieldsToJSON(value?: CertificateRefFields | null):
         'subjectCommonName': value.subjectCommonName,
         'notAfter': (value.notAfter.toISOString()),
         'template': value.template,
+        'isIssued': value.isIssued,
     };
 }
 

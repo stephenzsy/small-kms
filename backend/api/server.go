@@ -21,37 +21,12 @@ type server struct {
 	appIdentity       common.AzureAppConfidentialIdentity
 	subscriptionId    string
 	resourceGroupName string
-	//serverMsGraphClient *msgraphsdkgo.GraphServiceClient
 }
 
 // ConfidentialAppIdentity implements common.ConfidentialAppIdentityProvider.
 func (s *server) ConfidentialAppIdentity() common.AzureAppConfidentialIdentity {
 	return s.appIdentity
 }
-
-// // MsGraphDelegatedClient implements common.ClientProvider.
-// func (s *server) MsGraphDelegatedClient(c ctx.Context) (*msgraphsdkgo.GraphServiceClient, error) {
-// 	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
-// 		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
-// 			return nil, err
-// 		} else {
-// 			return msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
-// 		}
-// 	}
-// 	return nil, fmt.Errorf("%w: no auth header to authenticate to graph service", common.ErrStatusUnauthorized)
-// }
-
-// // AzKeyvaultRBACDelegatedClient implements common.ServerContext.
-// func (s *server) ArmRoleAssignmentsDelegatedClient(c ctx.Context) (*armauthorization.RoleAssignmentsClient, error) {
-// 	if authIdentity, ok := auth.GetAuthIdentity(c); ok {
-// 		if creds, err := authIdentity.GetOnBehalfOfTokenCredential(s, nil); err != nil {
-// 			return nil, err
-// 		} else {
-// 			return armauthorization.NewRoleAssignmentsClient(s.AzSubscriptionID(), creds, nil)
-// 		}
-// 	}
-// 	return nil, fmt.Errorf("%w: no auth header to authenticate to keyvault rbac", common.ErrStatusUnauthorized)
-// }
 
 // Deadline implements common.ServerContext.
 func (s *server) Deadline() (deadline time.Time, ok bool) {

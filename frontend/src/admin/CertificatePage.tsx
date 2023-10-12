@@ -4,6 +4,7 @@ import { AdminApi, NamespaceKind } from "../generated3";
 import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { useMemo } from "react";
+import { Button } from "../components/Button";
 
 export default function CertificatePage() {
   const {
@@ -25,23 +26,57 @@ export default function CertificatePage() {
     });
   }, {});
 
+  const {
+    data: deleted,
+    loading: deleteLoading,
+    run: deleteCert,
+  } = useRequest(
+    async () => {
+      await adminApi.deleteCertificate({
+        certificateId: certId,
+        namespaceId,
+        namespaceKind,
+      });
+      return true;
+    },
+    { manual: true }
+  );
+
   return (
-    <Card>
-      <CardTitle description={cert?.id}>Certificate</CardTitle>
-      <dl>
+    <>
+      <Card>
+        <CardTitle description={cert?.id}>Certificate</CardTitle>
+        <dl>
+          <CardSection>
+            <dt className="font-medium">Common name</dt>
+            <dd>{cert?.subjectCommonName}</dd>
+          </CardSection>
+          <CardSection>
+            <dt className="font-medium">Expires</dt>
+            <dd>{cert?.notAfter.toString()}</dd>
+          </CardSection>
+          <CardSection>
+            <dt className="font-medium">Thumbprint SHA-1 hex</dt>
+            <dd>{cert?.thumbprint}</dd>
+          </CardSection>
+        </dl>
+      </Card>
+      <Card>
+        <CardTitle>Actions</CardTitle>
         <CardSection>
-          <dt className="font-medium">Common name</dt>
-          <dd>{cert?.subjectCommonName}</dd>
+          {cert && !cert.isIssued && !deleted && (
+            <Button
+              variant="soft"
+              color="danger"
+              onClick={() => {
+                deleteCert();
+              }}
+            >
+              {deleteLoading ? "Deleting...." : "Delete"}
+            </Button>
+          )}
         </CardSection>
-        <CardSection>
-          <dt className="font-medium">Expires</dt>
-          <dd>{cert?.notAfter.toString()}</dd>
-        </CardSection>
-        <CardSection>
-          <dt className="font-medium">Thumbprint SHA-1 hex</dt>
-          <dd>{cert?.thumbprint}</dd>
-        </CardSection>
-      </dl>
-    </Card>
+      </Card>
+    </>
   );
 }

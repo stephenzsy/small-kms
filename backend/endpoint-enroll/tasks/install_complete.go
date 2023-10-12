@@ -16,6 +16,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/client"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/secret"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -86,7 +87,7 @@ func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *models.JwkProperties) {
 	}
 	bigE := big.NewInt(int64(pubkey.E))
 
-	p.Alg = utils.ToPtr(models.AlgRS256)
+	p.Alg = utils.ToPtr(shared.AlgRS256)
 	p.Kty = "RSA"
 	p.E = utils.ToPtr(base64.RawURLEncoding.EncodeToString(bigE.Bytes()))
 	p.N = utils.ToPtr(base64.RawURLEncoding.EncodeToString(pubkey.N.Bytes()))

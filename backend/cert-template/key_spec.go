@@ -2,11 +2,12 @@ package certtemplate
 
 import (
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertKeySpec struct {
-	Alg     models.JwkAlg  `json:"alg"`
+	Alg     shared.JwkAlg  `json:"alg"`
 	Kty     models.JwtKty  `json:"kty"`
 	KeySize *int32         `json:"key_size,omitempty"`
 	Crv     *models.JwtCrv `json:"crv,omitempty"`
@@ -44,9 +45,9 @@ func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk Ce
 			if r.Alg != nil {
 				k.Alg = *r.Alg
 				switch k.Alg {
-				case models.AlgRS256,
-					models.AlgRS384,
-					models.AlgRS512:
+				case shared.AlgRS256,
+					shared.AlgRS384,
+					shared.AlgRS512:
 					// ok
 				default:
 					k.Alg = dk.Alg
@@ -73,9 +74,9 @@ func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk Ce
 	if k.Kty == models.KeyTypeEC {
 		switch *k.Crv {
 		case models.CurveNameP256:
-			k.Alg = models.AlgES256
+			k.Alg = shared.AlgES256
 		case models.CurveNameP384:
-			k.Alg = models.AlgES384
+			k.Alg = shared.AlgES384
 		}
 	}
 }

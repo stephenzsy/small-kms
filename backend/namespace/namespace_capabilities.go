@@ -23,7 +23,7 @@ type NamespaceCertificateTemplateCapabilities struct {
 	DefaultMaxValidityInMonths int
 	DefaultKeyType             models.JwtKty
 	DefaultKeySize             int32
-	DefaultRsaAlgorithm        models.JwkAlg
+	DefaultRsaAlgorithm        shared.JwkAlg
 	DefaultCrv                 models.JwtCrv
 	HasKeyStore                bool
 	KeyExportable              bool
@@ -73,7 +73,7 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 	cap.DefaultMaxValidityInMonths = 12
 	cap.DefaultKeyType = models.KeyTypeRSA
 	cap.DefaultKeySize = 2048
-	cap.DefaultRsaAlgorithm = models.AlgRS384
+	cap.DefaultRsaAlgorithm = shared.AlgRS384
 	cap.DefaultCrv = models.CurveNameP384
 	switch nsID.Kind() {
 	case shared.NamespaceKindCaRoot:
@@ -119,7 +119,7 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 			allowedUsages.Add(shared.CertUsageServerAuth)
 			cap.HasKeyStore = false
 			cap.RestrictKeyTypeRsa = true
-			cap.DefaultRsaAlgorithm = models.AlgRS256
+			cap.DefaultRsaAlgorithm = shared.AlgRS256
 		}
 		cap.AllowVariables = true
 		cap.DelegateForMembers = true
@@ -131,7 +131,7 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 		case string(shared.CertTemplateNameDefaultMsEntraClientCreds):
 			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameMsEntraClientSecret)))
 			cap.RestrictKeyTypeRsa = true
-			cap.DefaultRsaAlgorithm = models.AlgRS256
+			cap.DefaultRsaAlgorithm = shared.AlgRS256
 		default:
 			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameServices)))
 		}

@@ -79,6 +79,12 @@ export interface CertificateRef {
      * @memberof CertificateRef
      */
     template: string;
+    /**
+     * Whether the certificate has been issued
+     * @type {boolean}
+     * @memberof CertificateRef
+     */
+    isIssued: boolean;
 }
 
 /**
@@ -92,6 +98,7 @@ export function instanceOfCertificateRef(value: object): boolean {
     isInstance = isInstance && "subjectCommonName" in value;
     isInstance = isInstance && "notAfter" in value;
     isInstance = isInstance && "template" in value;
+    isInstance = isInstance && "isIssued" in value;
 
     return isInstance;
 }
@@ -116,6 +123,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'subjectCommonName': json['subjectCommonName'],
         'notAfter': (new Date(json['notAfter'])),
         'template': json['template'],
+        'isIssued': json['isIssued'],
     };
 }
 
@@ -138,6 +146,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'subjectCommonName': value.subjectCommonName,
         'notAfter': (value.notAfter.toISOString()),
         'template': value.template,
+        'isIssued': value.isIssued,
     };
 }
 

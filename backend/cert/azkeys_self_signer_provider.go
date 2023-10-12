@@ -122,9 +122,9 @@ func createAzKeysSigner(c common.ElevatedContext, ioCertJwkSpec *CertJwkSpec, ke
 		params.KeySize = ioCertJwkSpec.KeySize
 		signingAlg = azkeys.SignatureAlgorithmRS384
 		switch ioCertJwkSpec.Alg {
-		case models.AlgRS256:
+		case shared.AlgRS256:
 			signingAlg = azkeys.SignatureAlgorithmRS256
-		case models.AlgRS512:
+		case shared.AlgRS512:
 			signingAlg = azkeys.SignatureAlgorithmRS512
 		}
 	case models.KeyTypeEC:

@@ -49,7 +49,7 @@ type BaseDoc struct {
 
 	AliasTo     *shared.ResourceLocator                         `json:"@alias.to,omitempty"`
 	AliasToETag *azcore.ETag                                    `json:"@alias.to.etag,omitempty"`
-	Owner       shared.ResourceLocator                          `json:"@owner,omitempty"`
+	Owner       *shared.ResourceLocator                         `json:"@owner,omitempty"`
 	Owns        map[shared.NamespaceKind]shared.ResourceLocator `json:"@owns,omitempty"`
 
 	ETag azcore.ETag         `json:"-"`    // populated during read

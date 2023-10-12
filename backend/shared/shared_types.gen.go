@@ -16,6 +16,15 @@ const (
 	CertUsageServerAuth       CertificateUsage = "serverAuth"
 )
 
+// Defines values for JwkAlg.
+const (
+	AlgES256 JwkAlg = "ES256"
+	AlgES384 JwkAlg = "ES384"
+	AlgRS256 JwkAlg = "RS256"
+	AlgRS384 JwkAlg = "RS384"
+	AlgRS512 JwkAlg = "RS512"
+)
+
 // Defines values for NamespaceKind.
 const (
 	NamespaceKindApplication      NamespaceKind = "application"
@@ -73,6 +82,9 @@ type CertificateUsage string
 
 // Identifier defines model for Identifier.
 type Identifier = identifierImpl
+
+// JwkAlg defines model for JwkAlg.
+type JwkAlg string
 
 // NamespaceIdentifier defines model for NamespaceIdentifier.
 type NamespaceIdentifier = identifierWithKind[NamespaceKind]

@@ -12,7 +12,6 @@ import (
 
 type CertificateTemplateDocKeyProperties struct {
 	// signature algorithm
-	Alg models.JwkAlg `json:"alg"`
 	// Kty      KeyType       `json:"kty"`
 	// KeySize  *KeySize      `json:"key_size,omitempty"`
 	// Crv      *CurveName    `json:"crv,omitempty"`
@@ -51,30 +50,6 @@ func (doc *CertificateTemplateDoc) IsActive() bool {
 
 func (doc *CertificateTemplateDoc) IssuerCertificateDocID() kmsdoc.KmsDocID {
 	return kmsdoc.NewKmsDocID(kmsdoc.DocTypeLatestCertForTemplate, doc.IssuerTemplateID.GetUUID())
-}
-
-func (p *CertificateTemplateDocKeyProperties) setDefault() {
-	p.Alg = models.AlgRS256
-	// p.Kty = KeyTypeRSA
-	// p.KeySize = ToPtr(KeySize2048)
-	// p.Crv = nil
-}
-
-func (p *CertificateTemplateDocKeyProperties) setRSA(alg models.JwkAlg, keySize int) {
-	p.Alg = alg
-	// p.Kty = KeyTypeRSA
-	// p.KeySize = &keySize
-	// p.Crv = nil
-}
-
-func (p *CertificateTemplateDocKeyProperties) setECDSA(crv models.JwtCrv) {
-	p.Alg = models.AlgES384
-	// p.Kty = KeyTypeEC
-	// p.Crv = &crv
-	// p.KeySize = nil
-	// if crv == CurveNameP256 {
-	// 	p.Alg = models.AlgES256
-	// }
 }
 
 func (s *CertificateTemplateDocSubject) pkixName() (name pkix.Name) {

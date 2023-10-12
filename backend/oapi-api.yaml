@@ -293,6 +293,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateInfo"
+    delete:
+      tags:
+        - admin
+      summary: Delete certificate
+      operationId: DeleteCertificate
+      responses:
+        204:
+          description: ServiceConfig
+          content: {}
   /v3/service/config:
     get:
       tags:
@@ -461,20 +470,6 @@ components:
         propertyName: type
         mapping:
           managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
-    JwkAlg:
-      type: string
-      enum:
-        - RS256
-        - RS384
-        - RS512
-        - ES256
-        - ES384
-      x-enum-varnames:
-        - AlgRS256
-        - AlgRS384
-        - AlgRS512
-        - AlgES256
-        - AlgES384
     JwkKeyOperation:
       type: string
       enum:
@@ -497,7 +492,7 @@ components:
       description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
       properties:
         alg:
-          $ref: "#/components/schemas/JwkAlg"
+          $ref: "oapi-shared.yaml#/components/schemas/JwkAlg"
         kty:
           $ref: "#/components/schemas/JwtKty"
         key_size:
