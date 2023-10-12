@@ -394,6 +394,7 @@ components:
     AgentConfigurationParameters:
       oneOf:
         - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+        - $ref: "#/components/schemas/AgentConfigurationAgentActiveServer"
       discriminator:
         propertyName: name
         mapping:

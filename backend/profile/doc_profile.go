@@ -47,7 +47,7 @@ type ProfileDocGraphData struct {
 type ProfileDoc struct {
 	kmsdoc.BaseDoc
 
-	ProfileType models.NamespaceKind `json:"profileType"`
+	ProfileType shared.NamespaceKind `json:"profileType"`
 
 	GraphSyncCode string               `json:"graphSyncCode"` // field in the doc to indicate object is managed my this app
 	Graph         *ProfileDocGraphData `json:"graph,omitempty"`

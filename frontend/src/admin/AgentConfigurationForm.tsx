@@ -1,18 +1,17 @@
 import { useRequest } from "ahooks";
+import { useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import Select, { SelectItem } from "../components/Select";
 import {
-  AgentConfigName,
-  NamespaceKind,
   AdminApi,
-  AgentConfiguration,
-  AgentConfigurationParameters,
-  AgentConfigurationToJSON,
+  AgentConfigName,
   AgentConfigurationAgentActiveHostBootstrapToJSON,
+  AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
+  AgentConfigurationToJSON,
+  NamespaceKind,
 } from "../generated3";
-import { useState, useMemo } from "react";
 import { useAuthedClient } from "../utils/useCertsApi3";
 
 const selectOptions: Array<SelectItem<AgentConfigName>> = [
@@ -85,11 +84,8 @@ export function AgentConfigurationForm({
     }
     const parsed = JSON.parse(configInput);
     let typeParsed: AgentConfigurationParameters;
-    switch (selectedItem.id) {
-      case AgentConfigName.AgentConfigNameActiveHostBootstrap:
-        typeParsed = AgentConfigurationParametersFromJSON(parsed);
-        break;
-    }
+
+    typeParsed = AgentConfigurationParametersFromJSON(parsed);
     run(typeParsed, selectedItem.id);
   };
   return (

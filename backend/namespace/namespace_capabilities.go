@@ -87,6 +87,7 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 	case shared.NamespaceKindSystem:
 		allowedNs.Add(nsID)
 		allowedUsages.Add(shared.CertUsageClientAuth)
+		cap.HasKeyStore = true
 		cap.KeyExportable = false
 	case shared.NamespaceKindCaRoot:
 		allowedNs.Add(nsID)

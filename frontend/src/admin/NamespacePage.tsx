@@ -3,26 +3,26 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { AdminApi, CertificateTemplateRef, NamespaceKind } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
+import { AgentConfigurationForm } from "./AgentConfigurationForm";
 import {
   ApplicationServicePrincipalLink,
   DeviceServicePrincipalLink,
 } from "./DeviceServicePrincipalLink";
 import { NamespaceContext } from "./NamespaceContext";
-import { RefTableColumn3, RefsTable3 } from "./RefsTable";
-import { AgentConfigurationForm } from "./AgentConfigurationForm";
+import { RefTableColumn, RefsTable } from "./RefsTable";
 
-const subjectCnColumn: RefTableColumn3<CertificateTemplateRef> = {
+const subjectCnColumn: RefTableColumn<CertificateTemplateRef> = {
   columnKey: "subjectCommonName",
   header: "Subject Common Name",
   render: (item) => item.subjectCommonName,
 };
-const enabledColumn: RefTableColumn3<CertificateTemplateRef> = {
+const enabledColumn: RefTableColumn<CertificateTemplateRef> = {
   columnKey: "enabled",
   header: "Enabled",
   render: (item) => (!item.deleted && item.updated ? "Yes" : "No"),
 };
 
-function CertificateTemplatesList({
+export function CertificateTemplatesList({
   nsType,
   namespaceId,
 }: {
@@ -43,7 +43,7 @@ function CertificateTemplatesList({
   );
 
   return (
-    <RefsTable3
+    <RefsTable
       items={data}
       title="Certificate Templates"
       columns={[subjectCnColumn, enabledColumn]}

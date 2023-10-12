@@ -2,12 +2,9 @@ import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
 import { AdminApi, NamespaceKind, ProfileRef } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
-import {
-  RefTableColumn3,
-  RefsTable3
-} from "./RefsTable";
+import { RefTableColumn, RefsTable } from "./RefsTable";
 
-const displayNameColumn: RefTableColumn3<ProfileRef> = {
+const displayNameColumn: RefTableColumn<ProfileRef> = {
   columnKey: "displayName",
   header: "Display Name",
   render: (item) => item.displayName,
@@ -55,7 +52,7 @@ export default function AdminPage() {
           [NamespaceKind.NamespaceKindApplication, "Applications"],
         ] as Array<[NamespaceKind, string]>
       ).map(([t, title]: [NamespaceKind, string]) => (
-        <RefsTable3
+        <RefsTable
           key={t}
           items={allNs?.[t]}
           title={title}

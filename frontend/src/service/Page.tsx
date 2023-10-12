@@ -5,6 +5,7 @@ import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import {
   AdminApi,
+  NamespaceKind,
   PatchServiceConfigConfigPathEnum,
   ServiceConfig,
   ServiceConfigAcrInfoToJSON,
@@ -12,6 +13,8 @@ import {
   ServiceConfigToJSON,
 } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
+import { CertificateTemplatesList } from "../admin/NamespacePage";
+import { Link } from "react-router-dom";
 
 function PatchServiceConfigForm(
   props: PropsWithChildren<{ onSubmit: () => void }>
@@ -74,100 +77,112 @@ export default function ServicePage() {
   }, [serviceConfig]);
 
   return (
-    <Card>
-      <CardTitle>Service configuration</CardTitle>
-      <CardSection>
-        Current configuration:
-        <pre>{JSON.stringify(ServiceConfigToJSON(serviceConfig), null, 2)}</pre>
-      </CardSection>
-      <CardSection>
-        <PatchServiceConfigForm
-          onSubmit={() => {
-            patchServiceConfig(
-              PatchServiceConfigConfigPathEnum.ServiceConfigPathAzureSubscriptionId,
-              azureSubscriptionId
-            );
-          }}
-        >
-          <InputField
-            labelContent="Azure subscription ID"
-            value={azureSubscriptionId}
-            onChange={setAzureSubscriptionId}
-          />
-        </PatchServiceConfigForm>
-      </CardSection>
-      <CardSection>
-        <PatchServiceConfigForm
-          onSubmit={() => {
-            patchServiceConfig(
-              PatchServiceConfigConfigPathEnum.ServiceConfigPathKeyvaultArmResourceId,
-              keyVaultResourceId
-            );
-          }}
-        >
-          <InputField
-            labelContent="Key vault resource ID"
-            value={keyVaultResourceId}
-            onChange={setKeyVaultResourceId}
-          />
-        </PatchServiceConfigForm>
-      </CardSection>
-      <CardSection>
-        <PatchServiceConfigForm
-          onSubmit={() => {
-            patchServiceConfig(
-              PatchServiceConfigConfigPathEnum.ServiceConfigPathAppRoleIds,
-              ServiceConfigAppRoleIdsToJSON({
-                appAdmin: appRoleIdAppAdmin,
-                agentActiveHost: appRoleIdAgentActiveHost,
-              })
-            );
-          }}
-        >
-          <h3 className="text-lg font-semibold">App role IDs</h3>
-          <InputField
-            labelContent="App.Admin"
-            value={appRoleIdAppAdmin}
-            onChange={setAppRoleIdAppAdmin}
-          />
-          <InputField
-            labelContent="Agent.ActiveHost"
-            value={appRoleIdAgentActiveHost}
-            onChange={setAppRoleIdAgentActiveHost}
-          />
-        </PatchServiceConfigForm>
-      </CardSection>
-      <CardSection>
-        <PatchServiceConfigForm
-          onSubmit={() => {
-            patchServiceConfig(
-              PatchServiceConfigConfigPathEnum.ServiceConfigPathAzureContainerRegistry,
-              ServiceConfigAcrInfoToJSON({
-                loginServer: acrLoginServer,
-                name: acrName,
-                armResourceId: acrResourceId,
-              })
-            );
-          }}
-        >
-          <h3 className="text-lg font-semibold">Azure container registry</h3>
-          <InputField
-            labelContent="Name"
-            value={acrName}
-            onChange={setAcrName}
-          />
-          <InputField
-            labelContent="Login server"
-            value={acrLoginServer}
-            onChange={setAcrLoginServer}
-          />
-          <InputField
-            labelContent="Resource ID"
-            value={acrResourceId}
-            onChange={setAcrResourceId}
-          />
-        </PatchServiceConfigForm>
-      </CardSection>
-    </Card>
+    <>
+      <Card>
+        <CardTitle>Service configuration</CardTitle>
+        <CardSection>
+          <Link
+            to={`/admin/${NamespaceKind.NamespaceKindSystem}/agent-push/certificate-templates/default-mtls`}
+            className="text-indigo-600 hover:text-indigo-900"
+          >
+            Service mTLS Certificate template
+          </Link>
+        </CardSection>
+        <CardSection>
+          Current configuration:
+          <pre>
+            {JSON.stringify(ServiceConfigToJSON(serviceConfig), null, 2)}
+          </pre>
+        </CardSection>
+        <CardSection>
+          <PatchServiceConfigForm
+            onSubmit={() => {
+              patchServiceConfig(
+                PatchServiceConfigConfigPathEnum.ServiceConfigPathAzureSubscriptionId,
+                azureSubscriptionId
+              );
+            }}
+          >
+            <InputField
+              labelContent="Azure subscription ID"
+              value={azureSubscriptionId}
+              onChange={setAzureSubscriptionId}
+            />
+          </PatchServiceConfigForm>
+        </CardSection>
+        <CardSection>
+          <PatchServiceConfigForm
+            onSubmit={() => {
+              patchServiceConfig(
+                PatchServiceConfigConfigPathEnum.ServiceConfigPathKeyvaultArmResourceId,
+                keyVaultResourceId
+              );
+            }}
+          >
+            <InputField
+              labelContent="Key vault resource ID"
+              value={keyVaultResourceId}
+              onChange={setKeyVaultResourceId}
+            />
+          </PatchServiceConfigForm>
+        </CardSection>
+        <CardSection>
+          <PatchServiceConfigForm
+            onSubmit={() => {
+              patchServiceConfig(
+                PatchServiceConfigConfigPathEnum.ServiceConfigPathAppRoleIds,
+                ServiceConfigAppRoleIdsToJSON({
+                  appAdmin: appRoleIdAppAdmin,
+                  agentActiveHost: appRoleIdAgentActiveHost,
+                })
+              );
+            }}
+          >
+            <h3 className="text-lg font-semibold">App role IDs</h3>
+            <InputField
+              labelContent="App.Admin"
+              value={appRoleIdAppAdmin}
+              onChange={setAppRoleIdAppAdmin}
+            />
+            <InputField
+              labelContent="Agent.ActiveHost"
+              value={appRoleIdAgentActiveHost}
+              onChange={setAppRoleIdAgentActiveHost}
+            />
+          </PatchServiceConfigForm>
+        </CardSection>
+        <CardSection>
+          <PatchServiceConfigForm
+            onSubmit={() => {
+              patchServiceConfig(
+                PatchServiceConfigConfigPathEnum.ServiceConfigPathAzureContainerRegistry,
+                ServiceConfigAcrInfoToJSON({
+                  loginServer: acrLoginServer,
+                  name: acrName,
+                  armResourceId: acrResourceId,
+                })
+              );
+            }}
+          >
+            <h3 className="text-lg font-semibold">Azure container registry</h3>
+            <InputField
+              labelContent="Name"
+              value={acrName}
+              onChange={setAcrName}
+            />
+            <InputField
+              labelContent="Login server"
+              value={acrLoginServer}
+              onChange={setAcrLoginServer}
+            />
+            <InputField
+              labelContent="Resource ID"
+              value={acrResourceId}
+              onChange={setAcrResourceId}
+            />
+          </PatchServiceConfigForm>
+        </CardSection>
+      </Card>
+    </>
   );
 }

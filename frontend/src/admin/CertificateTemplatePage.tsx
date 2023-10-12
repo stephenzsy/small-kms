@@ -27,7 +27,7 @@ import { useAuthedClient as useAuthedClientOld } from "../utils/useCertsApi";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
-import { RefsTable3 } from "./RefsTable";
+import { RefsTable } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
 
 export interface CertificateTemplateFormState {
@@ -449,7 +449,7 @@ export default function CertificateTemplatePage() {
       <h1>
         {namespaceId}/certificate-templates/{templateId}
       </h1>
-      <RefsTable3
+      <RefsTable
         items={issuedCertificates}
         title="Issued certificates"
         tableActions={

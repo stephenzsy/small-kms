@@ -6,7 +6,6 @@ import (
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -42,7 +41,7 @@ func issueCertificate(c RequestContext,
 	}
 	// verify graph
 	switch nsID.Kind() {
-	case shared.NamespaceKindCaRoot, shared.NamespaceKindCaInt:
+	case shared.NamespaceKindCaRoot, shared.NamespaceKindCaInt, shared.NamespaceKindSystem:
 		// ok
 	default:
 		// verify graph
@@ -76,7 +75,14 @@ func issueCertificate(c RequestContext,
 		certDoc.CertSpec.keyExportable = false
 	}
 
+	var selfSignedProvider SelfSignedCertificateProvider
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		if nsID != certDoc.Issuer.GetNamespaceID() {
+			return nil, fmt.Errorf("invalid issuer for system, must be self")
+		}
+		selfSignedProvider = newAzCertsCsrProvider(certDoc, true)
+
 	case shared.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
@@ -90,13 +96,18 @@ func issueCertificate(c RequestContext,
 		if err != nil {
 			return nil, err
 		}
-		csrProvider = newAzCertsCsrProvider(certDoc)
+		csrProvider = newAzCertsCsrProvider(certDoc, false)
 		signerProvider = newAzKeysExistingCertSigner(issuerDoc)
 	default:
 		return nil, fmt.Errorf("%w: invalid namespace kind", common.ErrStatusBadRequest)
 	}
-
-	patch, err := signCertificate(c, csrProvider, signerProvider, storageProvider)
+	var patch *CertDocSigningPatch
+	var err error
+	if selfSignedProvider != nil {
+		patch, err = getSelfSignedCertificate(c, selfSignedProvider, storageProvider)
+	} else {
+		patch, err = signCertificate(c, csrProvider, signerProvider, storageProvider)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +115,7 @@ func issueCertificate(c RequestContext,
 	if err != nil {
 		return nil, err
 	}
-	certDocLatestLinkLocator := models.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate,
+	certDocLatestLinkLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate,
 		certDoc.Template.GetID().Identifier()))
 
 	_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)

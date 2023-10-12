@@ -23,6 +23,18 @@ func getProfileDoc(c RequestContext, locator shared.ResourceLocator) (doc *Profi
 				return &a, nil
 			}
 			return nil, common.ErrStatusNotFound
+		} else if docID.Kind() == shared.ResourceKindReserved {
+			if docID.Identifier().String() == "agent-push" {
+				return &ProfileDoc{
+					BaseDoc: kmsdoc.BaseDoc{
+						NamespaceID: locator.GetNamespaceID(),
+						ID:          locator.GetID(),
+					},
+					DispalyName: "Agent push",
+					ProfileType: shared.NamespaceKindSystem,
+				}, nil
+			}
+			return nil, common.ErrStatusNotFound
 		}
 	}
 	doc = &ProfileDoc{}
@@ -30,16 +42,18 @@ func getProfileDoc(c RequestContext, locator shared.ResourceLocator) (doc *Profi
 	return
 }
 
-func resolveTenantProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
-	return models.NewResourceLocator(docNsIDProfileTenant, shared.NewResourceIdentifier(shared.ResourceKindMsGraph, nsID.Identifier()))
+func resolveTenantProfileLocatorFromNamespaceID(nsID shared.NamespaceIdentifier) shared.ResourceLocator {
+	return shared.NewResourceLocator(docNsIDProfileTenant, shared.NewResourceIdentifier(shared.ResourceKindMsGraph, nsID.Identifier()))
 }
 
-func resolveProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
+func resolveProfileLocatorFromNamespaceID(nsID shared.NamespaceIdentifier) shared.ResourceLocator {
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		return shared.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindReserved, nsID.Identifier()))
 	case shared.NamespaceKindCaRoot:
-		return models.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaRoot, nsID.Identifier()))
+		return shared.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaRoot, nsID.Identifier()))
 	case shared.NamespaceKindCaInt:
-		return models.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaInt, nsID.Identifier()))
+		return shared.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaInt, nsID.Identifier()))
 	default:
 		return resolveTenantProfileLocatorFromNamespaceID(nsID)
 	}
@@ -48,9 +62,12 @@ func resolveProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.Resour
 // GetProfile implements ProfileService.
 func GetProfile(c RequestContext) (*models.ProfileComposed, error) {
 	nsID := ns.GetNamespaceContext(c).GetID()
-	var profileNsID models.NamespaceID
-	var resourceKind models.ResourceKind
+	var profileNsID shared.NamespaceIdentifier
+	var resourceKind shared.ResourceKind
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		resourceKind = shared.ResourceKindReserved
+		profileNsID = docNsIDProfileBuiltIn
 	case shared.NamespaceKindCaRoot:
 		resourceKind = shared.ResourceKindCaRoot
 		profileNsID = docNsIDProfileBuiltIn
@@ -63,7 +80,7 @@ func GetProfile(c RequestContext) (*models.ProfileComposed, error) {
 		resourceKind = shared.ResourceKindMsGraph
 		profileNsID = docNsIDProfileTenant
 	}
-	doc, err := getProfileDoc(c, models.NewResourceLocator(profileNsID, shared.NewResourceIdentifier(resourceKind, nsID.Identifier())))
+	doc, err := getProfileDoc(c, shared.NewResourceLocator(profileNsID, shared.NewResourceIdentifier(resourceKind, nsID.Identifier())))
 	if err != nil {
 		return nil, err
 	}

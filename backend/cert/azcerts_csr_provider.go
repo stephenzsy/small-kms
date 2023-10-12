@@ -21,13 +21,47 @@ type azCertsCsrProvider struct {
 	cert                    *x509.Certificate
 	csr                     *x509.CertificateRequest
 	certOperationInProgress string
+	selfSignedCertId        *azcertificates.ID
 	eCtx                    common.ElevatedContext
+	selfSigned              bool
+}
+
+// CreateSelfSignedCertificate implements SelfSignedCertificateProvider.
+func (p *azCertsCsrProvider) CreateSelfSignedCertificate(c common.ElevatedContext) ([]byte, *CertJwkSpec, error) {
+	resp, err := p.createCert(c, true)
+	if err != nil {
+		return nil, nil, err
+	}
+	p.selfSignedCertId = resp.ID
+	certResp, err := p.client.GetCertificate(p.eCtx, resp.ID.Name(), resp.ID.Version(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	return certResp.CER, &p.certDoc.CertSpec, nil
+}
+
+// KeepCertificate implements SelfSignedCertificateProvider.
+func (p *azCertsCsrProvider) KeepCertificate() {
+	p.selfSignedCertId = nil
+}
+
+// Locator implements SelfSignedCertificateProvider.
+func (p *azCertsCsrProvider) Locator() shared.ResourceLocator {
+	return p.certDoc.GetLocator()
 }
 
 // Close implements CertificateRequestProvider.
 func (p *azCertsCsrProvider) Close() {
-	if p.client != nil && p.certOperationInProgress != "" {
-		p.client.DeleteCertificate(p.eCtx, p.certOperationInProgress, nil)
+	if p.client != nil {
+		if p.selfSigned && p.selfSignedCertId != nil {
+			p.client.UpdateCertificate(p.eCtx, p.selfSignedCertId.Name(), p.selfSignedCertId.Version(), azcertificates.UpdateCertificateParameters{
+				CertificateAttributes: &azcertificates.CertificateAttributes{
+					Enabled: utils.ToPtr(false),
+				},
+			}, nil)
+		} else if !p.selfSigned && p.certOperationInProgress != "" {
+			p.client.DeleteCertificate(p.eCtx, p.certOperationInProgress, nil)
+		}
 	}
 }
 
@@ -45,10 +79,9 @@ func (p *azCertsCsrProvider) CollectCertificateChain(x5c [][]byte, ioCertSpec *C
 	return nil
 }
 
-// Load implements CertificateRequestProvider.
-func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
-	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
-		return nil, nil, nil, e
+func (p *azCertsCsrProvider) createCert(c common.ElevatedContext, selfSigned bool) (resp azcertificates.CreateCertificateResponse, err error) {
+	bad := func(e error) (azcertificates.CreateCertificateResponse, error) {
+		return azcertificates.CreateCertificateResponse{}, e
 	}
 
 	p.cert, err = p.certDoc.createX509Certificate()
@@ -89,15 +122,30 @@ func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.
 			},
 		},
 	}
+	if selfSigned {
+		csp.CertificatePolicy.IssuerParameters = &azcertificates.IssuerParameters{
+			Name: utils.ToPtr("Self"),
+		}
+	}
 
 	p.client = common.GetAdminServerClientProvider(c).AzCertificatesClient()
 	certName := *p.certDoc.KeyStorePath
 	p.eCtx = c
-	resp, err := p.client.CreateCertificate(p.eCtx, certName, csp, nil)
+	resp, err = p.client.CreateCertificate(p.eCtx, certName, csp, nil)
+	return
+}
+
+// Load implements CertificateRequestProvider.
+func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
+	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
+		return nil, nil, nil, e
+	}
+
+	resp, err := p.createCert(c, false)
 	if err != nil {
 		return bad(err)
 	}
-	p.certOperationInProgress = certName
+	p.certOperationInProgress = resp.ID.Name()
 	p.csr, err = x509.ParseCertificateRequest(resp.CSR)
 	if err != nil {
 		return bad(err)
@@ -108,10 +156,12 @@ func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.
 }
 
 var _ CertificateRequestProvider = (*azCertsCsrProvider)(nil)
+var _ SelfSignedCertificateProvider = (*azCertsCsrProvider)(nil)
 
-func newAzCertsCsrProvider(certDoc *CertDoc) *azCertsCsrProvider {
+func newAzCertsCsrProvider(certDoc *CertDoc, selfSigned bool) *azCertsCsrProvider {
 	return &azCertsCsrProvider{
-		certDoc: certDoc,
+		certDoc:    certDoc,
+		selfSigned: selfSigned,
 	}
 }
 
