@@ -47,11 +47,11 @@ func (s *adminServer) GetDeviceServicePrincipalLinkV2(c *gin.Context, nsID uuid.
 	r, _, err := s.getDeviceServicePrincipalLinkDoc(c, nsID)
 	if err != nil {
 		if errors.Is(err, common.ErrStatusNotFound) {
-			respondPublicError(c, http.StatusNotFound, err)
+			// respondPublicError(c, http.StatusNotFound, err)
 			return
 		}
 
-		respondInternalError(c, err, "failed to get namespace relation")
+		// respondInternalError(c, err, "failed to get namespace relation")
 		return
 	}
 

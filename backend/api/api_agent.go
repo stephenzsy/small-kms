@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 // AgentCheckIn implements models.ServerInterface.
@@ -28,7 +29,7 @@ func (*server) AgentGetConfiguration(ctx echo.Context, configName models.AgentCo
 		return bad(err)
 	}
 
-	c, err = ns.WithNamespaceContext(c, models.NamespaceKindServicePrincipal, common.UUIDIdentifier(callerPrincipalId))
+	c, err = ns.WithNamespaceContext(c, shared.NamespaceKindServicePrincipal, shared.UUIDIdentifier(callerPrincipalId))
 	if err != nil {
 		return bad(err)
 	}

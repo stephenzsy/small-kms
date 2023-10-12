@@ -7,17 +7,18 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-func getProfileDoc(c RequestContext, locator models.ResourceLocator) (doc *ProfileDoc, err error) {
+func getProfileDoc(c RequestContext, locator shared.ResourceLocator) (doc *ProfileDoc, err error) {
 	if locator.GetNamespaceID() == docNsIDProfileBuiltIn {
 		docID := locator.GetID()
-		if docID.Kind() == models.ResourceKindCaRoot {
+		if docID.Kind() == shared.ResourceKindCaRoot {
 			if a, ok := rootCaProfileDocs[docID.Identifier()]; ok {
 				return &a, nil
 			}
 			return nil, common.ErrStatusNotFound
-		} else if docID.Kind() == models.ResourceKindCaInt {
+		} else if docID.Kind() == shared.ResourceKindCaInt {
 			if a, ok := intCaProfileDocs[docID.Identifier()]; ok {
 				return &a, nil
 			}
@@ -30,15 +31,15 @@ func getProfileDoc(c RequestContext, locator models.ResourceLocator) (doc *Profi
 }
 
 func resolveTenantProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
-	return models.NewResourceLocator(docNsIDProfileTenant, common.NewIdentifierWithKind(models.ResourceKindMsGraph, nsID.Identifier()))
+	return models.NewResourceLocator(docNsIDProfileTenant, shared.NewResourceIdentifier(shared.ResourceKindMsGraph, nsID.Identifier()))
 }
 
 func resolveProfileLocatorFromNamespaceID(nsID models.NamespaceID) models.ResourceLocator {
 	switch nsID.Kind() {
-	case models.NamespaceKindCaRoot:
-		return models.NewResourceLocator(docNsIDProfileBuiltIn, common.NewIdentifierWithKind(models.ResourceKindCaRoot, nsID.Identifier()))
-	case models.NamespaceKindCaInt:
-		return models.NewResourceLocator(docNsIDProfileBuiltIn, common.NewIdentifierWithKind(models.ResourceKindCaInt, nsID.Identifier()))
+	case shared.NamespaceKindCaRoot:
+		return models.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaRoot, nsID.Identifier()))
+	case shared.NamespaceKindCaInt:
+		return models.NewResourceLocator(docNsIDProfileBuiltIn, shared.NewResourceIdentifier(shared.ResourceKindCaInt, nsID.Identifier()))
 	default:
 		return resolveTenantProfileLocatorFromNamespaceID(nsID)
 	}
@@ -50,19 +51,19 @@ func GetProfile(c RequestContext) (*models.ProfileComposed, error) {
 	var profileNsID models.NamespaceID
 	var resourceKind models.ResourceKind
 	switch nsID.Kind() {
-	case models.NamespaceKindCaRoot:
-		resourceKind = models.ResourceKindCaRoot
+	case shared.NamespaceKindCaRoot:
+		resourceKind = shared.ResourceKindCaRoot
 		profileNsID = docNsIDProfileBuiltIn
-	case models.NamespaceKindCaInt:
-		resourceKind = models.ResourceKindCaInt
+	case shared.NamespaceKindCaInt:
+		resourceKind = shared.ResourceKindCaInt
 		profileNsID = docNsIDProfileBuiltIn
-	case models.NamespaceKindProfile:
+	case shared.NamespaceKindProfile:
 		return nil, fmt.Errorf("profile.GetProfile: invalid namespace kind: %s", nsID.Kind())
 	default:
-		resourceKind = models.ResourceKindMsGraph
+		resourceKind = shared.ResourceKindMsGraph
 		profileNsID = docNsIDProfileTenant
 	}
-	doc, err := getProfileDoc(c, models.NewResourceLocator(profileNsID, common.NewIdentifierWithKind(resourceKind, nsID.Identifier())))
+	doc, err := getProfileDoc(c, models.NewResourceLocator(profileNsID, shared.NewResourceIdentifier(resourceKind, nsID.Identifier())))
 	if err != nil {
 		return nil, err
 	}

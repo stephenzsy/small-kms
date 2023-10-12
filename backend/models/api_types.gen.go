@@ -11,7 +11,7 @@ import (
 
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	kmscommon "github.com/stephenzsy/small-kms/backend/common"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
 const (
@@ -21,19 +21,12 @@ const (
 // Defines values for AgentConfigName.
 const (
 	AgentConfigNameActiveHostBootstrap AgentConfigName = "agent-active-host-bootstrap"
+	AgentConfigNameActiveServer        AgentConfigName = "agent-active-server"
 )
 
 // Defines values for AgentHostRole.
 const (
 	AgentHostRoleRadiusServer AgentHostRole = "radiusServer"
-)
-
-// Defines values for CertificateUsage.
-const (
-	CertUsageCA         CertificateUsage = "ca"
-	CertUsageCARoot     CertificateUsage = "caRoot"
-	CertUsageClientAuth CertificateUsage = "clientAuth"
-	CertUsageServerAuth CertificateUsage = "serverAuth"
 )
 
 // Defines values for CreateProfileRequestType.
@@ -76,30 +69,6 @@ const (
 const (
 	KeyTypeEC  JwtKty = "EC"
 	KeyTypeRSA JwtKty = "RSA"
-)
-
-// Defines values for NamespaceKind.
-const (
-	NamespaceKindApplication      NamespaceKind = "application"
-	NamespaceKindCaInt            NamespaceKind = "ca-int"
-	NamespaceKindCaRoot           NamespaceKind = "ca-root"
-	NamespaceKindDevice           NamespaceKind = "device"
-	NamespaceKindGroup            NamespaceKind = "group"
-	NamespaceKindProfile          NamespaceKind = "profile"
-	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
-	NamespaceKindUser             NamespaceKind = "user"
-)
-
-// Defines values for ResourceKind.
-const (
-	ResourceKindAgentConfig           ResourceKind = "agent-config"
-	ResourceKindCaInt                 ResourceKind = "ca-int"
-	ResourceKindCaRoot                ResourceKind = "ca-root"
-	ResourceKindCert                  ResourceKind = "cert"
-	ResourceKindCertTemplate          ResourceKind = "cert-template"
-	ResourceKindLatestCertForTemplate ResourceKind = "latest-cert-for-template"
-	ResourceKindMsGraph               ResourceKind = "ms-graph"
-	ResourceKindReserved              ResourceKind = "reserved"
 )
 
 // Defines values for PatchServiceConfigParamsConfigPath.
@@ -148,16 +117,14 @@ type AgentHostRole string
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id     Identifier      `json:"id"`
-	Issuer ResourceLocator `json:"issuer"`
+	Deleted *time.Time                   `json:"deleted,omitempty"`
+	Id      externalRef0.Identifier      `json:"id"`
+	Issuer  externalRef0.ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk      JwkProperties          `json:"jwk"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Jwk      JwkProperties                `json:"jwk"`
+	Locator  externalRef0.ResourceLocator `json:"locator"`
+	Metadata map[string]interface{}       `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -167,29 +134,29 @@ type CertificateInfo struct {
 	Pem       *string   `json:"pem,omitempty"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
+	SubjectCommonName string                       `json:"subjectCommonName"`
+	Template          externalRef0.ResourceLocator `json:"template"`
 
 	// Thumbprint X.509 certificate SHA-1 thumbprint
 	Thumbprint string `json:"thumbprint"`
 
 	// Updated Time when the resoruce was last updated
-	Updated   *time.Time         `json:"updated,omitempty"`
-	UpdatedBy *string            `json:"updatedBy,omitempty"`
-	Usages    []CertificateUsage `json:"usages"`
+	Updated   *time.Time                      `json:"updated,omitempty"`
+	UpdatedBy *string                         `json:"updatedBy,omitempty"`
+	Usages    []externalRef0.CertificateUsage `json:"usages"`
 }
 
 // CertificateInfoFields defines model for CertificateInfoFields.
 type CertificateInfoFields struct {
-	Issuer ResourceLocator `json:"issuer"`
+	Issuer externalRef0.ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	Jwk JwkProperties `json:"jwk"`
 
 	// NotBefore Expiration date of the certificate
-	NotBefore time.Time          `json:"notBefore"`
-	Pem       *string            `json:"pem,omitempty"`
-	Usages    []CertificateUsage `json:"usages"`
+	NotBefore time.Time                       `json:"notBefore"`
+	Pem       *string                         `json:"pem,omitempty"`
+	Usages    []externalRef0.CertificateUsage `json:"usages"`
 }
 
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
@@ -201,19 +168,17 @@ type CertificateLifetimeTrigger struct {
 // CertificateRef defines model for CertificateRef.
 type CertificateRef struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id       Identifier             `json:"id"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Deleted  *time.Time                   `json:"deleted,omitempty"`
+	Id       externalRef0.Identifier      `json:"id"`
+	Locator  externalRef0.ResourceLocator `json:"locator"`
+	Metadata map[string]interface{}       `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
+	SubjectCommonName string                       `json:"subjectCommonName"`
+	Template          externalRef0.ResourceLocator `json:"template"`
 
 	// Thumbprint X.509 certificate SHA-1 thumbprint
 	Thumbprint string `json:"thumbprint"`
@@ -229,8 +194,8 @@ type CertificateRefFields struct {
 	NotAfter time.Time `json:"notAfter"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
+	SubjectCommonName string                       `json:"subjectCommonName"`
+	Template          externalRef0.ResourceLocator `json:"template"`
 
 	// Thumbprint X.509 certificate SHA-1 thumbprint
 	Thumbprint string `json:"thumbprint"`
@@ -239,44 +204,42 @@ type CertificateRefFields struct {
 // CertificateTemplate defines model for CertificateTemplate.
 type CertificateTemplate struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id             Identifier      `json:"id"`
-	IssuerTemplate ResourceLocator `json:"issuerTemplate"`
+	Deleted        *time.Time                   `json:"deleted,omitempty"`
+	Id             externalRef0.Identifier      `json:"id"`
+	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   JwkProperties              `json:"keyProperties"`
-	KeyStorePath    *string                    `json:"keyStorePath,omitempty"`
-	LifetimeTrigger CertificateLifetimeTrigger `json:"lifetimeTrigger"`
-	Locator         ResourceLocator            `json:"locator"`
-	Metadata        map[string]interface{}     `json:"metadata,omitempty"`
+	KeyProperties   JwkProperties                `json:"keyProperties"`
+	KeyStorePath    *string                      `json:"keyStorePath,omitempty"`
+	LifetimeTrigger CertificateLifetimeTrigger   `json:"lifetimeTrigger"`
+	Locator         externalRef0.ResourceLocator `json:"locator"`
+	Metadata        map[string]interface{}       `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
 
 	// Updated Time when the resoruce was last updated
-	Updated          *time.Time         `json:"updated,omitempty"`
-	UpdatedBy        *string            `json:"updatedBy,omitempty"`
-	Usages           []CertificateUsage `json:"usages"`
-	ValidityInMonths int32              `json:"validity_months"`
+	Updated          *time.Time                      `json:"updated,omitempty"`
+	UpdatedBy        *string                         `json:"updatedBy,omitempty"`
+	Usages           []externalRef0.CertificateUsage `json:"usages"`
+	ValidityInMonths int32                           `json:"validity_months"`
 }
 
 // CertificateTemplateFields Certificate fields, may accept template substitutions
 type CertificateTemplateFields struct {
-	IssuerTemplate ResourceLocator `json:"issuerTemplate"`
+	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties    JwkProperties              `json:"keyProperties"`
-	KeyStorePath     *string                    `json:"keyStorePath,omitempty"`
-	LifetimeTrigger  CertificateLifetimeTrigger `json:"lifetimeTrigger"`
-	Usages           []CertificateUsage         `json:"usages"`
-	ValidityInMonths int32                      `json:"validity_months"`
+	KeyProperties    JwkProperties                   `json:"keyProperties"`
+	KeyStorePath     *string                         `json:"keyStorePath,omitempty"`
+	LifetimeTrigger  CertificateLifetimeTrigger      `json:"lifetimeTrigger"`
+	Usages           []externalRef0.CertificateUsage `json:"usages"`
+	ValidityInMonths int32                           `json:"validity_months"`
 }
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
 type CertificateTemplateParameters struct {
-	IssuerTemplate *ResourceLocator `json:"issuerTemplate,omitempty"`
+	IssuerTemplate *externalRef0.ResourceLocator `json:"issuerTemplate,omitempty"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
@@ -284,20 +247,18 @@ type CertificateTemplateParameters struct {
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string             `json:"subjectCommonName"`
-	Usages            []CertificateUsage `json:"usages"`
-	ValidityInMonths  *int32             `json:"validity_months,omitempty"`
+	SubjectCommonName string                          `json:"subjectCommonName"`
+	Usages            []externalRef0.CertificateUsage `json:"usages"`
+	ValidityInMonths  *int32                          `json:"validity_months,omitempty"`
 }
 
 // CertificateTemplateRef defines model for CertificateTemplateRef.
 type CertificateTemplateRef struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id       Identifier             `json:"id"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Deleted  *time.Time                   `json:"deleted,omitempty"`
+	Id       externalRef0.Identifier      `json:"id"`
+	Locator  externalRef0.ResourceLocator `json:"locator"`
+	Metadata map[string]interface{}       `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -313,9 +274,6 @@ type CertificateTemplateRefFields struct {
 	SubjectCommonName string `json:"subjectCommonName"`
 }
 
-// CertificateUsage defines model for CertificateUsage.
-type CertificateUsage string
-
 // CreateManagedApplicationProfileRequest defines model for CreateManagedApplicationProfileRequest.
 type CreateManagedApplicationProfileRequest struct {
 	Name string                   `json:"name"`
@@ -329,15 +287,6 @@ type CreateProfileRequest struct {
 
 // CreateProfileRequestType defines model for CreateProfileRequestType.
 type CreateProfileRequestType string
-
-// Identifier Identifier of the resource
-type Identifier = kmscommon.Identifier
-
-// IdentifierWithNamespaceKind defines model for IdentifierWithNamespaceKind.
-type IdentifierWithNamespaceKind = kmscommon.IdentifierWithKind[NamespaceKind]
-
-// IdentifierWithResourceKind defines model for IdentifierWithResourceKind.
-type IdentifierWithResourceKind = kmscommon.IdentifierWithKind[ResourceKind]
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
@@ -399,9 +348,6 @@ type KeyVaultRoleAssignment struct {
 	RoleDefinitionId string `json:"roleDefinitionId"`
 }
 
-// NamespaceKind defines model for NamespaceKind.
-type NamespaceKind string
-
 // Profile defines model for Profile.
 type Profile = ProfileRef
 
@@ -411,16 +357,14 @@ type ProfileRef struct {
 	Deleted *time.Time `json:"deleted,omitempty"`
 
 	// DisplayName Display name of the resource
-	DisplayName string `json:"displayName"`
-
-	// Id Identifier of the resource
-	Id Identifier `json:"id"`
+	DisplayName string                  `json:"displayName"`
+	Id          externalRef0.Identifier `json:"id"`
 
 	// IsAppManaged Whether the resource is managed by the application
-	IsAppManaged *bool                  `json:"isAppManaged,omitempty"`
-	Locator      ResourceLocator        `json:"locator"`
-	Metadata     map[string]interface{} `json:"metadata,omitempty"`
-	Type         NamespaceKind          `json:"type"`
+	IsAppManaged *bool                        `json:"isAppManaged,omitempty"`
+	Locator      externalRef0.ResourceLocator `json:"locator"`
+	Metadata     map[string]interface{}       `json:"metadata,omitempty"`
+	Type         externalRef0.NamespaceKind   `json:"type"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -433,8 +377,8 @@ type ProfileRefFields struct {
 	DisplayName string `json:"displayName"`
 
 	// IsAppManaged Whether the resource is managed by the application
-	IsAppManaged *bool         `json:"isAppManaged,omitempty"`
-	Type         NamespaceKind `json:"type"`
+	IsAppManaged *bool                      `json:"isAppManaged,omitempty"`
+	Type         externalRef0.NamespaceKind `json:"type"`
 }
 
 // RequestDiagnostics defines model for RequestDiagnostics.
@@ -455,21 +399,13 @@ type RequestHeaderEntry struct {
 	Value []string `json:"value"`
 }
 
-// ResourceKind defines model for ResourceKind.
-type ResourceKind string
-
-// ResourceLocator defines model for ResourceLocator.
-type ResourceLocator = kmscommon.Locator[NamespaceKind, ResourceKind]
-
 // ResourceRef defines model for ResourceRef.
 type ResourceRef struct {
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id       Identifier             `json:"id"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Deleted  *time.Time                   `json:"deleted,omitempty"`
+	Id       externalRef0.Identifier      `json:"id"`
+	Locator  externalRef0.ResourceLocator `json:"locator"`
+	Metadata map[string]interface{}       `json:"metadata,omitempty"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -490,13 +426,11 @@ type ServiceConfig struct {
 	AzureSubscriptionId string `json:"azureSubscriptionId"`
 
 	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// Id Identifier of the resource
-	Id                    Identifier             `json:"id"`
-	KeyvaultArmResourceId string                 `json:"keyvaultArmResourceId"`
-	Locator               ResourceLocator        `json:"locator"`
-	Metadata              map[string]interface{} `json:"metadata,omitempty"`
+	Deleted               *time.Time                   `json:"deleted,omitempty"`
+	Id                    externalRef0.Identifier      `json:"id"`
+	KeyvaultArmResourceId string                       `json:"keyvaultArmResourceId"`
+	Locator               externalRef0.ResourceLocator `json:"locator"`
+	Metadata              map[string]interface{}       `json:"metadata,omitempty"`
 
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
@@ -518,20 +452,20 @@ type ServiceConfigFields struct {
 	KeyvaultArmResourceId string `json:"keyvaultArmResourceId"`
 }
 
-// CertificateIdPathParameter Identifier of the resource
-type CertificateIdPathParameter = Identifier
+// CertificateIdPathParameter defines model for CertificateIdPathParameter.
+type CertificateIdPathParameter = externalRef0.Identifier
 
-// CertificateTemplateIdentifierParameter Identifier of the resource
-type CertificateTemplateIdentifierParameter = Identifier
+// CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
+type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 
 // IncludeCertificateParameter defines model for IncludeCertificateParameter.
 type IncludeCertificateParameter = IncludeCertificate
 
-// NamespaceIdParameter Identifier of the resource
-type NamespaceIdParameter = Identifier
+// NamespaceIdParameter defines model for NamespaceIdParameter.
+type NamespaceIdParameter = externalRef0.Identifier
 
 // NamespaceKindParameter defines model for NamespaceKindParameter.
-type NamespaceKindParameter = NamespaceKind
+type NamespaceKindParameter = externalRef0.NamespaceKind
 
 // AgentConfigurationResponse defines model for AgentConfigurationResponse.
 type AgentConfigurationResponse = AgentConfiguration
@@ -553,9 +487,9 @@ type PatchServiceConfigParamsConfigPath string
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {
 	IncludeCertificate    *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	TemplateId            *Identifier                  `form:"templateId,omitempty" json:"templateId,omitempty"`
-	TemplateNamespaceKind *NamespaceKind               `form:"templateNamespaceKind,omitempty" json:"templateNamespaceKind,omitempty"`
-	TemplateNamespaceId   *Identifier                  `form:"templateNamespaceId,omitempty" json:"templateNamespaceId,omitempty"`
+	TemplateId            *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
+	TemplateNamespaceKind *externalRef0.NamespaceKind  `form:"templateNamespaceKind,omitempty" json:"templateNamespaceKind,omitempty"`
+	TemplateNamespaceId   *externalRef0.Identifier     `form:"templateNamespaceId,omitempty" json:"templateNamespaceId,omitempty"`
 }
 
 // CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.

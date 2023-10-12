@@ -5,6 +5,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 var (
@@ -20,27 +21,27 @@ var (
 )
 
 var (
-	docNsIDProfileBuiltIn models.NamespaceID = common.NewIdentifierWithKind(models.NamespaceKindProfile, common.StringIdentifier(ns.ProfileNamespaceIDNameBuiltin))
-	docNsIDProfileTenant  models.NamespaceID = common.NewIdentifierWithKind(models.NamespaceKindProfile, common.StringIdentifier(ns.ProfileNamespaceIDNameTenant))
+	docNsIDProfileBuiltIn models.NamespaceID = shared.NewNamespaceIdentifier(shared.NamespaceKindProfile, common.StringIdentifier(ns.ProfileNamespaceIDNameBuiltin))
+	docNsIDProfileTenant  models.NamespaceID = shared.NewNamespaceIdentifier(shared.NamespaceKindProfile, common.StringIdentifier(ns.ProfileNamespaceIDNameTenant))
 )
 
 var rootCaProfileDocs = map[common.Identifier]ProfileDoc{
 	idCaRoot: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaRoot, idCaRoot),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaRoot, idCaRoot),
 		},
 		DispalyName: "Default Root CA",
-		ProfileType: models.NamespaceKindCaRoot,
+		ProfileType: shared.NamespaceKindCaRoot,
 		IsBuiltIn:   true,
 	},
 	idCaRootTest: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaRoot, idCaRootTest),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaRoot, idCaRootTest),
 		},
 		DispalyName: "Test Root CA",
-		ProfileType: models.NamespaceKindCaRoot,
+		ProfileType: shared.NamespaceKindCaRoot,
 		IsBuiltIn:   true,
 	},
 }
@@ -49,37 +50,37 @@ var intCaProfileDocs = map[common.Identifier]ProfileDoc{
 	idIntCaServices: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaInt, idIntCaServices),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaInt, idIntCaServices),
 		},
 		DispalyName: "Intermediate CA - Services",
-		ProfileType: models.NamespaceKindCaInt,
+		ProfileType: shared.NamespaceKindCaInt,
 		IsBuiltIn:   true,
 	},
 	idIntCaIntranet: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaInt, idIntCaIntranet),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaInt, idIntCaIntranet),
 		},
 		DispalyName: "Intermediate CA - Intranet Access",
-		ProfileType: models.NamespaceKindCaInt,
+		ProfileType: shared.NamespaceKindCaInt,
 		IsBuiltIn:   true,
 	},
 	idIntCaMsEntraClientSecret: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaInt, idIntCaMsEntraClientSecret),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaInt, idIntCaMsEntraClientSecret),
 		},
 		DispalyName: "Intermediate CA - Microsoft Entra Client Secert",
-		ProfileType: models.NamespaceKindCaInt,
+		ProfileType: shared.NamespaceKindCaInt,
 		IsBuiltIn:   true,
 	},
 	idIntCaTest: {
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID: docNsIDProfileBuiltIn,
-			ID:          common.NewIdentifierWithKind(models.ResourceKindCaInt, idIntCaTest),
+			ID:          shared.NewResourceIdentifier(shared.ResourceKindCaInt, idIntCaTest),
 		},
 		DispalyName: "Intermediate CA - Test",
-		ProfileType: models.NamespaceKindCaInt,
+		ProfileType: shared.NamespaceKindCaInt,
 		IsBuiltIn:   true,
 	},
 }

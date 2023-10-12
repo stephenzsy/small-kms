@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -159,10 +160,10 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 		patchOps := azcosmos.PatchOperations{}
 		if ownerDoc.Owns == nil {
 			patchOps.AppendSet("/@owns", map[NamespaceKind]models.ResourceLocator{
-				models.NamespaceKindServicePrincipal: profileDoc.GetLocator(),
+				shared.NamespaceKindServicePrincipal: profileDoc.GetLocator(),
 			})
 		} else {
-			patchOps.AppendSet(fmt.Sprintf("/@owns/%s", models.NamespaceKindServicePrincipal), profileDoc.GetLocator())
+			patchOps.AppendSet(fmt.Sprintf("/@owns/%s", shared.NamespaceKindServicePrincipal), profileDoc.GetLocator())
 		}
 		err = kmsdoc.Patch(c, ownerDoc.GetLocator(), ownerDoc, patchOps, &azcosmos.ItemOptions{
 			IfMatchEtag: &ownerDoc.ETag,
@@ -175,7 +176,7 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 func CreateProfile(c RequestContext, namespaceKind models.NamespaceKind, req CreateProfileRequest) (*Profile, error) {
 	// validate name
 	if req, err := req.AsCreateManagedApplicationProfileRequest(); err == nil {
-		if namespaceKind != models.NamespaceKindApplication {
+		if namespaceKind != shared.NamespaceKindApplication {
 			return nil, fmt.Errorf("%w:invalid namespace kind for creating managed application profile", common.ErrStatusBadRequest)
 		}
 		return createManagedApplication(c, req)
@@ -191,9 +192,9 @@ func CreateManagedProfile(c RequestContext, targetNamespaceKind models.Namespace
 		return nil, err
 	}
 	switch targetNamespaceKind {
-	case models.NamespaceKindServicePrincipal:
+	case shared.NamespaceKindServicePrincipal:
 		switch nsID.Kind() {
-		case models.NamespaceKindApplication:
+		case shared.NamespaceKindApplication:
 			return createApplicationManagedServicePrincipal(c, ownerDoc)
 		}
 	}

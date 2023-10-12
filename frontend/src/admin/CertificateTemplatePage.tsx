@@ -455,7 +455,7 @@ export default function CertificateTemplatePage() {
         tableActions={
           <div>
             <Link
-              to={`/admin/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
+              to={`/admin/${namespaceKind}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
               className="text-indigo-600 hover:text-indigo-900"
             >
               View latest certificate
@@ -471,7 +471,7 @@ export default function CertificateTemplatePage() {
         ]}
         refActions={(ref) => (
           <Link
-            to={`/admin/${namespaceId}/certificate/${ref.id}`}
+            to={`/admin/${namespaceKind}/${namespaceId}/certificates/${ref.id}`}
             className="text-indigo-600 hover:text-indigo-900"
           >
             View

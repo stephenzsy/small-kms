@@ -9,13 +9,14 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator models.ResourceLocator) (doc *CertDoc, err error) {
+func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator shared.ResourceLocator) (doc *CertDoc, err error) {
 	doc = &CertDoc{}
 	err = kmsdoc.Read[*CertDoc](c,
-		common.NewLocator(templateLocator.GetNamespaceID(), common.NewIdentifierWithKind(models.ResourceKindLatestCertForTemplate, templateLocator.GetID().Identifier())), doc)
+		shared.NewResourceLocator(templateLocator.GetNamespaceID(), shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, templateLocator.GetID().Identifier())), doc)
 	return
 }
 
@@ -27,7 +28,7 @@ func ListCertificatesByTemplate(c RequestContext) ([]*models.CertificateRefCompo
 
 	itemsPager := kmsdoc.QueryItemsPager[*CertDoc](c,
 		nsID,
-		models.ResourceKindCert,
+		shared.ResourceKindCert,
 		func(tbl string) kmsdoc.CosmosQueryBuilder {
 			return kmsdoc.CosmosQueryBuilder{
 				ExtraColumns: []string{"thumbprint"},

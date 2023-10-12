@@ -8,6 +8,7 @@ models/AgentConfigName.ts
 models/AgentConfiguration.ts
 models/AgentConfigurationActiveHostControllerContainer.ts
 models/AgentConfigurationAgentActiveHostBootstrap.ts
+models/AgentConfigurationAgentActiveServer.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
 models/CertificateInfo.ts
@@ -37,7 +38,6 @@ models/ProfileRef.ts
 models/ProfileRefFields.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
-models/ResourceKind.ts
 models/ResourceRef.ts
 models/ServiceConfig.ts
 models/ServiceConfigAcrInfo.ts

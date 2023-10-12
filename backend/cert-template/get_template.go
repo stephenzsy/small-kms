@@ -8,18 +8,19 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getCertificateTemplateDocLocator(nsID models.NamespaceID, templateID common.Identifier) models.ResourceLocator {
-	return common.NewLocator(nsID, common.NewIdentifierWithKind(models.ResourceKindCertTemplate, templateID))
+func getCertificateTemplateDocLocator(nsID shared.NamespaceIdentifier, templateID common.Identifier) shared.ResourceLocator {
+	return shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, templateID))
 }
 
 func GetCertificateTemplateDoc(c RequestContext,
 	locator models.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
 
-	if locator.GetID().Kind() != models.ResourceKindCertTemplate {
-		return nil, fmt.Errorf("invalid resource type: %s, expected: %s", locator.GetID().Kind(), models.ResourceKindCertTemplate)
+	if locator.GetID().Kind() != shared.ResourceKindCertTemplate {
+		return nil, fmt.Errorf("invalid resource type: %s, expected: %s", locator.GetID().Kind(), shared.ResourceKindCertTemplate)
 	}
 
 	doc = new(CertificateTemplateDoc)

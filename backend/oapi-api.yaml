@@ -146,7 +146,7 @@ paths:
       - in: path
         name: targetNamespaceKind
         schema:
-          $ref: "#/components/schemas/NamespaceKind"
+          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
         required: true
     post:
       tags:
@@ -270,17 +270,17 @@ paths:
         - in: query
           name: "templateId"
           schema:
-            $ref: "#/components/schemas/Identifier"
+            $ref: "oapi-shared.yaml#/components/schemas/Identifier"
           required: false
         - in: query
           name: "templateNamespaceKind"
           schema:
-            $ref: "#/components/schemas/NamespaceKind"
+            $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
           required: false
         - in: query
           name: "templateNamespaceId"
           schema:
-            $ref: "#/components/schemas/Identifier"
+            $ref: "oapi-shared.yaml#/components/schemas/Identifier"
           required: false
       tags:
         - admin
@@ -366,8 +366,10 @@ components:
       type: string
       enum:
         - agent-active-host-bootstrap
+        - agent-active-server
       x-enum-varnames:
         - AgentConfigNameActiveHostBootstrap
+        - AgentConfigNameActiveServer
     AgentConfiguration:
       type: object
       properties:
@@ -387,6 +389,7 @@ components:
         propertyName: name
         mapping:
           agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+          agent-active-server: "#/components/schemas/AgentConfigurationAgentActiveServer"
     AgentConfigurationAgentActiveHostBootstrap:
       type: object
       properties:
@@ -397,6 +400,16 @@ components:
       required:
         - name
         - controllerContainer
+    AgentConfigurationAgentActiveServer:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentConfigName"
+        serverCertificate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+      required:
+        - name
+        - controllerContainer
     AgentConfigurationActiveHostControllerContainer:
       type: object
       properties:
@@ -404,79 +417,14 @@ components:
           type: string
       required:
         - imageRefStr
-    Identifier:
-      type: string
-      description: Identifier of the resource
-      x-go-type-import:
-        name: kmscommon
-        path: github.com/stephenzsy/small-kms/backend/common
-      x-go-type: kmscommon.Identifier
-    NamespaceKind:
-      type: string
-      enum:
-        - profile
-        - ca-root
-        - ca-int
-        - service-principal
-        - group
-        - device
-        - user
-        - application
-      x-enum-varnames:
-        - NamespaceKindProfile
-        - NamespaceKindCaRoot
-        - NamespaceKindCaInt
-        - NamespaceKindServicePrincipal
-        - NamespaceKindGroup
-        - NamespaceKindDevice
-        - NamespaceKindUser
-        - NamespaceKindApplication
-    ResourceKind:
-      type: string
-      enum:
-        - reserved
-        - ca-root
-        - ca-int
-        - ms-graph
-        - cert-template
-        - cert
-        - latest-cert-for-template
-        - agent-config
-      x-enum-varnames:
-        - ResourceKindReserved
-        - ResourceKindCaRoot
-        - ResourceKindCaInt
-        - ResourceKindMsGraph
-        - ResourceKindCertTemplate
-        - ResourceKindCert
-        - ResourceKindLatestCertForTemplate
-        - ResourceKindAgentConfig
-    IdentifierWithNamespaceKind:
-      type: string
-      x-go-type-import:
-        name: kmscommon
-        path: github.com/stephenzsy/small-kms/backend/common
-      x-go-type: kmscommon.IdentifierWithKind[NamespaceKind]
-    IdentifierWithResourceKind:
-      type: string
-      x-go-type-import:
-        name: kmscommon
-        path: github.com/stephenzsy/small-kms/backend/common
-      x-go-type: kmscommon.IdentifierWithKind[ResourceKind]
-    ResourceLocator:
-      type: string
-      x-go-type-import:
-        name: kmscommon
-        path: github.com/stephenzsy/small-kms/backend/common
-      x-go-type: kmscommon.Locator[NamespaceKind, ResourceKind]
     ResourceRef:
       type: object
       properties:
         id:
           x-go-name: ID
-          $ref: "#/components/schemas/Identifier"
+          $ref: "oapi-shared.yaml#/components/schemas/Identifier"
         locator:
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         updated:
           description: Time when the resoruce was last updated
           type: string
@@ -498,7 +446,7 @@ components:
       type: object
       properties:
         type:
-          $ref: "#/components/schemas/NamespaceKind"
+          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
         displayName:
           description: Display name of the resource
           type: string
@@ -651,18 +599,6 @@ components:
         - id
         - roleDefinitionId
         - principalId
-    CertificateUsage:
-      type: string
-      enum:
-        - ca
-        - caRoot
-        - serverAuth
-        - clientAuth
-      x-enum-varnames:
-        - CertUsageCA
-        - CertUsageCARoot
-        - CertUsageServerAuth
-        - CertUsageClientAuth
     CertificateLifetimeTrigger:
       type: object
       properties:
@@ -691,7 +627,7 @@ components:
       description: Certificate fields, may accept template substitutions
       properties:
         issuerTemplate:
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         keyProperties:
           $ref: "#/components/schemas/JwkProperties"
         subjectCommonName:
@@ -700,7 +636,7 @@ components:
         usages:
           type: array
           items:
-            $ref: "#/components/schemas/CertificateUsage"
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
@@ -719,13 +655,13 @@ components:
       description: Certificate fields, may accept template substitutions
       properties:
         issuerTemplate:
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         keyProperties:
           $ref: "#/components/schemas/JwkProperties"
         usages:
           type: array
           items:
-            $ref: "#/components/schemas/CertificateUsage"
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
         validity_months:
           x-go-name: ValidityInMonths
           type: integer
@@ -768,7 +704,7 @@ components:
           type: string
           format: date-time
         template:
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
       required:
         - thumbprint
         - subjectCommonName
@@ -788,10 +724,10 @@ components:
         usages:
           type: array
           items:
-            $ref: "#/components/schemas/CertificateUsage"
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
         issuer:
           description: locator for issuer certificate
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         jwk:
           $ref: "#/components/schemas/JwkProperties"
         pem:
@@ -870,7 +806,7 @@ components:
             type: string
       required:
         - key
-        - value        
+        - value
     RequestDiagnostics:
       type: object
       properties:
@@ -896,25 +832,25 @@ components:
       in: path
       name: namespaceKind
       schema:
-        $ref: "#/components/schemas/NamespaceKind"
+        $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
       required: true
     NamespaceIdParameter:
       in: path
       name: namespaceId
       schema:
-        $ref: "#/components/schemas/Identifier"
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
       required: true
     CertificateIdPathParameter:
       in: path
       name: certificateId
       schema:
-        $ref: "#/components/schemas/Identifier"
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
       required: true
     CertificateTemplateIdentifierParameter:
       in: path
       name: templateId
       schema:
-        $ref: "#/components/schemas/Identifier"
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
       required: true
     IncludeCertificateParameter:
       in: query

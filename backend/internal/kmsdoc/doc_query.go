@@ -10,7 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -53,7 +53,7 @@ type CosmosQueryBuilder struct {
 	ExtraParameters   []azcosmos.QueryParameter
 }
 
-func (b *CosmosQueryBuilder) BuildQuery(kind models.ResourceKind) (string, []azcosmos.QueryParameter) {
+func (b *CosmosQueryBuilder) BuildQuery(kind shared.ResourceKind) (string, []azcosmos.QueryParameter) {
 	sb := strings.Builder{}
 	sb.WriteString("SELECT ")
 	for i, column := range queryDefaultColumns {
@@ -83,8 +83,8 @@ func (b *CosmosQueryBuilder) BuildQuery(kind models.ResourceKind) (string, []azc
 
 func QueryItemsPager[D KmsDocument](
 	c RequestContext,
-	nsID docNsIDType,
-	kind models.ResourceKind,
+	nsID shared.NamespaceIdentifier,
+	kind shared.ResourceKind,
 	getQueryBuilder func(tableName string) CosmosQueryBuilder) *DocPager[D] {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(nsID.String())

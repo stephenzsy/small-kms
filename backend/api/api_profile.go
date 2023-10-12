@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 // ListProfiles implements models.ServerInterface.
@@ -26,7 +27,7 @@ func (s *server) ListProfiles(ec echo.Context, namespaceKind models.NamespaceKin
 }
 
 // GetProfile implements models.ServerInterface.
-func (s *server) GetProfile(ec echo.Context, profileType models.NamespaceKind, identifier models.Identifier) error {
+func (s *server) GetProfile(ec echo.Context, profileType models.NamespaceKind, identifier shared.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.ProfileComposed, error) {
 
@@ -43,7 +44,7 @@ func (s *server) GetProfile(ec echo.Context, profileType models.NamespaceKind, i
 }
 
 // SyncProfile implements models.ServerInterface.
-func (s *server) SyncProfile(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId models.Identifier) error {
+func (s *server) SyncProfile(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId shared.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.ProfileComposed, error) {
 

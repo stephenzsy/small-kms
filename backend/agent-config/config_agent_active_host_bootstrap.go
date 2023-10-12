@@ -7,6 +7,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type AgentActiveHostBootstrapDoc struct {
@@ -31,15 +32,15 @@ func (d *AgentActiveHostBootstrapDoc) toModel() *models.AgentConfiguration {
 	return &m
 }
 
-func handleGetAgentActiveHostBootstrap(c RequestContext, nsID models.NamespaceID) (*models.AgentConfiguration, error) {
-	locator := models.NewResourceLocator(nsID, models.NewResourceID(models.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
+func handleGetAgentActiveHostBootstrap(c RequestContext, nsID shared.NamespaceIdentifier) (*models.AgentConfiguration, error) {
+	locator := shared.NewResourceLocator(nsID, models.NewResourceID(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
 	doc := AgentActiveHostBootstrapDoc{}
 	err := kmsdoc.Read(c, locator, &doc)
 	return doc.toModel(), err
 }
 
 func handlePutAgentActiveHostBootstrap(c RequestContext, nsID models.NamespaceID, params models.AgentConfigurationParameters) (*models.AgentConfiguration, error) {
-	locator := models.NewResourceLocator(nsID, models.NewResourceID(models.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
+	locator := shared.NewResourceLocator(nsID, models.NewResourceID(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
 	p, err := params.AsAgentConfigurationAgentActiveHostBootstrap()
 	if err != nil {
 		return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)

@@ -11,56 +11,54 @@ import (
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type RequestContext = common.RequestContext
 
-type docNsIDType = common.IdentifierWithKind[models.NamespaceKind]
-type docIDType = common.IdentifierWithKind[models.ResourceKind]
-
 type KmsDocumentRef interface {
-	GetNamespaceID() common.IdentifierWithKind[models.NamespaceKind]
-	GetID() common.IdentifierWithKind[models.ResourceKind]
+	GetNamespaceID() shared.NamespaceIdentifier
+	GetID() shared.ResourceIdentifier
 }
 
-var _ KmsDocumentRef = models.ResourceLocator{}
+var _ KmsDocumentRef = shared.ResourceLocator{}
 
 type KmsDocument interface {
 	KmsDocumentRef
-	GetLocator() models.ResourceLocator
+	GetLocator() shared.ResourceLocator
 	stampUpdatedWithAuth(context.Context) time.Time
 	GetETag() azcore.ETag
 	setETag(azcore.ETag)
-	setAliasToWithETag(target models.ResourceLocator, etag azcore.ETag)
+	setAliasToWithETag(target shared.ResourceLocator, etag azcore.ETag)
 }
 
 type KmsDocumentSnapshotable[D KmsDocument] interface {
 	KmsDocument
-	SnapshotWithNewLocator(models.ResourceLocator) D
+	SnapshotWithNewLocator(shared.ResourceLocator) D
 }
 
 type DocFlag string
 
 type BaseDoc struct {
-	NamespaceID docNsIDType `json:"namespaceId"`
-	ID          docIDType   `json:"id"`
+	NamespaceID shared.NamespaceIdentifier `json:"namespaceId"`
+	ID          shared.ResourceIdentifier  `json:"id"`
 
 	Updated       time.Time  `json:"updated"`
 	Deleted       *time.Time `json:"deleted"`
 	UpdatedBy     string     `json:"updatedBy"`
 	SchemaVersion int        `json:"schemaVersion"`
 
-	AliasTo     *models.ResourceLocator                         `json:"@alias.to,omitempty"`
+	AliasTo     *shared.ResourceLocator                         `json:"@alias.to,omitempty"`
 	AliasToETag *azcore.ETag                                    `json:"@alias.to.etag,omitempty"`
-	Owner       models.ResourceLocator                          `json:"@owner,omitempty"`
-	Owns        map[models.NamespaceKind]models.ResourceLocator `json:"@owns,omitempty"`
+	Owner       shared.ResourceLocator                          `json:"@owner,omitempty"`
+	Owns        map[shared.NamespaceKind]shared.ResourceLocator `json:"@owns,omitempty"`
 
 	ETag azcore.ETag         `json:"-"`    // populated during read
 	Kind models.ResourceKind `json:"kind"` // populate during write for index
 }
 
 // setAliasToWithETag implements KmsDocument.
-func (doc *BaseDoc) setAliasToWithETag(target models.ResourceLocator, etag azcore.ETag) {
+func (doc *BaseDoc) setAliasToWithETag(target shared.ResourceLocator, etag azcore.ETag) {
 	doc.AliasTo = &target
 	doc.AliasToETag = &etag
 }
@@ -74,7 +72,7 @@ var queryDefaultColumns = []string{
 }
 
 // GetID implements KmsDocument.
-func (doc *BaseDoc) GetID() docIDType {
+func (doc *BaseDoc) GetID() shared.ResourceIdentifier {
 	return doc.ID
 }
 
@@ -83,13 +81,13 @@ func (doc *BaseDoc) GetETag() azcore.ETag {
 }
 
 // GetNamespaceID implements KmsDocument.
-func (doc *BaseDoc) GetNamespaceID() docNsIDType {
+func (doc *BaseDoc) GetNamespaceID() shared.NamespaceIdentifier {
 	return doc.NamespaceID
 }
 
-func (doc *BaseDoc) GetLocator() models.ResourceLocator {
+func (doc *BaseDoc) GetLocator() shared.ResourceLocator {
 	if doc == nil {
-		return models.ResourceLocator{}
+		return shared.ResourceLocator{}
 	}
 	if doc.AliasTo != nil {
 		return *doc.AliasTo
@@ -130,7 +128,7 @@ func stampUpdatedWithAuthPatchOps(c context.Context, patchOps *azcosmos.PatchOpe
 
 var _ KmsDocument = (*BaseDoc)(nil)
 
-func Read[D KmsDocument](c RequestContext, locator models.ResourceLocator, target D) error {
+func Read[D KmsDocument](c RequestContext, locator shared.ResourceLocator, target D) error {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	id := locator.GetID().String()
@@ -186,7 +184,7 @@ func DeleteByRef(c context.Context, locator KmsDocumentRef) (err error) {
 	return err
 }
 
-func Patch[D KmsDocument](c context.Context, locator models.ResourceLocator, doc D,
+func Patch[D KmsDocument](c context.Context, locator shared.ResourceLocator, doc D,
 	patchOps azcosmos.PatchOperations,
 	opts *azcosmos.ItemOptions) error {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
@@ -214,7 +212,7 @@ func (d *BaseDoc) PopulateResourceRef(r *models.ResourceRef) {
 	r.Deleted = d.Deleted
 }
 
-func UpsertAliasWithSnapshot[D KmsDocumentSnapshotable[D]](c context.Context, doc D, aliasLocator models.ResourceLocator) (docClone D, err error) {
+func UpsertAliasWithSnapshot[D KmsDocumentSnapshotable[D]](c context.Context, doc D, aliasLocator shared.ResourceLocator) (docClone D, err error) {
 	etag := doc.GetETag()
 	if etag == "" {
 		return docClone, fmt.Errorf("missing etag, target document must be saved to cosmosdb first")

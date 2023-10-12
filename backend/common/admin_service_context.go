@@ -25,6 +25,10 @@ func WithAdminServerClientProvider(c RequestContext, p AdminServerClientProvider
 	return RequestContextWithValue(c, adminServerClientProviderContextKey, p)
 }
 
+func ContextWithAdminServerClientProvider(c context.Context, p AdminServerClientProvider) context.Context {
+	return context.WithValue(c, adminServerClientProviderContextKey, p)
+}
+
 func GetAdminServerClientProvider(c context.Context) AdminServerClientProvider {
 	if p, ok := c.Value(adminServerClientProviderContextKey).(AdminServerClientProvider); ok {
 		return p

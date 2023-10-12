@@ -22,11 +22,3 @@ const (
 	ProfileNamespaceIDNameBuiltin ProfileNamespaceIDName = "builtin"
 	ProfileNamespaceIDNameTenant  ProfileNamespaceIDName = "tenant"
 )
-
-type BuiltiInCertTemplateName string
-
-const (
-	CertTemplateNameDefault                   BuiltiInCertTemplateName = "default"
-	CertTemplateNameDefaultIntranetAccess     BuiltiInCertTemplateName = "default-intranet-access"
-	CertTemplateNameDefaultMsEntraClientCreds BuiltiInCertTemplateName = "default-ms-entra-client-creds"
-)

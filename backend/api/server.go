@@ -123,8 +123,7 @@ func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
 	}
 
 	s := server{
-		CommonServer:  &commonConfig,
-		serverContext: c,
+		CommonServer: &commonConfig,
 	}
 
 	appId := appConfidentialIdentity{}
@@ -146,6 +145,7 @@ func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
 	if s.clients, err = newServerClientProvider(&s); err != nil {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
+	s.serverContext = common.ContextWithAdminServerClientProvider(c, &s.clients)
 
 	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
 	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")

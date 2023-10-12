@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type RequestContext = common.RequestContext
@@ -46,9 +47,9 @@ func (d *ServiceConfigDoc) toModel() *ServiceConfig {
 	return &m
 }
 
-var serviceConfigDocLocator = models.NewResourceLocator(
-	models.NewNamespaceID(models.NamespaceKindProfile, common.StringIdentifier(ns.ProfileNamespaceIDNameBuiltin)),
-	models.NewResourceID(models.ResourceKindReserved, common.StringIdentifier("service-config")))
+var serviceConfigDocLocator = shared.NewResourceLocator(
+	shared.NewNamespaceIdentifier(shared.NamespaceKindProfile, shared.StringIdentifier(ns.ProfileNamespaceIDNameBuiltin)),
+	models.NewResourceID(shared.ResourceKindReserved, shared.StringIdentifier("service-config")))
 
 func GetServiceConfig(c RequestContext) (*ServiceConfig, error) {
 	doc := ServiceConfigDoc{}

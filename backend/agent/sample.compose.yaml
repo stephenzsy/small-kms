@@ -1,0 +1,9 @@
+version: "3.8"
+name: smallkms-agent
+
+services:
+  agent:
+    image: bare:latest
+    ports:
+      - "10080:10080"
+    command: /agnet-server -skip-tls server :10080

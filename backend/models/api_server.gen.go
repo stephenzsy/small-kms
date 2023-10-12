@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
 // ServerInterface represents all server handlers.
@@ -36,7 +37,7 @@ type ServerInterface interface {
 	SyncProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
 	// Create managed namespace
 	// (POST /v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind})
-	CreateManagedNamespace(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, targetNamespaceKind NamespaceKind) error
+	CreateManagedNamespace(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, targetNamespaceKind externalRef0.NamespaceKind) error
 	// Get service config
 	// (GET /v3/service/config)
 	GetServiceConfig(ctx echo.Context) error
@@ -234,7 +235,7 @@ func (w *ServerInterfaceWrapper) CreateManagedNamespace(ctx echo.Context) error 
 	}
 
 	// ------------- Path parameter "targetNamespaceKind" -------------
-	var targetNamespaceKind NamespaceKind
+	var targetNamespaceKind externalRef0.NamespaceKind
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "targetNamespaceKind", runtime.ParamLocationPath, ctx.Param("targetNamespaceKind"), &targetNamespaceKind)
 	if err != nil {

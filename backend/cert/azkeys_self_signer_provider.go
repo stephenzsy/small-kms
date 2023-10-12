@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -28,7 +29,7 @@ func (p *azKeysSelfSignerProvider) X509SigningAlg() x509.SignatureAlgorithm {
 }
 
 // Locator implements SignerProvider.
-func (p *azKeysSelfSignerProvider) Locator() common.Locator[models.NamespaceKind, models.ResourceKind] {
+func (p *azKeysSelfSignerProvider) Locator() shared.ResourceLocator {
 	return p.certDoc.GetLocator()
 }
 

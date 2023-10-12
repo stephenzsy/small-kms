@@ -8,15 +8,16 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func NewCertificateID(certId common.Identifier) models.ResourceID {
-	return common.NewIdentifierWithKind(models.ResourceKindCert, certId)
+func NewCertificateID(certId shared.Identifier) shared.ResourceIdentifier {
+	return shared.NewResourceIdentifier(shared.ResourceKindCert, certId)
 }
 
-func NewLatestCertificateForTemplateID(certId common.Identifier) models.ResourceID {
-	return common.NewIdentifierWithKind(models.ResourceKindLatestCertForTemplate, certId)
+func NewLatestCertificateForTemplateID(certId shared.Identifier) shared.ResourceIdentifier {
+	return shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, certId)
 }
 
 type NamespaceID = models.NamespaceID
@@ -25,7 +26,7 @@ type Identifier = common.Identifier
 
 func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID NamespaceID, templateIdentifier Identifier) Identifier {
 	uuidValue := uuid.NewSHA1(uuid.NameSpaceURL, []byte(fmt.Sprintf("%s/%s", referencedNamespaceID.String(), templateIdentifier.String())))
-	return common.UUIDIdentifier(uuidValue)
+	return shared.UUIDIdentifier(uuidValue)
 }
 
 func GetCertificate(c RequestContext, certificateId common.Identifier, params models.GetCertificateParams) (*models.CertificateInfoComposed, error) {
@@ -38,7 +39,7 @@ func GetCertificate(c RequestContext, certificateId common.Identifier, params mo
 			return nil, fmt.Errorf("%w: invalid or empty template ID: %s", common.ErrStatusBadRequest, params.TemplateId)
 		}
 		if !params.TemplateNamespaceId.IsNilOrEmpty() {
-			if !params.TemplateNamespaceId.IsValid() || params.TemplateNamespaceKind == nil || *params.TemplateNamespaceKind != models.NamespaceKindGroup {
+			if !params.TemplateNamespaceId.IsValid() || params.TemplateNamespaceKind == nil || *params.TemplateNamespaceKind != shared.NamespaceKindGroup {
 				return nil, fmt.Errorf("%w: invalid template namespace ID: %s", common.ErrStatusBadRequest, params.TemplateNamespaceId)
 			}
 			nsID := ns.GetNamespaceContext(c).GetID()

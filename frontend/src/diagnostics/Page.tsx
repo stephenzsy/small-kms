@@ -1,11 +1,11 @@
 import { useRequest } from "ahooks";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { DiagnosticsApi } from "../generated";
+import { DiagnosticsApi } from "../generated3";
+import { useAuthedClient } from "../utils/useCertsApi3";
 
 export default function DiagnosticsPage() {
   const client = useAuthedClient(DiagnosticsApi);
   const { data: diagnosticsData } = useRequest(() => {
-    return client.getDiagnosticsV1();
+    return client.getDiagnostics();
   }, {});
   return (
     <main className="min-h-full place-items-center p-6">

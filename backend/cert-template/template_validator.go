@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -33,25 +34,25 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 			return nil, fmt.Errorf("%w:invalid issuer namespace", common.ErrStatusBadRequest)
 		}
 		reqResID := req.IssuerTemplate.GetID()
-		if reqResID.Kind() != models.ResourceKindCertTemplate || !reqResID.Identifier().IsValid() {
+		if reqResID.Kind() != shared.ResourceKindCertTemplate || !reqResID.Identifier().IsValid() {
 			return nil, fmt.Errorf("%w:invalid issuer template", common.ErrStatusBadRequest)
 		}
 		doc.IssuerTemplate = *req.IssuerTemplate
 	} else if cap.AllowedIssuerNamespaces.Size() == 1 {
-		doc.IssuerTemplate = common.NewLocator(
+		doc.IssuerTemplate = shared.NewResourceLocator(
 			cap.AllowedIssuerNamespaces.Items()[0],
-			common.NewIdentifierWithKind(models.ResourceKindCertTemplate, common.StringIdentifier(ns.CertTemplateNameDefault)))
+			shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, shared.StringIdentifier(shared.CertTemplateNameDefault)))
 	} else {
 		return nil, fmt.Errorf("%w:issuer namespace is required", common.ErrStatusBadRequest)
 	}
 	if cap.SelfSigned {
-		doc.IssuerTemplate = common.NewLocator(doc.NamespaceID, doc.ID)
+		doc.IssuerTemplate = shared.NewResourceLocator(doc.NamespaceID, doc.ID)
 	}
 
 	if req.Usages == nil || len(req.Usages) == 0 {
 		doc.Usages = cap.AllowedUsages.Items()
 	} else {
-		intersect := cap.AllowedUsages.Intersection(utils.NewSet[models.CertificateUsage](req.Usages...))
+		intersect := cap.AllowedUsages.Intersection(utils.NewSet[shared.CertificateUsage](req.Usages...))
 		if intersect.Size() == 0 {
 			return nil, fmt.Errorf("%w:invalid certificate usages", common.ErrStatusBadRequest)
 		}

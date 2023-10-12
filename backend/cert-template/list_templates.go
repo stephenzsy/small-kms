@@ -1,18 +1,18 @@
 package certtemplate
 
 import (
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getTemplateReservedDefault(nsID models.NamespaceID, id common.Identifier) *models.CertificateTemplateRefComposed {
+func getTemplateReservedDefault(nsID shared.NamespaceIdentifier, id shared.Identifier) *models.CertificateTemplateRefComposed {
 	return &models.CertificateTemplateRefComposed{
 		ResourceRef: models.ResourceRef{
 			Id:      id,
-			Locator: common.NewLocator(nsID, common.NewIdentifierWithKind(models.ResourceKindCertTemplate, id)),
+			Locator: shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, id)),
 		},
 	}
 }
@@ -25,7 +25,7 @@ func ListCertificateTemplates(c RequestContext) ([]*models.CertificateTemplateRe
 
 	itemsPager := kmsdoc.QueryItemsPager[*CertificateTemplateDoc](c,
 		nsID,
-		models.ResourceKindCertTemplate,
+		shared.ResourceKindCertTemplate,
 		func(tbl string) kmsdoc.CosmosQueryBuilder {
 			return kmsdoc.CosmosQueryBuilder{
 				ExtraColumns: []string{"subjectCn"},

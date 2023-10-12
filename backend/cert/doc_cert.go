@@ -14,6 +14,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -47,7 +48,7 @@ type CertDoc struct {
 	SubjectCommonName string                    `json:"subjectCommonName"`
 	NotBefore         kmsdoc.TimeStorable       `json:"notBefore"`
 	NotAfter          kmsdoc.TimeStorable       `json:"notAfter"`
-	Usages            []models.CertificateUsage `json:"usages"`
+	Usages            []shared.CertificateUsage `json:"usages"`
 	CertSpec          CertJwkSpec               `json:"certSpec"`
 	KeyStorePath      *string                   `json:"keyStorePath,omitempty"`
 	CertStorePath     string                    `json:"certStorePath"` // certificate storage path in blob storage
@@ -59,7 +60,7 @@ type CertDoc struct {
 }
 
 // SnapshotWithNewLocator implements kmsdoc.KmsDocumentSnapshotable.
-func (doc *CertDoc) SnapshotWithNewLocator(locator common.Locator[models.NamespaceKind, models.ResourceKind]) *CertDoc {
+func (doc *CertDoc) SnapshotWithNewLocator(locator shared.ResourceLocator) *CertDoc {
 	if doc == nil {
 		return nil
 	}
@@ -104,11 +105,11 @@ func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) erro
 func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err error) {
 	loadDocLocator := d.Issuer
 	switch loadDocLocator.GetID().Kind() {
-	case models.ResourceKindCertTemplate:
+	case shared.ResourceKindCertTemplate:
 		// load the latest from template
-		loadDocLocator = loadDocLocator.WithIDKind(models.ResourceKindLatestCertForTemplate)
-	case models.ResourceKindCert,
-		models.ResourceKindLatestCertForTemplate:
+		loadDocLocator = loadDocLocator.WithIDKind(shared.ResourceKindLatestCertForTemplate)
+	case shared.ResourceKindCert,
+		shared.ResourceKindLatestCertForTemplate:
 		// ok
 	default:
 		return nil, fmt.Errorf("%w: invalid issuer locator", common.ErrStatusBadRequest)
@@ -151,7 +152,7 @@ func createCertificateDoc(nsID models.NamespaceID,
 	doc := CertDoc{
 		BaseDoc: kmsdoc.BaseDoc{
 			NamespaceID:   nsID,
-			ID:            common.NewIdentifierWithKind(models.ResourceKindCert, common.UUIDIdentifier(certID)),
+			ID:            shared.NewResourceIdentifier(shared.ResourceKindCert, shared.UUIDIdentifier(certID)),
 			SchemaVersion: 1,
 		},
 		Status:            CertStatusInitialized,
@@ -182,19 +183,19 @@ func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
 	cert.NotBefore = doc.NotBefore.Time()
 	cert.NotAfter = doc.NotAfter.Time()
 	usageSet := utils.NewSet(doc.Usages...)
-	if usageSet.Contains(models.CertUsageCA) {
+	if usageSet.Contains(shared.CertUsageCA) {
 		cert.IsCA = true
-		if !usageSet.Contains(models.CertUsageCARoot) {
+		if !usageSet.Contains(shared.CertUsageCARoot) {
 			cert.MaxPathLen = 1
 		} else {
 			cert.MaxPathLenZero = true
 		}
 		cert.KeyUsage |= x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature
 	} else {
-		if usageSet.Contains(models.CertUsageClientAuth) {
+		if usageSet.Contains(shared.CertUsageClientAuth) {
 			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
 		}
-		if usageSet.Contains(models.CertUsageServerAuth) {
+		if usageSet.Contains(shared.CertUsageServerAuth) {
 			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
 		}
 	}

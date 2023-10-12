@@ -1,0 +1,87 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Models
+  version: 0.1.1
+paths: {}
+components:
+  schemas:
+    CertificateUsage:
+      type: string
+      enum:
+        - ca
+        - caRoot
+        - serverAuth
+        - clientAuth
+        - keyNonExportable
+      x-enum-varnames:
+        - CertUsageCA
+        - CertUsageCARoot
+        - CertUsageServerAuth
+        - CertUsageClientAuth
+        - CertUsageKeyNonExportable
+    Identifier:
+      type: string
+      x-go-type: identifierImpl
+    NamespaceIdentifier:
+      type: string
+      x-go-type: identifierWithKind[NamespaceKind]
+    NamespaceKind:
+      type: string
+      enum:
+        - sys
+        - profile
+        - ca-root
+        - ca-int
+        - service-principal
+        - group
+        - device
+        - user
+        - application
+      x-enum-varnames:
+        - NamespaceKindSystem
+        - NamespaceKindProfile
+        - NamespaceKindCaRoot
+        - NamespaceKindCaInt
+        - NamespaceKindServicePrincipal
+        - NamespaceKindGroup
+        - NamespaceKindDevice
+        - NamespaceKindUser
+        - NamespaceKindApplication
+    ResourceIdentifer:
+      type: string        
+      x-go-type: identifierWithKind[ResourceKind]
+    ResourceKind:
+      type: string
+      enum:
+        - reserved
+        - ca-root
+        - ca-int
+        - ms-graph
+        - cert-template
+        - cert
+        - latest-cert-for-template
+        - agent-config
+      x-enum-varnames:
+        - ResourceKindReserved
+        - ResourceKindCaRoot
+        - ResourceKindCaInt
+        - ResourceKindMsGraph
+        - ResourceKindCertTemplate
+        - ResourceKindCert
+        - ResourceKindLatestCertForTemplate
+        - ResourceKindAgentConfig
+    ResourceLocator:
+      type: string      
+      x-go-type: locator[NamespaceKind, ResourceKind]  
+    WellknownCertificateTemplateName:
+      type: string
+      enum:
+        - default
+        - default-intranet-access
+        - default-ms-entra-client-creds
+        - default-mtls
+      x-enum-varnames:
+        - CertTemplateNameDefault
+        - CertTemplateNameDefaultIntranetAccess
+        - CertTemplateNameDefaultMsEntraClientCreds
+        - CertTemplateNameDefaultMtls

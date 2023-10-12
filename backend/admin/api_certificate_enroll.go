@@ -2,16 +2,11 @@ package admin
 
 import (
 	"context"
-	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"net/http"
 	"net/url"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
@@ -25,7 +20,6 @@ import (
 	certtemplate "github.com/stephenzsy/small-kms/backend/admin/cert-template"
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -201,10 +195,6 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
 	defer log.Info().Msgf("enroll cert for dasp link - end: %s", req.DeviceLinkID)
 
-	bad := func(e error) (*PendingCertDoc, error) {
-		return nil, e
-	}
-
 	// first check if AppID match
 	authCtx, ok := auth.GetAuthIdentity(c)
 	if !ok {
@@ -223,14 +213,14 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 
 	// get template
-	template, err := certtemplate.LoadCertifictateTemplate(c, nsID, templateID)
-	if err != nil {
-		return bad(err)
-	}
-	// verify template is active
-	if !template.IsEnabled() {
-		return bad(fmt.Errorf("%w: template is not enabled", common.ErrStatusBadRequest))
-	}
+	// template, err := certtemplate.LoadCertifictateTemplate(c, nsID, templateID)
+	// if err != nil {
+	// 	return bad(err)
+	// }
+	// // verify template is active
+	// if !template.IsEnabled() {
+	// 	return bad(fmt.Errorf("%w: template is not enabled", common.ErrStatusBadRequest))
+	// }
 
 	// graph client in context
 	if graphClient, err := s.msGraphClient(c); err != nil {
@@ -304,10 +294,10 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("group membership verified: %s", nsID)
 
-	cert, err := template.CreateCertWithVariables(params)
-	if err != nil {
-		return bad(err)
-	}
+	// cert, err := template.CreateCertWithVariables(params)
+	// if err != nil {
+	// 	return bad(err)
+	// }
 	// claimsEncoded, err := encodeJwtJsonSegment(cert.TODO()) // get jwt claims
 	// if err != nil {
 	// 	return nil, err
@@ -318,98 +308,99 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	// if err = kmsdoc.AzCosmosCreate(c, s.AzCosmosContainerClient(), &pCertDoc); err != nil {
 	// 	return nil, err
 	// }
-	pCertDoc := cert.TODO().(*PendingCertDoc)
-	log.Info().Msgf("pending document stored: %s", nsID)
+	// pCertDoc := cert.TODO().(*PendingCertDoc)
+	// log.Info().Msgf("pending document stored: %s", nsID)
 
-	return pCertDoc, nil
+	// return pCertDoc, nil
+	return nil, nil
 }
 
-func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
+// func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
 
-	rawReq := CertificateEnrollmentRequest{}
-	if err := c.Bind(&rawReq); err != nil {
-		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
-		return
-	}
+// 	rawReq := CertificateEnrollmentRequest{}
+// 	if err := c.Bind(&rawReq); err != nil {
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	_, err := rawReq.ValueByDiscriminator()
-	if err != nil {
-		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
-		return
-	}
+// 	_, err := rawReq.ValueByDiscriminator()
+// 	if err != nil {
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	//serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
+// 	//serviceContext := common.CreateServiceContext(c, s.AzCosmosContainerClient())
 
-	var pCertDoc *PendingCertDoc
-	//var responseNsType NamespaceTypeShortName
-	//	switch req := req.(type) {
-	// case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
-	// 	//pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
-	// 	responseNsType = NSTypeServicePrincipal
-	// }
-	if err != nil {
-		common.RespondError(c, err)
-		return
-	}
+// 	var pCertDoc *PendingCertDoc
+// 	//var responseNsType NamespaceTypeShortName
+// 	//	switch req := req.(type) {
+// 	// case CertificateEnrollmentRequestDeviceLinkedServicePrincipal:
+// 	// 	//pCertDoc, err = s.processBeginEnrollCertForDASPLink(serviceContext, nsID, templateId, req)
+// 	// 	responseNsType = NSTypeServicePrincipal
+// 	// }
+// 	if err != nil {
+// 		common.RespondError(c, err)
+// 		return
+// 	}
 
-	if pCertDoc == nil {
-		respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
-	}
-	//c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
-}
+// 	if pCertDoc == nil {
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, "not supported")
+// 	}
+// 	//c.JSON(http.StatusCreated, pCertDoc.toReceipt(responseNsType))
+// }
 
-func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.UUID, certID uuid.UUID, params CompleteCertificateEnrollmentV2Params) {
-	if _, ok := authNamespaceAdminOrSelf(c, nsID); !ok {
-		return
-	}
+// func (s *adminServer) CompleteCertificateEnrollmentV2(c *gin.Context, nsID uuid.UUID, certID uuid.UUID, params CompleteCertificateEnrollmentV2Params) {
+// 	if _, ok := authNamespaceAdminOrSelf(c, nsID); !ok {
+// 		return
+// 	}
 
-	req := new(CertificateEnrollmentReplyFinalize)
-	if err := c.Bind(req); err != nil {
-		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
-		return
-	}
+// 	req := new(CertificateEnrollmentReplyFinalize)
+// 	if err := c.Bind(req); err != nil {
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	pCertDoc, err := s.readPendingCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID))
-	if err != nil {
-		common.RespondError(c, err)
-	}
+// 	pCertDoc, err := s.readPendingCertDoc(c, nsID, kmsdoc.NewKmsDocID(kmsdoc.DocTypePendingCert, certID))
+// 	if err != nil {
+// 		common.RespondError(c, err)
+// 	}
 
-	parser := jwt.NewParser()
+// 	parser := jwt.NewParser()
 
-	completeToken := req.JwtHeader + "." + pCertDoc.JWT[1] + "." + req.JwtSignature
+// 	completeToken := req.JwtHeader + "." + pCertDoc.JWT[1] + "." + req.JwtSignature
 
-	pubKey := rsa.PublicKey{}
-	/*err = req.PublicKey.populateRsaPublicKey(&pubKey)
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse public key: %s", *req.PublicKey.KeyID)
-		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
-		return
-	}*/
-	_, err = parser.Parse(completeToken, func(_ *jwt.Token) (interface{}, error) {
-		return &pubKey, nil
-	})
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse jwt token: %s", completeToken)
-		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	decodedClaims, err := base64.RawStdEncoding.DecodeString(pCertDoc.JWT[1])
-	if err != nil {
-		respondInternalError(c, err, "failed to decode jwt claims")
-		return
-	}
-	claims := CertificateEnrollmentClaims{}
-	if err := json.Unmarshal(decodedClaims, &claims); err != nil {
-		respondInternalError(c, err, "failed to parse jwt claims")
-		return
-	}
-	cert := new(x509.Certificate)
-	pCertDoc.populateCertificate(cert)
+// 	pubKey := rsa.PublicKey{}
+// 	/*err = req.PublicKey.populateRsaPublicKey(&pubKey)
+// 	if err != nil {
+// 		log.Warn().Err(err).Msgf("failed to parse public key: %s", *req.PublicKey.KeyID)
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}*/
+// 	_, err = parser.Parse(completeToken, func(_ *jwt.Token) (interface{}, error) {
+// 		return &pubKey, nil
+// 	})
+// 	if err != nil {
+// 		log.Warn().Err(err).Msgf("failed to parse jwt token: %s", completeToken)
+// 		respondPublicErrorMsg(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+// 	decodedClaims, err := base64.RawStdEncoding.DecodeString(pCertDoc.JWT[1])
+// 	if err != nil {
+// 		respondInternalError(c, err, "failed to decode jwt claims")
+// 		return
+// 	}
+// 	claims := CertificateEnrollmentClaims{}
+// 	if err := json.Unmarshal(decodedClaims, &claims); err != nil {
+// 		respondInternalError(c, err, "failed to parse jwt claims")
+// 		return
+// 	}
+// 	cert := new(x509.Certificate)
+// 	pCertDoc.populateCertificate(cert)
 
-	//s.createCertificateFromTemplateWithCert(c, nsID, pCertDoc.TemplateDoc, cert, certID)
+// 	//s.createCertificateFromTemplateWithCert(c, nsID, pCertDoc.TemplateDoc, cert, certID)
 
-	c.JSON(http.StatusOK, nil)
-}
+// 	c.JSON(http.StatusOK, nil)
+// }
 
 /*
 func (p *models.JwkProperties) populateRsaPublicKey(k *rsa.PublicKey) error {

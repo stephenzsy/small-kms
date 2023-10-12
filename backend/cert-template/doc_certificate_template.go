@@ -3,13 +3,14 @@ package certtemplate
 import (
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
 
-	IssuerTemplate    models.ResourceLocator            `json:"issuerTemplate"`
-	Usages            []models.CertificateUsage         `json:"usages"`
+	IssuerTemplate    shared.ResourceLocator            `json:"issuerTemplate"`
+	Usages            []shared.CertificateUsage         `json:"usages"`
 	KeySpec           CertKeySpec                       `json:"keySpec"`
 	KeyStorePath      *string                           `json:"keyStorePath,omitempty"`
 	SubjectCommonName string                            `json:"subjectCn"`

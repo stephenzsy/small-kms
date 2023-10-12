@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -41,7 +42,7 @@ func issueCertificate(c RequestContext,
 	}
 	// verify graph
 	switch nsID.Kind() {
-	case models.NamespaceKindCaRoot, models.NamespaceKindCaInt:
+	case shared.NamespaceKindCaRoot, shared.NamespaceKindCaInt:
 		// ok
 	default:
 		// verify graph
@@ -69,22 +70,22 @@ func issueCertificate(c RequestContext,
 	}
 
 	switch nsID.Kind() {
-	case models.NamespaceKindServicePrincipal:
+	case shared.NamespaceKindServicePrincipal:
 		certDoc.CertSpec.keyExportable = true
 	default:
 		certDoc.CertSpec.keyExportable = false
 	}
 
 	switch nsID.Kind() {
-	case models.NamespaceKindCaRoot:
+	case shared.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
 			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
 		}
 		selfSignProvider := newAzKeysSelfSignerProvider(certDoc)
 		signerProvider = selfSignProvider
 		csrProvider = selfSignProvider
-	case models.NamespaceKindCaInt,
-		models.NamespaceKindServicePrincipal:
+	case shared.NamespaceKindCaInt,
+		shared.NamespaceKindServicePrincipal:
 		issuerDoc, err := certDoc.readIssuerCertDoc(c)
 		if err != nil {
 			return nil, err
@@ -103,7 +104,7 @@ func issueCertificate(c RequestContext,
 	if err != nil {
 		return nil, err
 	}
-	certDocLatestLinkLocator := models.NewResourceLocator(nsID, models.NewResourceID(models.ResourceKindLatestCertForTemplate,
+	certDocLatestLinkLocator := models.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate,
 		certDoc.Template.GetID().Identifier()))
 
 	_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)

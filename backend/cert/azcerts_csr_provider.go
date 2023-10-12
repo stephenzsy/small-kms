@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -184,7 +185,7 @@ func (p *azKeysExistingCertSigner) LoadSigner(c common.ElevatedContext) (signer 
 }
 
 // Locator implements SignerProvider.
-func (p *azKeysExistingCertSigner) Locator() common.Locator[models.NamespaceKind, models.ResourceKind] {
+func (p *azKeysExistingCertSigner) Locator() shared.ResourceLocator {
 	return p.issuerCertDoc.GetLocator()
 }
 

@@ -27,16 +27,4 @@ type ConfidentialAppIdentityProvider interface {
 type ServerContext interface {
 	ctx.Context
 	ServiceIdentity() AzureIdentity
-	//ServiceClientProvider
-	//ServiceIdentityProvider
 }
-
-// type ServiceClientProvider interface {
-
-// 	MsGraphServerClient() *msgraphsdkgo.GraphServiceClient
-// 	MsGraphDelegatedClient(ctx.Context) (*msgraphsdkgo.GraphServiceClient, error)
-// 	AzBlobContainerClient() *azblobcontainer.Client
-// 	AzSubscriptionID() string
-// 	AzResourceGroupName() string
-// 	ArmRoleAssignmentsDelegatedClient(ctx.Context) (*armauthorization.RoleAssignmentsClient, error)
-// }

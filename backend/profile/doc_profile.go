@@ -7,6 +7,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -23,11 +24,11 @@ const (
 )
 
 var supportedMsGraphOdataTypeToDocNsID = map[MsGraphOdataType]models.NamespaceKind{
-	MsGraphOdataTypeDevice:           models.NamespaceKindDevice,
-	MsGraphOdataTypeUser:             models.NamespaceKindUser,
-	MsGraphOdataTypeGroup:            models.NamespaceKindGroup,
-	MsGraphOdataTypeApplication:      models.NamespaceKindApplication,
-	MsGraphOdataTypeServicePrincipal: models.NamespaceKindServicePrincipal,
+	MsGraphOdataTypeDevice:           shared.NamespaceKindDevice,
+	MsGraphOdataTypeUser:             shared.NamespaceKindUser,
+	MsGraphOdataTypeGroup:            shared.NamespaceKindGroup,
+	MsGraphOdataTypeApplication:      shared.NamespaceKindApplication,
+	MsGraphOdataTypeServicePrincipal: shared.NamespaceKindServicePrincipal,
 }
 
 type ProfileDocGraphData struct {
@@ -74,11 +75,11 @@ func (d *ProfileDoc) init(dirObj gmodels.DirectoryObjectable) error {
 		return fmt.Errorf("%w:unsupported odata type from graph api: %s", common.ErrStatusBadRequest, *odataType)
 	}
 
-	id := common.UUIDIdentifierFromStringPtr(dirObj.GetId())
+	id := shared.UUIDIdentifierFromStringPtr(dirObj.GetId())
 	if dirObjUuid, isUuid := id.TryGetUUID(); !isUuid || dirObjUuid.Version() != 4 {
 		return fmt.Errorf("invalid graph object id from api: %s", id.String())
 	}
-	d.ID = common.NewIdentifierWithKind(models.ResourceKindMsGraph, id)
+	d.ID = shared.NewResourceIdentifier(shared.ResourceKindMsGraph, id)
 
 	g := ProfileDocGraphData{}
 	d.Graph = &g

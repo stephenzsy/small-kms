@@ -22,7 +22,7 @@ RUN apk add --no-cache ca-certificates
 
 # Copy our static executable.
 COPY --from=builder /app/server /server
-COPY --from=builder /app/agent-server /agnet-server
+COPY --from=builder /app/agent-server /agent-server
 
 # Run
 CMD ["/server", "admin", ":9000"]

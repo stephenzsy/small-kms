@@ -2,14 +2,14 @@ package certtemplate
 
 import (
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type RequestContext = common.RequestContext
 
 type CertificateTemplateService interface {
-	GetCertificateTemplateLocator(RequestContext) models.ResourceLocator
+	GetCertificateTemplateLocator(RequestContext) shared.ResourceLocator
 	GetCertificateTemplateDoc(RequestContext) (*CertificateTemplateDoc, error)
 }
 
@@ -18,7 +18,7 @@ type certTmplContext struct {
 }
 
 // GetCertificateTemplateLocator implements CertificateTemplateContext.
-func (ctc *certTmplContext) GetCertificateTemplateLocator(c RequestContext) models.ResourceLocator {
+func (ctc *certTmplContext) GetCertificateTemplateLocator(c RequestContext) shared.ResourceLocator {
 	nsID := ns.GetNamespaceContext(c).GetID()
 	return getCertificateTemplateDocLocator(nsID, ctc.templateID)
 }
