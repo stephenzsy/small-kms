@@ -222,7 +222,7 @@ func WithNamespaceContext(parent RequestContext, unverifiedKind shared.Namespace
 	if err := validateNamespaceID(nsID); err != nil {
 		return parent, err
 	}
-	return common.RequestContextWithValue(parent, namespaceContextKey, &namespaceContext{
+	return parent.WithSharedValue(namespaceContextKey, &namespaceContext{
 		nsID: nsID,
 	}), nil
 }

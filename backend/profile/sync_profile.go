@@ -50,7 +50,7 @@ func upsertProfileDoc(c RequestContext, profileDoc *ProfileDoc, odataErrorCode *
 		ops.AppendSet("/@odata.type", profileDoc.OdataType)
 		ops.AppendSet("/displayName", profileDoc.DispalyName)
 	}
-	err = kmsdoc.Patch(c, profileDoc.GetLocator(), profileDoc, ops, &azcosmos.ItemOptions{
+	err = kmsdoc.Patch(c, profileDoc, ops, &azcosmos.ItemOptions{
 		IfMatchEtag: &doc.ETag,
 	})
 	if err != nil {
@@ -165,7 +165,7 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 		} else {
 			patchOps.AppendSet(fmt.Sprintf("/@owns/%s", shared.NamespaceKindServicePrincipal), profileDoc.GetLocator())
 		}
-		err = kmsdoc.Patch(c, ownerDoc.GetLocator(), ownerDoc, patchOps, &azcosmos.ItemOptions{
+		err = kmsdoc.Patch(c, ownerDoc, patchOps, &azcosmos.ItemOptions{
 			IfMatchEtag: &ownerDoc.ETag,
 		})
 		return profileDoc.toModel(), err

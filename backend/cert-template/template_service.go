@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type certTmplContextKey string
@@ -13,12 +14,12 @@ const (
 )
 
 // WithCertificateTemplateContext implements CertificateTemplateService.
-func WithCertificateTemplateContext(c RequestContext, templateID common.Identifier) (RequestContext, error) {
+func WithCertificateTemplateContext(c RequestContext, templateID shared.Identifier) (RequestContext, error) {
 	if !templateID.IsValid() {
-		return nil, fmt.Errorf("%w:invalid template ID:%s", common.ErrStatusBadRequest, templateID)
+		return c, fmt.Errorf("%w:invalid template ID:%s", common.ErrStatusBadRequest, templateID)
 	}
 	ctc := newCertificateTemplateService(templateID)
-	return common.RequestContextWithValue(c, certTmplContextKeyDefault, ctc), nil
+	return c.WithSharedValue(certTmplContextKeyDefault, ctc), nil
 }
 
 func GetCertificateTemplateContext(c RequestContext) CertificateTemplateService {

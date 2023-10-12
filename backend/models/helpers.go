@@ -31,14 +31,3 @@ func NewResourceLocator(namespaceID NamespaceID, resourceID ResourceID) shared.R
 func NewNamespaceID(kind NamespaceKind, identifier shared.Identifier) NamespaceID {
 	return shared.NewNamespaceIdentifier(kind, identifier)
 }
-
-/*
-	func NewNamespaceStringID(kind NamespaceKind, id string) NamespaceID {
-		return common.NewIdentifierWithKind(kind, common.StringIdentifier(id))
-	}
-*/
-
-// Deprecated: use shared.NewResourceIdentifier instead
-func NewResourceID(kind ResourceKind, identifier shared.Identifier) ResourceID {
-	return shared.NewResourceIdentifier(kind, identifier)
-}

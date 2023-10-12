@@ -74,19 +74,6 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         409:
           $ref: "#/components/responses/ErrorResponse"
-  /v2/{namespaceId}/certificates/{certId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertIdParameter"
-      - $ref: "#/components/parameters/IncludeCertificateParameter"
-    get:
-      tags:
-        - admin
-      summary: Get certificate
-      operationId: GetCertificateV2
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
   /v2/{namespaceId}/certificates/{certId}/pending:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

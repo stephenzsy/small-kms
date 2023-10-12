@@ -2,110 +2,88 @@ package common
 
 import (
 	ctx "context"
-	"errors"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
-var (
-	ErrContextNotSafeForMutationr = errors.New("context not safe for mutation")
-)
-
-type elevatedContext struct {
-	ctx.Context
-}
-
-func (c elevatedContext) IsElevated() bool {
-	return true
-}
-
-type ElevatedContext interface {
-	ctx.Context
-	IsElevated() bool
-}
-
-var _ ElevatedContext = elevatedContext{}
-
-type RequestContext interface {
+type RequestContext struct {
 	echo.Context
-	ctx.Context
-	IsElevated() bool
-	Elevate() ElevatedContext
+	valueCtx       ctx.Context
+	serviceContext ctx.Context
 }
 
-type injectedEchoContext struct {
-	echo.Context
-	inner      ctx.Context
-	isElevated bool
+// Deadline implements context.Context.
+func (c RequestContext) Deadline() (deadline time.Time, ok bool) {
+	return c.Context.Request().Context().Deadline()
 }
 
-// IsElevated implements RequestContext.
-func (c injectedEchoContext) IsElevated() bool {
-	return c.isElevated
+// Done implements context.Context.
+func (c RequestContext) Done() <-chan struct{} {
+	return c.Context.Request().Context().Done()
 }
 
-// Elevate implements RequestContext.
-func (c injectedEchoContext) Elevate() ElevatedContext {
-	return elevatedContext{c.Value(serverContextKey).(ServerContext)}
+// Err implements context.Context.
+func (c RequestContext) Err() error {
+	return c.Context.Request().Context().Err()
 }
 
-// Deadline implements InjectedEchoContext.
-func (c injectedEchoContext) Deadline() (deadline time.Time, ok bool) {
-	return c.inner.Deadline()
+// Value implements context.Context.
+func (c RequestContext) Value(key any) any {
+	if v := c.valueCtx.Value(key); v != nil {
+		return v
+	}
+	if v := c.serviceContext.Value(key); v != nil {
+		return v
+	}
+	return c.Context.Request().Context().Value(key)
 }
 
-// Done implements InjectedEchoContext.
-func (c injectedEchoContext) Done() <-chan struct{} {
-	return c.inner.Done()
+func (c RequestContext) Elevate() ctx.Context {
+	return ctx.WithValue(c.serviceContext, isElevatedContextKey, true)
 }
 
-// Err implements InjectedEchoContext.
-func (c injectedEchoContext) Err() error {
-	return c.inner.Err()
+func IsElevated(c ctx.Context) bool {
+	if v := c.Value(isElevatedContextKey); v != nil {
+		return v.(bool)
+	}
+	return false
 }
 
-// Value implements InjectedEchoContext.
-func (c injectedEchoContext) Value(key any) any {
-	return c.inner.Value(key)
-}
-
-var _ RequestContext = injectedEchoContext{}
-
-func WrapEchoContext(c echo.Context) RequestContext {
-	return injectedEchoContext{
-		Context: c,
-		inner:   c.Request().Context(),
+func (c RequestContext) WithSharedValue(key any, val any) RequestContext {
+	return RequestContext{
+		Context:        c.Context,
+		serviceContext: ctx.WithValue(c.serviceContext, key, val),
 	}
 }
 
-func EchoContextWithValue(parent echo.Context, key any, val any) RequestContext {
-	if p, ok := parent.(RequestContext); ok {
-		return RequestContextWithValue(p, key, val)
-	}
-	return injectedEchoContext{
-		Context: parent,
-		inner:   ctx.WithValue(parent.Request().Context(), key, val),
+func (c RequestContext) WitValue(key any, val any) RequestContext {
+	return RequestContext{
+		Context:        c.Context,
+		valueCtx:       ctx.WithValue(c.valueCtx, key, val),
+		serviceContext: c.serviceContext,
 	}
 }
 
-type contextKey string
+var _ echo.Context = RequestContext{}
+var _ ctx.Context = RequestContext{}
 
-const serverContextKey contextKey = "serverContext"
-
-func EchoContextWithServerContext(parent echo.Context, val ServerContext) RequestContext {
-	return EchoContextWithValue(parent, serverContextKey, val)
-}
-
-func RequestContextWithValue(parent RequestContext, key any, val any) RequestContext {
-	return injectedEchoContext{
-		Context: parent,
-		inner:   ctx.WithValue(parent, key, val),
+func WrapEchoContext(c echo.Context, serviceContext ctx.Context) RequestContext {
+	return RequestContext{
+		Context:        c,
+		valueCtx:       ctx.Background(),
+		serviceContext: serviceContext,
 	}
 }
 
-func InjectAppContext(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return next(WrapEchoContext(c))
+type H = map[string]string
+
+func EchoRequestContextWithSharedValue(c echo.Context, key any, val any) (echo.Context, error) {
+	if r, ok := c.(RequestContext); ok {
+		return r.WithSharedValue(key, val), nil
 	}
+	log.Error().Msg("invalid echo context in chain")
+	return c, c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
 }

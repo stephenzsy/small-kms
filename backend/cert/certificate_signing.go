@@ -2,6 +2,7 @@ package cert
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -18,21 +19,21 @@ import (
 )
 
 type SelfSignedCertificateProvider interface {
-	CreateSelfSignedCertificate(common.ElevatedContext) ([]byte, *CertJwkSpec, error)
-	Close()
+	CreateSelfSignedCertificate(context.Context) ([]byte, *CertJwkSpec, error)
+	Close(context.Context)
 	KeepCertificate()
 	Locator() shared.ResourceLocator
 }
 
 type CertificateRequestProvider interface {
-	Load(common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
-	Close()
-	CollectCertificateChain([][]byte, *CertJwkSpec) error
+	Load(context.Context) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
+	Close(context.Context)
+	CollectCertificateChain(context.Context, [][]byte, *CertJwkSpec) error
 }
 
 type SignerProvider interface {
 	// this call also populate other fields in the signer provider
-	LoadSigner(common.ElevatedContext) (crypto.Signer, error)
+	LoadSigner(context.Context) (crypto.Signer, error)
 	Certificate() *x509.Certificate
 	Locator() shared.ResourceLocator
 	GetIssuerCertStorePath() string
@@ -42,14 +43,14 @@ type SignerProvider interface {
 }
 
 type StorageProvider interface {
-	StoreCertificateChainPEM(c common.ElevatedContext, pemBlob []byte, x5t []byte,
+	StoreCertificateChainPEM(c context.Context, pemBlob []byte, x5t []byte,
 		issuerLocatorStr string) (string, error)
 }
 
-func getSelfSignedCertificate(c common.ElevatedContext,
+func getSelfSignedCertificate(c context.Context,
 	certProvider SelfSignedCertificateProvider,
 	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
-	defer certProvider.Close()
+	defer certProvider.Close(c)
 	certCreated, certJwkSpec, err := certProvider.CreateSelfSignedCertificate(c)
 
 	if err != nil {
@@ -77,13 +78,13 @@ func getSelfSignedCertificate(c common.ElevatedContext,
 	}, nil
 }
 
-func signCertificate(c common.ElevatedContext,
+func signCertificate(c context.Context,
 	csrProvider CertificateRequestProvider,
 	signerProvider SignerProvider,
 	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
 
 	// load certificate public key first, in case of our implementation of self signer requires key created before signing
-	defer csrProvider.Close()
+	defer csrProvider.Close(c)
 	certTemplate, publicKey, certJwkSpec, err := csrProvider.Load(c)
 
 	if err != nil {
@@ -105,7 +106,7 @@ func signCertificate(c common.ElevatedContext,
 		return nil, err
 	}
 	fullChain := append([][]byte{certCreated}, signerProvider.CertificatesInChain()...)
-	err = csrProvider.CollectCertificateChain(fullChain, certJwkSpec)
+	err = csrProvider.CollectCertificateChain(c, fullChain, certJwkSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ type azBlobStorageProvider struct {
 	blobKey string
 }
 
-func (p *azBlobStorageProvider) StoreCertificateChainPEM(c common.ElevatedContext, pem, x5t []byte, issuerLocaterStr string) (string, error) {
+func (p *azBlobStorageProvider) StoreCertificateChainPEM(c context.Context, pem, x5t []byte, issuerLocaterStr string) (string, error) {
 	if p.blobKey == "" {
 		return "", fmt.Errorf("%w:empty blob name", common.ErrStatusBadRequest)
 	}

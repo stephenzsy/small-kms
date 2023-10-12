@@ -61,7 +61,7 @@ type ServerInterface interface {
 	ListCertificatesByTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
 	// Create certificate
 	// (POST /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates)
-	IssueCertificateFromTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
+	IssueCertificateFromTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams) error
 	// List keyvault role assignments
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments)
 	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -480,8 +480,31 @@ func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) 
 
 	ctx.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params IssueCertificateFromTemplateParams
+	// ------------- Optional query parameter "includeCertificate" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", ctx.QueryParams(), &params.IncludeCertificate)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeCertificate: %s", err))
+	}
+
+	// ------------- Optional query parameter "force" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "force", ctx.QueryParams(), &params.Force)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter force: %s", err))
+	}
+
+	// ------------- Optional query parameter "tags" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "tags", ctx.QueryParams(), &params.Tags)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tags: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.IssueCertificateFromTemplate(ctx, namespaceKind, namespaceId, templateId)
+	err = w.Handler.IssueCertificateFromTemplate(ctx, namespaceKind, namespaceId, templateId, params)
 	return err
 }
 

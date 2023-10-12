@@ -19,13 +19,12 @@ type AdminServerClientProvider interface {
 	MsGraphClient() *msgraphsdkgo.GraphServiceClient
 }
 
+type contextKey string
+
 const adminServerClientProviderContextKey contextKey = "adminServerClient"
+const isElevatedContextKey contextKey = "isElevated"
 
-func WithAdminServerClientProvider(c RequestContext, p AdminServerClientProvider) RequestContext {
-	return RequestContextWithValue(c, adminServerClientProviderContextKey, p)
-}
-
-func ContextWithAdminServerClientProvider(c context.Context, p AdminServerClientProvider) context.Context {
+func WithAdminServerClientProvider(c context.Context, p AdminServerClientProvider) context.Context {
 	return context.WithValue(c, adminServerClientProviderContextKey, p)
 }
 
@@ -45,7 +44,7 @@ type AdminServerRequestClientProvider interface {
 const adminServerRequestClientProvierContextKey contextKey = "adminServerRequestClient"
 
 func WithAdminServerRequestClientProvider(c RequestContext, p AdminServerRequestClientProvider) RequestContext {
-	return RequestContextWithValue(c, adminServerRequestClientProvierContextKey, p)
+	return c.WitValue(adminServerRequestClientProvierContextKey, p)
 }
 
 func GetAdminServerRequestClientProvider(c RequestContext) AdminServerRequestClientProvider {

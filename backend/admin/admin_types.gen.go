@@ -289,11 +289,6 @@ type GetLatestCertificateByTemplateV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 }
 
-// GetCertificateV2Params defines parameters for GetCertificateV2.
-type GetCertificateV2Params struct {
-	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-}
-
 // CompleteCertificateEnrollmentV2Params defines parameters for CompleteCertificateEnrollmentV2.
 type CompleteCertificateEnrollmentV2Params struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`

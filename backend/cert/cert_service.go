@@ -1,11 +1,15 @@
 package cert
 
 import (
+	"fmt"
+
+	"github.com/rs/zerolog/log"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type RequestContext = common.RequestContext
@@ -18,29 +22,45 @@ const (
 )
 */
 // IssueCertificateFromTemplate implements CertificateService.
-func IssueCertificateFromTemplate(c RequestContext) (*models.CertificateInfoComposed, error) {
+func IssueCertificateFromTemplate(
+	c RequestContext,
+	params models.IssueCertificateFromTemplateParams) (*shared.CertificateInfo, error) {
 
 	nsID := ns.GetNamespaceContext(c).GetID()
 	ctc := ct.GetCertificateTemplateContext(c)
-	tmpl, err := ctc.GetCertificateTemplateDoc(c)
+
+	// verify template
+	tmplDoc, err := ctc.GetCertificateTemplateDoc(c)
 	if err != nil {
 		return nil, err
 	}
-
-	certDoc, err := createCertificateDoc(nsID, tmpl)
-	if err != nil {
-		return nil, err
+	if utils.IsTimeNotNilOrZero(tmplDoc.Deleted) {
+		return nil, fmt.Errorf("%w: template not found or no longer active", common.ErrStatusNotFound)
 	}
 
-	// persist document
-	err = kmsdoc.Create(c, certDoc)
-	if err != nil {
-		return nil, err
+	newCert := false
+	var certDoc *CertDoc
+	if params.Force {
+		log.Info().Msg("force issue certificate")
+		newCert = true
+	} else {
+		certDoc, newCert, err = shouldCreateNewCertificate(c, tmplDoc)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	certDoc, err = issueCertificate(c, certDoc)
-	if err != nil {
-		return nil, err
+	if newCert {
+		certDoc, err := prepareNewCertDoc(nsID, tmplDoc)
+		if err != nil {
+			return nil, err
+		}
+
+		_, certDoc, err = issueCertificate(c, certDoc)
+		if err != nil {
+			return nil, err
+		}
+		return certDoc.toModel(), common.ErrStatus2xxCreated
 	}
 	return certDoc.toModel(), nil
 }

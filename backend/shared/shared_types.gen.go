@@ -71,6 +71,13 @@ const (
 	ResourceKindReserved              ResourceKind = "reserved"
 )
 
+// Defines values for TemplatedCertificateTag.
+const (
+	CertificateTagLatest    TemplatedCertificateTag = "latest"
+	CertificateTagPrimary   TemplatedCertificateTag = "primary"
+	CertificateTagSecondary TemplatedCertificateTag = "secondary"
+)
+
 // Defines values for WellknownCertificateTemplateName.
 const (
 	CertTemplateNameDefault                   WellknownCertificateTemplateName = "default"
@@ -197,6 +204,9 @@ type ResourceRef struct {
 	Updated   *time.Time `json:"updated,omitempty"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
+
+// TemplatedCertificateTag defines model for TemplatedCertificateTag.
+type TemplatedCertificateTag string
 
 // WellknownCertificateTemplateName defines model for WellknownCertificateTemplateName.
 type WellknownCertificateTemplateName string

@@ -33,14 +33,13 @@ func (d *AgentActiveServerDoc) toModel() *models.AgentConfiguration {
 }
 
 func handleGetAgentActiveServer(c RequestContext, nsID shared.NamespaceIdentifier) (*models.AgentConfiguration, error) {
-	locator := shared.NewResourceLocator(nsID, models.NewResourceID(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
+	locator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
 	doc := AgentActiveServerDoc{}
 	err := kmsdoc.Read(c, locator, &doc)
 	return doc.toModel(), err
 }
-
 func handlePutAgentActiveServer(c RequestContext, nsID models.NamespaceID, params models.AgentConfigurationParameters) (*models.AgentConfiguration, error) {
-	locator := shared.NewResourceLocator(nsID, models.NewResourceID(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
+	locator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
 	p, err := params.AsAgentConfigurationAgentActiveHostBootstrap()
 	if err != nil {
 		return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)

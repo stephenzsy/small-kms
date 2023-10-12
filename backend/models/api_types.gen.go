@@ -318,6 +318,13 @@ type PatchServiceConfigJSONBody = interface{}
 // PatchServiceConfigParamsConfigPath defines parameters for PatchServiceConfig.
 type PatchServiceConfigParamsConfigPath string
 
+// IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
+type IssueCertificateFromTemplateParams struct {
+	IncludeCertificate *IncludeCertificate                     `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	Force              bool                                    `form:"force,omitempty" json:"force,omitempty"`
+	Tags               *[]externalRef0.TemplatedCertificateTag `form:"tags,omitempty" json:"tags,omitempty"`
+}
+
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {
 	IncludeCertificate    *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`

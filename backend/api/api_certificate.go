@@ -33,27 +33,30 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind models.NamespaceK
 }
 
 // IssueCertificateFromTemplate implements models.ServerInterface.
-func (s *server) IssueCertificateFromTemplate(ec echo.Context,
-	profileType models.NamespaceKind,
-	profileId common.Identifier,
-	templateID common.Identifier) error {
-	c := ec.(RequestContext)
-	respData, respErr := (func() (*models.CertificateInfoComposed, error) {
-		if err := auth.AuthorizeAdminOnly(c); err != nil {
-			return nil, err
-		}
+func (s *server) IssueCertificateFromTemplate(ctx echo.Context,
+	profileType shared.NamespaceKind,
+	profileId shared.Identifier,
+	templateID shared.Identifier,
+	params models.IssueCertificateFromTemplateParams) error {
+	bad := func(e error) error {
+		return wrapResponse[*shared.CertificateInfo](ctx, http.StatusOK, nil, e)
+	}
+	c := ctx.(RequestContext)
 
-		c, err := ns.WithNamespaceContext(c, profileType, profileId)
-		if err != nil {
-			return nil, err
-		}
-		c, err = ct.WithCertificateTemplateContext(c, templateID)
-		if err != nil {
-			return nil, err
-		}
-		return cert.IssueCertificateFromTemplate(c)
-	})()
-	return wrapResponse(ec, http.StatusOK, respData, respErr)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+	}
+
+	c, err := ns.WithNamespaceContext(c, profileType, profileId)
+	if err != nil {
+		return bad(err)
+	}
+	c, err = ct.WithCertificateTemplateContext(c, templateID)
+	if err != nil {
+		return bad(err)
+	}
+	resp, err := cert.IssueCertificateFromTemplate(c, params)
+	return wrapResponse(c, http.StatusOK, resp, err)
 }
 
 // ListCertificatesByTemplate implements models.ServerInterface.

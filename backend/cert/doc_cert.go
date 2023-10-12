@@ -79,18 +79,15 @@ type CertDocSigningPatch struct {
 	Issuer        shared.ResourceLocator
 }
 
-func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) error {
-	patchOps := azcosmos.PatchOperations{}
-	patchOps.AppendSet("/thumbprint", patch.Thumbprint.HexString())
-	patchOps.AppendSet("/certStorePath", patch.CertStorePath)
-	patchOps.AppendSet("/issuer", patch.Issuer.String())
-	patchOps.AppendSet("/status", CertStatusIssued)
-	patchOps.AppendRemove("/pendingExpires")
-	patchOps.AppendSet("/certSpec", patch.CertSpec)
-
-	err := kmsdoc.Patch(c, d.GetLocator(), d, patchOps, nil)
-	if err != nil {
-		return err
+func (d *CertDoc) patchSigned(c context.Context, patch *CertDocSigningPatch) (patchOps *azcosmos.PatchOperations) {
+	if !d.Updated.IsZero() {
+		patchOps = new(azcosmos.PatchOperations)
+		patchOps.AppendSet("/thumbprint", patch.Thumbprint.HexString())
+		patchOps.AppendSet("/certStorePath", patch.CertStorePath)
+		patchOps.AppendSet("/issuer", patch.Issuer.String())
+		patchOps.AppendSet("/status", CertStatusIssued)
+		patchOps.AppendRemove("/pendingExpires")
+		patchOps.AppendSet("/certSpec", patch.CertSpec)
 	}
 	d.Thumbprint = patch.Thumbprint
 	d.CertStorePath = patch.CertStorePath
@@ -99,7 +96,7 @@ func (d *CertDoc) patchSigned(c RequestContext, patch *CertDocSigningPatch) erro
 	d.PendingExpires = nil
 	d.CertSpec = patch.CertSpec
 
-	return nil
+	return
 }
 
 func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err error) {
@@ -141,7 +138,7 @@ func (doc *CertDoc) fetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 	return downloadedData.Bytes(), nil
 }
 
-func createCertificateDoc(nsID shared.NamespaceIdentifier,
+func prepareNewCertDoc(nsID shared.NamespaceIdentifier,
 	tmpl *ct.CertificateTemplateDoc) (*CertDoc, error) {
 
 	certID, err := uuid.NewRandom()

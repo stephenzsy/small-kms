@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	ErrStatus2xxCreated   = errors.New("created")            // 201
 	ErrStatusBadRequest   = errors.New("invalid input")      // 400
 	ErrStatusUnauthorized = errors.New("unauthorized")       // 401
 	ErrStatusForbidden    = errors.New("forbidden")          // 403

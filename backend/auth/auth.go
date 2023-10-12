@@ -64,7 +64,10 @@ func ProxiedAADAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 	afterParsePrincipalClaims:
-		c = common.EchoContextWithValue(c, appAuthIdentityContextKey, a)
+		c, err = common.EchoRequestContextWithSharedValue(c, appAuthIdentityContextKey, a)
+		if err != nil {
+			return err
+		}
 		return next(c)
 	}
 }

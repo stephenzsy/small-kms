@@ -55,6 +55,8 @@ func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err 
 	switch {
 	case err == nil:
 		return c.JSON(defaultStatus, data)
+	case errors.Is(err, common.ErrStatus2xxCreated):
+		return c.JSON(http.StatusCreated, data)
 	case errors.Is(err, common.ErrStatusBadRequest):
 		return c.JSON(http.StatusBadRequest, H{"error": err.Error()})
 	case errors.Is(err, common.ErrStatusUnauthorized):
@@ -89,8 +91,9 @@ func (i *appConfidentialIdentity) TokenCredential() azcore.TokenCredential {
 }
 
 var _ common.AzureAppConfidentialIdentity = (*appConfidentialIdentity)(nil)
+var _ models.ServerInterface = (*server)(nil)
 
-func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
+func NewServer(c ctx.Context) *server {
 
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
@@ -120,19 +123,18 @@ func NewServer(c ctx.Context) (models.ServerInterface, echo.MiddlewareFunc) {
 	if s.clients, err = newServerClientProvider(&s); err != nil {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
-	s.serverContext = common.ContextWithAdminServerClientProvider(c, &s.clients)
+	s.serverContext = common.WithAdminServerClientProvider(c, &s.clients)
 
 	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
 	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
 
-	return &s, s.InjectServerContext()
+	return &s
 }
 
-func (s *server) InjectServerContext() echo.MiddlewareFunc {
+func (s *server) GetMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			rc := common.EchoContextWithServerContext(c, s)
-			rc = common.WithAdminServerClientProvider(rc, &s.clients)
+			rc := common.WrapEchoContext(c, s.serverContext)
 			rc = common.WithAdminServerRequestClientProvider(rc, &requestClientProvider{
 				parent:            s,
 				credentialContext: rc,

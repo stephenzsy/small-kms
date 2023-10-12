@@ -1,8 +1,13 @@
 package cert
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"slices"
+	"time"
 
+	"github.com/rs/zerolog/log"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -12,32 +17,67 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-var (
-	ErrInvalidContext = fmt.Errorf("invalid context")
-)
+func shouldCreateNewCertificate(c RequestContext, templateDoc *ct.CertificateTemplateDoc) (*CertDoc, bool, error) {
+	certDoc, err := getLatestCertificateByTemplateDoc(c, templateDoc.GetLocator())
+	if err != nil {
+		if !errors.Is(err, common.ErrStatusNotFound) {
+			return nil, false, err
+		}
+		return nil, true, nil
+	}
+
+	if certDoc.Deleted != nil {
+		log.Info().Msg("should create new cert: latest certificate is deleted")
+		return certDoc, true, nil
+	}
+	if certDoc.NotAfter.Time().Before(time.Now()) {
+		log.Info().Msg("should create new cert: latest certificate is expired")
+		return certDoc, true, nil
+	}
+	if !slices.Equal(certDoc.TemplateDigest, templateDoc.Digest) {
+		log.Info().Msg("should create new cert: template digest mismatch")
+		return certDoc, true, nil
+	}
+
+	if templateDoc.LifetimeTrigger.DaysBeforeExpiry != nil {
+		cutOff := certDoc.NotAfter.Time().AddDate(0, 0, 0-int(*templateDoc.LifetimeTrigger.DaysBeforeExpiry))
+		shouldRenew := cutOff.Before(time.Now())
+		log.Info().Msgf("should create new cert: eval days before expiry: %v", shouldRenew)
+		return certDoc, shouldRenew, nil
+	}
+
+	if templateDoc.LifetimeTrigger.LifetimePercentage != nil {
+		duration := certDoc.NotAfter.Time().Sub(certDoc.NotBefore.Time())
+		cutOff := certDoc.NotBefore.Time().Add(duration * time.Duration(*templateDoc.LifetimeTrigger.LifetimePercentage) / 100)
+		shouldRenew := cutOff.Before(time.Now())
+		log.Info().Msgf("should create new cert: eval lifetime percentage: %v", shouldRenew)
+		return certDoc, shouldRenew, nil
+	}
+
+	log.Info().Msg("should not create new cert: current is within range")
+	return certDoc, false, nil
+}
 
 func issueCertificate(c RequestContext,
-	certDoc *CertDoc) (*CertDoc, error) {
+	certDoc *CertDoc) (context.Context, *CertDoc, error) {
 
-	ctc := ct.GetCertificateTemplateContext(c)
-	nsID := ns.GetNamespaceContext(c).GetID()
-	// verify template
-	if tmplDoc, err := ctc.GetCertificateTemplateDoc(c); err != nil {
-		return nil, err
-	} else if utils.IsTimeNotNilOrZero(tmplDoc.Deleted) {
-		return nil, fmt.Errorf("%w: template not found", common.ErrStatusNotFound)
+	bad := func(e error) (context.Context, *CertDoc, error) {
+		return nil, nil, e
 	}
+
+	nsID := ns.GetNamespaceContext(c).GetID()
+
 	// verify issuer template still active
 	if issuerTmplDoc, err := ct.GetCertificateTemplateDoc(c, certDoc.Issuer); err != nil {
-		return nil, err
+		return bad(err)
 	} else if utils.IsTimeNotNilOrZero(issuerTmplDoc.Deleted) {
-		return nil, fmt.Errorf("%w: issuer template not found", common.ErrStatusNotFound)
+		return bad(fmt.Errorf("%w: issuer template not found", common.ErrStatusNotFound))
 	}
 	// verify profile
 	if pdoc, err := profile.GetResourceProfileDoc(c); err != nil {
-		return nil, err
+		return bad(err)
 	} else if utils.IsTimeNotNilOrZero(pdoc.Deleted) {
-		return nil, fmt.Errorf("%w: profile not found", common.ErrStatusNotFound)
+		return bad(fmt.Errorf("%w: profile not found", common.ErrStatusNotFound))
 	}
 	// verify graph
 	switch nsID.Kind() {
@@ -47,18 +87,18 @@ func issueCertificate(c RequestContext,
 		// verify graph
 		gc, err := common.GetAdminServerRequestClientProvider(c).MsGraphClient()
 		if err != nil {
-			return nil, err
+			return bad(err)
 		}
 		dirObj, err := gc.DirectoryObjects().ByDirectoryObjectId(nsID.Identifier().String()).Get(c, nil)
 		if err != nil {
-			return nil, err
+			return bad(err)
 		}
 		pdoc, err := profile.StoreProfile(c, dirObj, nil, nil)
 		if err != nil {
-			return nil, err
+			return bad(err)
 		}
 		if pdoc.ProfileType != nsID.Kind() {
-			return nil, fmt.Errorf("%w: invalid profile type, mismatch", common.ErrStatusBadRequest)
+			return bad(fmt.Errorf("%w: invalid profile type, mismatch", common.ErrStatusBadRequest))
 		}
 	}
 
@@ -79,13 +119,12 @@ func issueCertificate(c RequestContext,
 	switch nsID.Kind() {
 	case shared.NamespaceKindSystem:
 		if nsID != certDoc.Issuer.GetNamespaceID() {
-			return nil, fmt.Errorf("invalid issuer for system, must be self")
+			return bad(fmt.Errorf("invalid issuer for system, must be self"))
 		}
 		selfSignedProvider = newAzCertsCsrProvider(certDoc, true)
-
 	case shared.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
-			return nil, fmt.Errorf("invalid issuer template for root ca, must be self")
+			return bad(fmt.Errorf("invalid issuer template for root ca, must be self"))
 		}
 		selfSignProvider := newAzKeysSelfSignerProvider(certDoc)
 		signerProvider = selfSignProvider
@@ -94,34 +133,48 @@ func issueCertificate(c RequestContext,
 		shared.NamespaceKindServicePrincipal:
 		issuerDoc, err := certDoc.readIssuerCertDoc(c)
 		if err != nil {
-			return nil, err
+			return bad(err)
 		}
 		csrProvider = newAzCertsCsrProvider(certDoc, false)
 		signerProvider = newAzKeysExistingCertSigner(issuerDoc)
 	default:
-		return nil, fmt.Errorf("%w: invalid namespace kind", common.ErrStatusBadRequest)
+		return bad(fmt.Errorf("%w: invalid namespace kind", common.ErrStatusBadRequest))
 	}
-	var patch *CertDocSigningPatch
-	var err error
-	if selfSignedProvider != nil {
-		patch, err = getSelfSignedCertificate(c, selfSignedProvider, storageProvider)
-	} else {
-		patch, err = signCertificate(c, csrProvider, signerProvider, storageProvider)
-	}
-	if err != nil {
-		return nil, err
-	}
-	err = certDoc.patchSigned(c, patch)
-	if err != nil {
-		return nil, err
-	}
-	certDocLatestLinkLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate,
-		certDoc.Template.GetID().Identifier()))
+	if c := c.Elevate(); c != nil {
+		var patch *CertDocSigningPatch
+		var err error
+		if selfSignedProvider != nil {
+			patch, err = getSelfSignedCertificate(c, selfSignedProvider, storageProvider)
+		} else {
+			patch, err = signCertificate(c, csrProvider, signerProvider, storageProvider)
+		}
+		if err != nil {
+			return bad(err)
+		}
+		if patchOps := certDoc.patchSigned(c, patch); patchOps == nil {
+			// persist doc for new certs
+			err = kmsdoc.Create(c, certDoc)
+		} else {
+			// patch doc
+			err = kmsdoc.Patch(c, certDoc, *patchOps, nil)
+		}
+		if err != nil {
+			// patch failed, but cert is signed
+			log.Error().Err(err).Msgf("Cert is issued, but failed to create/patch cert doc: %s", certDoc.GetLocator())
+			// TODO: disable cert on key vault
+			return bad(err)
+		}
 
-	_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)
-	if err != nil {
-		return nil, err
-	}
+		// create template link in this block for now
+		certDocLatestLinkLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate,
+			certDoc.Template.GetID().Identifier()))
 
-	return certDoc, nil
+		_, err = kmsdoc.UpsertAliasWithSnapshot(c, certDoc, certDocLatestLinkLocator)
+		if err != nil {
+			return bad(err)
+		}
+
+		return c, certDoc, nil
+	}
+	return nil, nil, fmt.Errorf("failed to elevate context")
 }

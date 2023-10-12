@@ -49,7 +49,7 @@ func (d *ServiceConfigDoc) toModel() *ServiceConfig {
 
 var serviceConfigDocLocator = shared.NewResourceLocator(
 	shared.NewNamespaceIdentifier(shared.NamespaceKindProfile, shared.StringIdentifier(ns.ProfileNamespaceIDNameBuiltin)),
-	models.NewResourceID(shared.ResourceKindReserved, shared.StringIdentifier("service-config")))
+	shared.NewResourceIdentifier(shared.ResourceKindReserved, shared.StringIdentifier("service-config")))
 
 func GetServiceConfig(c RequestContext) (*ServiceConfig, error) {
 	doc := ServiceConfigDoc{}
@@ -94,8 +94,6 @@ func PatchServiceConfig(c RequestContext, configPath PatchServiceConfigParamsCon
 	}
 	ops := azcosmos.PatchOperations{}
 	ops.AppendSet("/"+string(configPath), patchData)
-	err = kmsdoc.Patch(c, serviceConfigDocLocator, &doc, ops, &azcosmos.ItemOptions{
-		EnableContentResponseOnWrite: true,
-	})
+	err = kmsdoc.PatchWithWriteBack(c, serviceConfigDocLocator, &doc, ops)
 	return doc.toModel(), err
 }

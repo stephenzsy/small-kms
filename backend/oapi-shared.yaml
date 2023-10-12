@@ -252,6 +252,16 @@ components:
       required:
         - id
         - locator
+    TemplatedCertificateTag:
+      type: string
+      enum:
+        - latest
+        - primary
+        - secondary      
+      x-enum-varnames:
+        - CertificateTagLatest
+        - CertificateTagPrimary
+        - CertificateTagSecondary           
     WellknownCertificateTemplateName:
       type: string
       enum:

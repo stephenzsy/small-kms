@@ -254,10 +254,29 @@ paths:
     post:
       tags:
         - admin
+      parameters:
+        - in: query
+          name: "includeCertificate"
+          schema:
+            $ref: "#/components/schemas/IncludeCertificate"
+        - in: query
+          name: force
+          schema:
+            type: boolean
+          x-go-type-skip-optional-pointer: true
+          required: false
+        - in: query
+          name: tags
+          schema:
+            type: array
+            items:
+              $ref: "oapi-shared.yaml#/components/schemas/TemplatedCertificateTag"
       summary: Create certificate
       operationId: IssueCertificateFromTemplate
       responses:
         200:
+          $ref: "#/components/responses/CertificateResponse"
+        201:
           $ref: "#/components/responses/CertificateResponse"
   /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
     parameters:
@@ -473,7 +492,6 @@ components:
         propertyName: type
         mapping:
           managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
-
     KeyVaultRoleAssignment:
       type: object
       properties:

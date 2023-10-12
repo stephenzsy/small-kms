@@ -140,7 +140,7 @@ func Read[D KmsDocument](c RequestContext, locator shared.ResourceLocator, targe
 	return err
 }
 
-func Create[D KmsDocument](c RequestContext, doc D) error {
+func Create[D KmsDocument](c context.Context, doc D) error {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	doc.stampUpdatedWithAuth(c)
 	content, err := json.Marshal(doc)
@@ -183,10 +183,27 @@ func DeleteByRef(c context.Context, locator KmsDocumentRef) (err error) {
 	return err
 }
 
-func Patch[D KmsDocument](c context.Context, locator shared.ResourceLocator, doc D,
+func PatchWithWriteBack[D KmsDocument](c context.Context,
+	locator shared.ResourceLocator,
+	dstDoc D,
+	patchOps azcosmos.PatchOperations) error {
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
+	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
+	stampUpdatedWithAuthPatchOps(c, &patchOps)
+	resp, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, &azcosmos.ItemOptions{EnableContentResponseOnWrite: true})
+	if err != nil {
+		return err
+	}
+	dstDoc.setETag(resp.ETag)
+	return json.Unmarshal(resp.Value, dstDoc)
+}
+
+func Patch[D KmsDocument](c context.Context,
+	doc D,
 	patchOps azcosmos.PatchOperations,
 	opts *azcosmos.ItemOptions) error {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
+	locator := doc.GetLocator()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	stampUpdatedWithAuthPatchOps(c, &patchOps)
 	resp, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, opts)
@@ -194,9 +211,6 @@ func Patch[D KmsDocument](c context.Context, locator shared.ResourceLocator, doc
 		return err
 	}
 	doc.setETag(resp.ETag)
-	if opts != nil && opts.EnableContentResponseOnWrite {
-		return json.Unmarshal(resp.Value, doc)
-	}
 	return nil
 }
 

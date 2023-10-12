@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"crypto"
 	"crypto/x509"
 
@@ -19,7 +20,6 @@ type azKeysSelfSignerProvider struct {
 	signer         *keyVaultSigner
 	keyCreated     *azkeys.ID
 	keepKeyVersion bool
-	eCtx           common.ElevatedContext
 }
 
 // X509SigningAlg implements SignerProvider.
@@ -33,7 +33,7 @@ func (p *azKeysSelfSignerProvider) Locator() shared.ResourceLocator {
 }
 
 // Load implements CertificateRequestProvider.
-func (p *azKeysSelfSignerProvider) Load(c common.ElevatedContext) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
+func (p *azKeysSelfSignerProvider) Load(c context.Context) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error) {
 
 	bad := func(e error) (*x509.Certificate, any, *CertJwkSpec, error) {
 		return nil, nil, nil, e
@@ -45,8 +45,7 @@ func (p *azKeysSelfSignerProvider) Load(c common.ElevatedContext) (certTemplate 
 	}
 	p.certSpec = p.certDoc.CertSpec
 
-	p.eCtx = c
-	p.signer, p.keyCreated, err = createAzKeysSigner(p.eCtx, &p.certSpec,
+	p.signer, p.keyCreated, err = createAzKeysSigner(c, &p.certSpec,
 		*p.certDoc.KeyStorePath,
 		&azkeys.KeyAttributes{
 			Expires:    p.certDoc.NotAfter.TimePtr(),
@@ -65,7 +64,7 @@ func (p *azKeysSelfSignerProvider) GetIssuerCertStorePath() string {
 }
 
 // CollectCertificateChain implements CertificateRequestProvider.
-func (p *azKeysSelfSignerProvider) CollectCertificateChain([][]byte, *CertJwkSpec) error {
+func (p *azKeysSelfSignerProvider) CollectCertificateChain(context.Context, [][]byte, *CertJwkSpec) error {
 	p.keepKeyVersion = true
 	return nil
 }
@@ -86,11 +85,11 @@ func (*azKeysSelfSignerProvider) CertificateChainPEM() []byte {
 }
 
 // Close implements SignerProvider.
-func (p *azKeysSelfSignerProvider) Close() {
+func (p *azKeysSelfSignerProvider) Close(c context.Context) {
 	if !p.keepKeyVersion && p.keyCreated != nil {
 		// disable key version
 		client := p.signer.keysClient
-		_, err := client.UpdateKey(p.eCtx, p.keyCreated.Name(), p.keyCreated.Version(), azkeys.UpdateKeyParameters{
+		_, err := client.UpdateKey(c, p.keyCreated.Name(), p.keyCreated.Version(), azkeys.UpdateKeyParameters{
 			KeyAttributes: &azkeys.KeyAttributes{
 				Enabled: utils.ToPtr(false),
 			},
@@ -102,11 +101,11 @@ func (p *azKeysSelfSignerProvider) Close() {
 }
 
 // Signer implements SignerProvider.
-func (p *azKeysSelfSignerProvider) LoadSigner(common.ElevatedContext) (crypto.Signer, error) {
+func (p *azKeysSelfSignerProvider) LoadSigner(context.Context) (crypto.Signer, error) {
 	return p.signer, nil
 }
 
-func createAzKeysSigner(c common.ElevatedContext, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyVaultSigner, *azkeys.ID, error) {
+func createAzKeysSigner(c context.Context, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyVaultSigner, *azkeys.ID, error) {
 	var keyCreated *azkeys.ID
 	bad := func(e error) (*keyVaultSigner, *azkeys.ID, error) {
 		return nil, keyCreated, e
