@@ -61,6 +61,14 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 	Name                AgentConfigName                                 `json:"name"`
 }
 
+// AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
+type AgentConfigurationAgentActiveServer struct {
+	AuthorizedCertificates    *[]externalRef0.ResourceLocator `json:"authorizedCertificates,omitempty"`
+	Name                      AgentConfigName                 `json:"name"`
+	ServerCertificate         *externalRef0.ResourceLocator   `json:"serverCertificate,omitempty"`
+	ServerCertificateTemplate externalRef0.ResourceLocator    `json:"serverCertificateTemplate"`
+}
+
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.
 type AgentConfigurationParameters struct {
 	union json.RawMessage
@@ -157,6 +165,34 @@ func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveHostBoo
 	return err
 }
 
+// AsAgentConfigurationAgentActiveServer returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveServer
+func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveServer() (AgentConfigurationAgentActiveServer, error) {
+	var body AgentConfigurationAgentActiveServer
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigurationAgentActiveServer overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigurationAgentActiveServer performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t AgentConfigurationParameters) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"name"`
@@ -173,6 +209,8 @@ func (t AgentConfigurationParameters) ValueByDiscriminator() (interface{}, error
 	switch discriminator {
 	case "agent-active-host-bootstrap":
 		return t.AsAgentConfigurationAgentActiveHostBootstrap()
+	case "agent-active-server":
+		return t.AsAgentConfigurationAgentActiveServer()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}

@@ -79,6 +79,22 @@ const (
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
 
+// CertificateInfo defines model for CertificateInfo.
+type CertificateInfo = certificateInfoComposed
+
+// CertificateInfoFields defines model for CertificateInfoFields.
+type CertificateInfoFields struct {
+	Issuer ResourceLocator `json:"issuer"`
+
+	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+	Jwk JwkProperties `json:"jwk"`
+
+	// NotBefore Expiration date of the certificate
+	NotBefore time.Time          `json:"notBefore"`
+	Pem       *string            `json:"pem,omitempty"`
+	Usages    []CertificateUsage `json:"usages"`
+}
+
 // CertificateRef defines model for CertificateRef.
 type CertificateRef = certificateRefComposed
 

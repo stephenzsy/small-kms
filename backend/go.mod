@@ -9,13 +9,13 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.0.1
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.1.0
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.2.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
-	github.com/labstack/echo/v4 v4.11.1
-	github.com/microsoftgraph/msgraph-sdk-go v1.20.0
+	github.com/labstack/echo/v4 v4.11.2
+	github.com/microsoftgraph/msgraph-sdk-go v1.21.0
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/rs/zerolog v1.31.0
 	golang.org/x/sys v0.13.0
@@ -56,7 +56,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/microsoft/kiota-abstractions-go v1.2.3 // indirect
+	github.com/microsoft/kiota-abstractions-go v1.3.0 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.0 // indirect
 	github.com/microsoft/kiota-http-go v1.1.0 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect

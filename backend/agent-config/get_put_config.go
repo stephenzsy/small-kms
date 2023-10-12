@@ -13,6 +13,8 @@ func GetAgentConfiguration(c RequestContext, configName models.AgentConfigName) 
 	switch configName {
 	case models.AgentConfigNameActiveHostBootstrap:
 		return handleGetAgentActiveHostBootstrap(c, nsID)
+	case models.AgentConfigNameActiveServer:
+		return handleGetAgentActiveServer(c, nsID)
 	}
 	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)
 }
@@ -22,6 +24,8 @@ func PutAgentConfiguration(c RequestContext, configName models.AgentConfigName, 
 	switch configName {
 	case models.AgentConfigNameActiveHostBootstrap:
 		return handlePutAgentActiveHostBootstrap(c, nsID, configParams)
+	case models.AgentConfigNameActiveServer:
+		return handlePutAgentActiveServer(c, nsID, configParams)
 	}
 	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)
 }

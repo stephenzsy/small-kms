@@ -5,6 +5,34 @@ info:
 paths: {}
 components:
   schemas:
+    CertificateInfo:
+      allOf:
+        - $ref: "#/components/schemas/CertificateRef"
+        - $ref: "#/components/schemas/CertificateInfoFields"
+        - x-go-type: certificateInfoComposed
+    CertificateInfoFields:
+      type: object
+      properties:
+        notBefore:
+          description: Expiration date of the certificate
+          type: string
+          format: date-time
+        usages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateUsage"
+        issuer:
+          description: locator for issuer certificate
+          $ref: "#/components/schemas/ResourceLocator"
+        jwk:
+          $ref: "#/components/schemas/JwkProperties"
+        pem:
+          type: string
+      required:
+        - notBefore
+        - jwk
+        - usages
+        - issuer
     CertificateRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"

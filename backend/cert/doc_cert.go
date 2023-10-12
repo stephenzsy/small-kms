@@ -13,7 +13,6 @@ import (
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -224,11 +223,11 @@ func (d *CertDoc) toModelRef() (r *shared.CertificateRef) {
 	return
 }
 
-func (d *CertDoc) toModel() *models.CertificateInfoComposed {
+func (d *CertDoc) toModel() *shared.CertificateInfo {
 	if d == nil {
 		return nil
 	}
-	r := new(models.CertificateInfoComposed)
+	r := new(shared.CertificateInfo)
 	d.populateRef(&r.CertificateRef)
 	r.Issuer = d.Issuer
 	d.CertSpec.PopulateKeyProperties(&r.Jwk)

@@ -75,6 +75,14 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 	Name                AgentConfigName                                 `json:"name"`
 }
 
+// AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
+type AgentConfigurationAgentActiveServer struct {
+	AuthorizedCertificates    *[]externalRef0.ResourceLocator `json:"authorizedCertificates,omitempty"`
+	Name                      AgentConfigName                 `json:"name"`
+	ServerCertificate         *externalRef0.ResourceLocator   `json:"serverCertificate,omitempty"`
+	ServerCertificateTemplate externalRef0.ResourceLocator    `json:"serverCertificateTemplate"`
+}
+
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.
 type AgentConfigurationParameters struct {
 	union json.RawMessage
@@ -82,54 +90,6 @@ type AgentConfigurationParameters struct {
 
 // AgentHostRole defines model for AgentHostRole.
 type AgentHostRole string
-
-// CertificateInfo defines model for CertificateInfo.
-type CertificateInfo struct {
-	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-	Id      Identifier `json:"id"`
-
-	// IsIssued Whether the certificate has been issued
-	IsIssued bool                         `json:"isIssued"`
-	Issuer   externalRef0.ResourceLocator `json:"issuer"`
-
-	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk      externalRef0.JwkProperties `json:"jwk"`
-	Locator  ResourceLocator            `json:"locator"`
-	Metadata map[string]interface{}     `json:"metadata,omitempty"`
-
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// NotBefore Expiration date of the certificate
-	NotBefore time.Time `json:"notBefore"`
-	Pem       *string   `json:"pem,omitempty"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
-
-	// Thumbprint X.509 certificate SHA-1 thumbprint
-	Thumbprint string `json:"thumbprint"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time                      `json:"updated,omitempty"`
-	UpdatedBy *string                         `json:"updatedBy,omitempty"`
-	Usages    []externalRef0.CertificateUsage `json:"usages"`
-}
-
-// CertificateInfoFields defines model for CertificateInfoFields.
-type CertificateInfoFields struct {
-	Issuer externalRef0.ResourceLocator `json:"issuer"`
-
-	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk externalRef0.JwkProperties `json:"jwk"`
-
-	// NotBefore Expiration date of the certificate
-	NotBefore time.Time                       `json:"notBefore"`
-	Pem       *string                         `json:"pem,omitempty"`
-	Usages    []externalRef0.CertificateUsage `json:"usages"`
-}
 
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
@@ -345,7 +305,7 @@ type NamespaceKindParameter = externalRef0.NamespaceKind
 type AgentConfigurationResponse = AgentConfiguration
 
 // CertificateResponse defines model for CertificateResponse.
-type CertificateResponse = CertificateInfo
+type CertificateResponse = externalRef0.CertificateInfo
 
 // AgentCheckInParams defines parameters for AgentCheckIn.
 type AgentCheckInParams struct {
@@ -472,6 +432,34 @@ func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveHostBoo
 	return err
 }
 
+// AsAgentConfigurationAgentActiveServer returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveServer
+func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveServer() (AgentConfigurationAgentActiveServer, error) {
+	var body AgentConfigurationAgentActiveServer
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigurationAgentActiveServer overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigurationAgentActiveServer performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t AgentConfigurationParameters) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"name"`
@@ -488,6 +476,8 @@ func (t AgentConfigurationParameters) ValueByDiscriminator() (interface{}, error
 	switch discriminator {
 	case "agent-active-host-bootstrap":
 		return t.AsAgentConfigurationAgentActiveHostBootstrap()
+	case "agent-active-server":
+		return t.AsAgentConfigurationAgentActiveServer()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}

@@ -21,10 +21,8 @@ type CertificateTemplateComposed struct {
 	CertificateTemplateFields
 }
 
-type CertificateInfoComposed struct {
-	shared.CertificateRef
-	CertificateInfoFields
-}
+// Deprecated: Use shared.CertificateInfo instead
+type CertificateInfoComposed = shared.CertificateInfo
 
 type ServiceConfigComposed struct {
 	shared.ResourceRef

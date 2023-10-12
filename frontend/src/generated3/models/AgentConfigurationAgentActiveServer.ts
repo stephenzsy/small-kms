@@ -37,7 +37,19 @@ export interface AgentConfigurationAgentActiveServer {
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
+    serverCertificateTemplate: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigurationAgentActiveServer
+     */
     serverCertificate?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AgentConfigurationAgentActiveServer
+     */
+    authorizedCertificates?: Array<string>;
 }
 
 /**
@@ -46,6 +58,7 @@ export interface AgentConfigurationAgentActiveServer {
 export function instanceOfAgentConfigurationAgentActiveServer(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "serverCertificateTemplate" in value;
 
     return isInstance;
 }
@@ -61,7 +74,9 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
     return {
         
         'name': AgentConfigNameFromJSON(json['name']),
+        'serverCertificateTemplate': json['serverCertificateTemplate'],
         'serverCertificate': !exists(json, 'serverCertificate') ? undefined : json['serverCertificate'],
+        'authorizedCertificates': !exists(json, 'authorizedCertificates') ? undefined : json['authorizedCertificates'],
     };
 }
 
@@ -75,7 +90,9 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
     return {
         
         'name': AgentConfigNameToJSON(value.name),
+        'serverCertificateTemplate': value.serverCertificateTemplate,
         'serverCertificate': value.serverCertificate,
+        'authorizedCertificates': value.authorizedCertificates,
     };
 }
 

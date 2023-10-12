@@ -288,11 +288,7 @@ paths:
       operationId: GetCertificate
       responses:
         200:
-          description: CertificateResponse
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateInfo"
+          $ref: "#/components/responses/CertificateResponse"
     delete:
       tags:
         - admin
@@ -415,11 +411,17 @@ components:
       properties:
         name:
           $ref: "#/components/schemas/AgentConfigName"
+        serverCertificateTemplate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         serverCertificate:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+        authorizedCertificates:
+          type: array
+          items:
+            $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
       required:
         - name
-        - controllerContainer
+        - serverCertificateTemplate
     AgentConfigurationActiveHostControllerContainer:
       type: object
       properties:
@@ -578,33 +580,6 @@ components:
       x-enum-varnames:
         - IncludeJWK
         - IncludePEM
-    CertificateInfoFields:
-      type: object
-      properties:
-        notBefore:
-          description: Expiration date of the certificate
-          type: string
-          format: date-time
-        usages:
-          type: array
-          items:
-            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
-        issuer:
-          description: locator for issuer certificate
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        jwk:
-          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
-        pem:
-          type: string
-      required:
-        - notBefore
-        - jwk
-        - usages
-        - issuer
-    CertificateInfo:
-      allOf:
-        - $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
-        - $ref: "#/components/schemas/CertificateInfoFields"
     AgentHostRole:
       type: string
       enum:
@@ -733,4 +708,4 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/CertificateInfo"
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateInfo"
