@@ -19,7 +19,8 @@ func (*server) AgentCheckIn(ctx echo.Context, params models.AgentCheckInParams) 
 }
 
 // AgentGetConfiguration implements models.ServerInterface.
-func (*server) AgentGetConfiguration(ctx echo.Context, configName models.AgentConfigName) error {
+func (*server) AgentGetConfiguration(ctx echo.Context, configName shared.AgentConfigName,
+	params models.AgentGetConfigurationParams) error {
 	bad := func(e error) error {
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}
@@ -33,12 +34,13 @@ func (*server) AgentGetConfiguration(ctx echo.Context, configName models.AgentCo
 	if err != nil {
 		return bad(err)
 	}
-	config, err := agentconfig.GetAgentConfiguration(c, configName)
+	config, err := agentconfig.GetAgentConfiguration(c, configName, &params)
 	return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, config, err)
 }
 
 // GetAgentConfiguration implements models.ServerInterface.
-func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier, configName models.AgentConfigName) error {
+func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier, configName shared.AgentConfigName) error {
 	bad := func(e error) error {
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}
@@ -50,12 +52,13 @@ func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind models.Name
 	if err != nil {
 		return bad(err)
 	}
-	config, err := agentconfig.GetAgentConfiguration(c, configName)
+	config, err := agentconfig.GetAgentConfiguration(c, configName, nil)
 	return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, config, err)
 }
 
 // PutAgentConfiguration implements models.ServerInterface.
-func (*server) PutAgentConfiguration(ctx echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier, configName models.AgentConfigName) error {
+func (*server) PutAgentConfiguration(ctx echo.Context, namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier, configName shared.AgentConfigName) error {
 	bad := func(e error) error {
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}
@@ -67,7 +70,7 @@ func (*server) PutAgentConfiguration(ctx echo.Context, namespaceKind models.Name
 	if err != nil {
 		return bad(err)
 	}
-	configParams := models.AgentConfigurationParameters{}
+	configParams := shared.AgentConfigurationParameters{}
 	err = c.Bind(&configParams)
 	if err != nil {
 		return bad(fmt.Errorf("%w:%w", common.ErrStatusBadRequest, err))

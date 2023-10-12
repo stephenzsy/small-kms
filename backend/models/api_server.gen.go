@@ -17,9 +17,9 @@ type ServerInterface interface {
 
 	// (GET /v3/agent/check-in)
 	AgentCheckIn(ctx echo.Context, params AgentCheckInParams) error
-	// Get agent autoconfig
+	// Get agent configuration
 	// (GET /v3/agent/config/{configName})
-	AgentGetConfiguration(ctx echo.Context, configName AgentConfigName) error
+	AgentGetConfiguration(ctx echo.Context, configName externalRef0.AgentConfigName, params AgentGetConfigurationParams) error
 	// Get diagnostics
 	// (GET /v3/diagnostics)
 	GetDiagnostics(ctx echo.Context) error
@@ -46,10 +46,10 @@ type ServerInterface interface {
 	PatchServiceConfig(ctx echo.Context, configPath PatchServiceConfigParamsConfigPath) error
 	// Get agent autoconfig
 	// (GET /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigName) error
+	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName) error
 	// Get agent autoconfig
 	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigName) error
+	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName) error
 	// Get certificate template
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
 	GetCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -105,7 +105,7 @@ func (w *ServerInterfaceWrapper) AgentCheckIn(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) AgentGetConfiguration(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigName
+	var configName externalRef0.AgentConfigName
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
 	if err != nil {
@@ -114,8 +114,34 @@ func (w *ServerInterfaceWrapper) AgentGetConfiguration(ctx echo.Context) error {
 
 	ctx.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AgentGetConfigurationParams
+	// ------------- Optional query parameter "refreshToken" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "refreshToken", ctx.QueryParams(), &params.RefreshToken)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter refreshToken: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Optional header parameter "X-Smallkms-If-Version-Not-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Smallkms-If-Version-Not-Match")]; found {
+		var XSmallkmsIfVersionNotMatch string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Smallkms-If-Version-Not-Match, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Smallkms-If-Version-Not-Match", runtime.ParamLocationHeader, valueList[0], &XSmallkmsIfVersionNotMatch)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Smallkms-If-Version-Not-Match: %s", err))
+		}
+
+		params.XSmallkmsIfVersionNotMatch = &XSmallkmsIfVersionNotMatch
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentGetConfiguration(ctx, configName)
+	err = w.Handler.AgentGetConfiguration(ctx, configName, params)
 	return err
 }
 
@@ -301,7 +327,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfiguration(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigName
+	var configName externalRef0.AgentConfigName
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
 	if err != nil {
@@ -335,7 +361,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfiguration(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigName
+	var configName externalRef0.AgentConfigName
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
 	if err != nil {

@@ -5,6 +5,76 @@ info:
 paths: {}
 components:
   schemas:
+    AgentConfigName:
+      type: string
+      enum:
+        - agent-active-host-bootstrap
+        - agent-active-server
+      x-enum-varnames:
+        - AgentConfigNameActiveHostBootstrap
+        - AgentConfigNameActiveServer
+    AgentConfiguration:
+      type: object
+      properties:
+        config:
+          $ref: "#/components/schemas/AgentConfigurationParameters"
+        version:
+          type: string
+          description: >
+            Version of the agent configuration
+        nextRefreshToken:
+          type: string
+        nextRefreshAfter:
+          type: string
+          format: date-time
+      required:
+        - config
+        - version
+        - lastEvaluated
+    AgentConfigurationAgentActiveHostBootstrap:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentConfigName"
+        controllerContainer:
+          $ref: "#/components/schemas/AgentConfigurationActiveHostControllerContainer"
+      required:
+        - name
+        - controllerContainer
+    AgentConfigurationActiveHostControllerContainer:
+      type: object
+      properties:
+        imageRefStr:
+          type: string
+      required:
+        - imageRefStr
+    AgentConfigurationAgentActiveServer:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentConfigName"
+        serverCertificateTemplate:
+          $ref: "#/components/schemas/ResourceLocator"
+        authorizedCertificateTemplate:
+          $ref: "#/components/schemas/ResourceLocator"
+        serverCertificate:
+          description: (Read-only)
+          $ref: "#/components/schemas/ResourceLocator"
+        authorizedCertificate:
+          type: array
+          description: (Read-only)
+          $ref: "#/components/schemas/ResourceLocator"
+      required:
+        - name
+    AgentConfigurationParameters:
+      oneOf:
+        - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+        - $ref: "#/components/schemas/AgentConfigurationAgentActiveServer"
+      discriminator:
+        propertyName: name
+        mapping:
+          agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
+          agent-active-server: "#/components/schemas/AgentConfigurationAgentActiveServer"
     CertificateInfo:
       allOf:
         - $ref: "#/components/schemas/CertificateRef"
@@ -257,11 +327,11 @@ components:
       enum:
         - latest
         - primary
-        - secondary      
+        - secondary
       x-enum-varnames:
         - CertificateTagLatest
         - CertificateTagPrimary
-        - CertificateTagSecondary           
+        - CertificateTagSecondary
     WellknownCertificateTemplateName:
       type: string
       enum:

@@ -52,12 +52,13 @@ func main() {
 			e.Use(middleware.CORS())
 		}
 		server := api.NewServer(context.Background())
-		e.Use(server.GetMiddleware())
+		e.Use(server.GetPreAuthMiddleware())
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 			e.Use(auth.UnverifiedAADJwtAuth)
 		} else {
 			e.Use(auth.ProxiedAADAuth)
 		}
+		e.Use(server.GetAfterAuthMiddleware())
 		models.RegisterHandlers(e, server)
 		e.Logger.Fatal(e.Start(listenerAddress))
 	}

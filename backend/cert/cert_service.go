@@ -40,7 +40,7 @@ func IssueCertificateFromTemplate(
 
 	newCert := false
 	var certDoc *CertDoc
-	if params.Force {
+	if params.Force != nil && *params.Force {
 		log.Info().Msg("force issue certificate")
 		newCert = true
 	} else {

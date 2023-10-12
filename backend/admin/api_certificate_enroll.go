@@ -203,11 +203,6 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	// }
 
 	// graph client in context
-	if graphClient, err := s.msGraphClient(c); err != nil {
-		return nil, err
-	} else {
-		c = withGraphClient(c, graphClient)
-	}
 
 	// look up relDoc
 	if req.DeviceLinkID != common.GetCanonicalNamespaceRelationID(req.DeviceNamespaceID, common.NSRelNameDASPLink) {

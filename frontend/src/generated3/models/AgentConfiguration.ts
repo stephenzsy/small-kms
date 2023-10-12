@@ -33,12 +33,24 @@ export interface AgentConfiguration {
      */
     config: AgentConfigurationParameters;
     /**
-     * Version of the agent, md5 checksum of fields in the configuration
+     * Version of the agent configuration
 
      * @type {string}
      * @memberof AgentConfiguration
      */
     version: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfiguration
+     */
+    nextRefreshToken?: string;
+    /**
+     * 
+     * @type {Date}
+     * @memberof AgentConfiguration
+     */
+    nextRefreshAfter?: Date;
 }
 
 /**
@@ -64,6 +76,8 @@ export function AgentConfigurationFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'config': AgentConfigurationParametersFromJSON(json['config']),
         'version': json['version'],
+        'nextRefreshToken': !exists(json, 'nextRefreshToken') ? undefined : json['nextRefreshToken'],
+        'nextRefreshAfter': !exists(json, 'nextRefreshAfter') ? undefined : (new Date(json['nextRefreshAfter'])),
     };
 }
 
@@ -78,6 +92,8 @@ export function AgentConfigurationToJSON(value?: AgentConfiguration | null): any
         
         'config': AgentConfigurationParametersToJSON(value.config),
         'version': value.version,
+        'nextRefreshToken': value.nextRefreshToken,
+        'nextRefreshAfter': value.nextRefreshAfter === undefined ? undefined : (value.nextRefreshAfter.toISOString()),
     };
 }
 

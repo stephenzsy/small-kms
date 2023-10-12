@@ -131,15 +131,26 @@ func NewServer(c ctx.Context) *server {
 	return &s
 }
 
-func (s *server) GetMiddleware() echo.MiddlewareFunc {
+func (s *server) GetPreAuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			rc := common.WrapEchoContext(c, s.serverContext)
-			rc = common.WithAdminServerRequestClientProvider(rc, &requestClientProvider{
-				parent:            s,
-				credentialContext: rc,
-			})
-			return next(rc)
+			return next(common.WrapEchoContext(c, s.serverContext))
+
+		}
+	}
+}
+
+func (s *server) GetAfterAuthMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if rc, ok := c.(RequestContext); ok {
+				rc = common.WithAdminServerRequestClientProvider(rc, &requestClientProvider{
+					parent:            s,
+					credentialContext: rc,
+				})
+				return next(rc)
+			}
+			return next(c)
 		}
 	}
 }

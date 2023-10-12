@@ -55,6 +55,7 @@ func IsElevated(c ctx.Context) bool {
 func (c RequestContext) WithSharedValue(key any, val any) RequestContext {
 	return RequestContext{
 		Context:        c.Context,
+		valueCtx:       c.valueCtx,
 		serviceContext: ctx.WithValue(c.serviceContext, key, val),
 	}
 }

@@ -1,5 +1,5 @@
 import { useRequest } from "ahooks";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import Select, { SelectItem } from "../components/Select";
@@ -7,8 +7,10 @@ import {
   AdminApi,
   AgentConfigName,
   AgentConfigurationAgentActiveHostBootstrapToJSON,
+  AgentConfigurationAgentActiveServerToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
+  AgentConfigurationParametersToJSON,
   AgentConfigurationToJSON,
   NamespaceKind,
 } from "../generated3";
@@ -19,9 +21,17 @@ const selectOptions: Array<SelectItem<AgentConfigName>> = [
     id: AgentConfigName.AgentConfigNameActiveHostBootstrap,
     name: "Agent Active Host Bootstrap",
   },
+  {
+    id: AgentConfigName.AgentConfigNameActiveServer,
+    name: "Agent Active Host Server",
+  },
 ];
 
-function useConfigurationSkeleton(configName: AgentConfigName): string {
+function useConfigurationSkeleton(
+  configName: AgentConfigName,
+  nsId: string,
+  nsKind: NamespaceKind
+): string {
   return useMemo(() => {
     switch (configName) {
       case AgentConfigName.AgentConfigNameActiveHostBootstrap:
@@ -35,9 +45,20 @@ function useConfigurationSkeleton(configName: AgentConfigName): string {
           undefined,
           2
         );
+      case AgentConfigName.AgentConfigNameActiveServer:
+        return JSON.stringify(
+          AgentConfigurationAgentActiveServerToJSON({
+            name: configName,
+            authorizedCertificateTemplate:
+              "sys:agent-push/cert-template:default-mtls",
+            serverCertificateTemplate: `${nsKind}:${nsId}/cert-template:default-mtls`,
+          }),
+          undefined,
+          2
+        );
     }
     return "";
-  }, [configName]);
+  }, [configName, nsId]);
 }
 
 export function AgentConfigurationForm({
@@ -48,32 +69,53 @@ export function AgentConfigurationForm({
   namespaceKind: NamespaceKind;
 }) {
   const adminApi = useAuthedClient(AdminApi);
+  const [selectedItem, setSelectedItem] = useState<SelectItem<AgentConfigName>>(
+    selectOptions[0]
+  );
+
+  const currentConfigName = selectedItem.id;
+
   const { data, loading, run } = useRequest(
-    (params?: AgentConfigurationParameters, configName?: AgentConfigName) => {
-      if (params && configName) {
-        return adminApi.putAgentConfiguration({
-          configName,
+    async (params?: AgentConfigurationParameters) => {
+      if (params) {
+        return await adminApi.putAgentConfiguration({
+          configName: currentConfigName,
           namespaceKind,
           namespaceId,
           agentConfigurationParameters: params,
         });
       }
-      return adminApi.getAgentConfiguration({
-        namespaceKind,
-        namespaceId,
-        configName: AgentConfigName.AgentConfigNameActiveHostBootstrap,
-      });
+      try {
+        return await adminApi.getAgentConfiguration({
+          namespaceKind,
+          namespaceId,
+          configName: currentConfigName,
+        });
+      } catch (e) {
+        return undefined;
+      }
     },
     {
-      refreshDeps: [namespaceId, namespaceKind],
+      refreshDeps: [namespaceId, namespaceKind, currentConfigName],
     }
   );
 
-  const [selectedItem, setSelectedItem] = useState<SelectItem<AgentConfigName>>(
-    selectOptions[0]
+  const skeleton = useConfigurationSkeleton(
+    currentConfigName,
+    namespaceId,
+    namespaceKind
   );
-
-  const skeleton = useConfigurationSkeleton(selectedItem.id);
+  const defaultValue = useMemo(() => {
+    return loading
+      ? ""
+      : (data?.config
+          ? JSON.stringify(
+              AgentConfigurationParametersToJSON(data.config),
+              undefined,
+              2
+            )
+          : undefined) ?? skeleton;
+  }, [loading, data, skeleton]);
   const [configInput, setConfigInput] = useState<string>("");
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -86,7 +128,7 @@ export function AgentConfigurationForm({
     let typeParsed: AgentConfigurationParameters;
 
     typeParsed = AgentConfigurationParametersFromJSON(parsed);
-    run(typeParsed, selectedItem.id);
+    run(typeParsed);
   };
   return (
     <Card>
@@ -115,7 +157,7 @@ export function AgentConfigurationForm({
           />
           <textarea
             className="w-full min-h-[400px]"
-            value={configInput || skeleton}
+            value={configInput || defaultValue}
             onChange={(e) => {
               setConfigInput(e.target.value);
             }}

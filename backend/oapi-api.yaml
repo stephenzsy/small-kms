@@ -35,16 +35,28 @@ paths:
       - in: path
         name: configName
         schema:
-          $ref: "#/components/schemas/AgentConfigName"
+          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
         required: true
     get:
       tags:
         - agent
-      summary: Get agent autoconfig
+      parameters:
+        - in: header
+          name: "X-Smallkms-If-Version-Not-Match"
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: refreshToken
+          schema:
+            type: string
+      summary: Get agent configuration
       operationId: AgentGetConfiguration
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
+        204:
+          description: No content
   /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -52,7 +64,7 @@ paths:
       - in: path
         name: configName
         schema:
-          $ref: "#/components/schemas/AgentConfigName"
+          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
         required: true
     get:
       tags:
@@ -71,7 +83,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AgentConfigurationParameters"
+              $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationParameters"
         required: true
       responses:
         200:
@@ -263,7 +275,6 @@ paths:
           name: force
           schema:
             type: boolean
-          x-go-type-skip-optional-pointer: true
           required: false
         - in: query
           name: tags
@@ -386,68 +397,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    AgentConfigName:
-      type: string
-      enum:
-        - agent-active-host-bootstrap
-        - agent-active-server
-      x-enum-varnames:
-        - AgentConfigNameActiveHostBootstrap
-        - AgentConfigNameActiveServer
-    AgentConfiguration:
-      type: object
-      properties:
-        config:
-          $ref: "#/components/schemas/AgentConfigurationParameters"
-        version:
-          type: string
-          description: >
-            Version of the agent, md5 checksum of fields in the configuration
-      required:
-        - config
-        - version
-    AgentConfigurationParameters:
-      oneOf:
-        - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-        - $ref: "#/components/schemas/AgentConfigurationAgentActiveServer"
-      discriminator:
-        propertyName: name
-        mapping:
-          agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-          agent-active-server: "#/components/schemas/AgentConfigurationAgentActiveServer"
-    AgentConfigurationAgentActiveHostBootstrap:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/AgentConfigName"
-        controllerContainer:
-          $ref: "#/components/schemas/AgentConfigurationActiveHostControllerContainer"
-      required:
-        - name
-        - controllerContainer
-    AgentConfigurationAgentActiveServer:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/AgentConfigName"
-        serverCertificateTemplate:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        serverCertificate:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        authorizedCertificates:
-          type: array
-          items:
-            $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-      required:
-        - name
-        - serverCertificateTemplate
-    AgentConfigurationActiveHostControllerContainer:
-      type: object
-      properties:
-        imageRefStr:
-          type: string
-      required:
-        - imageRefStr
+
     ProfileRefFields:
       type: object
       properties:
@@ -720,7 +670,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/AgentConfiguration"
+            $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
     CertificateResponse:
       description: CertificateResponse
       content:

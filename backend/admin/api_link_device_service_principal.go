@@ -62,12 +62,6 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - start", nsID)
 	defer log.Info().Msgf("createDeviceServicePrincipalLinkDoc: %s - end", nsID)
 
-	graphClient, err := s.msGraphClient(c)
-	if err != nil {
-		return nil, err
-	}
-	c = withGraphClient(c, graphClient)
-
 	graphAppClient, err := s.msGraphAppClient()
 	if err != nil {
 		return nil, err
@@ -126,16 +120,16 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	var appObj msgraphmodels.Applicationable
 	applicationID := utils.NilToDefault(relDoc.LinkedNamespaces.Application)
 	if applicationID != uuid.Nil {
-		if appObj, err = graphClient.Applications().ByApplicationId(applicationID.String()).Get(c, nil); err != nil {
-			err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("application:%s", applicationID))
-			if !errors.Is(err, common.ErrStatusNotFound) {
-				return nil, err
-			}
-			// not found, let appObj continue to be nil
-			log.Info().Msgf("device link %s: application not exist: %s", deviceRelID, applicationID)
-		} else {
-			log.Info().Msgf("device link %s: application loaded: %s", deviceRelID, applicationID)
-		}
+		// if appObj, err = graphClient.Applications().ByApplicationId(applicationID.String()).Get(c, nil); err != nil {
+		// 	err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("application:%s", applicationID))
+		// 	if !errors.Is(err, common.ErrStatusNotFound) {
+		// 		return nil, err
+		// 	}
+		// 	// not found, let appObj continue to be nil
+		// 	log.Info().Msgf("device link %s: application not exist: %s", deviceRelID, applicationID)
+		// } else {
+		// 	log.Info().Msgf("device link %s: application loaded: %s", deviceRelID, applicationID)
+		// }
 	}
 
 	if appObj == nil {
@@ -179,14 +173,14 @@ func (s *adminServer) createDeviceServicePrincipalLinkDoc(c context.Context, nsI
 	// look up service principal
 	var spObj msgraphmodels.ServicePrincipalable
 
-	if spObj, err = graphClient.ServicePrincipalsWithAppId(ToPtr(applicationAppID.String())).Get(c, nil); err != nil {
-		err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("servicePrincipal-appid:%s", applicationAppID))
-		if !errors.Is(err, common.ErrStatusNotFound) {
-			return nil, err
-		}
-		log.Info().Msgf("device link %s: service principal not exist for app id: %s", deviceRelID, applicationAppID)
+	// if spObj, err = graphClient.ServicePrincipalsWithAppId(ToPtr(applicationAppID.String())).Get(c, nil); err != nil {
+	// 	err = common.WrapMsGraphNotFoundErr(err, fmt.Sprintf("servicePrincipal-appid:%s", applicationAppID))
+	// 	if !errors.Is(err, common.ErrStatusNotFound) {
+	// 		return nil, err
+	// 	}
+	// 	log.Info().Msgf("device link %s: service principal not exist for app id: %s", deviceRelID, applicationAppID)
 
-	}
+	// }
 
 	if spObj == nil {
 		// create new

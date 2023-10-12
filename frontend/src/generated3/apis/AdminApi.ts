@@ -30,6 +30,7 @@ import type {
   Profile,
   ProfileRef,
   ServiceConfig,
+  TemplatedCertificateTag,
 } from '../models';
 import {
     AgentConfigNameFromJSON,
@@ -62,6 +63,8 @@ import {
     ProfileRefToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
+    TemplatedCertificateTagFromJSON,
+    TemplatedCertificateTagToJSON,
 } from '../models';
 
 export interface CreateManagedNamespaceRequest {
@@ -112,6 +115,9 @@ export interface IssueCertificateFromTemplateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     templateId: string;
+    includeCertificate?: IncludeCertificate;
+    force?: boolean;
+    tags?: Array<TemplatedCertificateTag>;
 }
 
 export interface ListCertificateTemplatesRequest {
@@ -547,6 +553,18 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.includeCertificate !== undefined) {
+            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
+        }
+
+        if (requestParameters.force !== undefined) {
+            queryParameters['force'] = requestParameters.force;
+        }
+
+        if (requestParameters.tags) {
+            queryParameters['tags'] = requestParameters.tags;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

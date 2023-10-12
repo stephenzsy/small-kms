@@ -40,6 +40,8 @@ export interface AgentCheckInRequest {
 
 export interface AgentGetConfigurationRequest {
     configName: AgentConfigName;
+    xSmallkmsIfVersionNotMatch?: string;
+    refreshToken?: string;
 }
 
 /**
@@ -84,7 +86,7 @@ export class AgentApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get agent autoconfig
+     * Get agent configuration
      */
     async agentGetConfigurationRaw(requestParameters: AgentGetConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
         if (requestParameters.configName === null || requestParameters.configName === undefined) {
@@ -93,7 +95,15 @@ export class AgentApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.refreshToken !== undefined) {
+            queryParameters['refreshToken'] = requestParameters.refreshToken;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xSmallkmsIfVersionNotMatch !== undefined && requestParameters.xSmallkmsIfVersionNotMatch !== null) {
+            headerParameters['X-Smallkms-If-Version-Not-Match'] = String(requestParameters.xSmallkmsIfVersionNotMatch);
+        }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -114,7 +124,7 @@ export class AgentApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get agent autoconfig
+     * Get agent configuration
      */
     async agentGetConfiguration(requestParameters: AgentGetConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.agentGetConfigurationRaw(requestParameters, initOverrides);

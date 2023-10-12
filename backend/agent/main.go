@@ -23,6 +23,7 @@ import (
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 const DefaultEnvVarTenantID = "AZURE_TENANT_ID"
@@ -139,7 +140,7 @@ func bootstrapActiveHost(skipDockerPullPtr bool) {
 	if err != nil {
 		log.Panicf("Failed to create client: %v\n", err)
 	}
-	resp, err := client.AgentGetConfigurationWithResponse(ctx, agentclient.AgentConfigNameActiveHostBootstrap)
+	resp, err := client.AgentGetConfigurationWithResponse(ctx, shared.AgentConfigNameActiveHostBootstrap, nil)
 	if err != nil {
 		log.Panicf("Failed to check in: %v\n", err)
 	}

@@ -4,7 +4,17 @@
 package shared
 
 import (
+	"encoding/json"
+	"errors"
 	"time"
+
+	"github.com/oapi-codegen/runtime"
+)
+
+// Defines values for AgentConfigName.
+const (
+	AgentConfigNameActiveHostBootstrap AgentConfigName = "agent-active-host-bootstrap"
+	AgentConfigNameActiveServer        AgentConfigName = "agent-active-server"
 )
 
 // Defines values for CertificateUsage.
@@ -85,6 +95,44 @@ const (
 	CertTemplateNameDefaultMsEntraClientCreds WellknownCertificateTemplateName = "default-ms-entra-client-creds"
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
+
+// AgentConfigName defines model for AgentConfigName.
+type AgentConfigName string
+
+// AgentConfiguration defines model for AgentConfiguration.
+type AgentConfiguration struct {
+	Config           AgentConfigurationParameters `json:"config"`
+	NextRefreshAfter *time.Time                   `json:"nextRefreshAfter,omitempty"`
+	NextRefreshToken *string                      `json:"nextRefreshToken,omitempty"`
+
+	// Version Version of the agent configuration
+	Version string `json:"version"`
+}
+
+// AgentConfigurationActiveHostControllerContainer defines model for AgentConfigurationActiveHostControllerContainer.
+type AgentConfigurationActiveHostControllerContainer struct {
+	ImageRefStr string `json:"imageRefStr"`
+}
+
+// AgentConfigurationAgentActiveHostBootstrap defines model for AgentConfigurationAgentActiveHostBootstrap.
+type AgentConfigurationAgentActiveHostBootstrap struct {
+	ControllerContainer AgentConfigurationActiveHostControllerContainer `json:"controllerContainer"`
+	Name                AgentConfigName                                 `json:"name"`
+}
+
+// AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
+type AgentConfigurationAgentActiveServer struct {
+	AuthorizedCertificate         *ResourceLocator `json:"authorizedCertificate,omitempty"`
+	AuthorizedCertificateTemplate *ResourceLocator `json:"authorizedCertificateTemplate,omitempty"`
+	Name                          AgentConfigName  `json:"name"`
+	ServerCertificate             *ResourceLocator `json:"serverCertificate,omitempty"`
+	ServerCertificateTemplate     *ResourceLocator `json:"serverCertificateTemplate,omitempty"`
+}
+
+// AgentConfigurationParameters defines model for AgentConfigurationParameters.
+type AgentConfigurationParameters struct {
+	union json.RawMessage
+}
 
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo = certificateInfoComposed
@@ -210,3 +258,92 @@ type TemplatedCertificateTag string
 
 // WellknownCertificateTemplateName defines model for WellknownCertificateTemplateName.
 type WellknownCertificateTemplateName string
+
+// AsAgentConfigurationAgentActiveHostBootstrap returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveHostBootstrap
+func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveHostBootstrap() (AgentConfigurationAgentActiveHostBootstrap, error) {
+	var body AgentConfigurationAgentActiveHostBootstrap
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigurationAgentActiveHostBootstrap overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveHostBootstrap
+func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveHostBootstrap(v AgentConfigurationAgentActiveHostBootstrap) error {
+	v.Name = "agent-active-host-bootstrap"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigurationAgentActiveHostBootstrap performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveHostBootstrap
+func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveHostBootstrap(v AgentConfigurationAgentActiveHostBootstrap) error {
+	v.Name = "agent-active-host-bootstrap"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAgentConfigurationAgentActiveServer returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveServer
+func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveServer() (AgentConfigurationAgentActiveServer, error) {
+	var body AgentConfigurationAgentActiveServer
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigurationAgentActiveServer overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigurationAgentActiveServer performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveServer
+func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
+	v.Name = "agent-active-server"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t AgentConfigurationParameters) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"name"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t AgentConfigurationParameters) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "agent-active-host-bootstrap":
+		return t.AsAgentConfigurationAgentActiveHostBootstrap()
+	case "agent-active-server":
+		return t.AsAgentConfigurationAgentActiveServer()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t AgentConfigurationParameters) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AgentConfigurationParameters) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}

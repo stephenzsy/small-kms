@@ -1,12 +1,13 @@
 package agentconfig
 
 import (
+	"context"
 	"crypto/md5"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -16,49 +17,51 @@ type AgentActiveHostBootstrapDoc struct {
 	ControllerImageRef string `json:"controllerImageRef"`
 }
 
-func (d *AgentActiveHostBootstrapDoc) toModel() *models.AgentConfiguration {
+func (d *AgentActiveHostBootstrapDoc) toModel(bool) *shared.AgentConfiguration {
 	if d == nil {
 		return nil
 	}
-	m := models.AgentConfiguration{
+	m := shared.AgentConfiguration{
 		Version: d.Version.HexString(),
 	}
-	m.Config.FromAgentConfigurationAgentActiveHostBootstrap(models.AgentConfigurationAgentActiveHostBootstrap{
-		ControllerContainer: models.AgentConfigurationActiveHostControllerContainer{
+	m.Config.FromAgentConfigurationAgentActiveHostBootstrap(shared.AgentConfigurationAgentActiveHostBootstrap{
+		ControllerContainer: shared.AgentConfigurationActiveHostControllerContainer{
 			ImageRefStr: d.ControllerImageRef,
 		},
-		Name: models.AgentConfigNameActiveHostBootstrap,
+		Name: shared.AgentConfigNameActiveHostBootstrap,
 	})
 	return &m
 }
 
-func handleGetAgentActiveHostBootstrap(c RequestContext, nsID shared.NamespaceIdentifier) (*models.AgentConfiguration, error) {
-	locator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
-	doc := AgentActiveHostBootstrapDoc{}
-	err := kmsdoc.Read(c, locator, &doc)
-	return doc.toModel(), err
-}
+var _ AgentConfigDocument = (*AgentActiveHostBootstrapDoc)(nil)
 
-func handlePutAgentActiveHostBootstrap(c RequestContext, nsID models.NamespaceID, params models.AgentConfigurationParameters) (*models.AgentConfiguration, error) {
-	locator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindAgentConfig, common.StringIdentifier(models.AgentConfigNameActiveHostBootstrap)))
-	p, err := params.AsAgentConfigurationAgentActiveHostBootstrap()
-	if err != nil {
-		return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
-	}
-	digest := md5.New()
-	doc := AgentActiveHostBootstrapDoc{
-		AgentConfigDoc: AgentConfigDoc{
-			BaseDoc: kmsdoc.BaseDoc{
-				ID:          locator.GetID(),
-				NamespaceID: locator.GetNamespaceID(),
-			},
-			Name: string(models.AgentConfigNameActiveHostBootstrap),
+func newAgentActiveHostBootStrapConfigurator() *docConfigurator[AgentConfigDocument] {
+	return &docConfigurator[AgentConfigDocument]{
+		preparePut: func(
+			c context.Context,
+			nsID shared.NamespaceIdentifier, params shared.AgentConfigurationParameters) (AgentConfigDocument, error) {
+			p, err := params.AsAgentConfigurationAgentActiveHostBootstrap()
+			if err != nil {
+				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
+			}
+
+			d := AgentActiveHostBootstrapDoc{
+				ControllerImageRef: p.ControllerContainer.ImageRefStr,
+			}
+			d.initLocator(nsID, shared.AgentConfigNameActiveHostBootstrap)
+			digester := md5.New()
+			digester.Write([]byte(d.ControllerImageRef))
+			d.BaseVersion = digester.Sum(nil)
+			d.Version = d.BaseVersion
+			return &d, nil
 		},
-		ControllerImageRef: p.ControllerContainer.ImageRefStr,
+		eval: func(c context.Context, doc AgentConfigDocument) (*azcosmos.PatchOperations, error) {
+			return nil, nil
+		},
+		readDoc: func(c context.Context, nsID shared.NamespaceIdentifier) (AgentConfigDocument, error) {
+			d := AgentActiveHostBootstrapDoc{}
+			err := kmsdoc.Read(c, NewConfigDocLocator(nsID, shared.AgentConfigNameActiveHostBootstrap), &d)
+			return &d, err
+		},
 	}
-	digest.Write([]byte(doc.ControllerImageRef))
-	hash := digest.Sum(nil)
-	doc.Version = hash[:]
-	err = kmsdoc.Upsert(c, &doc)
-	return doc.toModel(), err
 }

@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -16,8 +17,8 @@ func NewCertificateID(certId shared.Identifier) shared.ResourceIdentifier {
 	return shared.NewResourceIdentifier(shared.ResourceKindCert, certId)
 }
 
-func NewLatestCertificateForTemplateID(certId shared.Identifier) shared.ResourceIdentifier {
-	return shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, certId)
+func NewLatestCertificateForTemplateID(templateId shared.Identifier) shared.ResourceIdentifier {
+	return shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, templateId)
 }
 
 func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID shared.NamespaceIdentifier, templateIdentifier shared.Identifier) shared.Identifier {
@@ -25,11 +26,17 @@ func getCrossNsReferencedTemplateIdentifier(referencedNamespaceID shared.Namespa
 	return shared.UUIDIdentifier(uuidValue)
 }
 
+func ReadCertDocByLocator(c context.Context, locator shared.ResourceLocator) (*CertDoc, error) {
+	certDoc := &CertDoc{}
+	err := kmsdoc.Read(c, locator, certDoc)
+	return certDoc, err
+}
+
 func GetCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) (*models.CertificateInfoComposed, error) {
 	var certDocLocator models.ResourceLocator
 	if certificateId.IsUUID() {
 		nsID := ns.GetNamespaceContext(c).GetID()
-		certDocLocator = models.NewResourceLocator(nsID, NewCertificateID(certificateId))
+		certDocLocator = shared.NewResourceLocator(nsID, NewCertificateID(certificateId))
 	} else if certificateId.String() == "latest" {
 		if params.TemplateId.IsNilOrEmpty() || !params.TemplateId.IsValid() {
 			return nil, fmt.Errorf("%w: invalid or empty template ID: %s", common.ErrStatusBadRequest, params.TemplateId)
@@ -53,8 +60,7 @@ func GetCertificate(c RequestContext, certificateId shared.Identifier, params mo
 		return nil, fmt.Errorf("%w: invalid certificate ID: %s", common.ErrStatusBadRequest, certificateId)
 	}
 
-	certDoc := &CertDoc{}
-	err := kmsdoc.Read(c, certDocLocator, certDoc)
+	certDoc, err := ReadCertDocByLocator(c, certDocLocator)
 	if err != nil {
 		return nil, err
 	}

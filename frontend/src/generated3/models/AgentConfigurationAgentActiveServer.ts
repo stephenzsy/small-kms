@@ -37,7 +37,13 @@ export interface AgentConfigurationAgentActiveServer {
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    serverCertificateTemplate: string;
+    serverCertificateTemplate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigurationAgentActiveServer
+     */
+    authorizedCertificateTemplate?: string;
     /**
      * 
      * @type {string}
@@ -46,10 +52,10 @@ export interface AgentConfigurationAgentActiveServer {
     serverCertificate?: string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    authorizedCertificates?: Array<string>;
+    authorizedCertificate?: string;
 }
 
 /**
@@ -58,7 +64,6 @@ export interface AgentConfigurationAgentActiveServer {
 export function instanceOfAgentConfigurationAgentActiveServer(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "name" in value;
-    isInstance = isInstance && "serverCertificateTemplate" in value;
 
     return isInstance;
 }
@@ -74,9 +79,10 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
     return {
         
         'name': AgentConfigNameFromJSON(json['name']),
-        'serverCertificateTemplate': json['serverCertificateTemplate'],
+        'serverCertificateTemplate': !exists(json, 'serverCertificateTemplate') ? undefined : json['serverCertificateTemplate'],
+        'authorizedCertificateTemplate': !exists(json, 'authorizedCertificateTemplate') ? undefined : json['authorizedCertificateTemplate'],
         'serverCertificate': !exists(json, 'serverCertificate') ? undefined : json['serverCertificate'],
-        'authorizedCertificates': !exists(json, 'authorizedCertificates') ? undefined : json['authorizedCertificates'],
+        'authorizedCertificate': !exists(json, 'authorizedCertificate') ? undefined : json['authorizedCertificate'],
     };
 }
 
@@ -91,8 +97,9 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
         
         'name': AgentConfigNameToJSON(value.name),
         'serverCertificateTemplate': value.serverCertificateTemplate,
+        'authorizedCertificateTemplate': value.authorizedCertificateTemplate,
         'serverCertificate': value.serverCertificate,
-        'authorizedCertificates': value.authorizedCertificates,
+        'authorizedCertificate': value.authorizedCertificate,
     };
 }
 

@@ -127,7 +127,7 @@ func stampUpdatedWithAuthPatchOps(c context.Context, patchOps *azcosmos.PatchOpe
 
 var _ KmsDocument = (*BaseDoc)(nil)
 
-func Read[D KmsDocument](c RequestContext, locator shared.ResourceLocator, target D) error {
+func Read[D KmsDocument](c context.Context, locator shared.ResourceLocator, target D) error {
 	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
 	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
 	id := locator.GetID().String()
