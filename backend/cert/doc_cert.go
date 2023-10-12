@@ -237,7 +237,7 @@ func (d *CertDoc) toModel() *models.CertificateInfoComposed {
 	return r
 }
 
-func (k *CertJwkSpec) PopulateKeyProperties(r *models.JwkProperties) {
+func (k *CertJwkSpec) PopulateKeyProperties(r *shared.JwkProperties) {
 	if k == nil || r == nil {
 		return
 	}

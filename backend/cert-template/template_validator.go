@@ -42,10 +42,17 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		doc.IssuerTemplate = shared.NewResourceLocator(
 			cap.AllowedIssuerNamespaces.Items()[0],
 			shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, shared.StringIdentifier(shared.CertTemplateNameDefault)))
-	} else {
+	} else if cap.AllowedIssuerNamespaces.Size() <= 0 {
+		return nil, fmt.Errorf("%w:issuer namespace is invalid", common.ErrStatusBadRequest)
+	} else if cap.DefaultIssuerNamespace == nil {
 		return nil, fmt.Errorf("%w:issuer namespace is required", common.ErrStatusBadRequest)
+	} else {
+		doc.IssuerTemplate = shared.NewResourceLocator(
+			*cap.DefaultIssuerNamespace,
+			shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, shared.StringIdentifier(shared.CertTemplateNameDefault)))
 	}
-	if cap.SelfSigned {
+	if doc.IssuerTemplate.GetNamespaceID() == doc.NamespaceID {
+		// this will be self signed
 		doc.IssuerTemplate = shared.NewResourceLocator(doc.NamespaceID, doc.ID)
 	}
 
@@ -59,7 +66,7 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 		doc.Usages = intersect.Items()
 	}
 
-	if req.KeyProperties != nil && req.KeyProperties.Kty == models.KeyTypeEC && cap.RestrictKeyTypeRsa {
+	if req.KeyProperties != nil && req.KeyProperties.Kty == shared.KeyTypeEC && cap.RestrictKeyTypeRsa {
 		return nil, fmt.Errorf("%w:invalid key type", common.ErrStatusBadRequest)
 	}
 	doc.KeySpec.initWithCreateTemplateInput(req.KeyProperties, CertKeySpec{
@@ -133,9 +140,9 @@ func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 	digest.Write([]byte(string(doc.KeySpec.Alg)))
 	digest.Write([]byte(string(doc.KeySpec.Kty)))
 	switch doc.KeySpec.Kty {
-	case models.KeyTypeRSA:
+	case shared.KeyTypeRSA:
 		digest.Write([]byte(fmt.Sprintf("%d", *doc.KeySpec.KeySize)))
-	case models.KeyTypeEC:
+	case shared.KeyTypeEC:
 		digest.Write([]byte(string(*doc.KeySpec.Crv)))
 	}
 	return digest.Sum(nil)
@@ -143,7 +150,7 @@ func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 
 // PutCertificateTemplate implements CertificateTemplateService.
 func validatePutRequest(c RequestContext,
-	locator models.ResourceLocator,
+	locator shared.ResourceLocator,
 	req models.CertificateTemplateParameters) (*CertificateTemplateDoc, error) {
 
 	nsID := locator.GetNamespaceID()

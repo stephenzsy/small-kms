@@ -1,5 +1,11 @@
 package ns
 
+type SystemServiceName string
+
+const (
+	SystemServiceNameAgentPush SystemServiceName = "agent-push"
+)
+
 type RootCAName string
 
 const (

@@ -9,11 +9,10 @@ import (
 
 // Defines values for CertificateUsage.
 const (
-	CertUsageCA               CertificateUsage = "ca"
-	CertUsageCARoot           CertificateUsage = "caRoot"
-	CertUsageClientAuth       CertificateUsage = "clientAuth"
-	CertUsageKeyNonExportable CertificateUsage = "keyNonExportable"
-	CertUsageServerAuth       CertificateUsage = "serverAuth"
+	CertUsageCA         CertificateUsage = "ca"
+	CertUsageCARoot     CertificateUsage = "caRoot"
+	CertUsageClientAuth CertificateUsage = "clientAuth"
+	CertUsageServerAuth CertificateUsage = "serverAuth"
 )
 
 // Defines values for JwkAlg.
@@ -23,6 +22,28 @@ const (
 	AlgRS256 JwkAlg = "RS256"
 	AlgRS384 JwkAlg = "RS384"
 	AlgRS512 JwkAlg = "RS512"
+)
+
+// Defines values for JwkCrv.
+const (
+	CurveNameP256 JwkCrv = "P-256"
+	CurveNameP384 JwkCrv = "P-384"
+)
+
+// Defines values for JwkKeyOperation.
+const (
+	KeyOpDecrypt   JwkKeyOperation = "decrypt"
+	KeyOpEncrypt   JwkKeyOperation = "encrypt"
+	KeyOpSign      JwkKeyOperation = "sign"
+	KeyOpUnwrapKey JwkKeyOperation = "unwrapKey"
+	KeyOpVerify    JwkKeyOperation = "verify"
+	KeyOpWrapKey   JwkKeyOperation = "wrapKey"
+)
+
+// Defines values for JwtKty.
+const (
+	KeyTypeEC  JwtKty = "EC"
+	KeyTypeRSA JwtKty = "RSA"
 )
 
 // Defines values for NamespaceKind.
@@ -85,6 +106,53 @@ type Identifier = identifierImpl
 
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
+
+// JwkCrv defines model for JwkCrv.
+type JwkCrv string
+
+// JwkKeyOperation defines model for JwkKeyOperation.
+type JwkKeyOperation string
+
+// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+type JwkProperties struct {
+	Alg *JwkAlg `json:"alg,omitempty"`
+	Crv *JwkCrv `json:"crv,omitempty"`
+
+	// E RSA exponent
+	E      *string          `json:"e,omitempty"`
+	KeyOps *JwkKeyOperation `json:"key_ops,omitempty"`
+
+	// KeySize RSA key size
+	KeySize *int32 `json:"key_size,omitempty"`
+
+	// Kid Key ID
+	KeyID *string `json:"kid,omitempty"`
+	Kty   JwtKty  `json:"kty"`
+
+	// N RSA modulus
+	N *string `json:"n,omitempty"`
+
+	// X EC x coordinate
+	X *string `json:"x,omitempty"`
+
+	// X5c X.509 certificate chain
+	CertificateChain []string `json:"x5c,omitempty"`
+
+	// X5t X.509 certificate SHA-1 thumbprint
+	CertificateThumbprint *string `json:"x5t,omitempty"`
+
+	// X5tS256 X.509 certificate SHA-256 thumbprint
+	CertificateThumbprintSHA256 *string `json:"x5t#S256,omitempty"`
+
+	// X5u X.509 certificate URL
+	CertificateURL *string `json:"x5u,omitempty"`
+
+	// Y EC y coordinate
+	Y *string `json:"y,omitempty"`
+}
+
+// JwtKty defines model for JwtKty.
+type JwtKty string
 
 // NamespaceIdentifier defines model for NamespaceIdentifier.
 type NamespaceIdentifier = identifierWithKind[NamespaceKind]

@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 type CertificateTemplateDocKeyProperties struct {
@@ -77,49 +76,6 @@ func (s *CertificateTemplateDocSubject) String() string {
 	str := name.String()
 	s.cachedString = &str
 	return str
-}
-
-func (p *CertificateTemplateDocKeyProperties) fromJwkProperties(input *models.JwkProperties) error {
-	// if input == nil {
-	// 	return nil
-	// }
-	// if input.Alg == nil {
-	// 	return errors.New("alg is nil")
-	// }
-	// switch *input.Alg {
-	// case models.AlgRS256,
-	// 	models.AlgRS384,
-	// 	models.AlgRS512:
-	// 	if input.Kty != KeyTypeRSA {
-	// 		return errors.New("alg is RSA but kty is not RSA")
-	// 	}
-	// 	if input.KeySize == nil {
-	// 		p.setRSA(*input.Alg, KeySize2048)
-	// 	} else {
-	// 		p.setRSA(*input.Alg, *input.KeySize)
-	// 	}
-	// case models.AlgES256:
-	// 	if input.Crv != nil && *input.Crv != CurveNameP256 {
-	// 		return errors.New("alg is ES256 but crv is not P256")
-	// 	}
-	// 	p.setECDSA(CurveNameP256)
-	// case models.AlgES384:
-	// 	if input.Crv != nil && *input.Crv != CurveNameP256 {
-	// 		return errors.New("alg is ES384 but crv is not P384")
-	// 	}
-	// 	p.setECDSA(CurveNameP384)
-	// }
-	return nil
-}
-
-func (p *CertificateTemplateDocKeyProperties) populateJwkProperties(o *models.JwkProperties) {
-	// if p == nil {
-	// 	return
-	// }
-	// o.Alg = utils.ToPtr(p.Alg)
-	// o.Kty = p.Kty
-	// o.KeySize = p.KeySize
-	// o.Crv = p.Crv
 }
 
 func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {

@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -62,15 +61,15 @@ func (p *azCertsCsrProvider) Load(c common.ElevatedContext) (certTemplate *x509.
 	}
 
 	switch p.certDoc.CertSpec.Kty {
-	case models.KeyTypeRSA:
+	case shared.KeyTypeRSA:
 		keyProperties.KeyType = utils.ToPtr(azcertificates.KeyTypeRSA)
 		keyProperties.KeySize = p.certDoc.CertSpec.KeySize
-	case models.KeyTypeEC:
+	case shared.KeyTypeEC:
 		keyProperties.KeyType = utils.ToPtr(azcertificates.KeyTypeEC)
 		switch *p.certDoc.CertSpec.Crv {
-		case models.CurveNameP256:
+		case shared.CurveNameP256:
 			keyProperties.Curve = utils.ToPtr(azcertificates.CurveNameP256)
-		case models.CurveNameP384:
+		case shared.CurveNameP384:
 			keyProperties.Curve = utils.ToPtr(azcertificates.CurveNameP384)
 		default:
 			return bad(fmt.Errorf("unsupported curve: %s", *p.certDoc.CertSpec.Crv))

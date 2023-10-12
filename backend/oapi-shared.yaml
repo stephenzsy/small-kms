@@ -41,13 +41,11 @@ components:
         - caRoot
         - serverAuth
         - clientAuth
-        - keyNonExportable
       x-enum-varnames:
         - CertUsageCA
         - CertUsageCARoot
         - CertUsageServerAuth
         - CertUsageClientAuth
-        - CertUsageKeyNonExportable
     Identifier:
       type: string
       x-go-type: identifierImpl
@@ -64,7 +62,92 @@ components:
         - AlgRS384
         - AlgRS512
         - AlgES256
-        - AlgES384      
+        - AlgES384
+    JwkCrv:
+      type: string
+      enum:
+        - P-256
+        - P-384
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+    JwtKty:
+      type: string
+      enum:
+        - RSA
+        - EC
+      x-enum-varnames:
+        - KeyTypeRSA
+        - KeyTypeEC
+    JwkKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-enum-varnames:
+        - KeyOpSign
+        - KeyOpVerify
+        - KeyOpEncrypt
+        - KeyOpDecrypt
+        - KeyOpWrapKey
+        - KeyOpUnwrapKey
+    JwkProperties:
+      type: object
+      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
+      properties:
+        alg:
+          $ref: "#/components/schemas/JwkAlg"
+        kty:
+          $ref: "#/components/schemas/JwtKty"
+        key_size:
+          description: RSA key size
+          type: integer
+          format: int32
+        key_ops:
+          $ref: "#/components/schemas/JwkKeyOperation"
+        n:
+          description: RSA modulus
+          type: string
+        e:
+          description: RSA exponent
+          type: string
+        crv:
+          $ref: "#/components/schemas/JwkCrv"
+        x:
+          description: EC x coordinate
+          type: string
+        y:
+          description: EC y coordinate
+          type: string
+        kid:
+          description: Key ID
+          type: string
+          x-go-name: KeyID
+        x5u:
+          x-go-name: CertificateURL
+          description: X.509 certificate URL
+          type: string
+        x5c:
+          description: X.509 certificate chain
+          type: array
+          items:
+            type: string
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t:
+          description: X.509 certificate SHA-1 thumbprint
+          type: string
+          x-go-name: CertificateThumbprint
+        x5t#S256:
+          description: X.509 certificate SHA-256 thumbprint
+          type: string
+          x-go-name: CertificateThumbprintSHA256
+      required:
+        - kty
     NamespaceIdentifier:
       type: string
       x-go-type: identifierWithKind[NamespaceKind]

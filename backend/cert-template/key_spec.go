@@ -1,36 +1,35 @@
 package certtemplate
 
 import (
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertKeySpec struct {
 	Alg     shared.JwkAlg  `json:"alg"`
-	Kty     models.JwtKty  `json:"kty"`
+	Kty     shared.JwtKty  `json:"kty"`
 	KeySize *int32         `json:"key_size,omitempty"`
-	Crv     *models.JwtCrv `json:"crv,omitempty"`
+	Crv     *shared.JwkCrv `json:"crv,omitempty"`
 }
 
 // the Alg field of the second argument dk of default cert keyspec is the default algoritm for RSA only, as EC has fixed signing algorithm for the specified curve
-func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk CertKeySpec) {
+func (k *CertKeySpec) initWithCreateTemplateInput(r *shared.JwkProperties, dk CertKeySpec) {
 
 	k.Kty = dk.Kty
 	switch k.Kty {
-	case models.KeyTypeRSA:
+	case shared.KeyTypeRSA:
 		k.KeySize = dk.KeySize
 		k.Crv = nil
 		k.Alg = dk.Alg
-	case models.KeyTypeEC:
+	case shared.KeyTypeEC:
 		k.Crv = dk.Crv
 		k.KeySize = nil
 	}
 
 	if r != nil {
 		switch r.Kty {
-		case models.KeyTypeRSA:
-			k.Kty = models.KeyTypeRSA
+		case shared.KeyTypeRSA:
+			k.Kty = shared.KeyTypeRSA
 			k.KeySize = r.KeySize
 			k.Alg = dk.Alg
 			if k.KeySize == nil {
@@ -53,15 +52,15 @@ func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk Ce
 					k.Alg = dk.Alg
 				}
 			}
-		case models.KeyTypeEC:
-			k.Kty = models.KeyTypeEC
+		case shared.KeyTypeEC:
+			k.Kty = shared.KeyTypeEC
 			k.Crv = r.Crv
 			if k.Crv == nil {
 				k.Crv = dk.Crv
 			} else {
 				switch *k.Crv {
-				case models.CurveNameP256,
-					models.CurveNameP384:
+				case shared.CurveNameP256,
+					shared.CurveNameP384:
 					// ok
 				default:
 					k.Crv = dk.Crv
@@ -71,17 +70,17 @@ func (k *CertKeySpec) initWithCreateTemplateInput(r *models.JwkProperties, dk Ce
 	}
 
 	// decide alg for ec
-	if k.Kty == models.KeyTypeEC {
+	if k.Kty == shared.KeyTypeEC {
 		switch *k.Crv {
-		case models.CurveNameP256:
+		case shared.CurveNameP256:
 			k.Alg = shared.AlgES256
-		case models.CurveNameP384:
+		case shared.CurveNameP384:
 			k.Alg = shared.AlgES384
 		}
 	}
 }
 
-func (k *CertKeySpec) PopulateKeyProperties(r *models.JwkProperties) {
+func (k *CertKeySpec) PopulateKeyProperties(r *shared.JwkProperties) {
 	if k == nil || r == nil {
 		return
 	}

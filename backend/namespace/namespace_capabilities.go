@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -15,16 +14,16 @@ var (
 )
 
 type NamespaceCertificateTemplateCapabilities struct {
-	AllowedReservedNames       map[common.Identifier]int
-	AllowedIssuerNamespaces    utils.Set[models.NamespaceID]
+	AllowedReservedNames       map[shared.Identifier]int
+	AllowedIssuerNamespaces    utils.Set[shared.NamespaceIdentifier]
+	DefaultIssuerNamespace     *shared.NamespaceIdentifier
 	AllowedUsages              utils.Set[shared.CertificateUsage]
 	AllowVariables             bool
-	SelfSigned                 bool
 	DefaultMaxValidityInMonths int
-	DefaultKeyType             models.JwtKty
+	DefaultKeyType             shared.JwtKty
 	DefaultKeySize             int32
 	DefaultRsaAlgorithm        shared.JwkAlg
-	DefaultCrv                 models.JwtCrv
+	DefaultCrv                 shared.JwkCrv
 	HasKeyStore                bool
 	KeyExportable              bool
 	RestrictKeyTypeRsa         bool
@@ -32,38 +31,47 @@ type NamespaceCertificateTemplateCapabilities struct {
 }
 
 type NamespaceContext interface {
-	GetID() models.NamespaceID
+	GetID() shared.NamespaceIdentifier
 }
 
 type namespaceContext struct {
-	nsID models.NamespaceID // must be validated
+	nsID shared.NamespaceIdentifier // must be validated
 }
 
-func (nc *namespaceContext) GetID() models.NamespaceID {
+func (nc *namespaceContext) GetID() shared.NamespaceIdentifier {
 	return nc.nsID
 }
 
-func GetReservedCertificateTemplateNames(nsID models.NamespaceID) (r map[common.Identifier]int) {
+func GetReservedCertificateTemplateNames(nsID shared.NamespaceIdentifier) (r map[shared.Identifier]int) {
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		return map[shared.Identifier]int{
+			shared.StringIdentifier(shared.CertTemplateNameDefaultMtls): 0,
+		}
 	case shared.NamespaceKindCaRoot,
 		shared.NamespaceKindCaInt:
-		return map[common.Identifier]int{
-			common.StringIdentifier(shared.CertTemplateNameDefault): 0,
+		return map[shared.Identifier]int{
+			shared.StringIdentifier(shared.CertTemplateNameDefault): 0,
 		}
 	case shared.NamespaceKindGroup:
-		return map[common.Identifier]int{
-			common.StringIdentifier(shared.CertTemplateNameDefaultMsEntraClientCreds): 0,
-			common.StringIdentifier(shared.CertTemplateNameDefaultIntranetAccess):     1,
+		return map[shared.Identifier]int{
+			shared.StringIdentifier(shared.CertTemplateNameDefaultMsEntraClientCreds): 0,
+			shared.StringIdentifier(shared.CertTemplateNameDefaultIntranetAccess):     1,
 		}
 	case shared.NamespaceKindServicePrincipal:
-		return map[common.Identifier]int{
-			common.StringIdentifier(shared.CertTemplateNameDefault):                   0,
-			common.StringIdentifier(shared.CertTemplateNameDefaultMsEntraClientCreds): 1,
-			common.StringIdentifier(shared.CertTemplateNameDefaultMtls):               2,
+		return map[shared.Identifier]int{
+			shared.StringIdentifier(shared.CertTemplateNameDefault):                   0,
+			shared.StringIdentifier(shared.CertTemplateNameDefaultMsEntraClientCreds): 1,
+			shared.StringIdentifier(shared.CertTemplateNameDefaultMtls):               2,
 		}
 	}
 	return
 }
+
+var (
+	caIntMsEntraNamespaceIdentifier = shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameMsEntraClientSecret))
+	caIntServiceNamespaceIdentifier = shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameServices))
+)
 
 func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLocator) (cap NamespaceCertificateTemplateCapabilities) {
 	nsID := templateLocator.GetNamespaceID()
@@ -71,19 +79,22 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 	allowedNs := utils.NewSet[shared.NamespaceIdentifier]()
 	allowedUsages := utils.NewSet[shared.CertificateUsage]()
 	cap.DefaultMaxValidityInMonths = 12
-	cap.DefaultKeyType = models.KeyTypeRSA
+	cap.DefaultKeyType = shared.KeyTypeRSA
 	cap.DefaultKeySize = 2048
 	cap.DefaultRsaAlgorithm = shared.AlgRS384
-	cap.DefaultCrv = models.CurveNameP384
+	cap.DefaultCrv = shared.CurveNameP384
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		allowedNs.Add(nsID)
+		allowedUsages.Add(shared.CertUsageClientAuth)
+		cap.KeyExportable = false
 	case shared.NamespaceKindCaRoot:
 		allowedNs.Add(nsID)
 		allowedUsages.Add(shared.CertUsageCA)
 		allowedUsages.Add(shared.CertUsageCARoot)
-		cap.SelfSigned = true
 		if nsID.Identifier().String() == string(RootCANameTest) {
 			cap.DefaultMaxValidityInMonths = 6
-			cap.DefaultKeyType = models.KeyTypeEC
+			cap.DefaultKeyType = shared.KeyTypeEC
 		} else {
 			cap.DefaultMaxValidityInMonths = 120
 			cap.DefaultKeySize = 4096
@@ -94,7 +105,7 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 		if nsID.Identifier().String() == string(IntCaNameTest) {
 			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaRoot, shared.StringIdentifier(RootCANameTest)))
 			cap.DefaultMaxValidityInMonths = 3
-			cap.DefaultKeyType = models.KeyTypeEC
+			cap.DefaultKeyType = shared.KeyTypeEC
 		} else {
 			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaRoot, shared.StringIdentifier(RootCANameDefault)))
 			cap.DefaultMaxValidityInMonths = 36
@@ -114,7 +125,9 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 			cap.DefaultMaxValidityInMonths = 1
 			cap.HasKeyStore = false
 		case string(shared.CertTemplateNameDefaultMsEntraClientCreds):
-			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameMsEntraClientSecret)))
+			allowedNs.Add(caIntMsEntraNamespaceIdentifier)
+			allowedNs.Add(nsID)
+			cap.DefaultIssuerNamespace = &caIntMsEntraNamespaceIdentifier
 			allowedUsages.Add(shared.CertUsageClientAuth)
 			allowedUsages.Add(shared.CertUsageServerAuth)
 			cap.HasKeyStore = false
@@ -129,17 +142,24 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 		}
 		switch templateID.String() {
 		case string(shared.CertTemplateNameDefaultMsEntraClientCreds):
-			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameMsEntraClientSecret)))
+			allowedNs.Add(caIntMsEntraNamespaceIdentifier)
+			allowedNs.Add(nsID)
+			cap.DefaultIssuerNamespace = &caIntMsEntraNamespaceIdentifier
+			cap.RestrictKeyTypeRsa = true
+			cap.DefaultRsaAlgorithm = shared.AlgRS256
+		case string(shared.CertTemplateNameDefaultMtls):
+			allowedNs.Add(caIntServiceNamespaceIdentifier)
+			allowedNs.Add(nsID)
+			cap.DefaultIssuerNamespace = &caIntServiceNamespaceIdentifier
 			cap.RestrictKeyTypeRsa = true
 			cap.DefaultRsaAlgorithm = shared.AlgRS256
 		default:
-			allowedNs.Add(shared.NewNamespaceIdentifier(shared.NamespaceKindCaInt, shared.StringIdentifier(IntCaNameServices)))
+			allowedNs.Add(caIntServiceNamespaceIdentifier)
 		}
 		allowedUsages.Add(shared.CertUsageClientAuth)
 		allowedUsages.Add(shared.CertUsageServerAuth)
 		cap.HasKeyStore = true
 		cap.KeyExportable = true
-
 	}
 	cap.AllowedReservedNames = GetReservedCertificateTemplateNames(nsID)
 	cap.AllowedIssuerNamespaces = allowedNs
@@ -149,6 +169,11 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 
 func validateNamespaceID(nsID shared.NamespaceIdentifier) error {
 	switch nsID.Kind() {
+	case shared.NamespaceKindSystem:
+		switch nsID.Identifier().String() {
+		case string(SystemServiceNameAgentPush):
+			return nil
+		}
 	case shared.NamespaceKindCaRoot:
 		switch nsID.Identifier().String() {
 		case string(RootCANameDefault),

@@ -21,8 +21,7 @@ export const CertificateUsage = {
     CertUsageCA: 'ca',
     CertUsageCARoot: 'caRoot',
     CertUsageServerAuth: 'serverAuth',
-    CertUsageClientAuth: 'clientAuth',
-    CertUsageKeyNonExportable: 'keyNonExportable'
+    CertUsageClientAuth: 'clientAuth'
 } as const;
 export type CertificateUsage = typeof CertificateUsage[keyof typeof CertificateUsage];
 

@@ -27,9 +27,9 @@ models/CreateProfileRequest.ts
 models/CreateProfileRequestType.ts
 models/IncludeCertificate.ts
 models/JwkAlg.ts
+models/JwkCrv.ts
 models/JwkKeyOperation.ts
 models/JwkProperties.ts
-models/JwtCrv.ts
 models/JwtKty.ts
 models/KeyVaultRoleAssignment.ts
 models/NamespaceKind.ts

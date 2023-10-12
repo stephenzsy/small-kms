@@ -17,22 +17,22 @@
  * 
  * @export
  */
-export const JwtCrv = {
+export const JwkCrv = {
     CurveNameP256: 'P-256',
     CurveNameP384: 'P-384'
 } as const;
-export type JwtCrv = typeof JwtCrv[keyof typeof JwtCrv];
+export type JwkCrv = typeof JwkCrv[keyof typeof JwkCrv];
 
 
-export function JwtCrvFromJSON(json: any): JwtCrv {
-    return JwtCrvFromJSONTyped(json, false);
+export function JwkCrvFromJSON(json: any): JwkCrv {
+    return JwkCrvFromJSONTyped(json, false);
 }
 
-export function JwtCrvFromJSONTyped(json: any, ignoreDiscriminator: boolean): JwtCrv {
-    return json as JwtCrv;
+export function JwkCrvFromJSONTyped(json: any, ignoreDiscriminator: boolean): JwkCrv {
+    return json as JwkCrv;
 }
 
-export function JwtCrvToJSON(value?: JwtCrv | null): any {
+export function JwkCrvToJSON(value?: JwkCrv | null): any {
     return value as any;
 }
 

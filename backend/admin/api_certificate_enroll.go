@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"math/big"
 	"net/url"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -17,8 +16,8 @@ import (
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	msgraphsp "github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
 	"github.com/rs/zerolog/log"
-	certtemplate "github.com/stephenzsy/small-kms/backend/admin/cert-template"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -170,25 +169,6 @@ func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *
 		return ""
 	}), func(u string) bool { return u != "" })
 	return
-}
-
-func (pendingCertDoc *PendingCertDoc) populateCertificate(cert *x509.Certificate) {
-	cert.Subject = pendingCertDoc.Subject.pkixName()
-	cert.NotBefore = pendingCertDoc.NotBefore
-	cert.NotAfter = pendingCertDoc.NotAfter
-	cert.EmailAddresses = pendingCertDoc.SubjectAlternativeNames.EmailAddresses
-	cert.URIs = utils.MapSlices(pendingCertDoc.SubjectAlternativeNames.URIs, func(s string) *url.URL { u, _ := url.Parse(s); return u })
-	cert.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageDataEncipherment
-	switch pendingCertDoc.Usage {
-	case UsageServerAndClient:
-		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
-	case UsageServerOnly:
-		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-	case UsageClientOnly:
-		cert.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
-	}
-	certId := pendingCertDoc.ID.GetUUID()
-	cert.SerialNumber = big.NewInt(0).SetBytes(certId[:])
 }
 
 func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateID uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {

@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -117,7 +116,7 @@ func createAzKeysSigner(c common.ElevatedContext, ioCertJwkSpec *CertJwkSpec, ke
 	var signingAlg azkeys.SignatureAlgorithm
 	params := azkeys.CreateKeyParameters{}
 	switch ioCertJwkSpec.Kty {
-	case models.KeyTypeRSA:
+	case shared.KeyTypeRSA:
 		params.Kty = utils.ToPtr(azkeys.KeyTypeRSA)
 		params.KeySize = ioCertJwkSpec.KeySize
 		signingAlg = azkeys.SignatureAlgorithmRS384
@@ -127,12 +126,12 @@ func createAzKeysSigner(c common.ElevatedContext, ioCertJwkSpec *CertJwkSpec, ke
 		case shared.AlgRS512:
 			signingAlg = azkeys.SignatureAlgorithmRS512
 		}
-	case models.KeyTypeEC:
+	case shared.KeyTypeEC:
 		params.Kty = utils.ToPtr(azkeys.KeyTypeEC)
 		params.Curve = utils.ToPtr(azkeys.CurveNameP384)
 		signingAlg = azkeys.SignatureAlgorithmES384
 		switch *ioCertJwkSpec.Crv {
-		case models.CurveNameP256:
+		case shared.CurveNameP256:
 			params.Curve = utils.ToPtr(azkeys.CurveNameP256)
 			signingAlg = azkeys.SignatureAlgorithmES256
 		}

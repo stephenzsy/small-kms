@@ -76,6 +76,12 @@ export interface CertificateTemplateParameters {
     keyStorePath?: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof CertificateTemplateParameters
+     */
+    keyExportable?: boolean;
+    /**
+     * 
      * @type {CertificateLifetimeTrigger}
      * @memberof CertificateTemplateParameters
      */
@@ -109,6 +115,7 @@ export function CertificateTemplateParametersFromJSONTyped(json: any, ignoreDisc
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
+        'keyExportable': !exists(json, 'keyExportable') ? undefined : json['keyExportable'],
         'lifetimeTrigger': !exists(json, 'lifetimeTrigger') ? undefined : CertificateLifetimeTriggerFromJSON(json['lifetimeTrigger']),
     };
 }
@@ -128,6 +135,7 @@ export function CertificateTemplateParametersToJSON(value?: CertificateTemplateP
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,
+        'keyExportable': value.keyExportable,
         'lifetimeTrigger': CertificateLifetimeTriggerToJSON(value.lifetimeTrigger),
     };
 }

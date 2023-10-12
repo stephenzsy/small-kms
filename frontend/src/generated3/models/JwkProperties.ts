@@ -19,18 +19,18 @@ import {
     JwkAlgFromJSONTyped,
     JwkAlgToJSON,
 } from './JwkAlg';
+import type { JwkCrv } from './JwkCrv';
+import {
+    JwkCrvFromJSON,
+    JwkCrvFromJSONTyped,
+    JwkCrvToJSON,
+} from './JwkCrv';
 import type { JwkKeyOperation } from './JwkKeyOperation';
 import {
     JwkKeyOperationFromJSON,
     JwkKeyOperationFromJSONTyped,
     JwkKeyOperationToJSON,
 } from './JwkKeyOperation';
-import type { JwtCrv } from './JwtCrv';
-import {
-    JwtCrvFromJSON,
-    JwtCrvFromJSONTyped,
-    JwtCrvToJSON,
-} from './JwtCrv';
 import type { JwtKty } from './JwtKty';
 import {
     JwtKtyFromJSON,
@@ -82,10 +82,10 @@ export interface JwkProperties {
     e?: string;
     /**
      * 
-     * @type {JwtCrv}
+     * @type {JwkCrv}
      * @memberof JwkProperties
      */
-    crv?: JwtCrv;
+    crv?: JwkCrv;
     /**
      * EC x coordinate
      * @type {string}
@@ -156,7 +156,7 @@ export function JwkPropertiesFromJSONTyped(json: any, ignoreDiscriminator: boole
         'keyOps': !exists(json, 'key_ops') ? undefined : JwkKeyOperationFromJSON(json['key_ops']),
         'n': !exists(json, 'n') ? undefined : json['n'],
         'e': !exists(json, 'e') ? undefined : json['e'],
-        'crv': !exists(json, 'crv') ? undefined : JwtCrvFromJSON(json['crv']),
+        'crv': !exists(json, 'crv') ? undefined : JwkCrvFromJSON(json['crv']),
         'x': !exists(json, 'x') ? undefined : json['x'],
         'y': !exists(json, 'y') ? undefined : json['y'],
         'kid': !exists(json, 'kid') ? undefined : json['kid'],
@@ -182,7 +182,7 @@ export function JwkPropertiesToJSON(value?: JwkProperties | null): any {
         'key_ops': JwkKeyOperationToJSON(value.keyOps),
         'n': value.n,
         'e': value.e,
-        'crv': JwtCrvToJSON(value.crv),
+        'crv': JwkCrvToJSON(value.crv),
         'x': value.x,
         'y': value.y,
         'kid': value.kid,

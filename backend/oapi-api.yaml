@@ -470,92 +470,7 @@ components:
         propertyName: type
         mapping:
           managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
-    JwkKeyOperation:
-      type: string
-      enum:
-        - sign
-        - verify
-        - encrypt
-        - decrypt
-        - wrapKey
-        - unwrapKey
-      x-enum-varnames:
-        - KeyOpSign
-        - KeyOpVerify
-        - KeyOpEncrypt
-        - KeyOpDecrypt
-        - KeyOpWrapKey
-        - KeyOpUnwrapKey
-      x-go-name: KeyOp
-    JwkProperties:
-      type: object
-      description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-      properties:
-        alg:
-          $ref: "oapi-shared.yaml#/components/schemas/JwkAlg"
-        kty:
-          $ref: "#/components/schemas/JwtKty"
-        key_size:
-          description: RSA key size
-          type: integer
-          format: int32
-        key_ops:
-          $ref: "#/components/schemas/JwkKeyOperation"
-        n:
-          description: RSA modulus
-          type: string
-        e:
-          description: RSA exponent
-          type: string
-        crv:
-          $ref: "#/components/schemas/JwtCrv"
-        x:
-          description: EC x coordinate
-          type: string
-        y:
-          description: EC y coordinate
-          type: string
-        kid:
-          description: Key ID
-          type: string
-          x-go-name: KeyID
-        x5u:
-          x-go-name: CertificateURL
-          description: X.509 certificate URL
-          type: string
-        x5c:
-          description: X.509 certificate chain
-          type: array
-          items:
-            type: string
-          x-go-name: CertificateChain
-          x-go-type-skip-optional-pointer: true
-        x5t:
-          description: X.509 certificate SHA-1 thumbprint
-          type: string
-          x-go-name: CertificateThumbprint
-        x5t#S256:
-          description: X.509 certificate SHA-256 thumbprint
-          type: string
-          x-go-name: CertificateThumbprintSHA256
-      required:
-        - kty
-    JwtCrv:
-      type: string
-      enum:
-        - P-256
-        - P-384
-      x-enum-varnames:
-        - CurveNameP256
-        - CurveNameP384
-    JwtKty:
-      type: string
-      enum:
-        - RSA
-        - EC
-      x-enum-varnames:
-        - KeyTypeRSA
-        - KeyTypeEC
+
     KeyVaultRoleAssignment:
       type: object
       properties:
@@ -599,7 +514,7 @@ components:
         issuerTemplate:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         keyProperties:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
         subjectCommonName:
           description: Common name
           type: string
@@ -615,6 +530,8 @@ components:
           maximum: 120
         keyStorePath:
           type: string
+        keyExportable:
+          type: boolean
         lifetimeTrigger:
           $ref: "#/components/schemas/CertificateLifetimeTrigger"
       required:
@@ -627,7 +544,7 @@ components:
         issuerTemplate:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         keyProperties:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
         usages:
           type: array
           items:
@@ -675,7 +592,7 @@ components:
           description: locator for issuer certificate
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         jwk:
-          $ref: "#/components/schemas/JwkProperties"
+          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
         pem:
           type: string
       required:

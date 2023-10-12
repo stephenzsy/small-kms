@@ -40,28 +40,6 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// Defines values for KeyOp.
-const (
-	KeyOpDecrypt   KeyOp = "decrypt"
-	KeyOpEncrypt   KeyOp = "encrypt"
-	KeyOpSign      KeyOp = "sign"
-	KeyOpUnwrapKey KeyOp = "unwrapKey"
-	KeyOpVerify    KeyOp = "verify"
-	KeyOpWrapKey   KeyOp = "wrapKey"
-)
-
-// Defines values for JwtCrv.
-const (
-	CurveNameP256 JwtCrv = "P-256"
-	CurveNameP384 JwtCrv = "P-384"
-)
-
-// Defines values for JwtKty.
-const (
-	KeyTypeEC  JwtKty = "EC"
-	KeyTypeRSA JwtKty = "RSA"
-)
-
 // Defines values for PatchServiceConfigParamsConfigPath.
 const (
 	ServiceConfigPathAppRoleIds             PatchServiceConfigParamsConfigPath = "appRoleIds"
@@ -116,9 +94,9 @@ type CertificateInfo struct {
 	Issuer   externalRef0.ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk      JwkProperties          `json:"jwk"`
-	Locator  ResourceLocator        `json:"locator"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Jwk      externalRef0.JwkProperties `json:"jwk"`
+	Locator  ResourceLocator            `json:"locator"`
+	Metadata map[string]interface{}     `json:"metadata,omitempty"`
 
 	// NotAfter Expiration date of the certificate
 	NotAfter time.Time `json:"notAfter"`
@@ -145,7 +123,7 @@ type CertificateInfoFields struct {
 	Issuer externalRef0.ResourceLocator `json:"issuer"`
 
 	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk JwkProperties `json:"jwk"`
+	Jwk externalRef0.JwkProperties `json:"jwk"`
 
 	// NotBefore Expiration date of the certificate
 	NotBefore time.Time                       `json:"notBefore"`
@@ -167,7 +145,7 @@ type CertificateTemplate struct {
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   JwkProperties              `json:"keyProperties"`
+	KeyProperties   externalRef0.JwkProperties `json:"keyProperties"`
 	KeyStorePath    *string                    `json:"keyStorePath,omitempty"`
 	LifetimeTrigger CertificateLifetimeTrigger `json:"lifetimeTrigger"`
 	Locator         ResourceLocator            `json:"locator"`
@@ -188,7 +166,7 @@ type CertificateTemplateFields struct {
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties    JwkProperties                   `json:"keyProperties"`
+	KeyProperties    externalRef0.JwkProperties      `json:"keyProperties"`
 	KeyStorePath     *string                         `json:"keyStorePath,omitempty"`
 	LifetimeTrigger  CertificateLifetimeTrigger      `json:"lifetimeTrigger"`
 	Usages           []externalRef0.CertificateUsage `json:"usages"`
@@ -198,9 +176,10 @@ type CertificateTemplateFields struct {
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
 type CertificateTemplateParameters struct {
 	IssuerTemplate *externalRef0.ResourceLocator `json:"issuerTemplate,omitempty"`
+	KeyExportable  *bool                         `json:"keyExportable,omitempty"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   *JwkProperties              `json:"keyProperties,omitempty"`
+	KeyProperties   *externalRef0.JwkProperties `json:"keyProperties,omitempty"`
 	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
 	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
 
@@ -248,53 +227,6 @@ type CreateProfileRequestType string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// KeyOp defines model for JwkKeyOperation.
-type KeyOp string
-
-// JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-type JwkProperties struct {
-	Alg *externalRef0.JwkAlg `json:"alg,omitempty"`
-	Crv *JwtCrv              `json:"crv,omitempty"`
-
-	// E RSA exponent
-	E     *string `json:"e,omitempty"`
-	KeyOp *KeyOp  `json:"key_ops,omitempty"`
-
-	// KeySize RSA key size
-	KeySize *int32 `json:"key_size,omitempty"`
-
-	// Kid Key ID
-	KeyID *string `json:"kid,omitempty"`
-	Kty   JwtKty  `json:"kty"`
-
-	// N RSA modulus
-	N *string `json:"n,omitempty"`
-
-	// X EC x coordinate
-	X *string `json:"x,omitempty"`
-
-	// X5c X.509 certificate chain
-	CertificateChain []string `json:"x5c,omitempty"`
-
-	// X5t X.509 certificate SHA-1 thumbprint
-	CertificateThumbprint *string `json:"x5t,omitempty"`
-
-	// X5tS256 X.509 certificate SHA-256 thumbprint
-	CertificateThumbprintSHA256 *string `json:"x5t#S256,omitempty"`
-
-	// X5u X.509 certificate URL
-	CertificateURL *string `json:"x5u,omitempty"`
-
-	// Y EC y coordinate
-	Y *string `json:"y,omitempty"`
-}
-
-// JwtCrv defines model for JwtCrv.
-type JwtCrv string
-
-// JwtKty defines model for JwtKty.
-type JwtKty string
 
 // KeyVaultRoleAssignment defines model for KeyVaultRoleAssignment.
 type KeyVaultRoleAssignment struct {

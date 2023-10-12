@@ -15,7 +15,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/client"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/secret"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -81,7 +80,7 @@ func InstallComplete(receiptIn io.Reader, installToUser bool) error {
 	return nil
 }
 
-func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *models.JwkProperties) {
+func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *shared.JwkProperties) {
 	if pubkey == nil {
 		return
 	}

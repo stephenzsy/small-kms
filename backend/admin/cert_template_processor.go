@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/rs/zerolog/log"
-	certtemplate "github.com/stephenzsy/small-kms/backend/admin/cert-template"
+	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
