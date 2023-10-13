@@ -24,19 +24,25 @@ export interface KeyVaultRoleAssignment {
      * @type {string}
      * @memberof KeyVaultRoleAssignment
      */
-    id: string;
+    id?: string;
     /**
      * 
      * @type {string}
      * @memberof KeyVaultRoleAssignment
      */
-    roleDefinitionId: string;
+    name?: string;
     /**
      * 
      * @type {string}
      * @memberof KeyVaultRoleAssignment
      */
-    principalId: string;
+    roleDefinitionId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof KeyVaultRoleAssignment
+     */
+    principalId?: string;
 }
 
 /**
@@ -44,9 +50,6 @@ export interface KeyVaultRoleAssignment {
  */
 export function instanceOfKeyVaultRoleAssignment(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "roleDefinitionId" in value;
-    isInstance = isInstance && "principalId" in value;
 
     return isInstance;
 }
@@ -61,9 +64,10 @@ export function KeyVaultRoleAssignmentFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'id': json['id'],
-        'roleDefinitionId': json['roleDefinitionId'],
-        'principalId': json['principalId'],
+        'id': !exists(json, 'id') ? undefined : json['id'],
+        'name': !exists(json, 'name') ? undefined : json['name'],
+        'roleDefinitionId': !exists(json, 'roleDefinitionId') ? undefined : json['roleDefinitionId'],
+        'principalId': !exists(json, 'principalId') ? undefined : json['principalId'],
     };
 }
 
@@ -77,6 +81,7 @@ export function KeyVaultRoleAssignmentToJSON(value?: KeyVaultRoleAssignment | nu
     return {
         
         'id': value.id,
+        'name': value.name,
         'roleDefinitionId': value.roleDefinitionId,
         'principalId': value.principalId,
     };

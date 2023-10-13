@@ -3,11 +3,12 @@ package certtemplate
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -54,8 +55,7 @@ func ListKeyVaultRoleAssignments(c RequestContext) ([]*models.KeyVaultRoleAssign
 	if err != nil {
 		return nil, err
 	}
-	templateContext := GetCertificateTemplateContext(c)
-	nsID := templateContext.GetCertificateTemplateLocator(c).GetNamespaceID()
+	nsID := ns.GetNamespaceContext(c).GetID()
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", nsID.Identifier().UUID().String())
 	scope := delegatedClientProvider.GetKeyvaultCertificateResourceScopeID(*doc.KeyStorePath)
 	log.Info().Msgf("Lookup role assignments for scope: %s", scope)
@@ -78,9 +78,29 @@ func ListKeyVaultRoleAssignments(c RequestContext) ([]*models.KeyVaultRoleAssign
 					return nil
 				}
 				return &models.KeyVaultRoleAssignment{
-					Id:               *item.ID,
-					PrincipalId:      *item.Properties.PrincipalID,
-					RoleDefinitionId: *item.Properties.RoleDefinitionID,
+					Id:               item.ID,
+					Name:             item.Name,
+					PrincipalId:      item.Properties.PrincipalID,
+					RoleDefinitionId: item.Properties.RoleDefinitionID,
 				}
 			}), c)
+}
+
+func DeleteKeyVaultRoleAssignment(c RequestContext, roleAssignmentID string) error {
+	doc, err := GetCertificateTemplateDoc(c, GetCertificateTemplateContext(c).GetCertificateTemplateLocator(c))
+	if err != nil {
+		return err
+	}
+	if doc.KeyStorePath == nil || *doc.KeyStorePath == "" {
+		return fmt.Errorf("%w: key store path is empty", common.ErrStatusBadRequest)
+	}
+	delegatedClientProvider := common.GetAdminServerRequestClientProvider(c)
+	scope := delegatedClientProvider.GetKeyvaultCertificateResourceScopeID(*doc.KeyStorePath)
+	raClient, err := delegatedClientProvider.ArmRoleAssignmentsClient()
+	if err != nil {
+		return err
+	}
+	resp, err := raClient.DeleteByID(c, fmt.Sprintf("%s/providers/Microsoft.Authorization/roleAssignments/%s", scope, roleAssignmentID), nil)
+	log.Info().Msgf("Delete role assignment: %s, resp: %v, err: %v", roleAssignmentID, resp, err)
+	return err
 }

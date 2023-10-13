@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"net/http"
 	"os"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/agent/agentserver"
 )
 
@@ -23,21 +27,58 @@ func getCerts() (string, string, error) {
 
 func bootstrapServer(addr string, skipTLS bool) {
 
-	certPath, keyPath, err := getCerts()
-	if err != nil && !skipTLS {
-		panic(err)
-	}
-
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	server := agentserver.NewServer()
-
-	agentserver.RegisterHandlers(e, server)
-	if skipTLS {
-		e.Logger.Fatal(e.Start(addr))
-	} else {
-		e.Logger.Fatal(e.StartTLS(addr, certPath, keyPath))
+	server, err := agentserver.NewServer()
+	if err != nil {
+		panic(err)
 	}
 
+	agentserver.RegisterHandlers(e, server)
+
+	mu := sync.RWMutex{}
+
+	c := context.Background()
+	loadConfigCh := make(chan string)
+	httpReadyCh := make(chan bool)
+	canShutdown := false
+	go func() {
+		for {
+			switch {
+			case <-httpReadyCh:
+				mu.RLock()
+			}
+			canShutdown = true
+			err := e.Start(addr)
+			canShutdown = false
+			if err != nil {
+				if errors.Is(err, http.ErrServerClosed) {
+					log.Info().Msg("server closed, reloading")
+				} else {
+					log.Error().Err(err).Msg("server error unexpected")
+				}
+			}
+
+			mu.RUnlock()
+		}
+	}()
+	go server.ConfigLoader.Start(c, loadConfigCh)
+
+	for {
+		select {
+		case configVersion := <-loadConfigCh:
+			log.Info().Msgf("config version changed: %s", configVersion)
+			if canShutdown {
+				err := e.Shutdown(c)
+				if err != nil {
+					log.Error().Err(err).Msg("failed to shutdown server")
+				}
+			}
+			mu.Lock()
+			httpReadyCh <- true
+			mu.Unlock()
+
+		}
+	}
 }

@@ -84,6 +84,13 @@ export interface DeleteCertificateRequest {
     certificateId: string;
 }
 
+export interface DeleteKeyVaultRoleAssignmentRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    templateId: string;
+    roleAssignmentId: string;
+}
+
 export interface GetAgentConfigurationRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -304,6 +311,55 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async deleteCertificate(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.deleteCertificateRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Delete Key Vault role assignment
+     */
+    async deleteKeyVaultRoleAssignmentRaw(requestParameters: DeleteKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteKeyVaultRoleAssignment.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteKeyVaultRoleAssignment.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling deleteKeyVaultRoleAssignment.');
+        }
+
+        if (requestParameters.roleAssignmentId === null || requestParameters.roleAssignmentId === undefined) {
+            throw new runtime.RequiredError('roleAssignmentId','Required parameter requestParameters.roleAssignmentId was null or undefined when calling deleteKeyVaultRoleAssignment.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))).replace(`{${"roleAssignmentId"}}`, encodeURIComponent(String(requestParameters.roleAssignmentId))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Delete Key Vault role assignment
+     */
+    async deleteKeyVaultRoleAssignment(requestParameters: DeleteKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
     }
 
     /**

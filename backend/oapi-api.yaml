@@ -244,6 +244,25 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyVaultRoleAssignment"
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+      - in: path
+        name: roleAssignmentId
+        schema:
+          type: string
+        required: true
+    delete:
+      tags:
+        - admin
+      summary: Delete Key Vault role assignment
+      operationId: DeleteKeyVaultRoleAssignment
+      responses:
+        204:
+          description: List keyvault roles assignments response
+          content: {}
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -446,14 +465,12 @@ components:
       properties:
         id:
           type: string
+        name:
+          type: string
         roleDefinitionId:
           type: string
         principalId:
           type: string
-      required:
-        - id
-        - roleDefinitionId
-        - principalId
     CertificateLifetimeTrigger:
       type: object
       properties:

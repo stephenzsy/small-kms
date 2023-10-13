@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -83,8 +83,11 @@ func newServerClientProvider(s *server) (p clientProvider, err error) {
 		return
 	}
 
-	if parsed, parseErr := url.Parse(p.azKeyvaultEndpoint); parseErr != nil {
+	if parsed, parseErr := url.Parse(p.azKeyvaultEndpoint); parseErr == nil {
 		p.cachedKeyvaultName = strings.Split(parsed.Host, ".")[0]
+	} else {
+		err = fmt.Errorf("%w: %s=%s", common.ErrInvalidEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint, p.azKeyvaultEndpoint)
+		return
 	}
 
 	if p.azKeysClient, err = azkeys.NewClient(p.azKeyvaultEndpoint, creds, nil); err != nil {

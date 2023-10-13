@@ -19,7 +19,7 @@ const pca = new PublicClientApplication({
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`,
-
+    redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -39,11 +39,11 @@ export const AppAuthContext = createContext<IAppAuthContext>({
 
 function AuthContextProvider({ children }: PropsWithChildren<{}>) {
   const { instance, inProgress, accounts } = useMsal();
-  const account = useAccount(accounts[0] || {}) ?? undefined;
-
+  const account = useAccount(accounts?.[0] ?? undefined);
   const logout = useMemoizedFn(() => {
     instance.logoutRedirect();
   });
+
   const accountRef = useLatest(account);
   const acquireToken = useMemoizedFn(
     (): Promise<AuthenticationResult | void> => {
@@ -54,7 +54,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
           })
         : instance.loginRedirect({
             scopes: [import.meta.env.VITE_API_SCOPE],
-          },);
+          });
     }
   );
   useEffect(() => {
@@ -74,7 +74,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
     inProgress !== InteractionStatus.Startup && (
       <AppAuthContext.Provider
         value={{
-          account,
+          account: account ?? undefined,
           logout,
           acquireToken,
         }}

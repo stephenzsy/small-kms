@@ -13,9 +13,6 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get certificate
-	// (GET /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest)
-	GetLatestCertificateByTemplateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter, params GetLatestCertificateByTemplateV2Params)
 	// Put certificate template
 	// (POST /v2/{namespaceId}/certificate-templates/{templateId}/enroll)
 	BeginEnrollCertificateV2(c *gin.Context, namespaceId NamespaceIdParameter, templateId TemplateIdParameter)
@@ -38,52 +35,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// GetLatestCertificateByTemplateV2 operation middleware
-func (siw *ServerInterfaceWrapper) GetLatestCertificateByTemplateV2(c *gin.Context) {
-
-	var err error
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "namespaceId", c.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter namespaceId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId TemplateIdParameter
-
-	err = runtime.BindStyledParameter("simple", false, "templateId", c.Param("templateId"), &templateId)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter templateId: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	c.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetLatestCertificateByTemplateV2Params
-
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", c.Request.URL.Query(), &params.IncludeCertificate)
-	if err != nil {
-		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeCertificate: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.GetLatestCertificateByTemplateV2(c, namespaceId, templateId, params)
-}
 
 // BeginEnrollCertificateV2 operation middleware
 func (siw *ServerInterfaceWrapper) BeginEnrollCertificateV2(c *gin.Context) {
@@ -245,7 +196,6 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/certificates/latest", wrapper.GetLatestCertificateByTemplateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceId/certificate-templates/:templateId/enroll", wrapper.BeginEnrollCertificateV2)
 	router.POST(options.BaseURL+"/v2/:namespaceId/certificates/:certId/pending", wrapper.CompleteCertificateEnrollmentV2)
 	router.GET(options.BaseURL+"/v2/:namespaceId/link-service-principal", wrapper.GetDeviceServicePrincipalLinkV2)

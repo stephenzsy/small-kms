@@ -149,9 +149,10 @@ type IncludeCertificate string
 
 // KeyVaultRoleAssignment defines model for KeyVaultRoleAssignment.
 type KeyVaultRoleAssignment struct {
-	Id               string `json:"id"`
-	PrincipalId      string `json:"principalId"`
-	RoleDefinitionId string `json:"roleDefinitionId"`
+	Id               *string `json:"id,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	PrincipalId      *string `json:"principalId,omitempty"`
+	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
 }
 
 // Profile defines model for Profile.

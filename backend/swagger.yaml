@@ -6,19 +6,6 @@ servers:
   - url: http://localhost:9000
     description: Local server
 paths:
-  /v2/{namespaceId}/certificate-templates/{templateId}/certificates/latest:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/TemplateIdParameter"
-      - $ref: "#/components/parameters/IncludeCertificateParameter"
-    get:
-      tags:
-        - admin
-      summary: Get certificate
-      operationId: GetLatestCertificateByTemplateV2
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
   /v2/{namespaceId}/certificate-templates/{templateId}/enroll:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -783,13 +770,6 @@ components:
               description: \#microsoft.graph.application appId
               x-go-name: AppID
               type: string
-    MyProfile:
-      type: object
-      properties:
-        user:
-          $ref: "#/components/schemas/NamespaceProfile"
-        device:
-          $ref: "#/components/schemas/NamespaceProfile"
     NamespacePermissionKey:
       type: string
       enum:

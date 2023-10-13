@@ -1,5 +1,4 @@
-
-type RefTableItem = {
+export type RefTableItem = {
   id: string;
 };
 

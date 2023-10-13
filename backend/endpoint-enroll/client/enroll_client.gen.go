@@ -44,16 +44,6 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// Defines values for KeyOp.
-const (
-	KeyOpDecrypt   KeyOp = "decrypt"
-	KeyOpEncrypt   KeyOp = "encrypt"
-	KeyOpSign      KeyOp = "sign"
-	KeyOpUnwrapKey KeyOp = "unwrapKey"
-	KeyOpVerify    KeyOp = "verify"
-	KeyOpWrapKey   KeyOp = "wrapKey"
-)
-
 // Defines values for JwtCrv.
 const (
 	CurveNameP256 JwtCrv = "P-256"
@@ -169,16 +159,12 @@ type CertificateUsage string
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
 
-// KeyOp defines model for JwkKeyOperation.
-type KeyOp string
-
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
 	Crv *JwtCrv `json:"crv,omitempty"`
 
 	// E RSA exponent
-	E     *string `json:"e,omitempty"`
-	KeyOp *KeyOp  `json:"key_ops,omitempty"`
+	E *string `json:"e,omitempty"`
 
 	// KeySize RSA key size
 	KeySize *int `json:"key_size,omitempty"`

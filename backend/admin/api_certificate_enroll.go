@@ -132,10 +132,10 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 
 func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *certtemplate.TemplateVarData) (cert *x509.Certificate, certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
 	claims.SchemaVersion = 1
-	cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, &certTemplateProcessor{
-		tmplDoc: template,
-		data:    data,
-	})
+	// cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, &certTemplateProcessor{
+	// 	tmplDoc: template,
+	// 	data:    data,
+	// })
 	if err != nil {
 		return
 	}

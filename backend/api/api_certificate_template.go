@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 // GetCertificateTemplate implements models.ServerInterface.
@@ -83,9 +84,9 @@ func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind models.
 
 // ListKeyVaultRoleAssignments implements models.ServerInterface.
 func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
-	namespaceKind models.NamespaceKind,
-	namespaceId common.Identifier,
-	templateID common.Identifier) error {
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier,
+	templateID shared.Identifier) error {
 	bad := func(e error) error {
 		return wrapResponse[[]*models.KeyVaultRoleAssignment](ctx, http.StatusOK, nil, e)
 	}
@@ -107,4 +108,29 @@ func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 		result = []*models.KeyVaultRoleAssignment{}
 	}
 	return wrapResponse[[]*models.KeyVaultRoleAssignment](c, http.StatusOK, result, err)
+}
+
+func (*server) DeleteKeyVaultRoleAssignment(ctx echo.Context,
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier,
+	templateID shared.Identifier,
+	roleAssignmentID string) error {
+	bad := func(e error) error {
+		return wrapResponse[[]*models.KeyVaultRoleAssignment](ctx, http.StatusNoContent, nil, e)
+	}
+	c := ctx.(RequestContext)
+
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+	}
+	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return bad(err)
+	}
+	c, err = ct.WithCertificateTemplateContext(c, templateID)
+	if err != nil {
+		return bad(err)
+	}
+	err = ct.DeleteKeyVaultRoleAssignment(c, roleAssignmentID)
+	return wrapResponse[[]*models.KeyVaultRoleAssignment](c, http.StatusNoContent, nil, err)
 }

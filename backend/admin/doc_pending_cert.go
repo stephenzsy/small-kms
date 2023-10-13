@@ -80,11 +80,10 @@ func newPendingCertDoc(
 			// 	C:  fisrtOrNil(cert.Subject.Country),
 			// },
 		},
-		SubjectAlternativeNames: certificateSubjectAlternativeNamesToDoc(cert),
-		NotBefore:               cert.NotBefore,
-		NotAfter:                cert.NotAfter,
-		IssuerNamespaceID:       templateDoc.IssuerNamespaceID,
-		IssuerTemplateID:        templateDoc.IssuerTemplateID,
+		NotBefore:         cert.NotBefore,
+		NotAfter:          cert.NotAfter,
+		IssuerNamespaceID: templateDoc.IssuerNamespaceID,
+		IssuerTemplateID:  templateDoc.IssuerTemplateID,
 	}
 }
 
