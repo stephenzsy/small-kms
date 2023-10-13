@@ -85,6 +85,12 @@ export interface CertificateTemplate {
      * @type {string}
      * @memberof CertificateTemplate
      */
+    linkTo?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplate
+     */
     issuerTemplate: string;
     /**
      * 
@@ -152,6 +158,7 @@ export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator:
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
         'subjectCommonName': json['subjectCommonName'],
+        'linkTo': !exists(json, 'linkTo') ? undefined : json['linkTo'],
         'issuerTemplate': json['issuerTemplate'],
         'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
@@ -177,6 +184,7 @@ export function CertificateTemplateToJSON(value?: CertificateTemplate | null): a
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
         'subjectCommonName': value.subjectCommonName,
+        'linkTo': value.linkTo,
         'issuerTemplate': value.issuerTemplate,
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),

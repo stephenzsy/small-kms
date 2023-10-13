@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AdminApi, NamespaceKind, ProfileRef } from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { RefTableColumn, RefsTable } from "./RefsTable";
+import { Card, CardSection } from "../components/Card";
 
 const displayNameColumn: RefTableColumn<ProfileRef> = {
   columnKey: "displayName",
@@ -52,30 +53,33 @@ export default function AdminPage() {
           [NamespaceKind.NamespaceKindApplication, "Applications"],
         ] as Array<[NamespaceKind, string]>
       ).map(([t, title]: [NamespaceKind, string]) => (
-        <RefsTable
-          key={t}
-          items={allNs?.[t]}
-          title={title}
-          refActions={(ref) => (
-            <Link
-              to={`/admin/${t}/${ref.id}`}
-              className="text-indigo-600 hover:text-indigo-900"
-            >
-              View
-            </Link>
-          )}
-          tableActions={
-            t == NamespaceKind.NamespaceKindApplication && (
-              <Link
-                to={`/admin/${t}/register`}
-                className="text-indigo-600 hover:text-indigo-900"
-              >
-                Register
-              </Link>
-            )
-          }
-          columns={[displayNameColumn]}
-        />
+        <Card key={t}>
+          <CardSection>
+            <RefsTable
+              items={allNs?.[t]}
+              title={title}
+              refActions={(ref) => (
+                <Link
+                  to={`/admin/${t}/${ref.id}`}
+                  className="text-indigo-600 hover:text-indigo-900"
+                >
+                  View
+                </Link>
+              )}
+              tableActions={
+                t == NamespaceKind.NamespaceKindApplication && (
+                  <Link
+                    to={`/admin/${t}/register`}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    Register
+                  </Link>
+                )
+              }
+              columns={[displayNameColumn]}
+            />
+          </CardSection>
+        </Card>
       ))}
     </>
   );

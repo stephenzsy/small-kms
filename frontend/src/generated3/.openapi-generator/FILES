@@ -23,6 +23,7 @@ models/CertificateTemplateParameters.ts
 models/CertificateTemplateRef.ts
 models/CertificateTemplateRefFields.ts
 models/CertificateUsage.ts
+models/CreateLinkedCertificateTemplateParameters.ts
 models/CreateManagedApplicationProfileRequest.ts
 models/CreateProfileRequest.ts
 models/CreateProfileRequestType.ts

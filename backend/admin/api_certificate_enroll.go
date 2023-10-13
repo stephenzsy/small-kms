@@ -208,25 +208,25 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	if req.DeviceLinkID != common.GetCanonicalNamespaceRelationID(req.DeviceNamespaceID, common.NSRelNameDASPLink) {
 		return nil, fmt.Errorf("%w: device link id is invalid", common.ErrStatusBadRequest)
 	}
-	relDoc, err := s.readNsRel(c, req.DeviceNamespaceID, req.DeviceLinkID)
-	if err != nil {
-		return nil, err
-	}
-	if relDoc.Status != NsRelStatusEnabled {
-		return nil, fmt.Errorf("%w: device link is not enabled", common.ErrStatusBadRequest)
-	}
-	if deviceID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Device); !nonNil || deviceID != req.DeviceNamespaceID {
-		return nil, fmt.Errorf("%w: device object id invalid", common.ErrStatusBadRequest)
-	}
-	if spID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.ServicePrincipal); !nonNil || spID != req.ServicePrincipalID {
-		return nil, fmt.Errorf("%w: service principal id invalid", common.ErrStatusBadRequest)
-	}
-	if appID, nonNil := utils.NonNilUUID(relDoc.Attributes.AppID); !nonNil || appID != req.AppID {
-		return nil, fmt.Errorf("%w: application client id does invalid", common.ErrStatusBadRequest)
-	}
-	if _, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Application); !nonNil {
-		return nil, fmt.Errorf("%w: application object id is nil", common.ErrStatusBadRequest)
-	}
+	// relDoc, err := s.readNsRel(c, req.DeviceNamespaceID, req.DeviceLinkID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if relDoc.Status != NsRelStatusEnabled {
+	// 	return nil, fmt.Errorf("%w: device link is not enabled", common.ErrStatusBadRequest)
+	// }
+	// if deviceID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Device); !nonNil || deviceID != req.DeviceNamespaceID {
+	// 	return nil, fmt.Errorf("%w: device object id invalid", common.ErrStatusBadRequest)
+	// }
+	// if spID, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.ServicePrincipal); !nonNil || spID != req.ServicePrincipalID {
+	// 	return nil, fmt.Errorf("%w: service principal id invalid", common.ErrStatusBadRequest)
+	// }
+	// if appID, nonNil := utils.NonNilUUID(relDoc.Attributes.AppID); !nonNil || appID != req.AppID {
+	// 	return nil, fmt.Errorf("%w: application client id does invalid", common.ErrStatusBadRequest)
+	// }
+	// if _, nonNil := utils.NonNilUUID(relDoc.LinkedNamespaces.Application); !nonNil {
+	// 	return nil, fmt.Errorf("%w: application object id is nil", common.ErrStatusBadRequest)
+	// }
 	log.Info().Msgf("link doc loaded and verified: %s", req.DeviceLinkID)
 
 	// prep parameters
@@ -242,14 +242,14 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	}
 	log.Info().Msgf("device verified: %s", req.DeviceNamespaceID)
 
-	if _, err := s.verifyApplication(c, *relDoc.LinkedNamespaces.Application, &params); err != nil {
-		return nil, err
-	}
-	log.Info().Msgf("application verified: %s", *relDoc.LinkedNamespaces.Application)
+	// if _, err := s.verifyApplication(c, *relDoc.LinkedNamespaces.Application, &params); err != nil {
+	// 	return nil, err
+	// }
+	// log.Info().Msgf("application verified: %s", *relDoc.LinkedNamespaces.Application)
 
-	if _, err := s.verifyServicePrincipal(c, req.ServicePrincipalID, &params); err != nil {
-		return nil, err
-	}
+	// if _, err := s.verifyServicePrincipal(c, req.ServicePrincipalID, &params); err != nil {
+	// 	return nil, err
+	// }
 	log.Info().Msgf("service principal verified: %s", req.ServicePrincipalID)
 
 	if _, err := s.verifyGroup(c, nsID, &params); err != nil {

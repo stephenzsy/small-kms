@@ -24,6 +24,7 @@ import type {
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateTemplateRef,
+  CreateLinkedCertificateTemplateParameters,
   CreateProfileRequest,
   IncludeCertificate,
   NamespaceKind,
@@ -51,6 +52,8 @@ import {
     CertificateTemplateParametersToJSON,
     CertificateTemplateRefFromJSON,
     CertificateTemplateRefToJSON,
+    CreateLinkedCertificateTemplateParametersFromJSON,
+    CreateLinkedCertificateTemplateParametersToJSON,
     CreateProfileRequestFromJSON,
     CreateProfileRequestToJSON,
     IncludeCertificateFromJSON,
@@ -72,6 +75,12 @@ export interface AddKeyVaultRoleAssignmentRequest {
     namespaceId: string;
     templateId: string;
     roleDefinitionId: string;
+}
+
+export interface CreateLinkedCertificateTemplateRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    createLinkedCertificateTemplateParameters: CreateLinkedCertificateTemplateParameters;
 }
 
 export interface CreateManagedNamespaceRequest {
@@ -235,6 +244,55 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
         const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create linked certificate template
+     */
+    async createLinkedCertificateTemplateRaw(requestParameters: CreateLinkedCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createLinkedCertificateTemplate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createLinkedCertificateTemplate.');
+        }
+
+        if (requestParameters.createLinkedCertificateTemplateParameters === null || requestParameters.createLinkedCertificateTemplateParameters === undefined) {
+            throw new runtime.RequiredError('createLinkedCertificateTemplateParameters','Required parameter requestParameters.createLinkedCertificateTemplateParameters was null or undefined when calling createLinkedCertificateTemplate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateLinkedCertificateTemplateParametersToJSON(requestParameters.createLinkedCertificateTemplateParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateTemplateFromJSON(jsonValue));
+    }
+
+    /**
+     * Create linked certificate template
+     */
+    async createLinkedCertificateTemplate(requestParameters: CreateLinkedCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
+        const response = await this.createLinkedCertificateTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

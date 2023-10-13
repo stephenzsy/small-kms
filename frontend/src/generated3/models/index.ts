@@ -20,6 +20,7 @@ export * from './CertificateTemplateParameters';
 export * from './CertificateTemplateRef';
 export * from './CertificateTemplateRefFields';
 export * from './CertificateUsage';
+export * from './CreateLinkedCertificateTemplateParameters';
 export * from './CreateManagedApplicationProfileRequest';
 export * from './CreateProfileRequest';
 export * from './CreateProfileRequestType';

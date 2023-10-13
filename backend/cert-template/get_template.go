@@ -1,6 +1,7 @@
 package certtemplate
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
@@ -14,20 +15,29 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getCertificateTemplateDocLocator(nsID shared.NamespaceIdentifier, templateID common.Identifier) shared.ResourceLocator {
+func getCertificateTemplateDocLocator(nsID shared.NamespaceIdentifier, templateID shared.Identifier) shared.ResourceLocator {
 	return shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, templateID))
 }
 
-func GetCertificateTemplateDoc(c RequestContext,
-	locator models.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
-
+func getDirectCertificateTemplateDoc(c context.Context, locator shared.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
 	if locator.GetID().Kind() != shared.ResourceKindCertTemplate {
 		return nil, fmt.Errorf("invalid resource type: %s, expected: %s", locator.GetID().Kind(), shared.ResourceKindCertTemplate)
 	}
-
 	doc = new(CertificateTemplateDoc)
 	err = kmsdoc.Read(c, locator, doc)
 	return
+}
+
+func GetCertificateTemplateDoc(c context.Context,
+	locator shared.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
+	if doc, err = getDirectCertificateTemplateDoc(c, locator); err == nil && doc.ID.Identifier().IsUUID() && doc.ID.Identifier().UUID().Version() == 5 {
+		if doc.AliasTo == nil {
+			return nil, fmt.Errorf("%w: invalid template", common.ErrStatusBadRequest)
+		}
+		return getDirectCertificateTemplateDoc(c, *doc.AliasTo)
+	} else {
+		return doc, err
+	}
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.

@@ -18,14 +18,14 @@ export function RefsTable<T extends RefTableItem>(props: {
   const { title, tableActions, items, refActions, columns = [] } = props;
 
   return (
-    <section className="overflow-hidden rounded-lg bg-white shadow px-4 sm:px-6 lg:px-8 py-6">
+    <section>
       <div className="flex flex-row items-center justify-between">
         <h2 className="text-lg font-semibold">{title}</h2>
         {tableActions}
       </div>
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+      <div className="mt-8">
+        <div className="-my-2 overflow-x-auto">
+          <div className="inline-block min-w-full py-2 align-middle">
             {items ? (
               items.length === 0 ? (
                 <div>No items</div>

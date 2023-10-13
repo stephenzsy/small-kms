@@ -440,39 +440,43 @@ export default function CertificateTemplatePage() {
         <CardTitle>Certificate template</CardTitle>
         <CardSection>
           <pre>
-            {namespaceKind}/{namespaceId}/certificate-templates/{templateId}
+            {namespaceKind}:{namespaceId}/cert-template:{templateId}
           </pre>
         </CardSection>
       </Card>
-      <RefsTable
-        items={issuedCertificates}
-        title="Issued certificates"
-        tableActions={
-          <div>
-            <Link
-              to={`/admin/${namespaceKind}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
-              className="text-indigo-600 hover:text-indigo-900"
-            >
-              View latest certificate
-            </Link>
-          </div>
-        }
-        columns={[
-          {
-            header: "Thumbprint",
-            render: (r) => r.thumbprint ?? "",
-            columnKey: "thumbprint",
-          },
-        ]}
-        refActions={(ref) => (
-          <Link
-            to={`/admin/${namespaceKind}/${namespaceId}/certificates/${ref.id}`}
-            className="text-indigo-600 hover:text-indigo-900"
-          >
-            View
-          </Link>
-        )}
-      />
+      <Card>
+        <CardSection>
+          <RefsTable
+            items={issuedCertificates}
+            title="Issued certificates"
+            tableActions={
+              <div>
+                <Link
+                  to={`/admin/${namespaceKind}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
+                  className="text-indigo-600 hover:text-indigo-900"
+                >
+                  View latest certificate
+                </Link>
+              </div>
+            }
+            columns={[
+              {
+                header: "Thumbprint",
+                render: (r) => r.thumbprint ?? "",
+                columnKey: "thumbprint",
+              },
+            ]}
+            refActions={(ref) => (
+              <Link
+                to={`/admin/${namespaceKind}/${namespaceId}/certificates/${ref.id}`}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                View
+              </Link>
+            )}
+          />
+        </CardSection>
+      </Card>
       <div className="rounded-lg bg-white shadow p-6 space-y-6">
         <Button variant="primary" onClick={issueCert}>
           Request certificate

@@ -27,7 +27,7 @@ func ListCertificateTemplates(c RequestContext) ([]*models.CertificateTemplateRe
 		nsID,
 		shared.ResourceKindCertTemplate,
 		kmsdoc.CosmosQueryBuilder{
-			ExtraColumns: []string{"c.subjectCn"},
+			ExtraColumns: []string{"c.subjectCn", kmsdoc.QueryColumnNameAliasTo},
 		})
 	mappedPager := utils.NewMappedItemsPager(itemsPager, func(doc *CertificateTemplateDoc) *models.CertificateTemplateRefComposed {
 		return doc.toModelRef()

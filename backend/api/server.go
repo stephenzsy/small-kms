@@ -73,6 +73,26 @@ func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err 
 	}
 }
 
+func wrapEchoResponse(c echo.Context, err error) error {
+	if err == nil {
+		return err
+	}
+	switch {
+	case errors.Is(err, common.ErrStatusBadRequest):
+		return c.JSON(http.StatusBadRequest, H{"error": err.Error()})
+	case errors.Is(err, common.ErrStatusUnauthorized):
+		return c.JSON(http.StatusUnauthorized, H{"error": err.Error()})
+	case errors.Is(err, common.ErrStatusForbidden):
+		return c.JSON(http.StatusForbidden, H{"error": err.Error()})
+	case errors.Is(err, common.ErrStatusNotFound):
+		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
+	case errors.Is(err, common.ErrStatusConflict):
+		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
+	}
+	log.Error().Err(err).Msg("internal error")
+	return c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
+}
+
 type appConfidentialIdentity struct {
 	tenantID               string
 	clientID               string

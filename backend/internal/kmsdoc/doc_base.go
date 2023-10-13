@@ -62,6 +62,8 @@ func (doc *BaseDoc) setAliasToWithETag(target shared.ResourceLocator, etag azcor
 	doc.AliasToETag = &etag
 }
 
+const QueryColumnNameAliasTo = "c[\"@alias.to\"]"
+
 var queryDefaultColumns = []string{
 	"c.namespaceId",
 	"c.id",

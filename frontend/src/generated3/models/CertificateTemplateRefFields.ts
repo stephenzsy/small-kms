@@ -25,6 +25,12 @@ export interface CertificateTemplateRefFields {
      * @memberof CertificateTemplateRefFields
      */
     subjectCommonName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplateRefFields
+     */
+    linkTo?: string;
 }
 
 /**
@@ -48,6 +54,7 @@ export function CertificateTemplateRefFieldsFromJSONTyped(json: any, ignoreDiscr
     return {
         
         'subjectCommonName': json['subjectCommonName'],
+        'linkTo': !exists(json, 'linkTo') ? undefined : json['linkTo'],
     };
 }
 
@@ -61,6 +68,7 @@ export function CertificateTemplateRefFieldsToJSON(value?: CertificateTemplateRe
     return {
         
         'subjectCommonName': value.subjectCommonName,
+        'linkTo': value.linkTo,
     };
 }
 

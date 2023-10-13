@@ -190,6 +190,24 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateTemplateRef"
+    post:
+      tags:
+        - admin
+      summary: Create linked certificate template
+      operationId: CreateLinkedCertificateTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLinkedCertificateTemplateParameters"
+        required: true
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -506,6 +524,8 @@ components:
         subjectCommonName:
           description: Common name
           type: string
+        linkTo:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
       required:
         - subjectCommonName
     CertificateTemplateRef:
@@ -574,6 +594,13 @@ components:
       allOf:
         - $ref: "#/components/schemas/CertificateTemplateRef"
         - $ref: "#/components/schemas/CertificateTemplateFields"
+    CreateLinkedCertificateTemplateParameters:
+      type: object
+      properties:
+        targetTemplate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+      required:
+        - targetTemplate
     IncludeCertificate:
       type: string
       enum:

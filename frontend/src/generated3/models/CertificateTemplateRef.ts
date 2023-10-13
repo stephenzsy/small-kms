@@ -61,6 +61,12 @@ export interface CertificateTemplateRef {
      * @memberof CertificateTemplateRef
      */
     subjectCommonName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateTemplateRef
+     */
+    linkTo?: string;
 }
 
 /**
@@ -92,6 +98,7 @@ export function CertificateTemplateRefFromJSONTyped(json: any, ignoreDiscriminat
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
         'subjectCommonName': json['subjectCommonName'],
+        'linkTo': !exists(json, 'linkTo') ? undefined : json['linkTo'],
     };
 }
 
@@ -111,6 +118,7 @@ export function CertificateTemplateRefToJSON(value?: CertificateTemplateRef | nu
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
         'subjectCommonName': value.subjectCommonName,
+        'linkTo': value.linkTo,
     };
 }
 

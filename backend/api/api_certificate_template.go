@@ -82,6 +82,27 @@ func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind shared.
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }
 
+// CreateLinkedCertificateTemplate implements models.ServerInterface.
+func (*server) CreateLinkedCertificateTemplate(ctx echo.Context,
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier) error {
+	params := models.CreateLinkedCertificateTemplateParameters{}
+	err := ctx.Bind(&params)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, nil)
+	}
+	c := ctx.(RequestContext)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	err = ct.ApiCreateLinkedCertificateTemplate(c, params)
+	return wrapEchoResponse(c, err)
+}
+
 // ListKeyVaultRoleAssignments implements models.ServerInterface.
 func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 	namespaceKind shared.NamespaceKind,

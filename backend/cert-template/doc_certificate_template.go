@@ -25,6 +25,7 @@ func (d *CertificateTemplateDoc) populateRef(r *models.CertificateTemplateRefCom
 	}
 	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
 	r.SubjectCommonName = d.SubjectCommonName
+	r.LinkTo = d.AliasTo
 }
 
 func (d *CertificateTemplateDoc) toModelRef() (r *models.CertificateTemplateRefComposed) {

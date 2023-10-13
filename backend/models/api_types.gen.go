@@ -72,11 +72,12 @@ type CertificateTemplate struct {
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   externalRef0.JwkProperties `json:"keyProperties"`
-	KeyStorePath    *string                    `json:"keyStorePath,omitempty"`
-	LifetimeTrigger CertificateLifetimeTrigger `json:"lifetimeTrigger"`
-	Locator         ResourceLocator            `json:"locator"`
-	Metadata        map[string]interface{}     `json:"metadata,omitempty"`
+	KeyProperties   externalRef0.JwkProperties    `json:"keyProperties"`
+	KeyStorePath    *string                       `json:"keyStorePath,omitempty"`
+	LifetimeTrigger CertificateLifetimeTrigger    `json:"lifetimeTrigger"`
+	LinkTo          *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
+	Locator         ResourceLocator               `json:"locator"`
+	Metadata        map[string]interface{}        `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -119,10 +120,11 @@ type CertificateTemplateParameters struct {
 // CertificateTemplateRef defines model for CertificateTemplateRef.
 type CertificateTemplateRef struct {
 	// Deleted Time when the deleted was deleted
-	Deleted  *time.Time                   `json:"deleted,omitempty"`
-	Id       externalRef0.Identifier      `json:"id"`
-	Locator  externalRef0.ResourceLocator `json:"locator"`
-	Metadata map[string]interface{}       `json:"metadata,omitempty"`
+	Deleted  *time.Time                    `json:"deleted,omitempty"`
+	Id       externalRef0.Identifier       `json:"id"`
+	LinkTo   *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
+	Locator  externalRef0.ResourceLocator  `json:"locator"`
+	Metadata map[string]interface{}        `json:"metadata,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -134,8 +136,15 @@ type CertificateTemplateRef struct {
 
 // CertificateTemplateRefFields defines model for CertificateTemplateRefFields.
 type CertificateTemplateRefFields struct {
+	LinkTo *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
+
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
+}
+
+// CreateLinkedCertificateTemplateParameters defines model for CreateLinkedCertificateTemplateParameters.
+type CreateLinkedCertificateTemplateParameters struct {
+	TargetTemplate externalRef0.ResourceLocator `json:"targetTemplate"`
 }
 
 // CreateManagedApplicationProfileRequest defines model for CreateManagedApplicationProfileRequest.
@@ -315,6 +324,9 @@ type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParam
 
 // PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
 type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters
+
+// CreateLinkedCertificateTemplateJSONRequestBody defines body for CreateLinkedCertificateTemplate for application/json ContentType.
+type CreateLinkedCertificateTemplateJSONRequestBody = CreateLinkedCertificateTemplateParameters
 
 // Getter for additional properties for RequestDiagnostics_ServiceRuntime. Returns the specified
 // element and whether it was found
