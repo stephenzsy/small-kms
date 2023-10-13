@@ -3,6 +3,7 @@ package agentserver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -24,6 +25,8 @@ type ConfigLoader struct {
 	currentConfig        shared.AgentConfigurationAgentActiveServer
 	agentClient          *agentclient.ClientWithResponses
 	azKvSecretsClient    *azsecrets.Client
+
+	certFileName string
 }
 
 const defaultCacheSymlink = "config.json"
@@ -34,33 +37,82 @@ func newConfigLoader(
 	apiScope string,
 	tenantID string,
 	configDir string,
+	keyVaultUrl string,
 ) (ConfigLoader, error) {
 	l := ConfigLoader{
 		identity:  identity,
 		configDir: configDir,
 	}
 	client, err := agentclient.NewClientWithCreds(apiEndpoint, identity.TokenCredential(), []string{apiScope}, tenantID)
+
 	if err != nil {
 		return l, err
 	}
 	l.agentClient = client
+	l.azKvSecretsClient, err = azsecrets.NewClient(keyVaultUrl, identity.TokenCredential(), nil)
+	if err != nil {
+		return l, err
+	}
 	if l.loadFromFile() == nil {
 		l.pullCertificates(context.Background())
 	}
+
 	return l, nil
 }
 
 func (cl *ConfigLoader) pullCertificates(c context.Context) error {
 
 	// pull certificates
-	cert, err := cl.agentClient.GetCertificateWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"),
+	certResp, err := cl.agentClient.GetCertificateWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"),
 		*cl.currentConfig.ServerCertificateId, &agentclient.GetCertificateParams{
 			IncludeCertificate: utils.ToPtr(agentclient.IncludeJWK),
 		})
 	if err != nil {
 		return err
 	}
-	log.Info().RawJSON("cert", cert.Body).Msg("cert")
+	cert := certResp.JSON200
+	cachedCertFileName := filepath.Join(cl.configDir, "bundle-"+cert.Id.String()+".pem")
+	_, err = os.ReadFile(cachedCertFileName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			kid := cert.Jwk.KeyID
+			if kid == nil {
+				return fmt.Errorf("missing key id")
+			}
+			azsKid := azsecrets.ID(*kid)
+			sResp, err := cl.azKvSecretsClient.GetSecret(c, azsKid.Name(), azsKid.Version(), nil)
+			if err != nil {
+				return err
+			}
+			bundlePemBytes := []byte(*sResp.SecretBundle.Value)
+			err = os.WriteFile(cachedCertFileName, bundlePemBytes, 0400)
+			if err != nil {
+				return err
+			}
+
+		} else {
+			return err
+		}
+	}
+	cl.certFileName = cachedCertFileName
+	/*
+		var x509Certs []*x509.Certificate
+		for block, rest := pem.Decode(bundlePemBytes); block != nil; block, rest = pem.Decode(rest) {
+			if block.Type == "PRIVATRE KEY" {
+				cl.privateKey, err = x509.ParsePKCS8PrivateKey(block.Bytes)
+				if err != nil {
+					return err
+				}
+			} else if block.Type == "CERTIFICATE" {
+				certInChain, err := x509.ParseCertificate(block.Bytes)
+				if err != nil {
+					return err
+				}
+				x509Certs = append(x509Certs, certInChain)
+			}
+		}
+		cl.certChain = x509Certs
+	*/
 	return nil
 }
 
@@ -79,6 +131,10 @@ func (cl *ConfigLoader) loadFromFile() error {
 		}
 	}
 	return nil
+}
+
+func (cl *ConfigLoader) GetTLSCertFileName() string {
+	return cl.certFileName
 }
 
 func (cl *ConfigLoader) refreshConfig(c context.Context) (bool, error) {
@@ -129,7 +185,11 @@ func (cl *ConfigLoader) Start(c context.Context, reloadCh chan<- string) {
 				nextDuration = time.Duration(5 * time.Minute)
 			} else {
 				log.Debug().Msgf("refreshed: %v", refreshed)
-				cl.pullCertificates(context.Background())
+				err = cl.pullCertificates(context.Background())
+				if err != nil {
+					log.Error().Err(err).Msg("failed to pull certificates")
+					nextDuration = time.Duration(5 * time.Minute)
+				}
 				reloadCh <- cl.currentConfigWrapper.Version
 			}
 		}

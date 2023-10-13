@@ -48,7 +48,8 @@ func bootstrapServer(addr string, skipTLS bool) {
 			mu.Lock()
 			canShutdown = true
 			log.Info().Msgf("starting server at %s", addr)
-			err := e.Start(addr)
+			cert := server.ConfigLoader.GetTLSCertFileName()
+			err := e.StartTLS(addr, cert, cert)
 			canShutdown = false
 			if err != nil {
 				if errors.Is(err, http.ErrServerClosed) {

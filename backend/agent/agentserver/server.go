@@ -58,12 +58,17 @@ func NewServer() (*server, error) {
 	if !ok {
 		return nil, fmt.Errorf("environment variable SMALLKMS_AGENT_CONFIG_DIR is not set")
 	}
+	azKeyVaultUrl, ok := os.LookupEnv("AZURE_KEYVAULT_RESOURCEENDPOINT")
+	if !ok {
+		return nil, fmt.Errorf("environment variable SMALLKMS_AGENT_CONFIG_DIR is not set")
+	}
 	s.ConfigLoader, err = newConfigLoader(
 		config.ServiceIdentity(),
 		apiBaseUrl,
 		apiScope,
 		tenantID,
 		configDir,
+		azKeyVaultUrl,
 	)
 
 	return s, err
