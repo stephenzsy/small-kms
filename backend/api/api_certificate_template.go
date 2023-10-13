@@ -14,7 +14,7 @@ import (
 )
 
 // GetCertificateTemplate implements models.ServerInterface.
-func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier, templateID common.Identifier) error {
+func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, templateID shared.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
@@ -36,9 +36,9 @@ func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind models.Na
 
 // PutCertificateTemplate implements models.ServerInterface.
 func (s *server) PutCertificateTemplate(ec echo.Context,
-	namespaceKind models.NamespaceKind,
-	namespaceId common.Identifier,
-	templateID common.Identifier) error {
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier,
+	templateID shared.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
 		if err := auth.AuthorizeAdminOnly(c); err != nil {
@@ -65,7 +65,7 @@ func (s *server) PutCertificateTemplate(ec echo.Context,
 }
 
 // ListProfiles implements models.ServerInterface.
-func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier) error {
+func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier) error {
 	c := ec.(RequestContext)
 	respData, respErr := (func() ([]*models.CertificateTemplateRefComposed, error) {
 
@@ -88,7 +88,7 @@ func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 	namespaceId shared.Identifier,
 	templateID shared.Identifier) error {
 	bad := func(e error) error {
-		return wrapResponse[[]*models.KeyVaultRoleAssignment](ctx, http.StatusOK, nil, e)
+		return wrapResponse[[]*models.AzureRoleAssignment](ctx, http.StatusOK, nil, e)
 	}
 	c := ctx.(RequestContext)
 
@@ -105,18 +105,18 @@ func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 	}
 	result, err := ct.ListKeyVaultRoleAssignments(c)
 	if err == nil && result == nil {
-		result = []*models.KeyVaultRoleAssignment{}
+		result = []*models.AzureRoleAssignment{}
 	}
-	return wrapResponse[[]*models.KeyVaultRoleAssignment](c, http.StatusOK, result, err)
+	return wrapResponse[[]*models.AzureRoleAssignment](c, http.StatusOK, result, err)
 }
 
-func (*server) DeleteKeyVaultRoleAssignment(ctx echo.Context,
+func (*server) RemoveKeyVaultRoleAssignment(ctx echo.Context,
 	namespaceKind shared.NamespaceKind,
 	namespaceId shared.Identifier,
 	templateID shared.Identifier,
 	roleAssignmentID string) error {
 	bad := func(e error) error {
-		return wrapResponse[[]*models.KeyVaultRoleAssignment](ctx, http.StatusNoContent, nil, e)
+		return wrapResponse[any](ctx, http.StatusNoContent, nil, e)
 	}
 	c := ctx.(RequestContext)
 
@@ -132,5 +132,33 @@ func (*server) DeleteKeyVaultRoleAssignment(ctx echo.Context,
 		return bad(err)
 	}
 	err = ct.DeleteKeyVaultRoleAssignment(c, roleAssignmentID)
-	return wrapResponse[[]*models.KeyVaultRoleAssignment](c, http.StatusNoContent, nil, err)
+	return wrapResponse[any](c, http.StatusNoContent, nil, err)
+}
+
+// AddKeyVaultRoleAssignment implements models.ServerInterface.
+func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind shared.NamespaceKind, namespaceID shared.Identifier, templateID shared.Identifier,
+	params models.AddKeyVaultRoleAssignmentParams) error {
+	bad := func(e error) error {
+		return wrapResponse[*models.AzureRoleAssignment](ctx, http.StatusOK, nil, e)
+	}
+
+	roleDefID, err := ct.ValidateRoleDefnitionIDForAdd(params.RoleDefinitionId)
+	if err != nil {
+		return bad(err)
+	}
+	c := ctx.(RequestContext)
+
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return bad(err)
+	}
+	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceID)
+	if err != nil {
+		return bad(err)
+	}
+	c, err = ct.WithCertificateTemplateContext(c, templateID)
+	if err != nil {
+		return bad(err)
+	}
+	result, err := ct.AddKeyVaultRoleAssignment(c, roleDefID)
+	return wrapResponse[*models.AzureRoleAssignment](c, http.StatusOK, result, err)
 }

@@ -38,7 +38,7 @@ func GetAdminServerClientProvider(c context.Context) AdminServerClientProvider {
 type AdminServerRequestClientProvider interface {
 	MsGraphClient() (*msgraphsdkgo.GraphServiceClient, error)
 	ArmRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error)
-	GetKeyvaultCertificateResourceScopeID(certificateName string) string
+	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
 }
 
 const adminServerRequestClientProvierContextKey contextKey = "adminServerRequestClient"

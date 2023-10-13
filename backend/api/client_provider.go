@@ -147,11 +147,15 @@ type requestClientProvider struct {
 }
 
 // GetKeyvaultCertificateResourceScopeID implements common.AdminServerRequestClientProvider.
-func (p *requestClientProvider) GetKeyvaultCertificateResourceScopeID(certificateName string) string {
-	return fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/certificates/%s",
+func (p *requestClientProvider) GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string {
+	if category != "secrets" {
+		category = "certificates"
+	}
+	return fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/%s/%s",
 		p.parent.subscriptionId,
 		p.parent.resourceGroupName,
 		p.parent.clients.keyvaultName(),
+		category,
 		certificateName)
 }
 

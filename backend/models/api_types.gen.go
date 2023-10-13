@@ -50,6 +50,14 @@ type AgentCheckInResult struct {
 // AgentHostRole defines model for AgentHostRole.
 type AgentHostRole string
 
+// AzureRoleAssignment defines model for AzureRoleAssignment.
+type AzureRoleAssignment struct {
+	Id               *string `json:"id,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	PrincipalId      *string `json:"principalId,omitempty"`
+	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
+}
+
 // CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
 type CertificateLifetimeTrigger struct {
 	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
@@ -146,14 +154,6 @@ type CreateProfileRequestType string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// KeyVaultRoleAssignment defines model for KeyVaultRoleAssignment.
-type KeyVaultRoleAssignment struct {
-	Id               *string `json:"id,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	PrincipalId      *string `json:"principalId,omitempty"`
-	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
-}
 
 // Profile defines model for Profile.
 type Profile = ProfileRef
@@ -289,6 +289,11 @@ type IssueCertificateFromTemplateParams struct {
 	IncludeCertificate *IncludeCertificate                     `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 	Force              *bool                                   `form:"force,omitempty" json:"force,omitempty"`
 	Tags               *[]externalRef0.TemplatedCertificateTag `form:"tags,omitempty" json:"tags,omitempty"`
+}
+
+// AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
+type AddKeyVaultRoleAssignmentParams struct {
+	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
 }
 
 // GetCertificateParams defines parameters for GetCertificate.

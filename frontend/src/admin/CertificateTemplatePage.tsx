@@ -595,11 +595,24 @@ function KeyvaultRoleAssignmentsCard({
 
   const { run: removeRoleAssignment } = useRequest(
     async (roleAssignmentId: string) => {
-      await adminApi.deleteKeyVaultRoleAssignment({
+      await adminApi.removeKeyVaultRoleAssignment({
         namespaceId,
         namespaceKind,
         templateId,
         roleAssignmentId,
+      });
+      getRoleAssignments();
+    },
+    { manual: true }
+  );
+
+  const { run: addRoleAssignment } = useRequest(
+    async (roleDefId: string) => {
+      await adminApi.addKeyVaultRoleAssignment({
+        namespaceId,
+        namespaceKind,
+        templateId,
+        roleDefinitionId: roleDefId,
       });
       getRoleAssignments();
     },
@@ -634,7 +647,15 @@ function KeyvaultRoleAssignmentsCard({
                 </Button>
               );
             } else {
-              return <Button>Add Assignment</Button>;
+              return (
+                <Button
+                  onClick={() => {
+                    addRoleAssignment(ref.defId);
+                  }}
+                >
+                  Add Assignment
+                </Button>
+              );
             }
           }}
         />

@@ -11,6 +11,7 @@ models/AgentConfigurationAgentActiveHostBootstrap.ts
 models/AgentConfigurationAgentActiveServer.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
+models/AzureRoleAssignment.ts
 models/CertificateInfo.ts
 models/CertificateInfoFields.ts
 models/CertificateLifetimeTrigger.ts
@@ -31,7 +32,6 @@ models/JwkCrv.ts
 models/JwkKeyOperation.ts
 models/JwkProperties.ts
 models/JwtKty.ts
-models/KeyVaultRoleAssignment.ts
 models/NamespaceKind.ts
 models/Profile.ts
 models/ProfileRef.ts

@@ -233,7 +233,7 @@ paths:
     get:
       tags:
         - admin
-      summary: List keyvault role assignments
+      summary: List Key Vault role assignments
       operationId: ListKeyVaultRoleAssignments
       responses:
         200:
@@ -243,7 +243,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/KeyVaultRoleAssignment"
+                  $ref: "#/components/schemas/AzureRoleAssignment"
+    post:
+      tags:
+        - admin
+      summary: Add Key Vault role assignment
+      operationId: AddKeyVaultRoleAssignment
+      parameters:
+        - in: query
+          name: roleDefinitionId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Role Assignment response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AzureRoleAssignment"
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -257,8 +275,8 @@ paths:
     delete:
       tags:
         - admin
-      summary: Delete Key Vault role assignment
-      operationId: DeleteKeyVaultRoleAssignment
+      summary: Remove Key Vault role assignment
+      operationId: RemoveKeyVaultRoleAssignment
       responses:
         204:
           description: List keyvault roles assignments response
@@ -460,7 +478,7 @@ components:
         propertyName: type
         mapping:
           managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
-    KeyVaultRoleAssignment:
+    AzureRoleAssignment:
       type: object
       properties:
         id:

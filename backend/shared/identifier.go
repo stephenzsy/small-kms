@@ -27,6 +27,10 @@ func (identifier identifierImpl) String() string {
 	return identifier.strVal
 }
 
+func (identifier identifierImpl) StringPtr() *string {
+	return &identifier.strVal
+}
+
 func (identifier identifierImpl) IsUUID() bool {
 	return identifier.isUuid
 }

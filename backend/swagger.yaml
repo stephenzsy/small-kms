@@ -810,8 +810,6 @@ components:
         e:
           description: RSA exponent
           type: string
-        crv:
-          $ref: "#/components/schemas/JwtCrv"
         x:
           description: EC x coordinate
           type: string

@@ -37,12 +37,6 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// Defines values for JwtCrv.
-const (
-	CurveNameP256 JwtCrv = "P-256"
-	CurveNameP384 JwtCrv = "P-384"
-)
-
 // Defines values for JwtKty.
 const (
 	KeyTypeEC  JwtKty = "EC"
@@ -154,8 +148,6 @@ type IncludeCertificate string
 
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
-	Crv *JwtCrv `json:"crv,omitempty"`
-
 	// E RSA exponent
 	E *string `json:"e,omitempty"`
 
@@ -187,9 +179,6 @@ type JwkProperties struct {
 	// Y EC y coordinate
 	Y *string `json:"y,omitempty"`
 }
-
-// JwtCrv defines model for JwtCrv.
-type JwtCrv string
 
 // JwtKty defines model for JwtKty.
 type JwtKty string
