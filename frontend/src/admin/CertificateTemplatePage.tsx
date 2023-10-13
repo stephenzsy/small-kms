@@ -446,9 +446,14 @@ export default function CertificateTemplatePage() {
 
   return (
     <>
-      <h1>
-        {namespaceId}/certificate-templates/{templateId}
-      </h1>
+      <Card>
+        <CardTitle>Certificate template</CardTitle>
+        <CardSection>
+          <pre>
+            {namespaceKind}/{namespaceId}/certificate-templates/{templateId}
+          </pre>
+        </CardSection>
+      </Card>
       <RefsTable
         items={issuedCertificates}
         title="Issued certificates"

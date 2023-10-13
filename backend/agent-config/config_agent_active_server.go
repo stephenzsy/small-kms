@@ -20,8 +20,8 @@ type AgentActiveServerDoc struct {
 
 	AuthorizedCertificateTemplate shared.ResourceLocator `json:"authorizedCertificateTemplate"`
 	ServerCertificateTemplate     shared.ResourceLocator `json:"serverCertificateTemplate"`
-	ServerCertificate             shared.ResourceLocator `json:"serverCertificate"`
-	AuthorizedCertificate         shared.ResourceLocator `json:"authorizedCertificate"`
+	ServerCertificateID           shared.Identifier      `json:"serverCertificateId"`
+	AuthorizedCertificateID       shared.Identifier      `json:"authorizedCertificateId"`
 }
 
 // toModel implements AgentConfigDocument.
@@ -43,8 +43,8 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 		params.AuthorizedCertificateTemplate = &d.AuthorizedCertificateTemplate
 		params.ServerCertificateTemplate = &d.ServerCertificateTemplate
 	}
-	params.AuthorizedCertificate = &d.AuthorizedCertificate
-	params.ServerCertificate = &d.ServerCertificate
+	params.AuthorizedCertificateId = &d.AuthorizedCertificateID
+	params.ServerCertificateId = &d.ServerCertificateID
 	m.Config.FromAgentConfigurationAgentActiveServer(params)
 	return &m
 }
@@ -96,22 +96,22 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 
 			// load the last certs
 			serverCertLocator := shared.NewResourceLocator(nsID, cert.NewLatestCertificateForTemplateID(d.ServerCertificateTemplate.GetID().Identifier()))
-			oldServerCertLocator := d.ServerCertificate
+			prevServerCertId := d.ServerCertificateID
 			serverCertDoc, err := cert.ReadCertDocByLocator(c, serverCertLocator)
 			if err != nil {
 				if !errors.Is(err, common.ErrStatusNotFound) {
 					return nil, err
 				}
 				// should configure to drop the certificate
-				d.ServerCertificate = shared.ResourceLocator{}
+				d.ServerCertificateID = shared.Identifier{}
 			} else {
-				d.ServerCertificate = serverCertDoc.GetLocator()
+				d.ServerCertificateID = serverCertDoc.GetLocator().GetID().Identifier()
 			}
 
 			patchOps := azcosmos.PatchOperations{}
 			hasChanges := false
-			if d.ServerCertificate != oldServerCertLocator {
-				patchOps.AppendSet("/serverCertificate", d.ServerCertificate)
+			if d.ServerCertificateID != prevServerCertId {
+				patchOps.AppendSet("/serverCertificateId", d.ServerCertificateID)
 				hasChanges = true
 			}
 
@@ -119,26 +119,30 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			authorizedCertLocator := shared.NewResourceLocator(systemNamespaceId,
 				cert.NewLatestCertificateForTemplateID(d.AuthorizedCertificateTemplate.GetID().Identifier()))
 			authedDoc, err := cert.ReadCertDocByLocator(c, authorizedCertLocator)
-			oldAuthorizedCertificateLocator := d.AuthorizedCertificate
+			prevAuthorizedCertID := d.AuthorizedCertificateID
 			if err != nil {
 				if !errors.Is(err, common.ErrStatusNotFound) {
 					return nil, err
 				}
 				// should configure to drop the certificate
-				d.AuthorizedCertificate = shared.ResourceLocator{}
+				d.AuthorizedCertificateID = shared.Identifier{}
 			} else {
-				d.AuthorizedCertificate = authedDoc.GetLocator()
+				linkedDoc, err := cert.CreateLinkedCertificate(c, authedDoc)
+				if err != nil {
+					return nil, err
+				}
+				d.AuthorizedCertificateID = linkedDoc.GetLocator().GetID().Identifier()
 			}
-			if d.AuthorizedCertificate != oldAuthorizedCertificateLocator {
-				patchOps.AppendSet("/authorizedCertificate", d.AuthorizedCertificate)
+			if d.AuthorizedCertificateID != prevAuthorizedCertID {
+				patchOps.AppendSet("/authorizedCertificateId", d.AuthorizedCertificateID)
 				hasChanges = true
 			}
 
 			if hasChanges {
 				digester := md5.New()
 				digester.Write(d.BaseVersion)
-				digester.Write([]byte(d.ServerCertificate.String()))
-				digester.Write([]byte(d.AuthorizedCertificate.String()))
+				digester.Write([]byte(d.ServerCertificateID.String()))
+				digester.Write([]byte(d.AuthorizedCertificateID.String()))
 				d.Version = digester.Sum(nil)
 				patchOps.AppendSet("/version", d.Version.HexString())
 			}

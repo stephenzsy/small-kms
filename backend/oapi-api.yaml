@@ -397,7 +397,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-
     ProfileRefFields:
       type: object
       properties:

@@ -75,7 +75,7 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: "service",
+            path: "settings",
             element: <ServicePage />,
           },
           {

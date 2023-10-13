@@ -799,20 +799,6 @@ components:
       properties:
         allowEnrollDeviceCertificate:
           type: boolean
-    JwkAlg:
-      type: string
-      enum:
-        - RS256
-        - RS384
-        - RS512
-        - ES256
-        - ES384
-      x-enum-varnames:
-        - AlgRS256
-        - AlgRS384
-        - AlgRS512
-        - AlgES256
-        - AlgES384
     JwtKty:
       type: string
       enum:
@@ -829,36 +815,15 @@ components:
       x-enum-varnames:
         - CurveNameP256
         - CurveNameP384
-    JwkKeyOperation:
-      type: string
-      enum:
-        - sign
-        - verify
-        - encrypt
-        - decrypt
-        - wrapKey
-        - unwrapKey
-      x-enum-varnames:
-        - KeyOpSign
-        - KeyOpVerify
-        - KeyOpEncrypt
-        - KeyOpDecrypt
-        - KeyOpWrapKey
-        - KeyOpUnwrapKey
-      x-go-name: KeyOp
     JwkProperties:
       type: object
       description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
       properties:
-        alg:
-          $ref: "#/components/schemas/JwkAlg"
         kty:
           $ref: "#/components/schemas/JwtKty"
         key_size:
           description: RSA key size
           type: integer
-        key_ops:
-          $ref: "#/components/schemas/JwkKeyOperation"
         n:
           description: RSA modulus
           type: string

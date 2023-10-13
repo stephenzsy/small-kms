@@ -44,15 +44,6 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// Defines values for JwkAlg.
-const (
-	AlgES256 JwkAlg = "ES256"
-	AlgES384 JwkAlg = "ES384"
-	AlgRS256 JwkAlg = "RS256"
-	AlgRS384 JwkAlg = "RS384"
-	AlgRS512 JwkAlg = "RS512"
-)
-
 // Defines values for KeyOp.
 const (
 	KeyOpDecrypt   KeyOp = "decrypt"
@@ -178,15 +169,11 @@ type CertificateUsage string
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
 
-// JwkAlg defines model for JwkAlg.
-type JwkAlg string
-
 // KeyOp defines model for JwkKeyOperation.
 type KeyOp string
 
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
-	Alg *JwkAlg `json:"alg,omitempty"`
 	Crv *JwtCrv `json:"crv,omitempty"`
 
 	// E RSA exponent

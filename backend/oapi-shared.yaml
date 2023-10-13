@@ -57,13 +57,13 @@ components:
           $ref: "#/components/schemas/ResourceLocator"
         authorizedCertificateTemplate:
           $ref: "#/components/schemas/ResourceLocator"
-        serverCertificate:
+        serverCertificateId:
           description: (Read-only)
-          $ref: "#/components/schemas/ResourceLocator"
-        authorizedCertificate:
+          $ref: "#/components/schemas/Identifier"
+        authorizedCertificateId:
           type: array
           description: (Read-only)
-          $ref: "#/components/schemas/ResourceLocator"
+          $ref: "#/components/schemas/Identifier"
       required:
         - name
     AgentConfigurationParameters:

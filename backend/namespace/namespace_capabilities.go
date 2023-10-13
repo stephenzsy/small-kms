@@ -1,6 +1,7 @@
 package ns
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -227,7 +228,7 @@ func WithNamespaceContext(parent RequestContext, unverifiedKind shared.Namespace
 	}), nil
 }
 
-func GetNamespaceContext(c RequestContext) NamespaceContext {
+func GetNamespaceContext(c context.Context) NamespaceContext {
 	if nc, ok := c.Value(namespaceContextKey).(NamespaceContext); ok {
 		return nc
 	}
