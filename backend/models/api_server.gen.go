@@ -510,6 +510,13 @@ func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) 
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter force: %s", err))
 	}
 
+	// ------------- Optional query parameter "enroll" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "enroll", ctx.QueryParams(), &params.Enroll)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter enroll: %s", err))
+	}
+
 	// ------------- Optional query parameter "tags" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "tags", ctx.QueryParams(), &params.Tags)

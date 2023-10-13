@@ -59,7 +59,7 @@ paths:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
         204:
-          description: No content          
+          description: No content
     put:
       tags:
         - admin
@@ -318,6 +318,11 @@ paths:
             type: boolean
           required: false
         - in: query
+          name: enroll
+          schema:
+            type: boolean
+          required: false
+        - in: query
           name: tags
           schema:
             type: array
@@ -342,7 +347,7 @@ paths:
           name: "templateId"
           schema:
             $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-          required: false     
+          required: false
       tags:
         - admin
         - agent

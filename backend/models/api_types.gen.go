@@ -297,6 +297,7 @@ type GetAgentConfigurationParams struct {
 type IssueCertificateFromTemplateParams struct {
 	IncludeCertificate *IncludeCertificate                     `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 	Force              *bool                                   `form:"force,omitempty" json:"force,omitempty"`
+	Enroll             *bool                                   `form:"enroll,omitempty" json:"enroll,omitempty"`
 	Tags               *[]externalRef0.TemplatedCertificateTag `form:"tags,omitempty" json:"tags,omitempty"`
 }
 

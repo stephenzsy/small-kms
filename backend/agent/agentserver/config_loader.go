@@ -14,6 +14,7 @@ import (
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ConfigLoader struct {
@@ -53,7 +54,9 @@ func (cl *ConfigLoader) pullCertificates(c context.Context) error {
 
 	// pull certificates
 	cert, err := cl.agentClient.GetCertificateWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"),
-		*cl.currentConfig.ServerCertificateId, nil)
+		*cl.currentConfig.ServerCertificateId, &agentclient.GetCertificateParams{
+			IncludeCertificate: utils.ToPtr(agentclient.IncludeJWK),
+		})
 	if err != nil {
 		return err
 	}
@@ -67,6 +70,10 @@ func (cl *ConfigLoader) loadFromFile() error {
 		return err
 	} else {
 		err = json.Unmarshal(contentBytes, &cl.currentConfigWrapper)
+		if err != nil {
+			return err
+		}
+		cl.currentConfig, err = cl.currentConfigWrapper.Config.AsAgentConfigurationAgentActiveServer()
 		if err != nil {
 			return err
 		}

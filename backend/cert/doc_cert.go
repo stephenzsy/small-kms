@@ -238,6 +238,8 @@ func (k *CertJwkSpec) PopulateKeyProperties(r *shared.JwkProperties) {
 		return
 	}
 	k.CertKeySpec.PopulateKeyProperties(r)
+	r.KeyID = &k.KID
+	r.CertificateURL = k.X5u
 	r.CertificateThumbprint = k.X5t.StringPtr()
 	r.CertificateThumbprintSHA256 = k.X5tS256.StringPtr()
 }
