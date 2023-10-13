@@ -30,8 +30,7 @@ func upsertProfileDoc(c RequestContext, profileDoc *ProfileDoc, odataErrorCode *
 		if !errors.Is(err, common.ErrStatusNotFound) {
 			return nil, err
 		}
-	}
-	if doc == nil {
+
 		// no existing doc, create new
 		if graphErr != nil {
 			return nil, graphErr

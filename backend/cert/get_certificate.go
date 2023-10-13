@@ -64,7 +64,6 @@ func GetCertificate(c RequestContext, certificateId shared.Identifier, params mo
 		m.Pem = utils.ToPtr(string(pemBlob))
 		switch *params.IncludeCertificate {
 		case models.IncludePEM:
-			m.Pem = utils.ToPtr(string(pemBlob))
 		case models.IncludeJWK:
 		}
 		// attach blob
