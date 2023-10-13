@@ -40,25 +40,31 @@ func NewServer() (*server, error) {
 	s := &server{
 		CommonServer: config,
 		dockerClient: cli,
-		ConfigLoader: ConfigLoader{
-			identity:      config.ServiceIdentity(),
-			cacheFileName: "agent-config.json",
-		},
 	}
-	if apiBaseUrl, ok := os.LookupEnv("SMALLKMS_API_BASE_URL"); ok {
-		s.ConfigLoader.baseUrl = apiBaseUrl
-	} else {
+	apiBaseUrl, ok := os.LookupEnv("SMALLKMS_API_BASE_URL")
+	if !ok {
+
 		return nil, fmt.Errorf("environment variable SMALLKMS_API_BASE_URL is not set")
 	}
-	if apiScope, ok := os.LookupEnv("SMALLKMS_API_SCOPE"); ok {
-		s.ConfigLoader.authScope = apiScope
-	} else {
+	apiScope, ok := os.LookupEnv("SMALLKMS_API_SCOPE")
+	if !ok {
 		return nil, fmt.Errorf("environment variable SMALLKMS_API_SCOPE is not set")
 	}
-	if tenantID, ok := os.LookupEnv("AZURE_TENANT_ID"); ok {
-		s.ConfigLoader.tenantID = tenantID
-	} else {
+	tenantID, ok := os.LookupEnv("AZURE_TENANT_ID")
+	if !ok {
 		return nil, fmt.Errorf("environment variable AZURE_TENANT_ID is not set")
 	}
-	return s, nil
+	configDir, ok := os.LookupEnv("SMALLKMS_AGENT_CONFIG_DIR")
+	if !ok {
+		return nil, fmt.Errorf("environment variable SMALLKMS_AGENT_CONFIG_DIR is not set")
+	}
+	s.ConfigLoader, err = newConfigLoader(
+		config.ServiceIdentity(),
+		apiBaseUrl,
+		apiScope,
+		tenantID,
+		configDir,
+	)
+
+	return s, err
 }

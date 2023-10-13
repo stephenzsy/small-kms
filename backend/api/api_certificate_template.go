@@ -99,8 +99,7 @@ func (*server) CreateLinkedCertificateTemplate(ctx echo.Context,
 	if err != nil {
 		return wrapEchoResponse(c, err)
 	}
-	err = ct.ApiCreateLinkedCertificateTemplate(c, params)
-	return wrapEchoResponse(c, err)
+	return wrapEchoResponse(c, ct.ApiCreateLinkedCertificateTemplate(c, params))
 }
 
 // ListKeyVaultRoleAssignments implements models.ServerInterface.

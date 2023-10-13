@@ -30,33 +30,6 @@ paths:
                 $ref: "#/components/schemas/AgentCheckInResult"
         204:
           description: No content
-  /v3/agent/config/{configName}:
-    parameters:
-      - in: path
-        name: configName
-        schema:
-          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
-        required: true
-    get:
-      tags:
-        - agent
-      parameters:
-        - in: header
-          name: "X-Smallkms-If-Version-Not-Match"
-          schema:
-            type: string
-          required: false
-        - in: query
-          name: refreshToken
-          schema:
-            type: string
-      summary: Get agent configuration
-      operationId: AgentGetConfiguration
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigurationResponse"
-        204:
-          description: No content
   /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -69,11 +42,24 @@ paths:
     get:
       tags:
         - admin
+        - agent
       summary: Get agent autoconfig
       operationId: GetAgentConfiguration
+      parameters:
+        - in: header
+          name: "X-Smallkms-If-Version-Not-Match"
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: refreshToken
+          schema:
+            type: string
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
+        204:
+          description: No content          
     put:
       tags:
         - admin
@@ -356,19 +342,10 @@ paths:
           name: "templateId"
           schema:
             $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-          required: false
-        - in: query
-          name: "templateNamespaceKind"
-          schema:
-            $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
-          required: false
-        - in: query
-          name: "templateNamespaceId"
-          schema:
-            $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-          required: false
+          required: false     
       tags:
         - admin
+        - agent
       summary: Get certificate
       operationId: GetCertificate
       responses:

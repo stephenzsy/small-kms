@@ -17,9 +17,6 @@ type ServerInterface interface {
 
 	// (GET /v3/agent/check-in)
 	AgentCheckIn(ctx echo.Context, params AgentCheckInParams) error
-	// Get agent configuration
-	// (GET /v3/agent/config/{configName})
-	AgentGetConfiguration(ctx echo.Context, configName externalRef0.AgentConfigName, params AgentGetConfigurationParams) error
 	// Get diagnostics
 	// (GET /v3/diagnostics)
 	GetDiagnostics(ctx echo.Context) error
@@ -46,7 +43,7 @@ type ServerInterface interface {
 	PatchServiceConfig(ctx echo.Context, configPath PatchServiceConfigParamsConfigPath) error
 	// Get agent autoconfig
 	// (GET /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName) error
+	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params GetAgentConfigurationParams) error
 	// Get agent autoconfig
 	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
 	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName) error
@@ -107,50 +104,6 @@ func (w *ServerInterfaceWrapper) AgentCheckIn(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.AgentCheckIn(ctx, params)
-	return err
-}
-
-// AgentGetConfiguration converts echo context to params.
-func (w *ServerInterfaceWrapper) AgentGetConfiguration(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "configName" -------------
-	var configName externalRef0.AgentConfigName
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AgentGetConfigurationParams
-	// ------------- Optional query parameter "refreshToken" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "refreshToken", ctx.QueryParams(), &params.RefreshToken)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter refreshToken: %s", err))
-	}
-
-	headers := ctx.Request().Header
-	// ------------- Optional header parameter "X-Smallkms-If-Version-Not-Match" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Smallkms-If-Version-Not-Match")]; found {
-		var XSmallkmsIfVersionNotMatch string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Smallkms-If-Version-Not-Match, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Smallkms-If-Version-Not-Match", runtime.ParamLocationHeader, valueList[0], &XSmallkmsIfVersionNotMatch)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Smallkms-If-Version-Not-Match: %s", err))
-		}
-
-		params.XSmallkmsIfVersionNotMatch = &XSmallkmsIfVersionNotMatch
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentGetConfiguration(ctx, configName, params)
 	return err
 }
 
@@ -345,8 +298,34 @@ func (w *ServerInterfaceWrapper) GetAgentConfiguration(ctx echo.Context) error {
 
 	ctx.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAgentConfigurationParams
+	// ------------- Optional query parameter "refreshToken" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "refreshToken", ctx.QueryParams(), &params.RefreshToken)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter refreshToken: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Optional header parameter "X-Smallkms-If-Version-Not-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Smallkms-If-Version-Not-Match")]; found {
+		var XSmallkmsIfVersionNotMatch string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Smallkms-If-Version-Not-Match, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Smallkms-If-Version-Not-Match", runtime.ParamLocationHeader, valueList[0], &XSmallkmsIfVersionNotMatch)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Smallkms-If-Version-Not-Match: %s", err))
+		}
+
+		params.XSmallkmsIfVersionNotMatch = &XSmallkmsIfVersionNotMatch
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName)
+	err = w.Handler.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName, params)
 	return err
 }
 
@@ -793,20 +772,6 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
 	}
 
-	// ------------- Optional query parameter "templateNamespaceKind" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "templateNamespaceKind", ctx.QueryParams(), &params.TemplateNamespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateNamespaceKind: %s", err))
-	}
-
-	// ------------- Optional query parameter "templateNamespaceId" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "templateNamespaceId", ctx.QueryParams(), &params.TemplateNamespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateNamespaceId: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceId, certificateId, params)
 	return err
@@ -841,7 +806,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v3/agent/check-in", wrapper.AgentCheckIn)
-	router.GET(baseURL+"/v3/agent/config/:configName", wrapper.AgentGetConfiguration)
 	router.GET(baseURL+"/v3/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)

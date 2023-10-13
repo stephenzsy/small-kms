@@ -18,41 +18,28 @@ func (*server) AgentCheckIn(ctx echo.Context, params models.AgentCheckInParams) 
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// AgentGetConfiguration implements models.ServerInterface.
-func (*server) AgentGetConfiguration(ctx echo.Context, configName shared.AgentConfigName,
-	params models.AgentGetConfigurationParams) error {
-	bad := func(e error) error {
-		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
-	}
-	c := ctx.(RequestContext)
-	callerPrincipalId, err := auth.AuthorizeAgent(c)
-	if err != nil {
-		return bad(err)
-	}
-
-	c, err = ns.WithNamespaceContext(c, shared.NamespaceKindServicePrincipal, shared.UUIDIdentifier(callerPrincipalId))
-	if err != nil {
-		return bad(err)
-	}
-	config, err := agentconfig.GetAgentConfiguration(c, configName, &params)
-	return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, config, err)
-}
-
 // GetAgentConfiguration implements models.ServerInterface.
 func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind shared.NamespaceKind,
-	namespaceId shared.Identifier, configName shared.AgentConfigName) error {
+	namespaceId shared.Identifier, configName shared.AgentConfigName,
+	params models.GetAgentConfigurationParams) error {
 	bad := func(e error) error {
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
+	var isAdmin bool
+	if auth.AuthorizeAdminOnly(c) == nil {
+		isAdmin = true
+	}
+	namespaceId, err := ns.ResolveAuthedNamespaseID(c, namespaceKind, namespaceId)
+	if err != nil && !isAdmin {
 		return bad(err)
 	}
-	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+
+	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
 		return bad(err)
 	}
-	config, err := agentconfig.GetAgentConfiguration(c, configName, nil)
+	config, err := agentconfig.GetAgentConfiguration(c, configName, &params, isAdmin)
 	return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, config, err)
 }
 

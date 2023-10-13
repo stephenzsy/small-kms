@@ -27,6 +27,12 @@ const (
 	AgentHostRoleRadiusServer AgentHostRole = "radiusServer"
 )
 
+// Defines values for IncludeCertificate.
+const (
+	IncludeJWK IncludeCertificate = "jwk"
+	IncludePEM IncludeCertificate = "pem"
+)
+
 // AgentCheckInResult defines model for AgentCheckInResult.
 type AgentCheckInResult struct {
 	Message *string `json:"message,omitempty"`
@@ -34,6 +40,9 @@ type AgentCheckInResult struct {
 
 // AgentHostRole defines model for AgentHostRole.
 type AgentHostRole string
+
+// IncludeCertificate defines model for IncludeCertificate.
+type IncludeCertificate string
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
@@ -81,6 +90,9 @@ type CertificateIdPathParameter = externalRef0.Identifier
 // CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 
+// IncludeCertificateParameter defines model for IncludeCertificateParameter.
+type IncludeCertificateParameter = IncludeCertificate
+
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
 
@@ -90,15 +102,24 @@ type NamespaceKindParameter = externalRef0.NamespaceKind
 // AgentConfigurationResponse defines model for AgentConfigurationResponse.
 type AgentConfigurationResponse = externalRef0.AgentConfiguration
 
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = externalRef0.CertificateInfo
+
 // AgentCheckInParams defines parameters for AgentCheckIn.
 type AgentCheckInParams struct {
 	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
 }
 
-// AgentGetConfigurationParams defines parameters for AgentGetConfiguration.
-type AgentGetConfigurationParams struct {
+// GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
+type GetAgentConfigurationParams struct {
 	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
 	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
+}
+
+// GetCertificateParams defines parameters for GetCertificate.
+type GetCertificateParams struct {
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -177,11 +198,14 @@ type ClientInterface interface {
 	// AgentCheckIn request
 	AgentCheckIn(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// AgentGetConfiguration request
-	AgentGetConfiguration(ctx context.Context, configName externalRef0.AgentConfigName, params *AgentGetConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetServiceConfig request
 	GetServiceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAgentConfiguration request
+	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCertificate request
+	GetCertificate(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) AgentCheckIn(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -196,8 +220,8 @@ func (c *Client) AgentCheckIn(ctx context.Context, params *AgentCheckInParams, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentGetConfiguration(ctx context.Context, configName externalRef0.AgentConfigName, params *AgentGetConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentGetConfigurationRequest(c.Server, configName, params)
+func (c *Client) GetServiceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetServiceConfigRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -208,8 +232,20 @@ func (c *Client) AgentGetConfiguration(ctx context.Context, configName externalR
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetServiceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetServiceConfigRequest(c.Server)
+func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConfigurationRequest(c.Server, namespaceKind, namespaceId, configName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCertificate(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCertificateRequest(c.Server, namespaceKind, namespaceId, certificateId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -269,13 +305,54 @@ func NewAgentCheckInRequest(server string, params *AgentCheckInParams) (*http.Re
 	return req, nil
 }
 
-// NewAgentGetConfigurationRequest generates requests for AgentGetConfiguration
-func NewAgentGetConfigurationRequest(server string, configName externalRef0.AgentConfigName, params *AgentGetConfigurationParams) (*http.Request, error) {
+// NewGetServiceConfigRequest generates requests for GetServiceConfig
+func NewGetServiceConfigRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v3/service/config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAgentConfigurationRequest generates requests for GetAgentConfiguration
+func NewGetAgentConfigurationRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "configName", runtime.ParamLocationPath, configName)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "configName", runtime.ParamLocationPath, configName)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +362,7 @@ func NewAgentGetConfigurationRequest(server string, configName externalRef0.Agen
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v3/agent/config/%s", pathParam0)
+	operationPath := fmt.Sprintf("/v3/%s/%s/agent-config/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -340,16 +417,37 @@ func NewAgentGetConfigurationRequest(server string, configName externalRef0.Agen
 	return req, nil
 }
 
-// NewGetServiceConfigRequest generates requests for GetServiceConfig
-func NewGetServiceConfigRequest(server string) (*http.Request, error) {
+// NewGetCertificateRequest generates requests for GetCertificate
+func NewGetCertificateRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "certificateId", runtime.ParamLocationPath, certificateId)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v3/service/config")
+	operationPath := fmt.Sprintf("/v3/%s/%s/certificate/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -357,6 +455,44 @@ func NewGetServiceConfigRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeCertificate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "includeCertificate", runtime.ParamLocationQuery, *params.IncludeCertificate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TemplateId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "templateId", runtime.ParamLocationQuery, *params.TemplateId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -413,11 +549,14 @@ type ClientWithResponsesInterface interface {
 	// AgentCheckInWithResponse request
 	AgentCheckInWithResponse(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*AgentCheckInResponse, error)
 
-	// AgentGetConfigurationWithResponse request
-	AgentGetConfigurationWithResponse(ctx context.Context, configName externalRef0.AgentConfigName, params *AgentGetConfigurationParams, reqEditors ...RequestEditorFn) (*AgentGetConfigurationResponse, error)
-
 	// GetServiceConfigWithResponse request
 	GetServiceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetServiceConfigResponse, error)
+
+	// GetAgentConfigurationWithResponse request
+	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
+
+	// GetCertificateWithResponse request
+	GetCertificateWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
 }
 
 type AgentCheckInResponse struct {
@@ -436,28 +575,6 @@ func (r AgentCheckInResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AgentCheckInResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AgentGetConfigurationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AgentConfigurationResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r AgentGetConfigurationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AgentGetConfigurationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -486,6 +603,50 @@ func (r GetServiceConfigResponse) StatusCode() int {
 	return 0
 }
 
+type GetAgentConfigurationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AgentConfigurationResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentConfigurationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentConfigurationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCertificateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CertificateResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCertificateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCertificateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // AgentCheckInWithResponse request returning *AgentCheckInResponse
 func (c *ClientWithResponses) AgentCheckInWithResponse(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*AgentCheckInResponse, error) {
 	rsp, err := c.AgentCheckIn(ctx, params, reqEditors...)
@@ -495,15 +656,6 @@ func (c *ClientWithResponses) AgentCheckInWithResponse(ctx context.Context, para
 	return ParseAgentCheckInResponse(rsp)
 }
 
-// AgentGetConfigurationWithResponse request returning *AgentGetConfigurationResponse
-func (c *ClientWithResponses) AgentGetConfigurationWithResponse(ctx context.Context, configName externalRef0.AgentConfigName, params *AgentGetConfigurationParams, reqEditors ...RequestEditorFn) (*AgentGetConfigurationResponse, error) {
-	rsp, err := c.AgentGetConfiguration(ctx, configName, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAgentGetConfigurationResponse(rsp)
-}
-
 // GetServiceConfigWithResponse request returning *GetServiceConfigResponse
 func (c *ClientWithResponses) GetServiceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetServiceConfigResponse, error) {
 	rsp, err := c.GetServiceConfig(ctx, reqEditors...)
@@ -511,6 +663,24 @@ func (c *ClientWithResponses) GetServiceConfigWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetServiceConfigResponse(rsp)
+}
+
+// GetAgentConfigurationWithResponse request returning *GetAgentConfigurationResponse
+func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error) {
+	rsp, err := c.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConfigurationResponse(rsp)
+}
+
+// GetCertificateWithResponse request returning *GetCertificateResponse
+func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error) {
+	rsp, err := c.GetCertificate(ctx, namespaceKind, namespaceId, certificateId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCertificateResponse(rsp)
 }
 
 // ParseAgentCheckInResponse parses an HTTP response from a AgentCheckInWithResponse call
@@ -539,15 +709,41 @@ func ParseAgentCheckInResponse(rsp *http.Response) (*AgentCheckInResponse, error
 	return response, nil
 }
 
-// ParseAgentGetConfigurationResponse parses an HTTP response from a AgentGetConfigurationWithResponse call
-func ParseAgentGetConfigurationResponse(rsp *http.Response) (*AgentGetConfigurationResponse, error) {
+// ParseGetServiceConfigResponse parses an HTTP response from a GetServiceConfigWithResponse call
+func ParseGetServiceConfigResponse(rsp *http.Response) (*GetServiceConfigResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &AgentGetConfigurationResponse{
+	response := &GetServiceConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ServiceConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAgentConfigurationResponse parses an HTTP response from a GetAgentConfigurationWithResponse call
+func ParseGetAgentConfigurationResponse(rsp *http.Response) (*GetAgentConfigurationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentConfigurationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -565,22 +761,22 @@ func ParseAgentGetConfigurationResponse(rsp *http.Response) (*AgentGetConfigurat
 	return response, nil
 }
 
-// ParseGetServiceConfigResponse parses an HTTP response from a GetServiceConfigWithResponse call
-func ParseGetServiceConfigResponse(rsp *http.Response) (*GetServiceConfigResponse, error) {
+// ParseGetCertificateResponse parses an HTTP response from a GetCertificateWithResponse call
+func ParseGetCertificateResponse(rsp *http.Response) (*GetCertificateResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetServiceConfigResponse{
+	response := &GetCertificateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ServiceConfig
+		var dest CertificateResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

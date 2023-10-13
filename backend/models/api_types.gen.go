@@ -281,17 +281,17 @@ type AgentCheckInParams struct {
 	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
 }
 
-// AgentGetConfigurationParams defines parameters for AgentGetConfiguration.
-type AgentGetConfigurationParams struct {
-	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
-	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
-}
-
 // PatchServiceConfigJSONBody defines parameters for PatchServiceConfig.
 type PatchServiceConfigJSONBody = interface{}
 
 // PatchServiceConfigParamsConfigPath defines parameters for PatchServiceConfig.
 type PatchServiceConfigParamsConfigPath string
+
+// GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
+type GetAgentConfigurationParams struct {
+	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
+	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
+}
 
 // IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
 type IssueCertificateFromTemplateParams struct {
@@ -307,10 +307,8 @@ type AddKeyVaultRoleAssignmentParams struct {
 
 // GetCertificateParams defines parameters for GetCertificate.
 type GetCertificateParams struct {
-	IncludeCertificate    *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	TemplateId            *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
-	TemplateNamespaceKind *externalRef0.NamespaceKind  `form:"templateNamespaceKind,omitempty" json:"templateNamespaceKind,omitempty"`
-	TemplateNamespaceId   *externalRef0.Identifier     `form:"templateNamespaceId,omitempty" json:"templateNamespaceId,omitempty"`
+	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
 }
 
 // CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.

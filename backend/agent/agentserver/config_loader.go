@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -15,23 +17,50 @@ import (
 )
 
 type ConfigLoader struct {
-	baseUrl       string
-	authScope     string
-	identity      common.AzureIdentity
-	tenantID      string
-	cacheFileName string
-
+	identity             common.AzureIdentity
+	configDir            string
 	currentConfigWrapper shared.AgentConfiguration
 	currentConfig        shared.AgentConfigurationAgentActiveServer
+	agentClient          *agentclient.ClientWithResponses
+	azKvSecretsClient    *azsecrets.Client
+}
+
+const defaultCacheSymlink = "config.json"
+
+func newConfigLoader(
+	identity common.AzureIdentity,
+	apiEndpoint string,
+	apiScope string,
+	tenantID string,
+	configDir string,
+) (ConfigLoader, error) {
+	l := ConfigLoader{
+		identity:  identity,
+		configDir: configDir,
+	}
+	client, err := agentclient.NewClientWithCreds(apiEndpoint, identity.TokenCredential(), []string{apiScope}, tenantID)
+	if err != nil {
+		return l, err
+	}
+	l.agentClient = client
+	l.loadFromFile()
+	return l, nil
+}
+
+func (cl *ConfigLoader) loadFromFile() {
+	configPath := filepath.Join(cl.configDir, defaultCacheSymlink)
+	if contentBytes, err := os.ReadFile(configPath); err != nil {
+		log.Error().Err(err).Msgf("failed to read cache file: %s", configPath)
+	} else {
+		err = json.Unmarshal(contentBytes, &cl.currentConfigWrapper)
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to unmarshal cache file: %s", configPath)
+		}
+	}
 }
 
 func (cl *ConfigLoader) refreshConfig(c context.Context) (bool, error) {
-	log.Debug().Msgf("Base url: %s", cl.baseUrl)
-	client, err := agentclient.NewClientWithCreds(cl.baseUrl, cl.identity.TokenCredential(), []string{cl.authScope}, cl.tenantID)
-	if err != nil {
-		return false, err
-	}
-	resp, err := client.AgentGetConfigurationWithResponse(c, shared.AgentConfigNameActiveServer, &agentclient.AgentGetConfigurationParams{
+	resp, err := cl.agentClient.GetAgentConfigurationWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"), shared.AgentConfigNameActiveServer, &agentclient.GetAgentConfigurationParams{
 		RefreshToken: cl.currentConfigWrapper.NextRefreshToken,
 		//XSmallkmsIfVersionNotMatch: &cl.currentConfigWrapper.Version,
 	})
@@ -41,41 +70,54 @@ func (cl *ConfigLoader) refreshConfig(c context.Context) (bool, error) {
 
 	if resp.StatusCode() == http.StatusOK {
 		// new config
-		cl.currentConfigWrapper = *resp.JSON200
-		cl.currentConfig, err = cl.currentConfigWrapper.Config.AsAgentConfigurationAgentActiveServer()
+		if cl.currentConfigWrapper.Version != resp.JSON200.Version {
+			cl.currentConfigWrapper = *resp.JSON200
+			cl.currentConfig, err = cl.currentConfigWrapper.Config.AsAgentConfigurationAgentActiveServer()
+		}
 		if err != nil {
 			return false, err
 		}
-		return true, nil
 	} else if resp.StatusCode() == http.StatusNoContent {
 		return false, nil
+	} else {
+		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
-	return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+
+	nextConfigPath := filepath.Join(cl.configDir, "config."+cl.currentConfigWrapper.Version+".json")
+	if err := os.WriteFile(nextConfigPath, resp.Body, 0644); err != nil {
+		return true, err
+	}
+	err = os.WriteFile(filepath.Join(cl.configDir, defaultCacheSymlink), resp.Body, 0644)
+	if err != nil {
+		return true, err
+	}
+
+	// pull certificates
+
+	return true, nil
 }
 
 func (cl *ConfigLoader) Start(c context.Context, reloadCh chan<- string) {
-	if contentBytes, err := os.ReadFile(cl.cacheFileName); err != nil {
-		log.Error().Err(err).Msgf("failed to read cache file: %s", cl.cacheFileName)
-	} else {
-		err = json.Unmarshal(contentBytes, &cl.currentConfigWrapper)
-		if err != nil {
-			log.Error().Err(err).Msgf("failed to unmarshal cache file: %s", cl.cacheFileName)
-		}
-		reloadCh <- cl.currentConfigWrapper.Version
-	}
 	for {
-		nextDuration := time.Duration(1 * time.Minute)
+		var nextDuration time.Duration
 		if cl.currentConfigWrapper.NextRefreshAfter == nil ||
 			time.Now().After(*cl.currentConfigWrapper.NextRefreshAfter) {
 			log.Debug().Msgf("refreshing config")
 			refreshed, err := cl.refreshConfig(c)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to refresh config, retry in 5 minutes")
-			}
-			log.Debug().Msgf("refreshed: %v", refreshed)
-			if refreshed {
+				nextDuration = time.Duration(5 * time.Minute)
+			} else {
+				log.Debug().Msgf("refreshed: %v", refreshed)
 				reloadCh <- cl.currentConfigWrapper.Version
-				nextDuration = time.Until(*cl.currentConfigWrapper.NextRefreshAfter) + time.Duration(2*time.Minute)
+			}
+		}
+		if nextDuration == 0 {
+			if cl.currentConfigWrapper.NextRefreshAfter != nil {
+				log.Info().Msgf("next refresh after: %s", cl.currentConfigWrapper.NextRefreshAfter.String())
+				nextDuration = time.Until(*cl.currentConfigWrapper.NextRefreshAfter) + time.Duration(101*time.Second)
+			} else {
+				nextDuration = time.Duration(5 * time.Minute)
 			}
 		}
 

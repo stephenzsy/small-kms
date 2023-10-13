@@ -29,7 +29,6 @@ import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefTableColumn, RefsTable } from "./RefsTable";
 import { BaseSelector } from "./Selectors";
-import _ from "lodash";
 
 export interface CertificateTemplateFormState {
   issuerNamespaceId: ValueStateMayBeFixed<string>;
@@ -569,7 +568,8 @@ function KeyvaultRoleAssignmentsCard({
     }
     const t = roleAssignments.map((r, i): KeyVaultRoleAssignmentDisplayItem => {
       const id = r.name ?? r.id ?? "unknown-" + i;
-      const defId = _.last(r.roleDefinitionId?.split("/")) ?? id;
+      const defIdsParts = r.roleDefinitionId?.split("/");
+      const defId = defIdsParts ? defIdsParts[defIdsParts.length - 1] : id;
       return {
         id,
         defId,

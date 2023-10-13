@@ -32,30 +32,19 @@ func ReadCertDocByLocator(c context.Context, locator shared.ResourceLocator) (*C
 	return certDoc, err
 }
 
+func ApiGetCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) error {
+	cert, err := GetCertificate(c, certificateId, params)
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, cert)
+}
+
 func GetCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) (*models.CertificateInfoComposed, error) {
-	var certDocLocator models.ResourceLocator
+	var certDocLocator shared.ResourceLocator
 	if certificateId.IsUUID() {
 		nsID := ns.GetNamespaceContext(c).GetID()
 		certDocLocator = shared.NewResourceLocator(nsID, NewCertificateID(certificateId))
-	} else if certificateId.String() == "latest" {
-		if params.TemplateId.IsNilOrEmpty() || !params.TemplateId.IsValid() {
-			return nil, fmt.Errorf("%w: invalid or empty template ID: %s", common.ErrStatusBadRequest, params.TemplateId)
-		}
-		if !params.TemplateNamespaceId.IsNilOrEmpty() {
-			if !params.TemplateNamespaceId.IsValid() || params.TemplateNamespaceKind == nil || *params.TemplateNamespaceKind != shared.NamespaceKindGroup {
-				return nil, fmt.Errorf("%w: invalid template namespace ID: %s", common.ErrStatusBadRequest, params.TemplateNamespaceId)
-			}
-			nsID := ns.GetNamespaceContext(c).GetID()
-
-			certDocLocator = models.NewResourceLocator(nsID,
-				NewLatestCertificateForTemplateID(getCrossNsReferencedTemplateIdentifier(
-					models.NewNamespaceID(*params.TemplateNamespaceKind, *params.TemplateId),
-					*params.TemplateId)))
-		} else {
-			// same namespace
-			nsID := ns.GetNamespaceContext(c).GetID()
-			certDocLocator = models.NewResourceLocator(nsID, NewLatestCertificateForTemplateID(*params.TemplateId))
-		}
 	} else {
 		return nil, fmt.Errorf("%w: invalid certificate ID: %s", common.ErrStatusBadRequest, certificateId)
 	}

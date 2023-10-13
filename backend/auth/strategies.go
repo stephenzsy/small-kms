@@ -23,5 +23,5 @@ func AuthorizeAgent(c context.Context) (uuid.UUID, error) {
 			return identity.ClientPrincipalID(), nil
 		}
 	}
-	return uuid.UUID{}, fmt.Errorf("%w: admin access required", common.ErrStatusForbidden)
+	return uuid.UUID{}, fmt.Errorf("%w: %s access required", common.ErrStatusForbidden, roleKeyAgentActiveHost)
 }

@@ -45,11 +45,9 @@ func bootstrapServer(addr string, skipTLS bool) {
 	canShutdown := false
 	go func() {
 		for {
-			switch {
-			case <-httpReadyCh:
-				mu.RLock()
-			}
+			mu.Lock()
 			canShutdown = true
+			log.Info().Msgf("starting server at %s", addr)
 			err := e.Start(addr)
 			canShutdown = false
 			if err != nil {
@@ -59,8 +57,11 @@ func bootstrapServer(addr string, skipTLS bool) {
 					log.Error().Err(err).Msg("server error unexpected")
 				}
 			}
-
-			mu.RUnlock()
+			mu.Unlock()
+			switch {
+			case <-httpReadyCh:
+				continue
+			}
 		}
 	}()
 	go server.ConfigLoader.Start(c, loadConfigCh)
@@ -78,7 +79,9 @@ func bootstrapServer(addr string, skipTLS bool) {
 			mu.Lock()
 			httpReadyCh <- true
 			mu.Unlock()
-
+		case <-c.Done():
+			log.Info().Msg("context done, exiting")
+			return
 		}
 	}
 }

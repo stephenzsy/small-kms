@@ -14,22 +14,26 @@ import (
 )
 
 // GetCertificate implements models.ServerInterface.
-func (s *server) GetCertificate(ec echo.Context, namespaceKind models.NamespaceKind, namespaceId common.Identifier, certificateId common.Identifier, params models.GetCertificateParams) error {
-	bad := func(e error) error {
-		return wrapResponse[*models.CertificateInfoComposed](ec, http.StatusOK, nil, e)
-	}
+func (s *server) GetCertificate(ec echo.Context, namespaceKind shared.NamespaceKind,
+	namespaceId common.Identifier, certificateId common.Identifier, params models.GetCertificateParams) error {
+
 	c := ec.(RequestContext)
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
+	isAdmin := false
+	if auth.AuthorizeAdminOnly(c) == nil {
+		isAdmin = true
 	}
-	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
-	if err != nil {
-		return bad(err)
+	namespaceId, err := ns.ResolveAuthedNamespaseID(c, namespaceKind, namespaceId)
+	if err != nil && !isAdmin {
+		return wrapEchoResponse(c, err)
 	}
 
-	result, err := cert.GetCertificate(c, certificateId, params)
-	return wrapResponse[*models.CertificateInfoComposed](c, http.StatusOK, result, err)
+	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+
+	return wrapEchoResponse(c, cert.ApiGetCertificate(c, certificateId, params))
 }
 
 // IssueCertificateFromTemplate implements models.ServerInterface.

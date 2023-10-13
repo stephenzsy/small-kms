@@ -85,6 +85,8 @@ func dockerPull(ctx context.Context, creds azcore.TokenCredential, tenantID, ima
 	io.Copy(os.Stdout, out)
 }
 
+var myNamespacIdentifier = shared.StringIdentifier("me")
+
 func bootstrapActiveHost(skipDockerPullPtr bool) {
 
 	var clientID, tenantID, bundlePath, apiBaseUrl, apiScope string
@@ -140,7 +142,7 @@ func bootstrapActiveHost(skipDockerPullPtr bool) {
 	if err != nil {
 		log.Panicf("Failed to create client: %v\n", err)
 	}
-	resp, err := client.AgentGetConfigurationWithResponse(ctx, shared.AgentConfigNameActiveHostBootstrap, nil)
+	resp, err := client.GetAgentConfigurationWithResponse(ctx, shared.NamespaceKindServicePrincipal, myNamespacIdentifier, shared.AgentConfigNameActiveHostBootstrap, nil)
 	if err != nil {
 		log.Panicf("Failed to check in: %v\n", err)
 	}

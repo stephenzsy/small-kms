@@ -19,7 +19,7 @@ var configDocs map[shared.AgentConfigName]*docConfigurator[AgentConfigDocument] 
 	shared.AgentConfigNameActiveServer:        newAgentActiveServerConfigurator(),
 }
 
-func GetAgentConfiguration(c RequestContext, configName shared.AgentConfigName, params *models.AgentGetConfigurationParams) (*shared.AgentConfiguration, error) {
+func GetAgentConfiguration(c RequestContext, configName shared.AgentConfigName, params *models.GetAgentConfigurationParams, isAdmin bool) (*shared.AgentConfiguration, error) {
 	nsID := ns.GetNamespaceContext(c).GetID()
 
 	if configurator, ok := configDocs[configName]; ok {
@@ -60,7 +60,7 @@ func GetAgentConfiguration(c RequestContext, configName shared.AgentConfigName, 
 			}
 		}
 
-		return doc.toModel(false), nil
+		return doc.toModel(isAdmin), nil
 	}
 
 	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)

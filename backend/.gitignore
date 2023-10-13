@@ -4,3 +4,4 @@ scep/**/testdata
 endpoint-enroll/*.json
 agent/agent
 **/*.pem
+agent/config
