@@ -43,20 +43,35 @@ func newConfigLoader(
 		return l, err
 	}
 	l.agentClient = client
-	l.loadFromFile()
+	if l.loadFromFile() == nil {
+		l.pullCertificates(context.Background())
+	}
 	return l, nil
 }
 
-func (cl *ConfigLoader) loadFromFile() {
+func (cl *ConfigLoader) pullCertificates(c context.Context) error {
+
+	// pull certificates
+	cert, err := cl.agentClient.GetCertificateWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"),
+		*cl.currentConfig.ServerCertificateId, nil)
+	if err != nil {
+		return err
+	}
+	log.Info().RawJSON("cert", cert.Body).Msg("cert")
+	return nil
+}
+
+func (cl *ConfigLoader) loadFromFile() error {
 	configPath := filepath.Join(cl.configDir, defaultCacheSymlink)
 	if contentBytes, err := os.ReadFile(configPath); err != nil {
-		log.Error().Err(err).Msgf("failed to read cache file: %s", configPath)
+		return err
 	} else {
 		err = json.Unmarshal(contentBytes, &cl.currentConfigWrapper)
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to unmarshal cache file: %s", configPath)
+			return err
 		}
 	}
+	return nil
 }
 
 func (cl *ConfigLoader) refreshConfig(c context.Context) (bool, error) {
@@ -92,8 +107,6 @@ func (cl *ConfigLoader) refreshConfig(c context.Context) (bool, error) {
 		return true, err
 	}
 
-	// pull certificates
-
 	return true, nil
 }
 
@@ -109,6 +122,7 @@ func (cl *ConfigLoader) Start(c context.Context, reloadCh chan<- string) {
 				nextDuration = time.Duration(5 * time.Minute)
 			} else {
 				log.Debug().Msgf("refreshed: %v", refreshed)
+				cl.pullCertificates(context.Background())
 				reloadCh <- cl.currentConfigWrapper.Version
 			}
 		}

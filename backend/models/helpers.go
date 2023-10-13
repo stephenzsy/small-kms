@@ -19,9 +19,6 @@ type ResourceID = shared.ResourceIdentifier
 // Deprecated: use shared.ResourceLocator instead
 type ResourceLocator = shared.ResourceLocator
 
-// Deprecated: use NamespaceKind instead
-type ProfileType = NamespaceKind
-
 // Deprecated: use shared.NewResourceLocator instead
 func NewResourceLocator(namespaceID NamespaceID, resourceID ResourceID) shared.ResourceLocator {
 	return shared.NewResourceLocator(namespaceID, resourceID)

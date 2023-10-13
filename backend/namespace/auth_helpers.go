@@ -25,6 +25,7 @@ func ResolveAuthedNamespaseID(c context.Context, namespaceKind shared.NamespaceK
 		default:
 			return inputID, fmt.Errorf("%w: invalid namespaceKind: %s", common.ErrStatusForbidden, namespaceKind)
 		}
+		return inputID, nil
 	}
 
 	return inputID, fmt.Errorf("%w: no authorization context", common.ErrStatusUnauthorized)

@@ -3,8 +3,6 @@ package admin
 import (
 	"crypto/x509/pkix"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/kmsdoc"
 )
@@ -76,39 +74,4 @@ func (s *CertificateTemplateDocSubject) String() string {
 	str := name.String()
 	s.cachedString = &str
 	return str
-}
-
-func (t *CertificateTemplateDocLifeTimeTrigger) setDefault() {
-	t.DaysBeforeExpiry = nil
-	t.LifetimePercentage = ToPtr(int32(80))
-}
-
-func (p *CertificateTemplateDocKeyProperties) getAzCertificatesKeyProperties(keyExportable bool,
-) (r azcertificates.KeyProperties) {
-	r.KeyType = ToPtr(azcertificates.KeyTypeRSA)
-	r.KeySize = ToPtr(int32(2048))
-	r.ReuseKey = p.ReuseKey
-	// switch p.Kty {
-	// case KeyTypeRSA:
-	// 	if p.KeySize != nil {
-	// 		switch *p.KeySize {
-	// 		case KeySize3072:
-	// 			r.KeySize = ToPtr(int32(3072))
-	// 		case KeySize4096:
-	// 			r.KeySize = ToPtr(int32(4096))
-	// 		}
-	// 	}
-	// case KeyTypeEC:
-	// 	r.KeyType = ToPtr(azcertificates.KeyTypeEC)
-	// 	r.KeySize = nil
-	// 	r.Curve = ToPtr(azcertificates.CurveNameP256)
-	// 	if p.Crv != nil {
-	// 		switch *p.Crv {
-	// 		case CurveNameP384:
-	// 			r.Curve = ToPtr(azcertificates.CurveNameP384)
-	// 		}
-	// 	}
-	// }
-	r.Exportable = to.Ptr(keyExportable)
-	return
 }
