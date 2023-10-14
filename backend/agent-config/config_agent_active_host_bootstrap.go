@@ -55,7 +55,7 @@ func newAgentActiveHostBootStrapConfigurator() *docConfigurator[AgentConfigDocum
 			d.Version = d.BaseVersion
 			return &d, nil
 		},
-		eval: func(c context.Context, doc AgentConfigDocument) (*azcosmos.PatchOperations, error) {
+		eval: func(_ context.Context, doc AgentConfigDocument) (*azcosmos.PatchOperations, error) {
 			return nil, nil
 		},
 		readDoc: func(c context.Context, nsID shared.NamespaceIdentifier) (AgentConfigDocument, error) {

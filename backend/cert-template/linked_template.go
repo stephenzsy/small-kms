@@ -52,13 +52,15 @@ func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, us
 	}
 	patchOps := azcosmos.PatchOperations{}
 	if doc.Owns == nil {
-		patchOps.AppendSet("/@owns", map[shared.NamespaceIdentifier]shared.ResourceLocator{
+		patchOps.AppendSet(kmsdoc.PathPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
 			nsID: tDoc.GetLocator(),
 		})
 	} else {
-		patchOps.AppendSet(fmt.Sprintf("/@owns/%s", nsID), tDoc.GetLocator())
+		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PathPathOwns, nsID), tDoc.GetLocator())
 	}
-	err = kmsdoc.Patch(eCtx, doc, patchOps, nil)
+	err = kmsdoc.Patch(eCtx, doc, patchOps, &azcosmos.ItemOptions{
+		IfMatchEtag: &doc.ETag,
+	})
 	return &tDoc, err
 }
 

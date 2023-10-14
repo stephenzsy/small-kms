@@ -53,17 +53,19 @@ components:
       properties:
         name:
           $ref: "#/components/schemas/AgentConfigName"
-        serverCertificateTemplate:
-          $ref: "#/components/schemas/ResourceLocator"
-        authorizedCertificateTemplate:
-          $ref: "#/components/schemas/ResourceLocator"
+        serverCertificateTemplateId:
+          $ref: "#/components/schemas/Identifier"
+        authorizedCertificateTemplateId:
+          $ref: "#/components/schemas/Identifier"
         serverCertificateId:
           description: (Read-only)
           $ref: "#/components/schemas/Identifier"
-        authorizedCertificateId:
+        authorizedCertificateIds:
           type: array
           description: (Read-only)
-          $ref: "#/components/schemas/Identifier"
+          x-go-type-skip-optional-pointer: true
+          items:
+            $ref: "#/components/schemas/Identifier"
       required:
         - name
     AgentConfigurationParameters:

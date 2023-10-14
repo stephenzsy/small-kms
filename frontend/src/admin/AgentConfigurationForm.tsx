@@ -49,9 +49,9 @@ function useConfigurationSkeleton(
         return JSON.stringify(
           AgentConfigurationAgentActiveServerToJSON({
             name: configName,
-            authorizedCertificateTemplate:
-              "sys:agent-push/cert-template:default-mtls",
-            serverCertificateTemplate: `${nsKind}:${nsId}/cert-template:default-mtls`,
+            authorizedCertificateTemplateId:
+              "00000000-0000-0000-0000-000000000000",
+            serverCertificateTemplateId: `cert-template:default-mtls`,
           }),
           undefined,
           2

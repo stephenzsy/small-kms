@@ -65,6 +65,8 @@ func (doc *BaseDoc) setAliasToWithETag(target shared.ResourceLocator, etag azcor
 const QueryColumnNameAliasTo = "c[\"@alias.to\"]"
 const QueryColumnNameOwner = "c[\"@owner\"]"
 
+const PathPathOwns = "/@owns"
+
 var queryDefaultColumns = []string{
 	"c.namespaceId",
 	"c.id",

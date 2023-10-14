@@ -5,23 +5,24 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type AgentActiveServerDoc struct {
 	AgentConfigDoc
 
-	AuthorizedCertificateTemplate shared.ResourceLocator `json:"authorizedCertificateTemplate"`
-	ServerCertificateTemplate     shared.ResourceLocator `json:"serverCertificateTemplate"`
-	ServerCertificateID           shared.Identifier      `json:"serverCertificateId"`
-	AuthorizedCertificateID       shared.Identifier      `json:"authorizedCertificateId"`
+	AuthorizedCertificateTemplateID shared.Identifier   `json:"authorizedCertificateTemplateId"`
+	ServerCertificateTemplateID     shared.Identifier   `json:"serverCertificateTemplateId"`
+	ServerCertificateID             shared.Identifier   `json:"serverCertificateId"`
+	AuthorizedCertificateIDs        []shared.Identifier `json:"authorizedCertificateIds"`
 }
 
 // toModel implements AgentConfigDocument.
@@ -40,19 +41,16 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 		Name: shared.AgentConfigNameActiveServer,
 	}
 	if isAdmin {
-		params.AuthorizedCertificateTemplate = &d.AuthorizedCertificateTemplate
-		params.ServerCertificateTemplate = &d.ServerCertificateTemplate
+		params.AuthorizedCertificateTemplateId = &d.AuthorizedCertificateTemplateID
+		params.ServerCertificateTemplateId = &d.ServerCertificateTemplateID
 	}
-	params.AuthorizedCertificateId = &d.AuthorizedCertificateID
+	params.AuthorizedCertificateIds = d.AuthorizedCertificateIDs
 	params.ServerCertificateId = &d.ServerCertificateID
 	m.Config.FromAgentConfigurationAgentActiveServer(params)
 	return &m
 }
 
 var _ AgentConfigDocument = (*AgentActiveServerDoc)(nil)
-
-var systemNamespaceId shared.NamespaceIdentifier = shared.NewNamespaceIdentifier(shared.NamespaceKindSystem,
-	shared.StringIdentifier(ns.SystemServiceNameAgentPush))
 
 func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 	return &docConfigurator[AgentConfigDocument]{
@@ -64,18 +62,18 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
 			}
 
-			if p.ServerCertificateTemplate == nil || p.AuthorizedCertificateTemplate == nil {
+			if p.ServerCertificateTemplateId == nil || p.AuthorizedCertificateTemplateId == nil {
 				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
 			}
 
 			d := AgentActiveServerDoc{
-				ServerCertificateTemplate:     *p.ServerCertificateTemplate,
-				AuthorizedCertificateTemplate: *p.AuthorizedCertificateTemplate,
+				ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
+				AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
 			}
 			d.initLocator(nsID, shared.AgentConfigNameActiveServer)
 			digester := md5.New()
-			digester.Write([]byte(d.ServerCertificateTemplate.String()))
-			digester.Write([]byte(d.AuthorizedCertificateTemplate.String()))
+			digester.Write([]byte(d.ServerCertificateTemplateID.String()))
+			digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
 			d.BaseVersion = digester.Sum(nil)
 
 			return &d, nil
@@ -87,15 +85,9 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
 			}
 			nsID := d.GetNamespaceID()
-			if d.ServerCertificateTemplate.GetNamespaceID() != nsID {
-				return nil, fmt.Errorf("%w:invalid input, server cert must be frome the same namespace", common.ErrStatusBadRequest)
-			}
-			if d.AuthorizedCertificateTemplate.GetNamespaceID() != systemNamespaceId {
-				return nil, fmt.Errorf("%w:invalid input, authorized cert must be from system namespace", common.ErrStatusBadRequest)
-			}
 
 			// load the last certs
-			serverCertLocator := shared.NewResourceLocator(nsID, cert.NewLatestCertificateForTemplateID(d.ServerCertificateTemplate.GetID().Identifier()))
+			serverCertLocator := shared.NewResourceLocator(nsID, cert.NewLatestCertificateForTemplateID(d.ServerCertificateTemplateID))
 			prevServerCertId := d.ServerCertificateID
 			serverCertDoc, err := cert.ReadCertDocByLocator(c, serverCertLocator)
 			if err != nil {
@@ -116,25 +108,25 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			}
 
 			// load latest authorized certs
-			authorizedCertLocator := shared.NewResourceLocator(systemNamespaceId,
-				cert.NewLatestCertificateForTemplateID(d.AuthorizedCertificateTemplate.GetID().Identifier()))
-			authedDoc, err := cert.ReadCertDocByLocator(c, authorizedCertLocator)
-			prevAuthorizedCertID := d.AuthorizedCertificateID
+			_, err = cert.GetAuthorizedLatestCertByTemplateID(c, d.AuthorizedCertificateTemplateID)
 			if err != nil {
-				if !errors.Is(err, common.ErrStatusNotFound) {
-					return nil, err
-				}
-				// should configure to drop the certificate
-				d.AuthorizedCertificateID = shared.Identifier{}
-			} else {
-				linkedDoc, err := cert.CreateLinkedCertificate(c, authedDoc)
-				if err != nil {
-					return nil, err
-				}
-				d.AuthorizedCertificateID = linkedDoc.GetLocator().GetID().Identifier()
+				return nil, err
 			}
-			if d.AuthorizedCertificateID != prevAuthorizedCertID {
-				patchOps.AppendSet("/authorizedCertificateId", d.AuthorizedCertificateID)
+			certItems, err := cert.ListActiveCertDocsByTemplateID(c, d.AuthorizedCertificateTemplateID)
+			if err != nil {
+				return nil, err
+			}
+			certLocators := utils.MapSlices(certItems, func(item *cert.CertDoc) shared.Identifier {
+				return item.ID.Identifier()
+			})
+			if certLocators == nil {
+				certLocators = []shared.Identifier{}
+			}
+
+			prevAuthorizedCertIDs := d.AuthorizedCertificateIDs
+			d.AuthorizedCertificateIDs = certLocators
+			if !slices.Equal(certLocators, prevAuthorizedCertIDs) {
+				patchOps.AppendSet("/authorizedCertificateIds", d.AuthorizedCertificateIDs)
 				hasChanges = true
 			}
 
@@ -142,7 +134,9 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 				digester := md5.New()
 				digester.Write(d.BaseVersion)
 				digester.Write([]byte(d.ServerCertificateID.String()))
-				digester.Write([]byte(d.AuthorizedCertificateID.String()))
+				for _, id := range d.AuthorizedCertificateIDs {
+					digester.Write([]byte(id.String()))
+				}
 				d.Version = digester.Sum(nil)
 				patchOps.AppendSet("/version", d.Version.HexString())
 			}

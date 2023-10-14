@@ -37,13 +37,13 @@ export interface AgentConfigurationAgentActiveServer {
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    serverCertificateTemplate?: string;
+    serverCertificateTemplateId?: string;
     /**
      * 
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    authorizedCertificateTemplate?: string;
+    authorizedCertificateTemplateId?: string;
     /**
      * 
      * @type {string}
@@ -51,11 +51,11 @@ export interface AgentConfigurationAgentActiveServer {
      */
     serverCertificateId?: string;
     /**
-     * 
-     * @type {string}
+     * (Read-only)
+     * @type {Array<string>}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    authorizedCertificateId?: string;
+    authorizedCertificateIds?: Array<string>;
 }
 
 /**
@@ -79,10 +79,10 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
     return {
         
         'name': AgentConfigNameFromJSON(json['name']),
-        'serverCertificateTemplate': !exists(json, 'serverCertificateTemplate') ? undefined : json['serverCertificateTemplate'],
-        'authorizedCertificateTemplate': !exists(json, 'authorizedCertificateTemplate') ? undefined : json['authorizedCertificateTemplate'],
+        'serverCertificateTemplateId': !exists(json, 'serverCertificateTemplateId') ? undefined : json['serverCertificateTemplateId'],
+        'authorizedCertificateTemplateId': !exists(json, 'authorizedCertificateTemplateId') ? undefined : json['authorizedCertificateTemplateId'],
         'serverCertificateId': !exists(json, 'serverCertificateId') ? undefined : json['serverCertificateId'],
-        'authorizedCertificateId': !exists(json, 'authorizedCertificateId') ? undefined : json['authorizedCertificateId'],
+        'authorizedCertificateIds': !exists(json, 'authorizedCertificateIds') ? undefined : json['authorizedCertificateIds'],
     };
 }
 
@@ -96,10 +96,10 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
     return {
         
         'name': AgentConfigNameToJSON(value.name),
-        'serverCertificateTemplate': value.serverCertificateTemplate,
-        'authorizedCertificateTemplate': value.authorizedCertificateTemplate,
+        'serverCertificateTemplateId': value.serverCertificateTemplateId,
+        'authorizedCertificateTemplateId': value.authorizedCertificateTemplateId,
         'serverCertificateId': value.serverCertificateId,
-        'authorizedCertificateId': value.authorizedCertificateId,
+        'authorizedCertificateIds': value.authorizedCertificateIds,
     };
 }
 

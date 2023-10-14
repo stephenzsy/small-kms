@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"errors"
 	"slices"
 
@@ -13,11 +14,27 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator shared.ResourceLocator) (doc *CertDoc, err error) {
-	doc = &CertDoc{}
-	err = kmsdoc.Read[*CertDoc](c,
-		shared.NewResourceLocator(templateLocator.GetNamespaceID(), shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, templateLocator.GetID().Identifier())), doc)
-	return
+func ListActiveCertDocsByTemplateID(c context.Context, templateId shared.Identifier) ([]*CertDoc, error) {
+	nsID := ns.GetNamespaceContext(c).GetID()
+	templateLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, templateId))
+	itemsPager := kmsdoc.QueryItemsPager[*CertDoc](c,
+		nsID,
+		shared.ResourceKindCert,
+		kmsdoc.CosmosQueryBuilder{
+			ExtraColumns: []string{"c.thumbprint", queryColumnStatus},
+			ExtraWhereClauses: []string{
+				queryColumnTemplate + " = @templateId",
+				queryColumnStatus + " = @status",
+				"IS_NULL(c.deleted)",
+				queryColumnNotAfter + " > GetCurrentDateTime()",
+			},
+			OrderBy: "c.notBefore DESC",
+			ExtraParameters: []azcosmos.QueryParameter{
+				{Name: "@templateId", Value: templateLocator.String()},
+				{Name: "@status", Value: CertStatusIssued},
+			},
+		})
+	return utils.PagerAllItems[*CertDoc](itemsPager, c)
 }
 
 func ListCertificatesByTemplate(c RequestContext) ([]*shared.CertificateRef, error) {

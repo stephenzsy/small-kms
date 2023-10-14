@@ -88,3 +88,13 @@ func EchoRequestContextWithSharedValue(c echo.Context, key any, val any) (echo.C
 	log.Error().Msg("invalid echo context in chain")
 	return c, c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
 }
+
+func ElevateContext(c ctx.Context) ctx.Context {
+	if IsElevated(c) {
+		return c
+	}
+	if r, ok := c.(RequestContext); ok {
+		return r.Elevate()
+	}
+	return c
+}

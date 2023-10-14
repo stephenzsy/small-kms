@@ -122,11 +122,12 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 
 // AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
 type AgentConfigurationAgentActiveServer struct {
-	AuthorizedCertificateId       *Identifier      `json:"authorizedCertificateId,omitempty"`
-	AuthorizedCertificateTemplate *ResourceLocator `json:"authorizedCertificateTemplate,omitempty"`
-	Name                          AgentConfigName  `json:"name"`
-	ServerCertificateId           *Identifier      `json:"serverCertificateId,omitempty"`
-	ServerCertificateTemplate     *ResourceLocator `json:"serverCertificateTemplate,omitempty"`
+	// AuthorizedCertificateIds (Read-only)
+	AuthorizedCertificateIds        []Identifier    `json:"authorizedCertificateIds,omitempty"`
+	AuthorizedCertificateTemplateId *Identifier     `json:"authorizedCertificateTemplateId,omitempty"`
+	Name                            AgentConfigName `json:"name"`
+	ServerCertificateId             *Identifier     `json:"serverCertificateId,omitempty"`
+	ServerCertificateTemplateId     *Identifier     `json:"serverCertificateTemplateId,omitempty"`
 }
 
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.

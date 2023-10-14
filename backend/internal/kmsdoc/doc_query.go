@@ -77,7 +77,7 @@ func (b *CosmosQueryBuilder) BuildQuery(kind shared.ResourceKind) (string, []azc
 }
 
 func QueryItemsPager[D KmsDocument](
-	c RequestContext,
+	c context.Context,
 	nsID shared.NamespaceIdentifier,
 	kind shared.ResourceKind,
 	qb CosmosQueryBuilder) *DocPager[D] {
