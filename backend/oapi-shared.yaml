@@ -273,6 +273,30 @@ components:
         - NamespaceKindDevice
         - NamespaceKindUser
         - NamespaceKindApplication
+    RequestDiagnostics:
+      type: object
+      properties:
+        requestHeaders:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestHeaderEntry"
+        serviceRuntime:
+          $ref: "#/components/schemas/ServiceRuntimeInfo"
+      required:
+        - requestHeaders
+        - serviceRuntime
+    RequestHeaderEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+      required:
+        - key
+        - value
     ResourceIdentifier:
       type: string
       x-go-type: identifierWithKind[ResourceKind]
@@ -324,6 +348,17 @@ components:
       required:
         - id
         - locator
+    ServiceRuntimeInfo:
+      type: object
+      properties:
+        goVersion:
+          type: string
+        buildId:
+          type: string
+          x-go-name: BuildID
+      required:
+        - goVersion
+        - buildId
     TemplatedCertificateTag:
       type: string
       enum:

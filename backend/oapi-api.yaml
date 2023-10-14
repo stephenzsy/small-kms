@@ -11,7 +11,7 @@ paths:
   /v3/agent/check-in:
     get:
       tags:
-        - agent
+        - agentclient
       parameters:
         - in: query
           name: hostRoles
@@ -42,7 +42,7 @@ paths:
     get:
       tags:
         - admin
-        - agent
+        - agentclient
       summary: Get agent autoconfig
       operationId: GetAgentConfiguration
       parameters:
@@ -350,7 +350,7 @@ paths:
           required: false
       tags:
         - admin
-        - agent
+        - agentclient
       summary: Get certificate
       operationId: GetCertificate
       responses:
@@ -369,7 +369,6 @@ paths:
     get:
       tags:
         - admin
-        - agent
       summary: Get service config
       operationId: GetServiceConfig
       responses:
@@ -418,7 +417,6 @@ paths:
     get:
       tags:
         - diagnostics
-        - admin
       summary: Get diagnostics
       operationId: GetDiagnostics
       responses:
@@ -427,7 +425,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RequestDiagnostics"
+                $ref: "oapi-shared.yaml#/components/schemas/RequestDiagnostics"
 components:
   securitySchemes:
     BearerAuth:
@@ -657,38 +655,6 @@ components:
         - keyvaultArmResourceId
         - appRoleIds
         - azureContainerRegistry
-    RequestHeaderEntry:
-      type: object
-      properties:
-        key:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-      required:
-        - key
-        - value
-    RequestDiagnostics:
-      type: object
-      properties:
-        requestHeaders:
-          type: array
-          items:
-            $ref: "#/components/schemas/RequestHeaderEntry"
-        serviceRuntime:
-          type: object
-          title: ServiceRuntime
-          properties:
-            goVersion:
-              type: string
-          required:
-            - goVersion
-          additionalProperties:
-            type: string
-      required:
-        - requestHeaders
-        - serviceRuntime
   parameters:
     NamespaceKindParameter:
       in: path

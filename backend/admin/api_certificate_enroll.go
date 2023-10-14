@@ -2,9 +2,7 @@ package admin
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
-	"net/url"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -15,11 +13,7 @@ import (
 	msgraphgroups "github.com/microsoftgraph/msgraph-sdk-go/groups"
 	msgraphmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	msgraphsp "github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
-	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
-	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 // extract owner name
@@ -130,46 +124,7 @@ func (s *adminServer) verifyGroupMembership(c context.Context, objectID uuid.UUI
 	return false, nil
 }
 
-func processCertificateEnrollmentClaims(template *CertificateTemplateDoc, data *certtemplate.TemplateVarData) (cert *x509.Certificate, certID uuid.UUID, claims CertificateEnrollmentClaims, err error) {
-	claims.SchemaVersion = 1
-	// cert, certID, err = prepareUnsignedCertificateFromTemplate(uuid.Nil, &certTemplateProcessor{
-	// 	tmplDoc: template,
-	// 	data:    data,
-	// })
-	if err != nil {
-		return
-	}
-	claims.Subject = cert.Subject.String()
-	claims.NotBefore = jwt.NewNumericDate(cert.NotBefore)
-	claims.ExpiresAt = jwt.NewNumericDate(cert.NotAfter)
-	claims.ID = certID.String()
-	if len(cert.EmailAddresses) > 0 {
-		claims.SubjectAlternativeNames = append(claims.SubjectAlternativeNames, cert.EmailAddresses...)
-	}
-	if len(cert.URIs) > 0 {
-		claims.SubjectAlternativeNames = append(claims.SubjectAlternativeNames, utils.MapSlices(cert.URIs,
-			func(uri *url.URL) string { return uri.String() })...)
-	}
-	if cert.KeyUsage&x509.KeyUsageDigitalSignature != 0 {
-		claims.KeyUsages = append(claims.KeyUsages, "sign", "verify")
-	}
-	if cert.KeyUsage&x509.KeyUsageDataEncipherment != 0 {
-		claims.KeyUsages = append(claims.KeyUsages, "encrypt", "decrypt")
-	}
-	if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
-		claims.KeyUsages = append(claims.KeyUsages, "wrapKey", "unwrapKey")
-	}
-	claims.ExtendedUsages = utils.FilterSlice(utils.MapSlices(cert.ExtKeyUsage, func(u x509.ExtKeyUsage) string {
-		switch u {
-		case x509.ExtKeyUsageServerAuth:
-			return "1.3.6.1.5.5.7.3.1"
-		case x509.ExtKeyUsageClientAuth:
-			return "1.3.6.1.5.5.7.3.2"
-		}
-		return ""
-	}), func(u string) bool { return u != "" })
-	return
-}
+/*
 
 func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID uuid.UUID, templateID uuid.UUID, req CertificateEnrollmentRequestDeviceLinkedServicePrincipal) (*PendingCertDoc, error) {
 	log.Info().Msgf("enroll cert for dasp link - begin: %s", req.DeviceLinkID)
@@ -289,7 +244,7 @@ func (s *adminServer) processBeginEnrollCertForDASPLink(c context.Context, nsID 
 	// return pCertDoc, nil
 	return nil, nil
 }
-
+*/
 // func (s *adminServer) BeginEnrollCertificateV2(c *gin.Context, nsID uuid.UUID, templateId uuid.UUID) {
 
 // 	rawReq := CertificateEnrollmentRequest{}

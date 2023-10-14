@@ -232,6 +232,18 @@ type NamespaceIdentifier = identifierWithKind[NamespaceKind]
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
 
+// RequestDiagnostics defines model for RequestDiagnostics.
+type RequestDiagnostics struct {
+	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
+	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
+}
+
+// RequestHeaderEntry defines model for RequestHeaderEntry.
+type RequestHeaderEntry struct {
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
+}
+
 // ResourceIdentifier defines model for ResourceIdentifier.
 type ResourceIdentifier = identifierWithKind[ResourceKind]
 
@@ -252,6 +264,12 @@ type ResourceRef struct {
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
+}
+
+// ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
+type ServiceRuntimeInfo struct {
+	BuildID   string `json:"buildId"`
+	GoVersion string `json:"goVersion"`
 }
 
 // TemplatedCertificateTag defines model for TemplatedCertificateTag.

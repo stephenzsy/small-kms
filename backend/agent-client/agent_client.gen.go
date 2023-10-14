@@ -11,10 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -43,46 +41,6 @@ type AgentHostRole string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
-
-// ServiceConfig defines model for ServiceConfig.
-type ServiceConfig struct {
-	AppRoleIds struct {
-		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
-		AppAdmin        openapi_types.UUID `json:"App.Admin"`
-	} `json:"appRoleIds"`
-	AzureContainerRegistry struct {
-		ArmResourceId string `json:"armResourceId"`
-		LoginServer   string `json:"loginServer"`
-		Name          string `json:"name"`
-	} `json:"azureContainerRegistry"`
-	AzureSubscriptionId string `json:"azureSubscriptionId"`
-
-	// Deleted Time when the deleted was deleted
-	Deleted               *time.Time                   `json:"deleted,omitempty"`
-	Id                    externalRef0.Identifier      `json:"id"`
-	KeyvaultArmResourceId string                       `json:"keyvaultArmResourceId"`
-	Locator               externalRef0.ResourceLocator `json:"locator"`
-	Metadata              map[string]interface{}       `json:"metadata,omitempty"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// ServiceConfigFields defines model for ServiceConfigFields.
-type ServiceConfigFields struct {
-	AppRoleIds struct {
-		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
-		AppAdmin        openapi_types.UUID `json:"App.Admin"`
-	} `json:"appRoleIds"`
-	AzureContainerRegistry struct {
-		ArmResourceId string `json:"armResourceId"`
-		LoginServer   string `json:"loginServer"`
-		Name          string `json:"name"`
-	} `json:"azureContainerRegistry"`
-	AzureSubscriptionId   string `json:"azureSubscriptionId"`
-	KeyvaultArmResourceId string `json:"keyvaultArmResourceId"`
-}
 
 // CertificateIdPathParameter defines model for CertificateIdPathParameter.
 type CertificateIdPathParameter = externalRef0.Identifier
@@ -198,8 +156,8 @@ type ClientInterface interface {
 	// AgentCheckIn request
 	AgentCheckIn(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetServiceConfig request
-	GetServiceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDiagnostics request
+	GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAgentConfiguration request
 	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -220,8 +178,8 @@ func (c *Client) AgentCheckIn(ctx context.Context, params *AgentCheckInParams, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetServiceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetServiceConfigRequest(c.Server)
+func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDiagnosticsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -305,8 +263,8 @@ func NewAgentCheckInRequest(server string, params *AgentCheckInParams) (*http.Re
 	return req, nil
 }
 
-// NewGetServiceConfigRequest generates requests for GetServiceConfig
-func NewGetServiceConfigRequest(server string) (*http.Request, error) {
+// NewGetDiagnosticsRequest generates requests for GetDiagnostics
+func NewGetDiagnosticsRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -314,7 +272,7 @@ func NewGetServiceConfigRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v3/service/config")
+	operationPath := fmt.Sprintf("/v3/diagnostics")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -549,8 +507,8 @@ type ClientWithResponsesInterface interface {
 	// AgentCheckInWithResponse request
 	AgentCheckInWithResponse(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*AgentCheckInResponse, error)
 
-	// GetServiceConfigWithResponse request
-	GetServiceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetServiceConfigResponse, error)
+	// GetDiagnosticsWithResponse request
+	GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error)
 
 	// GetAgentConfigurationWithResponse request
 	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
@@ -581,14 +539,14 @@ func (r AgentCheckInResponse) StatusCode() int {
 	return 0
 }
 
-type GetServiceConfigResponse struct {
+type GetDiagnosticsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *ServiceConfig
+	JSON200      *externalRef0.RequestDiagnostics
 }
 
 // Status returns HTTPResponse.Status
-func (r GetServiceConfigResponse) Status() string {
+func (r GetDiagnosticsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -596,7 +554,7 @@ func (r GetServiceConfigResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetServiceConfigResponse) StatusCode() int {
+func (r GetDiagnosticsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -656,13 +614,13 @@ func (c *ClientWithResponses) AgentCheckInWithResponse(ctx context.Context, para
 	return ParseAgentCheckInResponse(rsp)
 }
 
-// GetServiceConfigWithResponse request returning *GetServiceConfigResponse
-func (c *ClientWithResponses) GetServiceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetServiceConfigResponse, error) {
-	rsp, err := c.GetServiceConfig(ctx, reqEditors...)
+// GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
+func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
+	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetServiceConfigResponse(rsp)
+	return ParseGetDiagnosticsResponse(rsp)
 }
 
 // GetAgentConfigurationWithResponse request returning *GetAgentConfigurationResponse
@@ -709,22 +667,22 @@ func ParseAgentCheckInResponse(rsp *http.Response) (*AgentCheckInResponse, error
 	return response, nil
 }
 
-// ParseGetServiceConfigResponse parses an HTTP response from a GetServiceConfigWithResponse call
-func ParseGetServiceConfigResponse(rsp *http.Response) (*GetServiceConfigResponse, error) {
+// ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
+func ParseGetDiagnosticsResponse(rsp *http.Response) (*GetDiagnosticsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetServiceConfigResponse{
+	response := &GetDiagnosticsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ServiceConfig
+		var dest externalRef0.RequestDiagnostics
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

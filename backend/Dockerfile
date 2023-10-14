@@ -11,10 +11,11 @@ RUN go mod download
 # Copy the source code. Note the slash at the end, as explained in
 # https://docs.docker.com/engine/reference/builder/#copy
 COPY . ./
+ARG BUILD_ID=dev
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o server
-RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server ./agent
+RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'common.BuildID=${BUILD_ID}'" .
+RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'common.BuildID=${BUILD_ID}'" ./agent
 
 FROM alpine:3.18
 
