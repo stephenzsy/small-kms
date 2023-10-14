@@ -14,8 +14,8 @@ COPY . ./
 ARG BUILD_ID=dev
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'common.BuildID=${BUILD_ID}'" .
-RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'common.BuildID=${BUILD_ID}'" ./agent
+RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'common/common.BuildID=${BUILD_ID}'" .
+RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'common/common.BuildID=${BUILD_ID}'" ./agent
 
 FROM alpine:3.18
 

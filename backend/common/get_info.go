@@ -8,7 +8,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-var BuildID string = "dev"
+var BuildID = "dev"
 
 func RespondDiagnostics(c echo.Context) error {
 	r := shared.RequestDiagnostics{
