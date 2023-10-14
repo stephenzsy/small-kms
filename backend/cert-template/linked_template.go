@@ -44,6 +44,7 @@ func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, us
 	tDoc.LinkProperties = &CertificateTemplateDocLink{
 		Usage: usage,
 	}
+	tDoc.Owns = nil
 	eCtx := c.Elevate()
 	err = kmsdoc.Upsert(eCtx, &tDoc)
 	if err != nil {
@@ -55,7 +56,7 @@ func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, us
 			nsID: tDoc.GetLocator(),
 		})
 	} else {
-		patchOps.AppendSet(fmt.Sprintf("/@owns/%s", nsID), doc.GetLocator())
+		patchOps.AppendSet(fmt.Sprintf("/@owns/%s", nsID), tDoc.GetLocator())
 	}
 	err = kmsdoc.Patch(eCtx, doc, patchOps, nil)
 	return &tDoc, err
