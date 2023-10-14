@@ -30,14 +30,7 @@ func getDirectCertificateTemplateDoc(c context.Context, locator shared.ResourceL
 
 func GetCertificateTemplateDoc(c context.Context,
 	locator shared.ResourceLocator) (doc *CertificateTemplateDoc, err error) {
-	if doc, err = getDirectCertificateTemplateDoc(c, locator); err == nil && doc.ID.Identifier().IsUUID() && doc.ID.Identifier().UUID().Version() == 5 {
-		if doc.AliasTo == nil {
-			return nil, fmt.Errorf("%w: invalid template", common.ErrStatusBadRequest)
-		}
-		return getDirectCertificateTemplateDoc(c, *doc.AliasTo)
-	} else {
-		return doc, err
-	}
+	return getDirectCertificateTemplateDoc(c, locator)
 }
 
 // PutCertificateTemplate implements CertificateTemplateService.

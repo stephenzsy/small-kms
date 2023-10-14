@@ -30,6 +30,7 @@ import type {
   NamespaceKind,
   Profile,
   ProfileRef,
+  RequestDiagnostics,
   ServiceConfig,
   TemplatedCertificateTag,
 } from '../models';
@@ -64,6 +65,8 @@ import {
     ProfileToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
+    RequestDiagnosticsFromJSON,
+    RequestDiagnosticsToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
     TemplatedCertificateTagFromJSON,
@@ -104,6 +107,8 @@ export interface GetAgentConfigurationRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     configName: AgentConfigName;
+    xSmallkmsIfVersionNotMatch?: string;
+    refreshToken?: string;
 }
 
 export interface GetCertificateRequest {
@@ -112,8 +117,6 @@ export interface GetCertificateRequest {
     certificateId: string;
     includeCertificate?: IncludeCertificate;
     templateId?: string;
-    templateNamespaceKind?: NamespaceKind;
-    templateNamespaceId?: string;
 }
 
 export interface GetCertificateTemplateRequest {
@@ -133,6 +136,7 @@ export interface IssueCertificateFromTemplateRequest {
     templateId: string;
     includeCertificate?: IncludeCertificate;
     force?: boolean;
+    enroll?: boolean;
     tags?: Array<TemplatedCertificateTag>;
 }
 
@@ -450,7 +454,15 @@ export class AdminApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.refreshToken !== undefined) {
+            queryParameters['refreshToken'] = requestParameters.refreshToken;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xSmallkmsIfVersionNotMatch !== undefined && requestParameters.xSmallkmsIfVersionNotMatch !== null) {
+            headerParameters['X-Smallkms-If-Version-Not-Match'] = String(requestParameters.xSmallkmsIfVersionNotMatch);
+        }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -502,14 +514,6 @@ export class AdminApi extends runtime.BaseAPI {
 
         if (requestParameters.templateId !== undefined) {
             queryParameters['templateId'] = requestParameters.templateId;
-        }
-
-        if (requestParameters.templateNamespaceKind !== undefined) {
-            queryParameters['templateNamespaceKind'] = requestParameters.templateNamespaceKind;
-        }
-
-        if (requestParameters.templateNamespaceId !== undefined) {
-            queryParameters['templateNamespaceId'] = requestParameters.templateNamespaceId;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -583,6 +587,40 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateTemplate(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
         const response = await this.getCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnosticsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/diagnostics`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
+        const response = await this.getDiagnosticsRaw(initOverrides);
         return await response.value();
     }
 
@@ -686,6 +724,10 @@ export class AdminApi extends runtime.BaseAPI {
 
         if (requestParameters.force !== undefined) {
             queryParameters['force'] = requestParameters.force;
+        }
+
+        if (requestParameters.enroll !== undefined) {
+            queryParameters['enroll'] = requestParameters.enroll;
         }
 
         if (requestParameters.tags) {

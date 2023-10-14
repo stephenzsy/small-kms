@@ -34,6 +34,12 @@ const (
 	IncludePEM IncludeCertificate = "pem"
 )
 
+// Defines values for LinkedCertificateTemplateUsage.
+const (
+	LinkedCertificateTemplateUsageClientAuthorization       LinkedCertificateTemplateUsage = "cliant-authorization"
+	LinkedCertificateTemplateUsageMemberDelegatedEnrollment LinkedCertificateTemplateUsage = "member-delegated-enrollment"
+)
+
 // Defines values for PatchServiceConfigParamsConfigPath.
 const (
 	ServiceConfigPathAppRoleIds             PatchServiceConfigParamsConfigPath = "appRoleIds"
@@ -144,7 +150,8 @@ type CertificateTemplateRefFields struct {
 
 // CreateLinkedCertificateTemplateParameters defines model for CreateLinkedCertificateTemplateParameters.
 type CreateLinkedCertificateTemplateParameters struct {
-	TargetTemplate externalRef0.ResourceLocator `json:"targetTemplate"`
+	TargetTemplate externalRef0.ResourceLocator   `json:"targetTemplate"`
+	Usage          LinkedCertificateTemplateUsage `json:"usage"`
 }
 
 // CreateManagedApplicationProfileRequest defines model for CreateManagedApplicationProfileRequest.
@@ -163,6 +170,9 @@ type CreateProfileRequestType string
 
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
+
+// LinkedCertificateTemplateUsage defines model for LinkedCertificateTemplateUsage.
+type LinkedCertificateTemplateUsage string
 
 // Profile defines model for Profile.
 type Profile = ProfileRef

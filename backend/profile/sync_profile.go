@@ -158,7 +158,7 @@ func createApplicationManagedServicePrincipal(c RequestContext, ownerDoc *Profil
 		}
 		patchOps := azcosmos.PatchOperations{}
 		if ownerDoc.Owns == nil {
-			patchOps.AppendSet("/@owns", map[NamespaceKind]models.ResourceLocator{
+			patchOps.AppendSet("/@owns", map[NamespaceKind]shared.ResourceLocator{
 				shared.NamespaceKindServicePrincipal: profileDoc.GetLocator(),
 			})
 		} else {

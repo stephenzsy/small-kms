@@ -47,10 +47,10 @@ type BaseDoc struct {
 	UpdatedBy     string     `json:"updatedBy"`
 	SchemaVersion int        `json:"schemaVersion"`
 
-	AliasTo     *shared.ResourceLocator                         `json:"@alias.to,omitempty"`
-	AliasToETag *azcore.ETag                                    `json:"@alias.to.etag,omitempty"`
-	Owner       *shared.ResourceLocator                         `json:"@owner,omitempty"`
-	Owns        map[shared.NamespaceKind]shared.ResourceLocator `json:"@owns,omitempty"`
+	AliasTo     *shared.ResourceLocator           `json:"@alias.to,omitempty"`
+	AliasToETag *azcore.ETag                      `json:"@alias.to.etag,omitempty"`
+	Owner       *shared.ResourceLocator           `json:"@owner,omitempty"`
+	Owns        map[string]shared.ResourceLocator `json:"@owns,omitempty"`
 
 	ETag azcore.ETag         `json:"-"`    // populated during read
 	Kind shared.ResourceKind `json:"kind"` // populate during write for index
@@ -63,6 +63,7 @@ func (doc *BaseDoc) setAliasToWithETag(target shared.ResourceLocator, etag azcor
 }
 
 const QueryColumnNameAliasTo = "c[\"@alias.to\"]"
+const QueryColumnNameOwner = "c[\"@owner\"]"
 
 var queryDefaultColumns = []string{
 	"c.namespaceId",

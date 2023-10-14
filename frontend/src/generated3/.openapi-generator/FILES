@@ -1,6 +1,4 @@
 apis/AdminApi.ts
-apis/AgentApi.ts
-apis/DiagnosticsApi.ts
 apis/index.ts
 index.ts
 models/AgentCheckInResult.ts
@@ -33,6 +31,7 @@ models/JwkCrv.ts
 models/JwkKeyOperation.ts
 models/JwkProperties.ts
 models/JwtKty.ts
+models/LinkedCertificateTemplateUsage.ts
 models/NamespaceKind.ts
 models/Profile.ts
 models/ProfileRef.ts

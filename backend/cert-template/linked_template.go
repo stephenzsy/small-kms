@@ -1,10 +1,10 @@
 package certtemplate
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -19,7 +19,7 @@ func createTemplateLinkIdentifier(target shared.ResourceLocator) shared.Resource
 		shared.UUIDIdentifier(newIdentifierUuid))
 }
 
-func createLinkedCertificate(c context.Context, target shared.ResourceLocator) (*CertificateTemplateDoc, error) {
+func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, usage models.LinkedCertificateTemplateUsage) (*CertificateTemplateDoc, error) {
 	if target.GetID().Identifier().IsUUID() && target.GetID().Identifier().UUID().Version() == 5 {
 		return nil, fmt.Errorf("%w:cannot create a link to another link", common.ErrStatusBadRequest)
 	}
@@ -37,20 +37,38 @@ func createLinkedCertificate(c context.Context, target shared.ResourceLocator) (
 	}
 
 	transformedIdentifier := createTemplateLinkIdentifier(target)
-	tDoc := &CertificateTemplateDoc{
-		BaseDoc: kmsdoc.BaseDoc{
-			NamespaceID: nsID,
-			ID:          transformedIdentifier,
-			AliasTo:     &target,
-			AliasToETag: &doc.ETag,
-		},
+	tDoc := *doc
+	tDoc.NamespaceID = nsID
+	tDoc.ID = transformedIdentifier
+	tDoc.Owner = &target
+	tDoc.LinkProperties = &CertificateTemplateDocLink{
+		Usage: usage,
 	}
-	err = kmsdoc.Upsert(c, tDoc)
-	return tDoc, err
+	eCtx := c.Elevate()
+	err = kmsdoc.Upsert(eCtx, &tDoc)
+	if err != nil {
+		return nil, err
+	}
+	patchOps := azcosmos.PatchOperations{}
+	if doc.Owns == nil {
+		patchOps.AppendSet("/@owns", map[shared.NamespaceIdentifier]shared.ResourceLocator{
+			nsID: tDoc.GetLocator(),
+		})
+	} else {
+		patchOps.AppendSet(fmt.Sprintf("/@owns/%s", nsID), doc.GetLocator())
+	}
+	err = kmsdoc.Patch(eCtx, doc, patchOps, nil)
+	return &tDoc, err
 }
 
 func ApiCreateLinkedCertificateTemplate(c RequestContext, params models.CreateLinkedCertificateTemplateParameters) error {
-	template, err := createLinkedCertificate(c, params.TargetTemplate)
+	switch params.Usage {
+	case models.LinkedCertificateTemplateUsageClientAuthorization, models.LinkedCertificateTemplateUsageMemberDelegatedEnrollment:
+		// ok
+	default:
+		return fmt.Errorf("%w: invalid usage: %s", common.ErrStatusBadRequest, params.Usage)
+	}
+	template, err := createLinkedCertificate(c, params.TargetTemplate, params.Usage)
 	if err != nil {
 		return err
 	}

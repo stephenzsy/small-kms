@@ -418,6 +418,7 @@ paths:
     get:
       tags:
         - diagnostics
+        - admin
       summary: Get diagnostics
       operationId: GetDiagnostics
       responses:
@@ -576,13 +577,24 @@ components:
       allOf:
         - $ref: "#/components/schemas/CertificateTemplateRef"
         - $ref: "#/components/schemas/CertificateTemplateFields"
+    LinkedCertificateTemplateUsage:
+      type: string
+      enum:
+        - cliant-authorization
+        - member-delegated-enrollment
+      x-enum-varnames:
+        - LinkedCertificateTemplateUsageClientAuthorization
+        - LinkedCertificateTemplateUsageMemberDelegatedEnrollment
     CreateLinkedCertificateTemplateParameters:
       type: object
       properties:
         targetTemplate:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+        usage:
+          $ref: "#/components/schemas/LinkedCertificateTemplateUsage"
       required:
         - targetTemplate
+        - usage
     IncludeCertificate:
       type: string
       enum:

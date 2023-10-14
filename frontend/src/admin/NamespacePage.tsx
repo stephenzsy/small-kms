@@ -2,7 +2,12 @@ import { useRequest } from "ahooks";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardSection } from "../components/Card";
-import { AdminApi, CertificateTemplateRef, NamespaceKind } from "../generated3";
+import {
+  AdminApi,
+  CertificateTemplateRef,
+  LinkedCertificateTemplateUsage,
+  NamespaceKind,
+} from "../generated3";
 import { useAuthedClient } from "../utils/useCertsApi3";
 import { AgentConfigurationForm } from "./AgentConfigurationForm";
 import {
@@ -13,6 +18,7 @@ import { NamespaceContext } from "./NamespaceContext";
 import { RefTableColumn, RefsTable } from "./RefsTable";
 import { InputField } from "./InputField";
 import { Button } from "../components/Button";
+import Select, { SelectItem } from "../components/Select";
 
 const subjectCnColumn: RefTableColumn<CertificateTemplateRef> = {
   columnKey: "subjectCommonName",
@@ -30,6 +36,19 @@ const enabledColumn: RefTableColumn<CertificateTemplateRef> = {
   header: "Enabled",
   render: (item) => (!item.deleted && item.updated ? "Yes" : "No"),
 };
+
+type UsageSelectItem = SelectItem<LinkedCertificateTemplateUsage>;
+
+const selectItems: UsageSelectItem[] = [
+  {
+    id: LinkedCertificateTemplateUsage.LinkedCertificateTemplateUsageClientAuthorization,
+    name: "Client Authorization",
+  },
+  {
+    id: LinkedCertificateTemplateUsage.LinkedCertificateTemplateUsageMemberDelegatedEnrollment,
+    name: "Member Delegated Enrollment",
+  },
+];
 
 export function CertificateTemplatesList({
   nsType,
@@ -52,9 +71,15 @@ export function CertificateTemplatesList({
   );
 
   const [tempalteLinkTarget, setTemplateLinkTarget] = useState("");
+  const [selectedUsage, setSelectedUsage] = useState<UsageSelectItem>(
+    selectItems[0]
+  );
 
   const { run: createLink } = useRequest(
-    async (targetLocator) => {
+    async (
+      targetLocator: string,
+      selectedUsage: LinkedCertificateTemplateUsage
+    ) => {
       targetLocator = targetLocator.trim();
       if (!targetLocator) {
         return;
@@ -64,6 +89,7 @@ export function CertificateTemplatesList({
         namespaceKind: nsType,
         createLinkedCertificateTemplateParameters: {
           targetTemplate: targetLocator,
+          usage: selectedUsage,
         },
       });
 
@@ -87,20 +113,28 @@ export function CertificateTemplatesList({
           </Link>
         )}
       />
-      <div className="flex gap-4 mt-4 items-end">
-        <InputField
-          labelContent="Create link to"
-          value={tempalteLinkTarget}
-          onChange={setTemplateLinkTarget}
-        />
-        <Button
-          onClick={() => {
-            createLink(tempalteLinkTarget);
-          }}
-        >
-          Add link
-        </Button>
-      </div>
+      {nsType === NamespaceKind.NamespaceKindServicePrincipal && (
+        <div className="flex gap-4 mt-4 items-end">
+          <InputField
+            labelContent="Create link to"
+            value={tempalteLinkTarget}
+            onChange={setTemplateLinkTarget}
+          />
+          <Select
+            items={selectItems}
+            label="Usage"
+            selected={selectedUsage}
+            setSelected={setSelectedUsage}
+          />
+          <Button
+            onClick={() => {
+              createLink(tempalteLinkTarget, selectedUsage.id);
+            }}
+          >
+            Add link
+          </Button>
+        </div>
+      )}
     </>
   );
 }

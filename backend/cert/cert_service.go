@@ -37,6 +37,9 @@ func IssueCertificateFromTemplate(
 	if utils.IsTimeNotNilOrZero(tmplDoc.Deleted) {
 		return nil, fmt.Errorf("%w: template not found or no longer active", common.ErrStatusNotFound)
 	}
+	if tmplDoc.Owner != nil {
+		return nil, fmt.Errorf("%w: cannot create certificate for linked template", common.ErrStatusBadRequest)
+	}
 
 	newCert := false
 	var certDoc *CertDoc

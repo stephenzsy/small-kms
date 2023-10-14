@@ -30,6 +30,7 @@ export * from './JwkCrv';
 export * from './JwkKeyOperation';
 export * from './JwkProperties';
 export * from './JwtKty';
+export * from './LinkedCertificateTemplateUsage';
 export * from './NamespaceKind';
 export * from './Profile';
 export * from './ProfileRef';

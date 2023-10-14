@@ -6,6 +6,10 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
+type CertificateTemplateDocLink struct {
+	Usage models.LinkedCertificateTemplateUsage `json:"usage"`
+}
+
 type CertificateTemplateDoc struct {
 	kmsdoc.BaseDoc
 
@@ -17,6 +21,7 @@ type CertificateTemplateDoc struct {
 	ValidityInMonths  int32                             `json:"validity_months"`
 	LifetimeTrigger   models.CertificateLifetimeTrigger `json:"lifetimeTrigger"`
 	Digest            kmsdoc.HexStringStroable          `json:"digest"` // checksum of fhte core fields of the template
+	LinkProperties    *CertificateTemplateDocLink       `json:"link,omitempty"`
 }
 
 func (d *CertificateTemplateDoc) populateRef(r *models.CertificateTemplateRefComposed) {
@@ -25,7 +30,7 @@ func (d *CertificateTemplateDoc) populateRef(r *models.CertificateTemplateRefCom
 	}
 	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
 	r.SubjectCommonName = d.SubjectCommonName
-	r.LinkTo = d.AliasTo
+	r.LinkTo = d.Owner
 }
 
 func (d *CertificateTemplateDoc) toModelRef() (r *models.CertificateTemplateRefComposed) {

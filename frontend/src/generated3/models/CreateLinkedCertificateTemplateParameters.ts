@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { LinkedCertificateTemplateUsage } from './LinkedCertificateTemplateUsage';
+import {
+    LinkedCertificateTemplateUsageFromJSON,
+    LinkedCertificateTemplateUsageFromJSONTyped,
+    LinkedCertificateTemplateUsageToJSON,
+} from './LinkedCertificateTemplateUsage';
+
 /**
  * 
  * @export
@@ -25,6 +32,12 @@ export interface CreateLinkedCertificateTemplateParameters {
      * @memberof CreateLinkedCertificateTemplateParameters
      */
     targetTemplate: string;
+    /**
+     * 
+     * @type {LinkedCertificateTemplateUsage}
+     * @memberof CreateLinkedCertificateTemplateParameters
+     */
+    usage: LinkedCertificateTemplateUsage;
 }
 
 /**
@@ -33,6 +46,7 @@ export interface CreateLinkedCertificateTemplateParameters {
 export function instanceOfCreateLinkedCertificateTemplateParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "targetTemplate" in value;
+    isInstance = isInstance && "usage" in value;
 
     return isInstance;
 }
@@ -48,6 +62,7 @@ export function CreateLinkedCertificateTemplateParametersFromJSONTyped(json: any
     return {
         
         'targetTemplate': json['targetTemplate'],
+        'usage': LinkedCertificateTemplateUsageFromJSON(json['usage']),
     };
 }
 
@@ -61,6 +76,7 @@ export function CreateLinkedCertificateTemplateParametersToJSON(value?: CreateLi
     return {
         
         'targetTemplate': value.targetTemplate,
+        'usage': LinkedCertificateTemplateUsageToJSON(value.usage),
     };
 }
 

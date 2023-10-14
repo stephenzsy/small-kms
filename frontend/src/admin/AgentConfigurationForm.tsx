@@ -1,5 +1,5 @@
 import { useRequest } from "ahooks";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import Select, { SelectItem } from "../components/Select";
