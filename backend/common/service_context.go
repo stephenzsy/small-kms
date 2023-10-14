@@ -9,6 +9,7 @@ import (
 
 type AzureIdentity interface {
 	TokenCredential() azcore.TokenCredential
+	TenantID() string
 }
 
 type AzureAppConfidentialIdentity interface {

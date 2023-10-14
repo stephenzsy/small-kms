@@ -3,11 +3,13 @@ package cm
 import (
 	"context"
 	"errors"
-	"fmt"
+	"os"
+	"os/signal"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -17,116 +19,125 @@ var (
 	ErrConfigProcessorError = errors.New("config processor error")
 )
 
-type configMsgType int
-
-const (
-	configMsgTypePoll configMsgType = iota + 1
-	configMsgTypePush
-)
-
 type ConfigProcessor interface {
-	StartPoll(ctx context.Context, scheduleToUpdate chan<- configMsg) error
-	Process(ctx context.Context, msg configMsg) (bool, error)
+	Name() shared.AgentConfigName
+	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg, exitCh chan<- error)
+	Shutdown()
+	Process(ctx context.Context) error
+	MarkProcessDone()
 }
 
-type configMsg struct {
-	msgType configMsgType
-	name    shared.AgentConfigName
-	data    shared.AgentConfiguration
+type pollConfigMsg struct {
+	name      shared.AgentConfigName
+	processor ConfigProcessor
 }
 
 type ConfigManager struct {
-	isActive                 bool
-	processors               map[shared.AgentConfigName]ConfigProcessor
-	updateCh                 chan configMsg
-	activeProcessorCtxCancel *context.CancelFunc
+	common.CommonServer
+	isActive     bool
+	processors   map[shared.AgentConfigName]ConfigProcessor
+	sharedConfig sharedConfig
 }
 
-func (m *ConfigManager) cancelCurrentActiveProcessor(onDone chan<- struct{}) {
-	if m.activeProcessorCtxCancel != nil {
-		(*m.activeProcessorCtxCancel)()
-	}
-	onDone <- struct{}{}
-}
-
-// PushConfig implements ConfigManager.
-func (m *ConfigManager) PushConfig(c context.Context, config shared.AgentConfiguration) {
-	m.updateCh <- configMsg{
-		msgType: configMsgTypePush,
-		data:    config,
-	}
-}
-
-// Shutdown implements ConfigManager.
-func (m *ConfigManager) Shutdown(c context.Context) error {
+func (m *ConfigManager) Shutdown() {
 	m.isActive = false
-	onCanceledGracefully := make(chan struct{}, 1)
-	go m.cancelCurrentActiveProcessor(onCanceledGracefully)
-	for {
-		select {
-		case <-onCanceledGracefully:
-			return nil
-		case <-c.Done():
-			return fmt.Errorf("%w:%w", ErrForcedShutdown, c.Err())
-		}
+	for _, v := range m.processors {
+		v.Shutdown()
 	}
 }
 
-func shutdownServer(ctx context.Context, serverLaunched *echo.Echo) error {
-	c, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	return serverLaunched.Shutdown(c)
-}
-
-// Start implements ConfigManager.
-func (m *ConfigManager) Start(c context.Context, onLaunchServer func(context.Context) (*echo.Echo, error)) error {
-	m.updateCh = make(chan configMsg, len(m.processors)*3)
+func (m *ConfigManager) Start(c context.Context, cmExitCh chan<- error) {
+	pollUpdate := make(chan pollConfigMsg, 1)
+	exitCh := make(chan error, len(m.processors))
+	activeCount := 0
 	for _, v := range m.processors {
-		err := v.StartPoll(c, m.updateCh)
-		if err != nil {
-			return err
-		}
+		go v.Start(c, pollUpdate, exitCh)
+		activeCount++
 	}
 	m.isActive = true
-	var serverStarted *echo.Echo
 	for m.isActive {
 		select {
 		case <-c.Done():
-			m.isActive = false
-			return fmt.Errorf("%w:%w", ErrForcedShutdown, c.Err())
-		case msg := <-m.updateCh:
-			processor, ok := m.processors[msg.name]
-			if !ok {
-				log.Error().Err(ErrConfigProcessorError).Msgf("config processor not found: %s", msg.name)
-				continue
-			}
-			hasChange, err := processor.Process(c, msg)
+			cmExitCh <- ErrForcedShutdown
+			return
+		case msg := <-pollUpdate:
+			p := msg.processor
+			err := p.Process(c)
 			if err != nil {
-				log.Error().Err(err).Msg("config processor error")
-				continue
+				log.Error().Err(err).Msgf("config processor error: %s", p.Name())
 			}
-			if msg.name == shared.AgentConfigNameActiveServer {
-				if serverStarted != nil && hasChange {
-					err = shutdownServer(c, serverStarted)
-					serverStarted = nil
-					if err != nil {
-						log.Error().Err(err).Msg("shutdown server error")
-						continue
-					}
-				}
-				if serverStarted == nil {
-					serverStarted, err = onLaunchServer(c)
-					if err != nil {
-						log.Error().Err(err).Msg("launch server error")
-						continue
-					}
-				}
+			p.MarkProcessDone()
+		case err := <-exitCh:
+			activeCount--
+			if err != nil {
+				log.Error().Err(err).Msg("config processor exited")
+			} else {
+				log.Info().Err(err).Msg("config processor exited")
 			}
 		}
 	}
-	return ErrGracefullyShutdown
+	for activeCount > 0 {
+		select {
+		case <-c.Done():
+			cmExitCh <- ErrForcedShutdown
+			return
+		case err := <-exitCh:
+			activeCount--
+			if err != nil {
+				log.Error().Err(err).Msg("config processor exited")
+			} else {
+				log.Info().Err(err).Msg("config processor exited")
+			}
+		}
+	}
+	cmExitCh <- ErrGracefullyShutdown
 }
 
-func NewConfigManager() (*ConfigManager, error) {
-	return &ConfigManager{}, nil
+func NewConfigManager(buildID string) (*ConfigManager, error) {
+	m := ConfigManager{
+		processors: make(map[shared.AgentConfigName]ConfigProcessor, 1),
+	}
+	var err error
+	if m.CommonServer, err = common.NewCommonConfig(); err != nil {
+		return nil, err
+	}
+	serviceIdentity := m.CommonServer.ServiceIdentity()
+	if apiBasePath, err := common.GetNonEmptyEnv("API_BASE_PATH"); err != nil {
+		return nil, err
+	} else if apiScope, err := common.GetNonEmptyEnv("API_SCOPE"); err != nil {
+		return nil, err
+	} else if agentClient, err := agentclient.NewClientWithCreds(apiBasePath, serviceIdentity.TokenCredential(), []string{apiScope}, serviceIdentity.TenantID()); err != nil {
+		return nil, err
+	} else {
+		m.sharedConfig.init(buildID, agentClient)
+	}
+
+	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
+	return &m, nil
+}
+
+func StartConfigManagerWithGracefulShutdown(c context.Context, m *ConfigManager) {
+	c = log.Logger.WithContext(c)
+	c, cancel := context.WithCancel(c)
+	defer cancel()
+	exitErrCh := make(chan error, 1)
+
+	go m.Start(c, exitErrCh)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	toCtx, toCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer toCancel()
+	m.Shutdown()
+	select {
+	case <-toCtx.Done():
+		cancel()
+		log.Ctx(c).Fatal().Err(toCtx.Err()).Msg("failed to gracefully shutdown")
+	case <-quit:
+		cancel()
+		log.Ctx(c).Fatal().Msg("forced shutdown")
+	case err := <-exitErrCh:
+		log.Ctx(c).Info().Err(err).Msg("gracefully shutdown")
+	}
 }

@@ -22,7 +22,7 @@ var (
 
 var (
 	ErrMissingEnvVar = errors.New("missing env var")
-	ErrInvalidEnvVar = errors.New("missing env var")
+	ErrInvalidEnvVar = errors.New("invalid env var")
 )
 
 // Deprecated: use WrapAzNotFoundErr instead

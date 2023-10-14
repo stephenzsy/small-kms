@@ -103,6 +103,11 @@ type appConfidentialIdentity struct {
 	clientSecretCredential *azidentity.ClientSecretCredential
 }
 
+// TenantID implements common.AzureAppConfidentialIdentity.
+func (i *appConfidentialIdentity) TenantID() string {
+	return i.tenantID
+}
+
 // GetOnBehalfOfTokenCredential implements common.AzureAppConfidentialIdentity.
 func (i *appConfidentialIdentity) GetOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
 	return azidentity.NewOnBehalfOfCredentialWithSecret(i.tenantID, i.clientID, userAssertion, i.clientSecret, opts)

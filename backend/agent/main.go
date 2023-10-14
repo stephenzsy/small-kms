@@ -22,6 +22,7 @@ import (
 	"github.com/joho/godotenv"
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
+	cm "github.com/stephenzsy/small-kms/backend/agent/configmanager"
 	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
@@ -163,7 +164,7 @@ func main() {
 	// Find .env file
 	skipDockerPullPtr := flag.Bool("skip-docker-pull", false, "skip docker pull")
 	envFilePathPtr := flag.String("env", "", "path to .env file")
-	skipTlsPtr := flag.Bool("skip-tls", false, "skip tls")
+	//	skipTlsPtr := flag.Bool("skip-tls", false, "skip tls")
 	flag.Parse()
 
 	if *envFilePathPtr != "" {
@@ -183,7 +184,12 @@ func main() {
 				return
 			}
 		case "server":
-			bootstrapServer(args[1], *skipTlsPtr)
+			configManager, err := cm.NewConfigManager(BuildID)
+			if err != nil {
+				log.Panicf("Failed to create config manager: %v\n", err)
+			}
+			cm.StartConfigManagerWithGracefulShutdown(context.Background(), configManager)
+			//bootstrapServer(args[1], *skipTlsPtr)
 			return
 		}
 	}

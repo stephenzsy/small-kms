@@ -1,13 +1,13 @@
 package common
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 type ServerRole string
-
-const ()
 
 type commonConfig struct {
 	serviceIdentity AzureIdentity
@@ -32,6 +32,16 @@ func (c commonConfig) ServiceIdentity() AzureIdentity {
 }
 
 var _ CommonServer = commonConfig{}
+
+func GetNonEmptyEnv(name string) (string, error) {
+	value := os.Getenv(name)
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return value, fmt.Errorf("%w:%s", ErrMissingEnvVar, name)
+	}
+	log.Printf("Config %s = %s", name, value)
+	return value, nil
+}
 
 func MustGetenv(name string) (value string) {
 	value = os.Getenv(name)
