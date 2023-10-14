@@ -14,7 +14,11 @@ import (
 )
 
 // AgentCheckIn implements models.ServerInterface.
-func (*server) AgentCheckIn(ctx echo.Context, params models.AgentCheckInParams) error {
+func (*server) AgentCallback(
+	ctx echo.Context,
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier,
+	configName shared.AgentConfigName) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
@@ -44,8 +48,11 @@ func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind shared.Name
 }
 
 // PutAgentConfiguration implements models.ServerInterface.
-func (*server) PutAgentConfiguration(ctx echo.Context, namespaceKind shared.NamespaceKind,
-	namespaceId shared.Identifier, configName shared.AgentConfigName) error {
+func (*server) PutAgentConfiguration(
+	ctx echo.Context,
+	namespaceKind shared.NamespaceKind,
+	namespaceId shared.Identifier,
+	configName shared.AgentConfigName) error {
 	bad := func(e error) error {
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}

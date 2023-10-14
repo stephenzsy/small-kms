@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  AgentCallbackRequest,
   AgentConfigName,
   AgentConfiguration,
   AgentConfigurationParameters,
@@ -30,11 +31,12 @@ import type {
   NamespaceKind,
   Profile,
   ProfileRef,
-  RequestDiagnostics,
   ServiceConfig,
   TemplatedCertificateTag,
 } from '../models';
 import {
+    AgentCallbackRequestFromJSON,
+    AgentCallbackRequestToJSON,
     AgentConfigNameFromJSON,
     AgentConfigNameToJSON,
     AgentConfigurationFromJSON,
@@ -65,8 +67,6 @@ import {
     ProfileToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
-    RequestDiagnosticsFromJSON,
-    RequestDiagnosticsToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
     TemplatedCertificateTagFromJSON,
@@ -78,6 +78,13 @@ export interface AddKeyVaultRoleAssignmentRequest {
     namespaceId: string;
     templateId: string;
     roleDefinitionId: string;
+}
+
+export interface AgentCallbackOperationRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    configName: AgentConfigName;
+    agentCallbackRequest: AgentCallbackRequest;
 }
 
 export interface CreateLinkedCertificateTemplateRequest {
@@ -249,6 +256,56 @@ export class AdminApi extends runtime.BaseAPI {
     async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
         const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     */
+    async agentCallbackRaw(requestParameters: AgentCallbackOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentCallback.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentCallback.');
+        }
+
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling agentCallback.');
+        }
+
+        if (requestParameters.agentCallbackRequest === null || requestParameters.agentCallbackRequest === undefined) {
+            throw new runtime.RequiredError('agentCallbackRequest','Required parameter requestParameters.agentCallbackRequest was null or undefined when calling agentCallback.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentCallbackRequestToJSON(requestParameters.agentCallbackRequest),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async agentCallback(requestParameters: AgentCallbackOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.agentCallbackRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -587,40 +644,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateTemplate(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
         const response = await this.getCertificateTemplateRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get diagnostics
-     */
-    async getDiagnosticsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/diagnostics`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
-    }
-
-    /**
-     * Get diagnostics
-     */
-    async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
-        const response = await this.getDiagnosticsRaw(initOverrides);
         return await response.value();
     }
 

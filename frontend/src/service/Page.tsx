@@ -1,5 +1,6 @@
 import { useRequest } from "ahooks";
 import { useEffect, useState, type PropsWithChildren } from "react";
+import { Link } from "react-router-dom";
 import { InputField } from "../admin/InputField";
 import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
@@ -11,10 +12,8 @@ import {
   ServiceConfigAcrInfoToJSON,
   ServiceConfigAppRoleIdsToJSON,
   ServiceConfigToJSON,
-} from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
-import { CertificateTemplatesList } from "../admin/NamespacePage";
-import { Link } from "react-router-dom";
+} from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 
 function PatchServiceConfigForm(
   props: PropsWithChildren<{ onSubmit: () => void }>

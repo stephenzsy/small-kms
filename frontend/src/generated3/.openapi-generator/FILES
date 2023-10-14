@@ -1,7 +1,8 @@
 apis/AdminApi.ts
+apis/DiagnosticsApi.ts
 apis/index.ts
 index.ts
-models/AgentCheckInResult.ts
+models/AgentCallbackRequest.ts
 models/AgentConfigName.ts
 models/AgentConfiguration.ts
 models/AgentConfigurationActiveHostControllerContainer.ts
@@ -43,7 +44,7 @@ models/ServiceConfig.ts
 models/ServiceConfigAcrInfo.ts
 models/ServiceConfigAppRoleIds.ts
 models/ServiceConfigFields.ts
-models/ServiceRuntime.ts
+models/ServiceRuntimeInfo.ts
 models/TemplatedCertificateTag.ts
 models/index.ts
 runtime.ts

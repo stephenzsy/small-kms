@@ -17,11 +17,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for AgentHostRole.
-const (
-	AgentHostRoleRadiusServer AgentHostRole = "radiusServer"
-)
-
 // Defines values for CreateProfileRequestType.
 const (
 	ProfileTypeManagedApplication CreateProfileRequestType = "managed-application"
@@ -46,14 +41,6 @@ const (
 	ServiceConfigPathAzureSubscriptionId    PatchServiceConfigParamsConfigPath = "azureSubscriptionId"
 	ServiceConfigPathKeyvaultArmResourceId  PatchServiceConfigParamsConfigPath = "keyvaultArmResourceId"
 )
-
-// AgentCheckInResult defines model for AgentCheckInResult.
-type AgentCheckInResult struct {
-	Message *string `json:"message,omitempty"`
-}
-
-// AgentHostRole defines model for AgentHostRole.
-type AgentHostRole string
 
 // AzureRoleAssignment defines model for AzureRoleAssignment.
 type AzureRoleAssignment struct {
@@ -246,6 +233,9 @@ type ServiceConfigFields struct {
 	KeyvaultArmResourceId string `json:"keyvaultArmResourceId"`
 }
 
+// AgentConfigNameParameter defines model for AgentConfigNameParameter.
+type AgentConfigNameParameter = externalRef0.AgentConfigName
+
 // CertificateIdPathParameter defines model for CertificateIdPathParameter.
 type CertificateIdPathParameter = externalRef0.Identifier
 
@@ -266,11 +256,6 @@ type AgentConfigurationResponse = externalRef0.AgentConfiguration
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = externalRef0.CertificateInfo
-
-// AgentCheckInParams defines parameters for AgentCheckIn.
-type AgentCheckInParams struct {
-	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
-}
 
 // PatchServiceConfigJSONBody defines parameters for PatchServiceConfig.
 type PatchServiceConfigJSONBody = interface{}
@@ -308,6 +293,9 @@ type CreateProfileJSONRequestBody = CreateProfileRequest
 
 // PatchServiceConfigJSONRequestBody defines body for PatchServiceConfig for application/json ContentType.
 type PatchServiceConfigJSONRequestBody = PatchServiceConfigJSONBody
+
+// AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
+type AgentCallbackJSONRequestBody = externalRef0.AgentCallbackRequest
 
 // PutAgentConfigurationJSONRequestBody defines body for PutAgentConfiguration for application/json ContentType.
 type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParameters

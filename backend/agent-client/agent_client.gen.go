@@ -4,6 +4,7 @@
 package agentclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,27 +21,17 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for AgentHostRole.
-const (
-	AgentHostRoleRadiusServer AgentHostRole = "radiusServer"
-)
-
 // Defines values for IncludeCertificate.
 const (
 	IncludeJWK IncludeCertificate = "jwk"
 	IncludePEM IncludeCertificate = "pem"
 )
 
-// AgentCheckInResult defines model for AgentCheckInResult.
-type AgentCheckInResult struct {
-	Message *string `json:"message,omitempty"`
-}
-
-// AgentHostRole defines model for AgentHostRole.
-type AgentHostRole string
-
 // IncludeCertificate defines model for IncludeCertificate.
 type IncludeCertificate string
+
+// AgentConfigNameParameter defines model for AgentConfigNameParameter.
+type AgentConfigNameParameter = externalRef0.AgentConfigName
 
 // CertificateIdPathParameter defines model for CertificateIdPathParameter.
 type CertificateIdPathParameter = externalRef0.Identifier
@@ -63,11 +54,6 @@ type AgentConfigurationResponse = externalRef0.AgentConfiguration
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = externalRef0.CertificateInfo
 
-// AgentCheckInParams defines parameters for AgentCheckIn.
-type AgentCheckInParams struct {
-	HostRoles *[]AgentHostRole `form:"hostRoles,omitempty" json:"hostRoles,omitempty"`
-}
-
 // GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
 type GetAgentConfigurationParams struct {
 	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
@@ -79,6 +65,9 @@ type GetCertificateParams struct {
 	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
 }
+
+// AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
+type AgentCallbackJSONRequestBody = externalRef0.AgentCallbackRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -153,29 +142,19 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// AgentCheckIn request
-	AgentCheckIn(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetDiagnostics request
 	GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AgentCallbackWithBody request with any body
+	AgentCallbackWithBody(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AgentCallback(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, body AgentCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAgentConfiguration request
-	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCertificate request
 	GetCertificate(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) AgentCheckIn(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentCheckInRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -190,7 +169,31 @@ func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) AgentCallbackWithBody(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentCallbackRequestWithBody(c.Server, namespaceKind, namespaceId, configName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentCallback(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, body AgentCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentCallbackRequest(c.Server, namespaceKind, namespaceId, configName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentConfigurationRequest(c.Server, namespaceKind, namespaceId, configName, params)
 	if err != nil {
 		return nil, err
@@ -212,55 +215,6 @@ func (c *Client) GetCertificate(ctx context.Context, namespaceKind NamespaceKind
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewAgentCheckInRequest generates requests for AgentCheckIn
-func NewAgentCheckInRequest(server string, params *AgentCheckInParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v3/agent/check-in")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.HostRoles != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hostRoles", runtime.ParamLocationQuery, *params.HostRoles); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewGetDiagnosticsRequest generates requests for GetDiagnostics
@@ -290,8 +244,69 @@ func NewGetDiagnosticsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewAgentCallbackRequest calls the generic AgentCallback builder with application/json body
+func NewAgentCallbackRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, body AgentCallbackJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAgentCallbackRequestWithBody(server, namespaceKind, namespaceId, configName, "application/json", bodyReader)
+}
+
+// NewAgentCallbackRequestWithBody generates requests for AgentCallback with any type of body
+func NewAgentCallbackRequestWithBody(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "configName", runtime.ParamLocationPath, configName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v3/%s/%s/agent-callback/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetAgentConfigurationRequest generates requests for GetAgentConfiguration
-func NewGetAgentConfigurationRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams) (*http.Request, error) {
+func NewGetAgentConfigurationRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -504,39 +519,19 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// AgentCheckInWithResponse request
-	AgentCheckInWithResponse(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*AgentCheckInResponse, error)
-
 	// GetDiagnosticsWithResponse request
 	GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error)
 
+	// AgentCallbackWithBodyWithResponse request with any body
+	AgentCallbackWithBodyWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error)
+
+	AgentCallbackWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, body AgentCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error)
+
 	// GetAgentConfigurationWithResponse request
-	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
+	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
 
 	// GetCertificateWithResponse request
 	GetCertificateWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
-}
-
-type AgentCheckInResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AgentCheckInResult
-}
-
-// Status returns HTTPResponse.Status
-func (r AgentCheckInResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AgentCheckInResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type GetDiagnosticsResponse struct {
@@ -555,6 +550,27 @@ func (r GetDiagnosticsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDiagnosticsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AgentCallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentCallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentCallbackResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -605,15 +621,6 @@ func (r GetCertificateResponse) StatusCode() int {
 	return 0
 }
 
-// AgentCheckInWithResponse request returning *AgentCheckInResponse
-func (c *ClientWithResponses) AgentCheckInWithResponse(ctx context.Context, params *AgentCheckInParams, reqEditors ...RequestEditorFn) (*AgentCheckInResponse, error) {
-	rsp, err := c.AgentCheckIn(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAgentCheckInResponse(rsp)
-}
-
 // GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
 func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
 	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
@@ -623,8 +630,25 @@ func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, re
 	return ParseGetDiagnosticsResponse(rsp)
 }
 
+// AgentCallbackWithBodyWithResponse request with arbitrary body returning *AgentCallbackResponse
+func (c *ClientWithResponses) AgentCallbackWithBodyWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error) {
+	rsp, err := c.AgentCallbackWithBody(ctx, namespaceKind, namespaceId, configName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentCallbackResponse(rsp)
+}
+
+func (c *ClientWithResponses) AgentCallbackWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, body AgentCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error) {
+	rsp, err := c.AgentCallback(ctx, namespaceKind, namespaceId, configName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentCallbackResponse(rsp)
+}
+
 // GetAgentConfigurationWithResponse request returning *GetAgentConfigurationResponse
-func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error) {
+func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error) {
 	rsp, err := c.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -639,32 +663,6 @@ func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseGetCertificateResponse(rsp)
-}
-
-// ParseAgentCheckInResponse parses an HTTP response from a AgentCheckInWithResponse call
-func ParseAgentCheckInResponse(rsp *http.Response) (*AgentCheckInResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AgentCheckInResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AgentCheckInResult
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
@@ -688,6 +686,22 @@ func ParseGetDiagnosticsResponse(rsp *http.Response) (*GetDiagnosticsResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseAgentCallbackResponse parses an HTTP response from a AgentCallbackWithResponse call
+func ParseAgentCallbackResponse(rsp *http.Response) (*AgentCallbackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentCallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil

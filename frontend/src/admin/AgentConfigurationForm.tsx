@@ -13,8 +13,8 @@ import {
   AgentConfigurationParametersToJSON,
   AgentConfigurationToJSON,
   NamespaceKind,
-} from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
+} from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 
 const selectOptions: Array<SelectItem<AgentConfigName>> = [
   {

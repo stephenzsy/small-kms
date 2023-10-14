@@ -1,23 +1,15 @@
 import { useRequest } from "ahooks";
 import { Button } from "../components/Button";
-import { AdminApi as AdminApiOld } from "../generated";
-import { AdminApi, NamespaceKind } from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
-import { useAuthedClient as useAuthedClientOld } from "../utils/useCertsApi";
+import { AdminApi, NamespaceKind } from "../generated";
+import {
+  useAuthedClient,
+  useAuthedClient as useAuthedClientOld,
+} from "../utils/useCertsApi";
 import { DeviceGroupInstall } from "./DeviceGroupInstall";
 
 export function DeviceServicePrincipalLink(props: { namespaceId: string }) {
-  const adminApi = useAuthedClientOld(AdminApiOld);
-
   const { data, run } = useRequest((apply?: boolean) => {
-    if (apply) {
-      return adminApi.createDeviceServicePrincipalLinkV2({
-        namespaceId: props.namespaceId,
-      });
-    }
-    return adminApi.getDeviceServicePrincipalLinkV2({
-      namespaceId: props.namespaceId,
-    });
+    return Promise.resolve({}); // TODO: fix this
   }, {});
   return (
     <>
@@ -31,7 +23,7 @@ export function DeviceServicePrincipalLink(props: { namespaceId: string }) {
           Link service principal
         </Button>
       </section>
-      <DeviceGroupInstall namespaceId={props.namespaceId} linkInfo={data} />
+      <DeviceGroupInstall namespaceId={props.namespaceId} />
     </>
   );
 }

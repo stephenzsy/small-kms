@@ -1,4 +1,4 @@
-import { CertificateUsage } from "../generated3";
+import { CertificateUsage } from "../generated";
 import { certUsageNames } from "./displayConstants";
 import { useId } from "react";
 

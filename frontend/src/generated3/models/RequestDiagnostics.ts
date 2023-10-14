@@ -19,12 +19,12 @@ import {
     RequestHeaderEntryFromJSONTyped,
     RequestHeaderEntryToJSON,
 } from './RequestHeaderEntry';
-import type { ServiceRuntime } from './ServiceRuntime';
+import type { ServiceRuntimeInfo } from './ServiceRuntimeInfo';
 import {
-    ServiceRuntimeFromJSON,
-    ServiceRuntimeFromJSONTyped,
-    ServiceRuntimeToJSON,
-} from './ServiceRuntime';
+    ServiceRuntimeInfoFromJSON,
+    ServiceRuntimeInfoFromJSONTyped,
+    ServiceRuntimeInfoToJSON,
+} from './ServiceRuntimeInfo';
 
 /**
  * 
@@ -40,10 +40,10 @@ export interface RequestDiagnostics {
     requestHeaders: Array<RequestHeaderEntry>;
     /**
      * 
-     * @type {ServiceRuntime}
+     * @type {ServiceRuntimeInfo}
      * @memberof RequestDiagnostics
      */
-    serviceRuntime: ServiceRuntime;
+    serviceRuntime: ServiceRuntimeInfo;
 }
 
 /**
@@ -68,7 +68,7 @@ export function RequestDiagnosticsFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'requestHeaders': ((json['requestHeaders'] as Array<any>).map(RequestHeaderEntryFromJSON)),
-        'serviceRuntime': ServiceRuntimeFromJSON(json['serviceRuntime']),
+        'serviceRuntime': ServiceRuntimeInfoFromJSON(json['serviceRuntime']),
     };
 }
 
@@ -82,7 +82,7 @@ export function RequestDiagnosticsToJSON(value?: RequestDiagnostics | null): any
     return {
         
         'requestHeaders': ((value.requestHeaders as Array<any>).map(RequestHeaderEntryToJSON)),
-        'serviceRuntime': ServiceRuntimeToJSON(value.serviceRuntime),
+        'serviceRuntime': ServiceRuntimeInfoToJSON(value.serviceRuntime),
     };
 }
 

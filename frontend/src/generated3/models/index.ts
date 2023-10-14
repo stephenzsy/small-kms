@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './AgentCheckInResult';
+export * from './AgentCallbackRequest';
 export * from './AgentConfigName';
 export * from './AgentConfiguration';
 export * from './AgentConfigurationActiveHostControllerContainer';
@@ -42,5 +42,5 @@ export * from './ServiceConfig';
 export * from './ServiceConfigAcrInfo';
 export * from './ServiceConfigAppRoleIds';
 export * from './ServiceConfigFields';
-export * from './ServiceRuntime';
+export * from './ServiceRuntimeInfo';
 export * from './TemplatedCertificateTag';

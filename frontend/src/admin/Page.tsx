@@ -1,7 +1,7 @@
 import { useRequest } from "ahooks";
 import { Link } from "react-router-dom";
-import { AdminApi, NamespaceKind, ProfileRef } from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
+import { AdminApi, NamespaceKind, ProfileRef } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import { RefTableColumn, RefsTable } from "./RefsTable";
 import { Card, CardSection } from "../components/Card";
 

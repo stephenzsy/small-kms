@@ -2,7 +2,6 @@ package common
 
 import (
 	"net/http"
-	"runtime"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -10,12 +9,9 @@ import (
 
 var BuildID = "dev"
 
-func RespondDiagnostics(c echo.Context) error {
+func RespondDiagnostics(c echo.Context, info shared.ServiceRuntimeInfo) error {
 	r := shared.RequestDiagnostics{
-		ServiceRuntime: shared.ServiceRuntimeInfo{
-			GoVersion: runtime.Version(),
-			BuildID:   BuildID,
-		},
+		ServiceRuntime: info,
 	}
 	for k, v := range c.Request().Header {
 		r.RequestHeaders = append(r.RequestHeaders, shared.RequestHeaderEntry{

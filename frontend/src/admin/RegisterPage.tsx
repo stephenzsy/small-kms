@@ -1,4 +1,3 @@
-import { XCircleIcon } from "@heroicons/react/24/outline";
 import { useRequest } from "ahooks";
 import classNames from "classnames";
 import { useState } from "react";
@@ -6,11 +5,10 @@ import { useParams } from "react-router-dom";
 import {
   AdminApi,
   CreateManagedApplicationProfileRequest,
-  CreateManagedApplicationProfileRequestFromJSON,
   CreateProfileRequestType,
-  NamespaceKind,
-} from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
+  NamespaceKind
+} from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./InputField";
 
 interface RegiserDirectoryObjectInput {

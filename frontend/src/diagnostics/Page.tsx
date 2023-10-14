@@ -1,9 +1,9 @@
 import { useRequest } from "ahooks";
-import { AdminApi } from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
+import { DiagnosticsApi } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 
 export default function DiagnosticsPage() {
-  const client = useAuthedClient(AdminApi);
+  const client = useAuthedClient(DiagnosticsApi);
   const { data: diagnosticsData } = useRequest(() => {
     return client.getDiagnostics();
   }, {});

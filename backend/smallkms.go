@@ -22,6 +22,8 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
+var BuildID = "dev"
+
 func main() {
 	if len(os.Args) < 3 {
 		log.Println("Usage: smallkms <role> <listenerAddress>")
@@ -34,7 +36,7 @@ func main() {
 		log.Printf("Error loading .env file: %s\n", err)
 	}
 
-	log.Println("Server started")
+	log.Printf("Server started, version: %s\n", BuildID)
 	role := os.Args[1]
 	listenerAddress := os.Args[2]
 	if len(listenerAddress) == 0 {
@@ -51,7 +53,7 @@ func main() {
 		if os.Getenv("ENABLE_CORS") == "true" {
 			e.Use(middleware.CORS())
 		}
-		server := api.NewServer(context.Background())
+		server := api.NewServer(context.Background(), BuildID)
 		e.Use(server.GetPreAuthMiddleware())
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 			e.Use(auth.UnverifiedAADJwtAuth)

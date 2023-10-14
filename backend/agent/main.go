@@ -32,6 +32,8 @@ const DefaultEnvVarCertBundlePath = "AZURE_CERT_BUNDLE"
 const DefaultEnvVarApiBaseUrl = "SMALLKMS_API_BASE_URL"
 const DefaultEnvVarApiScope = "SMALLKMS_API_SCOPE"
 
+var BuildID = "dev"
+
 func getDockerClient() *dockerclient.Client {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithVersion("1.43"))
 	if err != nil {
@@ -186,6 +188,8 @@ func main() {
 		}
 	}
 
+	fmt.Printf("Version: %s\n", BuildID)
 	fmt.Printf("Usage: %s bootstrap active-host\n", os.Args[0])
+	fmt.Printf("Usage: %s server :8443\n", os.Args[0])
 
 }

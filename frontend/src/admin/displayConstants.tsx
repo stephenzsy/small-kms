@@ -1,6 +1,5 @@
 import { WellknownId } from "../constants";
-import { PolicyType } from "../generated";
-import { CertificateUsage } from "../generated3";
+import { CertificateUsage } from "../generated";
 
 export const nsDisplayNames: Record<string, string> = {
   [WellknownId.nsRootCa]: "Root CA",
@@ -26,10 +25,6 @@ export function IsIntCaNamespace(namespaceId: string) {
   }
   return false;
 }
-
-export const policyTypeNames: Record<PolicyType, string> = {
-  [PolicyType.PolicyType_CertEnroll]: "Certificate Enrollment Policy",
-};
 
 export const certUsageNames: Record<CertificateUsage, string> = {
   [CertificateUsage.CertUsageCA]: "Certificate Authority",

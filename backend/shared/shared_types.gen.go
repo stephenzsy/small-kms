@@ -15,6 +15,7 @@ import (
 const (
 	AgentConfigNameActiveHostBootstrap AgentConfigName = "agent-active-host-bootstrap"
 	AgentConfigNameActiveServer        AgentConfigName = "agent-active-server"
+	AgentConfigNameHeartbeat           AgentConfigName = "heardbeat"
 )
 
 // Defines values for CertificateUsage.
@@ -95,6 +96,12 @@ const (
 	CertTemplateNameDefaultMsEntraClientCreds WellknownCertificateTemplateName = "default-ms-entra-client-creds"
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
+
+// AgentCallbackRequest defines model for AgentCallbackRequest.
+type AgentCallbackRequest struct {
+	ConfigVersion  *string             `json:"configVersion,omitempty"`
+	ServiceRuntime *ServiceRuntimeInfo `json:"serviceRuntime,omitempty"`
+}
 
 // AgentConfigName defines model for AgentConfigName.
 type AgentConfigName string

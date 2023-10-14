@@ -38,12 +38,15 @@ type ServerInterface interface {
 	// Update service config
 	// (PATCH /v3/service/config/{configPath})
 	PatchServiceConfig(ctx echo.Context, configPath PatchServiceConfigParamsConfigPath) error
+
+	// (POST /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName})
+	AgentCallback(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
 	// Get agent autoconfig
 	// (GET /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName, params GetAgentConfigurationParams) error
+	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params GetAgentConfigurationParams) error
 	// Get agent autoconfig
 	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName externalRef0.AgentConfigName) error
+	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
 	// Get certificate template
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
 	GetCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -246,6 +249,40 @@ func (w *ServerInterfaceWrapper) PatchServiceConfig(ctx echo.Context) error {
 	return err
 }
 
+// AgentCallback converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentCallback(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "configName" -------------
+	var configName AgentConfigNameParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AgentCallback(ctx, namespaceKind, namespaceId, configName)
+	return err
+}
+
 // GetAgentConfiguration converts echo context to params.
 func (w *ServerInterfaceWrapper) GetAgentConfiguration(ctx echo.Context) error {
 	var err error
@@ -266,7 +303,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfiguration(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "configName" -------------
-	var configName externalRef0.AgentConfigName
+	var configName AgentConfigNameParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
 	if err != nil {
@@ -326,7 +363,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfiguration(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "configName" -------------
-	var configName externalRef0.AgentConfigName
+	var configName AgentConfigNameParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
 	if err != nil {
@@ -797,6 +834,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId/managed/:targetNamespaceKind", wrapper.CreateManagedNamespace)
 	router.GET(baseURL+"/v3/service/config", wrapper.GetServiceConfig)
 	router.PATCH(baseURL+"/v3/service/config/:configPath", wrapper.PatchServiceConfig)
+	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.GetCertificateTemplate)

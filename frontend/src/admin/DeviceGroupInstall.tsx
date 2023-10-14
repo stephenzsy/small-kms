@@ -1,22 +1,11 @@
-import { useMemoizedFn, useRequest } from "ahooks";
+import { useMemoizedFn } from "ahooks";
+import React from "react";
 import { Button } from "../components/Button";
-import {
-  AdminApi,
-  CertificateEnrollPolicyParameters,
-  CertificateEnrollmentRequest,
-  ServicePrincipalLinkedDevice,
-} from "../generated";
+import { AdminApi } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./InputField";
-import React from "react";
 
-export function DeviceGroupInstall({
-  linkInfo,
-  namespaceId,
-}: {
-  namespaceId: string;
-  linkInfo?: ServicePrincipalLinkedDevice;
-}) {
+export function DeviceGroupInstall({ namespaceId }: { namespaceId: string }) {
   const adminApi = useAuthedClient(AdminApi);
 
   const [groupId, setGroupId] = React.useState("");
@@ -24,22 +13,23 @@ export function DeviceGroupInstall({
   const [windowsScripts, setWindowsScripts] = React.useState<string[]>([]);
 
   const onGenerateWindowsScript = useMemoizedFn(() => {
-    if (linkInfo) {
+    if (groupId && templateId) {
+      /*
       const req: CertificateEnrollmentRequest = {
         appId: linkInfo.applicationClientId,
         deviceNamespaceId: namespaceId,
         linkId: linkInfo.ref.id,
         servicePrincipalId: linkInfo.servicePrincipalId,
         type: "device-linked-service-principal",
-      };
+      };*/
       setWindowsScripts([
         [
-          `$env:AZURE_CLIENT_ID = '${linkInfo.applicationClientId}}'`,
-          "$env:AZURE_TENANT_ID = '...'",
-          `$exe v2 certificate-templates enroll post \\`,
-          `    --namespace-id ${groupId} \\`,
-          `    --template-id ${templateId} \\`,
-          `    --body '${JSON.stringify(req)} > .\\enroll.json'`,
+          // `$env:AZURE_CLIENT_ID = '${linkInfo.applicationClientId}}'`,
+          // "$env:AZURE_TENANT_ID = '...'",
+          // `$exe v2 certificate-templates enroll post \\`,
+          // `    --namespace-id ${groupId} \\`,
+          // `    --template-id ${templateId} \\`,
+          // `    --body '${JSON.stringify(req)} > .\\enroll.json'`,
         ].join("\n"),
         [
           "$jwtClaims = (Get-Content -Raw .\\enroll.json |",
@@ -53,13 +43,13 @@ export function DeviceGroupInstall({
         [
           '$header = \'{"typ":"JWT","alg":"RS256"}\'',
           "$headerEncoded = [System.Convert]::ToBase64String($header.ToCharArray()).Replace('+','-').Replace('/','_').Replace('=','');",
-          "\"$headerEncoded.$jwtClaims\" > .\\signingjwt.txt;",
-          "Start-Process pwsh.exe -Verb RunAs"
+          '"$headerEncoded.$jwtClaims" > .\\signingjwt.txt;',
+          "Start-Process pwsh.exe -Verb RunAs",
         ].join("\n"),
         [
           '$cert = (New-SelfSignedCertificate -Subject "CN=TMP" -KeyExportPolicy NonExportable -KeyAlgorithm RSA -KeyLength 2048);',
-          '$privateKey = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($cert);',
-          '$signatureBytes = $privateKey.SignData($data, [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)',
+          "$privateKey = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($cert);",
+          "$signatureBytes = $privateKey.SignData($data, [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)",
           '$signatureEncoded = [System.Convert]::ToBase64String($signatureBytes).Replace("+","-").Replace("/","_").Replace("=","");',
           '"$dataRaw.$signatureEncoded" > .\\signedJwt.txt;',
         ].join("\n"),
@@ -90,7 +80,6 @@ export function DeviceGroupInstall({
       >
         Generate windows script
       </Button>
-      <pre>{JSON.stringify(linkInfo, undefined, 2)}</pre>
       {windowsScripts && (
         <div>
           <div className="ring-1 ring-neutral-500 max-w-full overflow-auto p-4">
@@ -103,7 +92,8 @@ export function DeviceGroupInstall({
           </div>
           <div className="ring-1 ring-neutral-500 max-w-full overflow-auto p-4">
             <div>
-              Step 3. If Everything looks ok, create header section and launch elevated window
+              Step 3. If Everything looks ok, create header section and launch
+              elevated window
             </div>
             <pre className="max-w-full overflow-auto">{windowsScripts[2]}</pre>
           </div>

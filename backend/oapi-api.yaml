@@ -8,37 +8,30 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v3/agent/check-in:
-    get:
+  /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/AgentConfigNameParameter"
+    post:
       tags:
+        - admin
         - agentclient
-      parameters:
-        - in: query
-          name: hostRoles
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/AgentHostRole"
-          required: false
-      operationId: AgentCheckIn
+      operationId: AgentCallback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "oapi-shared.yaml#/components/schemas/AgentCallbackRequest"
+        required: true
       responses:
-        200:
-          description: Agent check in response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentCheckInResult"
-        204:
+        202:
           description: No content
   /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
-      - in: path
-        name: configName
-        schema:
-          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
-        required: true
+      - $ref: "#/components/parameters/AgentConfigNameParameter"
     get:
       tags:
         - admin
@@ -607,11 +600,6 @@ components:
         - radiusServer
       x-enum-varnames:
         - AgentHostRoleRadiusServer
-    AgentCheckInResult:
-      type: object
-      properties:
-        message:
-          type: string
     ServiceConfig:
       allOf:
         - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
@@ -656,6 +644,12 @@ components:
         - appRoleIds
         - azureContainerRegistry
   parameters:
+    AgentConfigNameParameter:
+      in: path
+      name: configName
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
+      required: true
     NamespaceKindParameter:
       in: path
       name: namespaceKind

@@ -1,8 +1,8 @@
 import { Card, CardSection, CardTitle } from "../components/Card";
 import { Link, useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind } from "../generated3";
+import { AdminApi, NamespaceKind } from "../generated";
 import { useRequest } from "ahooks";
-import { useAuthedClient } from "../utils/useCertsApi3";
+import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemo } from "react";
 import { Button } from "../components/Button";
 

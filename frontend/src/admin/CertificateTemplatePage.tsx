@@ -6,25 +6,23 @@ import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import { WellknownId, uuidNil } from "../constants";
 import {
-  AdminApi as AdminApiOld,
-  NamespaceTypeShortName,
-  ResponseError,
-} from "../generated";
-import {
   AdminApi,
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateUsage,
   NamespaceKind,
-} from "../generated3";
+  ResponseError,
+} from "../generated";
 import {
   ValueState,
   ValueStateMayBeFixed,
   useFixedValueState,
   useValueState,
 } from "../utils/formStateUtils";
-import { useAuthedClient as useAuthedClientOld } from "../utils/useCertsApi";
-import { useAuthedClient } from "../utils/useCertsApi3";
+import {
+  useAuthedClient,
+  useAuthedClient as useAuthedClientOld,
+} from "../utils/useCertsApi";
 import { CertificateUsageSelector } from "./CertificateUsageSelector";
 import { InputField } from "./InputField";
 import { RefTableColumn, RefsTable } from "./RefsTable";
@@ -75,7 +73,7 @@ export function useCertificateTemplateFormState(
     setValidityInMonths,
     keyStorePath: useFixedValueState(
       useValueState(`${nsType}-${randKeyStoreSuffix}`),
-      nsType === NamespaceTypeShortName.NSType_Group ? "" : undefined
+      nsType === NamespaceKind.NamespaceKindGroup ? "" : undefined
     ),
     certUsages: useFixedValueState(
       useValueState(
@@ -118,91 +116,90 @@ export function useCertificateTemplateFormState(
 }
 
 type CertificateTemplateFormProps = CertificateTemplateFormState & {
-  nsType: NamespaceTypeShortName;
+  nsKind: NamespaceKind;
   templateId: string;
-  adminApi: AdminApiOld;
 };
 
-export function CertificateIssuerSelector({
-  value,
-  onChange,
-  adminApi,
-}: {
-  adminApi: AdminApiOld;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const { data: issuers } = useRequest(
-    () => {
-      return adminApi.listNamespacesByTypeV2({
-        namespaceType: NamespaceTypeShortName.NSType_IntCA,
-      });
-    },
-    {
-      refreshDeps: [],
-    }
-  );
-  const items = useMemo(
-    () =>
-      issuers?.map((issuer) => ({
-        value: issuer.id,
-        title: issuer.displayName || issuer.id,
-      })),
-    [issuers]
-  );
-  return (
-    <BaseSelector
-      items={items}
-      label={"Issuer namespace"}
-      placeholder="Select issuer namespace"
-      value={value}
-      onChange={onChange}
-    />
-  );
-}
+// export function CertificateIssuerSelector({
+//   value,
+//   onChange,
+//   adminApi,
+// }: {
+//   adminApi: AdminApiOld;
+//   value: string;
+//   onChange: (value: string) => void;
+// }) {
+//   const { data: issuers } = useRequest(
+//     () => {
+//       return adminApi.listNamespacesByTypeV2({
+//         namespaceType: NamespaceTypeShortName.NSType_IntCA,
+//       });
+//     },
+//     {
+//       refreshDeps: [],
+//     }
+//   );
+//   const items = useMemo(
+//     () =>
+//       issuers?.map((issuer) => ({
+//         value: issuer.id,
+//         title: issuer.displayName || issuer.id,
+//       })),
+//     [issuers]
+//   );
+//   return (
+//     <BaseSelector
+//       items={items}
+//       label={"Issuer namespace"}
+//       placeholder="Select issuer namespace"
+//       value={value}
+//       onChange={onChange}
+//     />
+//   );
+// }
 
-export function CertificateIssuerTemplateSelector({
-  value,
-  onChange,
-  adminApi,
-  issuerNsId,
-}: {
-  adminApi: AdminApiOld;
-  value: string;
-  onChange: (value: string) => void;
-  issuerNsId: string;
-}) {
-  const { data: issuers } = useRequest(
-    () => {
-      return adminApi.listCertificateTemplatesV2({
-        namespaceId: issuerNsId,
-      });
-    },
-    {
-      refreshDeps: [issuerNsId],
-    }
-  );
-  const items = useMemo(
-    () =>
-      issuers
-        ?.filter((issuer) => issuer.id !== uuidNil)
-        .map((issuer) => ({
-          value: issuer.id,
-          title: issuer.displayName || issuer.id,
-        })),
-    [issuers]
-  );
-  return (
-    <BaseSelector
-      items={items}
-      label={"Issuer template"}
-      placeholder="Select issuer template"
-      value={value}
-      onChange={onChange}
-      defaultItem={{ value: uuidNil, title: "default" }}
-    />
-  );
-}
+// export function CertificateIssuerTemplateSelector({
+//   value,
+//   onChange,
+//   adminApi,
+//   issuerNsId,
+// }: {
+//   adminApi: AdminApi;
+//   value: string;
+//   onChange: (value: string) => void;
+//   issuerNsId: string;
+// }) {
+//   const { data: issuers } = useRequest(
+//     () => {
+//       return adminApi.listCertificateTemplates({
+//         namespaceId: issuerNsId,
+//       });
+//     },
+//     {
+//       refreshDeps: [issuerNsId],
+//     }
+//   );
+//   const items = useMemo(
+//     () =>
+//       issuers
+//         ?.filter((issuer) => issuer.id !== uuidNil)
+//         .map((issuer) => ({
+//           value: issuer.id,
+//           title: issuer.displayName || issuer.id,
+//         })),
+//     [issuers]
+//   );
+//   return (
+//     <BaseSelector
+//       items={items}
+//       label={"Issuer template"}
+//       placeholder="Select issuer template"
+//       value={value}
+//       onChange={onChange}
+//       defaultItem={{ value: uuidNil, title: "default" }}
+//     />
+//   );
+// }
 
 function SANList({
   sansState: [itemsSet, { add: addSan, remove: removeSan }],
@@ -269,8 +266,6 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
     validityInMonths,
     setValidityInMonths,
     certUsages,
-    nsType,
-    adminApi,
   } = props;
   const certUsageInputOnChange = useMemoizedFn<
     (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -292,25 +287,7 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
   return (
     <div className="space-y-6 ">
       <h2 className="text-2xl font-semibold">Certificate template</h2>
-      {nsType !== NamespaceTypeShortName.NSType_RootCA && (
-        <div className="pt-6 space-y-4">
-          {props.issuerNamespaceId.onChange && (
-            <CertificateIssuerSelector
-              adminApi={adminApi}
-              value={props.issuerNamespaceId.value}
-              onChange={props.issuerNamespaceId.onChange}
-            />
-          )}
-          {props.issuerNamespaceId.value && (
-            <CertificateIssuerTemplateSelector
-              issuerNsId={props.issuerNamespaceId.value}
-              adminApi={adminApi}
-              value={props.issuerTemplateId.value}
-              onChange={props.issuerTemplateId.onChange}
-            />
-          )}
-        </div>
-      )}
+
       <InputField
         labelContent="Subject common name (CN)"
         placeholder="Sample Common Name"
@@ -329,22 +306,6 @@ export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
         />
         <div className="text-neutral-500">0 as default</div>
       </div>
-      {props.keyStorePath.onChange && (
-        <InputField
-          labelContent="Key Store Path"
-          required={nsType !== NamespaceTypeShortName.NSType_Group}
-          value={props.keyStorePath.value}
-          onChange={props.keyStorePath.onChange}
-        />
-      )}
-      {nsType !== NamespaceTypeShortName.NSType_RootCA &&
-        nsType !== NamespaceTypeShortName.NSType_IntCA && (
-          <CertificateUsageSelector
-            inputType="checkbox"
-            onChange={certUsageInputOnChange}
-            isChecked={certUsageIsChecked}
-          />
-        )}
     </div>
   );
 }
@@ -360,7 +321,6 @@ export default function CertificateTemplatePage() {
     profileType: NamespaceKind;
   };
 
-  const adminApiOld = useAuthedClientOld(AdminApiOld);
   const adminApi = useAuthedClient(AdminApi);
 
   const { data, loading, run } = useRequest(
@@ -497,8 +457,7 @@ export default function CertificateTemplatePage() {
       >
         <CertificateTemplatesForm
           templateId={templateId}
-          nsType={"root-ca"}
-          adminApi={adminApiOld}
+          nsKind={namespaceKind}
           {...state}
         />
         <div className="pt-6 flex flex-row items-center gap-x-6 justify-end">

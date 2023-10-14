@@ -1,24 +1,24 @@
 import { useRequest } from "ahooks";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Button } from "../components/Button";
 import { Card, CardSection } from "../components/Card";
+import Select, { SelectItem } from "../components/Select";
 import {
   AdminApi,
   CertificateTemplateRef,
   LinkedCertificateTemplateUsage,
   NamespaceKind,
-} from "../generated3";
-import { useAuthedClient } from "../utils/useCertsApi3";
+} from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import { AgentConfigurationForm } from "./AgentConfigurationForm";
 import {
   ApplicationServicePrincipalLink,
   DeviceServicePrincipalLink,
 } from "./DeviceServicePrincipalLink";
+import { InputField } from "./InputField";
 import { NamespaceContext } from "./NamespaceContext";
 import { RefTableColumn, RefsTable } from "./RefsTable";
-import { InputField } from "./InputField";
-import { Button } from "../components/Button";
-import Select, { SelectItem } from "../components/Select";
 
 const subjectCnColumn: RefTableColumn<CertificateTemplateRef> = {
   columnKey: "subjectCommonName",

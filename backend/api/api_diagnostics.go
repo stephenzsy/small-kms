@@ -5,6 +5,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
-func (*server) GetDiagnostics(c echo.Context) error {
-	return common.RespondDiagnostics(c)
+func (s *server) GetDiagnostics(c echo.Context) error {
+	return common.RespondDiagnostics(c, s.getRuntimeInfo())
 }

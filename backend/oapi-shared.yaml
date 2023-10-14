@@ -5,12 +5,23 @@ info:
 paths: {}
 components:
   schemas:
+    AgentCallbackRequest:
+      type: object
+      properties:
+        configVersion:
+          type: string
+        serviceRuntime:
+          $ref: "#/components/schemas/ServiceRuntimeInfo"
+      required:
+        - configName     
     AgentConfigName:
       type: string
       enum:
+        - heardbeat
         - agent-active-host-bootstrap
         - agent-active-server
       x-enum-varnames:
+        - AgentConfigNameHeartbeat
         - AgentConfigNameActiveHostBootstrap
         - AgentConfigNameActiveServer
     AgentConfiguration:
