@@ -23,6 +23,7 @@ import (
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	cm "github.com/stephenzsy/small-kms/backend/agent/configmanager"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
@@ -174,6 +175,8 @@ func main() {
 		}
 	}
 
+	configDir := common.MustGetenv("AGENT_CONFIG_DIR")
+
 	args := flag.Args()
 	if len(args) >= 2 {
 		switch args[0] {
@@ -184,7 +187,7 @@ func main() {
 				return
 			}
 		case "server":
-			configManager, err := cm.NewConfigManager(BuildID)
+			configManager, err := cm.NewConfigManager(BuildID, configDir)
 			if err != nil {
 				log.Panicf("Failed to create config manager: %v\n", err)
 			}

@@ -14,21 +14,23 @@ import (
 )
 
 var (
-	ErrGracefullyShutdown   = errors.New("gracefully shutdown")
-	ErrForcedShutdown       = errors.New("forced shutdown")
-	ErrConfigProcessorError = errors.New("config processor error")
+	ErrGracefullyShutdown = errors.New("gracefully shutdown")
+	ErrForcedShutdown     = errors.New("forced shutdown")
+	ErrSaveConfigFile     = errors.New("config file save error")
 )
 
 type ConfigProcessor interface {
-	Name() shared.AgentConfigName
+	ConfigName() shared.AgentConfigName
+	Version() string
 	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg, exitCh chan<- error)
 	Shutdown()
-	Process(ctx context.Context) error
-	MarkProcessDone()
+	Process(ctx context.Context, task string) error
+	MarkProcessDone(taskName string, err error)
 }
 
 type pollConfigMsg struct {
 	name      shared.AgentConfigName
+	task      string
 	processor ConfigProcessor
 }
 
@@ -62,11 +64,11 @@ func (m *ConfigManager) Start(c context.Context, cmExitCh chan<- error) {
 			return
 		case msg := <-pollUpdate:
 			p := msg.processor
-			err := p.Process(c)
+			err := p.Process(c, msg.task)
 			if err != nil {
-				log.Error().Err(err).Msgf("config processor error: %s", p.Name())
+				log.Error().Err(err).Msgf("config processor error: %s", p.ConfigName())
 			}
-			p.MarkProcessDone()
+			p.MarkProcessDone(msg.task, err)
 		case err := <-exitCh:
 			activeCount--
 			if err != nil {
@@ -93,7 +95,7 @@ func (m *ConfigManager) Start(c context.Context, cmExitCh chan<- error) {
 	cmExitCh <- ErrGracefullyShutdown
 }
 
-func NewConfigManager(buildID string) (*ConfigManager, error) {
+func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) {
 	m := ConfigManager{
 		processors: make(map[shared.AgentConfigName]ConfigProcessor, 1),
 	}
@@ -109,10 +111,11 @@ func NewConfigManager(buildID string) (*ConfigManager, error) {
 	} else if agentClient, err := agentclient.NewClientWithCreds(apiBasePath, serviceIdentity.TokenCredential(), []string{apiScope}, serviceIdentity.TenantID()); err != nil {
 		return nil, err
 	} else {
-		m.sharedConfig.init(buildID, agentClient)
+		m.sharedConfig.init(buildID, agentClient, configDir)
 	}
 
 	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
+	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig)
 	return &m, nil
 }
 

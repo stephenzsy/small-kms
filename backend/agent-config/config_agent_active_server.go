@@ -30,7 +30,7 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 	if d == nil {
 		return nil
 	}
-	refreshTime := d.Updated.Add(24 * time.Hour)
+	refreshTime := time.Now().Add(24 * time.Hour)
 	refreshToken := getTimeRefreshToken(refreshTime)
 	m := shared.AgentConfiguration{
 		Version:          d.Version.HexString(),

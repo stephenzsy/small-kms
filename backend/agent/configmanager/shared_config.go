@@ -1,6 +1,9 @@
 package cm
 
 import (
+	"errors"
+	"os"
+	"path/filepath"
 	"runtime"
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
@@ -10,6 +13,8 @@ import (
 type sharedConfig struct {
 	client             agentclient.ClientWithResponsesInterface
 	serviceRuntimeInfo shared.ServiceRuntimeInfo
+	configDir          string
+	versionedConfigDir string
 }
 
 func (sc *sharedConfig) AgentClient() agentclient.ClientWithResponsesInterface {
@@ -22,10 +27,29 @@ func (sc *sharedConfig) ServiceRuntime() *shared.ServiceRuntimeInfo {
 
 func (sc *sharedConfig) init(
 	buildID string,
-	client agentclient.ClientWithResponsesInterface) {
+	client agentclient.ClientWithResponsesInterface,
+	configDir string,
+) error {
 	sc.client = client
 	sc.serviceRuntimeInfo = shared.ServiceRuntimeInfo{
 		BuildID:   buildID,
 		GoVersion: runtime.Version(),
 	}
+	// ensure config dir
+	if _, err := os.Stat(configDir); err != nil {
+		return err
+	}
+	sc.configDir = configDir
+	sc.versionedConfigDir = filepath.Join(configDir, "versioned")
+	if err := os.MkdirAll(sc.versionedConfigDir, 0700); err != nil && !errors.Is(err, os.ErrExist) {
+		return err
+	}
+	return nil
 }
+
+var meNamespaceIdIdentifier = shared.StringIdentifier("me")
+
+const (
+	TaskNameLoad  = "load" // load from file
+	TaskNameFetch = "fetch"
+)
