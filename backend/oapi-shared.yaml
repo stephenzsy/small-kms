@@ -17,7 +17,7 @@ components:
     AgentConfigName:
       type: string
       enum:
-        - heardbeat
+        - heartbeat
         - agent-active-host-bootstrap
         - agent-active-server
       x-enum-varnames:

@@ -15,7 +15,7 @@ import (
 const (
 	AgentConfigNameActiveHostBootstrap AgentConfigName = "agent-active-host-bootstrap"
 	AgentConfigNameActiveServer        AgentConfigName = "agent-active-server"
-	AgentConfigNameHeartbeat           AgentConfigName = "heardbeat"
+	AgentConfigNameHeartbeat           AgentConfigName = "heartbeat"
 )
 
 // Defines values for CertificateUsage.

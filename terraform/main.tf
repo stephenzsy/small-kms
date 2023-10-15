@@ -242,6 +242,11 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_RESOURCE_GROUP_NAME"
         value = data.azurerm_resource_group.default.name
       }
+
+      env {
+        name  = "USE_MANAGED_IDENTITY"
+        value = "true"
+      }
     }
   }
 
