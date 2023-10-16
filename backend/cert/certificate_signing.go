@@ -18,13 +18,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-type SelfSignedCertificateProvider interface {
-	CreateSelfSignedCertificate(context.Context) ([]byte, *CertJwkSpec, error)
-	Close(context.Context)
-	KeepCertificate()
-	Locator() shared.ResourceLocator
-}
-
 type CertificateRequestProvider interface {
 	Load(context.Context) (certTemplate *x509.Certificate, publicKey any, publicKeySpec *CertJwkSpec, err error)
 	Close(context.Context)
@@ -45,37 +38,6 @@ type SignerProvider interface {
 type StorageProvider interface {
 	StoreCertificateChainPEM(c context.Context, pemBlob []byte, x5t []byte,
 		issuerLocatorStr string) (string, error)
-}
-
-func getSelfSignedCertificate(c context.Context,
-	certProvider SelfSignedCertificateProvider,
-	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
-	defer certProvider.Close(c)
-	certCreated, certJwkSpec, err := certProvider.CreateSelfSignedCertificate(c)
-
-	if err != nil {
-		return nil, err
-	}
-
-	pemBuf := bytes.Buffer{}
-	err = pem.Encode(&pemBuf, &pem.Block{Type: "CERTIFICATE", Bytes: certCreated})
-	if err != nil {
-		return nil, err
-	}
-	x5t := sha1.Sum(certCreated)
-	x5tS256 := sha256.Sum256(certCreated)
-	certJwkSpec.X5t = x5t[:]
-	certJwkSpec.X5tS256 = x5tS256[:]
-	blobKey, err := storageProvider.StoreCertificateChainPEM(c, pemBuf.Bytes(), x5t[:], "@self")
-	if err != nil {
-		return nil, err
-	}
-	return &CertDocSigningPatch{
-		CertSpec:      *certJwkSpec,
-		Thumbprint:    x5t[:],
-		CertStorePath: blobKey,
-		Issuer:        certProvider.Locator(),
-	}, nil
 }
 
 func signCertificate(c context.Context,

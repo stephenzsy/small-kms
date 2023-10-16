@@ -18,7 +18,7 @@
  * @export
  */
 export const AgentConfigName = {
-    AgentConfigNameHeartbeat: 'heardbeat',
+    AgentConfigNameHeartbeat: 'heartbeat',
     AgentConfigNameActiveHostBootstrap: 'agent-active-host-bootstrap',
     AgentConfigNameActiveServer: 'agent-active-server'
 } as const;

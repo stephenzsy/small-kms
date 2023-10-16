@@ -173,6 +173,14 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 	}
 
 	if needFetch {
+		if _, err := os.Stat(certDir); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return bad(err)
+			}
+			if err = os.MkdirAll(certDir, 0700); err != nil {
+				return bad(err)
+			}
+		}
 		if requirePrivateKey {
 			certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
 				shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
@@ -181,14 +189,6 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 				return bad(err)
 			}
 			kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
-			if _, err := os.Stat(certDir); err != nil {
-				if !errors.Is(err, os.ErrNotExist) {
-					return bad(err)
-				}
-				if err = os.MkdirAll(certDir, 0700); err != nil {
-					return bad(err)
-				}
-			}
 
 			secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
 			if err != nil {

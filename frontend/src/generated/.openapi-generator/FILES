@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/AdminApi.ts
 apis/DiagnosticsApi.ts
 apis/index.ts
@@ -27,7 +26,6 @@ models/CreateLinkedCertificateTemplateParameters.ts
 models/CreateManagedApplicationProfileRequest.ts
 models/CreateProfileRequest.ts
 models/CreateProfileRequestType.ts
-models/IncludeCertificate.ts
 models/JwkAlg.ts
 models/JwkCrv.ts
 models/JwkKeyOperation.ts

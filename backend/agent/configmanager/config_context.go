@@ -72,7 +72,7 @@ func (s *configSlot[TR]) persistConfig(configDir string, configName shared.Agent
 		return nil
 	}
 	versionedPathPart := fmt.Sprintf("%s.%s", configName, s.version)
-	versionedDir := filepath.Join(configDir, versionedPathPart)
+	versionedDir := filepath.Join(configDir, "versioned", versionedPathPart)
 	if _, err := os.Stat(versionedDir); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -110,7 +110,7 @@ func (s *configSlot[TR]) persistSymlink(configDir string, configName shared.Agen
 	}
 	if s.version != "" {
 		// create symlink
-		versionedRelDir := filepath.Join(".", fmt.Sprintf("%s.%s", configName, s.version))
+		versionedRelDir := filepath.Join(".", "versioned", fmt.Sprintf("%s.%s", configName, s.version))
 		return os.Symlink(versionedRelDir, linkName)
 	}
 	return nil

@@ -27,7 +27,6 @@ import type {
   CertificateTemplateRef,
   CreateLinkedCertificateTemplateParameters,
   CreateProfileRequest,
-  IncludeCertificate,
   NamespaceKind,
   Profile,
   ProfileRef,
@@ -59,8 +58,6 @@ import {
     CreateLinkedCertificateTemplateParametersToJSON,
     CreateProfileRequestFromJSON,
     CreateProfileRequestToJSON,
-    IncludeCertificateFromJSON,
-    IncludeCertificateToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
     ProfileFromJSON,
@@ -122,7 +119,7 @@ export interface GetCertificateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     certificateId: string;
-    includeCertificate?: IncludeCertificate;
+    includeCertificate?: boolean;
     templateId?: string;
 }
 
@@ -141,7 +138,7 @@ export interface IssueCertificateFromTemplateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     templateId: string;
-    includeCertificate?: IncludeCertificate;
+    includeCertificate?: boolean;
     force?: boolean;
     enroll?: boolean;
     tags?: Array<TemplatedCertificateTag>;

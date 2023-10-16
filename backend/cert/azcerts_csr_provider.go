@@ -26,30 +26,6 @@ type azCertsCsrProvider struct {
 	selfSigned              bool
 }
 
-// CreateSelfSignedCertificate implements SelfSignedCertificateProvider.
-func (p *azCertsCsrProvider) CreateSelfSignedCertificate(c context.Context) ([]byte, *CertJwkSpec, error) {
-	resp, err := p.createCert(c, true)
-	if err != nil {
-		return nil, nil, err
-	}
-	p.selfSignedCertId = resp.ID
-	certResp, err := p.client.GetCertificate(c, resp.ID.Name(), resp.ID.Version(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	return certResp.CER, &p.certDoc.CertSpec, nil
-}
-
-// KeepCertificate implements SelfSignedCertificateProvider.
-func (p *azCertsCsrProvider) KeepCertificate() {
-	p.selfSignedCertId = nil
-}
-
-// Locator implements SelfSignedCertificateProvider.
-func (p *azCertsCsrProvider) Locator() shared.ResourceLocator {
-	return p.certDoc.GetLocator()
-}
-
 // Close implements CertificateRequestProvider.
 func (p *azCertsCsrProvider) Close(c context.Context) {
 	if p.client != nil {
@@ -155,7 +131,6 @@ func (p *azCertsCsrProvider) Load(c context.Context) (certTemplate *x509.Certifi
 }
 
 var _ CertificateRequestProvider = (*azCertsCsrProvider)(nil)
-var _ SelfSignedCertificateProvider = (*azCertsCsrProvider)(nil)
 
 func newAzCertsCsrProvider(certDoc *CertDoc, selfSigned bool) *azCertsCsrProvider {
 	return &azCertsCsrProvider{

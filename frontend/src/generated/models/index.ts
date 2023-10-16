@@ -24,7 +24,6 @@ export * from './CreateLinkedCertificateTemplateParameters';
 export * from './CreateManagedApplicationProfileRequest';
 export * from './CreateProfileRequest';
 export * from './CreateProfileRequestType';
-export * from './IncludeCertificate';
 export * from './JwkAlg';
 export * from './JwkCrv';
 export * from './JwkKeyOperation';

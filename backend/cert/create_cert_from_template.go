@@ -81,7 +81,7 @@ func issueCertificate(c RequestContext,
 	}
 	// verify graph
 	switch nsID.Kind() {
-	case shared.NamespaceKindCaRoot, shared.NamespaceKindCaInt, shared.NamespaceKindSystem:
+	case shared.NamespaceKindCaRoot, shared.NamespaceKindCaInt:
 		// ok
 	default:
 		// verify graph
@@ -115,13 +115,7 @@ func issueCertificate(c RequestContext,
 		certDoc.CertSpec.keyExportable = false
 	}
 
-	var selfSignedProvider SelfSignedCertificateProvider
 	switch nsID.Kind() {
-	case shared.NamespaceKindSystem:
-		if nsID != certDoc.Issuer.GetNamespaceID() {
-			return bad(fmt.Errorf("invalid issuer for system, must be self"))
-		}
-		selfSignedProvider = newAzCertsCsrProvider(certDoc, true)
 	case shared.NamespaceKindCaRoot:
 		if certDoc.Issuer != certDoc.Template {
 			return bad(fmt.Errorf("invalid issuer template for root ca, must be self"))
@@ -142,12 +136,7 @@ func issueCertificate(c RequestContext,
 	}
 	if c := c.Elevate(); c != nil {
 		var patch *CertDocSigningPatch
-		var err error
-		if selfSignedProvider != nil {
-			patch, err = getSelfSignedCertificate(c, selfSignedProvider, storageProvider)
-		} else {
-			patch, err = signCertificate(c, csrProvider, signerProvider, storageProvider)
-		}
+		patch, err := signCertificate(c, csrProvider, signerProvider, storageProvider)
 		if err != nil {
 			return bad(err)
 		}

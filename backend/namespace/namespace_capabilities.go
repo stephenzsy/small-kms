@@ -45,10 +45,6 @@ func (nc *namespaceContext) GetID() shared.NamespaceIdentifier {
 
 func GetReservedCertificateTemplateNames(nsID shared.NamespaceIdentifier) (r map[shared.Identifier]int) {
 	switch nsID.Kind() {
-	case shared.NamespaceKindSystem:
-		return map[shared.Identifier]int{
-			shared.StringIdentifier(shared.CertTemplateNameDefaultMtls): 0,
-		}
 	case shared.NamespaceKindCaRoot,
 		shared.NamespaceKindCaInt:
 		return map[shared.Identifier]int{
@@ -85,11 +81,6 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 	cap.DefaultRsaAlgorithm = shared.AlgRS384
 	cap.DefaultCrv = shared.CurveNameP384
 	switch nsID.Kind() {
-	case shared.NamespaceKindSystem:
-		allowedNs.Add(nsID)
-		allowedUsages.Add(shared.CertUsageClientAuth)
-		cap.HasKeyStore = true
-		cap.KeyExportable = false
 	case shared.NamespaceKindCaRoot:
 		allowedNs.Add(nsID)
 		allowedUsages.Add(shared.CertUsageCA)
@@ -171,11 +162,6 @@ func GetAllowedCertificateIssuersForTemplate(templateLocator shared.ResourceLoca
 
 func validateNamespaceID(nsID shared.NamespaceIdentifier) error {
 	switch nsID.Kind() {
-	case shared.NamespaceKindSystem:
-		switch nsID.Identifier().String() {
-		case string(SystemServiceNameAgentPush):
-			return nil
-		}
 	case shared.NamespaceKindCaRoot:
 		switch nsID.Identifier().String() {
 		case string(RootCANameDefault),
