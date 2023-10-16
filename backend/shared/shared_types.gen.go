@@ -198,8 +198,8 @@ type JwkProperties struct {
 	Crv *JwkCrv `json:"crv,omitempty"`
 
 	// E RSA exponent
-	E      *string          `json:"e,omitempty"`
-	KeyOps *JwkKeyOperation `json:"key_ops,omitempty"`
+	E      Base64RawURLEncodableBytes `json:"e,omitempty"`
+	KeyOps *JwkKeyOperation           `json:"key_ops,omitempty"`
 
 	// KeySize RSA key size
 	KeySize *int32 `json:"key_size,omitempty"`
@@ -209,25 +209,25 @@ type JwkProperties struct {
 	Kty   JwtKty  `json:"kty"`
 
 	// N RSA modulus
-	N *string `json:"n,omitempty"`
+	N Base64RawURLEncodableBytes `json:"n,omitempty"`
 
 	// X EC x coordinate
-	X *string `json:"x,omitempty"`
+	X Base64RawURLEncodableBytes `json:"x,omitempty"`
 
 	// X5c X.509 certificate chain
-	CertificateChain []string `json:"x5c,omitempty"`
+	CertificateChain []Base64RawURLEncodableBytes `json:"x5c,omitempty"`
 
 	// X5t X.509 certificate SHA-1 thumbprint
-	CertificateThumbprint *string `json:"x5t,omitempty"`
+	CertificateThumbprint Base64RawURLEncodableBytes `json:"x5t,omitempty"`
 
 	// X5tS256 X.509 certificate SHA-256 thumbprint
-	CertificateThumbprintSHA256 *string `json:"x5t#S256,omitempty"`
+	CertificateThumbprintSHA256 Base64RawURLEncodableBytes `json:"x5t#S256,omitempty"`
 
 	// X5u X.509 certificate URL
 	CertificateURL *string `json:"x5u,omitempty"`
 
 	// Y EC y coordinate
-	Y *string `json:"y,omitempty"`
+	Y Base64RawURLEncodableBytes `json:"y,omitempty"`
 }
 
 // JwtKty defines model for JwtKty.

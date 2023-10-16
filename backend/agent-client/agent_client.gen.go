@@ -21,15 +21,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for IncludeCertificate.
-const (
-	IncludeJWK IncludeCertificate = "jwk"
-	IncludePEM IncludeCertificate = "pem"
-)
-
-// IncludeCertificate defines model for IncludeCertificate.
-type IncludeCertificate string
-
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
@@ -40,7 +31,7 @@ type CertificateIdPathParameter = externalRef0.Identifier
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 
 // IncludeCertificateParameter defines model for IncludeCertificateParameter.
-type IncludeCertificateParameter = IncludeCertificate
+type IncludeCertificateParameter = bool
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier

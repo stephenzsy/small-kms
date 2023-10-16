@@ -22,12 +22,6 @@ const (
 	ProfileTypeManagedApplication CreateProfileRequestType = "managed-application"
 )
 
-// Defines values for IncludeCertificate.
-const (
-	IncludeJWK IncludeCertificate = "jwk"
-	IncludePEM IncludeCertificate = "pem"
-)
-
 // Defines values for LinkedCertificateTemplateUsage.
 const (
 	LinkedCertificateTemplateUsageClientAuthorization       LinkedCertificateTemplateUsage = "cliant-authorization"
@@ -154,9 +148,6 @@ type CreateProfileRequest struct {
 // CreateProfileRequestType defines model for CreateProfileRequestType.
 type CreateProfileRequestType string
 
-// IncludeCertificate defines model for IncludeCertificate.
-type IncludeCertificate string
-
 // LinkedCertificateTemplateUsage defines model for LinkedCertificateTemplateUsage.
 type LinkedCertificateTemplateUsage string
 
@@ -243,7 +234,7 @@ type CertificateIdPathParameter = externalRef0.Identifier
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 
 // IncludeCertificateParameter defines model for IncludeCertificateParameter.
-type IncludeCertificateParameter = IncludeCertificate
+type IncludeCertificateParameter = bool
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
@@ -271,7 +262,7 @@ type GetAgentConfigurationParams struct {
 
 // IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
 type IssueCertificateFromTemplateParams struct {
-	IncludeCertificate *IncludeCertificate                     `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
+	IncludeCertificate *IncludeCertificateParameter            `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
 	Force              *bool                                   `form:"force,omitempty" json:"force,omitempty"`
 	Enroll             *bool                                   `form:"enroll,omitempty" json:"enroll,omitempty"`
 	Tags               *[]externalRef0.TemplatedCertificateTag `form:"tags,omitempty" json:"tags,omitempty"`

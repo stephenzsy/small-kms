@@ -58,7 +58,8 @@ func (sc *sharedConfig) init(
 var meNamespaceIdIdentifier = shared.StringIdentifier("me")
 
 const (
-	TaskNameLoad  = "load" // load from file
-	TaskNameFetch = "fetch"
-	TaskNameReady = "ready"
+	TaskNameLoad     = "load" // load from file
+	TaskNameFetch    = "fetch"
+	TaskNameActivate = "activate"
+	TaskNameExecute  = "execute"
 )

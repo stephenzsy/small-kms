@@ -2,7 +2,6 @@ package certtemplate
 
 import (
 	"github.com/stephenzsy/small-kms/backend/shared"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertKeySpec struct {
@@ -84,8 +83,8 @@ func (k *CertKeySpec) PopulateKeyProperties(r *shared.JwkProperties) {
 	if k == nil || r == nil {
 		return
 	}
+	r.Alg = &k.Alg
 	r.Kty = k.Kty
 	r.KeySize = k.KeySize
 	r.Crv = k.Crv
-	r.Alg = utils.ToPtr(k.Alg)
 }

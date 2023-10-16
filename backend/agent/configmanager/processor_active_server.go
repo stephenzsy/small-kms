@@ -2,28 +2,24 @@ package cm
 
 import (
 	"context"
+	"crypto/sha512"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
+	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/shared"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type activeServerProcessor struct {
 	baseConfigProcessor
-	timer *time.Timer
-}
-
-type processorState struct {
-	hasAttemptedLoad bool
-	fetchExpire      time.Time
-	fetchExtraExpire time.Time
+	configCtx ConfigCtx[ActiveServerReadyConfig]
 }
 
 // Version implements ConfigProcessor.
@@ -36,15 +32,25 @@ func (*activeServerProcessor) Name() shared.AgentConfigName {
 	return shared.AgentConfigNameHeartbeat
 }
 
-const errorVersion = "deadbeef"
-const defuaultErrorBackoff = 5 * time.Minute
+type ActiveServerReadyConfig struct {
+	ServerCertificateFile                         string   `json:"serverCertificateFile"`
+	AuthorizedClientCertificateFingerprintsSHA384 [][]byte `json:"authorizedClientCertificateFingerprintsSHA384"`
+}
 
 func (p *activeServerProcessor) Process(ctx context.Context, task string) error {
 	logger := log.Ctx(ctx)
 	switch task {
 	case TaskNameLoad:
-		p.loadFetchedConfig(ctx, false)
-		p.loadFetchedConfig(ctx, true)
+		if err := p.configCtx.activeSlot.loadConfigFromFiles(p.configName, p.configDir, false); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
+		if err := p.configCtx.pendingSlot.loadConfigFromFiles(p.configName, p.configDir, true); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
 		return nil
 	case TaskNameFetch:
 		resp, err := p.AgentClient().GetAgentConfigurationWithResponse(ctx,
@@ -56,140 +62,205 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 		}
 		nextConfig := resp.JSON200
 		logger.Info().Msgf("fetched config: %s:%s", p.configName, nextConfig.Version)
-		err = p.persistVersionedConfig(ctx, nextConfig, false)
-		if err != nil {
-			// not critial
-			logger.Error().Err(err).Msgf("failed persist versioned config: %s:%s", p.configName, nextConfig.Version)
-		}
-		if existingSlot, hasExistingSlot := getFetchConfigSlotPreferPending[shared.AgentConfiguration](p.configCtx); !hasExistingSlot || existingSlot.version != nextConfig.Version {
-			// version changed, replace pending slot
-			p.configCtx = withConfigSlot(p.configCtx, fetchConfigPendingSlotKey, configSlot[shared.AgentConfiguration]{
-				config:  nextConfig,
-				exp:     *nextConfig.NextRefreshAfter,
-				version: nextConfig.Version,
-			})
+
+		latestSlot := p.configCtx.getLatestSlot()
+		if latestSlot.version == nextConfig.Version {
+			latestSlot.exp = *nextConfig.NextRefreshAfter
 		} else {
-			// update expiring time
-			existingSlot.exp = *nextConfig.NextRefreshAfter
+			p.configCtx.pendingSlot.configFetched = *nextConfig
+			p.configCtx.pendingSlot.version = nextConfig.Version
+			p.configCtx.pendingSlot.exp = *nextConfig.NextRefreshAfter
+			err = p.configCtx.pendingSlot.persistConfig(p.configDir, p.configName, true, true)
+			if err != nil {
+				// not critial to block next step
+				logger.Error().Err(err).Msgf("failed persist versioned config: %s:%s", p.configName, nextConfig.Version)
+			}
 		}
 		return nil
-	case TaskNameReady:
-		fetchedPendingSlot, ok := getConfigSlot[shared.AgentConfiguration](p.configCtx, fetchConfigPendingSlotKey)
-		if !ok {
-			// no pending slot
-			log.Error().Msgf("no pending fetched config slot to process: %s", p.configName)
-			return nil
+	case TaskNameActivate:
+		pslot := &p.configCtx.pendingSlot
+		if !pslot.hasValue() {
+			return fmt.Errorf("no pending fetched config slot to process: %s", p.configName)
 		}
-		activeServerCfg, err := fetchedPendingSlot.config.Config.AsAgentConfigurationAgentActiveServer()
+
+		activeServerCfg, err := pslot.configFetched.Config.AsAgentConfigurationAgentActiveServer()
 		if err != nil {
 			return err
 		}
-		// fetch certificate
-		serverCertResp, err := p.AgentClient().GetCertificateWithResponse(ctx, shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier, *activeServerCfg.ServerCertificateId, nil)
+
+		// fetch server certificate with private key
+		bundleFilename, err := p.processCertificate(ctx, *activeServerCfg.ServerCertificateId, true)
 		if err != nil {
 			return err
 		}
-		if err := p.processKeyVaultSecret(ctx, serverCertResp.JSON200); err != nil {
-			return err
+
+		readyConfig := ActiveServerReadyConfig{
+			ServerCertificateFile: bundleFilename,
+		}
+		// fetch authrorized client certificates
+		for _, clientCertId := range activeServerCfg.AuthorizedCertificateIds {
+			if rawCertFilename, err := p.processCertificate(ctx, clientCertId, false); err != nil {
+				return err
+			} else {
+				hash, err := getCertFingprintSHA384FromFile(rawCertFilename)
+				if err != nil {
+					return err
+				}
+				readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
+					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash)
+			}
+		}
+
+		p.configCtx.setActiveConfig(readyConfig, pslot)
+		if err := p.configCtx.persistConfig(p.configDir, p.configName, true); err != nil {
+			// not critical to block next step
+			logger.Error().Err(err).Msgf("failed to persist config: %s", p.configName)
+		}
+		// not critical to block next step
+		if err := p.configCtx.persistSymlinks(p.configDir, p.configName, true); err != nil {
+			logger.Error().Err(err).Msgf("failed to persist symlinks: %s", p.configName)
 		}
 		return nil
 	default:
 		return fmt.Errorf("unknown task: %s", task)
 	}
-	return nil
 }
 
-func (p *activeServerProcessor) processKeyVaultSecret(ctx context.Context, certInfo *shared.CertificateInfo) error {
-	kid := azsecrets.ID(*certInfo.Jwk.KeyID)
-	certDir := filepath.Join(p.configDir, "certs", string(p.configName), kid.Name(), kid.Version())
-	if _, err := os.Stat(certDir); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-		if err = os.MkdirAll(certDir, 0700); err != nil {
-			return err
-		}
+func getCertFingprintSHA384FromFile(filename string) ([]byte, error) {
+	certBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
 	}
-	keyFilename := filepath.Join(certDir, "key.pem")
+	block, _ := pem.Decode(certBytes)
+	hash := sha512.Sum384(block.Bytes)
+	return hash[:], nil
+}
+
+// returns bytes of the first (chain) certificate in the chain
+func (p *activeServerProcessor) processCertificate(ctx context.Context, certID shared.Identifier, requirePrivateKey bool) (string, error) {
+	bad := func(e error) (string, error) {
+		return "", e
+	}
+	certDir := filepath.Join(p.configDir, "certs", string(p.configName), certID.String())
+	needFetch := false
 	certFilename := filepath.Join(certDir, "cert.pem")
+	keyFilename := filepath.Join(certDir, "key.pem")
 	bundleFilename := filepath.Join(certDir, "bundle.pem")
 
-	needFetch := false
-	if _, err := os.Stat(keyFilename); err != nil {
+	var returnFilename = certFilename
+	if requirePrivateKey {
+		returnFilename = bundleFilename
+	}
+
+	if _, err := os.Stat(certFilename); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-		needFetch = true
-	} else if _, err := os.Stat(certFilename); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-		needFetch = true
-	} else if _, err := os.Stat(bundleFilename); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
+			return bad(err)
 		}
 		needFetch = true
 	}
+	if requirePrivateKey && !needFetch {
+		if _, err := os.Stat(keyFilename); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return bad(err)
+			}
+			needFetch = true
+		} else if _, err := os.Stat(bundleFilename); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return bad(err)
+			}
+			needFetch = true
+		}
+	}
+
 	if needFetch {
-		secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
-		if err != nil {
-			return err
-		}
-		pemBytes := []byte(*secretResp.SecretBundle.Value)
-		block, rest := pem.Decode(pemBytes)
-		if block.Type != "CERTIFICATE" {
-			// this is the private key
-			if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
-				return err
+		if requirePrivateKey {
+			certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+				shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+				certID, nil)
+			if err != nil {
+				return bad(err)
 			}
-			if err := os.WriteFile(certFilename, rest, 0600); err != nil {
-				return err
+			kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
+			if _, err := os.Stat(certDir); err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					return bad(err)
+				}
+				if err = os.MkdirAll(certDir, 0700); err != nil {
+					return bad(err)
+				}
 			}
-		}
-		if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
-			return err
+
+			secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
+			if err != nil {
+				return bad(err)
+			}
+			pemBytes := []byte(*secretResp.SecretBundle.Value)
+			block, rest := pem.Decode(pemBytes)
+			if block.Type != "CERTIFICATE" {
+				// this is the private key
+				if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
+					return bad(err)
+				}
+				if err := os.WriteFile(certFilename, rest, 0600); err != nil {
+					return bad(err)
+				}
+			}
+			if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
+				return bad(err)
+			}
+		} else {
+			certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+				shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+				certID, &agentclient.GetCertificateParams{
+					IncludeCertificate: utils.ToPtr(true),
+				})
+			if err != nil {
+				return bad(err)
+			}
+			pemBytes := []byte(*certResp.JSON200.Pem)
+			if err := os.WriteFile(certFilename, pemBytes, 0600); err != nil {
+				return bad(err)
+			}
 		}
 	}
-	return nil
+
+	return returnFilename, nil
 }
 
 func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, exitCh chan<- error) {
-	p.configCtx = context.Background()
 	finally := p.baseStart(c, scheduleToUpdate, exitCh, func() *pollConfigMsg {
-		if !configCtxHasAttemptedLoad(p.configCtx) {
-			// attempt load if has not attempted
-			p.configCtx = configCtxWithAttemptedLoad(p.configCtx)
+		if !p.attemptedLoad {
+			p.attemptedLoad = true
 			return &pollConfigMsg{
 				name:      shared.AgentConfigNameActiveServer,
 				task:      TaskNameLoad,
 				processor: p,
 			}
 		}
-		if fetchSlot, hasFetchSlot := getFetchConfigSlotPreferPending[shared.AgentConfiguration](p.configCtx); !hasFetchSlot || fetchSlot.exp.Before(time.Now()) {
-			// no fetch slot or expired, go for fetch
+		lslot := p.configCtx.getLatestSlot()
+		if !lslot.hasValue() || lslot.exp.Before(time.Now()) {
+			// no config at all, go for fetch
 			return &pollConfigMsg{
 				name:      shared.AgentConfigNameActiveServer,
 				task:      TaskNameFetch,
 				processor: p,
 			}
 		}
-
-		// TODO
-		if _, hasReadyPendingSlot := getConfigSlot[shared.AgentConfiguration](p.configCtx, readyConfigPendingSlotKey); !hasReadyPendingSlot {
+		pslot := &p.configCtx.pendingSlot
+		if pslot.hasValue() {
+			// we have a pending slot needs to be activated
 			return &pollConfigMsg{
 				name:      shared.AgentConfigNameActiveServer,
-				task:      TaskNameReady,
+				task:      TaskNameActivate,
 				processor: p,
 			}
 		}
 
 		return nil
 	})
-	if slot, hasSlot := getConfigSlot[shared.AgentConfiguration](p.configCtx, fetchConfigPendingSlotKey); hasSlot {
-		p.persistVersionedConfig(c, slot.config, true)
-		p.symlinkFetchedConfig(c, slot.version, true)
-	}
+	// persist config before shutdown
+	p.configCtx.persistConfig(p.configDir, p.configName, true)
+	p.configCtx.persistSymlinks(p.configDir, p.configName, true)
 	finally()
 }
 
@@ -197,33 +268,35 @@ var _ ConfigProcessor = (*activeServerProcessor)(nil)
 
 const minRemoteDuration = 5 * time.Minute
 
-func applyJitter(d time.Duration) time.Duration {
-	if d <= 5*time.Minute {
-		return minRemoteDuration + time.Duration(rand.Int63n(int64(5*time.Second)))
-	}
-	if d <= 1*time.Hour {
-		return minRemoteDuration + time.Duration(rand.Int63n(int64(60*time.Second)))
-	}
-	return minRemoteDuration + time.Duration(rand.Int63n(int64(5*time.Minute)))
-}
-
 func (p *activeServerProcessor) MarkProcessDone(taskName string, err error) {
 	resetTimer := p.baseMarkProcessDone()
-	nextDuration := 5 * time.Minute
 
-	if fetchSlot, hasFetchSlot := getFetchConfigSlotPreferPending[shared.AgentConfiguration](p.configCtx); !hasFetchSlot || fetchSlot.exp.Before(time.Now()) {
-		// no fetch slot or expired, go for fetch
-		resetTimer(5 * time.Second)
-		return
+	aslot := &p.configCtx.activeSlot
+
+	switch taskName {
+	case TaskNameLoad:
+		if !aslot.hasValue() || aslot.exp.Before(time.Now()) {
+			// no active config, proceed next soon
+			resetTimer(3 * time.Second)
+			return
+		}
+	case TaskNameFetch:
+		if err == nil {
+			// fetch succeeded, proceed if has pending slot
+			if p.configCtx.pendingSlot.hasValue() {
+				resetTimer(3 * time.Second)
+				return
+			}
+		}
+	case TaskNameActivate:
+		if err == nil {
+			// activate succeeded, proceed with execute
+			resetTimer(3 * time.Second)
+			return
+		}
 	}
 
-	// TODO
-	if _, hasReadyPendingSlot := getConfigSlot[shared.AgentConfiguration](p.configCtx, readyConfigPendingSlotKey); !hasReadyPendingSlot {
-		resetTimer(5 * time.Second)
-		return
-	}
-
-	resetTimer(nextDuration)
+	resetTimer(p.configCtx.getWaitForNextRefresh())
 }
 
 func newActiveServerProcessor(sc *sharedConfig) *activeServerProcessor {

@@ -301,10 +301,7 @@ paths:
       tags:
         - admin
       parameters:
-        - in: query
-          name: "includeCertificate"
-          schema:
-            $ref: "#/components/schemas/IncludeCertificate"
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
         - in: query
           name: force
           schema:
@@ -586,14 +583,6 @@ components:
       required:
         - targetTemplate
         - usage
-    IncludeCertificate:
-      type: string
-      enum:
-        - jwk
-        - pem
-      x-enum-varnames:
-        - IncludeJWK
-        - IncludePEM
     AgentHostRole:
       type: string
       enum:
@@ -678,7 +667,8 @@ components:
       in: query
       name: "includeCertificate"
       schema:
-        $ref: "#/components/schemas/IncludeCertificate"
+        type: boolean
+      required: false     
   responses:
     AgentConfigurationResponse:
       description: Agent autoconfig response

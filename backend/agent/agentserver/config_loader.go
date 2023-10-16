@@ -65,7 +65,7 @@ func (cl *ConfigLoader) pullCertificates(c context.Context) error {
 	// pull certificates
 	certResp, err := cl.agentClient.GetCertificateWithResponse(c, shared.NamespaceKindServicePrincipal, shared.StringIdentifier("me"),
 		*cl.currentConfig.ServerCertificateId, &agentclient.GetCertificateParams{
-			IncludeCertificate: utils.ToPtr(agentclient.IncludeJWK),
+			IncludeCertificate: utils.ToPtr(true),
 		})
 	if err != nil {
 		return err

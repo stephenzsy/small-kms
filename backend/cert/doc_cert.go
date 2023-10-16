@@ -27,10 +27,10 @@ const (
 
 type CertJwkSpec struct {
 	ct.CertKeySpec
-	KID     string                   `json:"kid"`
-	X5u     *string                  `json:"x5u,omitempty"`
-	X5t     kmsdoc.Base64UrlStorable `json:"x5t,omitempty"`
-	X5tS256 kmsdoc.Base64UrlStorable `json:"x5t#S256,omitempty"`
+	KID     string                            `json:"kid"`
+	X5u     *string                           `json:"x5u,omitempty"`
+	X5t     shared.Base64RawURLEncodableBytes `json:"x5t,omitempty"`
+	X5tS256 shared.Base64RawURLEncodableBytes `json:"x5t#S256,omitempty"`
 
 	keyExportable bool
 }
@@ -241,8 +241,8 @@ func (k *CertJwkSpec) PopulateKeyProperties(r *shared.JwkProperties) {
 	k.CertKeySpec.PopulateKeyProperties(r)
 	r.KeyID = &k.KID
 	r.CertificateURL = k.X5u
-	r.CertificateThumbprint = k.X5t.StringPtr()
-	r.CertificateThumbprintSHA256 = k.X5tS256.StringPtr()
+	r.CertificateThumbprint = k.X5t
+	r.CertificateThumbprintSHA256 = k.X5tS256
 }
 
 var _ kmsdoc.KmsDocumentSnapshotable[*CertDoc] = (*CertDoc)(nil)

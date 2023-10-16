@@ -2,7 +2,6 @@ package kmsdoc
 
 import (
 	"encoding"
-	"encoding/base64"
 	"encoding/hex"
 	"time"
 )
@@ -60,38 +59,3 @@ func (s *HexStringStroable) HexString() string {
 
 var _ encoding.TextMarshaler = HexStringStroable{}
 var _ encoding.TextUnmarshaler = (*HexStringStroable)(nil)
-
-type Base64UrlStorable []byte
-
-// MarshalText implements encoding.TextMarshaler.
-func (s Base64UrlStorable) MarshalText() (text []byte, _ error) {
-	text = make([]byte, base64.RawURLEncoding.EncodedLen(len(s)))
-	base64.RawURLEncoding.Encode(text, s)
-	return
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *Base64UrlStorable) UnmarshalText(text []byte) (err error) {
-	b := make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
-	_, err = base64.RawURLEncoding.Decode(b, text)
-	*s = b
-	return
-}
-
-func (s *Base64UrlStorable) Base64UrlEncodedString() string {
-	if s == nil {
-		return ""
-	}
-	return base64.RawStdEncoding.EncodeToString(*s)
-}
-
-func (s *Base64UrlStorable) StringPtr() *string {
-	if s == nil {
-		return nil
-	}
-	str := base64.RawStdEncoding.EncodeToString(*s)
-	return &str
-}
-
-var _ encoding.TextMarshaler = Base64UrlStorable{}
-var _ encoding.TextUnmarshaler = (*Base64UrlStorable)(nil)

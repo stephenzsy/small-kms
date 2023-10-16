@@ -84,11 +84,10 @@ func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *shared.JwkProperties) {
 	if pubkey == nil {
 		return
 	}
-	bigE := big.NewInt(int64(pubkey.E))
 
 	p.Alg = utils.ToPtr(shared.AlgRS256)
 	p.Kty = "RSA"
-	p.E = utils.ToPtr(base64.RawURLEncoding.EncodeToString(bigE.Bytes()))
-	p.N = utils.ToPtr(base64.RawURLEncoding.EncodeToString(pubkey.N.Bytes()))
+	p.E = big.NewInt(int64(pubkey.E)).Bytes()
+	p.N = pubkey.N.Bytes()
 	p.KeySize = utils.ToPtr(int32(pubkey.Size()) * 8)
 }

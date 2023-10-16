@@ -2,11 +2,7 @@ package cm
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -20,94 +16,12 @@ type baseConfigProcessor struct {
 	pollShutdownCh chan struct{}
 	processPending bool
 	timer          *time.Timer
-	configCtx      ConfigCtx
+	attemptedLoad  bool
 }
 
 // Name implements ConfigProcessor.
 func (p *baseConfigProcessor) ConfigName() shared.AgentConfigName {
 	return p.configName
-}
-
-func loadFetchedConfig(filename string) (*shared.AgentConfiguration, error) {
-	configJson, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	config := shared.AgentConfiguration{}
-	err = json.Unmarshal(configJson, &config)
-	return &config, err
-}
-
-func (p *baseConfigProcessor) loadFetchedConfig(ctx context.Context, isPending bool) {
-	var filename string
-	if isPending {
-		filename = filepath.Join(p.configDir, fmt.Sprintf("%s.next", string(p.configName)), "config.json")
-	} else {
-		filename = filepath.Join(p.configDir, string(p.configName), "config.json")
-	}
-
-	logger := log.Ctx(ctx).Info()
-	if activeConfig, err := loadFetchedConfig(filename); err != nil {
-		logger := logger.Err(err)
-		if isPending {
-			logger.Msgf("load fetched config - pending: %s", p.configName)
-		} else {
-			logger.Msgf("load fetched config - active: %s", p.configName)
-		}
-	} else {
-		slotKey := fetchConfigActiveSlotKey
-		if isPending {
-			slotKey = fetchConfigPendingSlotKey
-		}
-		p.configCtx = withConfigSlot(p.configCtx, slotKey, configSlot[shared.AgentConfiguration]{
-			config:  activeConfig,
-			exp:     *activeConfig.NextRefreshAfter,
-			version: activeConfig.Version,
-		})
-	}
-}
-func (p *baseConfigProcessor) persistVersionedConfig(ctx context.Context, config *shared.AgentConfiguration, overwriteIfExist bool) error {
-	version := config.Version
-	versionedPathPart := fmt.Sprintf("%s.%s", p.configName, version)
-	versionedDir := filepath.Join(p.versionedConfigDir, versionedPathPart)
-	if _, err := os.Stat(versionedDir); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-		if err = os.MkdirAll(versionedDir, 0700); err != nil {
-			return err
-		}
-	}
-	configFilename := filepath.Join(versionedDir, "config.json")
-	var persisted = false
-	if _, err := os.Stat(configFilename); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-	} else {
-		persisted = true
-	}
-	if !persisted || overwriteIfExist {
-		configJson, err := json.Marshal(config)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(configFilename, configJson, 0600)
-	}
-	return nil
-}
-
-func (p *baseConfigProcessor) symlinkFetchedConfig(ctx context.Context, version string, isPending bool) error {
-	versionedPathPart := fmt.Sprintf("%s.%s", p.configName, version)
-	var linkName string
-	if isPending {
-		linkName = filepath.Join(p.configDir, fmt.Sprintf("%s.%s", string(p.configName), "next"))
-	} else {
-		linkName = filepath.Join(p.configDir, string(p.configName))
-	}
-	relTarget := filepath.Join(".", "versioned", versionedPathPart)
-	log.Ctx(ctx).Info().Msgf("symlink fetched config: %s -> %s", linkName, relTarget)
-	return os.Symlink(relTarget, linkName)
 }
 
 func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan<- pollConfigMsg,

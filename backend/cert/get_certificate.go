@@ -2,9 +2,15 @@ package cert
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/rs/zerolog/log"
 	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -44,6 +50,7 @@ func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator shared.
 }
 
 func getCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) (*shared.CertificateInfo, error) {
+	logger := log.Ctx(c)
 	var certDocLocator shared.ResourceLocator
 	if certificateId.IsUUID() {
 		nsID := ns.GetNamespaceContext(c).GetID()
@@ -58,18 +65,44 @@ func getCertificate(c RequestContext, certificateId shared.Identifier, params mo
 	}
 	m := certDoc.toModel()
 
-	if params.IncludeCertificate != nil && (*params.IncludeCertificate == models.IncludePEM || *params.IncludeCertificate == models.IncludeJWK) {
+	if params.IncludeCertificate != nil && *params.IncludeCertificate {
 		// fetch cert from blob
 		pemBlob, err := certDoc.fetchCertificatePEMBlob(c)
 		if err != nil {
 			return m, err
 		}
 		m.Pem = utils.ToPtr(string(pemBlob))
-		switch *params.IncludeCertificate {
-		case models.IncludePEM:
-		case models.IncludeJWK:
+		var certRaw []byte
+		for block, rest := pem.Decode(pemBlob); block != nil; block, rest = pem.Decode(rest) {
+			if certRaw == nil && block.Type == "CERTIFICATE" {
+				certRaw = block.Bytes
+			}
+			m.Jwk.CertificateChain = append(m.Jwk.CertificateChain, block.Bytes)
 		}
-		// attach blob
+		if x509Cert, err := x509.ParseCertificate(certRaw); err != nil {
+			logger.Error().Err(err).Msg("failed to parse certificate")
+		} else {
+			switch x509Cert.PublicKeyAlgorithm {
+			case x509.RSA:
+				m.Jwk.Kty = shared.KeyTypeRSA
+				if rsaPubKey, ok := x509Cert.PublicKey.(*rsa.PublicKey); ok {
+					m.Jwk.N = rsaPubKey.N.Bytes()
+					m.Jwk.E = big.NewInt(int64(rsaPubKey.E)).Bytes()
+				} else {
+					logger.Error().Msg("failed to parse RSA public key")
+				}
+			case x509.ECDSA:
+				m.Jwk.Kty = shared.KeyTypeEC
+				if ecdsaPubKey, ok := x509Cert.PublicKey.(*ecdsa.PublicKey); ok {
+					m.Jwk.X = ecdsaPubKey.X.Bytes()
+					m.Jwk.Y = ecdsaPubKey.Y.Bytes()
+				} else {
+					logger.Error().Msg("failed to parse ECDSA public key")
+				}
+			default:
+				logger.Error().Msgf("unsupported public key algorithm: %s", x509Cert.PublicKeyAlgorithm.String())
+			}
+		}
 	}
 
 	return m, nil
