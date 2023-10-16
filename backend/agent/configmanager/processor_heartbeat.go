@@ -10,7 +10,6 @@ import (
 
 type heartbeatConfigProcessor struct {
 	baseConfigProcessor
-	timer *time.Timer
 }
 
 // Version implements ConfigProcessor.
@@ -33,28 +32,19 @@ func (p *heartbeatConfigProcessor) Process(ctx context.Context, _ string) error 
 }
 
 func (p *heartbeatConfigProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, exitCh chan<- error) {
-	p.timer = time.NewTimer(0)
-	p.baseStart(c, scheduleToUpdate, exitCh, p.timer.C, func() *pollConfigMsg {
+	p.baseStart(c, scheduleToUpdate, exitCh, func() *pollConfigMsg {
 		return &pollConfigMsg{
 			name:      shared.AgentConfigNameHeartbeat,
 			processor: p,
 		}
-	})
+	})()
 }
 
 var _ ConfigProcessor = (*heartbeatConfigProcessor)(nil)
 
-func (p *heartbeatConfigProcessor) Shutdown() {
-	baseDefer := p.baseShutdown()
-	defer baseDefer()
-	p.timer.Stop()
-}
-
 func (p *heartbeatConfigProcessor) MarkProcessDone(string, error) {
-	baseDefer := p.baseMarkProcessDone()
-	defer baseDefer()
-	p.timer.Stop()
-	p.timer.Reset(5 * time.Minute)
+	resetTimer := p.baseMarkProcessDone()
+	resetTimer(5 * time.Minute)
 }
 
 func newHeartbeatConfigProcessor(sc *sharedConfig) *heartbeatConfigProcessor {

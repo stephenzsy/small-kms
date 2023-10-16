@@ -17,9 +17,10 @@ type baseConfigProcessor struct {
 	*sharedConfig
 	configName     shared.AgentConfigName
 	isActive       bool
-	fetchedConfig  *shared.AgentConfiguration
 	pollShutdownCh chan struct{}
 	processPending bool
+	timer          *time.Timer
+	configCtx      ConfigCtx
 }
 
 // Name implements ConfigProcessor.
@@ -27,82 +28,134 @@ func (p *baseConfigProcessor) ConfigName() shared.AgentConfigName {
 	return p.configName
 }
 
-func (p *baseConfigProcessor) loadFetchedConfig() error {
-	configFilename := filepath.Join(p.configDir, string(p.configName), "config.json")
-	configJson, err := os.ReadFile(configFilename)
+func loadFetchedConfig(filename string) (*shared.AgentConfiguration, error) {
+	configJson, err := os.ReadFile(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	config := shared.AgentConfiguration{}
-	if err := json.Unmarshal(configJson, &config); err != nil {
-		return err
+	err = json.Unmarshal(configJson, &config)
+	return &config, err
+}
+
+func (p *baseConfigProcessor) loadFetchedConfig(ctx context.Context, isPending bool) {
+	var filename string
+	if isPending {
+		filename = filepath.Join(p.configDir, fmt.Sprintf("%s.next", string(p.configName)), "config.json")
+	} else {
+		filename = filepath.Join(p.configDir, string(p.configName), "config.json")
 	}
-	p.fetchedConfig = &config
+
+	logger := log.Ctx(ctx).Info()
+	if activeConfig, err := loadFetchedConfig(filename); err != nil {
+		logger := logger.Err(err)
+		if isPending {
+			logger.Msgf("load fetched config - pending: %s", p.configName)
+		} else {
+			logger.Msgf("load fetched config - active: %s", p.configName)
+		}
+	} else {
+		slotKey := fetchConfigActiveSlotKey
+		if isPending {
+			slotKey = fetchConfigPendingSlotKey
+		}
+		p.configCtx = withConfigSlot(p.configCtx, slotKey, configSlot[shared.AgentConfiguration]{
+			config:  activeConfig,
+			exp:     *activeConfig.NextRefreshAfter,
+			version: activeConfig.Version,
+		})
+	}
+}
+func (p *baseConfigProcessor) persistVersionedConfig(ctx context.Context, config *shared.AgentConfiguration, overwriteIfExist bool) error {
+	version := config.Version
+	versionedPathPart := fmt.Sprintf("%s.%s", p.configName, version)
+	versionedDir := filepath.Join(p.versionedConfigDir, versionedPathPart)
+	if _, err := os.Stat(versionedDir); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		if err = os.MkdirAll(versionedDir, 0700); err != nil {
+			return err
+		}
+	}
+	configFilename := filepath.Join(versionedDir, "config.json")
+	var persisted = false
+	if _, err := os.Stat(configFilename); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	} else {
+		persisted = true
+	}
+	if !persisted || overwriteIfExist {
+		configJson, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(configFilename, configJson, 0600)
+	}
 	return nil
 }
 
-func (p *baseConfigProcessor) saveNewFetchedVersion(config *shared.AgentConfiguration) error {
-	version := config.Version
+func (p *baseConfigProcessor) symlinkFetchedConfig(ctx context.Context, version string, isPending bool) error {
 	versionedPathPart := fmt.Sprintf("%s.%s", p.configName, version)
-	vdir := filepath.Join(p.versionedConfigDir, versionedPathPart)
-	if err := os.MkdirAll(vdir, 0700); err != nil && !errors.Is(err, os.ErrExist) {
-		return err
+	var linkName string
+	if isPending {
+		linkName = filepath.Join(p.configDir, fmt.Sprintf("%s.%s", string(p.configName), "next"))
+	} else {
+		linkName = filepath.Join(p.configDir, string(p.configName))
 	}
-	vdirLink := filepath.Join(p.configDir, fmt.Sprintf("%s.next", p.configName))
-	if _, err := os.Lstat(vdirLink); err == nil {
-		if err = os.Remove(vdirLink); err != nil {
-			return err
-		}
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-	linkTargetPath := filepath.Join(".", "versioned", versionedPathPart)
-	log.Info().Msgf("symlink %s -> %s", vdirLink, linkTargetPath)
-	if err := os.Symlink(linkTargetPath, vdirLink); err != nil {
-		return err
-	}
-	configFilename := filepath.Join(vdir, "config.json")
-	configJson, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(configFilename, configJson, 0600)
+	relTarget := filepath.Join(".", "versioned", versionedPathPart)
+	log.Ctx(ctx).Info().Msgf("symlink fetched config: %s -> %s", linkName, relTarget)
+	return os.Symlink(relTarget, linkName)
 }
 
-func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan<- pollConfigMsg, exitCh chan<- error, tickerCh <-chan time.Time,
-	onTicker func() *pollConfigMsg) {
+func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan<- pollConfigMsg,
+	exitCh chan<- error,
+	onTimer func() *pollConfigMsg) func() {
+	p.timer = time.NewTimer(0)
 	p.isActive = true
 	for p.isActive {
 		select {
 		case <-p.pollShutdownCh:
-			goto pollEnd
+			p.isActive = false
 		case <-c.Done():
 			exitCh <- fmt.Errorf("%w:processor:%s:%w", ErrForcedShutdown, p.ConfigName(), c.Err())
-			return
-		case <-tickerCh:
+			return func() {}
+		case <-p.timer.C:
 			if !p.processPending && p.isActive {
 				p.processPending = true
-				msg := onTicker()
+				msg := onTimer()
 				if msg != nil {
 					scheduleToUpdate <- *msg
 				}
 			}
 		}
 	}
-pollEnd:
-	exitCh <- fmt.Errorf("%w:processor:%s:%w", ErrGracefullyShutdown, p.ConfigName(), c.Err())
+	return func() {
+		exitCh <- fmt.Errorf("%w:processor:%s:%w", ErrGracefullyShutdown, p.ConfigName(), c.Err())
+	}
 }
 
 func (p *baseConfigProcessor) baseShutdown() func() {
 	p.isActive = false
+	p.timer.Stop()
 	return func() {
 		p.pollShutdownCh <- struct{}{}
 	}
 }
 
-func (p *baseConfigProcessor) baseMarkProcessDone() func() {
+func (p *baseConfigProcessor) Shutdown() {
+	cb := p.baseShutdown()
+	cb()
+}
+
+func (p *baseConfigProcessor) baseMarkProcessDone() func(time.Duration) {
 	p.processPending = true
-	return func() {
+	p.timer.Stop()
+	return func(d time.Duration) {
+		log.Info().Msgf("%s: next refresh after: %s", p.configName, d)
 		p.processPending = false
+		p.timer.Reset(d)
 	}
 }

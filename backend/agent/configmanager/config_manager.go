@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -110,8 +111,12 @@ func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) 
 		return nil, err
 	} else if agentClient, err := agentclient.NewClientWithCreds(apiBasePath, serviceIdentity.TokenCredential(), []string{apiScope}, serviceIdentity.TenantID()); err != nil {
 		return nil, err
+	} else if azKeyVaultUrl, err := common.GetNonEmptyEnv("AZURE_KEYVAULT_RESOURCEENDPOINT"); err != nil {
+		return nil, err
+	} else if azSecretsClient, err := azsecrets.NewClient(azKeyVaultUrl, serviceIdentity.TokenCredential(), nil); err != nil {
+		return nil, err
 	} else {
-		m.sharedConfig.init(buildID, agentClient, configDir)
+		m.sharedConfig.init(buildID, agentClient, azSecretsClient, configDir)
 	}
 
 	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
