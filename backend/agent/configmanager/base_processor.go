@@ -2,7 +2,6 @@ package cm
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -12,11 +11,10 @@ import (
 type baseConfigProcessor struct {
 	*sharedConfig
 	configName     shared.AgentConfigName
-	isActive       bool
-	pollShutdownCh chan struct{}
 	processPending bool
 	timer          *time.Timer
 	attemptedLoad  bool
+	shutdownCtrl   *ShutdownController
 }
 
 // Name implements ConfigProcessor.
@@ -25,19 +23,19 @@ func (p *baseConfigProcessor) ConfigName() shared.AgentConfigName {
 }
 
 func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan<- pollConfigMsg,
-	exitCh chan<- error,
-	onTimer func() *pollConfigMsg) func() {
+	onTimer func() *pollConfigMsg,
+	beforeShutdown func()) {
+	shutdownCh, shutdownDefer := p.shutdownCtrl.Subsribe()
+	defer shutdownDefer()
 	p.timer = time.NewTimer(0)
-	p.isActive = true
-	for p.isActive {
+	for p.shutdownCtrl.IsActive() {
 		select {
-		case <-p.pollShutdownCh:
-			p.isActive = false
+		case <-shutdownCh:
 		case <-c.Done():
-			exitCh <- fmt.Errorf("%w:processor:%s:%w", ErrForcedShutdown, p.ConfigName(), c.Err())
-			return func() {}
+			log.Error().Err(c.Err()).Msgf("processor:%s forced shutdown", p.ConfigName())
+			return
 		case <-p.timer.C:
-			if !p.processPending && p.isActive {
+			if !p.processPending && p.shutdownCtrl.IsActive() {
 				p.processPending = true
 				msg := onTimer()
 				if msg != nil {
@@ -46,29 +44,14 @@ func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan
 			}
 		}
 	}
-	return func() {
-		exitCh <- fmt.Errorf("%w:processor:%s:%w", ErrGracefullyShutdown, p.ConfigName(), c.Err())
-	}
+	beforeShutdown()
 }
 
-func (p *baseConfigProcessor) baseShutdown() func() {
-	p.isActive = false
-	p.timer.Stop()
-	return func() {
-		p.pollShutdownCh <- struct{}{}
-	}
-}
-
-func (p *baseConfigProcessor) Shutdown() {
-	cb := p.baseShutdown()
-	cb()
-}
-
-func (p *baseConfigProcessor) baseMarkProcessDone() func(time.Duration) {
+func (p *baseConfigProcessor) baseMarkProcessDone() func(time.Duration, string) {
 	p.processPending = true
 	p.timer.Stop()
-	return func(d time.Duration) {
-		log.Info().Msgf("%s: next refresh after: %s", p.configName, d)
+	return func(d time.Duration, taskName string) {
+		log.Info().Msgf("%s:%s next refresh after: %s", p.configName, taskName, d)
 		p.processPending = false
 		p.timer.Reset(d)
 	}

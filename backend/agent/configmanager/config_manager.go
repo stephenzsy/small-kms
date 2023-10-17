@@ -2,12 +2,17 @@ package cm
 
 import (
 	"context"
+	"crypto/sha512"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"os"
 	"os/signal"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -23,8 +28,7 @@ var (
 type ConfigProcessor interface {
 	ConfigName() shared.AgentConfigName
 	Version() string
-	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg, exitCh chan<- error)
-	Shutdown()
+	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg)
 	Process(ctx context.Context, task string) error
 	MarkProcessDone(taskName string, err error)
 }
@@ -37,31 +41,25 @@ type pollConfigMsg struct {
 
 type ConfigManager struct {
 	common.CommonServer
-	isActive     bool
-	processors   map[shared.AgentConfigName]ConfigProcessor
-	sharedConfig sharedConfig
+	processors    map[shared.AgentConfigName]ConfigProcessor
+	sharedConfig  sharedConfig
+	serverReadyCh chan ActiveServerReadyConfig
+	managedServer *echo.Echo
+	shutdownCtrl  *ShutdownController
 }
 
-func (m *ConfigManager) Shutdown() {
-	m.isActive = false
-	for _, v := range m.processors {
-		v.Shutdown()
-	}
-}
-
-func (m *ConfigManager) Start(c context.Context, cmExitCh chan<- error) {
+func (m *ConfigManager) Start(c context.Context) {
+	shutdownCh, shutdownDefer := m.shutdownCtrl.Subsribe()
+	defer shutdownDefer()
 	pollUpdate := make(chan pollConfigMsg, 1)
-	exitCh := make(chan error, len(m.processors))
-	activeCount := 0
 	for _, v := range m.processors {
-		go v.Start(c, pollUpdate, exitCh)
-		activeCount++
+		go v.Start(c, pollUpdate)
 	}
-	m.isActive = true
-	for m.isActive {
+	for m.shutdownCtrl.IsActive() {
 		select {
+		case <-shutdownCh:
 		case <-c.Done():
-			cmExitCh <- ErrForcedShutdown
+			log.Error().Err(c.Err()).Msg("config manager forced shutdown")
 			return
 		case msg := <-pollUpdate:
 			p := msg.processor
@@ -70,35 +68,14 @@ func (m *ConfigManager) Start(c context.Context, cmExitCh chan<- error) {
 				log.Error().Err(err).Msgf("config processor error: %s", p.ConfigName())
 			}
 			p.MarkProcessDone(msg.task, err)
-		case err := <-exitCh:
-			activeCount--
-			if err != nil {
-				log.Error().Err(err).Msg("config processor exited")
-			} else {
-				log.Info().Err(err).Msg("config processor exited")
-			}
 		}
 	}
-	for activeCount > 0 {
-		select {
-		case <-c.Done():
-			cmExitCh <- ErrForcedShutdown
-			return
-		case err := <-exitCh:
-			activeCount--
-			if err != nil {
-				log.Error().Err(err).Msg("config processor exited")
-			} else {
-				log.Info().Err(err).Msg("config processor exited")
-			}
-		}
-	}
-	cmExitCh <- ErrGracefullyShutdown
 }
 
 func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) {
 	m := ConfigManager{
-		processors: make(map[shared.AgentConfigName]ConfigProcessor, 1),
+		processors:   make(map[shared.AgentConfigName]ConfigProcessor, 2),
+		shutdownCtrl: NewShutdownController(),
 	}
 	var err error
 	if m.CommonServer, err = common.NewCommonConfig(); err != nil {
@@ -119,25 +96,83 @@ func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) 
 		m.sharedConfig.init(buildID, agentClient, azSecretsClient, configDir)
 	}
 
-	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
-	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig)
+	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig, m.shutdownCtrl)
+	m.serverReadyCh = make(chan ActiveServerReadyConfig, 1)
+	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig, m.serverReadyCh, m.shutdownCtrl)
 	return &m, nil
+}
+
+func (m *ConfigManager) Manage(e *echo.Echo) {
+	m.managedServer = e
+}
+
+func (m *ConfigManager) startManage(ctx context.Context) {
+	shutDownCh, shutdownDefer := m.shutdownCtrl.Subsribe()
+	defer shutdownDefer()
+	logger := log.Ctx(ctx)
+	hasStarted := false
+	e := m.managedServer
+	for m.shutdownCtrl.IsActive() {
+		select {
+		case <-shutDownCh:
+		case msg := <-m.serverReadyCh:
+			if hasStarted {
+				err := e.Shutdown(ctx)
+				if err != nil {
+					logger.Error().Err(err).Msg("failed to shutdown server")
+				}
+				hasStarted = false
+			}
+			tlsConfig := new(tls.Config)
+			certContent, err := os.ReadFile(msg.ServerCertificateFile)
+			if err != nil {
+				logger.Error().Err(err).Msg("failed to read server certificate file")
+				continue
+			}
+			tlsCert, err := tls.X509KeyPair(certContent, certContent)
+			if err != nil {
+				logger.Error().Err(err).Msg("failed to parse server certificate file")
+				continue
+			}
+			tlsConfig.Certificates = []tls.Certificate{tlsCert}
+			tlsConfig.ClientCAs = x509.NewCertPool()
+			_, rest := pem.Decode(certContent)
+			_, rest = pem.Decode(rest)
+			tlsConfig.ClientCAs.AppendCertsFromPEM(rest)
+			tlsConfig.ClientAuth = tls.RequireAnyClientCert
+			allowedCertFingerprints := make(map[[sha512.Size384]byte]bool, len(msg.AuthorizedClientCertificateFingerprintsSHA384))
+			for _, v := range msg.AuthorizedClientCertificateFingerprintsSHA384 {
+				allowedCertFingerprints[v] = true
+			}
+			tlsConfig.VerifyPeerCertificate = func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+				for _, rawCert := range rawCerts {
+					if allowedCertFingerprints[sha512.Sum384(rawCert)] {
+						return nil
+					}
+				}
+				return &tls.CertificateVerificationError{}
+			}
+			e.TLSServer.TLSConfig = tlsConfig
+			hasStarted = true
+			log.Info().Err(e.StartServer(e.TLSServer)).Msg("server exited")
+		}
+	}
 }
 
 func StartConfigManagerWithGracefulShutdown(c context.Context, m *ConfigManager) {
 	c = log.Logger.WithContext(c)
 	c, cancel := context.WithCancel(c)
 	defer cancel()
-	exitErrCh := make(chan error, 1)
-
-	go m.Start(c, exitErrCh)
+	go m.startManage(c)
+	go m.Start(c)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 	toCtx, toCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer toCancel()
-	m.Shutdown()
+	m.shutdownCtrl.Shutdown()
+	m.managedServer.Shutdown(toCtx)
 	select {
 	case <-toCtx.Done():
 		cancel()
@@ -145,7 +180,7 @@ func StartConfigManagerWithGracefulShutdown(c context.Context, m *ConfigManager)
 	case <-quit:
 		cancel()
 		log.Ctx(c).Fatal().Msg("forced shutdown")
-	case err := <-exitErrCh:
-		log.Ctx(c).Info().Err(err).Msg("gracefully shutdown")
+	case <-m.shutdownCtrl.C:
+		log.Ctx(c).Info().Msg("gracefully shutdown")
 	}
 }

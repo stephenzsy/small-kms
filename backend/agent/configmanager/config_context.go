@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -106,11 +107,15 @@ func (s *configSlot[TR]) persistSymlink(configDir string, configName shared.Agen
 	linkName := filepath.Join(configDir, fmt.Sprintf("%s%s", configName, linkSuffix))
 	// remove symlink
 	if utils.SymlinkExists(linkName) {
-		return os.Remove(linkName)
+		log.Debug().Msgf("remove symlink: %s, %s", linkName, s.version)
+		if err := os.Remove(linkName); err != nil {
+			return err
+		}
 	}
 	if s.version != "" {
 		// create symlink
 		versionedRelDir := filepath.Join(".", "versioned", fmt.Sprintf("%s.%s", configName, s.version))
+		log.Debug().Msgf("create symlink: %s -> %s", linkName, versionedRelDir)
 		return os.Symlink(versionedRelDir, linkName)
 	}
 	return nil
@@ -131,8 +136,7 @@ func (c *ConfigCtx[TR]) persistConfig(
 
 func (c *ConfigCtx[TR]) persistSymlinks(
 	configDir string,
-	configName shared.AgentConfigName,
-	overwriteIfExist bool) error {
+	configName shared.AgentConfigName) error {
 	if err := c.activeSlot.persistSymlink(configDir, configName, activeSymlinkSuffix); err != nil {
 		return err
 	}
@@ -161,7 +165,20 @@ func (c *ConfigCtx[TR]) setActiveConfig(config TR, basePendingSlot *configSlot[T
 }
 
 func (c *ConfigCtx[TR]) getWaitForNextRefresh() time.Duration {
-	duration := min(time.Until(c.pendingSlot.exp), time.Until(c.activeSlot.exp))
+	hasSetDuration := false
+	var duration time.Duration
+	if c.pendingSlot.hasValue() {
+		duration = time.Until(c.pendingSlot.exp)
+		hasSetDuration = true
+	}
+	if c.activeSlot.hasValue() {
+		if !hasSetDuration {
+			duration = time.Until(c.activeSlot.exp)
+			hasSetDuration = true
+		} else if d := time.Until(c.activeSlot.exp); d < duration {
+			duration = d
+		}
+	}
 	if duration < minRemoteDuration {
 		duration = minRemoteDuration
 	}

@@ -20,8 +20,11 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
+	"github.com/stephenzsy/small-kms/backend/agent/agentserver"
 	cm "github.com/stephenzsy/small-kms/backend/agent/configmanager"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
@@ -187,10 +190,22 @@ func main() {
 				return
 			}
 		case "server":
+			e := echo.New()
+			e.Use(middleware.Logger())
+			e.Use(middleware.Recover())
+			e.TLSServer.Addr = args[1]
 			configManager, err := cm.NewConfigManager(BuildID, configDir)
 			if err != nil {
 				log.Panicf("Failed to create config manager: %v\n", err)
 			}
+			s, err := agentserver.NewServer()
+			if err != nil {
+				log.Panicf("Failed to create server: %v\n", err)
+			}
+			agentserver.RegisterHandlers(e, s)
+
+			configManager.Manage(e)
+
 			cm.StartConfigManagerWithGracefulShutdown(context.Background(), configManager)
 			//bootstrapServer(args[1], *skipTlsPtr)
 			return

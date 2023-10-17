@@ -19,7 +19,8 @@ import (
 
 type activeServerProcessor struct {
 	baseConfigProcessor
-	configCtx ConfigCtx[ActiveServerReadyConfig]
+	configCtx     ConfigCtx[ActiveServerReadyConfig]
+	serverReadyCh chan<- ActiveServerReadyConfig
 }
 
 // Version implements ConfigProcessor.
@@ -33,8 +34,8 @@ func (*activeServerProcessor) Name() shared.AgentConfigName {
 }
 
 type ActiveServerReadyConfig struct {
-	ServerCertificateFile                         string   `json:"serverCertificateFile"`
-	AuthorizedClientCertificateFingerprintsSHA384 [][]byte `json:"authorizedClientCertificateFingerprintsSHA384"`
+	ServerCertificateFile                         string                 `json:"serverCertificateFile"`
+	AuthorizedClientCertificateFingerprintsSHA384 [][sha512.Size384]byte `json:"authorizedClientCertificateFingerprintsSHA384"`
 }
 
 func (p *activeServerProcessor) Process(ctx context.Context, task string) error {
@@ -117,7 +118,7 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 			logger.Error().Err(err).Msgf("failed to persist config: %s", p.configName)
 		}
 		// not critical to block next step
-		if err := p.configCtx.persistSymlinks(p.configDir, p.configName, true); err != nil {
+		if err := p.configCtx.persistSymlinks(p.configDir, p.configName); err != nil {
 			logger.Error().Err(err).Msgf("failed to persist symlinks: %s", p.configName)
 		}
 		return nil
@@ -126,14 +127,13 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 	}
 }
 
-func getCertFingprintSHA384FromFile(filename string) ([]byte, error) {
+func getCertFingprintSHA384FromFile(filename string) ([sha512.Size384]byte, error) {
 	certBytes, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return [sha512.Size384]byte{}, err
 	}
 	block, _ := pem.Decode(certBytes)
-	hash := sha512.Sum384(block.Bytes)
-	return hash[:], nil
+	return sha512.Sum384(block.Bytes), nil
 }
 
 // returns bytes of the first (chain) certificate in the chain
@@ -227,8 +227,9 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 	return returnFilename, nil
 }
 
-func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, exitCh chan<- error) {
-	finally := p.baseStart(c, scheduleToUpdate, exitCh, func() *pollConfigMsg {
+func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg) {
+
+	p.baseStart(c, scheduleToUpdate, func() *pollConfigMsg {
 		if !p.attemptedLoad {
 			p.attemptedLoad = true
 			return &pollConfigMsg{
@@ -255,13 +256,16 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 				processor: p,
 			}
 		}
-
+		aslot := &p.configCtx.activeSlot
+		if aslot.hasValue() {
+			p.serverReadyCh <- aslot.configActive
+		}
 		return nil
+	}, func() {
+		// persist config before shutdown
+		p.configCtx.persistConfig(p.configDir, p.configName, true)
+		p.configCtx.persistSymlinks(p.configDir, p.configName)
 	})
-	// persist config before shutdown
-	p.configCtx.persistConfig(p.configDir, p.configName, true)
-	p.configCtx.persistSymlinks(p.configDir, p.configName, true)
-	finally()
 }
 
 var _ ConfigProcessor = (*activeServerProcessor)(nil)
@@ -271,40 +275,36 @@ const minRemoteDuration = 5 * time.Minute
 func (p *activeServerProcessor) MarkProcessDone(taskName string, err error) {
 	resetTimer := p.baseMarkProcessDone()
 
-	aslot := &p.configCtx.activeSlot
-
 	switch taskName {
 	case TaskNameLoad:
-		if !aslot.hasValue() || aslot.exp.Before(time.Now()) {
-			// no active config, proceed next soon
-			resetTimer(3 * time.Second)
-			return
-		}
+		resetTimer(3*time.Second, taskName)
+		return
 	case TaskNameFetch:
 		if err == nil {
 			// fetch succeeded, proceed if has pending slot
 			if p.configCtx.pendingSlot.hasValue() {
-				resetTimer(3 * time.Second)
+				resetTimer(3*time.Second, taskName)
 				return
 			}
 		}
 	case TaskNameActivate:
 		if err == nil {
 			// activate succeeded, proceed with execute
-			resetTimer(3 * time.Second)
+			resetTimer(3*time.Second, taskName)
 			return
 		}
 	}
 
-	resetTimer(p.configCtx.getWaitForNextRefresh())
+	resetTimer(p.configCtx.getWaitForNextRefresh(), taskName)
 }
 
-func newActiveServerProcessor(sc *sharedConfig) *activeServerProcessor {
+func newActiveServerProcessor(sc *sharedConfig, serverReadyCh chan<- ActiveServerReadyConfig, shutdownCtrl *ShutdownController) *activeServerProcessor {
 	return &activeServerProcessor{
 		baseConfigProcessor: baseConfigProcessor{
-			sharedConfig:   sc,
-			configName:     shared.AgentConfigNameActiveServer,
-			pollShutdownCh: make(chan struct{}, 1),
+			sharedConfig: sc,
+			configName:   shared.AgentConfigNameActiveServer,
+			shutdownCtrl: shutdownCtrl,
 		},
+		serverReadyCh: serverReadyCh,
 	}
 }

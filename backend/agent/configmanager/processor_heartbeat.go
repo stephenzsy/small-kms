@@ -31,28 +31,28 @@ func (p *heartbeatConfigProcessor) Process(ctx context.Context, _ string) error 
 	return nil
 }
 
-func (p *heartbeatConfigProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, exitCh chan<- error) {
-	p.baseStart(c, scheduleToUpdate, exitCh, func() *pollConfigMsg {
+func (p *heartbeatConfigProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg) {
+	p.baseStart(c, scheduleToUpdate, func() *pollConfigMsg {
 		return &pollConfigMsg{
 			name:      shared.AgentConfigNameHeartbeat,
 			processor: p,
 		}
-	})()
+	}, func() {})
 }
 
 var _ ConfigProcessor = (*heartbeatConfigProcessor)(nil)
 
 func (p *heartbeatConfigProcessor) MarkProcessDone(string, error) {
 	resetTimer := p.baseMarkProcessDone()
-	resetTimer(5 * time.Minute)
+	resetTimer(5*time.Minute, "heartbeat")
 }
 
-func newHeartbeatConfigProcessor(sc *sharedConfig) *heartbeatConfigProcessor {
+func newHeartbeatConfigProcessor(sc *sharedConfig, shutdownCtrl *ShutdownController) *heartbeatConfigProcessor {
 	return &heartbeatConfigProcessor{
 		baseConfigProcessor: baseConfigProcessor{
-			sharedConfig:   sc,
-			configName:     shared.AgentConfigNameHeartbeat,
-			pollShutdownCh: make(chan struct{}, 1),
+			sharedConfig: sc,
+			configName:   shared.AgentConfigNameHeartbeat,
+			shutdownCtrl: shutdownCtrl,
 		},
 	}
 }
