@@ -1,9 +1,14 @@
 import { useMemoizedFn, useRequest, useSet } from "ahooks";
+import { Card } from "antd";
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "../components/Button";
-import { Card, CardSection, CardTitle } from "../components/Card";
+import {
+  Card as CCard,
+  CardSection as CCardSection,
+  CardTitle as CCardTitle,
+} from "../components/Card";
 import { WellknownId, uuidNil } from "../constants";
 import {
   AdminApi,
@@ -19,14 +24,10 @@ import {
   useFixedValueState,
   useValueState,
 } from "../utils/formStateUtils";
-import {
-  useAuthedClient,
-  useAuthedClient as useAuthedClientOld,
-} from "../utils/useCertsApi";
-import { CertificateUsageSelector } from "./CertificateUsageSelector";
+import { useAuthedClient } from "../utils/useCertsApi";
+import { CertTemplateForm } from "./CertTemplateForm";
 import { InputField } from "./InputField";
 import { RefTableColumn, RefsTable } from "./RefsTable";
-import { BaseSelector } from "./Selectors";
 
 export interface CertificateTemplateFormState {
   issuerNamespaceId: ValueStateMayBeFixed<string>;
@@ -262,11 +263,7 @@ function SANList({
 }
 
 export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
-  const {
-    validityInMonths,
-    setValidityInMonths,
-    certUsages,
-  } = props;
+  const { validityInMonths, setValidityInMonths, certUsages } = props;
   const certUsageInputOnChange = useMemoizedFn<
     (e: React.ChangeEvent<HTMLInputElement>) => void
   >((e) => {
@@ -395,16 +392,16 @@ export default function CertificateTemplatePage() {
 
   return (
     <>
-      <Card>
-        <CardTitle>Certificate template</CardTitle>
-        <CardSection>
+      <CCard>
+        <CCardTitle>Certificate template</CCardTitle>
+        <CCardSection>
           <pre>
             {namespaceKind}:{namespaceId}/cert-template:{templateId}
           </pre>
-        </CardSection>
-      </Card>
-      <Card>
-        <CardSection>
+        </CCardSection>
+      </CCard>
+      <CCard>
+        <CCardSection>
           <RefsTable
             items={issuedCertificates}
             title="Issued certificates"
@@ -434,8 +431,8 @@ export default function CertificateTemplatePage() {
               </Link>
             )}
           />
-        </CardSection>
-      </Card>
+        </CCardSection>
+      </CCard>
       <div className="rounded-lg bg-white shadow p-6 space-y-6">
         <Button variant="primary" onClick={issueCert}>
           Request certificate
@@ -451,6 +448,13 @@ export default function CertificateTemplatePage() {
           <div>Not found</div>
         )}
       </div>
+      <Card title="Certificate template">
+        <CertTemplateForm
+          namespaceId={namespaceId}
+          namespaceKind={namespaceKind}
+          templateId={templateId}
+        />
+      </Card>
       <form
         className="divide-y-2 divide-neutral-500 overflow-hidden rounded-lg bg-white shadow p-6 space-y-6"
         onSubmit={onSubmit}
@@ -583,16 +587,16 @@ function KeyvaultRoleAssignmentsCard({
   );
 
   return (
-    <Card>
-      <CardTitle>Azure role assignments</CardTitle>
-      <CardSection>
+    <CCard>
+      <CCardTitle>Azure role assignments</CCardTitle>
+      <CCardSection>
         <div>
           <Button variant="primary" onClick={getRoleAssignments}>
             Get current assignments
           </Button>
         </div>
-      </CardSection>
-      <CardSection>
+      </CCardSection>
+      <CCardSection>
         <RefsTable
           items={transformedRoleAssignments}
           title="Role assignments"
@@ -622,7 +626,7 @@ function KeyvaultRoleAssignmentsCard({
             }
           }}
         />
-      </CardSection>
-    </Card>
+      </CCardSection>
+    </CCard>
   );
 }
