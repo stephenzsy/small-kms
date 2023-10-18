@@ -11,14 +11,16 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/auth"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
@@ -26,7 +28,7 @@ var BuildID = "dev"
 
 func main() {
 	if len(os.Args) < 3 {
-		log.Println("Usage: smallkms <role> <listenerAddress>")
+		log.Info().Msg("Usage: smallkms <role> <listenerAddress>")
 		os.Exit(1)
 	}
 
@@ -40,7 +42,7 @@ func main() {
 	role := os.Args[1]
 	listenerAddress := os.Args[2]
 	if len(listenerAddress) == 0 {
-		log.Println("listernerAddress is required")
+		log.Error().Msg("listernerAddress is required")
 		os.Exit(1)
 	}
 
@@ -53,7 +55,8 @@ func main() {
 		if os.Getenv("ENABLE_CORS") == "true" {
 			e.Use(middleware.CORS())
 		}
-		server := api.NewServer(context.Background(), BuildID)
+		ctx := context.Background()
+		server := api.NewServer(ctx, BuildID)
 		e.Use(server.GetPreAuthMiddleware())
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 			e.Use(auth.UnverifiedAADJwtAuth)
@@ -62,7 +65,12 @@ func main() {
 		}
 		e.Use(server.GetAfterAuthMiddleware())
 		models.RegisterHandlers(e, server)
-		e.Logger.Fatal(e.Start(listenerAddress))
+		common.StartEchoWithGracefulShutdown(ctx, e, func(ee *echo.Echo, shutdownNotifier common.LeafShutdownNotifier) {
+			defer func() {
+				shutdownNotifier.MarkShutdownComplete()
+			}()
+			log.Info().Err(ee.Start(listenerAddress)).Msg("echo server stopped")
+		}, time.Minute)
 	}
 
 }

@@ -4,18 +4,38 @@
 package agentserver
 
 import (
-	"github.com/docker/docker/api/types"
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
-// DockerInfo defines model for DockerInfo.
-type DockerInfo = types.Info
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// AgentConfigNameParameter defines model for AgentConfigNameParameter.
+type AgentConfigNameParameter = externalRef0.AgentConfigName
+
+// CertificateIdPathParameter defines model for CertificateIdPathParameter.
+type CertificateIdPathParameter = externalRef0.Identifier
+
+// CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
+type CertificateTemplateIdentifierParameter = externalRef0.Identifier
+
+// NamespaceIdParameter defines model for NamespaceIdParameter.
+type NamespaceIdParameter = externalRef0.Identifier
+
+// NamespaceKindParameter defines model for NamespaceKindParameter.
+type NamespaceKindParameter = externalRef0.NamespaceKind
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
-	// (GET /v1/docker/info)
-	GetDockerInfo(ctx echo.Context) error
+	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info)
+	GetDockerInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -26,9 +46,18 @@ type ServerInterfaceWrapper struct {
 // GetDockerInfo converts echo context to params.
 func (w *ServerInterfaceWrapper) GetDockerInfo(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetDockerInfo(ctx)
+	err = w.Handler.GetDockerInfo(ctx, namespaceId)
 	return err
 }
 
@@ -60,6 +89,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/docker/info", wrapper.GetDockerInfo)
+	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
 
 }

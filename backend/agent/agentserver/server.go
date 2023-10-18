@@ -6,6 +6,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type server struct {
@@ -14,7 +15,7 @@ type server struct {
 }
 
 // GetDockerInfo implements ServerInterface.
-func (s *server) GetDockerInfo(ctx echo.Context) error {
+func (s *server) GetDockerInfo(ctx echo.Context, _ shared.Identifier) error {
 	info, err := s.dockerClient.Info(ctx.Request().Context())
 	if err != nil {
 		return err

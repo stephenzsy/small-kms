@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -14,7 +15,6 @@ type baseConfigProcessor struct {
 	processPending bool
 	timer          *time.Timer
 	attemptedLoad  bool
-	shutdownCtrl   *ShutdownController
 }
 
 // Name implements ConfigProcessor.
@@ -24,18 +24,19 @@ func (p *baseConfigProcessor) ConfigName() shared.AgentConfigName {
 
 func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan<- pollConfigMsg,
 	onTimer func() *pollConfigMsg,
-	beforeShutdown func()) {
-	shutdownCh, shutdownDefer := p.shutdownCtrl.Subsribe()
-	defer shutdownDefer()
+	beforeShutdown func(),
+	shutdownNotifier common.LeafShutdownNotifier) {
 	p.timer = time.NewTimer(0)
-	for p.shutdownCtrl.IsActive() {
+	isActive := true
+	for isActive {
 		select {
-		case <-shutdownCh:
+		case <-shutdownNotifier.Quit():
+			isActive = false
 		case <-c.Done():
 			log.Error().Err(c.Err()).Msgf("processor:%s forced shutdown", p.ConfigName())
 			return
 		case <-p.timer.C:
-			if !p.processPending && p.shutdownCtrl.IsActive() {
+			if !p.processPending && isActive {
 				p.processPending = true
 				msg := onTimer()
 				if msg != nil {
@@ -45,6 +46,8 @@ func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan
 		}
 	}
 	beforeShutdown()
+	p.timer.Stop()
+	shutdownNotifier.MarkShutdownComplete()
 }
 
 func (p *baseConfigProcessor) baseMarkProcessDone() func(time.Duration, string) {

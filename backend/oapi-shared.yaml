@@ -64,6 +64,10 @@ components:
       properties:
         name:
           $ref: "#/components/schemas/AgentConfigName"
+        endpointUrl:
+          description: >
+            (Admin server only property to call agent)
+          type: string
         serverCertificateTemplateId:
           $ref: "#/components/schemas/Identifier"
         authorizedCertificateTemplateId:
@@ -157,6 +161,11 @@ components:
         - CertUsageCARoot
         - CertUsageServerAuth
         - CertUsageClientAuth
+    DockerInfo:
+      type: object
+      x-go-type: types.Info
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"        
     Identifier:
       type: string
       x-go-type: identifierImpl

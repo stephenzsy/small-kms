@@ -67,6 +67,23 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
+  /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - agent
+        - admin
+        - agentproxyclient
+      description: Get docker info
+      operationId: GetDockerInfo
+      responses:
+        200:
+          description: DockerInfo
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
   /v3/profiles/{namespaceKind}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -668,7 +685,7 @@ components:
       name: "includeCertificate"
       schema:
         type: boolean
-      required: false     
+      required: false
   responses:
     AgentConfigurationResponse:
       description: Agent autoconfig response

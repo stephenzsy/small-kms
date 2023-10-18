@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -31,13 +32,13 @@ func (p *heartbeatConfigProcessor) Process(ctx context.Context, _ string) error 
 	return nil
 }
 
-func (p *heartbeatConfigProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg) {
+func (p *heartbeatConfigProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, shutdownNotifier common.LeafShutdownNotifier) {
 	p.baseStart(c, scheduleToUpdate, func() *pollConfigMsg {
 		return &pollConfigMsg{
 			name:      shared.AgentConfigNameHeartbeat,
 			processor: p,
 		}
-	}, func() {})
+	}, func() {}, shutdownNotifier)
 }
 
 var _ ConfigProcessor = (*heartbeatConfigProcessor)(nil)
@@ -47,12 +48,11 @@ func (p *heartbeatConfigProcessor) MarkProcessDone(string, error) {
 	resetTimer(5*time.Minute, "heartbeat")
 }
 
-func newHeartbeatConfigProcessor(sc *sharedConfig, shutdownCtrl *ShutdownController) *heartbeatConfigProcessor {
+func newHeartbeatConfigProcessor(sc *sharedConfig) *heartbeatConfigProcessor {
 	return &heartbeatConfigProcessor{
 		baseConfigProcessor: baseConfigProcessor{
 			sharedConfig: sc,
 			configName:   shared.AgentConfigNameHeartbeat,
-			shutdownCtrl: shutdownCtrl,
 		},
 	}
 }

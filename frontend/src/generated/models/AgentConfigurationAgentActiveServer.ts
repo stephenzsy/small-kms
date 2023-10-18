@@ -33,6 +33,13 @@ export interface AgentConfigurationAgentActiveServer {
      */
     name: AgentConfigName;
     /**
+     * (Admin server only property to call agent)
+
+     * @type {string}
+     * @memberof AgentConfigurationAgentActiveServer
+     */
+    endpointUrl?: string;
+    /**
      * 
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
@@ -79,6 +86,7 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
     return {
         
         'name': AgentConfigNameFromJSON(json['name']),
+        'endpointUrl': !exists(json, 'endpointUrl') ? undefined : json['endpointUrl'],
         'serverCertificateTemplateId': !exists(json, 'serverCertificateTemplateId') ? undefined : json['serverCertificateTemplateId'],
         'authorizedCertificateTemplateId': !exists(json, 'authorizedCertificateTemplateId') ? undefined : json['authorizedCertificateTemplateId'],
         'serverCertificateId': !exists(json, 'serverCertificateId') ? undefined : json['serverCertificateId'],
@@ -96,6 +104,7 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
     return {
         
         'name': AgentConfigNameToJSON(value.name),
+        'endpointUrl': value.endpointUrl,
         'serverCertificateTemplateId': value.serverCertificateTemplateId,
         'authorizedCertificateTemplateId': value.authorizedCertificateTemplateId,
         'serverCertificateId': value.serverCertificateId,

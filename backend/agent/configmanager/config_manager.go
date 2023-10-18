@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
@@ -28,7 +27,7 @@ var (
 type ConfigProcessor interface {
 	ConfigName() shared.AgentConfigName
 	Version() string
-	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg)
+	Start(ctx context.Context, pollUpdate chan<- pollConfigMsg, shutdownNotifier common.LeafShutdownNotifier)
 	Process(ctx context.Context, task string) error
 	MarkProcessDone(taskName string, err error)
 }
@@ -45,19 +44,23 @@ type ConfigManager struct {
 	sharedConfig  sharedConfig
 	serverReadyCh chan ActiveServerReadyConfig
 	managedServer *echo.Echo
-	shutdownCtrl  *ShutdownController
 }
 
-func (m *ConfigManager) Start(c context.Context) {
-	shutdownCh, shutdownDefer := m.shutdownCtrl.Subsribe()
-	defer shutdownDefer()
+func (m *ConfigManager) Start(c context.Context, shutdownNotifier common.LeafShutdownNotifier) {
+	isActive := true
 	pollUpdate := make(chan pollConfigMsg, 1)
+	shutdownNotifiers := make([]common.LeafShutdownNotifier, 0, len(m.processors))
 	for _, v := range m.processors {
-		go v.Start(c, pollUpdate)
+		notifier := common.NewLeafShutdownNotifier()
+		shutdownNotifiers = append(shutdownNotifiers, notifier)
+		go v.Start(c, pollUpdate, notifier)
 	}
-	for m.shutdownCtrl.IsActive() {
+	mergedNotifier := common.MergeShutdownNotifier(shutdownNotifiers...)
+	for isActive {
 		select {
-		case <-shutdownCh:
+		case sig := <-shutdownNotifier.Quit():
+			isActive = false
+			mergedNotifier.RelaySingal(sig)
 		case <-c.Done():
 			log.Error().Err(c.Err()).Msg("config manager forced shutdown")
 			return
@@ -70,12 +73,12 @@ func (m *ConfigManager) Start(c context.Context) {
 			p.MarkProcessDone(msg.task, err)
 		}
 	}
+	shutdownNotifier.RelayComplete(mergedNotifier)
 }
 
 func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) {
 	m := ConfigManager{
-		processors:   make(map[shared.AgentConfigName]ConfigProcessor, 2),
-		shutdownCtrl: NewShutdownController(),
+		processors: make(map[shared.AgentConfigName]ConfigProcessor, 2),
 	}
 	var err error
 	if m.CommonServer, err = common.NewCommonConfig(); err != nil {
@@ -96,9 +99,9 @@ func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) 
 		m.sharedConfig.init(buildID, agentClient, azSecretsClient, configDir)
 	}
 
-	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig, m.shutdownCtrl)
+	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
 	m.serverReadyCh = make(chan ActiveServerReadyConfig, 1)
-	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig, m.serverReadyCh, m.shutdownCtrl)
+	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig, m.serverReadyCh)
 	return &m, nil
 }
 
@@ -106,15 +109,16 @@ func (m *ConfigManager) Manage(e *echo.Echo) {
 	m.managedServer = e
 }
 
-func (m *ConfigManager) startManage(ctx context.Context) {
-	shutDownCh, shutdownDefer := m.shutdownCtrl.Subsribe()
-	defer shutdownDefer()
+func (m *ConfigManager) startManage(ctx context.Context, shutdownNotifier common.LeafShutdownNotifier) {
+	defer shutdownNotifier.MarkShutdownComplete()
+	isActive := true
 	logger := log.Ctx(ctx)
 	hasStarted := false
 	e := m.managedServer
-	for m.shutdownCtrl.IsActive() {
+	for isActive {
 		select {
-		case <-shutDownCh:
+		case <-shutdownNotifier.Quit():
+			isActive = false
 		case msg := <-m.serverReadyCh:
 			if hasStarted {
 				err := e.Shutdown(ctx)
@@ -161,26 +165,25 @@ func (m *ConfigManager) startManage(ctx context.Context) {
 
 func StartConfigManagerWithGracefulShutdown(c context.Context, m *ConfigManager) {
 	c = log.Logger.WithContext(c)
-	c, cancel := context.WithCancel(c)
-	defer cancel()
-	go m.startManage(c)
-	go m.Start(c)
+	shutdownNotifier := common.NewLeafShutdownNotifier()
+	echoShutdownNotifier := common.NewLeafShutdownNotifier()
+	go m.startManage(c, echoShutdownNotifier)
+	cmShutdownNotifier := common.NewLeafShutdownNotifier()
+	go m.Start(c, cmShutdownNotifier)
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
-	toCtx, toCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	mainShutdownNotifier := common.MergeShutdownNotifier(shutdownNotifier, echoShutdownNotifier, cmShutdownNotifier)
+
+	mainShutdownNotifier.ListenOSIntercept()
+	<-shutdownNotifier.Quit()
+	toCtx, toCancel := context.WithTimeout(c, 10*time.Second)
 	defer toCancel()
-	m.shutdownCtrl.Shutdown()
 	m.managedServer.Shutdown(toCtx)
 	select {
 	case <-toCtx.Done():
-		cancel()
 		log.Ctx(c).Fatal().Err(toCtx.Err()).Msg("failed to gracefully shutdown")
-	case <-quit:
-		cancel()
-		log.Ctx(c).Fatal().Msg("forced shutdown")
-	case <-m.shutdownCtrl.C:
+	case <-shutdownNotifier.Quit():
+		log.Ctx(c).Fatal().Msg("forced shutdown after second interupt")
+	case <-mainShutdownNotifier.Complete():
 		log.Ctx(c).Info().Msg("gracefully shutdown")
 	}
 }

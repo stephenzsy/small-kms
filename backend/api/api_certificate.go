@@ -14,8 +14,10 @@ import (
 )
 
 // GetCertificate implements models.ServerInterface.
-func (s *server) GetCertificate(ec echo.Context, namespaceKind shared.NamespaceKind,
-	namespaceId common.Identifier, certificateId common.Identifier, params models.GetCertificateParams) error {
+func (s *server) GetCertificate(ec echo.Context,
+	namespaceKind shared.NamespaceKind, namespaceId shared.Identifier,
+	certificateId shared.Identifier,
+	params models.GetCertificateParams) error {
 
 	c := ec.(RequestContext)
 

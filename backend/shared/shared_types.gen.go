@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -130,11 +131,14 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 // AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
 type AgentConfigurationAgentActiveServer struct {
 	// AuthorizedCertificateIds (Read-only)
-	AuthorizedCertificateIds        []Identifier    `json:"authorizedCertificateIds,omitempty"`
-	AuthorizedCertificateTemplateId *Identifier     `json:"authorizedCertificateTemplateId,omitempty"`
-	Name                            AgentConfigName `json:"name"`
-	ServerCertificateId             *Identifier     `json:"serverCertificateId,omitempty"`
-	ServerCertificateTemplateId     *Identifier     `json:"serverCertificateTemplateId,omitempty"`
+	AuthorizedCertificateIds        []Identifier `json:"authorizedCertificateIds,omitempty"`
+	AuthorizedCertificateTemplateId *Identifier  `json:"authorizedCertificateTemplateId,omitempty"`
+
+	// EndpointUrl (Admin server only property to call agent)
+	EndpointUrl                 *string         `json:"endpointUrl,omitempty"`
+	Name                        AgentConfigName `json:"name"`
+	ServerCertificateId         *Identifier     `json:"serverCertificateId,omitempty"`
+	ServerCertificateTemplateId *Identifier     `json:"serverCertificateTemplateId,omitempty"`
 }
 
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.
@@ -179,6 +183,9 @@ type CertificateRefFields struct {
 
 // CertificateUsage defines model for CertificateUsage.
 type CertificateUsage string
+
+// DockerInfo defines model for DockerInfo.
+type DockerInfo = types.Info
 
 // Identifier defines model for Identifier.
 type Identifier = identifierImpl

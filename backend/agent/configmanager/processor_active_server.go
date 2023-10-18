@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -227,7 +228,7 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 	return returnFilename, nil
 }
 
-func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg) {
+func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, shutdownNotifier common.LeafShutdownNotifier) {
 
 	p.baseStart(c, scheduleToUpdate, func() *pollConfigMsg {
 		if !p.attemptedLoad {
@@ -265,7 +266,7 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 		// persist config before shutdown
 		p.configCtx.persistConfig(p.configDir, p.configName, true)
 		p.configCtx.persistSymlinks(p.configDir, p.configName)
-	})
+	}, shutdownNotifier)
 }
 
 var _ ConfigProcessor = (*activeServerProcessor)(nil)
@@ -298,12 +299,11 @@ func (p *activeServerProcessor) MarkProcessDone(taskName string, err error) {
 	resetTimer(p.configCtx.getWaitForNextRefresh(), taskName)
 }
 
-func newActiveServerProcessor(sc *sharedConfig, serverReadyCh chan<- ActiveServerReadyConfig, shutdownCtrl *ShutdownController) *activeServerProcessor {
+func newActiveServerProcessor(sc *sharedConfig, serverReadyCh chan<- ActiveServerReadyConfig) *activeServerProcessor {
 	return &activeServerProcessor{
 		baseConfigProcessor: baseConfigProcessor{
 			sharedConfig: sc,
 			configName:   shared.AgentConfigNameActiveServer,
-			shutdownCtrl: shutdownCtrl,
 		},
 		serverReadyCh: serverReadyCh,
 	}

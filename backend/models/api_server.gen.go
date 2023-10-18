@@ -39,6 +39,9 @@ type ServerInterface interface {
 	// (PATCH /v3/service/config/{configPath})
 	PatchServiceConfig(ctx echo.Context, configPath PatchServiceConfigParamsConfigPath) error
 
+	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info)
+	GetDockerInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
+
 	// (POST /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName})
 	AgentCallback(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
 	// Get agent autoconfig
@@ -246,6 +249,24 @@ func (w *ServerInterfaceWrapper) PatchServiceConfig(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PatchServiceConfig(ctx, configPath)
+	return err
+}
+
+// GetDockerInfo converts echo context to params.
+func (w *ServerInterfaceWrapper) GetDockerInfo(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetDockerInfo(ctx, namespaceId)
 	return err
 }
 
@@ -834,6 +855,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId/managed/:targetNamespaceKind", wrapper.CreateManagedNamespace)
 	router.GET(baseURL+"/v3/service/config", wrapper.GetServiceConfig)
 	router.PATCH(baseURL+"/v3/service/config/:configPath", wrapper.PatchServiceConfig)
+	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)

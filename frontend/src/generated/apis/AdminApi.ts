@@ -129,6 +129,10 @@ export interface GetCertificateTemplateRequest {
     templateId: string;
 }
 
+export interface GetDockerInfoRequest {
+    namespaceId: string;
+}
+
 export interface GetProfileRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -641,6 +645,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateTemplate(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
         const response = await this.getCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get docker info
+     */
+    async getDockerInfoRaw(requestParameters: GetDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getDockerInfo.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get docker info
+     */
+    async getDockerInfo(requestParameters: GetDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.getDockerInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

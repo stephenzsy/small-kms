@@ -19,6 +19,7 @@ import (
 type AgentActiveServerDoc struct {
 	AgentConfigDoc
 
+	EndpointURL                     string              `json:"endpointUrl"`
 	AuthorizedCertificateTemplateID shared.Identifier   `json:"authorizedCertificateTemplateId"`
 	ServerCertificateTemplateID     shared.Identifier   `json:"serverCertificateTemplateId"`
 	ServerCertificateID             shared.Identifier   `json:"serverCertificateId"`
@@ -41,6 +42,7 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 		Name: shared.AgentConfigNameActiveServer,
 	}
 	if isAdmin {
+		params.EndpointUrl = &d.EndpointURL
 		params.AuthorizedCertificateTemplateId = &d.AuthorizedCertificateTemplateID
 		params.ServerCertificateTemplateId = &d.ServerCertificateTemplateID
 	}
@@ -67,11 +69,13 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			}
 
 			d := AgentActiveServerDoc{
+				EndpointURL:                     *p.EndpointUrl,
 				ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
 				AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
 			}
 			d.initLocator(nsID, shared.AgentConfigNameActiveServer)
 			digester := md5.New()
+			digester.Write([]byte(d.EndpointURL))
 			digester.Write([]byte(d.ServerCertificateTemplateID.String()))
 			digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
 			d.BaseVersion = digester.Sum(nil)
