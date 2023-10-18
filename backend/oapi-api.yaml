@@ -531,6 +531,8 @@ components:
         subjectCommonName:
           description: Common name
           type: string
+        subjectAlternativeNames:
+          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
         usages:
           type: array
           items:
@@ -558,6 +560,8 @@ components:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
         keyProperties:
           $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
+        subjectAlternativeNames:
+          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
         usages:
           type: array
           items:

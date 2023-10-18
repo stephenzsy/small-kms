@@ -120,12 +120,14 @@ export function CertificateTemplatesList({
             value={tempalteLinkTarget}
             onChange={setTemplateLinkTarget}
           />
-          <Select
-            items={selectItems}
-            label="Usage"
-            selected={selectedUsage}
-            setSelected={setSelectedUsage}
-          />
+          <div>
+            <Select
+              items={selectItems}
+              label="Usage"
+              selected={selectedUsage}
+              setSelected={setSelectedUsage}
+            />
+          </div>
           <Button
             onClick={() => {
               createLink(tempalteLinkTarget, selectedUsage.id);

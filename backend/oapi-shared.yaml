@@ -112,6 +112,8 @@ components:
           description: Expiration date of the certificate
           type: string
           format: date-time
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
         usages:
           type: array
           items:
@@ -400,6 +402,25 @@ components:
       required:
         - goVersion
         - buildId
+    SubjectAlternativeNames:
+      type: object
+      properties:
+        dnsNames:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+        ipAddresses:
+          type: array
+          items:
+            type: string
+            x-go-type: net.IP
+          x-go-type-skip-optional-pointer: true
+        emails:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
     TemplatedCertificateTag:
       type: string
       enum:

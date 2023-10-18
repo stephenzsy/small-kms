@@ -42,4 +42,5 @@ export * from './ServiceConfigAcrInfo';
 export * from './ServiceConfigAppRoleIds';
 export * from './ServiceConfigFields';
 export * from './ServiceRuntimeInfo';
+export * from './SubjectAlternativeNames';
 export * from './TemplatedCertificateTag';

@@ -5,11 +5,7 @@ type CardTitleProps = {
 };
 
 export function Card(props: PropsWithChildren<CardTitleProps>) {
-  return (
-    <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-      {props.children}
-    </div>
-  );
+  return <div className="bg-white shadow sm:rounded-lg">{props.children}</div>;
 }
 
 export function CardTitle(props: PropsWithChildren<CardTitleProps>) {
@@ -29,7 +25,7 @@ export function CardTitle(props: PropsWithChildren<CardTitleProps>) {
 
 export function CardSection(props: PropsWithChildren<{}>) {
   return (
-    <div className="border-t border-neutral-200 px-4 py-6 max-w-full overflow-x-auto">
+    <div className="border-t border-neutral-200 px-4 py-6 max-w-full">
       {props.children}
     </div>
   );

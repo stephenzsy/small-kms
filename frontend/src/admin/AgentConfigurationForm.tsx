@@ -15,6 +15,7 @@ import {
   NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
+import { Link } from "react-router-dom";
 
 const selectOptions: Array<SelectItem<AgentConfigName>> = [
   {
@@ -133,6 +134,14 @@ export function AgentConfigurationForm({
   return (
     <Card>
       <CardTitle>Agent Configuration</CardTitle>
+      <CardSection>
+        <Link
+          to={`/admin/${namespaceKind}/${namespaceId}/agent`}
+          className="text-indigo-600 hover:text-indigo-900"
+        >
+          Go to agent dashboard
+        </Link>
+      </CardSection>
       <CardSection>
         Current configuration:
         {loading ? (

@@ -128,6 +128,7 @@ func applyCertificateCapabilities(cap ns.NamespaceCertificateTemplateCapabilitie
 			}
 		}
 	}
+	doc.SANs = req.SubjectAlternativeNames.Sanitize()
 
 	doc.Digest = doc.computeFieldsDigest()
 	return &doc, nil
@@ -144,6 +145,17 @@ func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 		digest.Write([]byte(fmt.Sprintf("%d", *doc.KeySpec.KeySize)))
 	case shared.KeyTypeEC:
 		digest.Write([]byte(string(*doc.KeySpec.Crv)))
+	}
+	if doc.SANs != nil {
+		for _, san := range doc.SANs.DnsNames {
+			digest.Write([]byte(san))
+		}
+		for _, san := range doc.SANs.Emails {
+			digest.Write([]byte(san))
+		}
+		for _, san := range doc.SANs.IpAddresses {
+			digest.Write(san)
+		}
 	}
 	return digest.Sum(nil)
 }

@@ -25,6 +25,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * 
@@ -106,6 +112,12 @@ export interface CertificateInfo {
     notBefore: Date;
     /**
      * 
+     * @type {SubjectAlternativeNames}
+     * @memberof CertificateInfo
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
+    /**
+     * 
      * @type {Array<CertificateUsage>}
      * @memberof CertificateInfo
      */
@@ -172,6 +184,7 @@ export function CertificateInfoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'template': json['template'],
         'isIssued': json['isIssued'],
         'notBefore': (new Date(json['notBefore'])),
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'issuer': json['issuer'],
         'jwk': JwkPropertiesFromJSON(json['jwk']),
@@ -200,6 +213,7 @@ export function CertificateInfoToJSON(value?: CertificateInfo | null): any {
         'template': value.template,
         'isIssued': value.isIssued,
         'notBefore': (value.notBefore.toISOString()),
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'issuer': value.issuer,
         'jwk': JwkPropertiesToJSON(value.jwk),

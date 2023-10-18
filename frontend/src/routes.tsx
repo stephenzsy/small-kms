@@ -18,6 +18,9 @@ const CertificateTemplatePage = React.lazy(
 );
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const ServicePage = React.lazy(() => import("./service/Page"));
+const AgentDashboardPage = React.lazy(
+  () => import("./admin/AgentDashboardPage")
+);
 
 export const router = createBrowserRouter([
   {
@@ -65,6 +68,10 @@ export const router = createBrowserRouter([
                   {
                     path: "certificates/:certId",
                     element: <CertificatePage />,
+                  },
+                  {
+                    path: "agent",
+                    element: <AgentDashboardPage />,
                   },
                 ],
               },

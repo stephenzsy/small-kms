@@ -31,6 +31,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * Certificate fields, may accept template substitutions
@@ -56,6 +62,12 @@ export interface CertificateTemplateParameters {
      * @memberof CertificateTemplateParameters
      */
     subjectCommonName: string;
+    /**
+     * 
+     * @type {SubjectAlternativeNames}
+     * @memberof CertificateTemplateParameters
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
     /**
      * 
      * @type {Array<CertificateUsage>}
@@ -112,6 +124,7 @@ export function CertificateTemplateParametersFromJSONTyped(json: any, ignoreDisc
         'issuerTemplate': !exists(json, 'issuerTemplate') ? undefined : json['issuerTemplate'],
         'keyProperties': !exists(json, 'keyProperties') ? undefined : JwkPropertiesFromJSON(json['keyProperties']),
         'subjectCommonName': json['subjectCommonName'],
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'validityMonths': !exists(json, 'validity_months') ? undefined : json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
@@ -132,6 +145,7 @@ export function CertificateTemplateParametersToJSON(value?: CertificateTemplateP
         'issuerTemplate': value.issuerTemplate,
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
         'subjectCommonName': value.subjectCommonName,
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,

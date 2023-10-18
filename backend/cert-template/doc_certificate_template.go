@@ -22,6 +22,7 @@ type CertificateTemplateDoc struct {
 	LifetimeTrigger   models.CertificateLifetimeTrigger `json:"lifetimeTrigger"`
 	Digest            kmsdoc.HexStringStroable          `json:"digest"` // checksum of fhte core fields of the template
 	LinkProperties    *CertificateTemplateDocLink       `json:"link,omitempty"`
+	SANs              *shared.SubjectAlternativeNames   `json:"sans,omitempty"`
 }
 
 func (d *CertificateTemplateDoc) populateRef(r *models.CertificateTemplateRefComposed) {
@@ -48,5 +49,6 @@ func (d *CertificateTemplateDoc) toModel() *models.CertificateTemplateComposed {
 	r.LifetimeTrigger = d.LifetimeTrigger
 	r.ValidityInMonths = d.ValidityInMonths
 	r.Usages = d.Usages
+	r.SubjectAlternativeNames = d.SANs
 	return r
 }

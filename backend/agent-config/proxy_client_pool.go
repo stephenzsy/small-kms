@@ -59,7 +59,10 @@ func (p *agentProxyHttpClientPool) GetProxyHttpClient(eCtx context.Context, nsID
 		return nil, err
 	}
 	clientCerts := make([]tls.Certificate, 0, 2)
-	for _, certId := range d.AuthorizedCertificateIDs[:2] {
+	for i, certId := range d.AuthorizedCertificateIDs {
+		if i > 1 {
+			break
+		}
 		certDoc, err := cert.ReadCertDocByLocator(eCtx, shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCert, certId)))
 		if err != nil {
 			return nil, err

@@ -31,6 +31,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * 
@@ -100,6 +106,12 @@ export interface CertificateTemplate {
     keyProperties: JwkProperties;
     /**
      * 
+     * @type {SubjectAlternativeNames}
+     * @memberof CertificateTemplate
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
+    /**
+     * 
      * @type {Array<CertificateUsage>}
      * @memberof CertificateTemplate
      */
@@ -161,6 +173,7 @@ export function CertificateTemplateFromJSONTyped(json: any, ignoreDiscriminator:
         'linkTo': !exists(json, 'linkTo') ? undefined : json['linkTo'],
         'issuerTemplate': json['issuerTemplate'],
         'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'validityMonths': json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
@@ -187,6 +200,7 @@ export function CertificateTemplateToJSON(value?: CertificateTemplate | null): a
         'linkTo': value.linkTo,
         'issuerTemplate': value.issuerTemplate,
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,

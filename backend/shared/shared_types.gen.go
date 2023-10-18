@@ -6,6 +6,7 @@ package shared
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -161,9 +162,10 @@ type CertificateInfoFields struct {
 	Jwk JwkProperties `json:"jwk"`
 
 	// NotBefore Expiration date of the certificate
-	NotBefore time.Time          `json:"notBefore"`
-	Pem       *string            `json:"pem,omitempty"`
-	Usages    []CertificateUsage `json:"usages"`
+	NotBefore               time.Time                `json:"notBefore"`
+	Pem                     *string                  `json:"pem,omitempty"`
+	SubjectAlternativeNames *SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usages                  []CertificateUsage       `json:"usages"`
 }
 
 // CertificateRef defines model for CertificateRef.
@@ -286,6 +288,13 @@ type ResourceRef struct {
 type ServiceRuntimeInfo struct {
 	BuildID   string `json:"buildId"`
 	GoVersion string `json:"goVersion"`
+}
+
+// SubjectAlternativeNames defines model for SubjectAlternativeNames.
+type SubjectAlternativeNames struct {
+	DnsNames    []string `json:"dnsNames,omitempty"`
+	Emails      []string `json:"emails,omitempty"`
+	IpAddresses []net.IP `json:"ipAddresses,omitempty"`
 }
 
 // TemplatedCertificateTag defines model for TemplatedCertificateTag.

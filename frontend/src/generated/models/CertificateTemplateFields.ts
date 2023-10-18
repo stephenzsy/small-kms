@@ -31,6 +31,12 @@ import {
     JwkPropertiesFromJSONTyped,
     JwkPropertiesToJSON,
 } from './JwkProperties';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * Certificate fields, may accept template substitutions
@@ -50,6 +56,12 @@ export interface CertificateTemplateFields {
      * @memberof CertificateTemplateFields
      */
     keyProperties: JwkProperties;
+    /**
+     * 
+     * @type {SubjectAlternativeNames}
+     * @memberof CertificateTemplateFields
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
     /**
      * 
      * @type {Array<CertificateUsage>}
@@ -102,6 +114,7 @@ export function CertificateTemplateFieldsFromJSONTyped(json: any, ignoreDiscrimi
         
         'issuerTemplate': json['issuerTemplate'],
         'keyProperties': JwkPropertiesFromJSON(json['keyProperties']),
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'usages': ((json['usages'] as Array<any>).map(CertificateUsageFromJSON)),
         'validityMonths': json['validity_months'],
         'keyStorePath': !exists(json, 'keyStorePath') ? undefined : json['keyStorePath'],
@@ -120,6 +133,7 @@ export function CertificateTemplateFieldsToJSON(value?: CertificateTemplateField
         
         'issuerTemplate': value.issuerTemplate,
         'keyProperties': JwkPropertiesToJSON(value.keyProperties),
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'usages': ((value.usages as Array<any>).map(CertificateUsageToJSON)),
         'validity_months': value.validityMonths,
         'keyStorePath': value.keyStorePath,

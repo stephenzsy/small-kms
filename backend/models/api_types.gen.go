@@ -58,12 +58,13 @@ type CertificateTemplate struct {
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   externalRef0.JwkProperties    `json:"keyProperties"`
-	KeyStorePath    *string                       `json:"keyStorePath,omitempty"`
-	LifetimeTrigger CertificateLifetimeTrigger    `json:"lifetimeTrigger"`
-	LinkTo          *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
-	Locator         ResourceLocator               `json:"locator"`
-	Metadata        map[string]interface{}        `json:"metadata,omitempty"`
+	KeyProperties           externalRef0.JwkProperties            `json:"keyProperties"`
+	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
+	LifetimeTrigger         CertificateLifetimeTrigger            `json:"lifetimeTrigger"`
+	LinkTo                  *externalRef0.ResourceLocator         `json:"linkTo,omitempty"`
+	Locator                 ResourceLocator                       `json:"locator"`
+	Metadata                map[string]interface{}                `json:"metadata,omitempty"`
+	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string `json:"subjectCommonName"`
@@ -80,11 +81,12 @@ type CertificateTemplateFields struct {
 	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties    externalRef0.JwkProperties      `json:"keyProperties"`
-	KeyStorePath     *string                         `json:"keyStorePath,omitempty"`
-	LifetimeTrigger  CertificateLifetimeTrigger      `json:"lifetimeTrigger"`
-	Usages           []externalRef0.CertificateUsage `json:"usages"`
-	ValidityInMonths int32                           `json:"validity_months"`
+	KeyProperties           externalRef0.JwkProperties            `json:"keyProperties"`
+	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
+	LifetimeTrigger         CertificateLifetimeTrigger            `json:"lifetimeTrigger"`
+	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+	Usages                  []externalRef0.CertificateUsage       `json:"usages"`
+	ValidityInMonths        int32                                 `json:"validity_months"`
 }
 
 // CertificateTemplateParameters Certificate fields, may accept template substitutions
@@ -93,9 +95,10 @@ type CertificateTemplateParameters struct {
 	KeyExportable  *bool                         `json:"keyExportable,omitempty"`
 
 	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties   *externalRef0.JwkProperties `json:"keyProperties,omitempty"`
-	KeyStorePath    *string                     `json:"keyStorePath,omitempty"`
-	LifetimeTrigger *CertificateLifetimeTrigger `json:"lifetimeTrigger,omitempty"`
+	KeyProperties           *externalRef0.JwkProperties           `json:"keyProperties,omitempty"`
+	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
+	LifetimeTrigger         *CertificateLifetimeTrigger           `json:"lifetimeTrigger,omitempty"`
+	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
 
 	// SubjectCommonName Common name
 	SubjectCommonName string                          `json:"subjectCommonName"`
