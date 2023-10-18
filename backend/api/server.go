@@ -153,8 +153,9 @@ func NewServer(c ctx.Context, buildId string) *server {
 	if s.clients, err = newServerClientProvider(&s); err != nil {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
-	s.serverContext = common.WithAdminServerClientProvider(c, &s.clients)
-	s.serverContext = agentconfig.WithNewProxyHttpCLientPool(c)
+	c = common.WithAdminServerClientProvider(c, &s.clients)
+	c = agentconfig.WithNewProxyHttpCLientPool(c)
+	s.serverContext = c
 
 	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
 	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
@@ -166,7 +167,6 @@ func (s *server) GetPreAuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			return next(common.WrapEchoContext(c, s.serverContext))
-
 		}
 	}
 }
