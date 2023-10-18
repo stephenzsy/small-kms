@@ -145,7 +145,7 @@ type azKeysExistingCertSigner struct {
 	issuerCert       *x509.Certificate
 	certChainPemBlob []byte
 	restX5c          [][]byte
-	keyVaultSigner   *keyVaultSigner
+	keyVaultSigner   *keyvaultSigner
 }
 
 // X509SigningAlg implements SignerProvider.
@@ -194,15 +194,11 @@ func (p *azKeysExistingCertSigner) LoadSigner(c context.Context) (signer crypto.
 		return nil, err
 	}
 
-	p.keyVaultSigner = &keyVaultSigner{
-		ctx:        c,
-		keysClient: common.GetAdminServerClientProvider(c).AzKeysClient(),
-		jwk: &azkeys.JSONWebKey{
-			KID: utils.ToPtr(azkeys.ID(p.issuerCertDoc.CertSpec.KID)),
-		},
-		publicKey: p.issuerCert.PublicKey,
-		sigAlg:    p.issuerCertDoc.CertSpec.Alg.ToAzKeysSignatureAlgorithm(),
-	}
+	p.keyVaultSigner = newKeyVaultSignerWithExistingPublicKey(
+		c,
+		utils.ToPtr(azkeys.ID(p.issuerCertDoc.CertSpec.KID)),
+		p.issuerCert.PublicKey,
+		p.issuerCertDoc.CertSpec.Alg.ToAzKeysSignatureAlgorithm())
 
 	return p.keyVaultSigner, nil
 }

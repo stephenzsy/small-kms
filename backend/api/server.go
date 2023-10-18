@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	agentconfig "github.com/stephenzsy/small-kms/backend/agent-config"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -153,6 +154,7 @@ func NewServer(c ctx.Context, buildId string) *server {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
 	s.serverContext = common.WithAdminServerClientProvider(c, &s.clients)
+	s.serverContext = agentconfig.WithNewProxyHttpCLientPool(c)
 
 	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
 	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")

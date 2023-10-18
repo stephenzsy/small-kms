@@ -13,10 +13,11 @@ import (
 	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 // should implement crypto.Signer
-type keyVaultSigner struct {
+type keyvaultSigner struct {
 	ctx        context.Context
 	keysClient *azkeys.Client
 	jwk        *azkeys.JSONWebKey
@@ -24,8 +25,20 @@ type keyVaultSigner struct {
 	sigAlg     azkeys.SignatureAlgorithm
 }
 
-func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azkeys.JSONWebKey, preferredRsaSigAlg azkeys.SignatureAlgorithm) (signer *keyVaultSigner, err error) {
-	signer = &keyVaultSigner{
+func newKeyVaultSignerWithExistingPublicKey(c context.Context, keyID *azkeys.ID, publicKey crypto.PublicKey, sigAlg azkeys.SignatureAlgorithm) *keyvaultSigner {
+	return &keyvaultSigner{
+		ctx:        c,
+		keysClient: common.GetAdminServerClientProvider(c).AzKeysClient(),
+		jwk: &azkeys.JSONWebKey{
+			KID: keyID,
+		},
+		publicKey: publicKey,
+		sigAlg:    sigAlg,
+	}
+}
+
+func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azkeys.JSONWebKey, preferredRsaSigAlg azkeys.SignatureAlgorithm) (signer *keyvaultSigner, err error) {
+	signer = &keyvaultSigner{
 		ctx:        ctx,
 		keysClient: keysClient,
 		jwk:        jwk,
@@ -58,7 +71,7 @@ func newKeyVaultSigner(ctx context.Context, keysClient *azkeys.Client, jwk *azke
 	return signer, nil
 }
 
-func (s *keyVaultSigner) Public() crypto.PublicKey {
+func (s *keyvaultSigner) Public() crypto.PublicKey {
 	return s.publicKey
 }
 
@@ -67,7 +80,7 @@ type esSignature struct {
 	S *big.Int
 }
 
-func (s *keyVaultSigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+func (s *keyvaultSigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
 	resp, err := s.keysClient.Sign(s.ctx, s.jwk.KID.Name(), s.jwk.KID.Version(), azkeys.SignParameters{
 		Algorithm: &s.sigAlg,
 		Value:     digest,
@@ -140,4 +153,4 @@ func extractPublicKey(key *azkeys.JSONWebKey) (crypto.PublicKey, error) {
 	return nil, fmt.Errorf("unsupported key type: %s", *key.Kty)
 }
 
-var _ crypto.Signer = (*keyVaultSigner)(nil)
+var _ crypto.Signer = (*keyvaultSigner)(nil)

@@ -17,7 +17,7 @@ type azKeysSelfSignerProvider struct {
 
 	cert           *x509.Certificate
 	certSpec       CertJwkSpec
-	signer         *keyVaultSigner
+	signer         *keyvaultSigner
 	keyCreated     *azkeys.ID
 	keepKeyVersion bool
 }
@@ -105,9 +105,9 @@ func (p *azKeysSelfSignerProvider) LoadSigner(context.Context) (crypto.Signer, e
 	return p.signer, nil
 }
 
-func createAzKeysSigner(c context.Context, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyVaultSigner, *azkeys.ID, error) {
+func createAzKeysSigner(c context.Context, ioCertJwkSpec *CertJwkSpec, keyName string, keyAttributes *azkeys.KeyAttributes) (*keyvaultSigner, *azkeys.ID, error) {
 	var keyCreated *azkeys.ID
-	bad := func(e error) (*keyVaultSigner, *azkeys.ID, error) {
+	bad := func(e error) (*keyvaultSigner, *azkeys.ID, error) {
 		return nil, keyCreated, e
 	}
 

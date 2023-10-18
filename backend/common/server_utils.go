@@ -11,19 +11,21 @@ import (
 )
 
 type shutdownNotifier struct {
+	name     string
 	quit     chan os.Signal
 	complete chan struct{}
 }
 
-func NewStandaloneShutdownNotifier() *shutdownNotifier {
+func NewStandaloneShutdownNotifier(name string) *shutdownNotifier {
 	return &shutdownNotifier{
+		name:     name,
 		quit:     make(chan os.Signal, 1),
 		complete: make(chan struct{}, 1),
 	}
 }
 
-func NewLeafShutdownNotifier() LeafShutdownNotifier {
-	return NewStandaloneShutdownNotifier()
+func NewLeafShutdownNotifier(name string) LeafShutdownNotifier {
+	return NewStandaloneShutdownNotifier(name)
 }
 
 func (n *shutdownNotifier) Quit() <-chan os.Signal {
@@ -45,10 +47,13 @@ func (n *shutdownNotifier) RelaySingal(sig os.Signal) {
 func (n *shutdownNotifier) MarkShutdownComplete() {
 	n.complete <- struct{}{}
 	close(n.complete)
+	//log.Debug().Msgf("mark shutdown complete: %s", n.name)
 }
+
 func (n *shutdownNotifier) RelayComplete(m MergedShutdownNotifier) {
 	n.complete <- <-m.Complete()
 	close(n.complete)
+	//log.Debug().Msgf("shutdown relay complete: %s", n.name)
 }
 
 type MergedShutdownNotifier interface {
@@ -63,11 +68,11 @@ type LeafShutdownNotifier interface {
 	RelayComplete(MergedShutdownNotifier)
 }
 
-func MergeShutdownNotifier(notifiers ...LeafShutdownNotifier) MergedShutdownNotifier {
+func MergeShutdownNotifier(name string, notifiers ...LeafShutdownNotifier) MergedShutdownNotifier {
 	if len(notifiers) == 0 {
 		return nil
 	}
-	n := NewStandaloneShutdownNotifier()
+	n := NewStandaloneShutdownNotifier(name)
 	go func() {
 		for sig := range n.quit {
 			for _, v := range notifiers {
@@ -80,17 +85,18 @@ func MergeShutdownNotifier(notifiers ...LeafShutdownNotifier) MergedShutdownNoti
 	}()
 	go func() {
 		for _, v := range notifiers {
+			//log.Debug().Msgf("%s: waiting shutdown complete: %s", n.name, v.(*shutdownNotifier).name)
 			<-v.(*shutdownNotifier).complete
+			//log.Debug().Msgf("%s: received shutdown complete: %s", n.name, v.(*shutdownNotifier).name)
 		}
-		n.complete <- struct{}{}
-		close(n.complete)
+		n.MarkShutdownComplete()
 	}()
 	return n
 }
 
 func StartEchoWithGracefulShutdown(c context.Context, e *echo.Echo, onStart func(*echo.Echo, LeafShutdownNotifier), gracePeriod time.Duration) {
 	c = log.Logger.WithContext(c)
-	shutdownNotifier := NewStandaloneShutdownNotifier()
+	shutdownNotifier := NewStandaloneShutdownNotifier("echo server")
 
 	go onStart(e, shutdownNotifier)
 

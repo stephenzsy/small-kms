@@ -35,8 +35,8 @@ func (*activeServerProcessor) Name() shared.AgentConfigName {
 }
 
 type ActiveServerReadyConfig struct {
-	ServerCertificateFile                         string                 `json:"serverCertificateFile"`
-	AuthorizedClientCertificateFingerprintsSHA384 [][sha512.Size384]byte `json:"authorizedClientCertificateFingerprintsSHA384"`
+	ServerCertificateFile                         string   `json:"serverCertificateFile"`
+	AuthorizedClientCertificateFingerprintsSHA384 [][]byte `json:"authorizedClientCertificateFingerprintsSHA384"`
 }
 
 func (p *activeServerProcessor) Process(ctx context.Context, task string) error {
@@ -109,7 +109,7 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 					return err
 				}
 				readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
-					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash)
+					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash[:])
 			}
 		}
 

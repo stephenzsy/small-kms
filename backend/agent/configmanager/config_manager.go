@@ -51,11 +51,11 @@ func (m *ConfigManager) Start(c context.Context, shutdownNotifier common.LeafShu
 	pollUpdate := make(chan pollConfigMsg, 1)
 	shutdownNotifiers := make([]common.LeafShutdownNotifier, 0, len(m.processors))
 	for _, v := range m.processors {
-		notifier := common.NewLeafShutdownNotifier()
+		notifier := common.NewLeafShutdownNotifier(string(v.ConfigName()))
 		shutdownNotifiers = append(shutdownNotifiers, notifier)
 		go v.Start(c, pollUpdate, notifier)
 	}
-	mergedNotifier := common.MergeShutdownNotifier(shutdownNotifiers...)
+	mergedNotifier := common.MergeShutdownNotifier("config manager processors", shutdownNotifiers...)
 	for isActive {
 		select {
 		case sig := <-shutdownNotifier.Quit():
@@ -144,9 +144,10 @@ func (m *ConfigManager) startManage(ctx context.Context, shutdownNotifier common
 			_, rest = pem.Decode(rest)
 			tlsConfig.ClientCAs.AppendCertsFromPEM(rest)
 			tlsConfig.ClientAuth = tls.RequireAnyClientCert
+			tlsConfig.MinVersion = tls.VersionTLS12
 			allowedCertFingerprints := make(map[[sha512.Size384]byte]bool, len(msg.AuthorizedClientCertificateFingerprintsSHA384))
 			for _, v := range msg.AuthorizedClientCertificateFingerprintsSHA384 {
-				allowedCertFingerprints[v] = true
+				allowedCertFingerprints[[sha512.Size384]byte(v)] = true
 			}
 			tlsConfig.VerifyPeerCertificate = func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
 				for _, rawCert := range rawCerts {
@@ -165,16 +166,17 @@ func (m *ConfigManager) startManage(ctx context.Context, shutdownNotifier common
 
 func StartConfigManagerWithGracefulShutdown(c context.Context, m *ConfigManager) {
 	c = log.Logger.WithContext(c)
-	shutdownNotifier := common.NewLeafShutdownNotifier()
-	echoShutdownNotifier := common.NewLeafShutdownNotifier()
+	shutdownNotifier := common.NewLeafShutdownNotifier("main")
+	echoShutdownNotifier := common.NewLeafShutdownNotifier("echo server")
 	go m.startManage(c, echoShutdownNotifier)
-	cmShutdownNotifier := common.NewLeafShutdownNotifier()
+	cmShutdownNotifier := common.NewLeafShutdownNotifier("config manager")
 	go m.Start(c, cmShutdownNotifier)
 
-	mainShutdownNotifier := common.MergeShutdownNotifier(shutdownNotifier, echoShutdownNotifier, cmShutdownNotifier)
+	mainShutdownNotifier := common.MergeShutdownNotifier("master", shutdownNotifier, echoShutdownNotifier, cmShutdownNotifier)
 
 	mainShutdownNotifier.ListenOSIntercept()
 	<-shutdownNotifier.Quit()
+	shutdownNotifier.MarkShutdownComplete()
 	toCtx, toCancel := context.WithTimeout(c, 10*time.Second)
 	defer toCancel()
 	m.managedServer.Shutdown(toCtx)
