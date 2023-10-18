@@ -13,7 +13,7 @@ components:
         serviceRuntime:
           $ref: "#/components/schemas/ServiceRuntimeInfo"
       required:
-        - configName     
+        - configName
     AgentConfigName:
       type: string
       enum:
@@ -81,6 +81,11 @@ components:
           x-go-type-skip-optional-pointer: true
           items:
             $ref: "#/components/schemas/Identifier"
+        extraAuthorizedCertificateSha384Fingerprints:
+          type: array
+          x-go-type-skip-optional-pointer: true
+          items:
+            $ref: "#/components/schemas/CertificateFingerprint"
       required:
         - name
     AgentConfigurationParameters:
@@ -92,6 +97,9 @@ components:
         mapping:
           agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
           agent-active-server: "#/components/schemas/AgentConfigurationAgentActiveServer"
+    CertificateFingerprint:
+      type: string
+      x-go-type: certificateFingerprintImpl
     CertificateInfo:
       allOf:
         - $ref: "#/components/schemas/CertificateRef"
@@ -130,7 +138,7 @@ components:
       properties:
         thumbprint:
           description: X.509 certificate SHA-1 thumbprint
-          type: string
+          $ref: "#/components/schemas/CertificateFingerprint"
         subjectCommonName:
           description: Common name
           type: string
@@ -165,7 +173,7 @@ components:
       type: object
       x-go-type: types.Info
       x-go-type-import:
-        path: "github.com/docker/docker/api/types"        
+        path: "github.com/docker/docker/api/types"
     Identifier:
       type: string
       x-go-type: identifierImpl

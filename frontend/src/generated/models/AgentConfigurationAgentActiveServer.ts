@@ -34,7 +34,6 @@ export interface AgentConfigurationAgentActiveServer {
     name: AgentConfigName;
     /**
      * (Admin server only property to call agent)
-
      * @type {string}
      * @memberof AgentConfigurationAgentActiveServer
      */
@@ -63,6 +62,12 @@ export interface AgentConfigurationAgentActiveServer {
      * @memberof AgentConfigurationAgentActiveServer
      */
     authorizedCertificateIds?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AgentConfigurationAgentActiveServer
+     */
+    extraAuthorizedCertificateSha384Fingerprints?: Array<string>;
 }
 
 /**
@@ -91,6 +96,7 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
         'authorizedCertificateTemplateId': !exists(json, 'authorizedCertificateTemplateId') ? undefined : json['authorizedCertificateTemplateId'],
         'serverCertificateId': !exists(json, 'serverCertificateId') ? undefined : json['serverCertificateId'],
         'authorizedCertificateIds': !exists(json, 'authorizedCertificateIds') ? undefined : json['authorizedCertificateIds'],
+        'extraAuthorizedCertificateSha384Fingerprints': !exists(json, 'extraAuthorizedCertificateSha384Fingerprints') ? undefined : json['extraAuthorizedCertificateSha384Fingerprints'],
     };
 }
 
@@ -109,6 +115,7 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
         'authorizedCertificateTemplateId': value.authorizedCertificateTemplateId,
         'serverCertificateId': value.serverCertificateId,
         'authorizedCertificateIds': value.authorizedCertificateIds,
+        'extraAuthorizedCertificateSha384Fingerprints': value.extraAuthorizedCertificateSha384Fingerprints,
     };
 }
 

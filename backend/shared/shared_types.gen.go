@@ -135,16 +135,20 @@ type AgentConfigurationAgentActiveServer struct {
 	AuthorizedCertificateTemplateId *Identifier  `json:"authorizedCertificateTemplateId,omitempty"`
 
 	// EndpointUrl (Admin server only property to call agent)
-	EndpointUrl                 *string         `json:"endpointUrl,omitempty"`
-	Name                        AgentConfigName `json:"name"`
-	ServerCertificateId         *Identifier     `json:"serverCertificateId,omitempty"`
-	ServerCertificateTemplateId *Identifier     `json:"serverCertificateTemplateId,omitempty"`
+	EndpointUrl                                  *string                  `json:"endpointUrl,omitempty"`
+	ExtraAuthorizedCertificateSha384Fingerprints []CertificateFingerprint `json:"extraAuthorizedCertificateSha384Fingerprints,omitempty"`
+	Name                                         AgentConfigName          `json:"name"`
+	ServerCertificateId                          *Identifier              `json:"serverCertificateId,omitempty"`
+	ServerCertificateTemplateId                  *Identifier              `json:"serverCertificateTemplateId,omitempty"`
 }
 
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.
 type AgentConfigurationParameters struct {
 	union json.RawMessage
 }
+
+// CertificateFingerprint defines model for CertificateFingerprint.
+type CertificateFingerprint = certificateFingerprintImpl
 
 // CertificateInfo defines model for CertificateInfo.
 type CertificateInfo = certificateInfoComposed
@@ -174,11 +178,9 @@ type CertificateRefFields struct {
 	NotAfter time.Time `json:"notAfter"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
-
-	// Thumbprint X.509 certificate SHA-1 thumbprint
-	Thumbprint string `json:"thumbprint"`
+	SubjectCommonName string                 `json:"subjectCommonName"`
+	Template          ResourceLocator        `json:"template"`
+	Thumbprint        CertificateFingerprint `json:"thumbprint"`
 }
 
 // CertificateUsage defines model for CertificateUsage.

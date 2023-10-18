@@ -56,7 +56,7 @@ export interface CertificateRef {
      */
     metadata?: { [key: string]: any; };
     /**
-     * X.509 certificate SHA-1 thumbprint
+     * 
      * @type {string}
      * @memberof CertificateRef
      */

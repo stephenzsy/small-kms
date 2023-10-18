@@ -97,7 +97,8 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 		}
 
 		readyConfig := ActiveServerReadyConfig{
-			ServerCertificateFile: bundleFilename,
+			ServerCertificateFile:                         bundleFilename,
+			AuthorizedClientCertificateFingerprintsSHA384: make([][]byte, 0, len(activeServerCfg.AuthorizedCertificateIds)+len(activeServerCfg.ExtraAuthorizedCertificateSha384Fingerprints)),
 		}
 		// fetch authrorized client certificates
 		for _, clientCertId := range activeServerCfg.AuthorizedCertificateIds {
@@ -111,6 +112,10 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 				readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
 					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash[:])
 			}
+		}
+		for _, fp := range activeServerCfg.ExtraAuthorizedCertificateSha384Fingerprints {
+			readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
+				append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, fp)
 		}
 
 		p.configCtx.setActiveConfig(readyConfig, pslot)

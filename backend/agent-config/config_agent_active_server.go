@@ -19,11 +19,12 @@ import (
 type AgentActiveServerDoc struct {
 	AgentConfigDoc
 
-	EndpointURL                     string              `json:"endpointUrl"`
-	AuthorizedCertificateTemplateID shared.Identifier   `json:"authorizedCertificateTemplateId"`
-	ServerCertificateTemplateID     shared.Identifier   `json:"serverCertificateTemplateId"`
-	ServerCertificateID             shared.Identifier   `json:"serverCertificateId"`
-	AuthorizedCertificateIDs        []shared.Identifier `json:"authorizedCertificateIds"`
+	EndpointURL                                  string                          `json:"endpointUrl"`
+	AuthorizedCertificateTemplateID              shared.Identifier               `json:"authorizedCertificateTemplateId"`
+	ServerCertificateTemplateID                  shared.Identifier               `json:"serverCertificateTemplateId"`
+	ServerCertificateID                          shared.Identifier               `json:"serverCertificateId"`
+	AuthorizedCertificateIDs                     []shared.Identifier             `json:"authorizedCertificateIds"`
+	ExtraAuthorizedCertificateSHA384Fingerprints []shared.CertificateFingerprint `json:"extraAuthorizedCertificateSha384Fingerprints,omitempty"`
 }
 
 // toModel implements AgentConfigDocument.
@@ -69,15 +70,19 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			}
 
 			d := AgentActiveServerDoc{
-				EndpointURL:                     *p.EndpointUrl,
-				ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
-				AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
+				EndpointURL:                                  *p.EndpointUrl,
+				ServerCertificateTemplateID:                  *p.ServerCertificateTemplateId,
+				AuthorizedCertificateTemplateID:              *p.AuthorizedCertificateTemplateId,
+				ExtraAuthorizedCertificateSHA384Fingerprints: p.ExtraAuthorizedCertificateSha384Fingerprints,
 			}
 			d.initLocator(nsID, shared.AgentConfigNameActiveServer)
 			digester := md5.New()
 			digester.Write([]byte(d.EndpointURL))
 			digester.Write([]byte(d.ServerCertificateTemplateID.String()))
 			digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
+			for _, fp := range d.ExtraAuthorizedCertificateSHA384Fingerprints {
+				digester.Write(fp)
+			}
 			d.BaseVersion = digester.Sum(nil)
 
 			return &d, nil

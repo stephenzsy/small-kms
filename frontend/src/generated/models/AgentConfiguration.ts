@@ -34,7 +34,6 @@ export interface AgentConfiguration {
     config: AgentConfigurationParameters;
     /**
      * Version of the agent configuration
-
      * @type {string}
      * @memberof AgentConfiguration
      */

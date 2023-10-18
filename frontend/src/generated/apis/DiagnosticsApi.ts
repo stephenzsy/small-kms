@@ -16,11 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   RequestDiagnostics,
-} from '../models';
+} from '../models/index';
 import {
     RequestDiagnosticsFromJSON,
     RequestDiagnosticsToJSON,
-} from '../models';
+} from '../models/index';
 
 /**
  * 

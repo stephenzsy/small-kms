@@ -45,19 +45,19 @@ type CertDoc struct {
 	Status CertificateStatus `json:"status"` // certificate status
 
 	// X509 certificate info
-	SerialNumber      SerialNumberStorable      `json:"serialNumber"`
-	SubjectCommonName string                    `json:"subjectCommonName"`
-	NotBefore         kmsdoc.TimeStorable       `json:"notBefore"`
-	NotAfter          kmsdoc.TimeStorable       `json:"notAfter"`
-	Usages            []shared.CertificateUsage `json:"usages"`
-	CertSpec          CertJwkSpec               `json:"certSpec"`
-	KeyStorePath      *string                   `json:"keyStorePath,omitempty"`
-	CertStorePath     string                    `json:"certStorePath"` // certificate storage path in blob storage
-	Thumbprint        kmsdoc.HexStringStroable  `json:"thumbprint"`
-	PendingExpires    *kmsdoc.TimeStorable      `json:"pendingExpires"` // pending status expires time
-	TemplateDigest    kmsdoc.HexStringStroable  `json:"templateDigest"` // copied from template doc
-	Template          shared.ResourceLocator    `json:"template"`       // locator for certificate template doc
-	Issuer            shared.ResourceLocator    `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
+	SerialNumber      SerialNumberStorable          `json:"serialNumber"`
+	SubjectCommonName string                        `json:"subjectCommonName"`
+	NotBefore         kmsdoc.TimeStorable           `json:"notBefore"`
+	NotAfter          kmsdoc.TimeStorable           `json:"notAfter"`
+	Usages            []shared.CertificateUsage     `json:"usages"`
+	CertSpec          CertJwkSpec                   `json:"certSpec"`
+	KeyStorePath      *string                       `json:"keyStorePath,omitempty"`
+	CertStorePath     string                        `json:"certStorePath"` // certificate storage path in blob storage
+	Thumbprint        shared.CertificateFingerprint `json:"thumbprint"`
+	PendingExpires    *kmsdoc.TimeStorable          `json:"pendingExpires"` // pending status expires time
+	TemplateDigest    kmsdoc.HexStringStroable      `json:"templateDigest"` // copied from template doc
+	Template          shared.ResourceLocator        `json:"template"`       // locator for certificate template doc
+	Issuer            shared.ResourceLocator        `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
 }
 
 // SnapshotWithNewLocator implements kmsdoc.KmsDocumentSnapshotable.
@@ -76,7 +76,7 @@ func (doc *CertDoc) SnapshotWithNewLocator(locator shared.ResourceLocator) *Cert
 type CertDocSigningPatch struct {
 	CertSpec      CertJwkSpec
 	CertStorePath string
-	Thumbprint    kmsdoc.HexStringStroable
+	Thumbprint    shared.CertificateFingerprint
 	Issuer        shared.ResourceLocator
 }
 
@@ -206,7 +206,7 @@ func (d *CertDoc) populateRef(r *shared.CertificateRef) {
 	}
 	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
 	r.SubjectCommonName = d.SubjectCommonName
-	r.Thumbprint = d.Thumbprint.HexString()
+	r.Thumbprint = d.Thumbprint
 	r.NotAfter = d.NotAfter.Time()
 	r.Template = d.Template
 	r.IsIssued = d.Status == CertStatusIssued

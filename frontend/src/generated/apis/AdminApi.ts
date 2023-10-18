@@ -32,7 +32,7 @@ import type {
   ProfileRef,
   ServiceConfig,
   TemplatedCertificateTag,
-} from '../models';
+} from '../models/index';
 import {
     AgentCallbackRequestFromJSON,
     AgentCallbackRequestToJSON,
@@ -68,7 +68,7 @@ import {
     ServiceConfigToJSON,
     TemplatedCertificateTagFromJSON,
     TemplatedCertificateTagToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
     namespaceKind: NamespaceKind;

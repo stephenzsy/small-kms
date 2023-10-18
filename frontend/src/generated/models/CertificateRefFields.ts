@@ -20,7 +20,7 @@ import { exists, mapValues } from '../runtime';
  */
 export interface CertificateRefFields {
     /**
-     * X.509 certificate SHA-1 thumbprint
+     * 
      * @type {string}
      * @memberof CertificateRefFields
      */
