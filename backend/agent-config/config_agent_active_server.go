@@ -49,6 +49,7 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 	}
 	params.AuthorizedCertificateIds = d.AuthorizedCertificateIDs
 	params.ServerCertificateId = &d.ServerCertificateID
+	params.ExtraAuthorizedCertificateSha384Fingerprints = d.ExtraAuthorizedCertificateSHA384Fingerprints
 	m.Config.FromAgentConfigurationAgentActiveServer(params)
 	return &m
 }
