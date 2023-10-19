@@ -7,7 +7,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -66,27 +65,23 @@ func (s *server) IssueCertificateFromTemplate(ctx echo.Context,
 }
 
 // ListCertificatesByTemplate implements models.ServerInterface.
-func (s *server) ListCertificatesByTemplate(ec echo.Context,
-	profileType models.NamespaceKind,
-	profileId common.Identifier,
-	templateID common.Identifier) error {
-	c := ec.(RequestContext)
-	respData, respErr := (func() ([]*shared.CertificateRef, error) {
-		if err := auth.AuthorizeAdminOnly(c); err != nil {
-			return nil, err
-		}
-
-		c, err := ns.WithNamespaceContext(c, profileType, profileId)
-		if err != nil {
-			return nil, err
-		}
-		c, err = ct.WithCertificateTemplateContext(c, templateID)
-		if err != nil {
-			return nil, err
-		}
-		return cert.ListCertificatesByTemplate(c)
-	})()
-	return wrapResponse(ec, http.StatusOK, respData, respErr)
+func (s *server) ListCertificatesByTemplate(ctx echo.Context,
+	namespaceKind shared.NamespaceKind,
+	namespaceID shared.Identifier,
+	templateID shared.Identifier) error {
+	c := ctx.(RequestContext)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceID)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err = ct.WithCertificateTemplateContext(c, templateID)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	return wrapEchoResponse(c, cert.ApiListCertificatesByTemplate(c))
 }
 
 // DeleteCertificate implements models.ServerInterface.

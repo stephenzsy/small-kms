@@ -38,6 +38,7 @@ type CertJwkSpec struct {
 const queryColumnTemplate = "c.template"
 const queryColumnStatus = "c.status"
 const queryColumnNotAfter = "c.notAfter"
+const queryColumnThumbprint = "c.thumbprint"
 
 type CertDoc struct {
 	kmsdoc.BaseDoc

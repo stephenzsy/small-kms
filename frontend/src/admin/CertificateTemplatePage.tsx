@@ -1,17 +1,20 @@
-import { useMemoizedFn, useRequest, useSet } from "ahooks";
-import { Button, Card, Checkbox } from "antd";
-import React, { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
-import { Button as ButtonLegacy } from "../components/Button";
+import { useMemoizedFn, useRequest } from "ahooks";
 import {
-  Card as CCard,
-  CardSection as CCardSection,
-  CardTitle as CCardTitle,
-} from "../components/Card";
-import { WellknownId, uuidNil } from "../constants";
+  Button,
+  Card,
+  Checkbox,
+  Table,
+  TableColumnType,
+  Typography,
+} from "antd";
+import React, { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+import { Link } from "../components/Link";
+import { WellknownId } from "../constants";
 import {
   AdminApi,
+  CertificateRef,
   CertificateTemplate,
   CertificateUsage,
   NamespaceKind,
@@ -114,194 +117,51 @@ export function useCertificateTemplateFormState(
   return state;
 }
 
-type CertificateTemplateFormProps = CertificateTemplateFormState & {
-  nsKind: NamespaceKind;
-  templateId: string;
-};
+const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
-// export function CertificateIssuerSelector({
-//   value,
-//   onChange,
-//   adminApi,
-// }: {
-//   adminApi: AdminApiOld;
-//   value: string;
-//   onChange: (value: string) => void;
-// }) {
-//   const { data: issuers } = useRequest(
-//     () => {
-//       return adminApi.listNamespacesByTypeV2({
-//         namespaceType: NamespaceTypeShortName.NSType_IntCA,
-//       });
-//     },
-//     {
-//       refreshDeps: [],
-//     }
-//   );
-//   const items = useMemo(
-//     () =>
-//       issuers?.map((issuer) => ({
-//         value: issuer.id,
-//         title: issuer.displayName || issuer.id,
-//       })),
-//     [issuers]
-//   );
-//   return (
-//     <BaseSelector
-//       items={items}
-//       label={"Issuer namespace"}
-//       placeholder="Select issuer namespace"
-//       value={value}
-//       onChange={onChange}
-//     />
-//   );
-// }
-
-// export function CertificateIssuerTemplateSelector({
-//   value,
-//   onChange,
-//   adminApi,
-//   issuerNsId,
-// }: {
-//   adminApi: AdminApi;
-//   value: string;
-//   onChange: (value: string) => void;
-//   issuerNsId: string;
-// }) {
-//   const { data: issuers } = useRequest(
-//     () => {
-//       return adminApi.listCertificateTemplates({
-//         namespaceId: issuerNsId,
-//       });
-//     },
-//     {
-//       refreshDeps: [issuerNsId],
-//     }
-//   );
-//   const items = useMemo(
-//     () =>
-//       issuers
-//         ?.filter((issuer) => issuer.id !== uuidNil)
-//         .map((issuer) => ({
-//           value: issuer.id,
-//           title: issuer.displayName || issuer.id,
-//         })),
-//     [issuers]
-//   );
-//   return (
-//     <BaseSelector
-//       items={items}
-//       label={"Issuer template"}
-//       placeholder="Select issuer template"
-//       value={value}
-//       onChange={onChange}
-//       defaultItem={{ value: uuidNil, title: "default" }}
-//     />
-//   );
-// }
-
-function SANList({
-  sansState: [itemsSet, { add: addSan, remove: removeSan }],
-  title,
-}: {
-  sansState: ReturnType<typeof useSet<string>>;
-  title: React.ReactNode;
-}) {
-  const [tobeAdded, setToBeAdded] = useState("");
-  const items = useMemo(() => [...itemsSet], [itemsSet]);
-  return (
-    <div className="p-6 space-y-4">
-      <h4 className="text-lg font-medium">{title}</h4>
-      {items.length > 0 ? (
-        <ul
-          role="list"
-          className="divide-y mt-4 divide-neutral-200 ring-1 ring-neutral-200 "
-        >
-          {items.map((item) => (
-            <li key={item} className="flex justify-between gap-x-6 p-4">
-              <span>{item}</span>
-              <ButtonLegacy
-                onClick={() => {
-                  removeSan(item);
-                }}
-              >
-                Remove
-              </ButtonLegacy>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div> No items </div>
-      )}
-      <div className="flex flex-row gap-8">
-        <div className="flex-1 flex rounded-md shadow-sm ring-1 ring-inset ring-neutral-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-          <input
-            className="block flex-1 border-0 bg-transparent py-1.5 px-em text-neutral-900 placeholder:text-neutral-400 focus:ring-0 sm:text-sm sm:leading-6"
-            value={tobeAdded}
-            onChange={(e) => {
-              setToBeAdded(e.target.value);
-            }}
-          />
-        </div>
-        <ButtonLegacy
-          variant="primary"
-          className="flex-0"
-          onClick={() => {
-            if (tobeAdded) {
-              addSan(tobeAdded);
-              setToBeAdded("");
-            }
-          }}
-        >
-          Add
-        </ButtonLegacy>
-      </div>
-    </div>
-  );
-}
-
-export function CertificateTemplatesForm(props: CertificateTemplateFormProps) {
-  const { validityInMonths, setValidityInMonths, certUsages } = props;
-  const certUsageInputOnChange = useMemoizedFn<
-    (e: React.ChangeEvent<HTMLInputElement>) => void
-  >((e) => {
-    certUsages.onChange?.((prev) => {
-      const s = new Set([...prev]);
-      if (e.target.checked) {
-        s.add(e.target.value as CertificateUsage);
-      } else {
-        s.delete(e.target.value as CertificateUsage);
-      }
-      return s;
-    });
-  });
-
-  const certUsageIsChecked = useMemoizedFn((usage: CertificateUsage) => {
-    return certUsages.value.has(usage);
-  });
-  return (
-    <div className="space-y-6 ">
-      <h2 className="text-2xl font-semibold">Certificate template</h2>
-
-      <InputField
-        labelContent="Subject common name (CN)"
-        placeholder="Sample Common Name"
-        required
-        value={props.subjectCN.value}
-        onChange={props.subjectCN.onChange}
-      />
-      <div className="space-y-2">
-        <InputField
-          labelContent="Validity in months"
-          type="number"
-          inputMode="numeric"
-          placeholder="12"
-          value={validityInMonths}
-          onChange={setValidityInMonths as any}
-        />
-        <div className="text-neutral-500">0 as default</div>
-      </div>
-    </div>
+function useColumns(namespaceKind: NamespaceKind, namespaceId: string) {
+  return useMemo<TableColumnType<CertificateRef>[]>(
+    () => [
+      {
+        title: "ID",
+        render: (r) => <span className="font-mono">{r.id}</span>,
+      },
+      {
+        title: "Fingerprint (SHA-1)",
+        render: (r) => <span className="font-mono">{r.thumbprint}</span>,
+      },
+      {
+        title: "Date expires",
+        render: (r: CertificateRef) => (
+          <time
+            className="font-mono tabular-nums"
+            dateTime={r.notAfter.toISOString()}
+          >
+            {dateShortFormatter.format(r.notAfter)}
+          </time>
+        ),
+      },
+      {
+        title: "Status",
+        render: (r: CertificateRef) =>
+          r.isIssued ? (r.deleted ? "Disabled" : "Issued") : "Pending",
+      },
+      {
+        title: "Actions",
+        render: (r) => (
+          <Link
+            to={`/admin/${namespaceKind}/${namespaceId}/certificates/${r.id}`}
+          >
+            View
+          </Link>
+        ),
+      },
+    ],
+    [namespaceKind, namespaceId]
   );
 }
 
@@ -328,50 +188,20 @@ export default function CertificateTemplatePage() {
     },
     { refreshDeps: [namespaceId, templateId] }
   );
-
+  const columns = useColumns(namespaceKind, namespaceId);
   return (
     <>
-      <CCard>
-        <CCardTitle>Certificate template</CCardTitle>
-        <CCardSection>
-          <pre>
-            {namespaceKind}:{namespaceId}/cert-template:{templateId}
-          </pre>
-        </CCardSection>
-      </CCard>
-      <CCard>
-        <CCardSection>
-          <RefsTable
-            items={issuedCertificates}
-            title="Issued certificates"
-            tableActions={
-              <div>
-                <Link
-                  to={`/admin/${namespaceKind}/${namespaceId}/certificate-templates/${templateId}/certificates/${uuidNil}`}
-                  className="text-indigo-600 hover:text-indigo-900"
-                >
-                  View latest certificate
-                </Link>
-              </div>
-            }
-            columns={[
-              {
-                header: "Thumbprint",
-                render: (r) => r.thumbprint ?? "",
-                columnKey: "thumbprint",
-              },
-            ]}
-            refActions={(ref) => (
-              <Link
-                to={`/admin/${namespaceKind}/${namespaceId}/certificates/${ref.id}`}
-                className="text-indigo-600 hover:text-indigo-900"
-              >
-                View
-              </Link>
-            )}
-          />
-        </CCardSection>
-      </CCard>
+      <Typography.Title>Certificate template</Typography.Title>
+      <div className="font-mono">
+        {namespaceKind}:{namespaceId}/cert-template:{templateId}
+      </div>
+      <Card title="Issued certificates">
+        <Table<CertificateRef>
+          columns={columns}
+          dataSource={issuedCertificates}
+          rowKey={(r) => r.id}
+        />
+      </Card>
       <Card>
         <RequestCertificateControl
           namespaceId={namespaceId}
@@ -548,46 +378,41 @@ function KeyvaultRoleAssignmentsCard({
   );
 
   return (
-    <CCard>
-      <CCardTitle>Azure role assignments</CCardTitle>
-      <CCardSection>
-        <div>
-          <ButtonLegacy variant="primary" onClick={getRoleAssignments}>
-            Get current assignments
-          </ButtonLegacy>
-        </div>
-      </CCardSection>
-      <CCardSection>
-        <RefsTable
-          items={transformedRoleAssignments}
-          title="Role assignments"
-          columns={[displayNameColumn]}
-          refActions={(ref) => {
-            if (ref.assigned) {
-              return (
-                <ButtonLegacy
-                  color="danger"
-                  onClick={() => {
-                    removeRoleAssignment(ref.id);
-                  }}
-                >
-                  Remove Assignment
-                </ButtonLegacy>
-              );
-            } else {
-              return (
-                <ButtonLegacy
-                  onClick={() => {
-                    addRoleAssignment(ref.defId);
-                  }}
-                >
-                  Add Assignment
-                </ButtonLegacy>
-              );
-            }
-          }}
-        />
-      </CCardSection>
-    </CCard>
+    <Card title="Azure role assignments">
+      <div>
+        <Button type="primary" onClick={getRoleAssignments}>
+          Get current assignments
+        </Button>
+      </div>
+      <RefsTable
+        items={transformedRoleAssignments}
+        title="Role assignments"
+        columns={[displayNameColumn]}
+        refActions={(ref) => {
+          if (ref.assigned) {
+            return (
+              <Button
+                danger
+                onClick={() => {
+                  removeRoleAssignment(ref.id);
+                }}
+              >
+                Remove Assignment
+              </Button>
+            );
+          } else {
+            return (
+              <Button
+                onClick={() => {
+                  addRoleAssignment(ref.defId);
+                }}
+              >
+                Add Assignment
+              </Button>
+            );
+          }
+        }}
+      />
+    </Card>
   );
 }

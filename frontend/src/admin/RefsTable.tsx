@@ -57,10 +57,10 @@ export function RefsTable<T extends RefTableItem>(props: {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {items.map((r) => (
-                      <tr key={r.id}>
+                    {items.map((r, i) => (
+                      <tr key={r?.id ?? i}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                          <pre>{r.id}</pre>
+                          <pre>{r?.id}</pre>
                         </td>
                         {columns.map((c) => (
                           <td

@@ -52,27 +52,41 @@ export default function CertificatePage() {
         children: cert.id,
       },
       {
+        key: 7,
+        label: "Status",
+        children: cert.deleted
+          ? "Deleted"
+          : cert.isIssued
+          ? "Issued"
+          : "Pending",
+      },
+      {
         key: 1,
         label: "Common name",
         children: cert.subjectCommonName,
       },
       {
         key: 2,
+        label: "Issued",
+        children: cert.notBefore.toString(),
+      },
+      {
+        key: 3,
         label: "Expires",
         children: cert.notAfter.toString(),
       },
       {
-        key: 3,
+        key: 4,
         label: "Thumbprint SHA-1 hex",
         children: cert.thumbprint,
       },
       {
-        key: 4,
+        key: 5,
         label: "DNS Names",
         children: cert.subjectAlternativeNames?.dnsNames?.join(", "),
       },
       {
-        key: 5,
+        key: 6,
         label: "IP Addresses",
         children: cert.subjectAlternativeNames?.ipAddresses?.join(", "),
       },
