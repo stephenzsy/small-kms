@@ -67,6 +67,21 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
+  /v3/servicePrincipal/{namespaceId}/agent-proxy:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      description: Get agent proxy information
+      operationId: GetAgentProxyInfo
+      responses:
+        200:
+          description: DockerInfo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProxyInfo"
   /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -440,6 +455,26 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    AgentProxyEndpoint:
+      type: object
+      properties:
+        url:
+          type: string
+        ipUrl:
+          type: string
+        state:
+          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
+      required:
+        - url
+        - ipUrl
+        - state
+    AgentProxyInfo:
+      type: object
+      properties:
+        primary:
+          $ref: "#/components/schemas/AgentProxyEndpoint"
+        secondary:
+          $ref: "#/components/schemas/AgentProxyEndpoint"
     ProfileRefFields:
       type: object
       properties:

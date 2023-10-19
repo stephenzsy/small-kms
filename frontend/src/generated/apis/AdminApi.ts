@@ -18,6 +18,7 @@ import type {
   AgentConfigName,
   AgentConfiguration,
   AgentConfigurationParameters,
+  AgentProxyInfo,
   AzureRoleAssignment,
   CertificateInfo,
   CertificateRef,
@@ -39,6 +40,8 @@ import {
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
     AgentConfigurationParametersToJSON,
+    AgentProxyInfoFromJSON,
+    AgentProxyInfoToJSON,
     AzureRoleAssignmentFromJSON,
     AzureRoleAssignmentToJSON,
     CertificateInfoFromJSON,
@@ -110,6 +113,10 @@ export interface GetAgentConfigurationRequest {
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
     refreshToken?: string;
+}
+
+export interface GetAgentProxyInfoRequest {
+    namespaceId: string;
 }
 
 export interface GetCertificateRequest {
@@ -542,6 +549,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent proxy information
+     */
+    async getAgentProxyInfoRaw(requestParameters: GetAgentProxyInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProxyInfo>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentProxyInfo.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/servicePrincipal/{namespaceId}/agent-proxy`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProxyInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent proxy information
+     */
+    async getAgentProxyInfo(requestParameters: GetAgentProxyInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProxyInfo> {
+        const response = await this.getAgentProxyInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

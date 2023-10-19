@@ -36,6 +36,19 @@ const (
 	ServiceConfigPathKeyvaultArmResourceId  PatchServiceConfigParamsConfigPath = "keyvaultArmResourceId"
 )
 
+// AgentProxyEndpoint defines model for AgentProxyEndpoint.
+type AgentProxyEndpoint struct {
+	IpUrl string                                                     `json:"ipUrl"`
+	State externalRef0.AgentConfigurationAgentActiveServerReplyState `json:"state"`
+	Url   string                                                     `json:"url"`
+}
+
+// AgentProxyInfo defines model for AgentProxyInfo.
+type AgentProxyInfo struct {
+	Primary   *AgentProxyEndpoint `json:"primary,omitempty"`
+	Secondary *AgentProxyEndpoint `json:"secondary,omitempty"`
+}
+
 // AzureRoleAssignment defines model for AzureRoleAssignment.
 type AzureRoleAssignment struct {
 	Id               *string `json:"id,omitempty"`

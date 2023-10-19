@@ -8,6 +8,20 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
+// GetAgentProxyInfo implements models.ServerInterface.
+func (*server) GetAgentProxyInfo(ctx echo.Context, namespaceId shared.Identifier) error {
+	c := ctx.(RequestContext)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err := ns.WithNamespaceContext(c, shared.NamespaceKindServicePrincipal, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+
+	return wrapEchoResponse(c, agentconfig.ApiGetAgentProxyInfo(c))
+}
+
 func (*server) GetDockerInfo(ec echo.Context, namespaceId shared.Identifier) error {
 
 	c := ec.(RequestContext)

@@ -10,6 +10,8 @@ export * from './AgentConfigurationAgentActiveServerReply';
 export * from './AgentConfigurationAgentActiveServerReplyState';
 export * from './AgentConfigurationParameters';
 export * from './AgentHostRole';
+export * from './AgentProxyEndpoint';
+export * from './AgentProxyInfo';
 export * from './AzureRoleAssignment';
 export * from './CertificateInfo';
 export * from './CertificateInfoFields';

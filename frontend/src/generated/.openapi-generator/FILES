@@ -12,6 +12,8 @@ models/AgentConfigurationAgentActiveServerReply.ts
 models/AgentConfigurationAgentActiveServerReplyState.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
+models/AgentProxyEndpoint.ts
+models/AgentProxyInfo.ts
 models/AzureRoleAssignment.ts
 models/CertificateInfo.ts
 models/CertificateInfoFields.ts

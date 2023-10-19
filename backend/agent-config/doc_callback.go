@@ -8,6 +8,5 @@ import (
 type AgentCallbackDoc struct {
 	kmsdoc.BaseDoc
 
-	Name    shared.AgentConfigName   `json:"name"`    // for index only
-	Version kmsdoc.HexStringStroable `json:"version"` // version of the config after evaluation
+	Name shared.AgentConfigName `json:"name"` // for index only
 }

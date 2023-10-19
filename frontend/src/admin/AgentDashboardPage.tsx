@@ -1,9 +1,8 @@
-import { useParams } from "react-router-dom";
-import { Card, CardSection, CardTitle } from "../components/Card";
 import { useRequest } from "ahooks";
-import { Button } from "../components/Button";
-import { useAuthedClient } from "../utils/useCertsApi";
+import { Card, Typography } from "antd";
+import { useParams } from "react-router-dom";
 import { AdminApi } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 
 export default function AgentDashboardPage() {
   const { namespaceId } = useParams() as { namespaceId: string };
@@ -17,16 +16,17 @@ export default function AgentDashboardPage() {
     },
     { manual: true }
   );
+
+  const { data: proxyInfo } = useRequest(() => {
+    return client.getAgentProxyInfo({
+      namespaceId,
+    });
+  }, {});
   return (
     <>
-      <h1>Agent Dashboard</h1>
-      <Card>
-        <CardTitle>Start</CardTitle>
-        <CardSection>
-          <Button onClick={run} variant="primary">
-            Start
-          </Button>
-        </CardSection>
+      <Typography.Title>Agent Dashboard</Typography.Title>
+      <Card title="Agent proxy information">
+        <pre>{JSON.stringify(proxyInfo, undefined, 2)}</pre>
       </Card>
     </>
   );
