@@ -192,6 +192,7 @@ func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
 		}
 		cert.KeyUsage |= x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature
 	} else {
+		cert.KeyUsage |= x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment
 		if usageSet.Contains(shared.CertUsageClientAuth) {
 			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
 		}
