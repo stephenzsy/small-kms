@@ -28,6 +28,13 @@ func (l locator[NK, K]) String() string {
 	return fmt.Sprintf("%s/%s", l.nsID, l.id)
 }
 
+func (l *locator[NK, K]) IsNilOrEmpty() bool {
+	if l == nil {
+		return true
+	}
+	return l.nsID.IsNilEmpty() && l.id.IsNilEmpty()
+}
+
 // MarshalText implements encoding.TextMarshaler.
 func (l locator[NK, K]) MarshalText() ([]byte, error) {
 	nsBytes, err := l.nsID.MarshalText()

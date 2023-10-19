@@ -152,11 +152,11 @@ func GetAuthorizedLatestCertByTemplateID(c context.Context, templateID shared.Id
 	}
 	patchOps := azcosmos.PatchOperations{}
 	if targetCertDoc.Owns == nil {
-		patchOps.AppendSet(kmsdoc.PathPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
+		patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
 			nsID: linkedCertDoc.GetLocator(),
 		})
 	} else {
-		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PathPathOwns, nsID), linkedCertDoc.GetLocator())
+		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), linkedCertDoc.GetLocator())
 	}
 	err = kmsdoc.Patch(eCtx, targetCertDoc, patchOps, &azcosmos.ItemOptions{
 		IfMatchEtag: &targetCertDoc.ETag,

@@ -3,8 +3,7 @@ import { AdminApi, NamespaceKind } from "../generated";
 import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemo } from "react";
-import { Button } from "../components/Button";
-import { Card, Descriptions, DescriptionsProps } from "antd";
+import { Button, Card, Descriptions, DescriptionsProps } from "antd";
 
 export default function CertificatePage() {
   const {
@@ -86,10 +85,9 @@ export default function CertificatePage() {
         <Descriptions items={certDescItems} column={1} />
       </Card>
       <Card title="Actions">
-        {cert && !cert.isIssued && !deleted && (
+        {cert && !cert.deleted && !deleted && (
           <Button
-            variant="soft"
-            color="danger"
+            danger
             onClick={() => {
               deleteCert();
             }}

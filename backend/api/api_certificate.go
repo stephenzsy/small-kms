@@ -91,20 +91,15 @@ func (s *server) ListCertificatesByTemplate(ec echo.Context,
 
 // DeleteCertificate implements models.ServerInterface.
 func (*server) DeleteCertificate(ctx echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, certificateId shared.Identifier) error {
-	bad := func(e error) error {
-		return wrapResponse[any](ctx, http.StatusNoContent, nil, e)
-	}
 	c := ctx.(RequestContext)
 
 	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
+		return wrapEchoResponse(c, err)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
-		return bad(err)
+		return wrapEchoResponse(c, err)
 	}
 
-	err = cert.DeleteCertificate(c, certificateId)
-
-	return wrapResponse[any](ctx, http.StatusNoContent, nil, err)
+	return wrapEchoResponse(c, cert.ApiDeleteCertificate(c, certificateId))
 }

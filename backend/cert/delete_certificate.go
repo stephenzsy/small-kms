@@ -2,14 +2,81 @@ package cert
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-func DeleteCertificate(c RequestContext, certificateId shared.Identifier) error {
+func deleteCertificate(c RequestContext, certDoc *CertDoc) error {
+	if certDoc.Status != CertStatusIssued {
+		return kmsdoc.Delete(c, certDoc)
+	} else if certDoc.Owner != nil && !certDoc.Owner.IsNilOrEmpty() {
+		c := c.Elevate()
+		err := kmsdoc.Delete(c, certDoc)
+		if err != nil {
+			return err
+		}
+
+		patchOps := azcosmos.PatchOperations{}
+		patchOps.AppendRemove(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, certDoc.NamespaceID))
+		return kmsdoc.Patch(c, certDoc, patchOps, nil)
+	} else {
+		c := c.Elevate()
+		patchOps := azcosmos.PatchOperations{}
+		if len(certDoc.Owns) > 0 {
+			for _, certLocator := range certDoc.Owns {
+				err := kmsdoc.DeleteByRef(c, certLocator)
+				if err != nil {
+					return err
+				}
+			}
+			patchOps.AppendRemove(kmsdoc.PatchPathOwns)
+		}
+		// disable in keyvault
+		kid := certDoc.CertSpec.KID
+		if kid != "" {
+			if certDoc.NamespaceID.Kind() == shared.NamespaceKindCaRoot {
+				kid := azkeys.ID(kid)
+				// disable key
+				_, err := common.GetAdminServerClientProvider(c).AzKeysClient().UpdateKey(c, kid.Name(), kid.Version(), azkeys.UpdateKeyParameters{
+					KeyAttributes: &azkeys.KeyAttributes{
+						Enabled: to.Ptr(false),
+					},
+				}, nil)
+				if err != nil {
+					return err
+				}
+			} else {
+				kid := azcertificates.ID(kid)
+				_, err := common.GetAdminServerClientProvider(c).AzCertificatesClient().UpdateCertificate(c, kid.Name(), kid.Version(), azcertificates.UpdateCertificateParameters{
+					CertificateAttributes: &azcertificates.CertificateAttributes{
+						Enabled: to.Ptr(false),
+					},
+				}, nil)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		patchOps.AppendSet(kmsdoc.PatchPathDeleted, time.Now().UTC().Format(time.RFC3339))
+		err := kmsdoc.Patch(c, certDoc, patchOps, nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ApiDeleteCertificate(c RequestContext, certificateId shared.Identifier) error {
 	if !certificateId.IsUUID() {
 		return fmt.Errorf("%w: invalid certificate ID for delete: %s", common.ErrStatusBadRequest, certificateId)
 	}
@@ -26,9 +93,9 @@ func DeleteCertificate(c RequestContext, certificateId shared.Identifier) error 
 		return err
 	}
 
-	if certDoc.Status == CertStatusIssued {
-		return fmt.Errorf("%w: cannot delete issued certificate", common.ErrStatusBadRequest)
+	err = deleteCertificate(c, certDoc)
+	if err != nil {
+		return err
 	}
-
-	return kmsdoc.DeleteByRef(c, certDocLocator)
+	return c.NoContent(http.StatusNoContent)
 }

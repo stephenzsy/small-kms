@@ -175,6 +175,13 @@ func (d identifierWithKind[K]) MarshalText() (text []byte, err error) {
 	return bytes.Join([][]byte{kindBytes, identifierBytes}, []byte(":")), err
 }
 
+func (d *identifierWithKind[K]) IsNilEmpty() bool {
+	if d == nil {
+		return true
+	}
+	return d.kind == "" || d.identifier.IsNilOrEmpty()
+}
+
 func (d *identifierWithKind[K]) UnmarshalText(text []byte) (err error) {
 	l := bytes.SplitN(text, []byte(":"), 2)
 	if len(l) != 2 {

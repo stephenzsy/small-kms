@@ -19,7 +19,7 @@ func createTemplateLinkIdentifier(target shared.ResourceLocator) shared.Resource
 		shared.UUIDIdentifier(newIdentifierUuid))
 }
 
-func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, usage models.LinkedCertificateTemplateUsage) (*CertificateTemplateDoc, error) {
+func createLinkedCertificateTemplate(c RequestContext, target shared.ResourceLocator, usage models.LinkedCertificateTemplateUsage) (*CertificateTemplateDoc, error) {
 	if target.GetID().Identifier().IsUUID() && target.GetID().Identifier().UUID().Version() == 5 {
 		return nil, fmt.Errorf("%w:cannot create a link to another link", common.ErrStatusBadRequest)
 	}
@@ -52,11 +52,11 @@ func createLinkedCertificate(c RequestContext, target shared.ResourceLocator, us
 	}
 	patchOps := azcosmos.PatchOperations{}
 	if doc.Owns == nil {
-		patchOps.AppendSet(kmsdoc.PathPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
+		patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
 			nsID: tDoc.GetLocator(),
 		})
 	} else {
-		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PathPathOwns, nsID), tDoc.GetLocator())
+		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), tDoc.GetLocator())
 	}
 	err = kmsdoc.Patch(eCtx, doc, patchOps, &azcosmos.ItemOptions{
 		IfMatchEtag: &doc.ETag,
@@ -71,7 +71,7 @@ func ApiCreateLinkedCertificateTemplate(c RequestContext, params models.CreateLi
 	default:
 		return fmt.Errorf("%w: invalid usage: %s", common.ErrStatusBadRequest, params.Usage)
 	}
-	template, err := createLinkedCertificate(c, params.TargetTemplate, params.Usage)
+	template, err := createLinkedCertificateTemplate(c, params.TargetTemplate, params.Usage)
 	if err != nil {
 		return err
 	}
