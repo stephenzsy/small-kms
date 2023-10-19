@@ -186,7 +186,7 @@ func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
 	if usageSet.Contains(shared.CertUsageCA) {
 		cert.BasicConstraintsValid = true
 		cert.IsCA = true
-		if !usageSet.Contains(shared.CertUsageCARoot) {
+		if usageSet.Contains(shared.CertUsageCARoot) {
 			cert.MaxPathLen = 1
 		} else {
 			cert.MaxPathLenZero = true
