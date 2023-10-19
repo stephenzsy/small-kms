@@ -1,5 +1,6 @@
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Layout } from "antd";
 import classNames from "classnames";
 import type { PropsWithChildren } from "react";
 import { Fragment, useMemo } from "react";
@@ -7,7 +8,7 @@ import { Link, useMatches } from "react-router-dom";
 import { useAppAuthContext } from "./auth/AuthProvider";
 import { RouteIds } from "./route-constants";
 
-export default function Layout(props: PropsWithChildren<{}>) {
+export default function AppLayout(props: PropsWithChildren<{}>) {
   const { account, logout } = useAppAuthContext();
   const matches = useMatches();
   const isCurrentRouteHome = useMemo(() => {
@@ -36,17 +37,9 @@ export default function Layout(props: PropsWithChildren<{}>) {
   }
 
   return (
-    <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
-      <div className="min-h-full">
-        <Disclosure as="nav" className="bg-gray-800">
+    <Layout className="min-h-full">
+      <Layout.Header>
+        <Disclosure as="nav">
           {({ open }) => (
             <>
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -214,9 +207,8 @@ export default function Layout(props: PropsWithChildren<{}>) {
             </>
           )}
         </Disclosure>
-
-        {props.children}
-      </div>
-    </>
+      </Layout.Header>
+      <Layout.Content>{props.children}</Layout.Content>
+    </Layout>
   );
 }

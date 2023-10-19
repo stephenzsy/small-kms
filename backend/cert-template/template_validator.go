@@ -147,13 +147,13 @@ func (doc *CertificateTemplateDoc) computeFieldsDigest() []byte {
 		digest.Write([]byte(string(*doc.KeySpec.Crv)))
 	}
 	if doc.SANs != nil {
-		for _, san := range doc.SANs.DnsNames {
+		for _, san := range doc.SANs.DNSNames {
 			digest.Write([]byte(san))
 		}
 		for _, san := range doc.SANs.Emails {
 			digest.Write([]byte(san))
 		}
-		for _, san := range doc.SANs.IpAddresses {
+		for _, san := range doc.SANs.IPAddresses {
 			digest.Write(san)
 		}
 	}

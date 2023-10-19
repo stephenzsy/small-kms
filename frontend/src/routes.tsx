@@ -5,7 +5,7 @@ import { NamespaceContextProvider } from "./admin/NamespaceContext";
 import AdminPage from "./admin/Page";
 import RegisterPage from "./admin/RegisterPage";
 import { AuthProvider } from "./auth/AuthProvider";
-import Layout from "./Layout";
+import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
@@ -27,11 +27,11 @@ export const router = createBrowserRouter([
     path: "/",
     element: (
       <AuthProvider>
-        <Layout>
+        <AppLayout>
           <React.Suspense>
             <Outlet />
           </React.Suspense>
-        </Layout>
+        </AppLayout>
       </AuthProvider>
     ),
     children: [

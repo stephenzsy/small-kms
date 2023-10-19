@@ -1,9 +1,9 @@
 import { useMemoizedFn, useRequest, useSet } from "ahooks";
-import { Card } from "antd";
+import { Button, Card, Checkbox } from "antd";
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { Button } from "../components/Button";
+import { Button as ButtonLegacy } from "../components/Button";
 import {
   Card as CCard,
   CardSection as CCardSection,
@@ -13,10 +13,8 @@ import { WellknownId, uuidNil } from "../constants";
 import {
   AdminApi,
   CertificateTemplate,
-  CertificateTemplateParameters,
   CertificateUsage,
   NamespaceKind,
-  ResponseError,
 } from "../generated";
 import {
   ValueState,
@@ -222,13 +220,13 @@ function SANList({
           {items.map((item) => (
             <li key={item} className="flex justify-between gap-x-6 p-4">
               <span>{item}</span>
-              <Button
+              <ButtonLegacy
                 onClick={() => {
                   removeSan(item);
                 }}
               >
                 Remove
-              </Button>
+              </ButtonLegacy>
             </li>
           ))}
         </ul>
@@ -245,7 +243,7 @@ function SANList({
             }}
           />
         </div>
-        <Button
+        <ButtonLegacy
           variant="primary"
           className="flex-0"
           onClick={() => {
@@ -256,7 +254,7 @@ function SANList({
           }}
         >
           Add
-        </Button>
+        </ButtonLegacy>
       </div>
     </div>
   );
@@ -320,17 +318,6 @@ export default function CertificateTemplatePage() {
 
   const adminApi = useAuthedClient(AdminApi);
 
-  const { run: issueCert } = useRequest(
-    async () => {
-      await adminApi.issueCertificateFromTemplate({
-        namespaceId,
-        templateId,
-        namespaceKind,
-      });
-    },
-    { manual: true }
-  );
-
   const { data: issuedCertificates } = useRequest(
     () => {
       return adminApi.listCertificatesByTemplate({
@@ -385,11 +372,13 @@ export default function CertificateTemplatePage() {
           />
         </CCardSection>
       </CCard>
-      <div className="rounded-lg bg-white shadow p-6 space-y-6">
-        <Button variant="primary" onClick={issueCert}>
-          Request certificate
-        </Button>
-      </div>
+      <Card>
+        <RequestCertificateControl
+          namespaceId={namespaceId}
+          namespaceKind={namespaceKind}
+          templateId={templateId}
+        />
+      </Card>
       <Card title="Certificate template">
         <CertTemplateForm
           namespaceId={namespaceId}
@@ -406,6 +395,51 @@ export default function CertificateTemplatePage() {
         />
       )}
     </>
+  );
+}
+
+function RequestCertificateControl({
+  namespaceId,
+  namespaceKind,
+  templateId,
+}: {
+  namespaceId: string;
+  namespaceKind: NamespaceKind;
+  templateId: string;
+}) {
+  const adminApi = useAuthedClient(AdminApi);
+  const [force, setForce] = useState(false);
+  const { run: issueCert } = useRequest(
+    async (force: boolean) => {
+      await adminApi.issueCertificateFromTemplate({
+        namespaceId,
+        templateId,
+        namespaceKind,
+        force,
+      });
+    },
+    { manual: true }
+  );
+
+  return (
+    <div className="flex gap-8 items-center">
+      <Button
+        type="primary"
+        onClick={() => {
+          issueCert(force);
+        }}
+      >
+        Request certificate
+      </Button>
+      <Checkbox
+        checked={force}
+        onChange={(e) => {
+          setForce(e.target.checked);
+        }}
+      >
+        Force
+      </Checkbox>
+    </div>
   );
 }
 
@@ -518,9 +552,9 @@ function KeyvaultRoleAssignmentsCard({
       <CCardTitle>Azure role assignments</CCardTitle>
       <CCardSection>
         <div>
-          <Button variant="primary" onClick={getRoleAssignments}>
+          <ButtonLegacy variant="primary" onClick={getRoleAssignments}>
             Get current assignments
-          </Button>
+          </ButtonLegacy>
         </div>
       </CCardSection>
       <CCardSection>
@@ -531,24 +565,24 @@ function KeyvaultRoleAssignmentsCard({
           refActions={(ref) => {
             if (ref.assigned) {
               return (
-                <Button
+                <ButtonLegacy
                   color="danger"
                   onClick={() => {
                     removeRoleAssignment(ref.id);
                   }}
                 >
                   Remove Assignment
-                </Button>
+                </ButtonLegacy>
               );
             } else {
               return (
-                <Button
+                <ButtonLegacy
                   onClick={() => {
                     addRoleAssignment(ref.defId);
                   }}
                 >
                   Add Assignment
-                </Button>
+                </ButtonLegacy>
               );
             }
           }}

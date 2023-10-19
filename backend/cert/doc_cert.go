@@ -45,19 +45,20 @@ type CertDoc struct {
 	Status CertificateStatus `json:"status"` // certificate status
 
 	// X509 certificate info
-	SerialNumber      SerialNumberStorable          `json:"serialNumber"`
-	SubjectCommonName string                        `json:"subjectCommonName"`
-	NotBefore         kmsdoc.TimeStorable           `json:"notBefore"`
-	NotAfter          kmsdoc.TimeStorable           `json:"notAfter"`
-	Usages            []shared.CertificateUsage     `json:"usages"`
-	CertSpec          CertJwkSpec                   `json:"certSpec"`
-	KeyStorePath      *string                       `json:"keyStorePath,omitempty"`
-	CertStorePath     string                        `json:"certStorePath"` // certificate storage path in blob storage
-	Thumbprint        shared.CertificateFingerprint `json:"thumbprint"`
-	PendingExpires    *kmsdoc.TimeStorable          `json:"pendingExpires"` // pending status expires time
-	TemplateDigest    kmsdoc.HexStringStroable      `json:"templateDigest"` // copied from template doc
-	Template          shared.ResourceLocator        `json:"template"`       // locator for certificate template doc
-	Issuer            shared.ResourceLocator        `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
+	SerialNumber      SerialNumberStorable            `json:"serialNumber"`
+	SubjectCommonName string                          `json:"subjectCommonName"`
+	NotBefore         kmsdoc.TimeStorable             `json:"notBefore"`
+	NotAfter          kmsdoc.TimeStorable             `json:"notAfter"`
+	Usages            []shared.CertificateUsage       `json:"usages"`
+	CertSpec          CertJwkSpec                     `json:"certSpec"`
+	KeyStorePath      *string                         `json:"keyStorePath,omitempty"`
+	CertStorePath     string                          `json:"certStorePath"` // certificate storage path in blob storage
+	Thumbprint        shared.CertificateFingerprint   `json:"thumbprint"`
+	PendingExpires    *kmsdoc.TimeStorable            `json:"pendingExpires"` // pending status expires time
+	TemplateDigest    kmsdoc.HexStringStroable        `json:"templateDigest"` // copied from template doc
+	Template          shared.ResourceLocator          `json:"template"`       // locator for certificate template doc
+	Issuer            shared.ResourceLocator          `json:"issuer"`         // locator for certificate doc for the actual issuer certificate
+	SANs              *shared.SubjectAlternativeNames `json:"sans,omitempty"` // subject alternative names
 }
 
 // SnapshotWithNewLocator implements kmsdoc.KmsDocumentSnapshotable.
@@ -166,6 +167,7 @@ func prepareNewCertDoc(nsID shared.NamespaceIdentifier,
 		NotBefore:      kmsdoc.TimeStorable(now),
 		NotAfter:       kmsdoc.TimeStorable(now.AddDate(0, int(tmpl.ValidityInMonths), 0)),
 		TemplateDigest: tmpl.Digest,
+		SANs:           tmpl.SANs,
 	}
 
 	return &doc, nil
@@ -196,6 +198,11 @@ func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
 		if usageSet.Contains(shared.CertUsageServerAuth) {
 			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
 		}
+	}
+	if doc.SANs != nil {
+		cert.DNSNames = doc.SANs.DNSNames
+		cert.IPAddresses = doc.SANs.IPAddresses
+		cert.EmailAddresses = doc.SANs.Emails
 	}
 	return &cert, nil
 }
@@ -231,6 +238,7 @@ func (d *CertDoc) toModel() *shared.CertificateInfo {
 	d.CertSpec.PopulateKeyProperties(&r.Jwk)
 	r.NotBefore = d.NotBefore.Time()
 	r.Usages = d.Usages
+	r.SubjectAlternativeNames = d.SANs
 	return r
 }
 

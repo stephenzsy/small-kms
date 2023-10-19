@@ -410,12 +410,14 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
+          x-go-name: DNSNames
         ipAddresses:
           type: array
           items:
             type: string
             x-go-type: net.IP
           x-go-type-skip-optional-pointer: true
+          x-go-name: IPAddresses
         emails:
           type: array
           items:

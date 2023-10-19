@@ -53,9 +53,9 @@ func SanitizeIpAddresses(ips []net.IP) []net.IP {
 
 func (sans *SubjectAlternativeNames) Sanitize() *SubjectAlternativeNames {
 	if sans != nil {
-		sans.DnsNames = SanitizeDNSNames(sans.DnsNames)
+		sans.DNSNames = SanitizeDNSNames(sans.DNSNames)
 		sans.Emails = SanitizeEmailAddresses(sans.Emails)
-		sans.IpAddresses = SanitizeIpAddresses(sans.IpAddresses)
+		sans.IPAddresses = SanitizeIpAddresses(sans.IPAddresses)
 	}
 	return sans
 }

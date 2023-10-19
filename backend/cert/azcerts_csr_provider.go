@@ -55,7 +55,7 @@ func (p *azCertsCsrProvider) CollectCertificateChain(c context.Context, x5c [][]
 	return nil
 }
 
-func (p *azCertsCsrProvider) createCert(c context.Context, selfSigned bool) (resp azcertificates.CreateCertificateResponse, err error) {
+func (p *azCertsCsrProvider) createCert(c context.Context) (resp azcertificates.CreateCertificateResponse, err error) {
 	bad := func(e error) (azcertificates.CreateCertificateResponse, error) {
 		return azcertificates.CreateCertificateResponse{}, e
 	}
@@ -98,9 +98,11 @@ func (p *azCertsCsrProvider) createCert(c context.Context, selfSigned bool) (res
 			},
 		},
 	}
-	if selfSigned {
-		csp.CertificatePolicy.IssuerParameters = &azcertificates.IssuerParameters{
-			Name: utils.ToPtr("Self"),
+
+	if p.certDoc.SANs != nil {
+		csp.CertificatePolicy.X509CertificateProperties.SubjectAlternativeNames = &azcertificates.SubjectAlternativeNames{
+			DNSNames: to.SliceOfPtrs(p.certDoc.SANs.DNSNames...),
+			Emails:   to.SliceOfPtrs(p.certDoc.SANs.Emails...),
 		}
 	}
 
@@ -116,7 +118,7 @@ func (p *azCertsCsrProvider) Load(c context.Context) (certTemplate *x509.Certifi
 		return nil, nil, nil, e
 	}
 
-	resp, err := p.createCert(c, false)
+	resp, err := p.createCert(c)
 	if err != nil {
 		return bad(err)
 	}

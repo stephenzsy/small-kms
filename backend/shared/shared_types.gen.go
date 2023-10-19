@@ -292,9 +292,9 @@ type ServiceRuntimeInfo struct {
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
-	DnsNames    []string `json:"dnsNames,omitempty"`
+	DNSNames    []string `json:"dnsNames,omitempty"`
 	Emails      []string `json:"emails,omitempty"`
-	IpAddresses []net.IP `json:"ipAddresses,omitempty"`
+	IPAddresses []net.IP `json:"ipAddresses,omitempty"`
 }
 
 // TemplatedCertificateTag defines model for TemplatedCertificateTag.

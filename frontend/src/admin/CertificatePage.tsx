@@ -1,10 +1,10 @@
-import { Card, CardSection, CardTitle } from "../components/Card";
 import { Link, useParams } from "react-router-dom";
 import { AdminApi, NamespaceKind } from "../generated";
 import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemo } from "react";
 import { Button } from "../components/Button";
+import { Card, Descriptions, DescriptionsProps } from "antd";
 
 export default function CertificatePage() {
   const {
@@ -42,40 +42,61 @@ export default function CertificatePage() {
     { manual: true }
   );
 
+  const certDescItems = useMemo((): DescriptionsProps["items"] => {
+    if (!cert) {
+      return undefined;
+    }
+    return [
+      {
+        key: 0,
+        label: "ID",
+        children: cert.id,
+      },
+      {
+        key: 1,
+        label: "Common name",
+        children: cert.subjectCommonName,
+      },
+      {
+        key: 2,
+        label: "Expires",
+        children: cert.notAfter.toString(),
+      },
+      {
+        key: 3,
+        label: "Thumbprint SHA-1 hex",
+        children: cert.thumbprint,
+      },
+      {
+        key: 4,
+        label: "DNS Names",
+        children: cert.subjectAlternativeNames?.dnsNames?.join(", "),
+      },
+      {
+        key: 5,
+        label: "IP Addresses",
+        children: cert.subjectAlternativeNames?.ipAddresses?.join(", "),
+      },
+    ];
+  }, [cert]);
+
   return (
     <>
-      <Card>
-        <CardTitle description={cert?.id}>Certificate</CardTitle>
-        <dl>
-          <CardSection>
-            <dt className="font-medium">Common name</dt>
-            <dd>{cert?.subjectCommonName}</dd>
-          </CardSection>
-          <CardSection>
-            <dt className="font-medium">Expires</dt>
-            <dd>{cert?.notAfter.toString()}</dd>
-          </CardSection>
-          <CardSection>
-            <dt className="font-medium">Thumbprint SHA-1 hex</dt>
-            <dd>{cert?.thumbprint}</dd>
-          </CardSection>
-        </dl>
+      <Card title="Certificate">
+        <Descriptions items={certDescItems} column={1} />
       </Card>
-      <Card>
-        <CardTitle>Actions</CardTitle>
-        <CardSection>
-          {cert && !cert.isIssued && !deleted && (
-            <Button
-              variant="soft"
-              color="danger"
-              onClick={() => {
-                deleteCert();
-              }}
-            >
-              {deleteLoading ? "Deleting...." : "Delete"}
-            </Button>
-          )}
-        </CardSection>
+      <Card title="Actions">
+        {cert && !cert.isIssued && !deleted && (
+          <Button
+            variant="soft"
+            color="danger"
+            onClick={() => {
+              deleteCert();
+            }}
+          >
+            {deleteLoading ? "Deleting...." : "Delete"}
+          </Button>
+        )}
       </Card>
     </>
   );

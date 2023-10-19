@@ -24,10 +24,12 @@ function CertTemplateSanListFormItem({
   label,
   fieldName,
   placeholder,
+  addLabel = "+ Add",
 }: {
   label: React.ReactNode;
   fieldName: keyof FieldType;
   placeholder?: string;
+  addLabel?: string;
 }) {
   return (
     <Form.Item<FieldType> label={label}>
@@ -54,7 +56,7 @@ function CertTemplateSanListFormItem({
               </div>
             ))}
             <Button type="dashed" onClick={() => subOpt.add()} block>
-              + Add
+              {addLabel}
             </Button>
           </div>
         )}
@@ -180,16 +182,19 @@ export function CertTemplateForm({
           label="DNS Names"
           fieldName="sanDnsNames"
           placeholder="example.com"
+          addLabel="+ Add DNS name"
         />
         <CertTemplateSanListFormItem
           label="IPs"
           fieldName="sanIps"
           placeholder="127.0.0.1"
+          addLabel="+ Add IP"
         />
         <CertTemplateSanListFormItem
           label="Emails"
           fieldName="sanEmails"
           placeholder="me@example.com"
+          addLabel="+ Add email"
         />
         <Form.Item<FieldType> name="validityInMonths" label="Validity">
           <InputNumber
