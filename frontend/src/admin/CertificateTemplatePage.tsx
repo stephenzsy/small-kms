@@ -320,34 +320,6 @@ export default function CertificateTemplatePage() {
 
   const adminApi = useAuthedClient(AdminApi);
 
-  const { data, loading, run } = useRequest(
-    async (p?: CertificateTemplateParameters) => {
-      if (!p) {
-        try {
-          return await adminApi.getCertificateTemplate({
-            namespaceKind,
-            namespaceId,
-            templateId,
-          });
-        } catch (e) {
-          if (e instanceof ResponseError && e.response.status === 404) {
-            return undefined;
-          }
-          throw e;
-        }
-      } else {
-        adminApi;
-        return await adminApi.putCertificateTemplate({
-          namespaceId,
-          templateId,
-          namespaceKind,
-          certificateTemplateParameters: p,
-        });
-      }
-    },
-    { refreshDeps: [namespaceId, templateId] }
-  );
-
   const { run: issueCert } = useRequest(
     async () => {
       await adminApi.issueCertificateFromTemplate({
@@ -357,26 +329,6 @@ export default function CertificateTemplatePage() {
       });
     },
     { manual: true }
-  );
-
-  const state = useCertificateTemplateFormState(
-    data,
-    namespaceKind,
-    namespaceId,
-    templateId
-  );
-
-  const onSubmit = useMemoizedFn<React.FormEventHandler<HTMLFormElement>>(
-    (e) => {
-      e.preventDefault();
-
-      run({
-        subjectCommonName: state.subjectCN.value,
-        usages: [...state.certUsages.value],
-        keyStorePath: state.keyStorePath.value,
-        validityMonths: state.validityInMonths,
-      });
-    }
   );
 
   const { data: issuedCertificates } = useRequest(
@@ -438,16 +390,6 @@ export default function CertificateTemplatePage() {
           Request certificate
         </Button>
       </div>
-      <div className="rounded-lg bg-white shadow p-6 space-y-6">
-        <h2>Current policy</h2>
-        {loading ? (
-          <div>Loading...</div>
-        ) : data ? (
-          <pre>{JSON.stringify(data, undefined, 2)}</pre>
-        ) : (
-          <div>Not found</div>
-        )}
-      </div>
       <Card title="Certificate template">
         <CertTemplateForm
           namespaceId={namespaceId}
@@ -455,21 +397,6 @@ export default function CertificateTemplatePage() {
           templateId={templateId}
         />
       </Card>
-      <form
-        className="divide-y-2 divide-neutral-500 overflow-hidden rounded-lg bg-white shadow p-6 space-y-6"
-        onSubmit={onSubmit}
-      >
-        <CertificateTemplatesForm
-          templateId={templateId}
-          nsKind={namespaceKind}
-          {...state}
-        />
-        <div className="pt-6 flex flex-row items-center gap-x-6 justify-end">
-          <Button variant="primary" type="submit">
-            Create or Update
-          </Button>
-        </div>
-      </form>
       {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
         <KeyvaultRoleAssignmentsCard
           namespaceId={namespaceId}

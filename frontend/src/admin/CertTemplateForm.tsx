@@ -1,22 +1,15 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Button, Checkbox, Form, Input, InputNumber } from "antd";
+import { useMemoizedFn, useRequest } from "ahooks";
+import { Alert, Button, Form, Input, InputNumber } from "antd";
 import { useForm } from "antd/es/form/Form";
-import React from "react";
-import { useAuthedClient } from "../utils/useCertsApi";
+import React, { useEffect, useMemo } from "react";
 import {
   AdminApi,
+  CertificateUsage,
   NamespaceKind,
   PutCertificateTemplateRequest,
 } from "../generated";
-import { useRequest } from "ahooks";
-
-const onFinish = (values: any) => {
-  console.log("Success:", values);
-};
-
-const onFinishFailed = (errorInfo: any) => {
-  console.log("Failed:", errorInfo);
-};
+import { useAuthedClient } from "../utils/useCertsApi";
 
 type FieldType = {
   subjectCN?: string;
@@ -24,7 +17,7 @@ type FieldType = {
   sanEmails?: string[];
   sanIps?: string[];
   validityInMonths?: number;
-  remember?: string;
+  keyStorePath?: string;
 };
 
 function CertTemplateSanListFormItem({
@@ -82,7 +75,7 @@ export function CertTemplateForm({
   const adminApi = useAuthedClient(AdminApi);
   const [form] = useForm<FieldType>();
 
-  const { data, run } = useRequest(
+  const { data, run, error, loading } = useRequest(
     async (putReq?: PutCertificateTemplateRequest) => {
       if (putReq) {
         return await adminApi.putCertificateTemplate(putReq);
@@ -97,58 +90,131 @@ export function CertTemplateForm({
     {}
   );
 
+  const onReset = useMemoizedFn(() => {
+    if (data) {
+      form.setFieldsValue({
+        subjectCN: data.subjectCommonName,
+        sanDnsNames: data.subjectAlternativeNames?.dnsNames,
+        sanEmails: data.subjectAlternativeNames?.emails,
+        sanIps: data.subjectAlternativeNames?.ipAddresses,
+        validityInMonths: data.validityMonths,
+        keyStorePath: data.keyStorePath,
+      });
+    }
+  });
+
+  const certUsages = useMemo((): Set<CertificateUsage> | undefined => {
+    return namespaceKind == NamespaceKind.NamespaceKindCaRoot
+      ? new Set([
+          CertificateUsage.CertUsageCA,
+          CertificateUsage.CertUsageCARoot,
+        ])
+      : namespaceKind == NamespaceKind.NamespaceKindCaInt
+      ? new Set([CertificateUsage.CertUsageCA])
+      : templateId == "default-ms-entra-client-creds"
+      ? new Set([
+          CertificateUsage.CertUsageServerAuth,
+          CertificateUsage.CertUsageClientAuth,
+        ])
+      : undefined;
+  }, []);
+
+  const onFinish = useMemoizedFn((values: FieldType) => {
+    run({
+      namespaceId,
+      namespaceKind,
+      templateId,
+      certificateTemplateParameters: {
+        subjectCommonName: values.subjectCN!,
+        subjectAlternativeNames: {
+          dnsNames: values.sanDnsNames,
+          emails: values.sanEmails,
+          ipAddresses: values.sanIps,
+        },
+        validityMonths: values.validityInMonths,
+        usages: [...(certUsages ?? [])],
+        keyStorePath: values.keyStorePath,
+      },
+    });
+  });
+
+  const onFinishFailed = (errorInfo: any) => {
+    console.log("Failed:", errorInfo);
+  };
+
+  useEffect(() => {
+    onReset();
+  }, [data]);
+
   return (
-    <Form
-      form={form}
-      labelCol={{ span: 8 }}
-      wrapperCol={{ span: 16 }}
-      style={{ maxWidth: 600 }}
-      initialValues={{ remember: true }}
-      onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
-      autoComplete="off"
-    >
-      <Form.Item<FieldType>
-        label="Subject common name (CN)"
-        name="subjectCN"
-        rules={[{ required: true, message: "Please enter a common name!" }]}
+    <>
+      <div className="mb-4 bg-neutral-200 ring-1 ring-neutral-500 px-4 overflow-auto">
+        {loading ? (
+          <div>Loading...</div>
+        ) : data ? (
+          <pre>{JSON.stringify(data, undefined, 2)}</pre>
+        ) : (
+          <div>Not found</div>
+        )}
+      </div>
+      <Form
+        form={form}
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 16 }}
+        style={{ maxWidth: 600 }}
+        initialValues={{ remember: true }}
+        onFinish={onFinish}
+        onFinishFailed={onFinishFailed}
+        autoComplete="off"
       >
-        <Input placeholder="example.com" />
-      </Form.Item>
+        {error && <Alert message={error.message} type="error" showIcon />}
+        <Form.Item<FieldType>
+          label="Subject common name (CN)"
+          name="subjectCN"
+          rules={[{ required: true, message: "Please enter a common name!" }]}
+        >
+          <Input placeholder="example.com" />
+        </Form.Item>
 
-      <CertTemplateSanListFormItem
-        label="DNS Names"
-        fieldName="sanDnsNames"
-        placeholder="example.com"
-      />
-      <CertTemplateSanListFormItem
-        label="IPs"
-        fieldName="sanIps"
-        placeholder="127.0.0.1"
-      />
-      <CertTemplateSanListFormItem
-        label="Emails"
-        fieldName="sanEmails"
-        placeholder="me@example.com"
-      />
-      <Form.Item<FieldType> name="validityInMonths" label="Validity">
-        <InputNumber
-          min={1}
-          max={360}
-          defaultValue={undefined}
-          placeholder="default"
-          addonAfter="months"
+        <CertTemplateSanListFormItem
+          label="DNS Names"
+          fieldName="sanDnsNames"
+          placeholder="example.com"
         />
-      </Form.Item>
+        <CertTemplateSanListFormItem
+          label="IPs"
+          fieldName="sanIps"
+          placeholder="127.0.0.1"
+        />
+        <CertTemplateSanListFormItem
+          label="Emails"
+          fieldName="sanEmails"
+          placeholder="me@example.com"
+        />
+        <Form.Item<FieldType> name="validityInMonths" label="Validity">
+          <InputNumber
+            min={1}
+            max={360}
+            defaultValue={undefined}
+            placeholder="default"
+            addonAfter="months"
+          />
+        </Form.Item>
+        <Form.Item<FieldType> label="Key store path" name="keyStorePath">
+          <Input placeholder="example.com" />
+        </Form.Item>
 
-      <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-        <div className="flex gap-2">
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-        <Button htmlType="button">Reset</Button>
-        </div>
-      </Form.Item>
-    </Form>
+        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+          <div className="flex gap-2">
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+            <Button htmlType="button" onClick={onReset}>
+              Reset
+            </Button>
+          </div>
+        </Form.Item>
+      </Form>
+    </>
   );
 }
