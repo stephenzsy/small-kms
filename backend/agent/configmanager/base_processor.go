@@ -45,8 +45,8 @@ func (p *baseConfigProcessor) baseStart(c context.Context, scheduleToUpdate chan
 			}
 		}
 	}
-	beforeShutdown()
 	p.timer.Stop()
+	beforeShutdown()
 	shutdownNotifier.MarkShutdownComplete()
 }
 

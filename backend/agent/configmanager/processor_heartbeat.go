@@ -22,9 +22,7 @@ func (p *heartbeatConfigProcessor) Process(ctx context.Context, _ string) error 
 	resp, err := p.AgentClient().AgentCallbackWithResponse(ctx,
 		shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
 		shared.AgentConfigNameHeartbeat,
-		shared.AgentCallbackRequest{
-			ServiceRuntime: p.sharedConfig.ServiceRuntime(),
-		})
+		shared.AgentConfiguration{})
 	if err != nil {
 		return err
 	}

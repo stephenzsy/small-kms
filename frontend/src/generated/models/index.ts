@@ -1,11 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './AgentCallbackRequest';
 export * from './AgentConfigName';
 export * from './AgentConfiguration';
 export * from './AgentConfigurationActiveHostControllerContainer';
 export * from './AgentConfigurationAgentActiveHostBootstrap';
 export * from './AgentConfigurationAgentActiveServer';
+export * from './AgentConfigurationAgentActiveServerEndpointUrls';
+export * from './AgentConfigurationAgentActiveServerReply';
+export * from './AgentConfigurationAgentActiveServerReplyState';
 export * from './AgentConfigurationParameters';
 export * from './AgentHostRole';
 export * from './AzureRoleAssignment';

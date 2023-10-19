@@ -20,6 +20,12 @@ const (
 	AgentConfigNameHeartbeat           AgentConfigName = "heartbeat"
 )
 
+// Defines values for AgentConfigurationAgentActiveServerReplyState.
+const (
+	AgentConfigurationAgentActiveServerReplyStateDown AgentConfigurationAgentActiveServerReplyState = "down"
+	AgentConfigurationAgentActiveServerReplyStateUp   AgentConfigurationAgentActiveServerReplyState = "up"
+)
+
 // Defines values for CertificateUsage.
 const (
 	CertUsageCA         CertificateUsage = "ca"
@@ -74,6 +80,7 @@ const (
 
 // Defines values for ResourceKind.
 const (
+	ResourceKindAgentCallback         ResourceKind = "agent-callback"
 	ResourceKindAgentConfig           ResourceKind = "agent-config"
 	ResourceKindCaInt                 ResourceKind = "ca-int"
 	ResourceKindCaRoot                ResourceKind = "ca-root"
@@ -98,12 +105,6 @@ const (
 	CertTemplateNameDefaultMsEntraClientCreds WellknownCertificateTemplateName = "default-ms-entra-client-creds"
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
-
-// AgentCallbackRequest defines model for AgentCallbackRequest.
-type AgentCallbackRequest struct {
-	ConfigVersion  *string             `json:"configVersion,omitempty"`
-	ServiceRuntime *ServiceRuntimeInfo `json:"serviceRuntime,omitempty"`
-}
 
 // AgentConfigName defines model for AgentConfigName.
 type AgentConfigName string
@@ -132,16 +133,30 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 // AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
 type AgentConfigurationAgentActiveServer struct {
 	// AuthorizedCertificateIds (Read-only)
-	AuthorizedCertificateIds        []Identifier `json:"authorizedCertificateIds,omitempty"`
-	AuthorizedCertificateTemplateId *Identifier  `json:"authorizedCertificateTemplateId,omitempty"`
-
-	// EndpointUrl (Admin server only property to call agent)
-	EndpointUrl                                  *string                  `json:"endpointUrl,omitempty"`
-	ExtraAuthorizedCertificateSha384Fingerprints []CertificateFingerprint `json:"extraAuthorizedCertificateSha384Fingerprints,omitempty"`
-	Name                                         AgentConfigName          `json:"name"`
-	ServerCertificateId                          *Identifier              `json:"serverCertificateId,omitempty"`
-	ServerCertificateTemplateId                  *Identifier              `json:"serverCertificateTemplateId,omitempty"`
+	AuthorizedCertificateIds        []Identifier                                     `json:"authorizedCertificateIds,omitempty"`
+	AuthorizedCertificateTemplateId *Identifier                                      `json:"authorizedCertificateTemplateId,omitempty"`
+	EndpointUrls                    *AgentConfigurationAgentActiveServerEndpointUrls `json:"endpointUrls,omitempty"`
+	Name                            AgentConfigName                                  `json:"name"`
+	Reply                           *AgentConfigurationAgentActiveServerReply        `json:"reply,omitempty"`
+	ServerCertificateId             *Identifier                                      `json:"serverCertificateId,omitempty"`
+	ServerCertificateTemplateId     *Identifier                                      `json:"serverCertificateTemplateId,omitempty"`
 }
+
+// AgentConfigurationAgentActiveServerEndpointUrls defines model for AgentConfigurationAgentActiveServerEndpointUrls.
+type AgentConfigurationAgentActiveServerEndpointUrls struct {
+	Primary   *string `json:"primary,omitempty"`
+	Secondary *string `json:"secondary,omitempty"`
+}
+
+// AgentConfigurationAgentActiveServerReply defines model for AgentConfigurationAgentActiveServerReply.
+type AgentConfigurationAgentActiveServerReply struct {
+	Listener string                                        `json:"listener"`
+	SlotId   uint32                                        `json:"slotId"`
+	State    AgentConfigurationAgentActiveServerReplyState `json:"state"`
+}
+
+// AgentConfigurationAgentActiveServerReplyState defines model for AgentConfigurationAgentActiveServerReplyState.
+type AgentConfigurationAgentActiveServerReplyState string
 
 // AgentConfigurationParameters defines model for AgentConfigurationParameters.
 type AgentConfigurationParameters struct {

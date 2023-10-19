@@ -19,6 +19,18 @@ import {
     AgentConfigNameFromJSONTyped,
     AgentConfigNameToJSON,
 } from './AgentConfigName';
+import type { AgentConfigurationAgentActiveServerEndpointUrls } from './AgentConfigurationAgentActiveServerEndpointUrls';
+import {
+    AgentConfigurationAgentActiveServerEndpointUrlsFromJSON,
+    AgentConfigurationAgentActiveServerEndpointUrlsFromJSONTyped,
+    AgentConfigurationAgentActiveServerEndpointUrlsToJSON,
+} from './AgentConfigurationAgentActiveServerEndpointUrls';
+import type { AgentConfigurationAgentActiveServerReply } from './AgentConfigurationAgentActiveServerReply';
+import {
+    AgentConfigurationAgentActiveServerReplyFromJSON,
+    AgentConfigurationAgentActiveServerReplyFromJSONTyped,
+    AgentConfigurationAgentActiveServerReplyToJSON,
+} from './AgentConfigurationAgentActiveServerReply';
 
 /**
  * 
@@ -33,11 +45,11 @@ export interface AgentConfigurationAgentActiveServer {
      */
     name: AgentConfigName;
     /**
-     * (Admin server only property to call agent)
-     * @type {string}
+     * 
+     * @type {AgentConfigurationAgentActiveServerEndpointUrls}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    endpointUrl?: string;
+    endpointUrls?: AgentConfigurationAgentActiveServerEndpointUrls;
     /**
      * 
      * @type {string}
@@ -64,10 +76,10 @@ export interface AgentConfigurationAgentActiveServer {
     authorizedCertificateIds?: Array<string>;
     /**
      * 
-     * @type {Array<string>}
+     * @type {AgentConfigurationAgentActiveServerReply}
      * @memberof AgentConfigurationAgentActiveServer
      */
-    extraAuthorizedCertificateSha384Fingerprints?: Array<string>;
+    reply?: AgentConfigurationAgentActiveServerReply;
 }
 
 /**
@@ -91,12 +103,12 @@ export function AgentConfigurationAgentActiveServerFromJSONTyped(json: any, igno
     return {
         
         'name': AgentConfigNameFromJSON(json['name']),
-        'endpointUrl': !exists(json, 'endpointUrl') ? undefined : json['endpointUrl'],
+        'endpointUrls': !exists(json, 'endpointUrls') ? undefined : AgentConfigurationAgentActiveServerEndpointUrlsFromJSON(json['endpointUrls']),
         'serverCertificateTemplateId': !exists(json, 'serverCertificateTemplateId') ? undefined : json['serverCertificateTemplateId'],
         'authorizedCertificateTemplateId': !exists(json, 'authorizedCertificateTemplateId') ? undefined : json['authorizedCertificateTemplateId'],
         'serverCertificateId': !exists(json, 'serverCertificateId') ? undefined : json['serverCertificateId'],
         'authorizedCertificateIds': !exists(json, 'authorizedCertificateIds') ? undefined : json['authorizedCertificateIds'],
-        'extraAuthorizedCertificateSha384Fingerprints': !exists(json, 'extraAuthorizedCertificateSha384Fingerprints') ? undefined : json['extraAuthorizedCertificateSha384Fingerprints'],
+        'reply': !exists(json, 'reply') ? undefined : AgentConfigurationAgentActiveServerReplyFromJSON(json['reply']),
     };
 }
 
@@ -110,12 +122,12 @@ export function AgentConfigurationAgentActiveServerToJSON(value?: AgentConfigura
     return {
         
         'name': AgentConfigNameToJSON(value.name),
-        'endpointUrl': value.endpointUrl,
+        'endpointUrls': AgentConfigurationAgentActiveServerEndpointUrlsToJSON(value.endpointUrls),
         'serverCertificateTemplateId': value.serverCertificateTemplateId,
         'authorizedCertificateTemplateId': value.authorizedCertificateTemplateId,
         'serverCertificateId': value.serverCertificateId,
         'authorizedCertificateIds': value.authorizedCertificateIds,
-        'extraAuthorizedCertificateSha384Fingerprints': value.extraAuthorizedCertificateSha384Fingerprints,
+        'reply': AgentConfigurationAgentActiveServerReplyToJSON(value.reply),
     };
 }
 

@@ -61,4 +61,5 @@ const (
 	TaskNameLoad     = "load" // load from file
 	TaskNameFetch    = "fetch"
 	TaskNameActivate = "activate"
+	TaskNameConfirm  = "confirm"
 )

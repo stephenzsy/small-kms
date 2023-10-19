@@ -5,13 +5,16 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -19,12 +22,11 @@ import (
 type AgentActiveServerDoc struct {
 	AgentConfigDoc
 
-	EndpointURL                                  string                          `json:"endpointUrl"`
-	AuthorizedCertificateTemplateID              shared.Identifier               `json:"authorizedCertificateTemplateId"`
-	ServerCertificateTemplateID                  shared.Identifier               `json:"serverCertificateTemplateId"`
-	ServerCertificateID                          shared.Identifier               `json:"serverCertificateId"`
-	AuthorizedCertificateIDs                     []shared.Identifier             `json:"authorizedCertificateIds"`
-	ExtraAuthorizedCertificateSHA384Fingerprints []shared.CertificateFingerprint `json:"extraAuthorizedCertificateSha384Fingerprints,omitempty"`
+	EndpointURLs                    shared.AgentConfigurationAgentActiveServerEndpointUrls `json:"endpointUrls"`
+	AuthorizedCertificateTemplateID shared.Identifier                                      `json:"authorizedCertificateTemplateId"`
+	ServerCertificateTemplateID     shared.Identifier                                      `json:"serverCertificateTemplateId"`
+	ServerCertificateID             shared.Identifier                                      `json:"serverCertificateId"`
+	AuthorizedCertificateIDs        []shared.Identifier                                    `json:"authorizedCertificateIds"`
 }
 
 // toModel implements AgentConfigDocument.
@@ -43,13 +45,12 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 		Name: shared.AgentConfigNameActiveServer,
 	}
 	if isAdmin {
-		params.EndpointUrl = &d.EndpointURL
+		params.EndpointUrls = &d.EndpointURLs
 		params.AuthorizedCertificateTemplateId = &d.AuthorizedCertificateTemplateID
 		params.ServerCertificateTemplateId = &d.ServerCertificateTemplateID
 	}
 	params.AuthorizedCertificateIds = d.AuthorizedCertificateIDs
 	params.ServerCertificateId = &d.ServerCertificateID
-	params.ExtraAuthorizedCertificateSha384Fingerprints = d.ExtraAuthorizedCertificateSHA384Fingerprints
 	m.Config.FromAgentConfigurationAgentActiveServer(params)
 	return &m
 }
@@ -71,20 +72,31 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			}
 
 			d := AgentActiveServerDoc{
-				EndpointURL:                                  *p.EndpointUrl,
-				ServerCertificateTemplateID:                  *p.ServerCertificateTemplateId,
-				AuthorizedCertificateTemplateID:              *p.AuthorizedCertificateTemplateId,
-				ExtraAuthorizedCertificateSHA384Fingerprints: p.ExtraAuthorizedCertificateSha384Fingerprints,
+				ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
+				AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
+			}
+			if p.EndpointUrls != nil {
+				d.EndpointURLs.Primary = p.EndpointUrls.Primary
+				d.EndpointURLs.Secondary = p.EndpointUrls.Secondary
 			}
 			d.initLocator(nsID, shared.AgentConfigNameActiveServer)
 			digester := md5.New()
-			digester.Write([]byte(d.EndpointURL))
 			digester.Write([]byte(d.ServerCertificateTemplateID.String()))
 			digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
-			for _, fp := range d.ExtraAuthorizedCertificateSHA384Fingerprints {
-				digester.Write(fp)
-			}
 			d.BaseVersion = digester.Sum(nil)
+
+			callbackDoc := AgentActiveServerCallbackDoc{
+				AgentCallbackDoc: AgentCallbackDoc{
+					BaseDoc: kmsdoc.BaseDoc{
+						NamespaceID: nsID,
+						ID:          shared.NewResourceIdentifier(shared.ResourceKindAgentCallback, shared.StringIdentifier(shared.AgentConfigNameActiveServer)),
+					},
+					Name: shared.AgentConfigNameActiveServer,
+				},
+			}
+
+			err = kmsdoc.Create(c, &callbackDoc)
+			log.Ctx(c).Error().Err(err).Msg("failed to create callback doc")
 
 			return &d, nil
 		},
@@ -161,4 +173,54 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			return &d, err
 		},
 	}
+}
+
+type AgentActiveServerCallbackDocEndpointState struct {
+	Endpoint string                                               `json:"endpoint"`
+	State    shared.AgentConfigurationAgentActiveServerReplyState `json:"state"`
+	Version  string                                               `json:"version"` // version of the config after evaluation
+
+}
+
+type AgentActiveServerCallbackDoc struct {
+	AgentCallbackDoc
+
+	Primary   AgentActiveServerCallbackDocEndpointState `json:"primary"`
+	Secondary AgentActiveServerCallbackDocEndpointState `json:"secondary"`
+}
+
+func NewAgentCallbackDocLocator(nsID shared.NamespaceIdentifier, configName shared.AgentConfigName) shared.ResourceLocator {
+	return shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindAgentCallback, shared.StringIdentifier(configName)))
+}
+
+func ApiRecordAgentActiveServerCallback(c RequestContext, req *shared.AgentConfiguration) error {
+
+	if reqConfig, err := req.Config.AsAgentConfigurationAgentActiveServer(); err != nil {
+		return fmt.Errorf("%w:invalid input:%s", common.ErrStatusBadRequest, err)
+	} else if reqConfig.Reply == nil {
+		return fmt.Errorf("%w:invalid input, nil reply", common.ErrStatusBadRequest)
+	} else {
+		nsID := ns.GetNamespaceContext(c).GetID()
+		docLocator := NewAgentCallbackDocLocator(nsID, shared.AgentConfigNameActiveServer)
+		patchOps := azcosmos.PatchOperations{}
+		var prefix string
+		if reqConfig.Reply.SlotId == 0 {
+			prefix = "/primary"
+		} else {
+			prefix = "/secondary"
+		}
+		endpoint := fmt.Sprintf("https://%s%s", c.RealIP(), reqConfig.Reply.Listener)
+		patchOps.AppendSet(prefix, &AgentActiveServerCallbackDocEndpointState{
+			Endpoint: endpoint,
+			State:    reqConfig.Reply.State,
+			Version:  req.Version,
+		})
+
+		err = kmsdoc.PatchWithLocator(c, docLocator, patchOps)
+		if err != nil {
+			return err
+		}
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

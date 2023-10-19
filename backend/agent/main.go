@@ -168,6 +168,7 @@ func main() {
 	// Find .env file
 	skipDockerPullPtr := flag.Bool("skip-docker-pull", false, "skip docker pull")
 	envFilePathPtr := flag.String("env", "", "path to .env file")
+	slotPtr := flag.Uint("slot", 0, "slot")
 	//	skipTlsPtr := flag.Bool("skip-tls", false, "skip tls")
 	flag.Parse()
 
@@ -194,7 +195,7 @@ func main() {
 			e.Use(middleware.Logger())
 			e.Use(middleware.Recover())
 			e.TLSServer.Addr = args[1]
-			configManager, err := cm.NewConfigManager(BuildID, configDir)
+			configManager, err := cm.NewConfigManager(BuildID, configDir, args[1], uint32(*slotPtr))
 			if err != nil {
 				log.Panicf("Failed to create config manager: %v\n", err)
 			}

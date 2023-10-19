@@ -19,7 +19,23 @@ func (*server) AgentCallback(
 	namespaceKind shared.NamespaceKind,
 	namespaceId shared.Identifier,
 	configName shared.AgentConfigName) error {
-	return ctx.NoContent(http.StatusNoContent)
+	if configName != shared.AgentConfigNameActiveServer {
+		return ctx.NoContent(http.StatusNoContent)
+	}
+	c := ctx.(RequestContext)
+	namespaceId, err := ns.ResolveAuthedNamespaseID(c, namespaceKind, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	req := shared.AgentConfiguration{}
+	if err := c.Bind(&req); err != nil {
+		return fmt.Errorf("%w:%w", common.ErrStatusBadRequest, err)
+	}
+	return wrapEchoResponse(c, agentconfig.ApiRecordAgentActiveServerCallback(c, &req))
 }
 
 // GetAgentConfiguration implements models.ServerInterface.

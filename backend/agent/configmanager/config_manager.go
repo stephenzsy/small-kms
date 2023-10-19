@@ -76,7 +76,7 @@ func (m *ConfigManager) Start(c context.Context, shutdownNotifier common.LeafShu
 	shutdownNotifier.RelayComplete(mergedNotifier)
 }
 
-func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) {
+func NewConfigManager(buildID string, configDir string, listener string, slotID uint32) (*ConfigManager, error) {
 	m := ConfigManager{
 		processors: make(map[shared.AgentConfigName]ConfigProcessor, 2),
 	}
@@ -101,7 +101,7 @@ func NewConfigManager(buildID string, configDir string) (*ConfigManager, error) 
 
 	m.processors[shared.AgentConfigNameHeartbeat] = newHeartbeatConfigProcessor(&m.sharedConfig)
 	m.serverReadyCh = make(chan ActiveServerReadyConfig, 1)
-	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig, m.serverReadyCh)
+	m.processors[shared.AgentConfigNameActiveServer] = newActiveServerProcessor(&m.sharedConfig, m.serverReadyCh, listener, slotID)
 	return &m, nil
 }
 

@@ -2,12 +2,14 @@ apis/AdminApi.ts
 apis/DiagnosticsApi.ts
 apis/index.ts
 index.ts
-models/AgentCallbackRequest.ts
 models/AgentConfigName.ts
 models/AgentConfiguration.ts
 models/AgentConfigurationActiveHostControllerContainer.ts
 models/AgentConfigurationAgentActiveHostBootstrap.ts
 models/AgentConfigurationAgentActiveServer.ts
+models/AgentConfigurationAgentActiveServerEndpointUrls.ts
+models/AgentConfigurationAgentActiveServerReply.ts
+models/AgentConfigurationAgentActiveServerReplyState.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
 models/AzureRoleAssignment.ts

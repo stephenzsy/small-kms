@@ -98,7 +98,7 @@ func (p *agentProxyHttpClientPool) GetProxyHttpClient(eCtx context.Context, nsID
 		},
 		cleanupTimer: time.NewTimer(5 * time.Minute),
 	}
-	client, err = agentproxyclient.NewClientWithResponses(d.EndpointURL, agentproxyclient.WithHTTPClient(httpClient))
+	client, err = agentproxyclient.NewClientWithResponses("", agentproxyclient.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, err
 	}

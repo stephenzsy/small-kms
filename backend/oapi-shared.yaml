@@ -5,15 +5,6 @@ info:
 paths: {}
 components:
   schemas:
-    AgentCallbackRequest:
-      type: object
-      properties:
-        configVersion:
-          type: string
-        serviceRuntime:
-          $ref: "#/components/schemas/ServiceRuntimeInfo"
-      required:
-        - configName
     AgentConfigName:
       type: string
       enum:
@@ -64,10 +55,8 @@ components:
       properties:
         name:
           $ref: "#/components/schemas/AgentConfigName"
-        endpointUrl:
-          description: >
-            (Admin server only property to call agent)
-          type: string
+        endpointUrls:
+          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerEndpointUrls"
         serverCertificateTemplateId:
           $ref: "#/components/schemas/Identifier"
         authorizedCertificateTemplateId:
@@ -81,13 +70,40 @@ components:
           x-go-type-skip-optional-pointer: true
           items:
             $ref: "#/components/schemas/Identifier"
-        extraAuthorizedCertificateSha384Fingerprints:
-          type: array
-          x-go-type-skip-optional-pointer: true
-          items:
-            $ref: "#/components/schemas/CertificateFingerprint"
+        reply:
+          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerReply"
       required:
         - name
+    AgentConfigurationAgentActiveServerEndpointUrls:
+      type: object
+      properties:
+        primary:
+          type: string
+        secondary:
+          type: string
+    AgentConfigurationAgentActiveServerReply:
+      type: object
+      properties:
+        state:
+          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
+        listener:
+          type: string
+        slotId:
+          type: integer
+          format: int32
+          x-go-type: uint32
+      required:
+        - state
+        - listener
+        - slotId
+    AgentConfigurationAgentActiveServerReplyState:
+      type: string
+      enum:
+        - up
+        - down
+      x-enum-varnames:
+        - AgentConfigurationAgentActiveServerReplyStateUp
+        - AgentConfigurationAgentActiveServerReplyStateDown
     AgentConfigurationParameters:
       oneOf:
         - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
@@ -354,6 +370,7 @@ components:
         - cert
         - latest-cert-for-template
         - agent-config
+        - agent-callback
       x-enum-varnames:
         - ResourceKindReserved
         - ResourceKindCaRoot
@@ -363,6 +380,7 @@ components:
         - ResourceKindCert
         - ResourceKindLatestCertForTemplate
         - ResourceKindAgentConfig
+        - ResourceKindAgentCallback
     ResourceLocator:
       type: string
       x-go-type: locator[NamespaceKind, ResourceKind]

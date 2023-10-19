@@ -289,7 +289,7 @@ type CreateProfileJSONRequestBody = CreateProfileRequest
 type PatchServiceConfigJSONRequestBody = PatchServiceConfigJSONBody
 
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
-type AgentCallbackJSONRequestBody = externalRef0.AgentCallbackRequest
+type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration
 
 // PutAgentConfigurationJSONRequestBody defines body for PutAgentConfiguration for application/json ContentType.
 type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParameters

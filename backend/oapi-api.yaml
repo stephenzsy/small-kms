@@ -22,10 +22,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentCallbackRequest"
+              $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
         required: true
       responses:
-        202:
+        204:
           description: No content
   /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
     parameters:

@@ -189,6 +189,16 @@ func DeleteByRef(c context.Context, locator KmsDocumentRef) (err error) {
 	return err
 }
 
+func PatchWithLocator(c context.Context,
+	locator shared.ResourceLocator,
+	patchOps azcosmos.PatchOperations) error {
+	cc := common.GetAdminServerClientProvider(c).AzCosmosContainerClient()
+	partitionKey := azcosmos.NewPartitionKeyString(locator.GetNamespaceID().String())
+	stampUpdatedWithAuthPatchOps(c, &patchOps)
+	_, err := cc.PatchItem(c, partitionKey, locator.GetID().String(), patchOps, nil)
+	return err
+}
+
 func PatchWithWriteBack[D KmsDocument](c context.Context,
 	locator shared.ResourceLocator,
 	dstDoc D,

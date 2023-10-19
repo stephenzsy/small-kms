@@ -22,6 +22,8 @@ type activeServerProcessor struct {
 	baseConfigProcessor
 	configCtx     ConfigCtx[ActiveServerReadyConfig]
 	serverReadyCh chan<- ActiveServerReadyConfig
+	listener      string
+	slotID        uint32
 }
 
 // Version implements ConfigProcessor.
@@ -98,7 +100,7 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 
 		readyConfig := ActiveServerReadyConfig{
 			ServerCertificateFile:                         bundleFilename,
-			AuthorizedClientCertificateFingerprintsSHA384: make([][]byte, 0, len(activeServerCfg.AuthorizedCertificateIds)+len(activeServerCfg.ExtraAuthorizedCertificateSha384Fingerprints)),
+			AuthorizedClientCertificateFingerprintsSHA384: make([][]byte, 0, len(activeServerCfg.AuthorizedCertificateIds)),
 		}
 		// fetch authrorized client certificates
 		for _, clientCertId := range activeServerCfg.AuthorizedCertificateIds {
@@ -113,10 +115,6 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash[:])
 			}
 		}
-		for _, fp := range activeServerCfg.ExtraAuthorizedCertificateSha384Fingerprints {
-			readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
-				append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, fp)
-		}
 
 		p.configCtx.setActiveConfig(readyConfig, pslot)
 		if err := p.configCtx.persistConfig(p.configDir, p.configName, true); err != nil {
@@ -128,6 +126,25 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 			logger.Error().Err(err).Msgf("failed to persist symlinks: %s", p.configName)
 		}
 		return nil
+	case TaskNameConfirm:
+		params := shared.AgentConfigurationParameters{}
+		params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
+			Name: shared.AgentConfigNameActiveServer,
+			Reply: &shared.AgentConfigurationAgentActiveServerReply{
+				Listener: p.listener,
+				SlotId:   p.slotID,
+				State:    shared.AgentConfigurationAgentActiveServerReplyStateUp,
+			},
+		})
+		_, err := p.AgentClient().AgentCallbackWithResponse(ctx,
+			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+			shared.AgentConfigNameActiveServer,
+			shared.AgentConfiguration{
+				Config:  params,
+				Version: p.configCtx.activeSlot.version,
+			})
+		logger.Info().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:up", p.listener, p.slotID)
+		return err
 	default:
 		return fmt.Errorf("unknown task: %s", task)
 	}
@@ -265,12 +282,39 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 		aslot := &p.configCtx.activeSlot
 		if aslot.hasValue() {
 			p.serverReadyCh <- aslot.configActive
+			return &pollConfigMsg{
+				name:      shared.AgentConfigNameActiveServer,
+				task:      TaskNameConfirm,
+				processor: p,
+			}
 		}
 		return nil
 	}, func() {
 		// persist config before shutdown
 		p.configCtx.persistConfig(p.configDir, p.configName, true)
 		p.configCtx.persistSymlinks(p.configDir, p.configName)
+
+		params := shared.AgentConfigurationParameters{}
+		params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
+			Name: shared.AgentConfigNameActiveServer,
+			Reply: &shared.AgentConfigurationAgentActiveServerReply{
+				Listener: p.listener,
+				SlotId:   p.slotID,
+				State:    shared.AgentConfigurationAgentActiveServerReplyStateDown,
+			},
+		})
+		_, err := p.AgentClient().AgentCallbackWithResponse(c,
+			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+			shared.AgentConfigNameActiveServer,
+			shared.AgentConfiguration{
+				Config:  params,
+				Version: p.configCtx.activeSlot.version,
+			})
+		if err != nil {
+			log.Ctx(c).Error().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
+		} else {
+			log.Ctx(c).Info().Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
+		}
 	}, shutdownNotifier)
 }
 
@@ -292,11 +336,21 @@ func (p *activeServerProcessor) MarkProcessDone(taskName string, err error) {
 				resetTimer(3*time.Second, taskName)
 				return
 			}
+		} else {
+			resetTimer(minRemoteDuration, taskName)
+			return
 		}
 	case TaskNameActivate:
 		if err == nil {
 			// activate succeeded, proceed with execute
 			resetTimer(3*time.Second, taskName)
+		} else {
+			resetTimer(minRemoteDuration, taskName)
+		}
+		return
+	case TaskNameConfirm:
+		if err != nil {
+			resetTimer(minRemoteDuration, taskName)
 			return
 		}
 	}
@@ -304,12 +358,14 @@ func (p *activeServerProcessor) MarkProcessDone(taskName string, err error) {
 	resetTimer(p.configCtx.getWaitForNextRefresh(), taskName)
 }
 
-func newActiveServerProcessor(sc *sharedConfig, serverReadyCh chan<- ActiveServerReadyConfig) *activeServerProcessor {
+func newActiveServerProcessor(sc *sharedConfig, serverReadyCh chan<- ActiveServerReadyConfig, listener string, slotID uint32) *activeServerProcessor {
 	return &activeServerProcessor{
 		baseConfigProcessor: baseConfigProcessor{
 			sharedConfig: sc,
 			configName:   shared.AgentConfigNameActiveServer,
 		},
 		serverReadyCh: serverReadyCh,
+		listener:      listener,
+		slotID:        slotID,
 	}
 }

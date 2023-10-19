@@ -58,7 +58,7 @@ type GetCertificateParams struct {
 }
 
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
-type AgentCallbackJSONRequestBody = externalRef0.AgentCallbackRequest
+type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error

@@ -15,7 +15,6 @@
 
 import * as runtime from '../runtime';
 import type {
-  AgentCallbackRequest,
   AgentConfigName,
   AgentConfiguration,
   AgentConfigurationParameters,
@@ -34,8 +33,6 @@ import type {
   TemplatedCertificateTag,
 } from '../models/index';
 import {
-    AgentCallbackRequestFromJSON,
-    AgentCallbackRequestToJSON,
     AgentConfigNameFromJSON,
     AgentConfigNameToJSON,
     AgentConfigurationFromJSON,
@@ -77,11 +74,11 @@ export interface AddKeyVaultRoleAssignmentRequest {
     roleDefinitionId: string;
 }
 
-export interface AgentCallbackOperationRequest {
+export interface AgentCallbackRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     configName: AgentConfigName;
-    agentCallbackRequest: AgentCallbackRequest;
+    agentConfiguration: AgentConfiguration;
 }
 
 export interface CreateLinkedCertificateTemplateRequest {
@@ -261,7 +258,7 @@ export class AdminApi extends runtime.BaseAPI {
 
     /**
      */
-    async agentCallbackRaw(requestParameters: AgentCallbackOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async agentCallbackRaw(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentCallback.');
         }
@@ -274,8 +271,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling agentCallback.');
         }
 
-        if (requestParameters.agentCallbackRequest === null || requestParameters.agentCallbackRequest === undefined) {
-            throw new runtime.RequiredError('agentCallbackRequest','Required parameter requestParameters.agentCallbackRequest was null or undefined when calling agentCallback.');
+        if (requestParameters.agentConfiguration === null || requestParameters.agentConfiguration === undefined) {
+            throw new runtime.RequiredError('agentConfiguration','Required parameter requestParameters.agentConfiguration was null or undefined when calling agentCallback.');
         }
 
         const queryParameters: any = {};
@@ -297,7 +294,7 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: AgentCallbackRequestToJSON(requestParameters.agentCallbackRequest),
+            body: AgentConfigurationToJSON(requestParameters.agentConfiguration),
         }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
@@ -305,7 +302,7 @@ export class AdminApi extends runtime.BaseAPI {
 
     /**
      */
-    async agentCallback(requestParameters: AgentCallbackOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+    async agentCallback(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.agentCallbackRaw(requestParameters, initOverrides);
     }
 
