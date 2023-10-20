@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -24,7 +25,7 @@ import (
 
 type AgentProfileDocInstalledMsEntraClientCreds struct {
 	CertificateID  shared.Identifier             `json:"certificateId"`
-	ThumbprintSHA1 shared.CertificateFingerprint `json:"x5tHex"`
+	ThumbprintSHA1 shared.CertificateFingerprint `json:"thumbprint"`
 	GraphKeyID     uuid.UUID                     `json:"graphKeyId"`
 }
 
@@ -34,6 +35,7 @@ type AgentProfileDoc struct {
 	Status                                  shared.AgentProfileStatus                    `json:"status"`
 	MsEntraClientCredsTemplateID            shared.Identifier                            `json:"msEntraClientCredsTemplateId"`
 	MsEntraClientCredsInstalledCertificates []AgentProfileDocInstalledMsEntraClientCreds `json:"msEntraClientCredsInstalledCertificates"`
+	AppRoles                                []shared.AgentProfileAppRole                 `json:"appRoles"`
 }
 
 func (d *AgentProfileDoc) toModel() *shared.AgentProfile {
@@ -45,14 +47,16 @@ func (d *AgentProfileDoc) toModel() *shared.AgentProfile {
 	d.BaseDoc.PopulateResourceRef(&r.ResourceRef)
 	r.Status = d.Status
 	r.MsEntraClientCredentialCertificateTemplateId = d.MsEntraClientCredsTemplateID
-	r.MsEntraClientCredentialInstalledCertificateIds = utils.MapSlices(d.MsEntraClientCredsInstalledCertificates, func(item AgentProfileDocInstalledMsEntraClientCreds) shared.Identifier {
+	r.MsEntraClientCredentialInstalledCertificateIds = utils.MapSlice(d.MsEntraClientCredsInstalledCertificates, func(item AgentProfileDocInstalledMsEntraClientCreds) shared.Identifier {
 		return item.CertificateID
 	})
+	r.AppRoles = d.AppRoles
 	return r
 }
 
 const (
 	patchKeyMsEntraClientCredsInstalledCertificates = "/msEntraClientCredsInstalledCertificates"
+	patchKeyAppRoles                                = "/appRoles"
 )
 
 var agentProfileIdentifier = shared.NewResourceIdentifier(shared.ResourceKindReserved, shared.StringIdentifier("agent-profile"))
@@ -66,7 +70,7 @@ func getKeyCredentialThumbprintSHA1(kc gmodels.KeyCredentialable) (ThumbprintSHA
 	return fp, encodedCustomKeyIdentifier, err
 }
 
-func getToBeProvisionClientCreds(c context.Context, templateID shared.Identifier, keyCredentials []gmodels.KeyCredentialable) ([]gmodels.KeyCredentialable, map[ThumbprintSHA1]*cert.CertDoc, error) {
+func getToBeProvisionedClientCreds(c context.Context, templateID shared.Identifier, keyCredentials []gmodels.KeyCredentialable) ([]gmodels.KeyCredentialable, map[ThumbprintSHA1]*cert.CertDoc, error) {
 	bad := func(e error) ([]gmodels.KeyCredentialable, map[ThumbprintSHA1]*cert.CertDoc, error) {
 		return nil, nil, e
 	}
@@ -128,6 +132,28 @@ func getToBeProvisionClientCreds(c context.Context, templateID shared.Identifier
 	return patchKeyCredentials, allowedCerts, nil
 }
 
+const (
+	AppRoleAgentPushConfig = "Agent.PushConfig"
+)
+
+func getToBeProvisionedAppRoles(c context.Context, appRoles []gmodels.AppRoleable) []gmodels.AppRoleable {
+	rolesMap := utils.ToMapFunc(appRoles, func(item gmodels.AppRoleable) string {
+		return *item.GetValue()
+	})
+	if _, ok := rolesMap[AppRoleAgentPushConfig]; ok {
+		return nil
+	}
+
+	pushConfigRole := gmodels.NewAppRole()
+	pushConfigRole.SetAllowedMemberTypes([]string{"User", "Application"})
+	pushConfigRole.SetDescription(to.Ptr("Agent push config"))
+	pushConfigRole.SetDisplayName(to.Ptr(AppRoleAgentPushConfig))
+	pushConfigRole.SetId(to.Ptr(uuid.New()))
+	pushConfigRole.SetIsEnabled(to.Ptr(true))
+	pushConfigRole.SetValue(to.Ptr(AppRoleAgentPushConfig))
+	return []gmodels.AppRoleable{pushConfigRole}
+}
+
 func readAgentProfile(c context.Context, docLocator shared.ResourceLocator) (*AgentProfileDoc, error) {
 	doc := AgentProfileDoc{}
 	err := kmsdoc.Read(c, docLocator, &doc)
@@ -160,17 +186,18 @@ func provisionAgentProfile(c RequestContext, params *shared.AgentProfileParamete
 		c := c.Elevate()
 		graph := common.GetAdminServerClientProvider(c).MsGraphClient()
 		applicationIdReqBuilder := graph.Applications().ByApplicationId(nsID.Identifier().UUID().String())
+		queryApplicationParameters := &applications.ApplicationItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "displayName", "appId", "appRoles", "identifierUris", "keyCredentials", "oauth2Permissions"},
+		}
 		applicationable, err := applicationIdReqBuilder.Get(c, &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{
-				Select: []string{"id", "displayName", "appId", "keyCredentials"},
-			},
+			QueryParameters: queryApplicationParameters,
 		})
 		if err != nil {
 			return doc, err
 		}
 		// match key credentials
 		patchApplication := gmodels.NewApplication()
-		patchKeyCredentials, allowedCerts, err := getToBeProvisionClientCreds(c, doc.MsEntraClientCredsTemplateID, applicationable.GetKeyCredentials())
+		patchKeyCredentials, allowedCerts, err := getToBeProvisionedClientCreds(c, doc.MsEntraClientCredsTemplateID, applicationable.GetKeyCredentials())
 		if err != nil {
 			return doc, err
 		}
@@ -178,15 +205,23 @@ func provisionAgentProfile(c RequestContext, params *shared.AgentProfileParamete
 			patchApplication.SetKeyCredentials(patchKeyCredentials)
 		}
 
-		if patchKeyCredentials != nil {
+		patchAppRoles := getToBeProvisionedAppRoles(c, applicationable.GetAppRoles())
+		if patchAppRoles != nil {
+			patchApplication.SetAppRoles(patchAppRoles)
+		}
+
+		identifierUris := applicationable.GetIdentifierUris()
+		if len(identifierUris) == 0 {
+			patchApplication.SetIdentifierUris([]string{fmt.Sprintf("api://%s", *applicationable.GetAppId())})
+		}
+
+		if patchKeyCredentials != nil || patchAppRoles != nil || len(identifierUris) == 0 {
 			_, err = applicationIdReqBuilder.Patch(c, patchApplication, nil)
 			if err != nil {
 				return doc, err
 			}
 			applicationable, err = applicationIdReqBuilder.Get(c, &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
-				QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{
-					Select: []string{"id", "displayName", "appId", "keyCredentials"},
-				},
+				QueryParameters: queryApplicationParameters,
 			})
 			if err != nil {
 				return doc, err
@@ -206,8 +241,16 @@ func provisionAgentProfile(c RequestContext, params *shared.AgentProfileParamete
 				}
 			}
 		}
+		patchedAppRoles := applicationable.GetAppRoles()
+		doc.AppRoles = utils.MapSlice(patchedAppRoles, func(item gmodels.AppRoleable) shared.AgentProfileAppRole {
+			return shared.AgentProfileAppRole{
+				ID:    *item.GetId(),
+				Value: *item.GetValue(),
+			}
+		})
 		patchOps := azcosmos.PatchOperations{}
 		patchOps.AppendSet(patchKeyMsEntraClientCredsInstalledCertificates, docCc)
+		patchOps.AppendSet(patchKeyAppRoles, doc.AppRoles)
 		doc.MsEntraClientCredsInstalledCertificates = docCc
 		err = kmsdoc.Patch(c, doc, patchOps, nil)
 		if err != nil {
@@ -215,6 +258,7 @@ func provisionAgentProfile(c RequestContext, params *shared.AgentProfileParamete
 		}
 
 	}
+
 	return doc, nil
 }
 

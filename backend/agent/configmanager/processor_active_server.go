@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -217,7 +217,7 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 			if err != nil {
 				return bad(err)
 			}
-			pemBytes := []byte(*secretResp.SecretBundle.Value)
+			pemBytes := []byte(*secretResp.Value)
 			block, rest := pem.Decode(pemBytes)
 			if block.Type != "CERTIFICATE" {
 				// this is the private key

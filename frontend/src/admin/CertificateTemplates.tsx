@@ -123,6 +123,7 @@ export function CertificateTemplateTable() {
       loading={loading}
       dataSource={data}
       columns={columns}
+      rowKey={(item) => item.id}
     />
   );
 }

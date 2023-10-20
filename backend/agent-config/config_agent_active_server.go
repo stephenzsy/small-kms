@@ -139,7 +139,7 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			if err != nil {
 				return nil, err
 			}
-			certLocators := utils.MapSlices(certItems, func(item *cert.CertDoc) shared.Identifier {
+			certLocators := utils.MapSlice(certItems, func(item *cert.CertDoc) shared.Identifier {
 				return item.ID.Identifier()
 			})
 			if certLocators == nil {

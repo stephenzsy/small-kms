@@ -2,7 +2,7 @@ package utils
 
 type MapFunc[T any, U any] func(U) T
 
-func MapSlices[T any, U any](from []U, mapFunc MapFunc[T, U]) []T {
+func MapSlice[T any, U any](from []U, mapFunc MapFunc[T, U]) []T {
 	if from == nil {
 		return nil
 	}
@@ -37,6 +37,15 @@ func ToMapFunc[T any, K comparable](s []T, keyFunc func(item T) K) map[K]T {
 	m := make(map[K]T, len(s))
 	for _, item := range s {
 		m[keyFunc(item)] = item
+	}
+	return m
+}
+
+func ToValueMapFunc[T any, K comparable, U any](s []T, keyValueFunc func(item T) (K, U)) map[K]U {
+	m := make(map[K]U, len(s))
+	for _, item := range s {
+		k, v := keyValueFunc(item)
+		m[k] = v
 	}
 	return m
 }

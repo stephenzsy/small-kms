@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentProfileAppRole } from './AgentProfileAppRole';
+import {
+    AgentProfileAppRoleFromJSON,
+    AgentProfileAppRoleFromJSONTyped,
+    AgentProfileAppRoleToJSON,
+} from './AgentProfileAppRole';
 import type { AgentProfileStatus } from './AgentProfileStatus';
 import {
     AgentProfileStatusFromJSON,
@@ -38,6 +44,12 @@ export interface AgentProfileFields {
      * @memberof AgentProfileFields
      */
     msEntraClientCredentialInstalledCertificateIds: Array<string>;
+    /**
+     * 
+     * @type {Array<AgentProfileAppRole>}
+     * @memberof AgentProfileFields
+     */
+    appRoles: Array<AgentProfileAppRole>;
 }
 
 /**
@@ -47,6 +59,7 @@ export function instanceOfAgentProfileFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "status" in value;
     isInstance = isInstance && "msEntraClientCredentialInstalledCertificateIds" in value;
+    isInstance = isInstance && "appRoles" in value;
 
     return isInstance;
 }
@@ -63,6 +76,7 @@ export function AgentProfileFieldsFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'status': AgentProfileStatusFromJSON(json['status']),
         'msEntraClientCredentialInstalledCertificateIds': json['msEntraClientCredentialInstalledCertificateIds'],
+        'appRoles': ((json['appRoles'] as Array<any>).map(AgentProfileAppRoleFromJSON)),
     };
 }
 
@@ -77,6 +91,7 @@ export function AgentProfileFieldsToJSON(value?: AgentProfileFields | null): any
         
         'status': AgentProfileStatusToJSON(value.status),
         'msEntraClientCredentialInstalledCertificateIds': value.msEntraClientCredentialInstalledCertificateIds,
+        'appRoles': ((value.appRoles as Array<any>).map(AgentProfileAppRoleToJSON)),
     };
 }
 

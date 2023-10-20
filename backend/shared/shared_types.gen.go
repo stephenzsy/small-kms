@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for AgentConfigName.
@@ -79,6 +80,7 @@ const (
 	NamespaceKindCaRoot           NamespaceKind = "ca-root"
 	NamespaceKindDevice           NamespaceKind = "device"
 	NamespaceKindGroup            NamespaceKind = "group"
+	NamespaceKindManagedApp       NamespaceKind = "managed-app"
 	NamespaceKindProfile          NamespaceKind = "profile"
 	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
 	NamespaceKindSystem           NamespaceKind = "sys"
@@ -89,6 +91,7 @@ const (
 const (
 	ResourceKindAgentCallback         ResourceKind = "agent-callback"
 	ResourceKindAgentConfig           ResourceKind = "agent-config"
+	ResourceKindApp                   ResourceKind = "app"
 	ResourceKindCaInt                 ResourceKind = "ca-int"
 	ResourceKindCaRoot                ResourceKind = "ca-root"
 	ResourceKindCert                  ResourceKind = "cert"
@@ -173,10 +176,17 @@ type AgentConfigurationParameters struct {
 // AgentProfile defines model for AgentProfile.
 type AgentProfile = agentProfileComposed
 
+// AgentProfileAppRole defines model for AgentProfileAppRole.
+type AgentProfileAppRole struct {
+	ID    openapi_types.UUID `json:"id"`
+	Value string             `json:"value"`
+}
+
 // AgentProfileFields defines model for AgentProfileFields.
 type AgentProfileFields struct {
-	MsEntraClientCredentialInstalledCertificateIds []Identifier       `json:"msEntraClientCredentialInstalledCertificateIds"`
-	Status                                         AgentProfileStatus `json:"status"`
+	AppRoles                                       []AgentProfileAppRole `json:"appRoles"`
+	MsEntraClientCredentialInstalledCertificateIds []Identifier          `json:"msEntraClientCredentialInstalledCertificateIds"`
+	Status                                         AgentProfileStatus    `json:"status"`
 }
 
 // AgentProfileParameters defines model for AgentProfileParameters.

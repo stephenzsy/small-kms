@@ -11,6 +11,7 @@ export * from './AgentConfigurationAgentActiveServerReplyState';
 export * from './AgentConfigurationParameters';
 export * from './AgentHostRole';
 export * from './AgentProfile';
+export * from './AgentProfileAppRole';
 export * from './AgentProfileFields';
 export * from './AgentProfileParameters';
 export * from './AgentProfileStatus';

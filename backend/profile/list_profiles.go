@@ -28,9 +28,9 @@ func getBuiltInIntermediateCaProfiles() []ProfileDoc {
 func ListProfiles(c RequestContext, profileType models.NamespaceKind) ([]*models.ProfileRefComposed, error) {
 	switch profileType {
 	case shared.NamespaceKindCaRoot:
-		return utils.MapSlices(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModelRef() }), nil
+		return utils.MapSlice(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModelRef() }), nil
 	case shared.NamespaceKindCaInt:
-		return utils.MapSlices(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModel() }), nil
+		return utils.MapSlice(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModel() }), nil
 	}
 	itemsPager := kmsdoc.QueryItemsPager[*ProfileDoc](c,
 		docNsIDProfileTenant,

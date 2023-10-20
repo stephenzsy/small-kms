@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentProfileAppRole } from './AgentProfileAppRole';
+import {
+    AgentProfileAppRoleFromJSON,
+    AgentProfileAppRoleFromJSONTyped,
+    AgentProfileAppRoleToJSON,
+} from './AgentProfileAppRole';
 import type { AgentProfileStatus } from './AgentProfileStatus';
 import {
     AgentProfileStatusFromJSON,
@@ -80,6 +86,12 @@ export interface AgentProfile {
      * @memberof AgentProfile
      */
     msEntraClientCredentialInstalledCertificateIds: Array<string>;
+    /**
+     * 
+     * @type {Array<AgentProfileAppRole>}
+     * @memberof AgentProfile
+     */
+    appRoles: Array<AgentProfileAppRole>;
 }
 
 /**
@@ -92,6 +104,7 @@ export function instanceOfAgentProfile(value: object): boolean {
     isInstance = isInstance && "msEntraClientCredentialCertificateTemplateId" in value;
     isInstance = isInstance && "status" in value;
     isInstance = isInstance && "msEntraClientCredentialInstalledCertificateIds" in value;
+    isInstance = isInstance && "appRoles" in value;
 
     return isInstance;
 }
@@ -115,6 +128,7 @@ export function AgentProfileFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'msEntraClientCredentialCertificateTemplateId': json['msEntraClientCredentialCertificateTemplateId'],
         'status': AgentProfileStatusFromJSON(json['status']),
         'msEntraClientCredentialInstalledCertificateIds': json['msEntraClientCredentialInstalledCertificateIds'],
+        'appRoles': ((json['appRoles'] as Array<any>).map(AgentProfileAppRoleFromJSON)),
     };
 }
 
@@ -136,6 +150,7 @@ export function AgentProfileToJSON(value?: AgentProfile | null): any {
         'msEntraClientCredentialCertificateTemplateId': value.msEntraClientCredentialCertificateTemplateId,
         'status': AgentProfileStatusToJSON(value.status),
         'msEntraClientCredentialInstalledCertificateIds': value.msEntraClientCredentialInstalledCertificateIds,
+        'appRoles': ((value.appRoles as Array<any>).map(AgentProfileAppRoleToJSON)),
     };
 }
 

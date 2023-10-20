@@ -45,7 +45,7 @@ func (p *mappedItemsPager[T, U]) NextPage(c context.Context) (items []T, err err
 	if fromSlice, err = p.from.NextPage(c); err != nil {
 		return
 	}
-	items = MapSlices(fromSlice, p.mapFunc)
+	items = MapSlice(fromSlice, p.mapFunc)
 	return
 }
 

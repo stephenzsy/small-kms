@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"

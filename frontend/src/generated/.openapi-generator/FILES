@@ -13,6 +13,7 @@ models/AgentConfigurationAgentActiveServerReplyState.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
 models/AgentProfile.ts
+models/AgentProfileAppRole.ts
 models/AgentProfileFields.ts
 models/AgentProfileParameters.ts
 models/AgentProfileStatus.ts
