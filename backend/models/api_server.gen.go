@@ -14,6 +14,12 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Provision agent
+	// (GET /v3/application/{namespaceId}/agent)
+	GetAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Provision agent
+	// (POST /v3/application/{namespaceId}/agent)
+	ProvisionAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
 	// Get diagnostics
 	// (GET /v3/diagnostics)
 	GetDiagnostics(ctx echo.Context) error
@@ -53,6 +59,9 @@ type ServerInterface interface {
 	// Get agent autoconfig
 	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
 	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
+	// Delete certificate template
+	// (DELETE /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
+	DeleteCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
 	// Get certificate template
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
 	GetCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -91,6 +100,42 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetAgentProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentProfile(ctx, namespaceId)
+	return err
+}
+
+// ProvisionAgentProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) ProvisionAgentProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ProvisionAgentProfile(ctx, namespaceId)
+	return err
 }
 
 // GetDiagnostics converts echo context to params.
@@ -416,6 +461,40 @@ func (w *ServerInterfaceWrapper) PutAgentConfiguration(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutAgentConfiguration(ctx, namespaceKind, namespaceId, configName)
+	return err
+}
+
+// DeleteCertificateTemplate converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteCertificateTemplate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "templateId" -------------
+	var templateId CertificateTemplateIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteCertificateTemplate(ctx, namespaceKind, namespaceId, templateId)
 	return err
 }
 
@@ -868,6 +947,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
+	router.POST(baseURL+"/v3/application/:namespaceId/agent", wrapper.ProvisionAgentProfile)
 	router.GET(baseURL+"/v3/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind", wrapper.CreateProfile)
@@ -881,6 +962,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
+	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.DeleteCertificateTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)

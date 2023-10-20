@@ -5,11 +5,13 @@ import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useMemo } from "react";
 import {
   AdminApi,
+  CertificateTemplateToJSON,
   CertificateUsage,
   NamespaceKind,
   PutCertificateTemplateRequest,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
+import { JsonDataDisplay } from "../components/JsonDataDisplay";
 
 type FieldType = {
   subjectCN?: string;
@@ -150,21 +152,18 @@ export function CertTemplateForm({
 
   return (
     <>
-      <div className="mb-4 bg-neutral-200 ring-1 ring-neutral-500 px-4 overflow-auto">
-        {loading ? (
-          <div>Loading...</div>
-        ) : data ? (
-          <pre>{JSON.stringify(data, undefined, 2)}</pre>
-        ) : (
-          <div>Not found</div>
-        )}
-      </div>
+      <JsonDataDisplay
+        data={data}
+        loading={loading}
+        toJson={CertificateTemplateToJSON}
+        className="mb-4"
+      />
       <Form
         form={form}
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
         style={{ maxWidth: 600 }}
-        initialValues={{ remember: true }}
+        initialValues={{}}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"

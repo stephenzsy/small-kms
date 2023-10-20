@@ -8,6 +8,39 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /v3/application/{namespaceId}/agent:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: Provision agent
+      operationId: GetAgentProfile
+      responses:
+        200:
+          description: Agent Profile
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
+    post:
+      tags:
+        - admin
+      summary: Provision agent
+      operationId: ProvisionAgentProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "oapi-shared.yaml#/components/schemas/AgentProfileParameters"
+        required: true
+      responses:
+        200:
+          description: Agent Profile
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
   /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -77,7 +110,7 @@ paths:
       operationId: GetAgentProxyInfo
       responses:
         200:
-          description: DockerInfo
+          description: Agent proxy info
           content:
             application/json:
               schema:
@@ -254,6 +287,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateTemplate"
+    delete:
+      tags:
+        - admin
+      summary: Delete certificate template
+      operationId: DeleteCertificateTemplate
+      responses:
+        204:
+          description: Certificate template response
+          content: {}
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"

@@ -18,6 +18,8 @@ import type {
   AgentConfigName,
   AgentConfiguration,
   AgentConfigurationParameters,
+  AgentProfile,
+  AgentProfileParameters,
   AgentProxyInfo,
   AzureRoleAssignment,
   CertificateInfo,
@@ -40,6 +42,10 @@ import {
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
     AgentConfigurationParametersToJSON,
+    AgentProfileFromJSON,
+    AgentProfileToJSON,
+    AgentProfileParametersFromJSON,
+    AgentProfileParametersToJSON,
     AgentProxyInfoFromJSON,
     AgentProxyInfoToJSON,
     AzureRoleAssignmentFromJSON,
@@ -107,12 +113,22 @@ export interface DeleteCertificateRequest {
     certificateId: string;
 }
 
+export interface DeleteCertificateTemplateRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    templateId: string;
+}
+
 export interface GetAgentConfigurationRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
     refreshToken?: string;
+}
+
+export interface GetAgentProfileRequest {
+    namespaceId: string;
 }
 
 export interface GetAgentProxyInfoRequest {
@@ -176,6 +192,11 @@ export interface ListProfilesRequest {
 export interface PatchServiceConfigRequest {
     configPath: PatchServiceConfigConfigPathEnum;
     body: any | null;
+}
+
+export interface ProvisionAgentProfileRequest {
+    namespaceId: string;
+    agentProfileParameters: AgentProfileParameters;
 }
 
 export interface PutAgentConfigurationRequest {
@@ -499,6 +520,51 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Delete certificate template
+     */
+    async deleteCertificateTemplateRaw(requestParameters: DeleteCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificateTemplate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteCertificateTemplate.');
+        }
+
+        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
+            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling deleteCertificateTemplate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Delete certificate template
+     */
+    async deleteCertificateTemplate(requestParameters: DeleteCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCertificateTemplateRaw(requestParameters, initOverrides);
+    }
+
+    /**
      * Get agent autoconfig
      */
     async getAgentConfigurationRaw(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
@@ -549,6 +615,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Provision agent
+     */
+    async getAgentProfileRaw(requestParameters: GetAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProfile>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/application/{namespaceId}/agent`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Provision agent
+     */
+    async getAgentProfile(requestParameters: GetAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProfile> {
+        const response = await this.getAgentProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1080,6 +1184,51 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async patchServiceConfig(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
         const response = await this.patchServiceConfigRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Provision agent
+     */
+    async provisionAgentProfileRaw(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProfile>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling provisionAgentProfile.');
+        }
+
+        if (requestParameters.agentProfileParameters === null || requestParameters.agentProfileParameters === undefined) {
+            throw new runtime.RequiredError('agentProfileParameters','Required parameter requestParameters.agentProfileParameters was null or undefined when calling provisionAgentProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v3/application/{namespaceId}/agent`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentProfileParametersToJSON(requestParameters.agentProfileParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Provision agent
+     */
+    async provisionAgentProfile(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProfile> {
+        const response = await this.provisionAgentProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

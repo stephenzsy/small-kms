@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -181,4 +182,17 @@ func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind shared.
 	}
 	result, err := ct.AddKeyVaultRoleAssignment(c, roleDefID)
 	return wrapResponse[*models.AzureRoleAssignment](c, http.StatusOK, result, err)
+}
+
+// DeleteCertificateTemplate implements models.ServerInterface.
+func (*server) DeleteCertificateTemplate(ctx echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, templateId shared.Identifier) error {
+	c := ctx.(RequestContext)
+	if err := auth.AuthorizeAdminOnly(c); err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
+	if err != nil {
+		return wrapEchoResponse(c, err)
+	}
+	return wrapEchoResponse(c, errors.New("not implemented"))
 }

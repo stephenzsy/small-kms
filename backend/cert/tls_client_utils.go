@@ -14,7 +14,7 @@ import (
 func CertDocKeyPair(c context.Context, certDoc *CertDoc) (tls.Certificate, error) {
 	fail := func(err error) (tls.Certificate, error) { return tls.Certificate{}, err }
 
-	certPEMBlock, err := certDoc.fetchCertificatePEMBlob(c)
+	certPEMBlock, err := certDoc.FetchCertificatePEMBlob(c)
 	if err != nil {
 		return fail(err)
 	}

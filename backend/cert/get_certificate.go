@@ -67,7 +67,7 @@ func getCertificate(c RequestContext, certificateId shared.Identifier, params mo
 
 	if params.IncludeCertificate != nil && *params.IncludeCertificate {
 		// fetch cert from blob
-		pemBlob, err := certDoc.fetchCertificatePEMBlob(c)
+		pemBlob, err := certDoc.FetchCertificatePEMBlob(c)
 		if err != nil {
 			return m, err
 		}
@@ -143,6 +143,7 @@ func GetAuthorizedLatestCertByTemplateID(c context.Context, templateID shared.Id
 	linkedCertDoc.NamespaceID = nsID
 	linkedCertDoc.ID = targetFinalLocator.GetID()
 	linkedCertDoc.Owner = &targetFinalLocator
+	linkedCertDoc.Owns = nil
 	linkedCertDoc.Template = localTemplateLocator
 
 	eCtx := common.ElevateContext(c)

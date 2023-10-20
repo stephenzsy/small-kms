@@ -11,14 +11,15 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func ListActiveCertDocsByTemplateID(c context.Context, templateId shared.Identifier) ([]*CertDoc, error) {
+func ListActiveCertDocsByTemplateID(c context.Context, templateId shared.Identifier, additionalColumns ...string) ([]*CertDoc, error) {
 	nsID := ns.GetNamespaceContext(c).GetID()
 	templateLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, templateId))
+	extraColumns := append([]string{queryColumnThumbprint, queryColumnNotAfter, queryColumnStatus}, additionalColumns...)
 	itemsPager := kmsdoc.QueryItemsPager[*CertDoc](c,
 		nsID,
 		shared.ResourceKindCert,
 		kmsdoc.CosmosQueryBuilder{
-			ExtraColumns: []string{"c.thumbprint", queryColumnStatus},
+			ExtraColumns: extraColumns,
 			ExtraWhereClauses: []string{
 				queryColumnTemplate + " = @templateId",
 				queryColumnStatus + " = @status",

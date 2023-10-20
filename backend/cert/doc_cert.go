@@ -39,6 +39,10 @@ const queryColumnTemplate = "c.template"
 const queryColumnStatus = "c.status"
 const queryColumnNotAfter = "c.notAfter"
 const queryColumnThumbprint = "c.thumbprint"
+const (
+	CertDocQueryColumnCertStorePath = "c.certStorePath"
+	CertDocQueryColumnNotBefore     = "c.notBefore"
+)
 
 type CertDoc struct {
 	kmsdoc.BaseDoc
@@ -119,7 +123,7 @@ func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err e
 	return
 }
 
-func (doc *CertDoc) fetchCertificatePEMBlob(c context.Context) ([]byte, error) {
+func (doc *CertDoc) FetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 	blobClient := common.GetAdminServerClientProvider(c).CertsAzBlobContainerClient()
 	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(c, nil)
 	if err != nil {

@@ -32,3 +32,11 @@ func NilIfZeroLen[T any](s []T) []T {
 	}
 	return s
 }
+
+func ToMapFunc[T any, K comparable](s []T, keyFunc func(item T) K) map[K]T {
+	m := make(map[K]T, len(s))
+	for _, item := range s {
+		m[keyFunc(item)] = item
+	}
+	return m
+}

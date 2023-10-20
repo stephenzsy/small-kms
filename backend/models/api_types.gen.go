@@ -295,6 +295,9 @@ type GetCertificateParams struct {
 	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
 }
 
+// ProvisionAgentProfileJSONRequestBody defines body for ProvisionAgentProfile for application/json ContentType.
+type ProvisionAgentProfileJSONRequestBody = externalRef0.AgentProfileParameters
+
 // CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.
 type CreateProfileJSONRequestBody = CreateProfileRequest
 

@@ -26,6 +26,13 @@ const (
 	AgentConfigurationAgentActiveServerReplyStateUp   AgentConfigurationAgentActiveServerReplyState = "up"
 )
 
+// Defines values for AgentProfileStatus.
+const (
+	AgentProfileStatusError       AgentProfileStatus = "error"
+	AgentProfileStatusPending     AgentProfileStatus = "pending"
+	AgentProfileStatusProvisioned AgentProfileStatus = "provisioned"
+)
+
 // Defines values for CertificateUsage.
 const (
 	CertUsageCA         CertificateUsage = "ca"
@@ -162,6 +169,23 @@ type AgentConfigurationAgentActiveServerReplyState string
 type AgentConfigurationParameters struct {
 	union json.RawMessage
 }
+
+// AgentProfile defines model for AgentProfile.
+type AgentProfile = agentProfileComposed
+
+// AgentProfileFields defines model for AgentProfileFields.
+type AgentProfileFields struct {
+	MsEntraClientCredentialInstalledCertificateIds []Identifier       `json:"msEntraClientCredentialInstalledCertificateIds"`
+	Status                                         AgentProfileStatus `json:"status"`
+}
+
+// AgentProfileParameters defines model for AgentProfileParameters.
+type AgentProfileParameters struct {
+	MsEntraClientCredentialCertificateTemplateId Identifier `json:"msEntraClientCredentialCertificateTemplateId"`
+}
+
+// AgentProfileStatus defines model for AgentProfileStatus.
+type AgentProfileStatus string
 
 // CertificateFingerprint defines model for CertificateFingerprint.
 type CertificateFingerprint = certificateFingerprintImpl

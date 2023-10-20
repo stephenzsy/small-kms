@@ -5,6 +5,43 @@ info:
 paths: {}
 components:
   schemas:
+    AgentProfile:
+      allOf:
+        - $ref: "#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/AgentProfileParameters"
+        - $ref: "#/components/schemas/AgentProfileFields"
+        - x-go-type: agentProfileComposed
+    AgentProfileFields:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AgentProfileStatus"
+        msEntraClientCredentialInstalledCertificateIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/Identifier"
+            x-go-name: MsEntraClientCredentialInstalledCertificateIDs
+      required:
+        - status
+        - msEntraClientCredentialInstalledCertificateIds
+    AgentProfileParameters:
+      type: object
+      properties:
+        msEntraClientCredentialCertificateTemplateId:
+          $ref: "#/components/schemas/Identifier"
+          x-go-name: MsEntraClientCredentialCertificateTemplateID
+      required:
+        - msEntraClientCredentialCertificateTemplateId
+    AgentProfileStatus:
+      type: string
+      enum:
+        - pending
+        - provisioned
+        - error
+      x-enum-varnames:
+        - AgentProfileStatusPending
+        - AgentProfileStatusProvisioned
+        - AgentProfileStatusError
     AgentConfigName:
       type: string
       enum:

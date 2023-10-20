@@ -181,7 +181,7 @@ func (p *azKeysExistingCertSigner) LoadSigner(c context.Context) (signer crypto.
 	if kidStr == "" {
 		return nil, fmt.Errorf("empty key id from issuer")
 	}
-	p.certChainPemBlob, err = p.issuerCertDoc.fetchCertificatePEMBlob(c)
+	p.certChainPemBlob, err = p.issuerCertDoc.FetchCertificatePEMBlob(c)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemo } from "react";
 import { Button, Card, Descriptions, DescriptionsProps } from "antd";
+import { DescriptionsItemType } from "antd/es/descriptions";
 
 export default function CertificatePage() {
   const {
@@ -41,7 +42,7 @@ export default function CertificatePage() {
     { manual: true }
   );
 
-  const certDescItems = useMemo((): DescriptionsProps["items"] => {
+  const certDescItems = useMemo<DescriptionsItemType[] | undefined>(() => {
     if (!cert) {
       return undefined;
     }

@@ -1,8 +1,9 @@
 import { useRequest } from "ahooks";
+import { Card, Typography } from "antd";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button } from "../components/Button";
-import { Card, CardSection } from "../components/Card";
+import { Card as CCard, CardSection } from "../components/Card";
 import Select, { SelectItem } from "../components/Select";
 import {
   AdminApi,
@@ -13,12 +14,18 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { AgentConfigurationForm } from "./AgentConfigurationForm";
 import {
+  CertificateTemplateTable,
+  CertificateTemplatesProvider,
+  LinkTemplateForm,
+} from "./CertificateTemplates";
+import {
   ApplicationServicePrincipalLink,
   DeviceServicePrincipalLink,
 } from "./DeviceServicePrincipalLink";
 import { InputField } from "./InputField";
 import { NamespaceContext } from "./NamespaceContext";
 import { RefTableColumn, RefsTable } from "./RefsTable";
+import { ProvisionAgentForm } from "./ProvisionAgent";
 
 const subjectCnColumn: RefTableColumn<CertificateTemplateRef> = {
   columnKey: "subjectCommonName",
@@ -141,13 +148,50 @@ export function CertificateTemplatesList({
   );
 }
 
+function CommonNamespacePage({ children }: React.PropsWithChildren<{}>) {
+  const { nsInfo } = React.useContext(NamespaceContext);
+  return (
+    <>
+      <Typography.Title>
+        {nsInfo?.type}: {nsInfo?.displayName}
+      </Typography.Title>
+      <pre>{nsInfo?.id}</pre>
+      {children}
+    </>
+  );
+}
+
+function ApplicationNamespacePage({ namespaceId }: { namespaceId: string }) {
+  return (
+    <CommonNamespacePage>
+      <CertificateTemplatesProvider
+        namespaceKind={NamespaceKind.NamespaceKindApplication}
+        namespaceId={namespaceId}
+      >
+        <Card title="Certificate templates">
+          <CertificateTemplateTable />
+        </Card>
+        <Card title="Link template">
+          <LinkTemplateForm />
+        </Card>
+        <Card title="Provision agent">
+          <ProvisionAgentForm namespaceId={namespaceId} />
+        </Card>
+      </CertificateTemplatesProvider>
+    </CommonNamespacePage>
+  );
+}
+
 export default function NamespacePage() {
-  const { namespaceId } = useParams() as {
+  const { namespaceId, profileType: nsKind } = useParams() as {
     profileType: NamespaceKind;
     namespaceId: string;
   };
 
   const { nsInfo } = React.useContext(NamespaceContext);
+  if (nsKind === NamespaceKind.NamespaceKindApplication) {
+    return <ApplicationNamespacePage namespaceId={namespaceId} />;
+  }
   const nsType = nsInfo?.type;
   return (
     <>
@@ -157,14 +201,14 @@ export default function NamespacePage() {
         nsType === NamespaceKind.NamespaceKindCaInt ||
         nsType == NamespaceKind.NamespaceKindServicePrincipal ||
         nsType == NamespaceKind.NamespaceKindDevice) && (
-        <Card>
+        <CCard>
           <CardSection>
             <CertificateTemplatesList
               nsType={nsType}
               namespaceId={namespaceId}
             />
           </CardSection>
-        </Card>
+        </CCard>
       )}
       {nsType === NamespaceKind.NamespaceKindDevice && (
         <DeviceServicePrincipalLink namespaceId={namespaceId} />
