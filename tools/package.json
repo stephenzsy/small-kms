@@ -8,7 +8,7 @@
     "@openapitools/openapi-generator-cli": "^2.7.0"
   },
   "scripts": {
-    "genclient": "openapi-generator-cli generate -i ../backend/oapi-api.yaml -g typescript-fetch -o ../frontend/src/generated --global-property models,apis=Admin:Diagnostics,supportingFiles --additional-properties=supportsES6=true",
+    "genclient": "openapi-generator-cli generate -i ../backend/oapi-api-frontend.yaml -g typescript-fetch -o ../frontend/src/generated --global-property models,apis=Admin:Diagnostics,supportingFiles --additional-properties=supportsES6=true",
     "gencli": "openapi-generator-cli"
   }
 }

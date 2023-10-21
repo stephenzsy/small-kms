@@ -1,0 +1,76 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/managed-app:
+    get:
+      tags:
+        - admin
+      operationId: ListManagedApps
+      summary: List managed apps
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ManagedApp"
+    post:
+      tags:
+        - admin
+      operationId: CreateManagedApp
+      summary: Create a managed app
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagedAppParameters"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagedApp"
+security:
+  - BearerAuth: []
+components:
+  schemas:
+    ManagedApp:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/ManagedAppFields"
+        - x-go-type: managedAppComposed
+    ManagedAppFields:
+      properties:
+        displayName:
+          type: string
+        applicationId:
+          description: Object ID
+          type: string
+          format: uuid
+          x-go-name: ApplicationID
+        servicePrincipalId:
+          type: string
+          format: uuid
+          x-go-name: ServicePrincipalID
+      required:
+        - displayName
+        - applicationId
+        - servicePrincipalId
+    ManagedAppParameters:
+      type: object
+      properties:
+        displayName:
+          type: string
+        skipServicePrincipalCreation:
+          type: boolean
+      required:
+        - displayName

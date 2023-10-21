@@ -26,7 +26,8 @@ export const NamespaceKind = {
     NamespaceKindGroup: 'group',
     NamespaceKindDevice: 'device',
     NamespaceKindUser: 'user',
-    NamespaceKindApplication: 'application'
+    NamespaceKindApplication: 'application',
+    NamespaceKindManagedApp: 'managed-app'
 } as const;
 export type NamespaceKind = typeof NamespaceKind[keyof typeof NamespaceKind];
 

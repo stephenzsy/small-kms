@@ -1,0 +1,74 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Managed App Models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+security:
+  - BearerAuth: []
+paths: {}
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Identifier:
+      type: string
+      x-go-type: identifierImpl
+    NamespaceKind:
+      type: string
+      enum:
+        - profile
+      x-enum-varnames:
+        - NamespaceKindProfile
+    ResourceKind:
+      type: string
+      enum:
+        - managed-app
+      x-enum-varnames:
+        - ResourceKindManagedApp
+    ResourceMetadata:
+      type: object
+      properties:
+        updated:
+          type: string
+          format: date-time
+        deleted:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+      required:
+        - updated
+    ResourceReference:
+      type: object
+      properties:
+        namespaceId:
+          type: string
+          format: uuid
+          x-go-name: NamespaceID
+        id:
+          type: string
+          format: uuid
+          x-go-name: ID
+        namespaceKind:
+          $ref: "#/components/schemas/NamespaceKind"
+        namespaceIdentifier:
+          $ref: "#/components/schemas/Identifier"
+        resourceKind:
+          $ref: "#/components/schemas/ResourceKind"
+        resourceIdentifier:
+          $ref: "#/components/schemas/Identifier"
+        metadata:
+          $ref: "#/components/schemas/ResourceMetadata"
+      required:
+        - namespaceId
+        - id
+        - namespaceKind
+        - namespaceIdentifier
+        - resourceKind
+        - resourceIdentifier
+        - metadata

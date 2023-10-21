@@ -1,0 +1,784 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Admin API
+  version: 0.1.1
+servers:
+  - url: https://example.com
+    description: Local server
+security:
+  - BearerAuth: []
+paths:
+  /v1/managed-app:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
+  /v3/application/{namespaceId}/agent:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: Provision agent
+      operationId: GetAgentProfile
+      responses:
+        200:
+          description: Agent Profile
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
+    post:
+      tags:
+        - admin
+      summary: Provision agent
+      operationId: ProvisionAgentProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "oapi-shared.yaml#/components/schemas/AgentProfileParameters"
+        required: true
+      responses:
+        200:
+          description: Agent Profile
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
+  /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/AgentConfigNameParameter"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: AgentCallback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
+        required: true
+      responses:
+        204:
+          description: No content
+  /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/AgentConfigNameParameter"
+    get:
+      tags:
+        - admin
+        - agentclient
+      summary: Get agent autoconfig
+      operationId: GetAgentConfiguration
+      parameters:
+        - in: header
+          name: "X-Smallkms-If-Version-Not-Match"
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: refreshToken
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: "#/components/responses/AgentConfigurationResponse"
+        204:
+          description: No content
+    put:
+      tags:
+        - admin
+      summary: Get agent autoconfig
+      operationId: PutAgentConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationParameters"
+        required: true
+      responses:
+        200:
+          $ref: "#/components/responses/AgentConfigurationResponse"
+  /v3/servicePrincipal/{namespaceId}/agent-proxy:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      description: Get agent proxy information
+      operationId: GetAgentProxyInfo
+      responses:
+        200:
+          description: Agent proxy info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProxyInfo"
+  /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - agent
+        - admin
+        - agentproxyclient
+      description: Get docker info
+      operationId: GetDockerInfo
+      responses:
+        200:
+          description: DockerInfo
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
+  /v3/profiles/{namespaceKind}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+    get:
+      tags:
+        - admin
+      summary: List profiles by type
+      operationId: ListProfiles
+      responses:
+        200:
+          description: List RefsResponse
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfileRef"
+    post:
+      tags:
+        - admin
+      summary: Create Managed Application
+      operationId: CreateProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfileRequest"
+        required: true
+      responses:
+        201:
+          description: ProfileRef
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /v3/profiles/{namespaceKind}/{namespaceId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: Get namespace info with ms graph
+      operationId: GetProfile
+      responses:
+        "200":
+          description: get namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    post:
+      tags:
+        - admin
+      summary: Sync namespace info with ms graph
+      operationId: SyncProfile
+      responses:
+        "200":
+          description: register namespace profile response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - in: path
+        name: targetNamespaceKind
+        schema:
+          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
+        required: true
+    post:
+      tags:
+        - admin
+      summary: Create managed namespace
+      operationId: CreateManagedNamespace
+      responses:
+        "200":
+          description: Managed namespace profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /v3/{namespaceKind}/{namespaceId}/certificate-templates:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: List certificate templates
+      operationId: ListCertificateTemplates
+      responses:
+        200:
+          description: List certificate templates response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CertificateTemplateRef"
+    post:
+      tags:
+        - admin
+      summary: Create linked certificate template
+      operationId: CreateLinkedCertificateTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLinkedCertificateTemplateParameters"
+        required: true
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: Get certificate template
+      operationId: GetCertificateTemplate
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
+    put:
+      tags:
+        - admin
+      summary: Put certificate template
+      operationId: PutCertificateTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateTemplateParameters"
+        required: true
+      responses:
+        200:
+          description: Certificate template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateTemplate"
+    delete:
+      tags:
+        - admin
+      summary: Delete certificate template
+      operationId: DeleteCertificateTemplate
+      responses:
+        204:
+          description: Certificate template response
+          content: {}
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: List Key Vault role assignments
+      operationId: ListKeyVaultRoleAssignments
+      responses:
+        200:
+          description: List keyvault roles assignments response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AzureRoleAssignment"
+    post:
+      tags:
+        - admin
+      summary: Add Key Vault role assignment
+      operationId: AddKeyVaultRoleAssignment
+      parameters:
+        - in: query
+          name: roleDefinitionId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Role Assignment response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AzureRoleAssignment"
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+      - in: path
+        name: roleAssignmentId
+        schema:
+          type: string
+        required: true
+    delete:
+      tags:
+        - admin
+      summary: Remove Key Vault role assignment
+      operationId: RemoveKeyVaultRoleAssignment
+      responses:
+        204:
+          description: List keyvault roles assignments response
+          content: {}
+  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: List certificates issued by template
+      operationId: ListCertificatesByTemplate
+      responses:
+        200:
+          description: CertificateResponse
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
+    post:
+      tags:
+        - admin
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+        - in: query
+          name: force
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          name: enroll
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          name: tags
+          schema:
+            type: array
+            items:
+              $ref: "oapi-shared.yaml#/components/schemas/TemplatedCertificateTag"
+      summary: Create certificate
+      operationId: IssueCertificateFromTemplate
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+        201:
+          $ref: "#/components/responses/CertificateResponse"
+  /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceKindParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/CertificateIdPathParameter"
+    get:
+      parameters:
+        - $ref: "#/components/parameters/IncludeCertificateParameter"
+        - in: query
+          name: "templateId"
+          schema:
+            $ref: "oapi-shared.yaml#/components/schemas/Identifier"
+          required: false
+      tags:
+        - admin
+        - agentclient
+      summary: Get certificate
+      operationId: GetCertificate
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
+    delete:
+      tags:
+        - admin
+      summary: Delete certificate
+      operationId: DeleteCertificate
+      responses:
+        204:
+          description: ServiceConfig
+          content: {}
+  /v3/service/config:
+    get:
+      tags:
+        - admin
+      summary: Get service config
+      operationId: GetServiceConfig
+      responses:
+        200:
+          description: ServiceConfig
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceConfig"
+  /v3/service/config/{configPath}:
+    patch:
+      tags:
+        - admin
+      parameters:
+        - in: path
+          name: configPath
+          schema:
+            title: ServiceConfigPath
+            type: string
+            enum:
+              - azureSubscriptionId
+              - keyvaultArmResourceId
+              - appRoleIds
+              - azureContainerRegistry
+            x-enum-varnames:
+              - ServiceConfigPathAzureSubscriptionId
+              - ServiceConfigPathKeyvaultArmResourceId
+              - ServiceConfigPathAppRoleIds
+              - ServiceConfigPathAzureContainerRegistry
+          required: true
+      summary: Update service config
+      operationId: PatchServiceConfig
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+        required: true
+      responses:
+        200:
+          description: ServiceConfig
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceConfig"
+  /v3/diagnostics:
+    get:
+      tags:
+        - diagnostics
+      summary: Get diagnostics
+      operationId: GetDiagnostics
+      responses:
+        "200":
+          description: Diagnostics response
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-shared.yaml#/components/schemas/RequestDiagnostics"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AgentProxyEndpoint:
+      type: object
+      properties:
+        url:
+          type: string
+        ipUrl:
+          type: string
+        state:
+          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
+      required:
+        - url
+        - ipUrl
+        - state
+    AgentProxyInfo:
+      type: object
+      properties:
+        primary:
+          $ref: "#/components/schemas/AgentProxyEndpoint"
+        secondary:
+          $ref: "#/components/schemas/AgentProxyEndpoint"
+    ProfileRefFields:
+      type: object
+      properties:
+        type:
+          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
+        displayName:
+          description: Display name of the resource
+          type: string
+        isAppManaged:
+          description: Whether the resource is managed by the application
+          type: boolean
+      required:
+        - type
+        - displayName
+    ProfileRef:
+      allOf:
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/ProfileRefFields"
+    Profile:
+      allOf:
+        - $ref: "#/components/schemas/ProfileRef"
+    CreateProfileRequestType:
+      type: string
+      enum:
+        - managed-application
+      x-enum-varnames:
+        - ProfileTypeManagedApplication
+    CreateManagedApplicationProfileRequest:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/CreateProfileRequestType"
+        name:
+          type: string
+      required:
+        - type
+        - name
+    CreateProfileRequest:
+      oneOf:
+        - $ref: "#/components/schemas/CreateManagedApplicationProfileRequest"
+      discriminator:
+        propertyName: type
+        mapping:
+          managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
+    AzureRoleAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roleDefinitionId:
+          type: string
+        principalId:
+          type: string
+    CertificateLifetimeTrigger:
+      type: object
+      properties:
+        days_before_expiry:
+          x-go-name: DaysBeforeExpiry
+          type: integer
+          format: int32
+        lifetime_percentage:
+          x-go-name: LifetimePercentage
+          type: integer
+          format: int32
+    CertificateTemplateRefFields:
+      type: object
+      properties:
+        subjectCommonName:
+          description: Common name
+          type: string
+        linkTo:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+      required:
+        - subjectCommonName
+    CertificateTemplateRef:
+      allOf:
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/CertificateTemplateRefFields"
+    CertificateTemplateParameters:
+      type: object
+      description: Certificate fields, may accept template substitutions
+      properties:
+        issuerTemplate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+        keyProperties:
+          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
+        subjectCommonName:
+          description: Common name
+          type: string
+        subjectAlternativeNames:
+          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
+        usages:
+          type: array
+          items:
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 120
+        keyStorePath:
+          type: string
+        keyExportable:
+          type: boolean
+        lifetimeTrigger:
+          $ref: "#/components/schemas/CertificateLifetimeTrigger"
+      required:
+        - subjectCommonName
+        - usages
+    CertificateTemplateFields:
+      type: object
+      description: Certificate fields, may accept template substitutions
+      properties:
+        issuerTemplate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+        keyProperties:
+          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
+        subjectAlternativeNames:
+          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
+        usages:
+          type: array
+          items:
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
+        validity_months:
+          x-go-name: ValidityInMonths
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 120
+        keyStorePath:
+          type: string
+        lifetimeTrigger:
+          $ref: "#/components/schemas/CertificateLifetimeTrigger"
+      required:
+        - issuerTemplate
+        - keyProperties
+        - usages
+        - validity_months
+        - lifetimeTrigger
+    CertificateTemplate:
+      allOf:
+        - $ref: "#/components/schemas/CertificateTemplateRef"
+        - $ref: "#/components/schemas/CertificateTemplateFields"
+    LinkedCertificateTemplateUsage:
+      type: string
+      enum:
+        - cliant-authorization
+        - member-delegated-enrollment
+      x-enum-varnames:
+        - LinkedCertificateTemplateUsageClientAuthorization
+        - LinkedCertificateTemplateUsageMemberDelegatedEnrollment
+    CreateLinkedCertificateTemplateParameters:
+      type: object
+      properties:
+        targetTemplate:
+          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
+        usage:
+          $ref: "#/components/schemas/LinkedCertificateTemplateUsage"
+      required:
+        - targetTemplate
+        - usage
+    AgentHostRole:
+      type: string
+      enum:
+        - radiusServer
+      x-enum-varnames:
+        - AgentHostRoleRadiusServer
+    ServiceConfig:
+      allOf:
+        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
+        - $ref: "#/components/schemas/ServiceConfigFields"
+    ServiceConfigFields:
+      type: object
+      properties:
+        azureSubscriptionId:
+          type: string
+        keyvaultArmResourceId:
+          type: string
+        appRoleIds:
+          type: object
+          title: ServiceConfigAppRoleIds
+          properties:
+            "App.Admin":
+              type: string
+              format: uuid
+            "Agent.ActiveHost":
+              type: string
+              format: uuid
+          required:
+            - "App.Admin"
+            - "Agent.ActiveHost"
+        azureContainerRegistry:
+          title: ServiceConfigAcrInfo
+          type: object
+          properties:
+            loginServer:
+              type: string
+            name:
+              type: string
+            armResourceId:
+              type: string
+          required:
+            - loginServer
+            - name
+            - armResourceId
+      required:
+        - azureSubscriptionId
+        - keyvaultArmResourceId
+        - appRoleIds
+        - azureContainerRegistry
+  parameters:
+    AgentConfigNameParameter:
+      in: path
+      name: configName
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
+      required: true
+    NamespaceKindParameter:
+      in: path
+      name: namespaceKind
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
+      required: true
+    NamespaceIdParameter:
+      in: path
+      name: namespaceId
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
+      required: true
+    CertificateIdPathParameter:
+      in: path
+      name: certificateId
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
+      required: true
+    CertificateTemplateIdentifierParameter:
+      in: path
+      name: templateId
+      schema:
+        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
+      required: true
+    IncludeCertificateParameter:
+      in: query
+      name: "includeCertificate"
+      schema:
+        type: boolean
+      required: false
+  responses:
+    AgentConfigurationResponse:
+      description: Agent autoconfig response
+      content:
+        application/json:
+          schema:
+            $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
+    CertificateResponse:
+      description: CertificateResponse
+      content:
+        application/json:
+          schema:
+            $ref: "oapi-shared.yaml#/components/schemas/CertificateInfo"

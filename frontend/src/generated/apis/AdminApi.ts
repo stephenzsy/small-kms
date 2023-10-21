@@ -29,6 +29,8 @@ import type {
   CertificateTemplateRef,
   CreateLinkedCertificateTemplateParameters,
   CreateProfileRequest,
+  ManagedApp,
+  ManagedAppParameters,
   NamespaceKind,
   Profile,
   ProfileRef,
@@ -64,6 +66,10 @@ import {
     CreateLinkedCertificateTemplateParametersToJSON,
     CreateProfileRequestFromJSON,
     CreateProfileRequestToJSON,
+    ManagedAppFromJSON,
+    ManagedAppToJSON,
+    ManagedAppParametersFromJSON,
+    ManagedAppParametersToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
     ProfileFromJSON,
@@ -94,6 +100,10 @@ export interface CreateLinkedCertificateTemplateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     createLinkedCertificateTemplateParameters: CreateLinkedCertificateTemplateParameters;
+}
+
+export interface CreateManagedAppRequest {
+    managedAppParameters: ManagedAppParameters;
 }
 
 export interface CreateManagedNamespaceRequest {
@@ -380,6 +390,47 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createLinkedCertificateTemplate(requestParameters: CreateLinkedCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
         const response = await this.createLinkedCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create a managed app
+     */
+    async createManagedAppRaw(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedApp>> {
+        if (requestParameters.managedAppParameters === null || requestParameters.managedAppParameters === undefined) {
+            throw new runtime.RequiredError('managedAppParameters','Required parameter requestParameters.managedAppParameters was null or undefined when calling createManagedApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/managed-app`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ManagedAppParametersToJSON(requestParameters.managedAppParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppFromJSON(jsonValue));
+    }
+
+    /**
+     * Create a managed app
+     */
+    async createManagedApp(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedApp> {
+        const response = await this.createManagedAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1101,6 +1152,40 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listKeyVaultRoleAssignments(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AzureRoleAssignment>> {
         const response = await this.listKeyVaultRoleAssignmentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List managed apps
+     */
+    async listManagedAppsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ManagedApp>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/managed-app`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ManagedAppFromJSON));
+    }
+
+    /**
+     * List managed apps
+     */
+    async listManagedApps(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ManagedApp>> {
+        const response = await this.listManagedAppsRaw(initOverrides);
         return await response.value();
     }
 

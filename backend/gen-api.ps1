@@ -8,3 +8,6 @@ oapi-codegen.exe --package agentserver -generate "types,echo-server" -include-ta
 oapi-codegen.exe --package agentproxyclient -generate "types,client" -include-tags agentproxyclient -import-mapping="oapi-shared.yaml:github.com/stephenzsy/small-kms/backend/shared" ./oapi-api.yaml > admin/agentproxyclient/agent_proxy_client.gen.go
 
 #oapi-codegen.exe --package client -generate "types,client" -include-tags enroll ./swagger.yaml  > endpoint-enroll/client/enroll_client.gen.go
+
+oapi-codegen.exe --package base -generate "types,skip-prune" ./oapi-base.yaml > base/base_types.gen.go
+oapi-codegen.exe --package managedapp -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" -include-tags="admin" ./oapi-managed-app.yaml > managedapp/managed_app.gen.go
