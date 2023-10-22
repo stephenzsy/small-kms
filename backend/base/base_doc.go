@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ type CRUDDoc interface {
 
 type BaseDoc struct {
 	StorageNamespaceID uuid.UUID `json:"namespaceId"`
-	StroageID          uuid.UUID `json:"id"`
+	StorageID          uuid.UUID `json:"id"`
 
 	NamespaceKind       NamespaceKind `json:"namespaceKind"`
 	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
@@ -40,6 +41,13 @@ type BaseDoc struct {
 	ETag      *azcore.ETag     `json:"_etag,omitempty"`
 	Deleted   *time.Time       `json:"deleted,omitempty"`
 	UpdatedBy string           `json:"updatedBy,omitempty"`
+}
+
+var queryDefaultColumns = []string{
+	"c.id",
+	"c.resourceIdentifier",
+	"c._ts",
+	"c.deleted",
 }
 
 // setTimestamp implements CRUDDoc.
@@ -61,28 +69,40 @@ func (d *BaseDoc) GetUpdatedBy() string {
 	return d.UpdatedBy
 }
 
-func (d *BaseDoc) GetStorageIdBaseUrl(c context.Context) string {
+func GetDefaultStorageIDURLBase(c context.Context) string {
 	if val, ok := c.Value(SiteUrlContextKey).(string); ok {
 		return val
 	}
 	return "https://example.com"
 }
 
-func (d *BaseDoc) GetStorageNamespaceIdUrl(c context.Context) string {
-	return fmt.Sprintf("%s/v1/r/%s/%s", d.GetStorageIdBaseUrl(c), d.NamespaceKind, d.NamespaceIdentifier.String())
+func GetDefaultStorageNamespaceIDURL(c context.Context, namespaceKind NamespaceKind, namespaceIdentifier Identifier) string {
+	return fmt.Sprintf("%s/v1/r/%s/%s", GetDefaultStorageIDURLBase(c), namespaceKind, namespaceIdentifier.String())
+}
+
+func GetDefaultStorageNamespaceID(c context.Context, namespaceKind NamespaceKind, namespaceIdentifier Identifier) uuid.UUID {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageNamespaceIDURL(c, namespaceKind, namespaceIdentifier)))
 }
 
 // default implementation get storage ID
 func (d *BaseDoc) GetStorageNamespaceID(c context.Context) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(d.GetStorageNamespaceIdUrl(c)))
+	return GetDefaultStorageNamespaceID(c, d.NamespaceKind, d.NamespaceIdentifier)
 }
 
-func (d *BaseDoc) GetStorageIdUrl(c context.Context) string {
-	return fmt.Sprintf("%s/%s/%s", d.GetStorageNamespaceID(c), d.ResourceKind, d.ResourceIdentifier.String())
+func GetDefaultStorageIDURL(c context.Context, storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) string {
+	return fmt.Sprintf("%s/%s/%s", storageNamespaceIDURL, resourceKind, resourceIdentifier.String())
+}
+
+func GetDefaultStorageID(c context.Context, storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) uuid.UUID {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))
 }
 
 func (d *BaseDoc) GetStorageID(c context.Context) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(d.GetStorageIdUrl(c)))
+	return GetDefaultStorageID(
+		c,
+		GetDefaultStorageNamespaceIDURL(c, d.NamespaceKind, d.NamespaceIdentifier),
+		d.ResourceKind,
+		d.ResourceIdentifier)
 }
 
 // setETag implements CRUDDoc.
@@ -93,7 +113,7 @@ func (d *BaseDoc) setETag(eTag azcore.ETag) {
 // setUpdated implements CRUDDoc.
 func (d *BaseDoc) prepareForWrite(c context.Context, storageID uuid.UUID) {
 	d.StorageNamespaceID = d.GetStorageNamespaceID(c)
-	d.StroageID = storageID
+	d.StorageID = storageID
 	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	// clear read-only fields
 	d.ETag = nil
@@ -105,10 +125,11 @@ var _ CRUDDoc = (*BaseDoc)(nil)
 type AzCosmosCRUDDocService interface {
 	Create(context.Context, CRUDDoc, *azcosmos.ItemOptions) error
 	Upsert(context.Context, CRUDDoc, *azcosmos.ItemOptions) error
-	Read(context.Context, uuid.UUID, uuid.UUID, CRUDDoc, *azcosmos.ItemOptions) error
+	Read(c context.Context, storageNamespaceID, storageID uuid.UUID, dst CRUDDoc, opts *azcosmos.ItemOptions) error
 	Patch(context.Context, CRUDDoc, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
-	SoftDelete(context.Context)
-	Purge(context.Context)
+	NewQueryItemsPager(query string, storageNamespaceID uuid.UUID, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
+	// TODO: SoftDelete(context.Context)
+	// TODO: Purge(context.Context)
 }
 
 func NewAzCosmosCRUDDocService(client *azcosmos.ContainerClient) *azcosmosContainerCRUDDocService {
@@ -145,8 +166,8 @@ func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc,
 }
 
 // Read implements CRUDDocService.
-func (s *azcosmosContainerCRUDDocService) Read(c context.Context, namespaceStorageID, storageID uuid.UUID, dst CRUDDoc, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(namespaceStorageID.String())
+func (s *azcosmosContainerCRUDDocService) Read(c context.Context, storageNamespaceID, storageID uuid.UUID, dst CRUDDoc, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
 	resp, err := s.client.ReadItem(c, partitionKey, storageID.String(), nil)
 	if err != nil {
 		return err
@@ -154,6 +175,11 @@ func (s *azcosmosContainerCRUDDocService) Read(c context.Context, namespaceStora
 	err = json.Unmarshal(resp.Value, dst)
 	dst.setETag(resp.ETag)
 	return err
+}
+
+func (s *azcosmosContainerCRUDDocService) NewQueryItemsPager(query string, storageNamespaceID uuid.UUID, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse] {
+	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
+	return s.client.NewQueryItemsPager(query, partitionKey, o)
 }
 
 // Upsert implements CRUDDocService.

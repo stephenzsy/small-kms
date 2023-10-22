@@ -24,7 +24,7 @@ func (s *server) ListManagedApps(ec echo.Context) error {
 		return err
 	}
 	if result == nil {
-		result = []*ManagedAppDoc{}
+		result = []*ManagedApp{}
 	}
 	return c.JSON(200, result)
 }
@@ -46,7 +46,7 @@ func (s *server) CreateManagedApp(ec echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, result)
+	return c.JSON(200, managedAppDocToModel(result))
 }
 
 var _ ServerInterface = (*server)(nil)

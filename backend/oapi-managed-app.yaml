@@ -50,6 +50,10 @@ components:
         - x-go-type: managedAppComposed
     ManagedAppFields:
       properties:
+        appId:
+          type: string
+          format: uuid
+          x-go-name: AppID
         displayName:
           type: string
         applicationId:
@@ -62,6 +66,7 @@ components:
           format: uuid
           x-go-name: ServicePrincipalID
       required:
+        - appId
         - displayName
         - applicationId
         - servicePrincipalId

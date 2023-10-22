@@ -47,7 +47,6 @@ export * from './ProfileRefFields';
 export * from './RequestDiagnostics';
 export * from './RequestHeaderEntry';
 export * from './ResourceKind';
-export * from './ResourceMetadata';
 export * from './ResourceRef';
 export * from './ResourceReference';
 export * from './ServiceConfig';

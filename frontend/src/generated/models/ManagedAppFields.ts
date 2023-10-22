@@ -24,6 +24,12 @@ export interface ManagedAppFields {
      * @type {string}
      * @memberof ManagedAppFields
      */
+    appId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ManagedAppFields
+     */
     displayName: string;
     /**
      * Object ID
@@ -44,6 +50,7 @@ export interface ManagedAppFields {
  */
 export function instanceOfManagedAppFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "appId" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "applicationId" in value;
     isInstance = isInstance && "servicePrincipalId" in value;
@@ -61,6 +68,7 @@ export function ManagedAppFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'appId': json['appId'],
         'displayName': json['displayName'],
         'applicationId': json['applicationId'],
         'servicePrincipalId': json['servicePrincipalId'],
@@ -76,6 +84,7 @@ export function ManagedAppFieldsToJSON(value?: ManagedAppFields | null): any {
     }
     return {
         
+        'appId': value.appId,
         'displayName': value.displayName,
         'applicationId': value.applicationId,
         'servicePrincipalId': value.servicePrincipalId,

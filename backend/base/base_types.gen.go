@@ -37,11 +37,13 @@ type ResourceMetadata struct {
 
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
-	ID                  openapi_types.UUID `json:"id"`
-	Metadata            ResourceMetadata   `json:"metadata"`
-	NamespaceID         openapi_types.UUID `json:"namespaceId"`
+	NID                 openapi_types.UUID `json:"_nid"`
+	RID                 openapi_types.UUID `json:"_rid"`
+	Deleted             *time.Time         `json:"deleted,omitempty"`
 	NamespaceIdentifier Identifier         `json:"namespaceIdentifier"`
 	NamespaceKind       NamespaceKind      `json:"namespaceKind"`
 	ResourceIdentifier  Identifier         `json:"resourceIdentifier"`
 	ResourceKind        ResourceKind       `json:"resourceKind"`
+	Updated             time.Time          `json:"updated"`
+	UpdatedBy           string             `json:"updatedBy"`
 }

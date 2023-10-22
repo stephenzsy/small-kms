@@ -15,12 +15,20 @@ type ManagedAppDoc struct {
 }
 
 const (
+	queryColumnDisplayName        = "c.displayName"
+	queryColumnApplicationID      = "c.applicationId"
+	queryColumnServicePrincipalID = "c.servicePrincipalId"
+
 	patchColumnServicePrincipalID = "/servicePrincipalId"
 )
 
 const namespaceIDName = "managed-app"
 
 var namespaceIdentifierManagedApp = base.StringIdentifier(namespaceIDName)
+
+func getManageAppDocStorageNamespaceID(c context.Context) uuid.UUID {
+	return base.GetDefaultStorageNamespaceID(c, base.NamespaceKindProfile, namespaceIdentifierManagedApp)
+}
 
 func NewManagedAppDoc(appID uuid.UUID, displayName string) *ManagedAppDoc {
 	doc := &ManagedAppDoc{
@@ -44,3 +52,25 @@ func (d *ManagedAppDoc) GetStorageID(context.Context) uuid.UUID {
 }
 
 var _ base.CRUDDocHasCustomStorageID = (*ManagedAppDoc)(nil)
+
+func managedAppDocToModel(doc *ManagedAppDoc) *ManagedApp {
+	if doc == nil {
+		return nil
+	}
+	r := new(ManagedApp)
+	r.NID = doc.StorageNamespaceID
+	r.RID = doc.StorageID
+	r.Updated = doc.Timestamp.Time
+	r.Deleted = doc.Deleted
+	r.UpdatedBy = doc.UpdatedBy
+	r.NamespaceKind = doc.NamespaceKind
+	r.NamespaceIdentifier = doc.NamespaceIdentifier
+	r.ResourceKind = doc.ResourceKind
+	r.ResourceIdentifier = doc.ResourceIdentifier
+
+	r.AppID = doc.GetAppID()
+	r.ApplicationID = doc.ApplicationID
+	r.DisplayName = doc.DisplayName
+	r.ServicePrincipalID = doc.ServicePrincipalID
+	return r
+}

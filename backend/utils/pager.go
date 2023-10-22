@@ -56,6 +56,10 @@ func NewMappedItemsPager[T any, U any](from ItemsPager[U], f MapFunc[T, U]) Item
 }
 
 func PagerAllItems[T any](pager ItemsPager[T], ctx context.Context) (items []T, err error) {
+	return PagerToSlice(ctx, pager)
+}
+
+func PagerToSlice[T any](ctx context.Context, pager ItemsPager[T]) (items []T, err error) {
 	for pager.More() {
 		t, scanErr := pager.NextPage(ctx)
 		if scanErr != nil {

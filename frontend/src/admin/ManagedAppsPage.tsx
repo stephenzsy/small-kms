@@ -1,9 +1,11 @@
 import Title from "antd/es/typography/Title";
-import { AdminApi, CreateManagedAppRequest } from "../generated";
+import { AdminApi, CreateManagedAppRequest, ManagedApp } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useRequest } from "ahooks";
-import { Button, Card, Form, Input } from "antd";
+import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
 import { useForm } from "antd/es/form/Form";
+import { useMemo } from "react";
+import { Link } from "../components/Link";
 
 type CreateManagedAppFormState = {
   displayName?: string;
@@ -49,6 +51,27 @@ function CreateManagedAppForm({ onCreated }: { onCreated: () => void }) {
   );
 }
 
+function useColumns() {
+  return useMemo<TableColumnType<ManagedApp>[]>(
+    () => [
+      {
+        title: "App ID",
+        render: (r: ManagedApp) => <span className="font-mono">{r.appId}</span>,
+      },
+      {
+        title: "Display name",
+        render: (r: ManagedApp) => r.displayName,
+      },
+
+      {
+        title: "Actions",
+        render: (r) => <Link to={`/apps/${r.appId}`}>View</Link>,
+      },
+    ],
+    []
+  );
+}
+
 export default function ManagedAppsPage() {
   const adminApi = useAuthedClient(AdminApi);
 
@@ -61,9 +84,18 @@ export default function ManagedAppsPage() {
     }
   );
 
+  const columns = useColumns();
+
   return (
     <>
       <Title>Managed Applications</Title>
+      <Card title="Issued certificates">
+        <Table<ManagedApp>
+          columns={columns}
+          dataSource={data}
+          rowKey={(r) => r.resourceIdentifier}
+        />
+      </Card>
       <Card title="Create managed application">
         <CreateManagedAppForm onCreated={listApps} />
       </Card>

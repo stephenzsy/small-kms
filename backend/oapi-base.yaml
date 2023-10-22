@@ -46,14 +46,14 @@ components:
     ResourceReference:
       type: object
       properties:
-        namespaceId:
+        _nid:
           type: string
           format: uuid
-          x-go-name: NamespaceID
-        id:
+          x-go-name: NID
+        _rid:
           type: string
           format: uuid
-          x-go-name: ID
+          x-go-name: RID
         namespaceKind:
           $ref: "#/components/schemas/NamespaceKind"
         namespaceIdentifier:
@@ -62,13 +62,20 @@ components:
           $ref: "#/components/schemas/ResourceKind"
         resourceIdentifier:
           $ref: "#/components/schemas/Identifier"
-        metadata:
-          $ref: "#/components/schemas/ResourceMetadata"
+        updated:
+          type: string
+          format: date-time
+        deleted:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
       required:
-        - namespaceId
-        - id
+        - _nid
+        - _rid
         - namespaceKind
         - namespaceIdentifier
         - resourceKind
         - resourceIdentifier
-        - metadata
+        - updated
+        - updatedBy

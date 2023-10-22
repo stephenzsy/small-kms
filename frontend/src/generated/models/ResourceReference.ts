@@ -25,12 +25,6 @@ import {
     ResourceKindFromJSONTyped,
     ResourceKindToJSON,
 } from './ResourceKind';
-import type { ResourceMetadata } from './ResourceMetadata';
-import {
-    ResourceMetadataFromJSON,
-    ResourceMetadataFromJSONTyped,
-    ResourceMetadataToJSON,
-} from './ResourceMetadata';
 
 /**
  * 
@@ -43,13 +37,13 @@ export interface ResourceReference {
      * @type {string}
      * @memberof ResourceReference
      */
-    namespaceId: string;
+    nid: string;
     /**
      * 
      * @type {string}
      * @memberof ResourceReference
      */
-    id: string;
+    rid: string;
     /**
      * 
      * @type {NamespaceKind1}
@@ -76,10 +70,22 @@ export interface ResourceReference {
     resourceIdentifier: string;
     /**
      * 
-     * @type {ResourceMetadata}
+     * @type {Date}
      * @memberof ResourceReference
      */
-    metadata: ResourceMetadata;
+    updated: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ResourceReference
+     */
+    deleted?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResourceReference
+     */
+    updatedBy: string;
 }
 
 /**
@@ -87,13 +93,14 @@ export interface ResourceReference {
  */
 export function instanceOfResourceReference(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceId" in value;
-    isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "nid" in value;
+    isInstance = isInstance && "rid" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
     isInstance = isInstance && "resourceIdentifier" in value;
-    isInstance = isInstance && "metadata" in value;
+    isInstance = isInstance && "updated" in value;
+    isInstance = isInstance && "updatedBy" in value;
 
     return isInstance;
 }
@@ -108,13 +115,15 @@ export function ResourceReferenceFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'namespaceId': json['namespaceId'],
-        'id': json['id'],
+        'nid': json['_nid'],
+        'rid': json['_rid'],
         'namespaceKind': NamespaceKind1FromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
         'resourceIdentifier': json['resourceIdentifier'],
-        'metadata': ResourceMetadataFromJSON(json['metadata']),
+        'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
+        'updatedBy': json['updatedBy'],
     };
 }
 
@@ -127,13 +136,15 @@ export function ResourceReferenceToJSON(value?: ResourceReference | null): any {
     }
     return {
         
-        'namespaceId': value.namespaceId,
-        'id': value.id,
+        '_nid': value.nid,
+        '_rid': value.rid,
         'namespaceKind': NamespaceKind1ToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),
         'resourceIdentifier': value.resourceIdentifier,
-        'metadata': ResourceMetadataToJSON(value.metadata),
+        'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
+        'updatedBy': value.updatedBy,
     };
 }
 

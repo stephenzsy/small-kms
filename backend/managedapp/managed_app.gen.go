@@ -17,6 +17,8 @@ type ManagedApp = managedAppComposed
 
 // ManagedAppFields defines model for ManagedAppFields.
 type ManagedAppFields struct {
+	AppID openapi_types.UUID `json:"appId"`
+
 	// ApplicationId Object ID
 	ApplicationID      openapi_types.UUID `json:"applicationId"`
 	DisplayName        string             `json:"displayName"`

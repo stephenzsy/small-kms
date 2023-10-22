@@ -49,7 +49,6 @@ models/ProfileRefFields.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts
-models/ResourceMetadata.ts
 models/ResourceRef.ts
 models/ResourceReference.ts
 models/ServiceConfig.ts
