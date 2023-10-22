@@ -13,22 +13,24 @@ const (
 )
 
 // ManagedApp defines model for ManagedApp.
-type ManagedApp = managedAppComposed
-
-// ManagedAppFields defines model for ManagedAppFields.
-type ManagedAppFields struct {
-	AppID openapi_types.UUID `json:"appId"`
-
-	// ApplicationId Object ID
-	ApplicationID      openapi_types.UUID `json:"applicationId"`
-	DisplayName        string             `json:"displayName"`
-	ServicePrincipalID openapi_types.UUID `json:"servicePrincipalId"`
-}
+type ManagedApp = ManagedAppRef
 
 // ManagedAppParameters defines model for ManagedAppParameters.
 type ManagedAppParameters struct {
 	DisplayName                  string `json:"displayName"`
 	SkipServicePrincipalCreation *bool  `json:"skipServicePrincipalCreation,omitempty"`
+}
+
+// ManagedAppRef defines model for ManagedAppRef.
+type ManagedAppRef = managedAppRefComposed
+
+// ManagedAppRefFields defines model for ManagedAppRefFields.
+type ManagedAppRefFields struct {
+	AppID openapi_types.UUID `json:"appId"`
+
+	// ApplicationId Object ID
+	ApplicationID      openapi_types.UUID `json:"applicationId"`
+	ServicePrincipalID openapi_types.UUID `json:"servicePrincipalId"`
 }
 
 // CreateManagedAppJSONRequestBody defines body for CreateManagedApp for application/json ContentType.

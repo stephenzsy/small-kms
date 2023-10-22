@@ -46,7 +46,9 @@ func (s *server) CreateManagedApp(ec echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, managedAppDocToModel(result))
+	m := &ManagedApp{}
+	result.PopulateModel(m)
+	return c.JSON(200, m)
 }
 
 var _ ServerInterface = (*server)(nil)

@@ -54,7 +54,8 @@ func createManagedApp(c context.Context, params *ManagedAppParameters) (*Managed
 		if err != nil {
 			return bad(err)
 		}
-		doc := NewManagedAppDoc(appID, displayName)
+		doc := &ManagedAppDoc{}
+		doc.Init(appID, displayName)
 		doc.ApplicationID, err = uuid.Parse(*application.GetId())
 		if err != nil {
 			return bad(err)

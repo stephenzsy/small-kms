@@ -1,5 +1,5 @@
 import Title from "antd/es/typography/Title";
-import { AdminApi, CreateManagedAppRequest, ManagedApp } from "../generated";
+import { AdminApi, CreateManagedAppRequest, ManagedAppRef } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useRequest } from "ahooks";
 import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
@@ -38,10 +38,9 @@ function CreateManagedAppForm({ onCreated }: { onCreated: () => void }) {
         }
       }}
     >
-      <Form.Item name="displayName" label="Display Name" required>
+      <Form.Item name="displayName" label="Display name" required>
         <Input />
       </Form.Item>
-
       <Form.Item>
         <Button type="primary" htmlType="submit">
           Create
@@ -52,15 +51,17 @@ function CreateManagedAppForm({ onCreated }: { onCreated: () => void }) {
 }
 
 function useColumns() {
-  return useMemo<TableColumnType<ManagedApp>[]>(
+  return useMemo<TableColumnType<ManagedAppRef>[]>(
     () => [
       {
         title: "App ID",
-        render: (r: ManagedApp) => <span className="font-mono">{r.appId}</span>,
+        render: (r: ManagedAppRef) => (
+          <span className="font-mono">{r.appId}</span>
+        ),
       },
       {
         title: "Display name",
-        render: (r: ManagedApp) => r.displayName,
+        render: (r: ManagedAppRef) => r.displayName,
       },
 
       {
@@ -89,8 +90,8 @@ export default function ManagedAppsPage() {
   return (
     <>
       <Title>Managed Applications</Title>
-      <Card title="Issued certificates">
-        <Table<ManagedApp>
+      <Card title="Managed Applications">
+        <Table<ManagedAppRef>
           columns={columns}
           dataSource={data}
           rowKey={(r) => r.resourceIdentifier}

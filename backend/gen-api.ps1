@@ -10,4 +10,6 @@ oapi-codegen.exe --package agentproxyclient -generate "types,client" -include-ta
 #oapi-codegen.exe --package client -generate "types,client" -include-tags enroll ./swagger.yaml  > endpoint-enroll/client/enroll_client.gen.go
 
 oapi-codegen.exe --package base -generate "types,skip-prune" ./oapi-base.yaml > base/base_types.gen.go
-oapi-codegen.exe --package managedapp -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" -include-tags="admin" ./oapi-managed-app.yaml > managedapp/managed_app.gen.go
+oapi-codegen.exe --package profile -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-profile.yaml > profile/v2/profile.gen.go
+oapi-codegen.exe --package managedapp -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-profile.yaml:github.com/stephenzsy/small-kms/backend/profile/v2" ./oapi-managed-app.yaml > managedapp/managed_app.gen.go
+oapi-codegen.exe --package key -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-key.yaml > key/key.gen.go

@@ -5,17 +5,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/profile/v2"
 )
 
 type ManagedAppDoc struct {
-	base.BaseDoc
-	DisplayName        string    `json:"displayName"`
+	profile.ProfileDoc
 	ApplicationID      uuid.UUID `json:"applicationId"`
 	ServicePrincipalID uuid.UUID `json:"servicePrincipalId"`
 }
 
 const (
-	queryColumnDisplayName        = "c.displayName"
 	queryColumnApplicationID      = "c.applicationId"
 	queryColumnServicePrincipalID = "c.servicePrincipalId"
 
@@ -30,17 +29,16 @@ func getManageAppDocStorageNamespaceID(c context.Context) uuid.UUID {
 	return base.GetDefaultStorageNamespaceID(c, base.NamespaceKindProfile, namespaceIdentifierManagedApp)
 }
 
-func NewManagedAppDoc(appID uuid.UUID, displayName string) *ManagedAppDoc {
-	doc := &ManagedAppDoc{
-		BaseDoc: base.BaseDoc{
-			NamespaceKind:       base.NamespaceKindProfile,
-			NamespaceIdentifier: namespaceIdentifierManagedApp,
-			ResourceKind:        base.ResourceKindManagedApp,
-			ResourceIdentifier:  base.UUIDIdentifier(appID),
-		},
-		DisplayName: displayName,
+func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string) {
+	if d == nil {
+		return
 	}
-	return doc
+	d.ProfileDoc.Init(
+		namespaceIdentifierManagedApp,
+		base.ProfileResourceKindManagedApp,
+		base.UUIDIdentifier(appID),
+		displayName,
+	)
 }
 
 func (d *ManagedAppDoc) GetAppID() uuid.UUID {
@@ -53,24 +51,19 @@ func (d *ManagedAppDoc) GetStorageID(context.Context) uuid.UUID {
 
 var _ base.CRUDDocHasCustomStorageID = (*ManagedAppDoc)(nil)
 
-func managedAppDocToModel(doc *ManagedAppDoc) *ManagedApp {
-	if doc == nil {
-		return nil
+func (d *ManagedAppDoc) PopulateModelRef(m *ManagedAppRef) {
+	if d == nil || m == nil {
+		return
 	}
-	r := new(ManagedApp)
-	r.NID = doc.StorageNamespaceID
-	r.RID = doc.StorageID
-	r.Updated = doc.Timestamp.Time
-	r.Deleted = doc.Deleted
-	r.UpdatedBy = doc.UpdatedBy
-	r.NamespaceKind = doc.NamespaceKind
-	r.NamespaceIdentifier = doc.NamespaceIdentifier
-	r.ResourceKind = doc.ResourceKind
-	r.ResourceIdentifier = doc.ResourceIdentifier
-
-	r.AppID = doc.GetAppID()
-	r.ApplicationID = doc.ApplicationID
-	r.DisplayName = doc.DisplayName
-	r.ServicePrincipalID = doc.ServicePrincipalID
-	return r
+	d.ProfileDoc.PopulateModelRef(&m.ProfileRef)
+	m.AppID = d.GetAppID()
+	m.ApplicationID = d.ApplicationID
+	m.ServicePrincipalID = d.ServicePrincipalID
 }
+
+func (d *ManagedAppDoc) PopulateModel(m *ManagedApp) {
+	d.PopulateModelRef(m)
+}
+
+var _ base.ModelRefPopulater[managedAppRefComposed] = (*ManagedAppDoc)(nil)
+var _ base.ModelPopulater[ManagedApp] = (*ManagedAppDoc)(nil)

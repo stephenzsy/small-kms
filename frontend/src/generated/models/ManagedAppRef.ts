@@ -29,75 +29,93 @@ import {
 /**
  * 
  * @export
- * @interface ProfileRef
+ * @interface ManagedAppRef
  */
-export interface ProfileRef {
+export interface ManagedAppRef {
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     nid: string;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     rid: string;
     /**
      * 
      * @type {NamespaceKind1}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     namespaceKind: NamespaceKind1;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     resourceIdentifier: string;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     updated: Date;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     deleted?: Date;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     updatedBy: string;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ManagedAppRef
      */
     displayName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ManagedAppRef
+     */
+    appId: string;
+    /**
+     * Object ID
+     * @type {string}
+     * @memberof ManagedAppRef
+     */
+    applicationId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ManagedAppRef
+     */
+    servicePrincipalId: string;
 }
 
 /**
- * Check if a given object implements the ProfileRef interface.
+ * Check if a given object implements the ManagedAppRef interface.
  */
-export function instanceOfProfileRef(value: object): boolean {
+export function instanceOfManagedAppRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "nid" in value;
     isInstance = isInstance && "rid" in value;
@@ -108,15 +126,18 @@ export function instanceOfProfileRef(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "appId" in value;
+    isInstance = isInstance && "applicationId" in value;
+    isInstance = isInstance && "servicePrincipalId" in value;
 
     return isInstance;
 }
 
-export function ProfileRefFromJSON(json: any): ProfileRef {
-    return ProfileRefFromJSONTyped(json, false);
+export function ManagedAppRefFromJSON(json: any): ManagedAppRef {
+    return ManagedAppRefFromJSONTyped(json, false);
 }
 
-export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef {
+export function ManagedAppRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ManagedAppRef {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -132,10 +153,13 @@ export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
+        'appId': json['appId'],
+        'applicationId': json['applicationId'],
+        'servicePrincipalId': json['servicePrincipalId'],
     };
 }
 
-export function ProfileRefToJSON(value?: ProfileRef | null): any {
+export function ManagedAppRefToJSON(value?: ManagedAppRef | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -154,6 +178,9 @@ export function ProfileRefToJSON(value?: ProfileRef | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
+        'appId': value.appId,
+        'applicationId': value.applicationId,
+        'servicePrincipalId': value.servicePrincipalId,
     };
 }
 

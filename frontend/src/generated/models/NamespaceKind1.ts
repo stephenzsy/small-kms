@@ -18,7 +18,8 @@
  * @export
  */
 export const NamespaceKind1 = {
-    NamespaceKindProfile: 'profile'
+    NamespaceKindProfile: 'profile',
+    NamespaceKindRootCA: 'root-ca'
 } as const;
 export type NamespaceKind1 = typeof NamespaceKind1[keyof typeof NamespaceKind1];
 

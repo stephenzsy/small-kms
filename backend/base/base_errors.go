@@ -26,7 +26,8 @@ var (
 
 	ErrMsGraphResourceNotFound = errors.New("Request_ResourceNotFound")
 
-	ErrResponseStatusForbidden = httpResposneError(http.StatusForbidden, "forbidden")
+	ErrResponseStatusBadRequest = httpResposneError(http.StatusBadRequest, "bad request")
+	ErrResponseStatusForbidden  = httpResposneError(http.StatusForbidden, "forbidden")
 )
 
 func HandleMsGraphError(err error) error {

@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/{namespaceKind}/{namespaceIdentifier}/key-spec:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListKeySpecs
+      summary: List key specs
+      responses:
+        200:
+          description: List of key specs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KeySpecRef"
+  /v1/{namespaceKind}/{namespaceIdentifier}/key-spec/{resourceIdentifier}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetKeySpec
+      summary: Get key spec
+      responses:
+        200:
+          $ref: "#/components/responses/KeySpecResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutKeySpec
+      summary: Put key spec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeySpecParameters"
+      responses:
+        200:
+          $ref: "#/components/responses/KeySpecResponse"
+security:
+  - BearerAuth: []
+components:
+  schemas:
+    JsonWebKeyCurveName:
+      type: string
+      enum:
+        - P-256
+        - P-256K
+        - P-384
+        - P-521
+      x-enum-varnames:
+        - JsonWebKeyCurveNameP256
+        - JsonWebKeyCurveNameP256K
+        - JsonWebKeyCurveNameP384
+        - JsonWebKeyCurveNameP521
+    JsonWebKeyType:
+      type: string
+      enum:
+        - EC
+        - RSA
+        - oct
+      x-enum-varnames:
+        - JsonWebKeyTypeEC
+        - JsonWebKeyTypeRSA
+        - JsonWebKeyTypeOct
+    JsonWeyKeySize:
+      type: integer
+      format: int32
+    KeySpecRef:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/KeySpecRefFields"
+        - x-go-type: keySpecRefComposed
+    KeySpecRefFields:
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    KeySpec:
+      allOf:
+        - $ref: "#/components/schemas/KeySpecRef"
+        - $ref: "#/components/schemas/KeySpecFields"
+        - x-go-type: keySpecComposed
+    KeySpecFields:
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+        key_size:
+          $ref: "#/components/schemas/JsonWeyKeySize"
+        exportable:
+          type: boolean
+        expiryTime:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+      required:
+        - kty
+        - exportable
+    KeySpecParameters:
+      type: object
+      properties:
+        name:
+          type: string
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+        key_size:
+          $ref: "#/components/schemas/JsonWeyKeySize"
+        exportable:
+          type: boolean
+        expiryTime:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+      required:
+        - kty
+  responses:
+    KeySpecResponse:
+      description: Key spec reponse
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/KeySpec"

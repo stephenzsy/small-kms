@@ -43,19 +43,17 @@ security:
   - BearerAuth: []
 components:
   schemas:
-    ManagedApp:
+    ManagedAppRef:
       allOf:
-        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
-        - $ref: "#/components/schemas/ManagedAppFields"
-        - x-go-type: managedAppComposed
-    ManagedAppFields:
+        - $ref: "oapi-profile.yaml#/components/schemas/ProfileRef"
+        - $ref: "#/components/schemas/ManagedAppRefFields"
+        - x-go-type: managedAppRefComposed
+    ManagedAppRefFields:
       properties:
         appId:
           type: string
           format: uuid
           x-go-name: AppID
-        displayName:
-          type: string
         applicationId:
           description: Object ID
           type: string
@@ -67,9 +65,10 @@ components:
           x-go-name: ServicePrincipalID
       required:
         - appId
-        - displayName
         - applicationId
         - servicePrincipalId
+    ManagedApp:
+      $ref: "#/components/schemas/ManagedAppRef"
     ManagedAppParameters:
       type: object
       properties:

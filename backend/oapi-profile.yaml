@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/root-ca:
+    get:
+      tags:
+        - admin
+      operationId: ListRootCAs
+      summary: List root CA profiles
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfileRef"
+  /v1/root-ca/{namespaceIdentifier}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetRootCA
+      summary: Get profile
+      responses:
+        200:
+          $ref: "#/components/responses/ProfileResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutRootCA
+      summary: Put profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileParameters"
+      responses:
+        200:
+          $ref: "#/components/responses/ProfileResponse"
+security:
+  - BearerAuth: []
+components:
+  schemas:
+    ProfileRef:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/ProfileRefFields"
+        - x-go-type: profileRefComposed
+    ProfileRefFields:
+      type: object
+      properties:
+        displayName:
+          type: string
+      required:
+        - displayName
+    Profile:
+      $ref: "#/components/schemas/ProfileRef"
+    ProfileParameters:
+      type: object
+      properties:
+        displayName:
+          type: string
+  responses:
+    ProfileResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Profile"

@@ -28,8 +28,9 @@ import type {
   CertificateTemplateParameters,
   CertificateTemplateRef,
   CreateLinkedCertificateTemplateParameters,
-  ManagedApp,
+  LegacyProfileRef,
   ManagedAppParameters,
+  ManagedAppRef,
   NamespaceKind,
   Profile,
   ProfileRef,
@@ -63,10 +64,12 @@ import {
     CertificateTemplateRefToJSON,
     CreateLinkedCertificateTemplateParametersFromJSON,
     CreateLinkedCertificateTemplateParametersToJSON,
-    ManagedAppFromJSON,
-    ManagedAppToJSON,
+    LegacyProfileRefFromJSON,
+    LegacyProfileRefToJSON,
     ManagedAppParametersFromJSON,
     ManagedAppParametersToJSON,
+    ManagedAppRefFromJSON,
+    ManagedAppRefToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
     ProfileFromJSON,
@@ -382,7 +385,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Create a managed app
      */
-    async createManagedAppRaw(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedApp>> {
+    async createManagedAppRaw(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
         if (requestParameters.managedAppParameters === null || requestParameters.managedAppParameters === undefined) {
             throw new runtime.RequiredError('managedAppParameters','Required parameter requestParameters.managedAppParameters was null or undefined when calling createManagedApp.');
         }
@@ -409,13 +412,13 @@ export class AdminApi extends runtime.BaseAPI {
             body: ManagedAppParametersToJSON(requestParameters.managedAppParameters),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppRefFromJSON(jsonValue));
     }
 
     /**
      * Create a managed app
      */
-    async createManagedApp(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedApp> {
+    async createManagedApp(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
         const response = await this.createManagedAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1053,7 +1056,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * List managed apps
      */
-    async listManagedAppsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ManagedApp>>> {
+    async listManagedAppsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ManagedAppRef>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -1073,13 +1076,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ManagedAppFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ManagedAppRefFromJSON));
     }
 
     /**
      * List managed apps
      */
-    async listManagedApps(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ManagedApp>> {
+    async listManagedApps(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ManagedAppRef>> {
         const response = await this.listManagedAppsRaw(initOverrides);
         return await response.value();
     }
@@ -1087,7 +1090,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * List profiles by type
      */
-    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
+    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<LegacyProfileRef>>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listProfiles.');
         }
@@ -1111,14 +1114,48 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ProfileRefFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(LegacyProfileRefFromJSON));
     }
 
     /**
      * List profiles by type
      */
-    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
+    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<LegacyProfileRef>> {
         const response = await this.listProfilesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List root CA profiles
+     */
+    async listRootCAsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/root-ca`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ProfileRefFromJSON));
+    }
+
+    /**
+     * List root CA profiles
+     */
+    async listRootCAs(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
+        const response = await this.listRootCAsRaw(initOverrides);
         return await response.value();
     }
 

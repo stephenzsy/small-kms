@@ -29,75 +29,69 @@ import {
 /**
  * 
  * @export
- * @interface ProfileRef
+ * @interface ResourceReference1
  */
-export interface ProfileRef {
+export interface ResourceReference1 {
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     nid: string;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     rid: string;
     /**
      * 
      * @type {NamespaceKind1}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     namespaceKind: NamespaceKind1;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     resourceIdentifier: string;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     updated: Date;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     deleted?: Date;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceReference1
      */
     updatedBy: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProfileRef
-     */
-    displayName: string;
 }
 
 /**
- * Check if a given object implements the ProfileRef interface.
+ * Check if a given object implements the ResourceReference1 interface.
  */
-export function instanceOfProfileRef(value: object): boolean {
+export function instanceOfResourceReference1(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "nid" in value;
     isInstance = isInstance && "rid" in value;
@@ -107,16 +101,15 @@ export function instanceOfProfileRef(value: object): boolean {
     isInstance = isInstance && "resourceIdentifier" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
 
-export function ProfileRefFromJSON(json: any): ProfileRef {
-    return ProfileRefFromJSONTyped(json, false);
+export function ResourceReference1FromJSON(json: any): ResourceReference1 {
+    return ResourceReference1FromJSONTyped(json, false);
 }
 
-export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef {
+export function ResourceReference1FromJSONTyped(json: any, ignoreDiscriminator: boolean): ResourceReference1 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -131,11 +124,10 @@ export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
-        'displayName': json['displayName'],
     };
 }
 
-export function ProfileRefToJSON(value?: ProfileRef | null): any {
+export function ResourceReference1ToJSON(value?: ResourceReference1 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -153,7 +145,6 @@ export function ProfileRefToJSON(value?: ProfileRef | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'displayName': value.displayName,
     };
 }
 

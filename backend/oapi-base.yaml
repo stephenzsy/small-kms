@@ -22,27 +22,29 @@ components:
       type: string
       enum:
         - profile
+        - root-ca
       x-enum-varnames:
         - NamespaceKindProfile
+        - NamespaceKindRootCA
+    NumericDate:
+      type: integer
+      format: int64
+      x-go-type: jwt.NumericDate
+      x-go-type-import:
+        path: github.com/golang-jwt/jwt/v5
+    Period:
+      type: string
+      x-go-type: periodImpl        
     ResourceKind:
       type: string
       enum:
         - managed-app
+        - root-ca
+        - key-spec
       x-enum-varnames:
-        - ResourceKindManagedApp
-    ResourceMetadata:
-      type: object
-      properties:
-        updated:
-          type: string
-          format: date-time
-        deleted:
-          type: string
-          format: date-time
-        updatedBy:
-          type: string
-      required:
-        - updated
+        - ProfileResourceKindManagedApp
+        - ProfileResourceKindRootCA
+        - ResourceKindKeySpec
     ResourceReference:
       type: object
       properties:
@@ -79,3 +81,22 @@ components:
         - resourceIdentifier
         - updated
         - updatedBy
+  parameters:
+    NamespaceKindParameter:
+      in: path
+      name: namespaceKind
+      required: true
+      schema:
+        $ref: "#/components/schemas/NamespaceKind"
+    NamespaceIdentifierParameter:
+      in: path
+      name: namespaceIdentifier
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+    ResourceIdentifierParameter:
+      in: path
+      name: resourceIdentifier
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"

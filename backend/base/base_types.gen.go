@@ -6,17 +6,21 @@ package base
 import (
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for NamespaceKind.
 const (
 	NamespaceKindProfile NamespaceKind = "profile"
+	NamespaceKindRootCA  NamespaceKind = "root-ca"
 )
 
 // Defines values for ResourceKind.
 const (
-	ResourceKindManagedApp ResourceKind = "managed-app"
+	ProfileResourceKindManagedApp ResourceKind = "managed-app"
+	ProfileResourceKindRootCA     ResourceKind = "root-ca"
+	ResourceKindKeySpec           ResourceKind = "key-spec"
 )
 
 // Identifier defines model for Identifier.
@@ -25,15 +29,14 @@ type Identifier = identifierImpl
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
 
+// NumericDate defines model for NumericDate.
+type NumericDate = jwt.NumericDate
+
+// Period defines model for Period.
+type Period = periodImpl
+
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
-
-// ResourceMetadata defines model for ResourceMetadata.
-type ResourceMetadata struct {
-	Deleted   *time.Time `json:"deleted,omitempty"`
-	Updated   time.Time  `json:"updated"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
 
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
@@ -47,3 +50,12 @@ type ResourceReference struct {
 	Updated             time.Time          `json:"updated"`
 	UpdatedBy           string             `json:"updatedBy"`
 }
+
+// NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.
+type NamespaceIdentifierParameter = Identifier
+
+// NamespaceKindParameter defines model for NamespaceKindParameter.
+type NamespaceKindParameter = NamespaceKind
+
+// ResourceIdentifierParameter defines model for ResourceIdentifierParameter.
+type ResourceIdentifierParameter = Identifier

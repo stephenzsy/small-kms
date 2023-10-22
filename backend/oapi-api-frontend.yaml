@@ -10,6 +10,8 @@ security:
 paths:
   /v1/managed-app:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
+  /v1/root-ca:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1root-ca"
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -150,7 +152,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProfileRef"
+                  $ref: "#/components/schemas/LegacyProfileRef"
   /v3/profiles/{namespaceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -494,13 +496,13 @@ components:
       required:
         - type
         - displayName
-    ProfileRef:
+    LegacyProfileRef:
       allOf:
         - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
         - $ref: "#/components/schemas/ProfileRefFields"
     Profile:
       allOf:
-        - $ref: "#/components/schemas/ProfileRef"
+        - $ref: "#/components/schemas/LegacyProfileRef"
     AzureRoleAssignment:
       type: object
       properties:

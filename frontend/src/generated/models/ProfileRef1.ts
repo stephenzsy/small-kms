@@ -29,75 +29,75 @@ import {
 /**
  * 
  * @export
- * @interface ProfileRef
+ * @interface ProfileRef1
  */
-export interface ProfileRef {
+export interface ProfileRef1 {
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     nid: string;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     rid: string;
     /**
      * 
      * @type {NamespaceKind1}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     namespaceKind: NamespaceKind1;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     resourceIdentifier: string;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     updated: Date;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     deleted?: Date;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     updatedBy: string;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ProfileRef1
      */
     displayName: string;
 }
 
 /**
- * Check if a given object implements the ProfileRef interface.
+ * Check if a given object implements the ProfileRef1 interface.
  */
-export function instanceOfProfileRef(value: object): boolean {
+export function instanceOfProfileRef1(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "nid" in value;
     isInstance = isInstance && "rid" in value;
@@ -112,11 +112,11 @@ export function instanceOfProfileRef(value: object): boolean {
     return isInstance;
 }
 
-export function ProfileRefFromJSON(json: any): ProfileRef {
-    return ProfileRefFromJSONTyped(json, false);
+export function ProfileRef1FromJSON(json: any): ProfileRef1 {
+    return ProfileRef1FromJSONTyped(json, false);
 }
 
-export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef {
+export function ProfileRef1FromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef1 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -135,7 +135,7 @@ export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     };
 }
 
-export function ProfileRefToJSON(value?: ProfileRef | null): any {
+export function ProfileRef1ToJSON(value?: ProfileRef1 | null): any {
     if (value === undefined) {
         return undefined;
     }

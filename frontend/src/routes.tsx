@@ -22,6 +22,7 @@ const AgentDashboardPage = React.lazy(
 );
 const ManagedAppsPage = React.lazy(() => import("./admin/ManagedAppsPage"));
 const RegisterPage = React.lazy(() => import("./admin/RegisterPage"));
+const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 
 export const router = createBrowserRouter([
   {
@@ -39,66 +40,72 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage />, id: RouteIds.home },
       { path: "diagnostics", element: <DiagnosticsPage /> },
       {
-        path: "apps",
-        id: RouteIds.apps,
-        element: (
-          <AdminLayout>
-            <Outlet />
-          </AdminLayout>
-        ),
-        children: [{ index: true, element: <ManagedAppsPage /> }],
-      },
-      {
-        path: "admin",
-        id: RouteIds.admin,
         element: (
           <AdminLayout>
             <Outlet />
           </AdminLayout>
         ),
         children: [
-          { index: true, element: <AdminPage /> },
           {
-            path: ":profileType",
+            path: "apps",
+            id: RouteIds.apps,
+            element: <Outlet />,
+            children: [{ index: true, element: <ManagedAppsPage /> }],
+          },
+          {
+            path: "cas",
+            element: <Outlet />,
+            children: [{ index: true, element: <CAsPage /> }],
+          },
+          {
+            path: "admin",
+            id: RouteIds.admin,
+            element: <Outlet />,
             children: [
+              { index: true, element: <AdminPage /> },
               {
-                path: ":namespaceId",
-                element: (
-                  <NamespaceContextProvider>
-                    <Outlet />
-                  </NamespaceContextProvider>
-                ),
+                path: ":profileType",
                 children: [
-                  { index: true, element: <NamespacePage /> },
                   {
-                    path: "certificate-templates/:templateId",
+                    path: ":namespaceId",
+                    element: (
+                      <NamespaceContextProvider>
+                        <Outlet />
+                      </NamespaceContextProvider>
+                    ),
                     children: [
-                      { index: true, element: <CertificateTemplatePage /> },
+                      { index: true, element: <NamespacePage /> },
+                      {
+                        path: "certificate-templates/:templateId",
+                        children: [
+                          { index: true, element: <CertificateTemplatePage /> },
+                        ],
+                      },
+                      {
+                        path: "certificates/:certId",
+                        element: <CertificatePage />,
+                      },
+                      {
+                        path: "agent",
+                        element: <AgentDashboardPage />,
+                      },
                     ],
                   },
                   {
-                    path: "certificates/:certId",
-                    element: <CertificatePage />,
-                  },
-                  {
-                    path: "agent",
-                    element: <AgentDashboardPage />,
+                    path: "register",
+                    element: <RegisterPage />,
                   },
                 ],
               },
               {
-                path: "register",
-                element: <RegisterPage />,
+                path: "settings",
+                element: <ServicePage />,
+              },
+              {
+                path: "enroll",
+                element: <AdminEnrollPage />,
               },
             ],
-          },
-          {
-            path: "settings",
-            element: <ServicePage />,
-          },
-          {
-            path: "enroll",
-            element: <AdminEnrollPage />,
           },
         ],
       },
