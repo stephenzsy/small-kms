@@ -66,7 +66,7 @@ function useColumns() {
 
       {
         title: "Actions",
-        render: (r) => <Link to={`/apps/${r.appId}`}>View</Link>,
+        render: (r) => <Link to={`/app/${r.appId}`}>View</Link>,
       },
     ],
     []

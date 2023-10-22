@@ -47,13 +47,13 @@ export const router = createBrowserRouter([
         ),
         children: [
           {
-            path: "apps",
+            path: "app",
             id: RouteIds.apps,
             element: <Outlet />,
             children: [{ index: true, element: <ManagedAppsPage /> }],
           },
           {
-            path: "cas",
+            path: "ca",
             element: <Outlet />,
             children: [{ index: true, element: <CAsPage /> }],
           },

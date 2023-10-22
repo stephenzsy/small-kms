@@ -12,6 +12,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
   /v1/root-ca:
     $ref: "oapi-profile.yaml#/paths/~1v1~1root-ca"
+  /v1/root-ca/{namespaceIdentifier}:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1root-ca~1{namespaceIdentifier}"
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

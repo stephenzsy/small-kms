@@ -43,6 +43,7 @@ export * from './ManagedAppRefFields';
 export * from './NamespaceKind';
 export * from './NamespaceKind1';
 export * from './Profile';
+export * from './ProfileParameters';
 export * from './ProfileRef';
 export * from './ProfileRef1';
 export * from './ProfileRefFields';

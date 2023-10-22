@@ -3,6 +3,8 @@ import {
   AdminApi,
   CreateManagedAppRequest,
   ManagedAppRef,
+  Profile,
+  ProfileParameters,
   ProfileRef,
   ResourceKind,
 } from "../generated";
@@ -56,9 +58,21 @@ function CreateProfileForm({
   const adminApi = useAuthedClient(AdminApi);
 
   const { run } = useRequest(
-    async (req: CreateManagedAppRequest) => {
-      await adminApi.createManagedApp(req);
-      //onCreated();
+    async (
+      profileType: keyof ProfileTypeMapRecord<any>,
+      name: string,
+      params: ProfileParameters
+    ) => {
+      const req = {
+        namespaceIdentifier: name,
+        profileParameters: params,
+      };
+      switch (profileType) {
+        case ResourceKind.ProfileResourceKindRootCA:
+          await adminApi.putRootCA(req);
+          break;
+      }
+      onCreated[profileType]();
       form.resetFields();
     },
     { manual: true }
@@ -70,11 +84,9 @@ function CreateProfileForm({
     <Form
       form={form}
       onFinish={(values) => {
-        if (values.displayName) {
-          return run({
-            managedAppParameters: {
-              displayName: values.displayName.trim(),
-            },
+        if (values.profileType && values.name?.trim()) {
+          return run(values.profileType, values.name.trim(), {
+            displayName: values.displayName?.trim(),
           });
         }
       }}
@@ -92,7 +104,6 @@ function CreateProfileForm({
       <Form.Item<CreateProfileFormState>
         name="displayName"
         label="Display name"
-        required
       >
         <Input />
       </Form.Item>
@@ -120,7 +131,11 @@ function useColumns() {
       },
       {
         title: "Actions",
-        render: (r) => <Link to={`/apps/${r.appId}`}>View</Link>,
+        render: (r: ProfileRef) => (
+          <Link to={`/ca/${r.resourceKind}/${r.resourceIdentifier}`}>
+            View
+          </Link>
+        ),
       },
     ],
     []

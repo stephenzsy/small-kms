@@ -45,6 +45,7 @@ models/ManagedAppRefFields.ts
 models/NamespaceKind.ts
 models/NamespaceKind1.ts
 models/Profile.ts
+models/ProfileParameters.ts
 models/ProfileRef.ts
 models/ProfileRef1.ts
 models/ProfileRefFields.ts

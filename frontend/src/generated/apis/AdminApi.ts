@@ -33,6 +33,7 @@ import type {
   ManagedAppRef,
   NamespaceKind,
   Profile,
+  ProfileParameters,
   ProfileRef,
   ServiceConfig,
   TemplatedCertificateTag,
@@ -74,6 +75,8 @@ import {
     NamespaceKindToJSON,
     ProfileFromJSON,
     ProfileToJSON,
+    ProfileParametersFromJSON,
+    ProfileParametersToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
     ServiceConfigFromJSON,
@@ -157,6 +160,10 @@ export interface GetProfileRequest {
     namespaceId: string;
 }
 
+export interface GetRootCARequest {
+    namespaceIdentifier: string;
+}
+
 export interface IssueCertificateFromTemplateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -210,6 +217,11 @@ export interface PutCertificateTemplateRequest {
     namespaceId: string;
     templateId: string;
     certificateTemplateParameters: CertificateTemplateParameters;
+}
+
+export interface PutRootCARequest {
+    namespaceIdentifier: string;
+    profileParameters: ProfileParameters;
 }
 
 export interface RemoveKeyVaultRoleAssignmentRequest {
@@ -824,6 +836,44 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get profile
+     */
+    async getRootCARaw(requestParameters: GetRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getRootCA.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Get profile
+     */
+    async getRootCA(requestParameters: GetRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.getRootCARaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get service config
      */
     async getServiceConfigRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
@@ -1352,6 +1402,51 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putCertificateTemplate(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
         const response = await this.putCertificateTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put profile
+     */
+    async putRootCARaw(requestParameters: PutRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putRootCA.');
+        }
+
+        if (requestParameters.profileParameters === null || requestParameters.profileParameters === undefined) {
+            throw new runtime.RequiredError('profileParameters','Required parameter requestParameters.profileParameters was null or undefined when calling putRootCA.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ProfileParametersToJSON(requestParameters.profileParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Put profile
+     */
+    async putRootCA(requestParameters: PutRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.putRootCARaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -86,6 +86,11 @@ func GetDefaultStorageNamespaceID(c context.Context, namespaceKind NamespaceKind
 
 // default implementation get storage ID
 func (d *BaseDoc) GetStorageNamespaceID(c context.Context) uuid.UUID {
+	if f := GetStorageNamespaceIDFunc(c); f != nil {
+		if storageId := (*f)(c, d.NamespaceKind, d.NamespaceIdentifier); storageId != nil {
+			return *storageId
+		}
+	}
 	return GetDefaultStorageNamespaceID(c, d.NamespaceKind, d.NamespaceIdentifier)
 }
 

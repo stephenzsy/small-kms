@@ -88,7 +88,7 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
                               Settings
                             </Link>
                             <NavLink
-                              to="/cas"
+                              to="/ca"
                               className={classNames(
                                 "text-gray-300 hover:bg-gray-700 hover:text-white",
                                 "rounded-md px-3 py-2 text-sm font-medium"
@@ -97,7 +97,7 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
                               CAs
                             </NavLink>                            
                             <NavLink
-                              to="/apps"
+                              to="/app"
                               className={classNames(
                                 "text-gray-300 hover:bg-gray-700 hover:text-white",
                                 "rounded-md px-3 py-2 text-sm font-medium"
