@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -43,42 +44,7 @@ func GetAgentConfiguration(c RequestContext, configName shared.AgentConfigName, 
 		}
 
 		if shouldRefresh {
-			if c := c.Elevate(); c != nil {
-				patchOps, err := configurator.eval(c, doc)
-				if err != nil {
-					return nil, err
-				}
-				if patchOps != nil {
-					// can be empty
-					err = kmsdoc.Patch(c, doc, *patchOps, &azcosmos.ItemOptions{
-						IfMatchEtag: utils.ToPtr(doc.GetETag()),
-					})
-					if err != nil {
-						return nil, err
-					}
-				}
-			}
-		}
-
-		return doc.toModel(isAdmin), nil
-	}
-
-	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)
-}
-
-func PutAgentConfiguration(c RequestContext, configName shared.AgentConfigName, configParams shared.AgentConfigurationParameters) (*shared.AgentConfiguration, error) {
-	nsID := ns.GetNamespaceContext(c).GetID()
-	if configurator, ok := configDocs[configName]; ok {
-		if c := c.Elevate(); c != nil {
-			doc, err := configurator.preparePut(c, nsID, configParams)
-			if err != nil {
-				return nil, err
-			}
-			// store
-			err = kmsdoc.Upsert(c, doc)
-			if err != nil {
-				return nil, err
-			}
+			c := ctx.Elevate(c)
 			patchOps, err := configurator.eval(c, doc)
 			if err != nil {
 				return nil, err
@@ -92,9 +58,41 @@ func PutAgentConfiguration(c RequestContext, configName shared.AgentConfigName, 
 					return nil, err
 				}
 			}
-			return doc.toModel(true), nil
 		}
-		// eval after put
+
+		return doc.toModel(isAdmin), nil
+	}
+
+	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)
+}
+
+func PutAgentConfiguration(c RequestContext, configName shared.AgentConfigName, configParams shared.AgentConfigurationParameters) (*shared.AgentConfiguration, error) {
+	nsID := ns.GetNamespaceContext(c).GetID()
+	if configurator, ok := configDocs[configName]; ok {
+		c := ctx.Elevate(c)
+		doc, err := configurator.preparePut(c, nsID, configParams)
+		if err != nil {
+			return nil, err
+		}
+		// store
+		err = kmsdoc.Upsert(c, doc)
+		if err != nil {
+			return nil, err
+		}
+		patchOps, err := configurator.eval(c, doc)
+		if err != nil {
+			return nil, err
+		}
+		if patchOps != nil {
+			// can be empty
+			err = kmsdoc.Patch(c, doc, *patchOps, &azcosmos.ItemOptions{
+				IfMatchEtag: utils.ToPtr(doc.GetETag()),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+		return doc.toModel(true), nil
 	}
 	return nil, fmt.Errorf("%w: invalid config name: %s", common.ErrStatusBadRequest, configName)
 }

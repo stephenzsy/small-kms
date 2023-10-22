@@ -1,11 +1,10 @@
 package profile
 
 import (
-	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 type NamespaceKind = models.NamespaceKind
-type CreateProfileRequest = models.CreateProfileRequest
 type Profile = models.ProfileComposed

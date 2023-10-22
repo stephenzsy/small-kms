@@ -62,7 +62,7 @@ func ProxiedAADAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 	afterParsePrincipalClaims:
-		return next(ctx.EchoContextWithValue(c, authIdentityContextKey, a))
+		return next(ctx.EchoContextWithValue(c, authIdentityContextKey, &a, false))
 	}
 }
 

@@ -1,16 +1,10 @@
 package auth
 
-import (
-	"net/http"
+import "context"
 
-	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
-)
-
-func AuthorizeAdminOnly(c ctx.RequestContext) error {
+func AuthorizeAdminOnly(c context.Context) bool {
 	if identity, ok := c.Value(authIdentityContextKey).(AuthIdentity); ok {
-		if identity.HasAdminRole() {
-			return nil
-		}
+		return identity.HasAdminRole()
 	}
-	return c.JSON(http.StatusForbidden, map[string]string{"message": "admin access required"})
+	return false
 }

@@ -2,19 +2,21 @@ package managedapp
 
 import (
 	echo "github.com/labstack/echo/v4"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
 type server struct {
+	api.APIServer
 }
 
 // ListManagedApps implements ServerInterface.
-func (*server) ListManagedApps(ec echo.Context) error {
-	c := ctx.ResolveRequestContext(ec)
+func (s *server) ListManagedApps(ec echo.Context) error {
+	c := ec.(ctx.RequestContext)
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return err
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
 	}
 
 	result, err := listManagedApps(c)
@@ -28,11 +30,10 @@ func (*server) ListManagedApps(ec echo.Context) error {
 }
 
 // CreateManagedApp implements ServerInterface.
-func (*server) CreateManagedApp(ec echo.Context) error {
-	c := ctx.ResolveRequestContext(ec)
-
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return err
+func (s *server) CreateManagedApp(ec echo.Context) error {
+	c := ec.(ctx.RequestContext)
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
 	}
 
 	param := &ManagedAppParameters{}
@@ -50,6 +51,8 @@ func (*server) CreateManagedApp(ec echo.Context) error {
 
 var _ ServerInterface = (*server)(nil)
 
-func NewServer() *server {
-	return &server{}
+func NewServer(apiServer api.APIServer) *server {
+	return &server{
+		apiServer,
+	}
 }

@@ -121,11 +121,3 @@ func NewAgentProxyHttpClientPool() AgentProxyHttpClientPool {
 		cachedClients: make(map[uuid.UUID]agentproxyclient.ClientWithResponsesInterface),
 	}
 }
-
-type contextKey string
-
-const proxyHttpClientPoolContextKey contextKey = "proxyHttpClientPool"
-
-func WithNewProxyHttpCLientPool(c context.Context) context.Context {
-	return context.WithValue(c, proxyHttpClientPoolContextKey, NewAgentProxyHttpClientPool())
-}

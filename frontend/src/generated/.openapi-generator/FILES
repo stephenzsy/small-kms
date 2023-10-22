@@ -32,9 +32,6 @@ models/CertificateTemplateRef.ts
 models/CertificateTemplateRefFields.ts
 models/CertificateUsage.ts
 models/CreateLinkedCertificateTemplateParameters.ts
-models/CreateManagedApplicationProfileRequest.ts
-models/CreateProfileRequest.ts
-models/CreateProfileRequestType.ts
 models/JwkAlg.ts
 models/JwkCrv.ts
 models/JwkKeyOperation.ts

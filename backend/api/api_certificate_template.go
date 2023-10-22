@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -17,10 +17,10 @@ import (
 // GetCertificateTemplate implements models.ServerInterface.
 func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, templateID shared.Identifier) error {
 	c := ec.(RequestContext)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
+	}
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
-		if err := auth.AuthorizeAdminOnly(c); err != nil {
-			return nil, err
-		}
 
 		c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 		if err != nil {
@@ -41,11 +41,10 @@ func (s *server) PutCertificateTemplate(ec echo.Context,
 	namespaceId shared.Identifier,
 	templateID shared.Identifier) error {
 	c := ec.(RequestContext)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
+	}
 	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
-		if err := auth.AuthorizeAdminOnly(c); err != nil {
-			return nil, err
-		}
-
 		req := models.CertificateTemplateParameters{}
 		err := ec.Bind(&req)
 		if err != nil {
@@ -68,12 +67,10 @@ func (s *server) PutCertificateTemplate(ec echo.Context,
 // ListProfiles implements models.ServerInterface.
 func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier) error {
 	c := ec.(RequestContext)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
+	}
 	respData, respErr := (func() ([]*models.CertificateTemplateRefComposed, error) {
-
-		if err := auth.AuthorizeAdminOnly(c); err != nil {
-			return nil, err
-		}
-
 		c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 		if err != nil {
 			return nil, err
@@ -93,8 +90,8 @@ func (*server) CreateLinkedCertificateTemplate(ctx echo.Context,
 		return ctx.JSON(http.StatusBadRequest, nil)
 	}
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
@@ -108,13 +105,12 @@ func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 	namespaceKind shared.NamespaceKind,
 	namespaceId shared.Identifier,
 	templateID shared.Identifier) error {
+	c := ctx.(RequestContext)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
+	}
 	bad := func(e error) error {
 		return wrapResponse[[]*models.AzureRoleAssignment](ctx, http.StatusOK, nil, e)
-	}
-	c := ctx.(RequestContext)
-
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
@@ -136,14 +132,15 @@ func (*server) RemoveKeyVaultRoleAssignment(ctx echo.Context,
 	namespaceId shared.Identifier,
 	templateID shared.Identifier,
 	roleAssignmentID string) error {
+
+	c := ctx.(RequestContext)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
+	}
 	bad := func(e error) error {
 		return wrapResponse[any](ctx, http.StatusNoContent, nil, e)
 	}
-	c := ctx.(RequestContext)
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
-	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
 		return bad(err)
@@ -169,8 +166,8 @@ func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind shared.
 	}
 	c := ctx.(RequestContext)
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceID)
 	if err != nil {
@@ -187,8 +184,8 @@ func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind shared.
 // DeleteCertificateTemplate implements models.ServerInterface.
 func (*server) DeleteCertificateTemplate(ctx echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, templateId shared.Identifier) error {
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {

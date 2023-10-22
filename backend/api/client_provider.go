@@ -14,8 +14,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
 const (
@@ -162,12 +162,9 @@ func (p *requestClientProvider) GetKeyvaultCertificateResourceScopeID(certificat
 func (p *requestClientProvider) getOnbehalfOfCreds() (azcore.TokenCredential, error) {
 	var err error
 	if p.onBehalfOfCreds == nil {
-		if authIdentity, ok := auth.GetAuthIdentity(p.credentialContext); ok {
-			if p.onBehalfOfCreds, err = authIdentity.GetOnBehalfOfTokenCredential(p.parent.appIdentity, nil); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("%w: only authorized request can get delegated client", common.ErrStatusUnauthorized)
+		authIdentity := auth.GetAuthIdentity(p.credentialContext)
+		if p.onBehalfOfCreds, err = authIdentity.GetOnBehalfOfTokenCredential(p.credentialContext, nil); err != nil {
+			return nil, err
 		}
 	}
 	return p.onBehalfOfCreds, err

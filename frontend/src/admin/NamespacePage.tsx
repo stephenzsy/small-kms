@@ -18,10 +18,7 @@ import {
   CertificateTemplatesProvider,
   LinkTemplateForm,
 } from "./CertificateTemplates";
-import {
-  ApplicationServicePrincipalLink,
-  DeviceServicePrincipalLink,
-} from "./DeviceServicePrincipalLink";
+import { DeviceServicePrincipalLink } from "./DeviceServicePrincipalLink";
 import { InputField } from "./InputField";
 import { NamespaceContext } from "./NamespaceContext";
 import { RefTableColumn, RefsTable } from "./RefsTable";
@@ -212,9 +209,6 @@ export default function NamespacePage() {
       )}
       {nsType === NamespaceKind.NamespaceKindDevice && (
         <DeviceServicePrincipalLink namespaceId={namespaceId} />
-      )}
-      {nsType === NamespaceKind.NamespaceKindApplication && (
-        <ApplicationServicePrincipalLink namespaceId={namespaceId} />
       )}
       {nsType === NamespaceKind.NamespaceKindServicePrincipal && (
         <AgentConfigurationForm

@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -183,7 +184,7 @@ func provisionAgentProfile(c RequestContext, params *shared.AgentProfileParamete
 	}
 
 	{
-		c := c.Elevate()
+		c := ctx.Elevate(c)
 		graph := common.GetAdminServerClientProvider(c).MsGraphClient()
 		applicationIdReqBuilder := graph.Applications().ByApplicationId(nsID.Identifier().UUID().String())
 		queryApplicationParameters := &applications.ApplicationItemRequestBuilderGetQueryParameters{

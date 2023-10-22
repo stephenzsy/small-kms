@@ -6,13 +6,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 type ServiceConfig = models.ServiceConfigComposed
 type PatchServiceConfigParamsConfigPath = models.PatchServiceConfigParamsConfigPath
 

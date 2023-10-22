@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/google/uuid"
 )
 
@@ -11,6 +13,7 @@ type contextKey int
 
 const (
 	authIdentityContextKey contextKey = iota
+	appConfidentialIdentityContextKey
 )
 
 const (
@@ -18,8 +21,10 @@ const (
 )
 
 type AuthIdentity interface {
+	ClientPrincipalID() uuid.UUID
 	ClientPrincipalDisplayName() string
 	HasAdminRole() bool
+	GetOnBehalfOfTokenCredential(c context.Context, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
 }
 
 type authIdentity struct {
@@ -27,6 +32,27 @@ type authIdentity struct {
 	msClientPrincipalName string
 	appRoles              map[string]bool
 	bearerToken           string
+}
+
+type AzureIdentity interface {
+	TokenCredential() azcore.TokenCredential
+	TenantID() string
+}
+
+type AzureAppConfidentialIdentity interface {
+	AzureIdentity
+	NewOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
+}
+
+// ClientPrincipalID implements AuthIdentity.
+func (a *authIdentity) ClientPrincipalID() uuid.UUID {
+	return a.msClientPrincipalID
+}
+
+// GetOnBehalfOfTokenCredential implements AuthIdentity.
+func (a *authIdentity) GetOnBehalfOfTokenCredential(c context.Context, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
+	i := c.Value(appConfidentialIdentityContextKey).(AzureAppConfidentialIdentity)
+	return i.NewOnBehalfOfTokenCredential(a.bearerToken, opts)
 }
 
 // HasAdminRole implements AuthIdentity.

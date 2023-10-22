@@ -3,19 +3,11 @@ package common
 import (
 	ctx "context"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
-type AzureIdentity interface {
-	TokenCredential() azcore.TokenCredential
-	TenantID() string
-}
-
-type AzureAppConfidentialIdentity interface {
-	AzureIdentity
-	GetOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
-}
+type AzureIdentity = auth.AzureIdentity
+type AzureAppConfidentialIdentity = auth.AzureAppConfidentialIdentity
 
 type ServiceIdentityProvider interface {
 	ServiceIdentity() AzureIdentity

@@ -21,18 +21,13 @@ type AdminServerClientProvider interface {
 
 type contextKey string
 
-const adminServerClientProviderContextKey contextKey = "adminServerClient"
-const isElevatedContextKey contextKey = "isElevated"
-
-func WithAdminServerClientProvider(c context.Context, p AdminServerClientProvider) context.Context {
-	return context.WithValue(c, adminServerClientProviderContextKey, p)
-}
+const (
+	AdminServerClientProviderContextKey       contextKey = "adminServerClient"
+	AdminServerRequestClientProvierContextKey contextKey = "adminServerRequestClient"
+)
 
 func GetAdminServerClientProvider(c context.Context) AdminServerClientProvider {
-	if p, ok := c.Value(adminServerClientProviderContextKey).(AdminServerClientProvider); ok {
-		return p
-	}
-	return nil
+	return c.Value(AdminServerClientProviderContextKey).(AdminServerClientProvider)
 }
 
 type AdminServerRequestClientProvider interface {
@@ -41,15 +36,6 @@ type AdminServerRequestClientProvider interface {
 	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
 }
 
-const adminServerRequestClientProvierContextKey contextKey = "adminServerRequestClient"
-
-func WithAdminServerRequestClientProvider(c RequestContext, p AdminServerRequestClientProvider) RequestContext {
-	return c.WitValue(adminServerRequestClientProvierContextKey, p)
-}
-
-func GetAdminServerRequestClientProvider(c RequestContext) AdminServerRequestClientProvider {
-	if p, ok := c.Value(adminServerRequestClientProvierContextKey).(AdminServerRequestClientProvider); ok {
-		return p
-	}
-	return nil
+func GetAdminServerRequestClientProvider(c context.Context) AdminServerRequestClientProvider {
+	return c.Value(AdminServerRequestClientProvierContextKey).(AdminServerRequestClientProvider)
 }

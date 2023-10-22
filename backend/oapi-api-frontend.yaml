@@ -151,24 +151,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-    post:
-      tags:
-        - admin
-      summary: Create Managed Application
-      operationId: CreateProfile
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateProfileRequest"
-        required: true
-      responses:
-        201:
-          description: ProfileRef
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Profile"
   /v3/profiles/{namespaceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -193,27 +175,6 @@ paths:
       responses:
         "200":
           description: register namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Profile"
-  /v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - in: path
-        name: targetNamespaceKind
-        schema:
-          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
-        required: true
-    post:
-      tags:
-        - admin
-      summary: Create managed namespace
-      operationId: CreateManagedNamespace
-      responses:
-        "200":
-          description: Managed namespace profile
           content:
             application/json:
               schema:
@@ -540,29 +501,6 @@ components:
     Profile:
       allOf:
         - $ref: "#/components/schemas/ProfileRef"
-    CreateProfileRequestType:
-      type: string
-      enum:
-        - managed-application
-      x-enum-varnames:
-        - ProfileTypeManagedApplication
-    CreateManagedApplicationProfileRequest:
-      type: object
-      properties:
-        type:
-          $ref: "#/components/schemas/CreateProfileRequestType"
-        name:
-          type: string
-      required:
-        - type
-        - name
-    CreateProfileRequest:
-      oneOf:
-        - $ref: "#/components/schemas/CreateManagedApplicationProfileRequest"
-      discriminator:
-        propertyName: type
-        mapping:
-          managed-application: "#/components/schemas/CreateManagedApplicationProfileRequest"
     AzureRoleAssignment:
       type: object
       properties:

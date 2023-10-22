@@ -13,6 +13,20 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
+type CRUDDocHasCustomStorageID interface {
+	GetStorageID(context.Context) uuid.UUID
+}
+
+type CRUDDoc interface {
+	GetStorageNamespaceID(context.Context) uuid.UUID
+	CRUDDocHasCustomStorageID
+	GetUpdatedBy() string
+	setETag(etag azcore.ETag)
+	setTimestamp(t time.Time)
+	setUpdatedBy(string)
+	prepareForWrite(c context.Context, storageID uuid.UUID)
+}
+
 type BaseDoc struct {
 	StorageNamespaceID uuid.UUID `json:"namespaceId"`
 	StroageID          uuid.UUID `json:"id"`
@@ -77,27 +91,13 @@ func (d *BaseDoc) setETag(eTag azcore.ETag) {
 }
 
 // setUpdated implements CRUDDoc.
-func (d *BaseDoc) prepareForWrite(c context.Context) {
+func (d *BaseDoc) prepareForWrite(c context.Context, storageID uuid.UUID) {
 	d.StorageNamespaceID = d.GetStorageNamespaceID(c)
-	d.StroageID = d.GetStorageID(c)
+	d.StroageID = storageID
 	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	// clear read-only fields
 	d.ETag = nil
 	d.Timestamp = nil
-}
-
-type CRUDDocHasCustomStorageID interface {
-	GetStorageID(context.Context) uuid.UUID
-}
-
-type CRUDDoc interface {
-	GetStorageNamespaceID(context.Context) uuid.UUID
-	CRUDDocHasCustomStorageID
-	GetUpdatedBy() string
-	setETag(etag azcore.ETag)
-	setTimestamp(t time.Time)
-	setUpdatedBy(string)
-	prepareForWrite(c context.Context)
 }
 
 var _ CRUDDoc = (*BaseDoc)(nil)
@@ -130,7 +130,7 @@ type azcosmosContainerCRUDDocService struct {
 
 func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID(c).String())
-	doc.prepareForWrite(c)
+	doc.prepareForWrite(c, doc.GetStorageID(c))
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func (s *azcosmosContainerCRUDDocService) Read(c context.Context, namespaceStora
 // Upsert implements CRUDDocService.
 func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID(c).String())
-	doc.prepareForWrite(c)
+	doc.prepareForWrite(c, doc.GetStorageID(c))
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err

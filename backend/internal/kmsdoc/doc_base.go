@@ -8,12 +8,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 
 type KmsDocumentRef interface {
 	GetNamespaceID() shared.NamespaceIdentifier
@@ -105,29 +106,18 @@ func (doc *BaseDoc) setETag(etag azcore.ETag) {
 }
 
 func (doc *BaseDoc) stampUpdatedWithAuth(c context.Context) time.Time {
-	var callerPrincipalIdStr string
-	var callerPrincipalName string
-	if identity, ok := auth.GetAuthIdentity(c); ok {
-		callerPrincipalIdStr = identity.ClientPrincipalID().String()
-		callerPrincipalName = identity.ClientPrincipalName()
-	}
 	doc.Kind = doc.ID.Kind()
 	now := time.Now().UTC()
 	doc.Updated = now
-	doc.UpdatedBy = fmt.Sprintf("%s:%s", callerPrincipalIdStr, callerPrincipalName)
+	doc.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	return now
 }
 
 func stampUpdatedWithAuthPatchOps(c context.Context, patchOps *azcosmos.PatchOperations) time.Time {
-	var callerPrincipalIdStr string
-	var callerPrincipalName string
-	if identity, ok := auth.GetAuthIdentity(c); ok {
-		callerPrincipalIdStr = identity.ClientPrincipalID().String()
-		callerPrincipalName = identity.ClientPrincipalName()
-	}
+
 	now := time.Now().UTC()
 	patchOps.AppendSet("/updated", now.Format(time.RFC3339))
-	patchOps.AppendSet("/updatedBy", fmt.Sprintf("%s:%s", callerPrincipalIdStr, callerPrincipalName))
+	patchOps.AppendSet("/updatedBy", auth.GetAuthIdentity(c).ClientPrincipalDisplayName())
 	return now
 }
 

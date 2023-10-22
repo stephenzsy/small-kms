@@ -13,6 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -146,21 +147,23 @@ func GetAuthorizedLatestCertByTemplateID(c context.Context, templateID shared.Id
 	linkedCertDoc.Owns = nil
 	linkedCertDoc.Template = localTemplateLocator
 
-	eCtx := common.ElevateContext(c)
-	err = kmsdoc.Upsert(eCtx, &linkedCertDoc)
-	if err != nil {
-		return nil, err
-	}
-	patchOps := azcosmos.PatchOperations{}
-	if targetCertDoc.Owns == nil {
-		patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
-			nsID: linkedCertDoc.GetLocator(),
+	{
+		c := ctx.Elevate(c)
+		err = kmsdoc.Upsert(c, &linkedCertDoc)
+		if err != nil {
+			return nil, err
+		}
+		patchOps := azcosmos.PatchOperations{}
+		if targetCertDoc.Owns == nil {
+			patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
+				nsID: linkedCertDoc.GetLocator(),
+			})
+		} else {
+			patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), linkedCertDoc.GetLocator())
+		}
+		err = kmsdoc.Patch(c, targetCertDoc, patchOps, &azcosmos.ItemOptions{
+			IfMatchEtag: &targetCertDoc.ETag,
 		})
-	} else {
-		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), linkedCertDoc.GetLocator())
+		return &linkedCertDoc, err
 	}
-	err = kmsdoc.Patch(eCtx, targetCertDoc, patchOps, &azcosmos.ItemOptions{
-		IfMatchEtag: &targetCertDoc.ETag,
-	})
-	return &linkedCertDoc, err
 }

@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -21,7 +21,7 @@ func (s *server) GetCertificate(ec echo.Context,
 	c := ec.(RequestContext)
 
 	isAdmin := false
-	if auth.AuthorizeAdminOnly(c) == nil {
+	if auth.AuthorizeAdminOnly(c) {
 		isAdmin = true
 	}
 	namespaceId, err := ns.ResolveAuthedNamespaseID(c, namespaceKind, namespaceId)
@@ -48,10 +48,9 @@ func (s *server) IssueCertificateFromTemplate(ctx echo.Context,
 	}
 	c := ctx.(RequestContext)
 
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
-
 	c, err := ns.WithNamespaceContext(c, profileType, profileId)
 	if err != nil {
 		return bad(err)
@@ -70,8 +69,8 @@ func (s *server) ListCertificatesByTemplate(ctx echo.Context,
 	namespaceID shared.Identifier,
 	templateID shared.Identifier) error {
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceID)
 	if err != nil {
@@ -87,9 +86,8 @@ func (s *server) ListCertificatesByTemplate(ctx echo.Context,
 // DeleteCertificate implements models.ServerInterface.
 func (*server) DeleteCertificate(ctx echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, certificateId shared.Identifier) error {
 	c := ctx.(RequestContext)
-
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {

@@ -1,5 +1,7 @@
 package agentconfig
 
-import "github.com/stephenzsy/small-kms/backend/common"
+import (
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+)
 
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -195,7 +196,7 @@ func validateNamespaceID(nsID shared.NamespaceIdentifier) error {
 }
 
 type contextKey string
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 
 const (
 	namespaceContextKey contextKey = "namespaceContext"
@@ -209,7 +210,7 @@ func WithNamespaceContext(parent RequestContext, unverifiedKind shared.Namespace
 	if err := validateNamespaceID(nsID); err != nil {
 		return parent, err
 	}
-	return parent.WithSharedValue(namespaceContextKey, &namespaceContext{
+	return parent.WithValue(namespaceContextKey, &namespaceContext{
 		nsID: nsID,
 	}), nil
 }

@@ -44,6 +44,6 @@ func UnverifiedAADJwtAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		for _, r := range claims.Roles {
 			a.appRoles[r] = true
 		}
-		return next(ctx.EchoContextWithValue(c, authIdentityContextKey, a))
+		return next(ctx.EchoContextWithValue(c, authIdentityContextKey, &a, false))
 	}
 }

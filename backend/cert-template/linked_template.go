@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -45,23 +46,25 @@ func createLinkedCertificateTemplate(c RequestContext, target shared.ResourceLoc
 		Usage: usage,
 	}
 	tDoc.Owns = nil
-	eCtx := c.Elevate()
-	err = kmsdoc.Upsert(eCtx, &tDoc)
-	if err != nil {
-		return nil, err
-	}
-	patchOps := azcosmos.PatchOperations{}
-	if doc.Owns == nil {
-		patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
-			nsID: tDoc.GetLocator(),
+	{
+		c := ctx.Elevate(c)
+		err = kmsdoc.Upsert(c, &tDoc)
+		if err != nil {
+			return nil, err
+		}
+		patchOps := azcosmos.PatchOperations{}
+		if doc.Owns == nil {
+			patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
+				nsID: tDoc.GetLocator(),
+			})
+		} else {
+			patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), tDoc.GetLocator())
+		}
+		err = kmsdoc.Patch(c, doc, patchOps, &azcosmos.ItemOptions{
+			IfMatchEtag: &doc.ETag,
 		})
-	} else {
-		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), tDoc.GetLocator())
+		return &tDoc, err
 	}
-	err = kmsdoc.Patch(eCtx, doc, patchOps, &azcosmos.ItemOptions{
-		IfMatchEtag: &doc.ETag,
-	})
-	return &tDoc, err
 }
 
 func ApiCreateLinkedCertificateTemplate(c RequestContext, params models.CreateLinkedCertificateTemplateParameters) error {

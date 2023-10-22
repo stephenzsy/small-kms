@@ -28,7 +28,6 @@ import type {
   CertificateTemplateParameters,
   CertificateTemplateRef,
   CreateLinkedCertificateTemplateParameters,
-  CreateProfileRequest,
   ManagedApp,
   ManagedAppParameters,
   NamespaceKind,
@@ -64,8 +63,6 @@ import {
     CertificateTemplateRefToJSON,
     CreateLinkedCertificateTemplateParametersFromJSON,
     CreateLinkedCertificateTemplateParametersToJSON,
-    CreateProfileRequestFromJSON,
-    CreateProfileRequestToJSON,
     ManagedAppFromJSON,
     ManagedAppToJSON,
     ManagedAppParametersFromJSON,
@@ -104,17 +101,6 @@ export interface CreateLinkedCertificateTemplateRequest {
 
 export interface CreateManagedAppRequest {
     managedAppParameters: ManagedAppParameters;
-}
-
-export interface CreateManagedNamespaceRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    targetNamespaceKind: NamespaceKind;
-}
-
-export interface CreateProfileOperationRequest {
-    namespaceKind: NamespaceKind;
-    createProfileRequest: CreateProfileRequest;
 }
 
 export interface DeleteCertificateRequest {
@@ -431,97 +417,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createManagedApp(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedApp> {
         const response = await this.createManagedAppRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Create managed namespace
-     */
-    async createManagedNamespaceRaw(requestParameters: CreateManagedNamespaceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createManagedNamespace.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createManagedNamespace.');
-        }
-
-        if (requestParameters.targetNamespaceKind === null || requestParameters.targetNamespaceKind === undefined) {
-            throw new runtime.RequiredError('targetNamespaceKind','Required parameter requestParameters.targetNamespaceKind was null or undefined when calling createManagedNamespace.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}/{namespaceId}/managed/{targetNamespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"targetNamespaceKind"}}`, encodeURIComponent(String(requestParameters.targetNamespaceKind))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Create managed namespace
-     */
-    async createManagedNamespace(requestParameters: CreateManagedNamespaceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
-        const response = await this.createManagedNamespaceRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Create Managed Application
-     */
-    async createProfileRaw(requestParameters: CreateProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createProfile.');
-        }
-
-        if (requestParameters.createProfileRequest === null || requestParameters.createProfileRequest === undefined) {
-            throw new runtime.RequiredError('createProfileRequest','Required parameter requestParameters.createProfileRequest was null or undefined when calling createProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CreateProfileRequestToJSON(requestParameters.createProfileRequest),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Create Managed Application
-     */
-    async createProfile(requestParameters: CreateProfileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
-        const response = await this.createProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

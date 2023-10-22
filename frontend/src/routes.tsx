@@ -3,7 +3,6 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
 import { NamespaceContextProvider } from "./admin/NamespaceContext";
 import AdminPage from "./admin/Page";
-import RegisterPage from "./admin/RegisterPage";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
@@ -21,6 +20,8 @@ const ServicePage = React.lazy(() => import("./service/Page"));
 const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
+const ManagedAppsPage = React.lazy(() => import("./admin/ManagedAppsPage"));
+const RegisterPage = React.lazy(() => import("./admin/RegisterPage"));
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,16 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <MainPage />, id: RouteIds.home },
       { path: "diagnostics", element: <DiagnosticsPage /> },
+      {
+        path: "apps",
+        id: RouteIds.apps,
+        element: (
+          <AdminLayout>
+            <Outlet />
+          </AdminLayout>
+        ),
+        children: [{ index: true, element: <ManagedAppsPage /> }],
+      },
       {
         path: "admin",
         id: RouteIds.admin,

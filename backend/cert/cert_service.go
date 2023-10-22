@@ -6,13 +6,14 @@ import (
 	"github.com/rs/zerolog/log"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 
 /*
 type certServiceContextKey string

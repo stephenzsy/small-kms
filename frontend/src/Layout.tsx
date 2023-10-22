@@ -4,7 +4,7 @@ import { Layout } from "antd";
 import classNames from "classnames";
 import type { PropsWithChildren } from "react";
 import { Fragment, useMemo } from "react";
-import { Link, useMatches } from "react-router-dom";
+import { Link, NavLink, useMatches } from "react-router-dom";
 import { useAppAuthContext } from "./auth/AuthProvider";
 import { RouteIds } from "./route-constants";
 
@@ -87,6 +87,15 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
                             >
                               Settings
                             </Link>
+                            <NavLink
+                              to="/apps"
+                              className={classNames(
+                                "text-gray-300 hover:bg-gray-700 hover:text-white",
+                                "rounded-md px-3 py-2 text-sm font-medium"
+                              )}
+                            >
+                              Apps
+                            </NavLink>
                           </>
                         )}
                       </div>

@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	agentconfig "github.com/stephenzsy/small-kms/backend/agent-config"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -47,8 +47,8 @@ func (*server) GetAgentConfiguration(ctx echo.Context, namespaceKind shared.Name
 	}
 	c := ctx.(RequestContext)
 	var isAdmin bool
-	if auth.AuthorizeAdminOnly(c) == nil {
-		isAdmin = true
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	namespaceId, err := ns.ResolveAuthedNamespaseID(c, namespaceKind, namespaceId)
 	if err != nil && !isAdmin {
@@ -73,8 +73,8 @@ func (*server) PutAgentConfiguration(
 		return wrapResponse[*models.AgentConfigurationResponse](ctx, http.StatusOK, nil, e)
 	}
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return bad(err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
 	if err != nil {
@@ -93,8 +93,8 @@ func (*server) PutAgentConfiguration(
 // GetAgentProfile implements models.ServerInterface.
 func (*server) GetAgentProfile(ctx echo.Context, namespaceId shared.Identifier) error {
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, shared.NamespaceKindApplication, namespaceId)
 	if err != nil {
@@ -106,8 +106,8 @@ func (*server) GetAgentProfile(ctx echo.Context, namespaceId shared.Identifier) 
 // ProvisionAgentProfile implements models.ServerInterface.
 func (*server) ProvisionAgentProfile(ctx echo.Context, namespaceId shared.Identifier) error {
 	c := ctx.(RequestContext)
-	if err := auth.AuthorizeAdminOnly(c); err != nil {
-		return wrapEchoResponse(c, err)
+	if ok := auth.AuthorizeAdminOnly(c); !ok {
+		return respondRequireAdmin(c)
 	}
 	c, err := ns.WithNamespaceContext(c, shared.NamespaceKindApplication, namespaceId)
 	if err != nil {

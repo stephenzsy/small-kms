@@ -1,25 +1,22 @@
 package api
 
 import (
-	ctx "context"
 	"errors"
 	"net/http"
 	"runtime"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	agentconfig "github.com/stephenzsy/small-kms/backend/agent-config"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type server struct {
 	common.CommonServer
-	serverContext     ctx.Context
 	clients           clientProvider
 	appIdentity       common.AzureAppConfidentialIdentity
 	subscriptionId    string
@@ -32,28 +29,8 @@ func (s *server) ConfidentialAppIdentity() common.AzureAppConfidentialIdentity {
 	return s.appIdentity
 }
 
-// Deadline implements common.ServerContext.
-func (s *server) Deadline() (deadline time.Time, ok bool) {
-	return s.serverContext.Deadline()
-}
-
-// Done implements common.ServerContext.
-func (s *server) Done() <-chan struct{} {
-	return s.serverContext.Done()
-}
-
-// Err implements common.ServerContext.
-func (s *server) Err() error {
-	return s.serverContext.Err()
-}
-
-// Value implements common.ServerContext.
-func (s *server) Value(key any) any {
-	return s.serverContext.Value(key)
-}
-
 type H = map[string]string
-type RequestContext = common.RequestContext
+type RequestContext = ctx.RequestContext
 
 func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err error) error {
 	switch {
@@ -75,6 +52,10 @@ func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err 
 		c.Logger().Error("internal error", err)
 		return c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
 	}
+}
+
+func respondRequireAdmin(c echo.Context) error {
+	return c.JSON(http.StatusForbidden, map[string]string{"message": "admin access required"})
 }
 
 func wrapEchoResponse(c echo.Context, err error) error {
@@ -110,7 +91,7 @@ func (i *appConfidentialIdentity) TenantID() string {
 }
 
 // GetOnBehalfOfTokenCredential implements common.AzureAppConfidentialIdentity.
-func (i *appConfidentialIdentity) GetOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
+func (i *appConfidentialIdentity) NewOnBehalfOfTokenCredential(userAssertion string, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
 	return azidentity.NewOnBehalfOfCredentialWithSecret(i.tenantID, i.clientID, userAssertion, i.clientSecret, opts)
 }
 
@@ -122,7 +103,7 @@ func (i *appConfidentialIdentity) TokenCredential() azcore.TokenCredential {
 var _ common.AzureAppConfidentialIdentity = (*appConfidentialIdentity)(nil)
 var _ models.ServerInterface = (*server)(nil)
 
-func NewServer(c ctx.Context, buildId string) *server {
+func NewServer(buildId string) *server {
 
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
@@ -153,9 +134,6 @@ func NewServer(c ctx.Context, buildId string) *server {
 	if s.clients, err = newServerClientProvider(&s); err != nil {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
-	c = common.WithAdminServerClientProvider(c, &s.clients)
-	c = agentconfig.WithNewProxyHttpCLientPool(c)
-	s.serverContext = c
 
 	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
 	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
@@ -163,19 +141,11 @@ func NewServer(c ctx.Context, buildId string) *server {
 	return &s
 }
 
-func (s *server) GetPreAuthMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			return next(common.WrapEchoContext(c, s.serverContext))
-		}
-	}
-}
-
 func (s *server) GetAfterAuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if rc, ok := c.(RequestContext); ok {
-				rc = common.WithAdminServerRequestClientProvider(rc, &requestClientProvider{
+				rc = rc.WithValue(common.AdminServerRequestClientProvierContextKey, &requestClientProvider{
 					parent:            s,
 					credentialContext: rc,
 				})

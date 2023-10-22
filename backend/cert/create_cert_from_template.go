@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/profile"
@@ -134,7 +135,8 @@ func issueCertificate(c RequestContext,
 	default:
 		return bad(fmt.Errorf("%w: invalid namespace kind", common.ErrStatusBadRequest))
 	}
-	if c := c.Elevate(); c != nil {
+	{
+		c := ctx.Elevate(c)
 		var patch *CertDocSigningPatch
 		patch, err := signCertificate(c, csrProvider, signerProvider, storageProvider)
 		if err != nil {
@@ -165,5 +167,4 @@ func issueCertificate(c RequestContext,
 
 		return c, certDoc, nil
 	}
-	return nil, nil, fmt.Errorf("failed to elevate context")
 }

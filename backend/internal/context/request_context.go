@@ -17,6 +17,7 @@ type (
 	RequestContext interface {
 		echo.Context
 		context.Context
+		WithValue(key any, val any) RequestContext
 	}
 
 	wrappedCtx struct {
@@ -25,25 +26,32 @@ type (
 
 	requestContext struct {
 		echo.Context
-		chCtx      *wrappedCtx
-		valueCtx   *wrappedCtx
+		elevated   bool
+		reqCtx     *wrappedCtx
 		serviceCtx *wrappedCtx
 	}
 )
 
+func (c *requestContext) chCtx() *wrappedCtx {
+	if c.elevated {
+		return c.serviceCtx
+	}
+	return c.reqCtx
+}
+
 // Deadline implements RequestContext.
 func (c *requestContext) Deadline() (time.Time, bool) {
-	return c.chCtx.Deadline()
+	return c.chCtx().Deadline()
 }
 
 // Done implements RequestContext.
 func (c *requestContext) Done() <-chan struct{} {
-	return c.chCtx.Done()
+	return c.chCtx().Done()
 }
 
 // Err implements RequestContext.
 func (c *requestContext) Err() error {
-	return c.chCtx.Err()
+	return c.chCtx().Err()
 }
 
 // Value implements RequestContext.
@@ -52,7 +60,7 @@ func (c *requestContext) Value(key any) any {
 	case rKey:
 		return c
 	}
-	if val := c.valueCtx.Value(key); val != nil {
+	if val := c.reqCtx.Value(key); val != nil {
 		return val
 	}
 	return c.serviceCtx.Value(key)
@@ -60,20 +68,21 @@ func (c *requestContext) Value(key any) any {
 
 var _ RequestContext = (*requestContext)(nil)
 
-func (c *requestContext) withValue(key any, val any) *requestContext {
-	if key == rKey {
-		return c
-	}
-	nextValueCtx := &wrappedCtx{context.WithValue(c.valueCtx.Context, key, val)}
-	nextChCtx := c.chCtx
-	if nextChCtx == c.valueCtx {
-		nextChCtx = nextValueCtx
-	}
+func (c *requestContext) WithValue(key any, val any) RequestContext {
 	return &requestContext{
 		Context:    c.Context,
-		chCtx:      nextChCtx,
-		valueCtx:   nextValueCtx,
+		elevated:   c.elevated,
+		reqCtx:     &wrappedCtx{context.WithValue(c.reqCtx.Context, key, val)},
 		serviceCtx: c.serviceCtx,
+	}
+}
+
+func (c *requestContext) withServiceContexValue(key any, val any) *requestContext {
+	return &requestContext{
+		Context:    c.Context,
+		elevated:   c.elevated,
+		reqCtx:     c.reqCtx,
+		serviceCtx: &wrappedCtx{context.WithValue(c.serviceCtx.Context, key, val)},
 	}
 }
 
@@ -81,42 +90,39 @@ func NewInjectedRequestContext(c echo.Context, serviceCtx context.Context) Reque
 	reqCtx := &wrappedCtx{Context: c.Request().Context()}
 	return &requestContext{
 		Context:    c,
-		chCtx:      reqCtx,
-		valueCtx:   reqCtx,
+		elevated:   false,
+		reqCtx:     reqCtx,
 		serviceCtx: &wrappedCtx{serviceCtx},
 	}
 }
 
 func Elevate(c context.Context) context.Context {
 	if reqCtx, ok := c.Value(rKey).(*requestContext); ok && reqCtx != nil {
-		if reqCtx.chCtx == reqCtx.serviceCtx {
+		if reqCtx.elevated {
 			// already elevated
 			return c
 		}
-		valueCtx := reqCtx.valueCtx
+		nextReqCtx := reqCtx.reqCtx
 		if reqCtx != c {
-			valueCtx = &wrappedCtx{c}
+			nextReqCtx = &wrappedCtx{c}
 		}
 		return &requestContext{
 			Context:    reqCtx.Context,
-			chCtx:      reqCtx.serviceCtx,
-			valueCtx:   valueCtx,
+			elevated:   true,
+			reqCtx:     nextReqCtx,
 			serviceCtx: reqCtx.serviceCtx,
 		}
 	}
 	return c
 }
 
-func EchoContextWithValue(c echo.Context, key any, value any) echo.Context {
+func EchoContextWithValue(c echo.Context, key any, value any, isServiceContext bool) echo.Context {
 	if reqCtx, ok := c.(*requestContext); ok && reqCtx != nil {
-		return reqCtx.withValue(key, value)
+		if isServiceContext {
+			return reqCtx.withServiceContexValue(key, value)
+		} else {
+			return reqCtx.WithValue(key, value)
+		}
 	}
 	return c
-}
-
-func ResolveRequestContext(c echo.Context) RequestContext {
-	if cc, ok := c.(context.Context); ok && cc != nil {
-		return cc.Value(rKey).(RequestContext)
-	}
-	return nil
 }

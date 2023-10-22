@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -19,7 +20,7 @@ func deleteCertificate(c RequestContext, certDoc *CertDoc) error {
 	if certDoc.Status != CertStatusIssued {
 		return kmsdoc.Delete(c, certDoc)
 	} else if certDoc.Owner != nil && !certDoc.Owner.IsNilOrEmpty() {
-		c := c.Elevate()
+		c := ctx.Elevate(c)
 		err := kmsdoc.Delete(c, certDoc)
 		if err != nil {
 			return err
@@ -29,7 +30,7 @@ func deleteCertificate(c RequestContext, certDoc *CertDoc) error {
 		patchOps.AppendRemove(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, certDoc.NamespaceID))
 		return kmsdoc.Patch(c, certDoc, patchOps, nil)
 	} else {
-		c := c.Elevate()
+		c := ctx.Elevate(c)
 		patchOps := azcosmos.PatchOperations{}
 		if len(certDoc.Owns) > 0 {
 			for _, certLocator := range certDoc.Owns {

@@ -12,11 +12,21 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
 )
 
+type APIServer interface {
+	RespondRequireAdmin(c echo.Context) error
+}
+
 type apiServer struct {
 	chCtx                context.Context
 	siteURL              string
 	docService           base.AzCosmosCRUDDocService
 	serviceMsGraphClient *msgraphsdkgo.GraphServiceClient
+	legacyClientProvider common.AdminServerClientProvider
+}
+
+// respondRequireAdmin implements APIServer.
+func (*apiServer) RespondRequireAdmin(c echo.Context) error {
+	return respondRequireAdmin(c)
 }
 
 // Deadline implements context.Context.
@@ -43,6 +53,8 @@ func (s *apiServer) Value(key any) any {
 		return s.docService
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
+	case common.AdminServerClientProviderContextKey:
+		return s.legacyClientProvider
 	}
 	return nil
 }
@@ -56,6 +68,7 @@ func NewApiServer(c context.Context, serverOld *server) *apiServer {
 		siteURL:              common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
 		docService:           base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
 		serviceMsGraphClient: serverOld.clients.msGraphClient,
+		legacyClientProvider: &serverOld.clients,
 	}
 }
 
@@ -67,3 +80,5 @@ func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {
 		}
 	}
 }
+
+var _ APIServer = (*apiServer)(nil)

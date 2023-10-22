@@ -19,7 +19,7 @@ func WithCertificateTemplateContext(c RequestContext, templateID shared.Identifi
 		return c, fmt.Errorf("%w:invalid template ID:%s", common.ErrStatusBadRequest, templateID)
 	}
 	ctc := newCertificateTemplateService(templateID)
-	return c.WithSharedValue(certTmplContextKeyDefault, ctc), nil
+	return c.WithValue(certTmplContextKeyDefault, ctc), nil
 }
 
 func GetCertificateTemplateContext(c RequestContext) CertificateTemplateService {

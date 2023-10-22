@@ -19,9 +19,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/api"
-	"github.com/stephenzsy/small-kms/backend/auth"
 	"github.com/stephenzsy/small-kms/backend/common"
-	iauth "github.com/stephenzsy/small-kms/backend/internal/auth"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
@@ -58,20 +57,17 @@ func main() {
 			e.Use(middleware.CORS())
 		}
 		ctx := context.Background()
-		server := api.NewServer(ctx, BuildID)
+		server := api.NewServer(BuildID)
 		apiServer := api.NewApiServer(ctx, server)
 		e.Use(apiServer.InjectServiceContextMiddleware())
-		e.Use(server.GetPreAuthMiddleware())
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
-			e.Use(iauth.UnverifiedAADJwtAuth)
 			e.Use(auth.UnverifiedAADJwtAuth)
 		} else {
-			e.Use(iauth.ProxiedAADAuth)
 			e.Use(auth.ProxiedAADAuth)
 		}
 		e.Use(server.GetAfterAuthMiddleware())
 		models.RegisterHandlers(e, server)
-		managedapp.RegisterHandlers(e, managedapp.NewServer())
+		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		common.StartEchoWithGracefulShutdown(ctx, e, func(ee *echo.Echo, shutdownNotifier common.LeafShutdownNotifier) {
 			defer func() {
 				shutdownNotifier.MarkShutdownComplete()

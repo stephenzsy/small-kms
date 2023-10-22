@@ -4,22 +4,14 @@
 package models
 
 import (
-	"encoding/json"
-	"errors"
 	"time"
 
-	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
-// Defines values for CreateProfileRequestType.
-const (
-	ProfileTypeManagedApplication CreateProfileRequestType = "managed-application"
 )
 
 // Defines values for LinkedCertificateTemplateUsage.
@@ -149,20 +141,6 @@ type CreateLinkedCertificateTemplateParameters struct {
 	TargetTemplate externalRef0.ResourceLocator   `json:"targetTemplate"`
 	Usage          LinkedCertificateTemplateUsage `json:"usage"`
 }
-
-// CreateManagedApplicationProfileRequest defines model for CreateManagedApplicationProfileRequest.
-type CreateManagedApplicationProfileRequest struct {
-	Name string                   `json:"name"`
-	Type CreateProfileRequestType `json:"type"`
-}
-
-// CreateProfileRequest defines model for CreateProfileRequest.
-type CreateProfileRequest struct {
-	union json.RawMessage
-}
-
-// CreateProfileRequestType defines model for CreateProfileRequestType.
-type CreateProfileRequestType string
 
 // LinkedCertificateTemplateUsage defines model for LinkedCertificateTemplateUsage.
 type LinkedCertificateTemplateUsage string
@@ -298,9 +276,6 @@ type GetCertificateParams struct {
 // ProvisionAgentProfileJSONRequestBody defines body for ProvisionAgentProfile for application/json ContentType.
 type ProvisionAgentProfileJSONRequestBody = externalRef0.AgentProfileParameters
 
-// CreateProfileJSONRequestBody defines body for CreateProfile for application/json ContentType.
-type CreateProfileJSONRequestBody = CreateProfileRequest
-
 // PatchServiceConfigJSONRequestBody defines body for PatchServiceConfig for application/json ContentType.
 type PatchServiceConfigJSONRequestBody = PatchServiceConfigJSONBody
 
@@ -315,62 +290,3 @@ type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters
 
 // CreateLinkedCertificateTemplateJSONRequestBody defines body for CreateLinkedCertificateTemplate for application/json ContentType.
 type CreateLinkedCertificateTemplateJSONRequestBody = CreateLinkedCertificateTemplateParameters
-
-// AsCreateManagedApplicationProfileRequest returns the union data inside the CreateProfileRequest as a CreateManagedApplicationProfileRequest
-func (t CreateProfileRequest) AsCreateManagedApplicationProfileRequest() (CreateManagedApplicationProfileRequest, error) {
-	var body CreateManagedApplicationProfileRequest
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromCreateManagedApplicationProfileRequest overwrites any union data inside the CreateProfileRequest as the provided CreateManagedApplicationProfileRequest
-func (t *CreateProfileRequest) FromCreateManagedApplicationProfileRequest(v CreateManagedApplicationProfileRequest) error {
-	v.Type = "managed-application"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeCreateManagedApplicationProfileRequest performs a merge with any union data inside the CreateProfileRequest, using the provided CreateManagedApplicationProfileRequest
-func (t *CreateProfileRequest) MergeCreateManagedApplicationProfileRequest(v CreateManagedApplicationProfileRequest) error {
-	v.Type = "managed-application"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t CreateProfileRequest) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t CreateProfileRequest) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "managed-application":
-		return t.AsCreateManagedApplicationProfileRequest()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t CreateProfileRequest) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *CreateProfileRequest) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
