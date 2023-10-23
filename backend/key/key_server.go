@@ -10,18 +10,18 @@ type server struct {
 	api.APIServer
 }
 
-// ListKeySpecs implements ServerInterface.
-func (*server) ListKeySpecs(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+// GetKeyPolicy implements ServerInterface.
+func (*server) GetKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	panic("unimplemented")
 }
 
-// GetKeySpec implements ServerInterface.
-func (*server) GetKeySpec(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+// ListKeyPolicies implements ServerInterface.
+func (*server) ListKeyPolicies(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	panic("unimplemented")
 }
 
-// PutKeySpec implements ServerInterface.
-func (*server) PutKeySpec(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+// PutKeyPolicy implements ServerInterface.
+func (*server) PutKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	panic("unimplemented")
 }
 

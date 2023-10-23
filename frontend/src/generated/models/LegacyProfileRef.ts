@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
+import type { NamespaceKind1 } from './NamespaceKind1';
 import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
+    NamespaceKind1FromJSON,
+    NamespaceKind1FromJSONTyped,
+    NamespaceKind1ToJSON,
+} from './NamespaceKind1';
 
 /**
  * 
@@ -64,10 +64,10 @@ export interface LegacyProfileRef {
     metadata?: { [key: string]: any; };
     /**
      * 
-     * @type {NamespaceKind}
+     * @type {NamespaceKind1}
      * @memberof LegacyProfileRef
      */
-    type: NamespaceKind;
+    type: NamespaceKind1;
     /**
      * Display name of the resource
      * @type {string}
@@ -111,7 +111,7 @@ export function LegacyProfileRefFromJSONTyped(json: any, ignoreDiscriminator: bo
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
-        'type': NamespaceKindFromJSON(json['type']),
+        'type': NamespaceKind1FromJSON(json['type']),
         'displayName': json['displayName'],
         'isAppManaged': !exists(json, 'isAppManaged') ? undefined : json['isAppManaged'],
     };
@@ -132,7 +132,7 @@ export function LegacyProfileRefToJSON(value?: LegacyProfileRef | null): any {
         'updatedBy': value.updatedBy,
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'metadata': value.metadata,
-        'type': NamespaceKindToJSON(value.type),
+        'type': NamespaceKind1ToJSON(value.type),
         'displayName': value.displayName,
         'isAppManaged': value.isAppManaged,
     };

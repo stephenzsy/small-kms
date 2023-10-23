@@ -39,15 +39,7 @@ func (d *ProfileDoc) PopulateModelRef(m *ProfileRef) {
 	if d == nil || m == nil {
 		return
 	}
-	m.NID = d.StorageNamespaceID
-	m.RID = d.StorageID
-	m.Updated = d.Timestamp.Time
-	m.Deleted = d.Deleted
-	m.UpdatedBy = d.UpdatedBy
-	m.NamespaceKind = d.NamespaceKind
-	m.NamespaceIdentifier = d.NamespaceIdentifier
-	m.ResourceKind = d.ResourceKind
-	m.ResourceIdentifier = d.ResourceIdentifier
+	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
 	m.DisplayName = d.DisplayName
 }
 

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type periodImpl struct {
@@ -111,3 +112,10 @@ func ParsePeriod(s string) (p periodImpl, err error) {
 
 var _ encoding.TextMarshaler = periodImpl{}
 var _ encoding.TextUnmarshaler = (*periodImpl)(nil)
+
+func AddPeriod(t time.Time, p Period) time.Time {
+	return t.UTC().AddDate(p.Year, p.Month, p.Day).Add(
+		time.Duration(p.Hour)*time.Hour +
+			time.Duration(p.Minute)*time.Minute +
+			time.Duration(p.Second)*time.Second)
+}

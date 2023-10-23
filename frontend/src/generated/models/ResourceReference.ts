@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind1 } from './NamespaceKind1';
+import type { NamespaceKind } from './NamespaceKind';
 import {
-    NamespaceKind1FromJSON,
-    NamespaceKind1FromJSONTyped,
-    NamespaceKind1ToJSON,
-} from './NamespaceKind1';
+    NamespaceKindFromJSON,
+    NamespaceKindFromJSONTyped,
+    NamespaceKindToJSON,
+} from './NamespaceKind';
 import type { ResourceKind } from './ResourceKind';
 import {
     ResourceKindFromJSON,
@@ -46,10 +46,10 @@ export interface ResourceReference {
     rid: string;
     /**
      * 
-     * @type {NamespaceKind1}
+     * @type {NamespaceKind}
      * @memberof ResourceReference
      */
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     /**
      * 
      * @type {string}
@@ -117,7 +117,7 @@ export function ResourceReferenceFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'nid': json['_nid'],
         'rid': json['_rid'],
-        'namespaceKind': NamespaceKind1FromJSON(json['namespaceKind']),
+        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
         'resourceIdentifier': json['resourceIdentifier'],
@@ -138,7 +138,7 @@ export function ResourceReferenceToJSON(value?: ResourceReference | null): any {
         
         '_nid': value.nid,
         '_rid': value.rid,
-        'namespaceKind': NamespaceKind1ToJSON(value.namespaceKind),
+        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),
         'resourceIdentifier': value.resourceIdentifier,

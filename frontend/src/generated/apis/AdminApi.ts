@@ -22,6 +22,8 @@ import type {
   AgentProfileParameters,
   AgentProxyInfo,
   AzureRoleAssignment,
+  CertPolicy,
+  CertPolicyParameters,
   CertificateInfo,
   CertificateRef,
   CertificateTemplate,
@@ -31,7 +33,7 @@ import type {
   LegacyProfileRef,
   ManagedAppParameters,
   ManagedAppRef,
-  NamespaceKind,
+  NamespaceKind1,
   Profile,
   ProfileParameters,
   ProfileRef,
@@ -53,6 +55,10 @@ import {
     AgentProxyInfoToJSON,
     AzureRoleAssignmentFromJSON,
     AzureRoleAssignmentToJSON,
+    CertPolicyFromJSON,
+    CertPolicyToJSON,
+    CertPolicyParametersFromJSON,
+    CertPolicyParametersToJSON,
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
     CertificateRefFromJSON,
@@ -71,8 +77,8 @@ import {
     ManagedAppParametersToJSON,
     ManagedAppRefFromJSON,
     ManagedAppRefToJSON,
-    NamespaceKindFromJSON,
-    NamespaceKindToJSON,
+    NamespaceKind1FromJSON,
+    NamespaceKind1ToJSON,
     ProfileFromJSON,
     ProfileToJSON,
     ProfileParametersFromJSON,
@@ -86,21 +92,21 @@ import {
 } from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     roleDefinitionId: string;
 }
 
 export interface AgentCallbackRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     agentConfiguration: AgentConfiguration;
 }
 
 export interface CreateLinkedCertificateTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     createLinkedCertificateTemplateParameters: CreateLinkedCertificateTemplateParameters;
 }
@@ -110,19 +116,19 @@ export interface CreateManagedAppRequest {
 }
 
 export interface DeleteCertificateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     certificateId: string;
 }
 
 export interface DeleteCertificateTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
 
 export interface GetAgentConfigurationRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
@@ -137,8 +143,14 @@ export interface GetAgentProxyInfoRequest {
     namespaceId: string;
 }
 
+export interface GetCertPolicyRequest {
+    namespaceKind: NamespaceKind1;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+}
+
 export interface GetCertificateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     certificateId: string;
     includeCertificate?: boolean;
@@ -146,7 +158,7 @@ export interface GetCertificateRequest {
 }
 
 export interface GetCertificateTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
@@ -156,7 +168,7 @@ export interface GetDockerInfoRequest {
 }
 
 export interface GetProfileRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
 }
 
@@ -165,7 +177,7 @@ export interface GetRootCARequest {
 }
 
 export interface IssueCertificateFromTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     includeCertificate?: boolean;
@@ -175,24 +187,24 @@ export interface IssueCertificateFromTemplateRequest {
 }
 
 export interface ListCertificateTemplatesRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
 }
 
 export interface ListCertificatesByTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
 
 export interface ListProfilesRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
 }
 
 export interface PatchServiceConfigRequest {
@@ -206,14 +218,21 @@ export interface ProvisionAgentProfileRequest {
 }
 
 export interface PutAgentConfigurationRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     agentConfigurationParameters: AgentConfigurationParameters;
 }
 
+export interface PutCertPolicyRequest {
+    namespaceKind: NamespaceKind1;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    certPolicyParameters: CertPolicyParameters;
+}
+
 export interface PutCertificateTemplateRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     certificateTemplateParameters: CertificateTemplateParameters;
@@ -225,14 +244,14 @@ export interface PutRootCARequest {
 }
 
 export interface RemoveKeyVaultRoleAssignmentRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     roleAssignmentId: string;
 }
 
 export interface SyncProfileRequest {
-    namespaceKind: NamespaceKind;
+    namespaceKind: NamespaceKind1;
     namespaceId: string;
 }
 
@@ -652,6 +671,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentProxyInfo(requestParameters: GetAgentProxyInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProxyInfo> {
         const response = await this.getAgentProxyInfoRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get cert policy
+     */
+    async getCertPolicyRaw(requestParameters: GetCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertPolicy>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertPolicy.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertPolicy.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getCertPolicy.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertPolicyFromJSON(jsonValue));
+    }
+
+    /**
+     * Get cert policy
+     */
+    async getCertPolicy(requestParameters: GetCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertPolicy> {
+        const response = await this.getCertPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1349,6 +1414,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putAgentConfiguration(requestParameters: PutAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.putAgentConfigurationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put cert policy
+     */
+    async putCertPolicyRaw(requestParameters: PutCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertPolicy>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertPolicy.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putCertPolicy.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putCertPolicy.');
+        }
+
+        if (requestParameters.certPolicyParameters === null || requestParameters.certPolicyParameters === undefined) {
+            throw new runtime.RequiredError('certPolicyParameters','Required parameter requestParameters.certPolicyParameters was null or undefined when calling putCertPolicy.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CertPolicyParametersToJSON(requestParameters.certPolicyParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertPolicyFromJSON(jsonValue));
+    }
+
+    /**
+     * Put cert policy
+     */
+    async putCertPolicy(requestParameters: PutCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertPolicy> {
+        const response = await this.putCertPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

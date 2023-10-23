@@ -2,12 +2,12 @@ package key
 
 import "github.com/stephenzsy/small-kms/backend/base"
 
-type keySpecRefComposed struct {
+type keyPolicyRefComposed struct {
 	base.ResourceReference
-	KeySpecRefFields
+	KeyPolicyRefFields
 }
 
-type keySpecComposed struct {
-	KeySpecRef
-	KeySpecFields
+type keyPolicyComposed struct {
+	KeyPolicyRef
+	KeyPolicyFields
 }

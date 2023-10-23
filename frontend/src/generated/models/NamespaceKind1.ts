@@ -18,8 +18,16 @@
  * @export
  */
 export const NamespaceKind1 = {
+    NamespaceKindSystem: 'sys',
     NamespaceKindProfile: 'profile',
-    NamespaceKindRootCA: 'root-ca'
+    NamespaceKindCaRoot: 'ca-root',
+    NamespaceKindCaInt: 'ca-int',
+    NamespaceKindServicePrincipal: 'service-principal',
+    NamespaceKindGroup: 'group',
+    NamespaceKindDevice: 'device',
+    NamespaceKindUser: 'user',
+    NamespaceKindApplication: 'application',
+    NamespaceKindManagedApp: 'managed-app'
 } as const;
 export type NamespaceKind1 = typeof NamespaceKind1[keyof typeof NamespaceKind1];
 

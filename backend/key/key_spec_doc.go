@@ -7,10 +7,9 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-type KeySpecDoc struct {
+type KeyPolicyDoc struct {
 	base.BaseDoc
 
-	Name       string               `json:"name"`
 	Exportable bool                 `json:"exportable"`
 	KeyType    JsonWebKeyType       `json:"kty"`
 	KeySize    *int32               `json:"key_size,omitempty"`
@@ -21,17 +20,16 @@ type KeySpecDoc struct {
 func NewKeySpecDoc(
 	nsKind base.NamespaceKind,
 	nsIdentifier base.Identifier,
-	name string,
-	params *KeySpecParameters,
-) (*KeySpecDoc, error) {
-	doc := &KeySpecDoc{
+	rID base.Identifier,
+	params *KeyPolicyParameters,
+) (*KeyPolicyDoc, error) {
+	doc := &KeyPolicyDoc{
 		BaseDoc: base.BaseDoc{
 			NamespaceKind:       nsKind,
 			NamespaceIdentifier: nsIdentifier,
-			ResourceKind:        base.ResourceKindKeySpec,
-			ResourceIdentifier:  base.StringIdentifier(name),
+			ResourceKind:        base.ResourceKindKeyPolicy,
+			ResourceIdentifier:  rID,
 		},
-		Name: name,
 	}
 	switch nsKind {
 	case base.NamespaceKindRootCA:
@@ -44,10 +42,10 @@ func NewKeySpecDoc(
 			doc.Exportable = true
 		}
 	}
-	doc.KeyType = params.Kty
+	doc.KeyType = params.KeySpec.Kty
 	switch doc.KeyType {
 	case JsonWebKeyTypeEC:
-		doc.CurveName = params.Crv
+		doc.CurveName = params.KeySpec.Crv
 		if doc.CurveName == nil {
 			doc.CurveName = utils.ToPtr(JsonWebKeyCurveNameP384)
 		}
@@ -58,7 +56,7 @@ func NewKeySpecDoc(
 			return nil, fmt.Errorf("%w: unsupported curve name: %s", base.ErrResponseStatusBadRequest, *doc.CurveName)
 		}
 	case JsonWebKeyTypeRSA:
-		doc.KeySize = params.KeySize
+		doc.KeySize = params.KeySpec.KeySize
 		if doc.KeySize == nil {
 			switch nsKind {
 			case base.NamespaceKindRootCA:

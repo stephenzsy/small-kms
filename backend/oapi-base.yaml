@@ -23,9 +23,11 @@ components:
       enum:
         - profile
         - root-ca
+        - int-ca
       x-enum-varnames:
         - NamespaceKindProfile
         - NamespaceKindRootCA
+        - NamespaceKindIntermediateCA
     NumericDate:
       type: integer
       format: int64
@@ -40,11 +42,15 @@ components:
       enum:
         - managed-app
         - root-ca
-        - key-spec
+        - int-ca
+        - cert-policy
+        - key-policy
       x-enum-varnames:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
-        - ResourceKindKeySpec
+        - ProfileResourceKindIntermediateCA
+        - ResourceKindCertPolicy
+        - ResourceKindKeyPolicy
     ResourceReference:
       type: object
       properties:

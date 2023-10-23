@@ -12,15 +12,18 @@ import (
 
 // Defines values for NamespaceKind.
 const (
-	NamespaceKindProfile NamespaceKind = "profile"
-	NamespaceKindRootCA  NamespaceKind = "root-ca"
+	NamespaceKindIntermediateCA NamespaceKind = "int-ca"
+	NamespaceKindProfile        NamespaceKind = "profile"
+	NamespaceKindRootCA         NamespaceKind = "root-ca"
 )
 
 // Defines values for ResourceKind.
 const (
-	ProfileResourceKindManagedApp ResourceKind = "managed-app"
-	ProfileResourceKindRootCA     ResourceKind = "root-ca"
-	ResourceKindKeySpec           ResourceKind = "key-spec"
+	ProfileResourceKindIntermediateCA ResourceKind = "int-ca"
+	ProfileResourceKindManagedApp     ResourceKind = "managed-app"
+	ProfileResourceKindRootCA         ResourceKind = "root-ca"
+	ResourceKindCertPolicy            ResourceKind = "cert-policy"
+	ResourceKindKeyPolicy             ResourceKind = "key-policy"
 )
 
 // Identifier defines model for Identifier.

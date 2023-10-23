@@ -233,3 +233,21 @@ func (*azcosmosContainerCRUDDocService) SoftDelete(context.Context) {
 }
 
 var _ AzCosmosCRUDDocService = (*azcosmosContainerCRUDDocService)(nil)
+
+// PopulateModelRef implements ModelRefPopulater.
+func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
+	if d == nil || m == nil {
+		return
+	}
+	m.NID = d.StorageNamespaceID
+	m.RID = d.StorageID
+	m.Updated = d.Timestamp.Time
+	m.Deleted = d.Deleted
+	m.UpdatedBy = d.UpdatedBy
+	m.NamespaceKind = d.NamespaceKind
+	m.NamespaceIdentifier = d.NamespaceIdentifier
+	m.ResourceKind = d.ResourceKind
+	m.ResourceIdentifier = d.ResourceIdentifier
+}
+
+var _ ModelRefPopulater[ResourceReference] = (*BaseDoc)(nil)

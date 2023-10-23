@@ -2,6 +2,8 @@ package ns
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -45,4 +47,18 @@ func WithDefaultNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id
 		identifier: identifier,
 	}
 	return parent.WithValue(nsContextKey, nsCtx)
+}
+
+var keyVaultNameIdentiferPattern = regexp.MustCompile(`^[0-9A-Za-z\-]+$`)
+
+func VerifyKeyVaultIdentifier(identifier base.Identifier) error {
+	if identifier.IsUUID() {
+		return nil
+	}
+	str := identifier.String()
+	if len(str) < 1 || len(str) > 48 || !keyVaultNameIdentiferPattern.MatchString(str) {
+		return fmt.Errorf("%w: invalid identifier, %s", base.ErrResponseStatusBadRequest, str)
+	}
+
+	return nil
 }

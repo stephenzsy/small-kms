@@ -6,15 +6,15 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceIdentifier}/key-spec:
+  /v1/{namespaceKind}/{namespaceIdentifier}/key-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
     get:
       tags:
         - admin
-      operationId: ListKeySpecs
-      summary: List key specs
+      operationId: ListKeyPolicies
+      summary: List key policies
       responses:
         200:
           description: List of key specs
@@ -23,8 +23,8 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/KeySpecRef"
-  /v1/{namespaceKind}/{namespaceIdentifier}/key-spec/{resourceIdentifier}:
+                  $ref: "#/components/schemas/KeyPolicyRef"
+  /v1/{namespaceKind}/{namespaceIdentifier}/key-policy/{resourceIdentifier}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
@@ -32,25 +32,25 @@ paths:
     get:
       tags:
         - admin
-      operationId: GetKeySpec
+      operationId: GetKeyPolicy
       summary: Get key spec
       responses:
         200:
-          $ref: "#/components/responses/KeySpecResponse"
+          $ref: "#/components/responses/KeyPolicyResponse"
     put:
       tags:
         - admin
-      operationId: PutKeySpec
+      operationId: PutKeyPolicy
       summary: Put key spec
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeySpecParameters"
+              $ref: "#/components/schemas/KeyPolicyParameters"
       responses:
         200:
-          $ref: "#/components/responses/KeySpecResponse"
+          $ref: "#/components/responses/KeyPolicyResponse"
 security:
   - BearerAuth: []
 components:
@@ -67,6 +67,22 @@ components:
         - JsonWebKeyCurveNameP256K
         - JsonWebKeyCurveNameP384
         - JsonWebKeyCurveNameP521
+    JsonWebKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-enum-varnames:
+        - JsonWebKeyOperationSign
+        - JsonWebKeyOperationVerify
+        - JsonWebKeyOperationEncrypt
+        - JsonWebKeyOperationDecrypt
+        - JsonWebKeyOperationWrapKey
+        - JsonWebKeyOperationUnwrapKey
     JsonWebKeyType:
       type: string
       enum:
@@ -80,58 +96,94 @@ components:
     JsonWeyKeySize:
       type: integer
       format: int32
-    KeySpecRef:
+    KeySpec:
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+          x-go-name: KeyType
+        crv:          
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+          x-go-name: CurveName
+        key_size:
+          $ref: "#/components/schemas/JsonWeyKeySize"
+          x-go-name: KeySize
+        key_ops:
+          type: array
+          items:
+            $ref: "#/components/schemas/JsonWebKeyOperation"
+          x-go-name: KeyOperations
+      required:
+        - kty
+        - key_ops
+    KeyPolicyRef:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
-        - $ref: "#/components/schemas/KeySpecRefFields"
-        - x-go-type: keySpecRefComposed
-    KeySpecRefFields:
+        - $ref: "#/components/schemas/KeyPolicyRefFields"
+        - x-go-type: keyPolicyRefComposed
+    KeyPolicyRefFields:
       properties:
-        name:
+        displayName:
           type: string
       required:
-        - name
-    KeySpec:
+        - displayName
+    KeyPolicy:
       allOf:
-        - $ref: "#/components/schemas/KeySpecRef"
-        - $ref: "#/components/schemas/KeySpecFields"
-        - x-go-type: keySpecComposed
-    KeySpecFields:
-      properties:
-        kty:
-          $ref: "#/components/schemas/JsonWebKeyType"
-        crv:
-          $ref: "#/components/schemas/JsonWebKeyCurveName"
-        key_size:
-          $ref: "#/components/schemas/JsonWeyKeySize"
-        exportable:
-          type: boolean
-        expiryTime:
-          $ref: "oapi-base.yaml#/components/schemas/Period"
-      required:
-        - kty
-        - exportable
-    KeySpecParameters:
+        - $ref: "#/components/schemas/KeyPolicyRef"
+        - $ref: "#/components/schemas/KeyPolicyFields"
+        - x-go-type: keyPolicyComposed
+    KeyPolicyFields:
       type: object
       properties:
-        name:
-          type: string
-        kty:
-          $ref: "#/components/schemas/JsonWebKeyType"
-        crv:
-          $ref: "#/components/schemas/JsonWebKeyCurveName"
-        key_size:
-          $ref: "#/components/schemas/JsonWeyKeySize"
         exportable:
           type: boolean
         expiryTime:
           $ref: "oapi-base.yaml#/components/schemas/Period"
+        lifetimeActions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LifetimeAction"
+          x-go-type-skip-optional-pointer: true
       required:
-        - kty
+        - exportable
+    KeyPolicyParameters:
+      type: object
+      properties:
+        displayName:
+          type: string
+        keySpec:
+          $ref: "#/components/schemas/KeySpec"
+        exportable:
+          type: boolean
+        expiryTime:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+        lifetimeActions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LifetimeAction"
+          x-go-type-skip-optional-pointer: true
+      required:
+        - keySpec
+    LifetimeAction:
+      type: object
+      properties:
+        trigger:
+          $ref: "#/components/schemas/LifetimeTrigger"
+      required:
+        - trigger
+    LifetimeTrigger:
+      type: object
+      properties:
+        timeAfterCreate:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+        timeBeforeExpiry:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+        percentageAfterCreate:
+          type: integer
+          format: int32
   responses:
-    KeySpecResponse:
-      description: Key spec reponse
+    KeyPolicyResponse:
+      description: Key policy response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/KeySpec"
+            $ref: "#/components/schemas/KeyPolicy"

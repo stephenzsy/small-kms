@@ -22,7 +22,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
-	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/profile/v2"
@@ -73,7 +72,7 @@ func main() {
 		models.RegisterHandlers(e, server)
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
-		key.RegisterHandlers(e, key.NewServer(apiServer))
+		//key.RegisterHandlers(e, key.NewServer(apiServer))
 		common.StartEchoWithGracefulShutdown(ctx, e, func(ee *echo.Echo, shutdownNotifier common.LeafShutdownNotifier) {
 			defer func() {
 				shutdownNotifier.MarkShutdownComplete()

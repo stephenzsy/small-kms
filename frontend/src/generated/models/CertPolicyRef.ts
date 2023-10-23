@@ -29,93 +29,75 @@ import {
 /**
  * 
  * @export
- * @interface ManagedAppRef
+ * @interface CertPolicyRef
  */
-export interface ManagedAppRef {
+export interface CertPolicyRef {
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     nid: string;
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     rid: string;
     /**
      * 
      * @type {NamespaceKind}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     namespaceKind: NamespaceKind;
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     resourceIdentifier: string;
     /**
      * 
      * @type {Date}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     updated: Date;
     /**
      * 
      * @type {Date}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     deleted?: Date;
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     updatedBy: string;
     /**
      * 
      * @type {string}
-     * @memberof ManagedAppRef
+     * @memberof CertPolicyRef
      */
     displayName: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ManagedAppRef
-     */
-    appId: string;
-    /**
-     * Object ID
-     * @type {string}
-     * @memberof ManagedAppRef
-     */
-    applicationId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ManagedAppRef
-     */
-    servicePrincipalId: string;
 }
 
 /**
- * Check if a given object implements the ManagedAppRef interface.
+ * Check if a given object implements the CertPolicyRef interface.
  */
-export function instanceOfManagedAppRef(value: object): boolean {
+export function instanceOfCertPolicyRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "nid" in value;
     isInstance = isInstance && "rid" in value;
@@ -126,18 +108,15 @@ export function instanceOfManagedAppRef(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "appId" in value;
-    isInstance = isInstance && "applicationId" in value;
-    isInstance = isInstance && "servicePrincipalId" in value;
 
     return isInstance;
 }
 
-export function ManagedAppRefFromJSON(json: any): ManagedAppRef {
-    return ManagedAppRefFromJSONTyped(json, false);
+export function CertPolicyRefFromJSON(json: any): CertPolicyRef {
+    return CertPolicyRefFromJSONTyped(json, false);
 }
 
-export function ManagedAppRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ManagedAppRef {
+export function CertPolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertPolicyRef {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -153,13 +132,10 @@ export function ManagedAppRefFromJSONTyped(json: any, ignoreDiscriminator: boole
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'appId': json['appId'],
-        'applicationId': json['applicationId'],
-        'servicePrincipalId': json['servicePrincipalId'],
     };
 }
 
-export function ManagedAppRefToJSON(value?: ManagedAppRef | null): any {
+export function CertPolicyRefToJSON(value?: CertPolicyRef | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -178,9 +154,6 @@ export function ManagedAppRefToJSON(value?: ManagedAppRef | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
-        'appId': value.appId,
-        'applicationId': value.applicationId,
-        'servicePrincipalId': value.servicePrincipalId,
     };
 }
 

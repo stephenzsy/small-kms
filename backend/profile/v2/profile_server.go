@@ -1,9 +1,7 @@
 package profile
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/api"
@@ -63,7 +61,7 @@ func (s *server) PutRootCA(ec echo.Context, namespaceIdentifier base.Identifier)
 		return err
 	}
 
-	if err := verifyProfileName(namespaceIdentifier); err != nil {
+	if err := ns.VerifyKeyVaultIdentifier(namespaceIdentifier); err != nil {
 		return err
 	}
 	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, namespaceIdentifierCA)
@@ -73,20 +71,6 @@ func (s *server) PutRootCA(ec echo.Context, namespaceIdentifier base.Identifier)
 		return err
 	}
 	return c.JSON(http.StatusOK, r)
-}
-
-var profileNameRegex = regexp.MustCompile(`^[0-9A-Za-z\-]+$`)
-
-func verifyProfileName(identifier base.Identifier) error {
-	if identifier.IsUUID() {
-		return nil
-	}
-	str := identifier.String()
-	if len(str) < 1 || len(str) > 96 || !profileNameRegex.MatchString(str) {
-		return fmt.Errorf("%w: invalid identifier, %s", base.ErrResponseStatusBadRequest, str)
-	}
-
-	return nil
 }
 
 var _ ServerInterface = (*server)(nil)

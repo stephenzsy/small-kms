@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
+import type { NamespaceKind1 } from './NamespaceKind1';
 import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
+    NamespaceKind1FromJSON,
+    NamespaceKind1FromJSONTyped,
+    NamespaceKind1ToJSON,
+} from './NamespaceKind1';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface ProfileRefFields {
     /**
      * 
-     * @type {NamespaceKind}
+     * @type {NamespaceKind1}
      * @memberof ProfileRefFields
      */
-    type: NamespaceKind;
+    type: NamespaceKind1;
     /**
      * Display name of the resource
      * @type {string}
@@ -67,7 +67,7 @@ export function ProfileRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'type': NamespaceKindFromJSON(json['type']),
+        'type': NamespaceKind1FromJSON(json['type']),
         'displayName': json['displayName'],
         'isAppManaged': !exists(json, 'isAppManaged') ? undefined : json['isAppManaged'],
     };
@@ -82,7 +82,7 @@ export function ProfileRefFieldsToJSON(value?: ProfileRefFields | null): any {
     }
     return {
         
-        'type': NamespaceKindToJSON(value.type),
+        'type': NamespaceKind1ToJSON(value.type),
         'displayName': value.displayName,
         'isAppManaged': value.isAppManaged,
     };

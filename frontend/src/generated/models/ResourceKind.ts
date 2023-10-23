@@ -20,7 +20,9 @@
 export const ResourceKind = {
     ProfileResourceKindManagedApp: 'managed-app',
     ProfileResourceKindRootCA: 'root-ca',
-    ResourceKindKeySpec: 'key-spec'
+    ProfileResourceKindIntermediateCA: 'int-ca',
+    ResourceKindCertPolicy: 'cert-policy',
+    ResourceKindKeyPolicy: 'key-policy'
 } as const;
 export type ResourceKind = typeof ResourceKind[keyof typeof ResourceKind];
 

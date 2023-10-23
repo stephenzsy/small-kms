@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Shared Models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListCertPolicies
+      summary: List cert policies
+      responses:
+        200:
+          description: List of cert specs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CertPolicyRef"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetCertPolicy
+      summary: Get cert policy
+      responses:
+        200:
+          $ref: "#/components/responses/CertPolicyResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutCertPolicy
+      summary: Put cert policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertPolicyParameters"
+      responses:
+        200:
+          $ref: "#/components/responses/CertPolicyResponse"
+security:
+  - BearerAuth: []
+components:
+  schemas:
+    CertificateFlag:
+      type: string
+      enum:
+        - ca
+        - rootCa
+        - serverAuth
+        - clientAuth
+      x-enum-varnames:
+        - CertificateFlagCA
+        - CertificateFlagRootCA
+        - CertificateFlagServerAuth
+        - CertificateFlagClientAuth        
+    CertPolicyRef:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/CertPolicyRefFields"
+        - x-go-type: certPolicyRefComposed
+    CertPolicyRefFields:
+      properties:
+        displayName:
+          type: string
+      required:
+        - displayName
+    CertPolicy:
+      allOf:
+        - $ref: "#/components/schemas/CertPolicyRef"
+        - $ref: "#/components/schemas/CertPolicyFields"
+        - x-go-type: certPolicyComposed
+    CertPolicyFields:
+      properties:
+        keySpec:
+          $ref: "oapi-key.yaml#/components/schemas/KeySpec"
+        keyExportable:
+          type: boolean
+        expiryTime:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+        lifetimeAction:
+          $ref: "oapi-key.yaml#/components/schemas/LifetimeAction"
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+      required:
+        - kty
+        - keyExportable
+        - expiryTime
+        - subject
+        - certificateFlags
+        - flags
+    CertPolicyParameters:
+      type: object
+      properties:
+        displayName:
+          type: string
+        keySpec:
+          $ref: "oapi-key.yaml#/components/schemas/KeySpec"
+        keyExportable:
+          type: boolean
+        expiryTime:
+          $ref: "oapi-base.yaml#/components/schemas/Period"
+        lifetimeAction:
+          $ref: "oapi-key.yaml#/components/schemas/LifetimeAction"
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+          x-go-type-skip-optional-pointer: true
+      required:
+        - expiryTime
+        - subject
+    CertificateSubject:
+      type: object
+      properties:
+        commonName:
+          type: string
+      required:
+        - commonName
+    SubjectAlternativeNames:
+      type: object
+      properties:
+        dnsNames:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: DNSNames
+        ipAddresses:
+          type: array
+          items:
+            type: string
+            x-go-type: net.IP
+          x-go-type-skip-optional-pointer: true
+          x-go-name: IPAddresses
+        emails:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+  responses:
+    CertPolicyResponse:
+      description: Key spec reponse
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertPolicy"
