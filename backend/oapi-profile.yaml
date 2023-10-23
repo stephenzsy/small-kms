@@ -6,7 +6,7 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/root-ca:
+  /v1/profile/root-ca:
     get:
       tags:
         - admin
@@ -21,7 +21,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v1/root-ca/{namespaceIdentifier}:
+  /v1/profile/root-ca/{namespaceIdentifier}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
     get:

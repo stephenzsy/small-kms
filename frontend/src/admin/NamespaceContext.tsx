@@ -1,7 +1,7 @@
 import { useRequest } from "ahooks";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { AdminApi, Profile, NamespaceKind } from "../generated";
+import { AdminApi, Profile, NamespaceKind1 as NamespaceKind } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 
 export const NamespaceContext = React.createContext<{

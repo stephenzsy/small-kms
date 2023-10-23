@@ -79,6 +79,14 @@ func (d *CertPolicyDoc) Init(
 		default:
 			return fmt.Errorf("%w: unsupported key type: %s", base.ErrResponseStatusBadRequest, ks.Kty)
 		}
+		if len(ks.KeyOperations) == 0 {
+			d.KeySpec.KeyOperations = []key.JsonWebKeyOperation{
+				key.JsonWebKeyOperationSign,
+				key.JsonWebKeyOperationVerify,
+			}
+		} else {
+			d.KeySpec.KeyOperations = ks.KeyOperations
+		}
 	}
 
 	if p.KeyExportable == nil {
@@ -175,7 +183,10 @@ func (d *CertPolicyDoc) PopulateModel(m *CertPolicy) {
 		return
 	}
 	d.PopulateModelRef(&m.CertPolicyRef)
-	m.KeySpec = &d.KeySpec
+	m.KeySpec = d.KeySpec
+	if m.KeySpec.KeyOperations == nil {
+		m.KeySpec.KeyOperations = []key.JsonWebKeyOperation{}
+	}
 	m.KeyExportable = d.KeyExportable
 	m.ExpiryTime = d.ExpiryTime
 	m.LifetimeAction = d.LifetimeAction

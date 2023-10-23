@@ -12,7 +12,7 @@ import {
   AgentConfigurationParametersFromJSON,
   AgentConfigurationParametersToJSON,
   AgentConfigurationToJSON,
-  NamespaceKind,
+  NamespaceKind1 as NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { Link } from "react-router-dom";

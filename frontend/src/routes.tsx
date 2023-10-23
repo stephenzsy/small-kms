@@ -2,6 +2,7 @@ import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
 import { NamespaceContextProvider } from "./admin/NamespaceContext";
+import { NamespaceContextProvider as NamespaceContextProvider2 } from "./admin/NamespaceContext2";
 import AdminPage from "./admin/Page";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
@@ -12,6 +13,7 @@ const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
+const NamespacePage2 = React.lazy(() => import("./admin/NamespacePage2"));
 const CertificateTemplatePage = React.lazy(
   () => import("./admin/CertificateTemplatePage")
 );
@@ -23,6 +25,7 @@ const AgentDashboardPage = React.lazy(
 const ManagedAppsPage = React.lazy(() => import("./admin/ManagedAppsPage"));
 const RegisterPage = React.lazy(() => import("./admin/RegisterPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
+const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
 
 export const router = createBrowserRouter([
   {
@@ -55,7 +58,24 @@ export const router = createBrowserRouter([
           {
             path: "ca",
             element: <Outlet />,
-            children: [{ index: true, element: <CAsPage /> }],
+            children: [
+              { index: true, element: <CAsPage /> },
+              {
+                path: ":nsKind/:nsId",
+                element: (
+                  <NamespaceContextProvider2>
+                    <Outlet />
+                  </NamespaceContextProvider2>
+                ),
+                children: [
+                  { index: true, element: <NamespacePage2 /> },
+                  {
+                    path: "cert-policy/:certPolicyId",
+                    element: <CertPolicyPage />,
+                  },
+                ],
+              },
+            ],
           },
           {
             path: "admin",

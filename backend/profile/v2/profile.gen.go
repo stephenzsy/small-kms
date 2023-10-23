@@ -41,13 +41,13 @@ type PutRootCAJSONRequestBody = ProfileParameters
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List root CA profiles
-	// (GET /v1/root-ca)
+	// (GET /v1/profile/root-ca)
 	ListRootCAs(ctx echo.Context) error
 	// Get profile
-	// (GET /v1/root-ca/{namespaceIdentifier})
+	// (GET /v1/profile/root-ca/{namespaceIdentifier})
 	GetRootCA(ctx echo.Context, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 	// Put profile
-	// (PUT /v1/root-ca/{namespaceIdentifier})
+	// (PUT /v1/profile/root-ca/{namespaceIdentifier})
 	PutRootCA(ctx echo.Context, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 }
 
@@ -131,8 +131,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/root-ca", wrapper.ListRootCAs)
-	router.GET(baseURL+"/v1/root-ca/:namespaceIdentifier", wrapper.GetRootCA)
-	router.PUT(baseURL+"/v1/root-ca/:namespaceIdentifier", wrapper.PutRootCA)
+	router.GET(baseURL+"/v1/profile/root-ca", wrapper.ListRootCAs)
+	router.GET(baseURL+"/v1/profile/root-ca/:namespaceIdentifier", wrapper.GetRootCA)
+	router.PUT(baseURL+"/v1/profile/root-ca/:namespaceIdentifier", wrapper.PutRootCA)
 
 }

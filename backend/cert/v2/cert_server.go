@@ -15,14 +15,32 @@ type server struct {
 	api.APIServer
 }
 
-// GetCertPolicy implements ServerInterface.
-func (*server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+// ListCertPolicies implements ServerInterface.
+func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	panic("unimplemented")
 }
 
-// ListCertPolicies implements ServerInterface.
-func (*server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
-	panic("unimplemented")
+// GetCertPolicy implements ServerInterface.
+func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	r, err := getCertPolicy(c, resourceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, r)
 }
 
 // PutCertPolicy implements ServerInterface.

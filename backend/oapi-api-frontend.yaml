@@ -10,10 +10,10 @@ security:
 paths:
   /v1/managed-app:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
-  /v1/root-ca:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1root-ca"
-  /v1/root-ca/{namespaceIdentifier}:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1root-ca~1{namespaceIdentifier}"
+  /v1/profile/root-ca:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1root-ca"
+  /v1/profile/root-ca/{namespaceIdentifier}:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1root-ca~1{namespaceIdentifier}"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}"
   /v3/application/{namespaceId}/agent:

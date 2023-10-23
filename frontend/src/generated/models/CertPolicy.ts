@@ -127,7 +127,7 @@ export interface CertPolicy {
      * @type {KeySpec}
      * @memberof CertPolicy
      */
-    keySpec?: KeySpec;
+    keySpec: KeySpec;
     /**
      * 
      * @type {boolean}
@@ -180,6 +180,7 @@ export function instanceOfCertPolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "subject" in value;
@@ -208,7 +209,7 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'keySpec': !exists(json, 'keySpec') ? undefined : KeySpecFromJSON(json['keySpec']),
+        'keySpec': KeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
         'lifetimeAction': !exists(json, 'lifetimeAction') ? undefined : LifetimeActionFromJSON(json['lifetimeAction']),

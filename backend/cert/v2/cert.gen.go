@@ -34,7 +34,7 @@ type CertPolicyFields struct {
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags"`
 	KeyExportable           bool                         `json:"keyExportable"`
-	KeySpec                 *externalRef1.KeySpec        `json:"keySpec,omitempty"`
+	KeySpec                 externalRef1.KeySpec         `json:"keySpec"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
 	Subject                 CertificateSubject           `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`

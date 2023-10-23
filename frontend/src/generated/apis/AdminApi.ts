@@ -921,7 +921,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1257,7 +1257,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/root-ca`,
+            path: `/v1/profile/root-ca`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1550,7 +1550,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

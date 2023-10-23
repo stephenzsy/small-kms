@@ -55,7 +55,7 @@ export interface CertPolicyFields {
      * @type {KeySpec}
      * @memberof CertPolicyFields
      */
-    keySpec?: KeySpec;
+    keySpec: KeySpec;
     /**
      * 
      * @type {boolean}
@@ -99,6 +99,7 @@ export interface CertPolicyFields {
  */
 export function instanceOfCertPolicyFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "subject" in value;
@@ -117,7 +118,7 @@ export function CertPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'keySpec': !exists(json, 'keySpec') ? undefined : KeySpecFromJSON(json['keySpec']),
+        'keySpec': KeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
         'lifetimeAction': !exists(json, 'lifetimeAction') ? undefined : LifetimeActionFromJSON(json['lifetimeAction']),

@@ -20,6 +20,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/cert/v2"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
@@ -72,6 +73,7 @@ func main() {
 		models.RegisterHandlers(e, server)
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
+		cert.RegisterHandlers(e, cert.NewServer(apiServer))
 		//key.RegisterHandlers(e, key.NewServer(apiServer))
 		common.StartEchoWithGracefulShutdown(ctx, e, func(ee *echo.Echo, shutdownNotifier common.LeafShutdownNotifier) {
 			defer func() {
