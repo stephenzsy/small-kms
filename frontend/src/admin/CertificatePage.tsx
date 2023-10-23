@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind } from "../generated";
+import { AdminApi, NamespaceKind1 as NamespaceKind } from "../generated";
 import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemo } from "react";

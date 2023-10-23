@@ -24,6 +24,7 @@ import type {
   AzureRoleAssignment,
   CertPolicy,
   CertPolicyParameters,
+  CertPolicyRef,
   CertificateInfo,
   CertificateRef,
   CertificateTemplate,
@@ -59,6 +60,8 @@ import {
     CertPolicyToJSON,
     CertPolicyParametersFromJSON,
     CertPolicyParametersToJSON,
+    CertPolicyRefFromJSON,
+    CertPolicyRefToJSON,
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
     CertificateRefFromJSON,
@@ -184,6 +187,11 @@ export interface IssueCertificateFromTemplateRequest {
     force?: boolean;
     enroll?: boolean;
     tags?: Array<TemplatedCertificateTag>;
+}
+
+export interface ListCertPoliciesRequest {
+    namespaceKind: NamespaceKind1;
+    namespaceIdentifier: string;
 }
 
 export interface ListCertificateTemplatesRequest {
@@ -1031,6 +1039,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async issueCertificateFromTemplate(requestParameters: IssueCertificateFromTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
         const response = await this.issueCertificateFromTemplateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List cert policies
+     */
+    async listCertPoliciesRaw(requestParameters: ListCertPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertPolicyRef>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertPolicies.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listCertPolicies.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertPolicyRefFromJSON));
+    }
+
+    /**
+     * List cert policies
+     */
+    async listCertPolicies(requestParameters: ListCertPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertPolicyRef>> {
+        const response = await this.listCertPoliciesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

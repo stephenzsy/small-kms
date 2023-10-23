@@ -23,6 +23,10 @@ type CertPolicyDoc struct {
 	Flags          []CertificateFlag        `json:"flags"`
 }
 
+const (
+	queryColumnDisplayName = "c.displayName"
+)
+
 func (d *CertPolicyDoc) Init(
 	nsKind base.NamespaceKind,
 	nsID base.Identifier,

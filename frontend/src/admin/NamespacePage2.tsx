@@ -1,60 +1,69 @@
 import { useRequest } from "ahooks";
-import { useContext, useState } from "react";
-import { Button } from "../components/Button";
-import Select, { SelectItem } from "../components/Select";
-import {
-  AdminApi,
-  CertificateTemplateRef,
-  LinkedCertificateTemplateUsage,
-  NamespaceKind1 as NamespaceKind,
-} from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { InputField } from "./InputField";
-import { NamespaceContext } from "./NamespaceContext2";
-import { RefTableColumn, RefsTable } from "./RefsTable";
-import { Card } from "antd";
+import { Card, Table, TableColumnType } from "antd";
+import { useContext, useMemo } from "react";
 import { Link } from "../components/Link";
+import { AdminApi, CertPolicyRef, NamespaceKind1 } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
+import { NamespaceContext } from "./NamespaceContext2";
 
-const subjectCnColumn: RefTableColumn<CertificateTemplateRef> = {
-  columnKey: "subjectCommonName",
-  header: "Subject Common Name",
-  render: (item) => {
-    return item.linkTo ? (
-      <span>Link to: {item.linkTo}</span>
-    ) : (
-      item.subjectCommonName
-    );
-  },
-};
-const enabledColumn: RefTableColumn<CertificateTemplateRef> = {
-  columnKey: "enabled",
-  header: "Enabled",
-  render: (item) => (!item.deleted && item.updated ? "Yes" : "No"),
-};
+function useColumns() {
+  return useMemo<TableColumnType<CertPolicyRef>[]>(
+    () => [
+      {
+        title: "App ID",
+        render: (r: CertPolicyRef) => (
+          <span className="font-mono">{r.resourceIdentifier}</span>
+        ),
+      },
+      {
+        title: "Display name",
+        render: (r: CertPolicyRef) => r.displayName,
+      },
 
-type UsageSelectItem = SelectItem<LinkedCertificateTemplateUsage>;
-
-const selectItems: UsageSelectItem[] = [
-  {
-    id: LinkedCertificateTemplateUsage.LinkedCertificateTemplateUsageClientAuthorization,
-    name: "Client Authorization",
-  },
-  {
-    id: LinkedCertificateTemplateUsage.LinkedCertificateTemplateUsageMemberDelegatedEnrollment,
-    name: "Member Delegated Enrollment",
-  },
-];
+      {
+        title: "Actions",
+        render: (r: CertPolicyRef) => (
+          <Link to={`./cert-policy/${r.resourceIdentifier}`}>View</Link>
+        ),
+      },
+    ],
+    []
+  );
+}
 
 export default function NamespacePage() {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+
+  const adminApi = useAuthedClient(AdminApi);
+  const { data: certPolicies } = useRequest(
+    () => {
+      return adminApi.listCertPolicies({
+        namespaceIdentifier: namespaceId,
+        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+      });
+    },
+    {
+      refreshDeps: [namespaceId, namespaceKind],
+    }
+  );
+  const columns = useColumns();
+
   return (
     <>
       <h1>{namespaceId}</h1>
       <div>{namespaceKind}</div>
       <Card
         title="Certificate Policies"
-        extra={<Link to="./cert-policy/_create">Create certificate policy</Link>}
-      ></Card>
+        extra={
+          <Link to="./cert-policy/_create">Create certificate policy</Link>
+        }
+      >
+        <Table<CertPolicyRef>
+          columns={columns}
+          dataSource={certPolicies}
+          rowKey={(r) => r.resourceIdentifier}
+        />
+      </Card>
     </>
   );
 }

@@ -2,7 +2,7 @@ import { useRequest } from "ahooks";
 import classNames from "classnames";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind } from "../generated";
+import { AdminApi, NamespaceKind1 as NamespaceKind } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { InputField } from "./InputField";
 

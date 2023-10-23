@@ -1,4 +1,4 @@
-import { useMemoizedFn, useRequest } from "ahooks";
+import { useRequest } from "ahooks";
 import {
   Button,
   Card,
@@ -17,7 +17,7 @@ import {
   CertificateRef,
   CertificateTemplate,
   CertificateUsage,
-  NamespaceKind,
+  NamespaceKind1 as NamespaceKind,
 } from "../generated";
 import {
   ValueState,
@@ -27,7 +27,6 @@ import {
 } from "../utils/formStateUtils";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertTemplateForm } from "./CertTemplateForm";
-import { InputField } from "./InputField";
 import { RefTableColumn, RefsTable } from "./RefsTable";
 
 export interface CertificateTemplateFormState {

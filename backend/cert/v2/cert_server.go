@@ -24,7 +24,11 @@ func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceK
 	}
 
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	panic("unimplemented")
+	l, err := listCertPolicies(c, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, l)
 }
 
 // GetCertPolicy implements ServerInterface.

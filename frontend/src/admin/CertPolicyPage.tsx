@@ -2,7 +2,7 @@ import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Checkbox, Form, Input, Radio, Typography } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { useContext, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
@@ -197,6 +197,7 @@ export default function CertPolicyPage() {
   const { certPolicyId: _certPolicyId } = useParams() as {
     certPolicyId: string;
   };
+  const navigate = useNavigate();
   const certPolicyId = _certPolicyId === "_create" ? "" : _certPolicyId;
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
@@ -215,6 +216,12 @@ export default function CertPolicyPage() {
       refreshDeps: [certPolicyId, namespaceId, namespaceKind],
     }
   );
+  const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
+    mutate(value);
+    if (!certPolicyId && value) {
+      navigate(`./../${value.resourceIdentifier}`, { replace: true });
+    }
+  });
   return (
     <>
       <Typography.Title>
@@ -230,7 +237,7 @@ export default function CertPolicyPage() {
         <CertPolicyForm
           certPolicyId={certPolicyId}
           value={data}
-          onChange={mutate}
+          onChange={onMutate}
         />
       </Card>
     </>

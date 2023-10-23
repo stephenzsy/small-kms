@@ -6,7 +6,7 @@ import { Button } from "../components/Button";
 import { Card, CardSection, CardTitle } from "../components/Card";
 import {
   AdminApi,
-  NamespaceKind,
+  NamespaceKind1 as NamespaceKind,
   PatchServiceConfigConfigPathEnum,
   ServiceConfig,
   ServiceConfigAcrInfoToJSON,

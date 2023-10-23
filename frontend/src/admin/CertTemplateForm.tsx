@@ -7,7 +7,7 @@ import {
   AdminApi,
   CertificateTemplateToJSON,
   CertificateUsage,
-  NamespaceKind,
+  NamespaceKind1 as NamespaceKind,
   PutCertificateTemplateRequest,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
