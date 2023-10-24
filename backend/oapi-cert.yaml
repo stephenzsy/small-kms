@@ -51,6 +51,19 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertPolicyResponse"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    post:
+      tags:
+        - admin
+      operationId: CreateCertificate
+      summary: Create certificate
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
 security:
   - BearerAuth: []
 components:
@@ -66,7 +79,7 @@ components:
         - CertificateFlagCA
         - CertificateFlagRootCA
         - CertificateFlagServerAuth
-        - CertificateFlagClientAuth        
+        - CertificateFlagClientAuth
     CertPolicyRef:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
@@ -86,7 +99,7 @@ components:
     CertPolicyFields:
       properties:
         keySpec:
-          $ref: "oapi-key.yaml#/components/schemas/KeySpec"
+          $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
           type: boolean
         expiryTime:
@@ -101,6 +114,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CertificateFlag"
+        version:
+          type: string
+          x-go-type: HexDigest
       required:
         - keySpec
         - keyExportable
@@ -108,13 +124,14 @@ components:
         - subject
         - certificateFlags
         - flags
+        - version
     CertPolicyParameters:
       type: object
       properties:
         displayName:
           type: string
         keySpec:
-          $ref: "oapi-key.yaml#/components/schemas/KeySpec"
+          $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
           type: boolean
         expiryTime:
@@ -130,6 +147,8 @@ components:
           items:
             $ref: "#/components/schemas/CertificateFlag"
           x-go-type-skip-optional-pointer: true
+        issuerTemplateId:
+          $ref: "oapi-base.yaml#/components/schemas/SLocator"
       required:
         - expiryTime
         - subject
@@ -161,6 +180,55 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
+    CertificateRef:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/CertificateRefFields"
+        - x-go-type: certificateRefComposed
+    CertificateAttributes:
+      allOf:
+        - $ref: "oapi-key.yaml#/components/schemas/KeyAttributes"
+        - type: object
+          properties:
+            issuer:
+              $ref: "oapi-base.yaml#/components/schemas/SLocator"
+    CertificateRefFields:
+      type: object
+      properties:
+        x5t:
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: ThmbprintSHA1
+        attributes:
+          $ref: "#/components/schemas/CertificateAttributes"
+      required:
+        - x5t
+        - attributes
+    Certificate:
+      allOf:
+        - $ref: "#/components/schemas/CertificateRef"
+        - $ref: "#/components/schemas/CertificateFields"
+        - x-go-type: certificateComposed
+    CertificateFields:
+      type: object
+      properties:
+        alg:
+          $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
+        x5u:
+          type: string
+        x5c:
+          description: Base64 encoded certificate chain
+          type: array
+          items:
+            $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t#S256:
+          description: SHA-256 fingerprint of the certificate
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: ThumbprintSHA256
+      required:
+        - alg
+        - x5t#S256
   responses:
     CertPolicyResponse:
       description: Key spec reponse
@@ -168,3 +236,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CertPolicy"
+    CertificateResponse:
+      description: Key spec reponse
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Certificate"

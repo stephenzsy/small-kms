@@ -15,6 +15,9 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Base64RawURLEncodedBytes:
+      type: string
+      x-go-type: base64RawURLEncodedBytesImpl
     Identifier:
       type: string
       x-go-type: identifierImpl
@@ -36,7 +39,7 @@ components:
         path: github.com/golang-jwt/jwt/v5
     Period:
       type: string
-      x-go-type: periodImpl        
+      x-go-type: periodImpl
     ResourceKind:
       type: string
       enum:
@@ -44,24 +47,21 @@ components:
         - root-ca
         - int-ca
         - cert-policy
+        - cert
         - key-policy
       x-enum-varnames:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
         - ProfileResourceKindIntermediateCA
         - ResourceKindCertPolicy
+        - ResourceKindCert
         - ResourceKindKeyPolicy
-    ResourceReference:
+    SLocator:
+      type: string
+      x-go-type: storageLocator
+    ResourceLocator:
       type: object
       properties:
-        _nid:
-          type: string
-          format: uuid
-          x-go-name: NID
-        _rid:
-          type: string
-          format: uuid
-          x-go-name: RID
         namespaceKind:
           $ref: "#/components/schemas/NamespaceKind"
         namespaceIdentifier:
@@ -70,23 +70,34 @@ components:
           $ref: "#/components/schemas/ResourceKind"
         resourceIdentifier:
           $ref: "#/components/schemas/Identifier"
-        updated:
-          type: string
-          format: date-time
-        deleted:
-          type: string
-          format: date-time
-        updatedBy:
-          type: string
       required:
-        - _nid
-        - _rid
         - namespaceKind
         - namespaceIdentifier
         - resourceKind
         - resourceIdentifier
-        - updated
-        - updatedBy
+    ResourceReference:
+      allOf:
+        - type: object
+          properties:
+            _id:
+              $ref: "#/components/schemas/SLocator"
+              x-go-name: LocatorID
+          required:
+            - _id
+        - $ref: "#/components/schemas/ResourceLocator"
+        - type: object
+          properties:
+            updated:
+              type: string
+              format: date-time
+            deleted:
+              type: string
+              format: date-time
+            updatedBy:
+              type: string
+          required:
+            - updated
+            - updatedBy
   parameters:
     NamespaceKindParameter:
       in: path

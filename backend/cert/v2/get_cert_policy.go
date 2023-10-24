@@ -8,7 +8,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicy, error) {
+func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -20,11 +20,5 @@ func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicy, error) 
 	nid, rid := base.GetDefaultStorageLocator(c, nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, rID)
 
 	err := base.GetAzCosmosCRUDService(c).Read(c, nid, rid, doc, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	m := new(CertPolicy)
-	doc.PopulateModel(m)
-	return m, nil
+	return doc, err
 }

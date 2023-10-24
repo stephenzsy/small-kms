@@ -15,6 +15,24 @@ type server struct {
 	api.APIServer
 }
 
+// CreateCertificate implements ServerInterface.
+func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	r, err := createCertFromPolicy(c, resourceIdentifier)
+	if err != nil {
+		return err
+	}
+	m := new(Certificate)
+	r.PopulateModel(m)
+	return c.JSON(http.StatusOK, m)
+}
+
 // ListCertPolicies implements ServerInterface.
 func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
@@ -44,7 +62,9 @@ func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, r)
+	m := new(CertPolicy)
+	r.PopulateModel(m)
+	return c.JSON(http.StatusOK, m)
 }
 
 // PutCertPolicy implements ServerInterface.

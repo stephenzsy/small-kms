@@ -238,17 +238,9 @@ function RequestCertificateControl({
 }) {
   const adminApi = useAuthedClient(AdminApi);
   const [force, setForce] = useState(false);
-  const { run: issueCert } = useRequest(
-    async (force: boolean) => {
-      await adminApi.issueCertificateFromTemplate({
-        namespaceId,
-        templateId,
-        namespaceKind,
-        force,
-      });
-    },
-    { manual: true }
-  );
+  const { run: issueCert } = useRequest(async (force: boolean) => {}, {
+    manual: true,
+  });
 
   return (
     <div className="flex gap-8 items-center">

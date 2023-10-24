@@ -39,7 +39,6 @@ import type {
   ProfileParameters,
   ProfileRef,
   ServiceConfig,
-  TemplatedCertificateTag,
 } from '../models/index';
 import {
     AgentConfigNameFromJSON,
@@ -90,8 +89,6 @@ import {
     ProfileRefToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
-    TemplatedCertificateTagFromJSON,
-    TemplatedCertificateTagToJSON,
 } from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
@@ -183,16 +180,6 @@ export interface GetProfileRequest {
 
 export interface GetRootCARequest {
     namespaceIdentifier: string;
-}
-
-export interface IssueCertificateFromTemplateRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
-    includeCertificate?: boolean;
-    force?: boolean;
-    enroll?: boolean;
-    tags?: Array<TemplatedCertificateTag>;
 }
 
 export interface ListCertPoliciesRequest {
@@ -1029,68 +1016,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getServiceConfig(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
         const response = await this.getServiceConfigRaw(initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Create certificate
-     */
-    async issueCertificateFromTemplateRaw(requestParameters: IssueCertificateFromTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling issueCertificateFromTemplate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling issueCertificateFromTemplate.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling issueCertificateFromTemplate.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.includeCertificate !== undefined) {
-            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
-        }
-
-        if (requestParameters.force !== undefined) {
-            queryParameters['force'] = requestParameters.force;
-        }
-
-        if (requestParameters.enroll !== undefined) {
-            queryParameters['enroll'] = requestParameters.enroll;
-        }
-
-        if (requestParameters.tags) {
-            queryParameters['tags'] = requestParameters.tags;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
-    }
-
-    /**
-     * Create certificate
-     */
-    async issueCertificateFromTemplate(requestParameters: IssueCertificateFromTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
-        const response = await this.issueCertificateFromTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

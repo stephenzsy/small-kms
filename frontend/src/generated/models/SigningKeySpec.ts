@@ -52,6 +52,12 @@ export interface SigningKeySpec {
     kty: JsonWebKeyType;
     /**
      * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    kid?: string;
+    /**
+     * 
      * @type {JsonWebKeyCurveName}
      * @memberof SigningKeySpec
      */
@@ -74,6 +80,24 @@ export interface SigningKeySpec {
      * @memberof SigningKeySpec
      */
     alg?: JsonWebKeySignatureAlgorithm;
+    /**
+     * Base64 encoded certificate chain
+     * @type {Array<string>}
+     * @memberof SigningKeySpec
+     */
+    x5c?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    x5t?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    x5tS256?: string;
 }
 
 /**
@@ -98,10 +122,14 @@ export function SigningKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'kty': JsonWebKeyTypeFromJSON(json['kty']),
+        'kid': !exists(json, 'kid') ? undefined : json['kid'],
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
         'alg': !exists(json, 'alg') ? undefined : JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
+        'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
+        'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
+        'x5tS256': !exists(json, 'x5t#S256') ? undefined : json['x5t#S256'],
     };
 }
 
@@ -115,10 +143,14 @@ export function SigningKeySpecToJSON(value?: SigningKeySpec | null): any {
     return {
         
         'kty': JsonWebKeyTypeToJSON(value.kty),
+        'kid': value.kid,
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
         'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
+        'x5c': value.x5c,
+        'x5t': value.x5t,
+        'x5t#S256': value.x5tS256,
     };
 }
 

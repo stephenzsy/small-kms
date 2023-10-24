@@ -1,10 +1,12 @@
 package cert
 
 import (
+	"crypto/md5"
 	"fmt"
 	"slices"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -14,13 +16,14 @@ type CertPolicyDoc struct {
 	base.BaseDoc
 
 	DisplayName    string                   `json:"displayName"`
-	KeySpec        key.KeySpec              `json:"keySpec"`
+	KeySpec        key.SigningKeySpec       `json:"keySpec"`
 	KeyExportable  bool                     `json:"keyExportable"`
 	ExpiryTime     base.Period              `json:"expiryTime"`
 	LifetimeAction *key.LifetimeAction      `json:"lifetimeActions,omitempty"`
 	Subject        CertificateSubject       `json:"subject"`
 	SANs           *SubjectAlternativeNames `json:"sans,omitempty"`
 	Flags          []CertificateFlag        `json:"flags"`
+	Version        HexDigest                `json:"version"`
 }
 
 const (
@@ -45,8 +48,10 @@ func (d *CertPolicyDoc) Init(
 		d.DisplayName = *p.DisplayName
 	}
 
+	digest := md5.New()
 	if p.KeySpec == nil {
-		d.KeySpec = key.KeySpec{
+		d.KeySpec = key.SigningKeySpec{
+			Alg:     to.Ptr(key.JsonWebKeySignatureAlgorithmRS256),
 			Kty:     key.JsonWebKeyTypeRSA,
 			KeySize: utils.ToPtr(int32(2048)),
 			KeyOperations: []key.JsonWebKeyOperation{
@@ -60,14 +65,18 @@ func (d *CertPolicyDoc) Init(
 		case key.JsonWebKeyTypeEC:
 			d.KeySpec.Kty = key.JsonWebKeyTypeEC
 			d.KeySpec.Crv = utils.ToPtr(key.JsonWebKeyCurveNameP384)
-
+			d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
 			if ks.Crv != nil {
 				switch *ks.Crv {
-				case key.JsonWebKeyCurveNameP256,
-					key.JsonWebKeyCurveNameP256K,
-					key.JsonWebKeyCurveNameP384,
-					key.JsonWebKeyCurveNameP521:
+				case key.JsonWebKeyCurveNameP256:
 					d.KeySpec.Crv = ks.Crv
+					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES256)
+				case key.JsonWebKeyCurveNameP384:
+					d.KeySpec.Crv = ks.Crv
+					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
+				case key.JsonWebKeyCurveNameP521:
+					d.KeySpec.Crv = ks.Crv
+					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES512)
 				}
 			}
 		case key.JsonWebKeyTypeRSA:
@@ -80,6 +89,25 @@ func (d *CertPolicyDoc) Init(
 				}
 				// any other value will be using default
 			}
+			if d.KeySpec.Alg == nil {
+				d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmRS256)
+				if *ks.KeySize >= 3072 {
+					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmRS384)
+				}
+			} else {
+				switch *d.KeySpec.Alg {
+				case key.JsonWebKeySignatureAlgorithmRS256,
+					key.JsonWebKeySignatureAlgorithmRS384,
+					key.JsonWebKeySignatureAlgorithmRS512,
+					key.JsonWebKeySignatureAlgorithmPS256,
+					key.JsonWebKeySignatureAlgorithmPS384,
+					key.JsonWebKeySignatureAlgorithmPS512:
+					// ok
+				default:
+					return fmt.Errorf("%w: unsupported key signature algorithm: %s", base.ErrResponseStatusBadRequest, *d.KeySpec.Alg)
+				}
+			}
+
 		default:
 			return fmt.Errorf("%w: unsupported key type: %s", base.ErrResponseStatusBadRequest, ks.Kty)
 		}
@@ -92,6 +120,7 @@ func (d *CertPolicyDoc) Init(
 			d.KeySpec.KeyOperations = ks.KeyOperations
 		}
 	}
+	d.KeySpec.WriteToDigest(digest)
 
 	if p.KeyExportable == nil {
 		switch nsKind {
@@ -101,6 +130,7 @@ func (d *CertPolicyDoc) Init(
 	} else if *p.KeyExportable {
 		d.KeyExportable = true
 	}
+	digest.Write([]byte(fmt.Sprintf("%t", d.KeyExportable)))
 
 	baseTime := time.Now().UTC()
 	expMaxCutoff := baseTime.AddDate(10, 0, 0)
@@ -112,6 +142,7 @@ func (d *CertPolicyDoc) Init(
 	} else {
 		d.ExpiryTime = p.ExpiryTime
 	}
+	digest.Write(d.ExpiryTime.Bytes())
 
 	if p.LifetimeAction != nil {
 		d.LifetimeAction = p.LifetimeAction
@@ -141,14 +172,17 @@ func (d *CertPolicyDoc) Init(
 				return fmt.Errorf("%w: lifetime action trigger percentage after creation cannot be less than 14 days", base.ErrResponseStatusBadRequest)
 			}
 		}
+		d.LifetimeAction.WriteToDigest(digest)
 	}
 
 	d.Subject = p.Subject
 	if d.Subject.CommonName == "" {
 		return fmt.Errorf("%w: subject common name cannot be empty", base.ErrResponseStatusBadRequest)
 	}
+	digest.Write([]byte(d.Subject.CommonName))
 
 	d.SANs = p.SubjectAlternativeNames.Sanitize()
+	d.SANs.WriteToDigest(digest)
 
 	switch nsKind {
 	case base.NamespaceKindRootCA:
@@ -171,6 +205,11 @@ func (d *CertPolicyDoc) Init(
 	if len(d.Flags) == 0 {
 		return fmt.Errorf("%w: certificate must have at least one usage flag", base.ErrResponseStatusBadRequest)
 	}
+	for _, flag := range d.Flags {
+		digest.Write([]byte(flag))
+	}
+	d.Version = digest.Sum(nil)
+
 	return nil
 }
 
@@ -197,6 +236,7 @@ func (d *CertPolicyDoc) PopulateModel(m *CertPolicy) {
 	m.Subject = d.Subject
 	m.SubjectAlternativeNames = d.SANs
 	m.Flags = d.Flags
+	m.Version = d.Version
 }
 
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyDoc)(nil)

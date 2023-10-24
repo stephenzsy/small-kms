@@ -56,6 +56,13 @@ func (i *identifierImpl) UUID() uuid.UUID {
 	return i.uuidVal
 }
 
+func (i *identifierImpl) Bytes() []byte {
+	if i.isUUID {
+		return i.uuidVal[:]
+	}
+	return []byte(i.strVal)
+}
+
 func (i *identifierImpl) AsUUID() (uuid.UUID, bool) {
 	if !i.isUUID {
 		return uuid.UUID{}, false

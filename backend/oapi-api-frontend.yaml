@@ -18,6 +18,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1create-cert"
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -342,34 +344,6 @@ paths:
                 type: array
                 items:
                   $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
-    post:
-      tags:
-        - admin
-      parameters:
-        - $ref: "#/components/parameters/IncludeCertificateParameter"
-        - in: query
-          name: force
-          schema:
-            type: boolean
-          required: false
-        - in: query
-          name: enroll
-          schema:
-            type: boolean
-          required: false
-        - in: query
-          name: tags
-          schema:
-            type: array
-            items:
-              $ref: "oapi-shared.yaml#/components/schemas/TemplatedCertificateTag"
-      summary: Create certificate
-      operationId: IssueCertificateFromTemplate
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
-        201:
-          $ref: "#/components/responses/CertificateResponse"
   /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"

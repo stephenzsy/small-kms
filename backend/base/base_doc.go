@@ -14,18 +14,24 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
+type CRUDDocHasCustomStorageNamespaceID interface {
+	GetStorageNamespaceID(context.Context) uuid.UUID
+}
+
 type CRUDDocHasCustomStorageID interface {
 	GetStorageID(context.Context) uuid.UUID
 }
 
 type CRUDDoc interface {
-	GetStorageNamespaceID(context.Context) uuid.UUID
-	CRUDDocHasCustomStorageID
+	// can only be used on a doc that has been read from storage
+	GetSLocator() SLocator
+	getDefaultStorageNamespaceID(c context.Context) uuid.UUID
+	getDefaultStorageID(c context.Context) uuid.UUID
 	GetUpdatedBy() string
 	setETag(etag azcore.ETag)
 	setTimestamp(t time.Time)
 	setUpdatedBy(string)
-	prepareForWrite(c context.Context, storageID uuid.UUID)
+	prepareForWrite(c context.Context, storageNID, storageRID uuid.UUID)
 }
 
 type BaseDoc struct {
@@ -41,6 +47,14 @@ type BaseDoc struct {
 	ETag      *azcore.ETag     `json:"_etag,omitempty"`
 	Deleted   *time.Time       `json:"deleted,omitempty"`
 	UpdatedBy string           `json:"updatedBy,omitempty"`
+}
+
+// GetSLocator implements CRUDDoc.
+func (b *BaseDoc) GetSLocator() SLocator {
+	return SLocator{
+		b.StorageNamespaceID,
+		b.StorageID,
+	}
 }
 
 var queryDefaultColumns = []string{
@@ -84,13 +98,7 @@ func GetDefaultStorageNamespaceID(c context.Context, namespaceKind NamespaceKind
 	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageNamespaceIDURL(c, namespaceKind, namespaceIdentifier)))
 }
 
-// default implementation get storage ID
-func (d *BaseDoc) GetStorageNamespaceID(c context.Context) uuid.UUID {
-	if f := GetStorageNamespaceIDFunc(c); f != nil {
-		if storageId := (*f)(c, d.NamespaceKind, d.NamespaceIdentifier); storageId != nil {
-			return *storageId
-		}
-	}
+func (d *BaseDoc) getDefaultStorageNamespaceID(c context.Context) uuid.UUID {
 	return GetDefaultStorageNamespaceID(c, d.NamespaceKind, d.NamespaceIdentifier)
 }
 
@@ -111,7 +119,7 @@ func GetDefaultStorageLocator(c context.Context,
 		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))
 }
 
-func (d *BaseDoc) GetStorageID(c context.Context) uuid.UUID {
+func (d *BaseDoc) getDefaultStorageID(c context.Context) uuid.UUID {
 	return GetDefaultStorageID(
 		c,
 		GetDefaultStorageNamespaceIDURL(c, d.NamespaceKind, d.NamespaceIdentifier),
@@ -125,9 +133,9 @@ func (d *BaseDoc) setETag(eTag azcore.ETag) {
 }
 
 // setUpdated implements CRUDDoc.
-func (d *BaseDoc) prepareForWrite(c context.Context, storageID uuid.UUID) {
-	d.StorageNamespaceID = d.GetStorageNamespaceID(c)
-	d.StorageID = storageID
+func (d *BaseDoc) prepareForWrite(c context.Context, sNID, sRID uuid.UUID) {
+	d.StorageNamespaceID = sNID
+	d.StorageID = sRID
 	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	// clear read-only fields
 	d.ETag = nil
@@ -163,9 +171,24 @@ type azcosmosContainerCRUDDocService struct {
 	client *azcosmos.ContainerClient
 }
 
+func resolveStorageNamespaceID(c context.Context, doc CRUDDoc) uuid.UUID {
+	if doc, ok := doc.(CRUDDocHasCustomStorageNamespaceID); ok {
+		return doc.GetStorageNamespaceID(c)
+	}
+	return doc.getDefaultStorageNamespaceID(c)
+}
+
+func resolveStorageID(c context.Context, doc CRUDDoc) uuid.UUID {
+	if doc, ok := doc.(CRUDDocHasCustomStorageID); ok {
+		return doc.GetStorageID(c)
+	}
+	return doc.getDefaultStorageID(c)
+}
+
 func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID(c).String())
-	doc.prepareForWrite(c, doc.GetStorageID(c))
+	sNID := resolveStorageNamespaceID(c, doc)
+	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
+	doc.prepareForWrite(c, sNID, resolveStorageID(c, doc))
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -198,8 +221,9 @@ func (s *azcosmosContainerCRUDDocService) NewQueryItemsPager(query string, stora
 
 // Upsert implements CRUDDocService.
 func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID(c).String())
-	doc.prepareForWrite(c, doc.GetStorageID(c))
+	sNID := resolveStorageNamespaceID(c, doc)
+	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
+	doc.prepareForWrite(c, sNID, resolveStorageID(c, doc))
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -216,12 +240,13 @@ func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc CRUDDoc,
 // Patch implements CRUDDocService.
 // this operation does not update fields patched, fields need to be updated manually after call is done
 func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc CRUDDoc, ops azcosmos.PatchOperations, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID(c).String())
+	sNID := resolveStorageNamespaceID(c, doc)
+	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
 	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	if doc.GetUpdatedBy() != nextUpdatedBy {
 		ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
 	}
-	resp, err := s.client.PatchItem(c, partitionKey, doc.GetStorageID(c).String(), ops, o)
+	resp, err := s.client.PatchItem(c, partitionKey, resolveStorageID(c, doc).String(), ops, o)
 	if err != nil {
 		return err
 	}
@@ -248,8 +273,7 @@ func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
 	if d == nil || m == nil {
 		return
 	}
-	m.NID = d.StorageNamespaceID
-	m.RID = d.StorageID
+	m.Id = SLocator{d.StorageNamespaceID, d.StorageID}
 	m.Updated = d.Timestamp.Time
 	m.Deleted = d.Deleted
 	m.UpdatedBy = d.UpdatedBy

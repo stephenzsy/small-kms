@@ -27,7 +27,7 @@ import {
  */
 export interface CertificateRefFields {
     /**
-     * SHA-1 fingerprint of the certificate
+     * 
      * @type {string}
      * @memberof CertificateRefFields
      */

@@ -46,6 +46,12 @@ export interface KeySpec {
     kty: JsonWebKeyType;
     /**
      * 
+     * @type {string}
+     * @memberof KeySpec
+     */
+    kid?: string;
+    /**
+     * 
      * @type {JsonWebKeyCurveName}
      * @memberof KeySpec
      */
@@ -86,6 +92,7 @@ export function KeySpecFromJSONTyped(json: any, ignoreDiscriminator: boolean): K
     return {
         
         'kty': JsonWebKeyTypeFromJSON(json['kty']),
+        'kid': !exists(json, 'kid') ? undefined : json['kid'],
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
@@ -102,6 +109,7 @@ export function KeySpecToJSON(value?: KeySpec | null): any {
     return {
         
         'kty': JsonWebKeyTypeToJSON(value.kty),
+        'kid': value.kid,
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),

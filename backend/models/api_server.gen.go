@@ -64,9 +64,6 @@ type ServerInterface interface {
 	// List certificates issued by template
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates)
 	ListCertificatesByTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
-	// Create certificate
-	// (POST /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates)
-	IssueCertificateFromTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter, params IssueCertificateFromTemplateParams) error
 	// List Key Vault role assignments
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments)
 	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -541,70 +538,6 @@ func (w *ServerInterfaceWrapper) ListCertificatesByTemplate(ctx echo.Context) er
 	return err
 }
 
-// IssueCertificateFromTemplate converts echo context to params.
-func (w *ServerInterfaceWrapper) IssueCertificateFromTemplate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId CertificateTemplateIdentifierParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params IssueCertificateFromTemplateParams
-	// ------------- Optional query parameter "includeCertificate" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "includeCertificate", ctx.QueryParams(), &params.IncludeCertificate)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeCertificate: %s", err))
-	}
-
-	// ------------- Optional query parameter "force" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "force", ctx.QueryParams(), &params.Force)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter force: %s", err))
-	}
-
-	// ------------- Optional query parameter "enroll" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "enroll", ctx.QueryParams(), &params.Enroll)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter enroll: %s", err))
-	}
-
-	// ------------- Optional query parameter "tags" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "tags", ctx.QueryParams(), &params.Tags)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tags: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.IssueCertificateFromTemplate(ctx, namespaceKind, namespaceId, templateId, params)
-	return err
-}
-
 // ListKeyVaultRoleAssignments converts echo context to params.
 func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) error {
 	var err error
@@ -905,7 +838,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
-	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/certificates", wrapper.IssueCertificateFromTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.ListKeyVaultRoleAssignments)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.AddKeyVaultRoleAssignment)
 	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments/:roleAssignmentId", wrapper.RemoveKeyVaultRoleAssignment)

@@ -18,10 +18,9 @@ const (
 
 // Defines values for JsonWebKeyCurveName.
 const (
-	JsonWebKeyCurveNameP256  JsonWebKeyCurveName = "P-256"
-	JsonWebKeyCurveNameP256K JsonWebKeyCurveName = "P-256K"
-	JsonWebKeyCurveNameP384  JsonWebKeyCurveName = "P-384"
-	JsonWebKeyCurveNameP521  JsonWebKeyCurveName = "P-521"
+	JsonWebKeyCurveNameP256 JsonWebKeyCurveName = "P-256"
+	JsonWebKeyCurveNameP384 JsonWebKeyCurveName = "P-384"
+	JsonWebKeyCurveNameP521 JsonWebKeyCurveName = "P-521"
 )
 
 // Defines values for JsonWebKeyOperation.
@@ -32,6 +31,19 @@ const (
 	JsonWebKeyOperationUnwrapKey JsonWebKeyOperation = "unwrapKey"
 	JsonWebKeyOperationVerify    JsonWebKeyOperation = "verify"
 	JsonWebKeyOperationWrapKey   JsonWebKeyOperation = "wrapKey"
+)
+
+// Defines values for JsonWebKeySignatureAlgorithm.
+const (
+	JsonWebKeySignatureAlgorithmES256 JsonWebKeySignatureAlgorithm = "ES256"
+	JsonWebKeySignatureAlgorithmES384 JsonWebKeySignatureAlgorithm = "ES384"
+	JsonWebKeySignatureAlgorithmES512 JsonWebKeySignatureAlgorithm = "ES512"
+	JsonWebKeySignatureAlgorithmPS256 JsonWebKeySignatureAlgorithm = "PS256"
+	JsonWebKeySignatureAlgorithmPS384 JsonWebKeySignatureAlgorithm = "PS384"
+	JsonWebKeySignatureAlgorithmPS512 JsonWebKeySignatureAlgorithm = "PS512"
+	JsonWebKeySignatureAlgorithmRS256 JsonWebKeySignatureAlgorithm = "RS256"
+	JsonWebKeySignatureAlgorithmRS384 JsonWebKeySignatureAlgorithm = "RS384"
+	JsonWebKeySignatureAlgorithmRS512 JsonWebKeySignatureAlgorithm = "RS512"
 )
 
 // Defines values for JsonWebKeyType.
@@ -47,11 +59,31 @@ type JsonWebKeyCurveName string
 // JsonWebKeyOperation defines model for JsonWebKeyOperation.
 type JsonWebKeyOperation string
 
+// JsonWebKeySignatureAlgorithm defines model for JsonWebKeySignatureAlgorithm.
+type JsonWebKeySignatureAlgorithm string
+
 // JsonWebKeyType defines model for JsonWebKeyType.
 type JsonWebKeyType string
 
 // JsonWeyKeySize defines model for JsonWeyKeySize.
 type JsonWeyKeySize = int32
+
+// Key defines model for Key.
+type Key = keyComposed
+
+// KeyAttributes these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
+type KeyAttributes struct {
+	Exp *externalRef0.NumericDate `json:"exp,omitempty"`
+	Iat *externalRef0.NumericDate `json:"iat,omitempty"`
+	Nbf *externalRef0.NumericDate `json:"nbf,omitempty"`
+}
+
+// KeyFields defines model for KeyFields.
+type KeyFields struct {
+	// Attributes these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
+	Attributes KeyAttributes `json:"attributes"`
+	Kid        string        `json:"kid"`
+}
 
 // KeyPolicy defines model for KeyPolicy.
 type KeyPolicy = keyPolicyComposed
@@ -65,11 +97,13 @@ type KeyPolicyFields struct {
 
 // KeyPolicyParameters defines model for KeyPolicyParameters.
 type KeyPolicyParameters struct {
-	DisplayName     *string              `json:"displayName,omitempty"`
-	ExpiryTime      *externalRef0.Period `json:"expiryTime,omitempty"`
-	Exportable      *bool                `json:"exportable,omitempty"`
-	KeySpec         KeySpec              `json:"keySpec"`
-	LifetimeActions []LifetimeAction     `json:"lifetimeActions,omitempty"`
+	DisplayName *string              `json:"displayName,omitempty"`
+	ExpiryTime  *externalRef0.Period `json:"expiryTime,omitempty"`
+	Exportable  *bool                `json:"exportable,omitempty"`
+
+	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
+	KeySpec         KeySpec          `json:"keySpec"`
+	LifetimeActions []LifetimeAction `json:"lifetimeActions,omitempty"`
 }
 
 // KeyPolicyRef defines model for KeyPolicyRef.
@@ -80,11 +114,12 @@ type KeyPolicyRefFields struct {
 	DisplayName string `json:"displayName"`
 }
 
-// KeySpec defines model for KeySpec.
+// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 type KeySpec struct {
 	Crv           *JsonWebKeyCurveName  `json:"crv,omitempty"`
 	KeyOperations []JsonWebKeyOperation `json:"key_ops"`
 	KeySize       *JsonWeyKeySize       `json:"key_size,omitempty"`
+	KeyID         *string               `json:"kid,omitempty"`
 	Kty           JsonWebKeyType        `json:"kty"`
 }
 
@@ -98,6 +133,21 @@ type LifetimeTrigger struct {
 	PercentageAfterCreate *int32               `json:"percentageAfterCreate,omitempty"`
 	TimeAfterCreate       *externalRef0.Period `json:"timeAfterCreate,omitempty"`
 	TimeBeforeExpiry      *externalRef0.Period `json:"timeBeforeExpiry,omitempty"`
+}
+
+// SigningKeySpec defines model for SigningKeySpec.
+type SigningKeySpec struct {
+	Alg           *JsonWebKeySignatureAlgorithm `json:"alg,omitempty"`
+	Crv           *JsonWebKeyCurveName          `json:"crv,omitempty"`
+	KeyOperations []JsonWebKeyOperation         `json:"key_ops"`
+	KeySize       *JsonWeyKeySize               `json:"key_size,omitempty"`
+	KeyID         *string                       `json:"kid,omitempty"`
+	Kty           JsonWebKeyType                `json:"kty"`
+
+	// X5c Base64 encoded certificate chain
+	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
+	X5t              *externalRef0.Base64RawURLEncodedBytes  `json:"x5t,omitempty"`
+	X5tS256          *externalRef0.Base64RawURLEncodedBytes  `json:"x5t#S256,omitempty"`
 }
 
 // KeyPolicyResponse defines model for KeyPolicyResponse.

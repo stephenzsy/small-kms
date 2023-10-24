@@ -83,4 +83,3 @@ export * from './ServiceConfigFields';
 export * from './ServiceRuntimeInfo';
 export * from './SigningKeySpec';
 export * from './SubjectAlternativeNames';
-export * from './TemplatedCertificateTag';

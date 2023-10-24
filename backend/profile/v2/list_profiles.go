@@ -17,7 +17,7 @@ func listProfiles(c context.Context, namespaceIdentifier base.Identifier, resour
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ProfileDoc) *ProfileRef {
 		r := &ProfileRef{}
 		d.PopulateModelRef(r)
-		r.NID = storageNsID
+		r.Id.NID = storageNsID
 		r.NamespaceKind = base.NamespaceKindProfile
 		r.NamespaceIdentifier = namespaceIdentifier
 		r.ResourceKind = resourceKind

@@ -34,10 +34,11 @@ type CertPolicyFields struct {
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags"`
 	KeyExportable           bool                         `json:"keyExportable"`
-	KeySpec                 externalRef1.KeySpec         `json:"keySpec"`
+	KeySpec                 externalRef1.SigningKeySpec  `json:"keySpec"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
 	Subject                 CertificateSubject           `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+	Version                 HexDigest                    `json:"version"`
 }
 
 // CertPolicyParameters defines model for CertPolicyParameters.
@@ -45,8 +46,9 @@ type CertPolicyParameters struct {
 	DisplayName             *string                      `json:"displayName,omitempty"`
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags,omitempty"`
+	IssuerTemplateId        *externalRef0.SLocator       `json:"issuerTemplateId,omitempty"`
 	KeyExportable           *bool                        `json:"keyExportable,omitempty"`
-	KeySpec                 *externalRef1.KeySpec        `json:"keySpec,omitempty"`
+	KeySpec                 *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
 	Subject                 CertificateSubject           `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
@@ -60,8 +62,38 @@ type CertPolicyRefFields struct {
 	DisplayName string `json:"displayName"`
 }
 
+// Certificate defines model for Certificate.
+type Certificate = certificateComposed
+
+// CertificateAttributes defines model for CertificateAttributes.
+type CertificateAttributes struct {
+	Exp    *externalRef0.NumericDate `json:"exp,omitempty"`
+	Iat    *externalRef0.NumericDate `json:"iat,omitempty"`
+	Issuer *externalRef0.SLocator    `json:"issuer,omitempty"`
+	Nbf    *externalRef0.NumericDate `json:"nbf,omitempty"`
+}
+
+// CertificateFields defines model for CertificateFields.
+type CertificateFields struct {
+	Alg externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
+
+	// X5c Base64 encoded certificate chain
+	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
+	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256"`
+	X5u              *string                                 `json:"x5u,omitempty"`
+}
+
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
+
+// CertificateRef defines model for CertificateRef.
+type CertificateRef = certificateRefComposed
+
+// CertificateRefFields defines model for CertificateRefFields.
+type CertificateRefFields struct {
+	Attributes CertificateAttributes                 `json:"attributes"`
+	X5t        externalRef0.Base64RawURLEncodedBytes `json:"x5t"`
+}
 
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
@@ -78,6 +110,9 @@ type SubjectAlternativeNames struct {
 // CertPolicyResponse defines model for CertPolicyResponse.
 type CertPolicyResponse = CertPolicy
 
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = Certificate
+
 // PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
 type PutCertPolicyJSONRequestBody = CertPolicyParameters
 
@@ -92,6 +127,9 @@ type ServerInterface interface {
 	// Put cert policy
 	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier})
 	PutCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// Create certificate
+	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert)
+	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -193,6 +231,40 @@ func (w *ServerInterfaceWrapper) PutCertPolicy(ctx echo.Context) error {
 	return err
 }
 
+// CreateCertificate converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateCertificate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -224,5 +296,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.GetCertPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
 
 }

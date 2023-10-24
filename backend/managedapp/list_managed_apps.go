@@ -18,7 +18,7 @@ func listManagedApps(c context.Context) ([]*ManagedAppRef, error) {
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ManagedAppDoc) *ManagedAppRef {
 		r := &ManagedAppRef{}
 		d.PopulateModelRef(r)
-		r.NID = storageNsID
+		r.Id.NID = storageNsID
 		r.NamespaceKind = base.NamespaceKindProfile
 		r.NamespaceIdentifier = namespaceIdentifierManagedApp
 		r.ResourceKind = base.ProfileResourceKindManagedApp

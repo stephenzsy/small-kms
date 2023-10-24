@@ -19,7 +19,7 @@ func listCertPolicies(c context.Context, nsKind base.NamespaceKind, namespaceIde
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertPolicyDoc) *CertPolicyRef {
 		r := &CertPolicyRef{}
 		d.PopulateModelRef(r)
-		r.NID = storageNsID
+		r.Id.NID = storageNsID
 		r.NamespaceKind = base.NamespaceKindProfile
 		r.NamespaceIdentifier = namespaceIdentifier
 		r.ResourceKind = base.ResourceKindCertPolicy

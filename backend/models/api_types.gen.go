@@ -254,14 +254,6 @@ type GetAgentConfigurationParams struct {
 	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
 }
 
-// IssueCertificateFromTemplateParams defines parameters for IssueCertificateFromTemplate.
-type IssueCertificateFromTemplateParams struct {
-	IncludeCertificate *IncludeCertificateParameter            `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	Force              *bool                                   `form:"force,omitempty" json:"force,omitempty"`
-	Enroll             *bool                                   `form:"enroll,omitempty" json:"enroll,omitempty"`
-	Tags               *[]externalRef0.TemplatedCertificateTag `form:"tags,omitempty" json:"tags,omitempty"`
-}
-
 // AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
 type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`

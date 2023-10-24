@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for NamespaceKind.
@@ -22,9 +21,13 @@ const (
 	ProfileResourceKindIntermediateCA ResourceKind = "int-ca"
 	ProfileResourceKindManagedApp     ResourceKind = "managed-app"
 	ProfileResourceKindRootCA         ResourceKind = "root-ca"
+	ResourceKindCert                  ResourceKind = "cert"
 	ResourceKindCertPolicy            ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy             ResourceKind = "key-policy"
 )
+
+// Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.
+type Base64RawURLEncodedBytes = base64RawURLEncodedBytesImpl
 
 // Identifier defines model for Identifier.
 type Identifier = identifierImpl
@@ -41,18 +44,28 @@ type Period = periodImpl
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
+// ResourceLocator defines model for ResourceLocator.
+type ResourceLocator struct {
+	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
+	NamespaceKind       NamespaceKind `json:"namespaceKind"`
+	ResourceIdentifier  Identifier    `json:"resourceIdentifier"`
+	ResourceKind        ResourceKind  `json:"resourceKind"`
+}
+
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
-	NID                 openapi_types.UUID `json:"_nid"`
-	RID                 openapi_types.UUID `json:"_rid"`
-	Deleted             *time.Time         `json:"deleted,omitempty"`
-	NamespaceIdentifier Identifier         `json:"namespaceIdentifier"`
-	NamespaceKind       NamespaceKind      `json:"namespaceKind"`
-	ResourceIdentifier  Identifier         `json:"resourceIdentifier"`
-	ResourceKind        ResourceKind       `json:"resourceKind"`
-	Updated             time.Time          `json:"updated"`
-	UpdatedBy           string             `json:"updatedBy"`
+	Id                  SLocator      `json:"_id"`
+	Deleted             *time.Time    `json:"deleted,omitempty"`
+	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
+	NamespaceKind       NamespaceKind `json:"namespaceKind"`
+	ResourceIdentifier  Identifier    `json:"resourceIdentifier"`
+	ResourceKind        ResourceKind  `json:"resourceKind"`
+	Updated             time.Time     `json:"updated"`
+	UpdatedBy           string        `json:"updatedBy"`
 }
+
+// SLocator defines model for SLocator.
+type SLocator = storageLocator
 
 // NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.
 type NamespaceIdentifierParameter = Identifier

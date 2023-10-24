@@ -93,7 +93,7 @@ export interface Certificate {
      */
     updatedBy: string;
     /**
-     * SHA-1 fingerprint of the certificate
+     * 
      * @type {string}
      * @memberof Certificate
      */
@@ -115,19 +115,7 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
-    cid?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Certificate
-     */
-    kid?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Certificate
-     */
-    sid?: string;
+    x5u?: string;
     /**
      * Base64 encoded certificate chain
      * @type {Array<string>}
@@ -135,7 +123,7 @@ export interface Certificate {
      */
     x5c?: Array<string>;
     /**
-     * SHA-256 fingerprint of the certificate
+     * 
      * @type {string}
      * @memberof Certificate
      */
@@ -183,9 +171,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'x5t': json['x5t'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
         'alg': JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
-        'cid': !exists(json, 'cid') ? undefined : json['cid'],
-        'kid': !exists(json, 'kid') ? undefined : json['kid'],
-        'sid': !exists(json, 'sid') ? undefined : json['sid'],
+        'x5u': !exists(json, 'x5u') ? undefined : json['x5u'],
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
         'x5tS256': json['x5t#S256'],
     };
@@ -211,9 +197,7 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'x5t': value.x5t,
         'attributes': CertificateAttributesToJSON(value.attributes),
         'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
-        'cid': value.cid,
-        'kid': value.kid,
-        'sid': value.sid,
+        'x5u': value.x5u,
         'x5c': value.x5c,
         'x5t#S256': value.x5tS256,
     };

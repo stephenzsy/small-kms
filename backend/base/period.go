@@ -119,3 +119,12 @@ func AddPeriod(t time.Time, p Period) time.Time {
 			time.Duration(p.Minute)*time.Minute +
 			time.Duration(p.Second)*time.Second)
 }
+
+func (p *Period) Bytes() []byte {
+	b, _ := p.MarshalText()
+	return b
+}
+
+func (p *Period) String() string {
+	return string(p.Bytes())
+}

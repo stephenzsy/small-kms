@@ -87,7 +87,7 @@ export interface CertificateRef {
      */
     updatedBy: string;
     /**
-     * SHA-1 fingerprint of the certificate
+     * 
      * @type {string}
      * @memberof CertificateRef
      */

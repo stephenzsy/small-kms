@@ -85,6 +85,5 @@ models/ServiceConfigFields.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts
-models/TemplatedCertificateTag.ts
 models/index.ts
 runtime.ts

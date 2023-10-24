@@ -4,12 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
+	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 )
 
 type APIServer interface {
@@ -21,7 +24,19 @@ type apiServer struct {
 	siteURL              string
 	docService           base.AzCosmosCRUDDocService
 	serviceMsGraphClient *msgraphsdkgo.GraphServiceClient
+	azCertificatesClient *azcertificates.Client
+	azKeysClient         *azkeys.Client
 	legacyClientProvider common.AdminServerClientProvider
+}
+
+// AzCertificatesClient implements kv.AzKeyVaultService.
+func (s *apiServer) AzCertificatesClient() *azcertificates.Client {
+	return s.azCertificatesClient
+}
+
+// AzKeysClient implements kv.AzKeyVaultService.
+func (s *apiServer) AzKeysClient() *azkeys.Client {
+	return s.azKeysClient
 }
 
 // respondRequireAdmin implements APIServer.
@@ -51,6 +66,8 @@ func (s *apiServer) Value(key any) any {
 		return s.siteURL
 	case base.AzCosmosCRUDDocServiceContextKey:
 		return s.docService
+	case kv.AzKeyVaultServiceContextKey:
+		return s
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
 	case common.AdminServerClientProviderContextKey:
@@ -68,6 +85,8 @@ func NewApiServer(c context.Context, serverOld *server) *apiServer {
 		siteURL:              common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
 		docService:           base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
 		serviceMsGraphClient: serverOld.clients.msGraphClient,
+		azCertificatesClient: serverOld.clients.azCertificatesClient,
+		azKeysClient:         serverOld.clients.azKeysClient,
 		legacyClientProvider: &serverOld.clients,
 	}
 }
@@ -81,4 +100,5 @@ func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {
 	}
 }
 
+var _ kv.AzKeyVaultService = (*apiServer)(nil)
 var _ APIServer = (*apiServer)(nil)
