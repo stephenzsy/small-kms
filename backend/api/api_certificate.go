@@ -1,8 +1,6 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
@@ -35,32 +33,6 @@ func (s *server) GetCertificate(ec echo.Context,
 	}
 
 	return wrapEchoResponse(c, cert.ApiGetCertificate(c, certificateId, params))
-}
-
-// IssueCertificateFromTemplate implements models.ServerInterface.
-func (s *server) IssueCertificateFromTemplate(ctx echo.Context,
-	profileType shared.NamespaceKind,
-	profileId shared.Identifier,
-	templateID shared.Identifier,
-	params models.IssueCertificateFromTemplateParams) error {
-	bad := func(e error) error {
-		return wrapResponse[*shared.CertificateInfo](ctx, http.StatusOK, nil, e)
-	}
-	c := ctx.(RequestContext)
-
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	c, err := ns.WithNamespaceContext(c, profileType, profileId)
-	if err != nil {
-		return bad(err)
-	}
-	c, err = ct.WithCertificateTemplateContext(c, templateID)
-	if err != nil {
-		return bad(err)
-	}
-	resp, err := cert.IssueCertificateFromTemplate(c, params)
-	return wrapResponse(c, http.StatusOK, resp, err)
 }
 
 // ListCertificatesByTemplate implements models.ServerInterface.

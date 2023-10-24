@@ -16,6 +16,8 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
+type RequestContext = ctx.RequestContext
+
 func deleteCertificate(c RequestContext, certDoc *CertDoc) error {
 	if certDoc.Status != CertStatusIssued {
 		return kmsdoc.Delete(c, certDoc)
