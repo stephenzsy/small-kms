@@ -13,6 +13,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateAttributes } from './CertificateAttributes';
+import {
+    CertificateAttributesFromJSON,
+    CertificateAttributesFromJSONTyped,
+    CertificateAttributesToJSON,
+} from './CertificateAttributes';
+import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
+import {
+    JsonWebKeySignatureAlgorithmFromJSON,
+    JsonWebKeySignatureAlgorithmFromJSONTyped,
+    JsonWebKeySignatureAlgorithmToJSON,
+} from './JsonWebKeySignatureAlgorithm';
 import type { NamespaceKind } from './NamespaceKind';
 import {
     NamespaceKindFromJSON,
@@ -29,69 +41,111 @@ import {
 /**
  * 
  * @export
- * @interface ProfileRef
+ * @interface Certificate
  */
-export interface ProfileRef {
+export interface Certificate {
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     id: string;
     /**
      * 
      * @type {NamespaceKind}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     namespaceKind: NamespaceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     resourceIdentifier: string;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     updated: Date;
     /**
      * 
      * @type {Date}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     deleted?: Date;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
     updatedBy: string;
     /**
+     * SHA-1 fingerprint of the certificate
+     * @type {string}
+     * @memberof Certificate
+     */
+    x5t: string;
+    /**
+     * 
+     * @type {CertificateAttributes}
+     * @memberof Certificate
+     */
+    attributes: CertificateAttributes;
+    /**
+     * 
+     * @type {JsonWebKeySignatureAlgorithm}
+     * @memberof Certificate
+     */
+    alg: JsonWebKeySignatureAlgorithm;
+    /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof Certificate
      */
-    displayName: string;
+    cid?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Certificate
+     */
+    kid?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Certificate
+     */
+    sid?: string;
+    /**
+     * Base64 encoded certificate chain
+     * @type {Array<string>}
+     * @memberof Certificate
+     */
+    x5c?: Array<string>;
+    /**
+     * SHA-256 fingerprint of the certificate
+     * @type {string}
+     * @memberof Certificate
+     */
+    x5tS256: string;
 }
 
 /**
- * Check if a given object implements the ProfileRef interface.
+ * Check if a given object implements the Certificate interface.
  */
-export function instanceOfProfileRef(value: object): boolean {
+export function instanceOfCertificate(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "namespaceKind" in value;
@@ -100,16 +154,19 @@ export function instanceOfProfileRef(value: object): boolean {
     isInstance = isInstance && "resourceIdentifier" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "attributes" in value;
+    isInstance = isInstance && "alg" in value;
+    isInstance = isInstance && "x5tS256" in value;
 
     return isInstance;
 }
 
-export function ProfileRefFromJSON(json: any): ProfileRef {
-    return ProfileRefFromJSONTyped(json, false);
+export function CertificateFromJSON(json: any): Certificate {
+    return CertificateFromJSONTyped(json, false);
 }
 
-export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef {
+export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean): Certificate {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -123,11 +180,18 @@ export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
-        'displayName': json['displayName'],
+        'x5t': json['x5t'],
+        'attributes': CertificateAttributesFromJSON(json['attributes']),
+        'alg': JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
+        'cid': !exists(json, 'cid') ? undefined : json['cid'],
+        'kid': !exists(json, 'kid') ? undefined : json['kid'],
+        'sid': !exists(json, 'sid') ? undefined : json['sid'],
+        'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
+        'x5tS256': json['x5t#S256'],
     };
 }
 
-export function ProfileRefToJSON(value?: ProfileRef | null): any {
+export function CertificateToJSON(value?: Certificate | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -144,7 +208,14 @@ export function ProfileRefToJSON(value?: ProfileRef | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'displayName': value.displayName,
+        'x5t': value.x5t,
+        'attributes': CertificateAttributesToJSON(value.attributes),
+        'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
+        'cid': value.cid,
+        'kid': value.kid,
+        'sid': value.sid,
+        'x5c': value.x5c,
+        'x5t#S256': value.x5tS256,
     };
 }
 

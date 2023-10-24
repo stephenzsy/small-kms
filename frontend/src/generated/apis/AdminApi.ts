@@ -26,7 +26,7 @@ import type {
   CertPolicyParameters,
   CertPolicyRef,
   CertificateInfo,
-  CertificateRef,
+  CertificateRef1,
   CertificateTemplate,
   CertificateTemplateParameters,
   CertificateTemplateRef,
@@ -64,8 +64,8 @@ import {
     CertPolicyRefToJSON,
     CertificateInfoFromJSON,
     CertificateInfoToJSON,
-    CertificateRefFromJSON,
-    CertificateRefToJSON,
+    CertificateRef1FromJSON,
+    CertificateRef1ToJSON,
     CertificateTemplateFromJSON,
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
@@ -106,6 +106,12 @@ export interface AgentCallbackRequest {
     namespaceId: string;
     configName: AgentConfigName;
     agentConfiguration: AgentConfiguration;
+}
+
+export interface CreateCertificateRequest {
+    namespaceKind: NamespaceKind1;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
 }
 
 export interface CreateLinkedCertificateTemplateRequest {
@@ -370,6 +376,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentCallback(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.agentCallbackRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Create certificate
+     */
+    async createCertificateRaw(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createCertificate.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling createCertificate.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling createCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Create certificate
+     */
+    async createCertificate(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
+        const response = await this.createCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**
@@ -1129,7 +1181,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * List certificates issued by template
      */
-    async listCertificatesByTemplateRaw(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
+    async listCertificatesByTemplateRaw(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef1>>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificatesByTemplate.');
         }
@@ -1161,13 +1213,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRefFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRef1FromJSON));
     }
 
     /**
      * List certificates issued by template
      */
-    async listCertificatesByTemplate(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
+    async listCertificatesByTemplate(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef1>> {
         const response = await this.listCertificatesByTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }

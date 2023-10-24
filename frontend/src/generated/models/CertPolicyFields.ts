@@ -25,18 +25,18 @@ import {
     CertificateSubjectFromJSONTyped,
     CertificateSubjectToJSON,
 } from './CertificateSubject';
-import type { KeySpec } from './KeySpec';
-import {
-    KeySpecFromJSON,
-    KeySpecFromJSONTyped,
-    KeySpecToJSON,
-} from './KeySpec';
 import type { LifetimeAction } from './LifetimeAction';
 import {
     LifetimeActionFromJSON,
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
+import type { SigningKeySpec } from './SigningKeySpec';
+import {
+    SigningKeySpecFromJSON,
+    SigningKeySpecFromJSONTyped,
+    SigningKeySpecToJSON,
+} from './SigningKeySpec';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -52,10 +52,10 @@ import {
 export interface CertPolicyFields {
     /**
      * 
-     * @type {KeySpec}
+     * @type {SigningKeySpec}
      * @memberof CertPolicyFields
      */
-    keySpec: KeySpec;
+    keySpec: SigningKeySpec;
     /**
      * 
      * @type {boolean}
@@ -92,6 +92,12 @@ export interface CertPolicyFields {
      * @memberof CertPolicyFields
      */
     flags: Array<CertificateFlag>;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicyFields
+     */
+    version: string;
 }
 
 /**
@@ -104,6 +110,7 @@ export function instanceOfCertPolicyFields(value: object): boolean {
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "flags" in value;
+    isInstance = isInstance && "version" in value;
 
     return isInstance;
 }
@@ -118,13 +125,14 @@ export function CertPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'keySpec': KeySpecFromJSON(json['keySpec']),
+        'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
         'lifetimeAction': !exists(json, 'lifetimeAction') ? undefined : LifetimeActionFromJSON(json['lifetimeAction']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
+        'version': json['version'],
     };
 }
 
@@ -137,13 +145,14 @@ export function CertPolicyFieldsToJSON(value?: CertPolicyFields | null): any {
     }
     return {
         
-        'keySpec': KeySpecToJSON(value.keySpec),
+        'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
         'lifetimeAction': LifetimeActionToJSON(value.lifetimeAction),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': ((value.flags as Array<any>).map(CertificateFlagToJSON)),
+        'version': value.version,
     };
 }
 

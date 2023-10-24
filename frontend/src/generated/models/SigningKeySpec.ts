@@ -25,6 +25,12 @@ import {
     JsonWebKeyOperationFromJSONTyped,
     JsonWebKeyOperationToJSON,
 } from './JsonWebKeyOperation';
+import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
+import {
+    JsonWebKeySignatureAlgorithmFromJSON,
+    JsonWebKeySignatureAlgorithmFromJSONTyped,
+    JsonWebKeySignatureAlgorithmToJSON,
+} from './JsonWebKeySignatureAlgorithm';
 import type { JsonWebKeyType } from './JsonWebKeyType';
 import {
     JsonWebKeyTypeFromJSON,
@@ -33,41 +39,47 @@ import {
 } from './JsonWebKeyType';
 
 /**
- * these attributes should mostly confirm to JWK (RFC7517)
+ * 
  * @export
- * @interface KeySpec
+ * @interface SigningKeySpec
  */
-export interface KeySpec {
+export interface SigningKeySpec {
     /**
      * 
      * @type {JsonWebKeyType}
-     * @memberof KeySpec
+     * @memberof SigningKeySpec
      */
     kty: JsonWebKeyType;
     /**
      * 
      * @type {JsonWebKeyCurveName}
-     * @memberof KeySpec
+     * @memberof SigningKeySpec
      */
     crv?: JsonWebKeyCurveName;
     /**
      * 
      * @type {number}
-     * @memberof KeySpec
+     * @memberof SigningKeySpec
      */
     keySize?: number;
     /**
      * 
      * @type {Array<JsonWebKeyOperation>}
-     * @memberof KeySpec
+     * @memberof SigningKeySpec
      */
     keyOps: Array<JsonWebKeyOperation>;
+    /**
+     * 
+     * @type {JsonWebKeySignatureAlgorithm}
+     * @memberof SigningKeySpec
+     */
+    alg?: JsonWebKeySignatureAlgorithm;
 }
 
 /**
- * Check if a given object implements the KeySpec interface.
+ * Check if a given object implements the SigningKeySpec interface.
  */
-export function instanceOfKeySpec(value: object): boolean {
+export function instanceOfSigningKeySpec(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "kty" in value;
     isInstance = isInstance && "keyOps" in value;
@@ -75,11 +87,11 @@ export function instanceOfKeySpec(value: object): boolean {
     return isInstance;
 }
 
-export function KeySpecFromJSON(json: any): KeySpec {
-    return KeySpecFromJSONTyped(json, false);
+export function SigningKeySpecFromJSON(json: any): SigningKeySpec {
+    return SigningKeySpecFromJSONTyped(json, false);
 }
 
-export function KeySpecFromJSONTyped(json: any, ignoreDiscriminator: boolean): KeySpec {
+export function SigningKeySpecFromJSONTyped(json: any, ignoreDiscriminator: boolean): SigningKeySpec {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -89,10 +101,11 @@ export function KeySpecFromJSONTyped(json: any, ignoreDiscriminator: boolean): K
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
+        'alg': !exists(json, 'alg') ? undefined : JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
     };
 }
 
-export function KeySpecToJSON(value?: KeySpec | null): any {
+export function SigningKeySpecToJSON(value?: SigningKeySpec | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -105,6 +118,7 @@ export function KeySpecToJSON(value?: KeySpec | null): any {
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
+        'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
     };
 }
 

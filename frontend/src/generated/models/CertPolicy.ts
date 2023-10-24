@@ -25,12 +25,6 @@ import {
     CertificateSubjectFromJSONTyped,
     CertificateSubjectToJSON,
 } from './CertificateSubject';
-import type { KeySpec } from './KeySpec';
-import {
-    KeySpecFromJSON,
-    KeySpecFromJSONTyped,
-    KeySpecToJSON,
-} from './KeySpec';
 import type { LifetimeAction } from './LifetimeAction';
 import {
     LifetimeActionFromJSON,
@@ -49,6 +43,12 @@ import {
     ResourceKindFromJSONTyped,
     ResourceKindToJSON,
 } from './ResourceKind';
+import type { SigningKeySpec } from './SigningKeySpec';
+import {
+    SigningKeySpecFromJSON,
+    SigningKeySpecFromJSONTyped,
+    SigningKeySpecToJSON,
+} from './SigningKeySpec';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -67,13 +67,7 @@ export interface CertPolicy {
      * @type {string}
      * @memberof CertPolicy
      */
-    nid: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertPolicy
-     */
-    rid: string;
+    id: string;
     /**
      * 
      * @type {NamespaceKind}
@@ -124,10 +118,10 @@ export interface CertPolicy {
     displayName: string;
     /**
      * 
-     * @type {KeySpec}
+     * @type {SigningKeySpec}
      * @memberof CertPolicy
      */
-    keySpec: KeySpec;
+    keySpec: SigningKeySpec;
     /**
      * 
      * @type {boolean}
@@ -164,6 +158,12 @@ export interface CertPolicy {
      * @memberof CertPolicy
      */
     flags: Array<CertificateFlag>;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicy
+     */
+    version: string;
 }
 
 /**
@@ -171,8 +171,7 @@ export interface CertPolicy {
  */
 export function instanceOfCertPolicy(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "nid" in value;
-    isInstance = isInstance && "rid" in value;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
@@ -185,6 +184,7 @@ export function instanceOfCertPolicy(value: object): boolean {
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "flags" in value;
+    isInstance = isInstance && "version" in value;
 
     return isInstance;
 }
@@ -199,8 +199,7 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'nid': json['_nid'],
-        'rid': json['_rid'],
+        'id': json['_id'],
         'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
@@ -209,13 +208,14 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'keySpec': KeySpecFromJSON(json['keySpec']),
+        'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
         'lifetimeAction': !exists(json, 'lifetimeAction') ? undefined : LifetimeActionFromJSON(json['lifetimeAction']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
+        'version': json['version'],
     };
 }
 
@@ -228,8 +228,7 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
     }
     return {
         
-        '_nid': value.nid,
-        '_rid': value.rid,
+        '_id': value.id,
         'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),
@@ -238,13 +237,14 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
-        'keySpec': KeySpecToJSON(value.keySpec),
+        'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
         'lifetimeAction': LifetimeActionToJSON(value.lifetimeAction),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': ((value.flags as Array<any>).map(CertificateFlagToJSON)),
+        'version': value.version,
     };
 }
 

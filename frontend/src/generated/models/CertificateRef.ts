@@ -13,6 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateAttributes } from './CertificateAttributes';
+import {
+    CertificateAttributesFromJSON,
+    CertificateAttributesFromJSONTyped,
+    CertificateAttributesToJSON,
+} from './CertificateAttributes';
+import type { NamespaceKind } from './NamespaceKind';
+import {
+    NamespaceKindFromJSON,
+    NamespaceKindFromJSONTyped,
+    NamespaceKindToJSON,
+} from './NamespaceKind';
+import type { ResourceKind } from './ResourceKind';
+import {
+    ResourceKindFromJSON,
+    ResourceKindFromJSONTyped,
+    ResourceKindToJSON,
+} from './ResourceKind';
+
 /**
  * 
  * @export
@@ -27,64 +46,58 @@ export interface CertificateRef {
     id: string;
     /**
      * 
-     * @type {string}
+     * @type {NamespaceKind}
      * @memberof CertificateRef
      */
-    locator: string;
-    /**
-     * Time when the resoruce was last updated
-     * @type {Date}
-     * @memberof CertificateRef
-     */
-    updated?: Date;
+    namespaceKind: NamespaceKind;
     /**
      * 
      * @type {string}
      * @memberof CertificateRef
      */
-    updatedBy?: string;
+    namespaceIdentifier: string;
     /**
-     * Time when the deleted was deleted
+     * 
+     * @type {ResourceKind}
+     * @memberof CertificateRef
+     */
+    resourceKind: ResourceKind;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    resourceIdentifier: string;
+    /**
+     * 
+     * @type {Date}
+     * @memberof CertificateRef
+     */
+    updated: Date;
+    /**
+     * 
      * @type {Date}
      * @memberof CertificateRef
      */
     deleted?: Date;
     /**
      * 
-     * @type {{ [key: string]: any; }}
+     * @type {string}
      * @memberof CertificateRef
      */
-    metadata?: { [key: string]: any; };
+    updatedBy: string;
+    /**
+     * SHA-1 fingerprint of the certificate
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    x5t: string;
     /**
      * 
-     * @type {string}
+     * @type {CertificateAttributes}
      * @memberof CertificateRef
      */
-    thumbprint: string;
-    /**
-     * Common name
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    subjectCommonName: string;
-    /**
-     * Expiration date of the certificate
-     * @type {Date}
-     * @memberof CertificateRef
-     */
-    notAfter: Date;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    template: string;
-    /**
-     * Whether the certificate has been issued
-     * @type {boolean}
-     * @memberof CertificateRef
-     */
-    isIssued: boolean;
+    attributes: CertificateAttributes;
 }
 
 /**
@@ -93,12 +106,14 @@ export interface CertificateRef {
 export function instanceOfCertificateRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "locator" in value;
-    isInstance = isInstance && "thumbprint" in value;
-    isInstance = isInstance && "subjectCommonName" in value;
-    isInstance = isInstance && "notAfter" in value;
-    isInstance = isInstance && "template" in value;
-    isInstance = isInstance && "isIssued" in value;
+    isInstance = isInstance && "namespaceKind" in value;
+    isInstance = isInstance && "namespaceIdentifier" in value;
+    isInstance = isInstance && "resourceKind" in value;
+    isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "updated" in value;
+    isInstance = isInstance && "updatedBy" in value;
+    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "attributes" in value;
 
     return isInstance;
 }
@@ -113,17 +128,16 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
-        'id': json['id'],
-        'locator': json['locator'],
-        'updated': !exists(json, 'updated') ? undefined : (new Date(json['updated'])),
-        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
+        'id': json['_id'],
+        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
+        'namespaceIdentifier': json['namespaceIdentifier'],
+        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
+        'resourceIdentifier': json['resourceIdentifier'],
+        'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
-        'thumbprint': json['thumbprint'],
-        'subjectCommonName': json['subjectCommonName'],
-        'notAfter': (new Date(json['notAfter'])),
-        'template': json['template'],
-        'isIssued': json['isIssued'],
+        'updatedBy': json['updatedBy'],
+        'x5t': json['x5t'],
+        'attributes': CertificateAttributesFromJSON(json['attributes']),
     };
 }
 
@@ -136,17 +150,16 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
     }
     return {
         
-        'id': value.id,
-        'locator': value.locator,
-        'updated': value.updated === undefined ? undefined : (value.updated.toISOString()),
-        'updatedBy': value.updatedBy,
+        '_id': value.id,
+        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
+        'namespaceIdentifier': value.namespaceIdentifier,
+        'resourceKind': ResourceKindToJSON(value.resourceKind),
+        'resourceIdentifier': value.resourceIdentifier,
+        'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
-        'metadata': value.metadata,
-        'thumbprint': value.thumbprint,
-        'subjectCommonName': value.subjectCommonName,
-        'notAfter': (value.notAfter.toISOString()),
-        'template': value.template,
-        'isIssued': value.isIssued,
+        'updatedBy': value.updatedBy,
+        'x5t': value.x5t,
+        'attributes': CertificateAttributesToJSON(value.attributes),
     };
 }
 

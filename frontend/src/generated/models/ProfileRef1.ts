@@ -37,13 +37,7 @@ export interface ProfileRef1 {
      * @type {string}
      * @memberof ProfileRef1
      */
-    nid: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProfileRef1
-     */
-    rid: string;
+    id: string;
     /**
      * 
      * @type {NamespaceKind}
@@ -99,8 +93,7 @@ export interface ProfileRef1 {
  */
 export function instanceOfProfileRef1(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "nid" in value;
-    isInstance = isInstance && "rid" in value;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
@@ -122,8 +115,7 @@ export function ProfileRef1FromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
-        'nid': json['_nid'],
-        'rid': json['_rid'],
+        'id': json['_id'],
         'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
@@ -144,8 +136,7 @@ export function ProfileRef1ToJSON(value?: ProfileRef1 | null): any {
     }
     return {
         
-        '_nid': value.nid,
-        '_rid': value.rid,
+        '_id': value.id,
         'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),

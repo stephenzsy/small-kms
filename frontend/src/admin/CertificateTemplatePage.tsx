@@ -14,7 +14,7 @@ import { Link } from "../components/Link";
 import { WellknownId } from "../constants";
 import {
   AdminApi,
-  CertificateRef,
+  CertificateRef1 as CertificateRef,
   CertificateTemplate,
   CertificateUsage,
   NamespaceKind1 as NamespaceKind,

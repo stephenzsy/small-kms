@@ -29,105 +29,66 @@ import {
 /**
  * 
  * @export
- * @interface ProfileRef
+ * @interface ResourceLocator2
  */
-export interface ProfileRef {
-    /**
-     * 
-     * @type {string}
-     * @memberof ProfileRef
-     */
-    id: string;
+export interface ResourceLocator2 {
     /**
      * 
      * @type {NamespaceKind}
-     * @memberof ProfileRef
+     * @memberof ResourceLocator2
      */
     namespaceKind: NamespaceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceLocator2
      */
     namespaceIdentifier: string;
     /**
      * 
      * @type {ResourceKind}
-     * @memberof ProfileRef
+     * @memberof ResourceLocator2
      */
     resourceKind: ResourceKind;
     /**
      * 
      * @type {string}
-     * @memberof ProfileRef
+     * @memberof ResourceLocator2
      */
     resourceIdentifier: string;
-    /**
-     * 
-     * @type {Date}
-     * @memberof ProfileRef
-     */
-    updated: Date;
-    /**
-     * 
-     * @type {Date}
-     * @memberof ProfileRef
-     */
-    deleted?: Date;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProfileRef
-     */
-    updatedBy: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProfileRef
-     */
-    displayName: string;
 }
 
 /**
- * Check if a given object implements the ProfileRef interface.
+ * Check if a given object implements the ResourceLocator2 interface.
  */
-export function instanceOfProfileRef(value: object): boolean {
+export function instanceOfResourceLocator2(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
     isInstance = isInstance && "resourceIdentifier" in value;
-    isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "displayName" in value;
 
     return isInstance;
 }
 
-export function ProfileRefFromJSON(json: any): ProfileRef {
-    return ProfileRefFromJSONTyped(json, false);
+export function ResourceLocator2FromJSON(json: any): ResourceLocator2 {
+    return ResourceLocator2FromJSONTyped(json, false);
 }
 
-export function ProfileRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProfileRef {
+export function ResourceLocator2FromJSONTyped(json: any, ignoreDiscriminator: boolean): ResourceLocator2 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'id': json['_id'],
         'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
         'resourceIdentifier': json['resourceIdentifier'],
-        'updated': (new Date(json['updated'])),
-        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
-        'displayName': json['displayName'],
     };
 }
 
-export function ProfileRefToJSON(value?: ProfileRef | null): any {
+export function ResourceLocator2ToJSON(value?: ResourceLocator2 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -136,15 +97,10 @@ export function ProfileRefToJSON(value?: ProfileRef | null): any {
     }
     return {
         
-        '_id': value.id,
         'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),
         'resourceIdentifier': value.resourceIdentifier,
-        'updated': (value.updated.toISOString()),
-        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
-        'updatedBy': value.updatedBy,
-        'displayName': value.displayName,
     };
 }
 

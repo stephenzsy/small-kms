@@ -37,13 +37,7 @@ export interface ManagedAppRef {
      * @type {string}
      * @memberof ManagedAppRef
      */
-    nid: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ManagedAppRef
-     */
-    rid: string;
+    id: string;
     /**
      * 
      * @type {NamespaceKind}
@@ -117,8 +111,7 @@ export interface ManagedAppRef {
  */
 export function instanceOfManagedAppRef(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "nid" in value;
-    isInstance = isInstance && "rid" in value;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
@@ -143,8 +136,7 @@ export function ManagedAppRefFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
-        'nid': json['_nid'],
-        'rid': json['_rid'],
+        'id': json['_id'],
         'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
@@ -168,8 +160,7 @@ export function ManagedAppRefToJSON(value?: ManagedAppRef | null): any {
     }
     return {
         
-        '_nid': value.nid,
-        '_rid': value.rid,
+        '_id': value.id,
         'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),

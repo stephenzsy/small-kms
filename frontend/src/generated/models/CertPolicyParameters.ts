@@ -25,18 +25,18 @@ import {
     CertificateSubjectFromJSONTyped,
     CertificateSubjectToJSON,
 } from './CertificateSubject';
-import type { KeySpec } from './KeySpec';
-import {
-    KeySpecFromJSON,
-    KeySpecFromJSONTyped,
-    KeySpecToJSON,
-} from './KeySpec';
 import type { LifetimeAction } from './LifetimeAction';
 import {
     LifetimeActionFromJSON,
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
+import type { SigningKeySpec } from './SigningKeySpec';
+import {
+    SigningKeySpecFromJSON,
+    SigningKeySpecFromJSONTyped,
+    SigningKeySpecToJSON,
+} from './SigningKeySpec';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -58,10 +58,10 @@ export interface CertPolicyParameters {
     displayName?: string;
     /**
      * 
-     * @type {KeySpec}
+     * @type {SigningKeySpec}
      * @memberof CertPolicyParameters
      */
-    keySpec?: KeySpec;
+    keySpec?: SigningKeySpec;
     /**
      * 
      * @type {boolean}
@@ -98,6 +98,12 @@ export interface CertPolicyParameters {
      * @memberof CertPolicyParameters
      */
     flags?: Array<CertificateFlag>;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicyParameters
+     */
+    issuerTemplateId?: string;
 }
 
 /**
@@ -122,13 +128,14 @@ export function CertPolicyParametersFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
-        'keySpec': !exists(json, 'keySpec') ? undefined : KeySpecFromJSON(json['keySpec']),
+        'keySpec': !exists(json, 'keySpec') ? undefined : SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': !exists(json, 'keyExportable') ? undefined : json['keyExportable'],
         'expiryTime': json['expiryTime'],
         'lifetimeAction': !exists(json, 'lifetimeAction') ? undefined : LifetimeActionFromJSON(json['lifetimeAction']),
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
+        'issuerTemplateId': !exists(json, 'issuerTemplateId') ? undefined : json['issuerTemplateId'],
     };
 }
 
@@ -142,13 +149,14 @@ export function CertPolicyParametersToJSON(value?: CertPolicyParameters | null):
     return {
         
         'displayName': value.displayName,
-        'keySpec': KeySpecToJSON(value.keySpec),
+        'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
         'lifetimeAction': LifetimeActionToJSON(value.lifetimeAction),
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
+        'issuerTemplateId': value.issuerTemplateId,
     };
 }
 

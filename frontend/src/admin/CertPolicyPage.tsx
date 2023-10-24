@@ -1,7 +1,7 @@
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Checkbox, Form, Input, Radio, Typography } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
@@ -15,6 +15,44 @@ import {
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./NamespaceContext2";
+
+function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
+  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+  const adminApi = useAuthedClient(AdminApi);
+  const [force, setForce] = useState(false);
+  const { run: issueCert, loading } = useRequest(
+    async (force: boolean) => {
+      await adminApi.createCertificate({
+        namespaceIdentifier: namespaceId,
+        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        resourceIdentifier: certPolicyId,
+      });
+    },
+    { manual: true }
+  );
+
+  return (
+    <div className="flex gap-8 items-center">
+      <Button
+        loading={loading}
+        type="primary"
+        onClick={() => {
+          issueCert(force);
+        }}
+      >
+        Request certificate
+      </Button>
+      <Checkbox
+        checked={force}
+        onChange={(e) => {
+          setForce(e.target.checked);
+        }}
+      >
+        Force
+      </Checkbox>
+    </div>
+  );
+}
 
 type CertPolicyFormState = {
   certPolicyId: string;
@@ -133,7 +171,7 @@ function CertPolicyForm({
           {ktyState === JsonWebKeyType.JsonWebKeyTypeRSA ? (
             <Form.Item<CertPolicyFormState> name="keySize" label="RSA key size">
               <Radio.Group>
-                <Radio value={2048}>2048 (recommended)</Radio>
+                <Radio value={2048}>2048</Radio>
                 <Radio value={3072}>3072</Radio>
                 <Radio value={4096}>4096</Radio>
               </Radio.Group>
@@ -144,11 +182,8 @@ function CertPolicyForm({
                 <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP256}>
                   P-256
                 </Radio>
-                <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP256K}>
-                  P-256K
-                </Radio>
                 <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP384}>
-                  P-384 (recommended)
+                  P-384
                 </Radio>
                 <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP521}>
                   P-521
@@ -230,6 +265,9 @@ export default function CertPolicyPage() {
       <div>
         {namespaceKind}/{namespaceId}
       </div>
+      <Card title="Manage certificates">
+        <RequestCertificateControl certPolicyId={certPolicyId} />
+      </Card>
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />
       </Card>

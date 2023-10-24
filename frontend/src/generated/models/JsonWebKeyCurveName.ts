@@ -19,7 +19,6 @@
  */
 export const JsonWebKeyCurveName = {
     JsonWebKeyCurveNameP256: 'P-256',
-    JsonWebKeyCurveNameP256K: 'P-256K',
     JsonWebKeyCurveNameP384: 'P-384',
     JsonWebKeyCurveNameP521: 'P-521'
 } as const;

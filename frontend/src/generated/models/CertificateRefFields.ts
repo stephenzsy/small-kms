@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateAttributes } from './CertificateAttributes';
+import {
+    CertificateAttributesFromJSON,
+    CertificateAttributesFromJSONTyped,
+    CertificateAttributesToJSON,
+} from './CertificateAttributes';
+
 /**
  * 
  * @export
@@ -20,35 +27,17 @@ import { exists, mapValues } from '../runtime';
  */
 export interface CertificateRefFields {
     /**
-     * 
+     * SHA-1 fingerprint of the certificate
      * @type {string}
      * @memberof CertificateRefFields
      */
-    thumbprint: string;
-    /**
-     * Common name
-     * @type {string}
-     * @memberof CertificateRefFields
-     */
-    subjectCommonName: string;
-    /**
-     * Expiration date of the certificate
-     * @type {Date}
-     * @memberof CertificateRefFields
-     */
-    notAfter: Date;
+    x5t: string;
     /**
      * 
-     * @type {string}
+     * @type {CertificateAttributes}
      * @memberof CertificateRefFields
      */
-    template: string;
-    /**
-     * Whether the certificate has been issued
-     * @type {boolean}
-     * @memberof CertificateRefFields
-     */
-    isIssued: boolean;
+    attributes: CertificateAttributes;
 }
 
 /**
@@ -56,11 +45,8 @@ export interface CertificateRefFields {
  */
 export function instanceOfCertificateRefFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "thumbprint" in value;
-    isInstance = isInstance && "subjectCommonName" in value;
-    isInstance = isInstance && "notAfter" in value;
-    isInstance = isInstance && "template" in value;
-    isInstance = isInstance && "isIssued" in value;
+    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "attributes" in value;
 
     return isInstance;
 }
@@ -75,11 +61,8 @@ export function CertificateRefFieldsFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'thumbprint': json['thumbprint'],
-        'subjectCommonName': json['subjectCommonName'],
-        'notAfter': (new Date(json['notAfter'])),
-        'template': json['template'],
-        'isIssued': json['isIssued'],
+        'x5t': json['x5t'],
+        'attributes': CertificateAttributesFromJSON(json['attributes']),
     };
 }
 
@@ -92,11 +75,8 @@ export function CertificateRefFieldsToJSON(value?: CertificateRefFields | null):
     }
     return {
         
-        'thumbprint': value.thumbprint,
-        'subjectCommonName': value.subjectCommonName,
-        'notAfter': (value.notAfter.toISOString()),
-        'template': value.template,
-        'isIssued': value.isIssued,
+        'x5t': value.x5t,
+        'attributes': CertificateAttributesToJSON(value.attributes),
     };
 }
 

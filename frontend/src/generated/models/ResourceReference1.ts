@@ -34,18 +34,6 @@ import {
 export interface ResourceReference1 {
     /**
      * 
-     * @type {string}
-     * @memberof ResourceReference1
-     */
-    nid: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResourceReference1
-     */
-    rid: string;
-    /**
-     * 
      * @type {NamespaceKind}
      * @memberof ResourceReference1
      */
@@ -68,6 +56,12 @@ export interface ResourceReference1 {
      * @memberof ResourceReference1
      */
     resourceIdentifier: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResourceReference1
+     */
+    id: string;
     /**
      * 
      * @type {Date}
@@ -93,12 +87,11 @@ export interface ResourceReference1 {
  */
 export function instanceOfResourceReference1(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "nid" in value;
-    isInstance = isInstance && "rid" in value;
     isInstance = isInstance && "namespaceKind" in value;
     isInstance = isInstance && "namespaceIdentifier" in value;
     isInstance = isInstance && "resourceKind" in value;
     isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
 
@@ -115,12 +108,11 @@ export function ResourceReference1FromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'nid': json['_nid'],
-        'rid': json['_rid'],
         'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
         'namespaceIdentifier': json['namespaceIdentifier'],
         'resourceKind': ResourceKindFromJSON(json['resourceKind']),
         'resourceIdentifier': json['resourceIdentifier'],
+        'id': json['_id'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
@@ -136,12 +128,11 @@ export function ResourceReference1ToJSON(value?: ResourceReference1 | null): any
     }
     return {
         
-        '_nid': value.nid,
-        '_rid': value.rid,
         'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
         'namespaceIdentifier': value.namespaceIdentifier,
         'resourceKind': ResourceKindToJSON(value.resourceKind),
         'resourceIdentifier': value.resourceIdentifier,
+        '_id': value.id,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
