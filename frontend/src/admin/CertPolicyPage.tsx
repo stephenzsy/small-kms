@@ -6,6 +6,7 @@ import {
   Form,
   Input,
   Radio,
+  Select,
   Table,
   TableColumnType,
   Tag,
@@ -26,10 +27,16 @@ import {
   JsonWebKeyType,
   NamespaceKind,
   NamespaceKind1,
+  ProfileRef,
+  ResourceKind,
+  ResourceLocator1,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./NamespaceContext2";
 import { Link } from "../components/Link";
+import { DefaultOptionType } from "antd/es/select";
+import { v5 } from "uuid";
+import { CertificatePolicySelect } from "./CertPolicySelector";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
@@ -78,6 +85,8 @@ type CertPolicyFormState = {
   kty: JsonWebKeyType;
   keySize: number;
   crv: JsonWebKeyCurveName;
+  selfSigning: boolean;
+  issuerPolicyLocator: ResourceLocator1;
 };
 
 function CertPolicyForm({
@@ -93,6 +102,26 @@ function CertPolicyForm({
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
+
+  const { data: issuerProfiles } = useRequest(
+    async (): Promise<ProfileRef[] | null> => {
+      if (namespaceKind === NamespaceKind.NamespaceKindRootCA) {
+        return null;
+      }
+      if (namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) {
+        return await adminApi.listProfiles({
+          profileResourceKind: ResourceKind.ProfileResourceKindRootCA,
+        });
+      }
+      return await adminApi.listProfiles({
+        profileResourceKind: ResourceKind.ProfileResourceKindIntermediateCA,
+      });
+    },
+    {
+      refreshDeps: [namespaceKind],
+    }
+  );
+
   const { run } = useRequest(
     async (name: string, params: CertPolicyParameters) => {
       const result = await adminApi.putCertPolicy({
@@ -126,8 +155,17 @@ function CertPolicyForm({
           JsonWebKeyOperation.JsonWebKeyOperationVerify,
         ],
       },
+      issuerPolicy: {
+        namespaceIdentifier: values.issuerPolicyLocator.namespaceIdentifier,
+        namespaceKind: values.issuerPolicyLocator.namespaceKind,
+        resourceIdentifier: values.issuerPolicyLocator.resourceIdentifier,
+        resourceKind: values.issuerPolicyLocator.resourceKind,
+      },
     });
   });
+
+  const [defaultIssuerPolicyLocator, setDefaultIssuerPolicyLocator] =
+    useState<string>();
 
   useEffect(() => {
     if (!value) {
@@ -143,10 +181,11 @@ function CertPolicyForm({
       keySize: value.keySpec.keySize,
       crv: value.keySpec.crv,
     });
+    setDefaultIssuerPolicyLocator(value.issuerPolicy);
   }, [value]);
 
   const ktyState = useWatch("kty", form);
-
+  const isSelfSigning = useWatch("selfSigning", form);
   return (
     <>
       <Form<CertPolicyFormState>
@@ -160,6 +199,7 @@ function CertPolicyForm({
           keyExportable: false,
           kty: JsonWebKeyType.JsonWebKeyTypeRSA,
           keySize: 2048,
+          selfSigning: false,
         }}
         onFinish={onFinish}
       >
@@ -175,6 +215,27 @@ function CertPolicyForm({
         <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
           <Input />
         </Form.Item>
+        {namespaceKind !== NamespaceKind.NamespaceKindRootCA &&
+          namespaceKind !== NamespaceKind.NamespaceKindIntermediateCA && (
+            <Form.Item<CertPolicyFormState>
+              name="selfSigning"
+              valuePropName="checked"
+            >
+              <Checkbox>Self signing</Checkbox>
+            </Form.Item>
+          )}
+        {(namespaceKind == NamespaceKind.NamespaceKindIntermediateCA ||
+          !isSelfSigning) && (
+          <Form.Item<CertPolicyFormState>
+            name="issuerPolicyLocator"
+            getValueFromEvent={(v: ResourceLocator1) => v}
+          >
+            <CertificatePolicySelect
+              availableNamespaceProfiles={issuerProfiles}
+              defaultLocator={defaultIssuerPolicyLocator}
+            />
+          </Form.Item>
+        )}
         <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
           <div className="text-lg font-semibold">Key specification</div>
           <Form.Item<CertPolicyFormState> name="kty" label="Key type">
@@ -347,12 +408,15 @@ export default function CertPolicyPage() {
   });
 
   const { data: issuedCertificates, refresh: refreshCertificate } = useRequest(
-    () => {
-      return adminApi.listCertificates({
-        namespaceIdentifier: namespaceId,
-        namespaceKind,
-        policyId: certPolicyId,
-      });
+    async () => {
+      if (certPolicyId) {
+        return await adminApi.listCertificates({
+          namespaceIdentifier: namespaceId,
+          namespaceKind,
+          policyId: certPolicyId,
+        });
+      }
+      return undefined;
     },
     { refreshDeps: [namespaceId, certPolicyId] }
   );

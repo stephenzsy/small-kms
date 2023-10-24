@@ -12,7 +12,7 @@ func listManagedApps(c context.Context) ([]*ManagedAppRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder(base.ProfileResourceKindManagedApp).
 		WithExtraColumns(profile.QueryColumnDisplayName, queryColumnApplicationID, queryColumnServicePrincipalID)
-	storageNsID := getManageAppDocStorageNamespaceID(c)
+	storageNsID := getManageAppDocStorageNamespaceID()
 	pager := base.NewQueryDocPager[*ManagedAppDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ManagedAppDoc) *ManagedAppRef {

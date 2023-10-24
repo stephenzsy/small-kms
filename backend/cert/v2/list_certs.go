@@ -17,12 +17,12 @@ func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*C
 		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter, "c[\"@rels\"].namedFrom[\"issuer-cert\"] AS issuerCertPolicyId").
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated))
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.GetDefaultStorageNamespaceID(c, nsCtx.Kind(), nsCtx.Identifier())
+	storageNsID := base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier())
 
 	if params.PolicyId != nil {
 		policyIdentifier := base.IdentifierFromString(*params.PolicyId)
 
-		policyLocator := base.GetDefaultStorageLocator(c, nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, policyIdentifier)
+		policyLocator := base.GetDefaultStorageLocator(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, policyIdentifier)
 
 		qb.ExtraWhereClauses = append(qb.ExtraWhereClauses, "c.policyLocator = @policyLocator")
 		qb.ExtraParameters = append(qb.ExtraParameters, azcosmos.QueryParameter{Name: "@policyLocator", Value: policyLocator.String()})

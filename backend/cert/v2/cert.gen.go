@@ -33,6 +33,7 @@ type CertPolicy = certPolicyComposed
 type CertPolicyFields struct {
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags"`
+	IssuerPolicy            externalRef0.SLocator        `json:"issuerPolicy"`
 	KeyExportable           bool                         `json:"keyExportable"`
 	KeySpec                 externalRef1.SigningKeySpec  `json:"keySpec"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
@@ -43,15 +44,15 @@ type CertPolicyFields struct {
 
 // CertPolicyParameters defines model for CertPolicyParameters.
 type CertPolicyParameters struct {
-	DisplayName             *string                      `json:"displayName,omitempty"`
-	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
-	Flags                   []CertificateFlag            `json:"flags,omitempty"`
-	IssuerTemplate          *externalRef0.SLocator       `json:"issuerTemplate,omitempty"`
-	KeyExportable           *bool                        `json:"keyExportable,omitempty"`
-	KeySpec                 *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
-	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
-	Subject                 CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+	DisplayName             *string                       `json:"displayName,omitempty"`
+	ExpiryTime              externalRef0.Period           `json:"expiryTime"`
+	Flags                   []CertificateFlag             `json:"flags,omitempty"`
+	IssuerPolicy            *externalRef0.ResourceLocator `json:"issuerPolicy,omitempty"`
+	KeyExportable           *bool                         `json:"keyExportable,omitempty"`
+	KeySpec                 *externalRef1.SigningKeySpec  `json:"keySpec,omitempty"`
+	LifetimeAction          *externalRef1.LifetimeAction  `json:"lifetimeAction,omitempty"`
+	Subject                 CertificateSubject            `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames      `json:"subjectAlternativeNames,omitempty"`
 }
 
 // CertPolicyRef defines model for CertPolicyRef.

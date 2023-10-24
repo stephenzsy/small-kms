@@ -1,8 +1,6 @@
 package profile
 
 import (
-	"context"
-
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
 )
@@ -22,8 +20,8 @@ const (
 	QueryColumnDisplayName = "c.displayName"
 )
 
-func getProfileDocStorageNamespaceID(c context.Context, namespaceIdentifier base.Identifier) uuid.UUID {
-	return base.GetDefaultStorageNamespaceID(c, base.NamespaceKindProfile, namespaceIdentifier)
+func getProfileDocStorageNamespaceID(namespaceIdentifier base.Identifier) uuid.UUID {
+	return base.GetDefaultStorageNamespaceID(base.NamespaceKindProfile, namespaceIdentifier)
 }
 
 func (d *ProfileDoc) Init(

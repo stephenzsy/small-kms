@@ -17,7 +17,7 @@ func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 	doc := new(CertDoc)
 
 	slocator := base.SLocator{
-		NID: base.GetDefaultStorageNamespaceID(c, nsCtx.Kind(), nsCtx.Identifier()),
+		NID: base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier()),
 		RID: rID.UUID(),
 	}
 

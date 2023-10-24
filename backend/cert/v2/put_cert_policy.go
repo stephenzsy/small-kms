@@ -17,8 +17,11 @@ func putCertPolicy(c context.Context, rID base.Identifier, params *CertPolicyPar
 	nsCtx := ns.GetNSContext(c)
 	doc := new(CertPolicyDoc)
 
-	doc.Init(nsCtx.Kind(), nsCtx.Identifier(), rID, params)
-	err := base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil)
+	err := doc.Init(c, nsCtx.Kind(), nsCtx.Identifier(), rID, params)
+	if err != nil {
+		return nil, err
+	}
+	err = base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil)
 	if err != nil {
 		return nil, err
 	}

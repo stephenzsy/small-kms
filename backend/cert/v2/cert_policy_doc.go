@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"crypto/md5"
 	"fmt"
 	"slices"
@@ -24,13 +25,21 @@ type CertPolicyDoc struct {
 	SANs           *SubjectAlternativeNames `json:"sans,omitempty"`
 	Flags          []CertificateFlag        `json:"flags"`
 	Version        HexDigest                `json:"version"`
+	IssuerPolicy   base.SLocator            `json:"issuerPolicy"`
 }
 
 const (
 	queryColumnDisplayName = "c.displayName"
 )
 
+func GetCertPolicyStorageLocator(c context.Context,
+	nsKind base.NamespaceKind, nsID base.Identifier,
+	rID base.Identifier) base.SLocator {
+	return base.GetDefaultStorageLocator(nsKind, nsID, base.ResourceKindCertPolicy, rID)
+}
+
 func (d *CertPolicyDoc) Init(
+	c context.Context,
 	nsKind base.NamespaceKind,
 	nsID base.Identifier,
 	rID base.Identifier,
@@ -49,6 +58,43 @@ func (d *CertPolicyDoc) Init(
 	}
 
 	digest := md5.New()
+
+	var isSelfSigning bool
+	if p.IssuerPolicy == nil {
+		isSelfSigning = nsKind == base.NamespaceKindRootCA
+	} else {
+		isSelfSigning = p.IssuerPolicy.NamespaceKind == nsKind && p.IssuerPolicy.NamespaceIdentifier == nsID
+	}
+
+	switch nsKind {
+	case base.NamespaceKindRootCA:
+		if !isSelfSigning {
+			return fmt.Errorf("%w: issuer namespace must be Self", base.ErrResponseStatusBadRequest)
+		}
+		d.IssuerPolicy = GetCertPolicyStorageLocator(c, nsKind, nsID, rID)
+	case base.NamespaceKindIntermediateCA:
+		if p.IssuerPolicy == nil {
+			d.IssuerPolicy = GetCertPolicyStorageLocator(c, base.NamespaceKindRootCA, base.StringIdentifier("default"), base.StringIdentifier("default"))
+		} else if p.IssuerPolicy.NamespaceKind != base.NamespaceKindRootCA {
+			return fmt.Errorf("%w: issuer namespace must be root ca", base.ErrResponseStatusBadRequest)
+		} else {
+			d.IssuerPolicy = GetCertPolicyStorageLocator(c, p.IssuerPolicy.NamespaceKind, p.IssuerPolicy.NamespaceIdentifier, p.IssuerPolicy.ResourceIdentifier)
+		}
+	case base.NamespaceKindServicePrincipal:
+		if isSelfSigning {
+			d.IssuerPolicy = GetCertPolicyStorageLocator(c, nsKind, nsID, rID)
+		} else if p.IssuerPolicy == nil {
+			d.IssuerPolicy = GetCertPolicyStorageLocator(c, base.NamespaceKindIntermediateCA, base.StringIdentifier("default"), base.StringIdentifier("default"))
+		} else if p.IssuerPolicy.NamespaceKind != base.NamespaceKindIntermediateCA {
+			return fmt.Errorf("%w: issuer namespace must be intermediate ca", base.ErrResponseStatusBadRequest)
+		} else {
+			d.IssuerPolicy = GetCertPolicyStorageLocator(c, p.IssuerPolicy.NamespaceKind, p.IssuerPolicy.NamespaceIdentifier, p.IssuerPolicy.ResourceIdentifier)
+		}
+	default:
+		return fmt.Errorf("%w: unsupported namespace kind: %s", base.ErrResponseStatusBadRequest, nsKind)
+	}
+	d.IssuerPolicy.WriteToDigest(digest)
+
 	if p.KeySpec == nil {
 		d.KeySpec = key.SigningKeySpec{
 			Alg:     to.Ptr(key.JsonWebKeySignatureAlgorithmRS256),
@@ -213,6 +259,7 @@ func (d *CertPolicyDoc) Init(
 	return nil
 }
 
+// populate ref
 func (d *CertPolicyDoc) PopulateModelRef(m *CertPolicyRef) {
 	if d == nil || m == nil {
 		return
@@ -237,6 +284,7 @@ func (d *CertPolicyDoc) PopulateModel(m *CertPolicy) {
 	m.SubjectAlternativeNames = d.SANs
 	m.Flags = d.Flags
 	m.Version = d.Version
+	m.IssuerPolicy = d.IssuerPolicy
 }
 
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyDoc)(nil)

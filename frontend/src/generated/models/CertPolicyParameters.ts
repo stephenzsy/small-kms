@@ -31,6 +31,12 @@ import {
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
+import type { ResourceLocator1 } from './ResourceLocator1';
+import {
+    ResourceLocator1FromJSON,
+    ResourceLocator1FromJSONTyped,
+    ResourceLocator1ToJSON,
+} from './ResourceLocator1';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -100,10 +106,10 @@ export interface CertPolicyParameters {
     flags?: Array<CertificateFlag>;
     /**
      * 
-     * @type {string}
+     * @type {ResourceLocator1}
      * @memberof CertPolicyParameters
      */
-    issuerTemplate?: string;
+    issuerPolicy?: ResourceLocator1;
 }
 
 /**
@@ -135,7 +141,7 @@ export function CertPolicyParametersFromJSONTyped(json: any, ignoreDiscriminator
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
-        'issuerTemplate': !exists(json, 'issuerTemplate') ? undefined : json['issuerTemplate'],
+        'issuerPolicy': !exists(json, 'issuerPolicy') ? undefined : ResourceLocator1FromJSON(json['issuerPolicy']),
     };
 }
 
@@ -156,7 +162,7 @@ export function CertPolicyParametersToJSON(value?: CertPolicyParameters | null):
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
-        'issuerTemplate': value.issuerTemplate,
+        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
     };
 }
 

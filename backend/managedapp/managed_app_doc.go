@@ -25,8 +25,8 @@ const namespaceIDName = "managed-app"
 
 var namespaceIdentifierManagedApp = base.StringIdentifier(namespaceIDName)
 
-func getManageAppDocStorageNamespaceID(c context.Context) uuid.UUID {
-	return base.GetDefaultStorageNamespaceID(c, base.NamespaceKindProfile, namespaceIdentifierManagedApp)
+func getManageAppDocStorageNamespaceID() uuid.UUID {
+	return base.GetDefaultStorageNamespaceID(base.NamespaceKindProfile, namespaceIdentifierManagedApp)
 }
 
 func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string) {

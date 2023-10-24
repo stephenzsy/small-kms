@@ -3,6 +3,7 @@ package base
 import (
 	"bytes"
 	"encoding"
+	"io"
 
 	"github.com/google/uuid"
 )
@@ -56,4 +57,21 @@ func (sl *storageLocator) IsNilOrEmpty() bool {
 		return true
 	}
 	return sl.NID == uuid.Nil && sl.RID == uuid.Nil
+}
+
+func (sl *storageLocator) WriteToDigest(writer io.Writer) (s int, err error) {
+	if sl == nil {
+		return 0, nil
+	}
+	if c, err := writer.Write(sl.NID[:]); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	if c, err := writer.Write(sl.RID[:]); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	return s, nil
 }

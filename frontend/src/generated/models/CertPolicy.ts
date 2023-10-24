@@ -118,6 +118,12 @@ export interface CertPolicy {
     displayName: string;
     /**
      * 
+     * @type {string}
+     * @memberof CertPolicy
+     */
+    issuerPolicy: string;
+    /**
+     * 
      * @type {SigningKeySpec}
      * @memberof CertPolicy
      */
@@ -179,6 +185,7 @@ export function instanceOfCertPolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "issuerPolicy" in value;
     isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -208,6 +215,7 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
+        'issuerPolicy': json['issuerPolicy'],
         'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
@@ -237,6 +245,7 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
+        'issuerPolicy': value.issuerPolicy,
         'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,

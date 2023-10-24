@@ -13,7 +13,7 @@ func listCertPolicies(c context.Context) ([]*CertPolicyRef, error) {
 	qb := base.NewDefaultCosmoQueryBuilder(base.ResourceKindCertPolicy).
 		WithExtraColumns(queryColumnDisplayName)
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.GetDefaultStorageNamespaceID(c, nsCtx.Kind(), nsCtx.Identifier())
+	storageNsID := base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier())
 	pager := base.NewQueryDocPager[*CertPolicyDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertPolicyDoc) *CertPolicyRef {

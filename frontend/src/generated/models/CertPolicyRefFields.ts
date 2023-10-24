@@ -25,6 +25,12 @@ export interface CertPolicyRefFields {
      * @memberof CertPolicyRefFields
      */
     displayName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicyRefFields
+     */
+    issuerPolicy: string;
 }
 
 /**
@@ -33,6 +39,7 @@ export interface CertPolicyRefFields {
 export function instanceOfCertPolicyRefFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "displayName" in value;
+    isInstance = isInstance && "issuerPolicy" in value;
 
     return isInstance;
 }
@@ -48,6 +55,7 @@ export function CertPolicyRefFieldsFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'displayName': json['displayName'],
+        'issuerPolicy': json['issuerPolicy'],
     };
 }
 
@@ -61,6 +69,7 @@ export function CertPolicyRefFieldsToJSON(value?: CertPolicyRefFields | null): a
     return {
         
         'displayName': value.displayName,
+        'issuerPolicy': value.issuerPolicy,
     };
 }
 

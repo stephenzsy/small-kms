@@ -156,6 +156,8 @@ components:
         - x-go-type: certPolicyComposed
     CertPolicyFields:
       properties:
+        issuerPolicy:
+          $ref: "oapi-base.yaml#/components/schemas/SLocator"
         keySpec:
           $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
@@ -176,6 +178,7 @@ components:
           type: string
           x-go-type: HexDigest
       required:
+        - issuerPolicy
         - keySpec
         - keyExportable
         - expiryTime
@@ -205,11 +208,12 @@ components:
           items:
             $ref: "#/components/schemas/CertificateFlag"
           x-go-type-skip-optional-pointer: true
-        issuerTemplate:
-          $ref: "oapi-base.yaml#/components/schemas/SLocator"
+        issuerPolicy:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
       required:
         - expiryTime
         - subject
+        - issuerTemplate
     CertificateSubject:
       type: object
       properties:

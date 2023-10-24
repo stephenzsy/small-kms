@@ -39,7 +39,7 @@ func setIssuerCertRel(c context.Context, targetCert *CertDoc, policyID base.Iden
 		nsCtx.Identifier(),
 		policyID,
 	)
-	linkLocator := base.GetDefaultStorageLocator(c, nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindRel, relDoc.ResourceIdentifier)
+	linkLocator := base.GetDefaultStorageLocator(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindRel, relDoc.ResourceIdentifier)
 	docService := base.GetAzCosmosCRUDService(c)
 	err := docService.Read(c, linkLocator.NID, linkLocator.RID, relDoc, nil)
 	if err != nil {

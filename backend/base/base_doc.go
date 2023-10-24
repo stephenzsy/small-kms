@@ -25,8 +25,8 @@ type CRUDDocHasCustomStorageID interface {
 type CRUDDoc interface {
 	// can only be used on a doc that has been read from storage
 	GetPersistedSLocator() SLocator
-	getDefaultStorageNamespaceID(c context.Context) uuid.UUID
-	getDefaultStorageID(c context.Context) uuid.UUID
+	getDefaultStorageNamespaceID() uuid.UUID
+	getDefaultStorageID() uuid.UUID
 	GetUpdatedBy() string
 	getETag() *azcore.ETag
 	setETag(etag azcore.ETag)
@@ -104,46 +104,37 @@ func (d *BaseDoc) GetUpdatedBy() string {
 	return d.UpdatedBy
 }
 
-func GetDefaultStorageIDURLBase(c context.Context) string {
-	if val, ok := c.Value(SiteUrlContextKey).(string); ok {
-		return val
-	}
-	return "https://example.com"
+func GetDefaultStorageNamespaceIDURL(namespaceKind NamespaceKind, namespaceIdentifier Identifier) string {
+	return fmt.Sprintf("https://example.com/v1/r/%s/%s", namespaceKind, namespaceIdentifier.String())
 }
 
-func GetDefaultStorageNamespaceIDURL(c context.Context, namespaceKind NamespaceKind, namespaceIdentifier Identifier) string {
-	return fmt.Sprintf("%s/v1/r/%s/%s", GetDefaultStorageIDURLBase(c), namespaceKind, namespaceIdentifier.String())
+func GetDefaultStorageNamespaceID(namespaceKind NamespaceKind, namespaceIdentifier Identifier) uuid.UUID {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageNamespaceIDURL(namespaceKind, namespaceIdentifier)))
 }
 
-func GetDefaultStorageNamespaceID(c context.Context, namespaceKind NamespaceKind, namespaceIdentifier Identifier) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageNamespaceIDURL(c, namespaceKind, namespaceIdentifier)))
+func (d *BaseDoc) getDefaultStorageNamespaceID() uuid.UUID {
+	return GetDefaultStorageNamespaceID(d.NamespaceKind, d.NamespaceIdentifier)
 }
 
-func (d *BaseDoc) getDefaultStorageNamespaceID(c context.Context) uuid.UUID {
-	return GetDefaultStorageNamespaceID(c, d.NamespaceKind, d.NamespaceIdentifier)
-}
-
-func GetDefaultStorageIDURL(c context.Context, storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) string {
+func GetDefaultStorageIDURL(storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) string {
 	return fmt.Sprintf("%s/%s/%s", storageNamespaceIDURL, resourceKind, resourceIdentifier.String())
 }
 
-func GetDefaultStorageID(c context.Context, storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))
+func GetDefaultStorageID(storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) uuid.UUID {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(storageNamespaceIDURL, resourceKind, resourceIdentifier)))
 }
 
-func GetDefaultStorageLocator(c context.Context,
-	namespaceKind NamespaceKind, namespaceIdentifier Identifier,
+func GetDefaultStorageLocator(namespaceKind NamespaceKind, namespaceIdentifier Identifier,
 	resourceKind ResourceKind, resourceIdentifier Identifier) SLocator {
-	storageNamespaceIDURL := GetDefaultStorageNamespaceIDURL(c, namespaceKind, namespaceIdentifier)
+	storageNamespaceIDURL := GetDefaultStorageNamespaceIDURL(namespaceKind, namespaceIdentifier)
 
 	return SLocator{uuid.NewSHA1(uuid.NameSpaceURL, []byte(storageNamespaceIDURL)),
-		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))}
+		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(storageNamespaceIDURL, resourceKind, resourceIdentifier)))}
 }
 
-func (d *BaseDoc) getDefaultStorageID(c context.Context) uuid.UUID {
+func (d *BaseDoc) getDefaultStorageID() uuid.UUID {
 	return GetDefaultStorageID(
-		c,
-		GetDefaultStorageNamespaceIDURL(c, d.NamespaceKind, d.NamespaceIdentifier),
+		GetDefaultStorageNamespaceIDURL(d.NamespaceKind, d.NamespaceIdentifier),
 		d.ResourceKind,
 		d.ResourceIdentifier)
 }
@@ -202,14 +193,14 @@ func resolveStorageNamespaceID(c context.Context, doc CRUDDoc) uuid.UUID {
 	if doc, ok := doc.(CRUDDocHasCustomStorageNamespaceID); ok {
 		return doc.GetStorageNamespaceID(c)
 	}
-	return doc.getDefaultStorageNamespaceID(c)
+	return doc.getDefaultStorageNamespaceID()
 }
 
 func resolveStorageID(c context.Context, doc CRUDDoc) uuid.UUID {
 	if doc, ok := doc.(CRUDDocHasCustomStorageID); ok {
 		return doc.GetStorageID(c)
 	}
-	return doc.getDefaultStorageID(c)
+	return doc.getDefaultStorageID()
 }
 
 func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {

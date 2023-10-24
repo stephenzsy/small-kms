@@ -13,7 +13,7 @@ func listProfiles(c context.Context, resourceKind base.ResourceKind) ([]*Profile
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder(resourceKind).
 		WithExtraColumns(QueryColumnDisplayName)
-	storageNsID := getProfileDocStorageNamespaceID(c, ns.Identifier())
+	storageNsID := getProfileDocStorageNamespaceID(ns.Identifier())
 	pager := base.NewQueryDocPager[*ProfileDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ProfileDoc) *ProfileRef {
