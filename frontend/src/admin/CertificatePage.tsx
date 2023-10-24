@@ -23,7 +23,7 @@ export default function CertificatePage() {
     return adminApi.getCertificate({
       resourceIdentifier: certId,
       namespaceIdentifier: namespaceId,
-      namespaceKind: namespaceKind as NamespaceKind1,
+      namespaceKind: namespaceKind,
     });
   }, {});
 
@@ -36,7 +36,7 @@ export default function CertificatePage() {
       await adminApi.deleteCertificate({
         certificateId: certId,
         namespaceId,
-        namespaceKind: namespaceKind as NamespaceKind1,
+        namespaceKindLegacy: namespaceKind as any,
       });
       return true;
     },

@@ -39,7 +39,7 @@ function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
     async (force: boolean) => {
       await adminApi.createCertificate({
         namespaceIdentifier: namespaceId,
-        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        namespaceKind,
         resourceIdentifier: certPolicyId,
       });
     },
@@ -96,7 +96,7 @@ function CertPolicyForm({
   const { run } = useRequest(
     async (name: string, params: CertPolicyParameters) => {
       const result = await adminApi.putCertPolicy({
-        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        namespaceKind: namespaceKind,
         namespaceIdentifier: namespaceId,
         resourceIdentifier: name,
         certPolicyParameters: params,
@@ -328,7 +328,7 @@ export default function CertPolicyPage() {
     async () => {
       if (certPolicyId) {
         return await adminApi.getCertPolicy({
-          namespaceKind: namespaceKind as unknown as NamespaceKind1,
+          namespaceKind,
           namespaceIdentifier: namespaceId,
           resourceIdentifier: certPolicyId,
         });
@@ -350,7 +350,7 @@ export default function CertPolicyPage() {
     () => {
       return adminApi.listCertificates({
         namespaceIdentifier: namespaceId,
-        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        namespaceKind,
         policyId: certPolicyId,
       });
     },
@@ -361,7 +361,7 @@ export default function CertPolicyPage() {
     async (issuerId: string) => {
       await adminApi.setIssuerCertificate({
         namespaceIdentifier: namespaceId,
-        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        namespaceKind: namespaceKind,
         resourceIdentifier: certPolicyId,
         policyIssuerCertRequest: {
           issuerId,

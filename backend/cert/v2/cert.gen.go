@@ -46,7 +46,7 @@ type CertPolicyParameters struct {
 	DisplayName             *string                      `json:"displayName,omitempty"`
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags,omitempty"`
-	IssuerTemplateId        *externalRef0.SLocator       `json:"issuerTemplateId,omitempty"`
+	IssuerTemplate          *externalRef0.SLocator       `json:"issuerTemplate,omitempty"`
 	KeyExportable           *bool                        `json:"keyExportable,omitempty"`
 	KeySpec                 *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`

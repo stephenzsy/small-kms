@@ -28,10 +28,10 @@ import type {
   Certificate,
   CertificateRef,
   CertificateTemplate,
-  CertificateTemplateParameters,
   CreateLinkedCertificateTemplateParameters,
   ManagedAppParameters,
   ManagedAppRef,
+  NamespaceKind,
   NamespaceKind1,
   PolicyIssuerCertRequest,
   ProfileParameters,
@@ -66,14 +66,14 @@ import {
     CertificateRefToJSON,
     CertificateTemplateFromJSON,
     CertificateTemplateToJSON,
-    CertificateTemplateParametersFromJSON,
-    CertificateTemplateParametersToJSON,
     CreateLinkedCertificateTemplateParametersFromJSON,
     CreateLinkedCertificateTemplateParametersToJSON,
     ManagedAppParametersFromJSON,
     ManagedAppParametersToJSON,
     ManagedAppRefFromJSON,
     ManagedAppRefToJSON,
+    NamespaceKindFromJSON,
+    NamespaceKindToJSON,
     NamespaceKind1FromJSON,
     NamespaceKind1ToJSON,
     PolicyIssuerCertRequestFromJSON,
@@ -89,27 +89,27 @@ import {
 } from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     roleDefinitionId: string;
 }
 
 export interface AgentCallbackRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     agentConfiguration: AgentConfiguration;
 }
 
 export interface CreateCertificateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
 }
 
 export interface CreateLinkedCertificateTemplateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     createLinkedCertificateTemplateParameters: CreateLinkedCertificateTemplateParameters;
 }
@@ -119,19 +119,19 @@ export interface CreateManagedAppRequest {
 }
 
 export interface DeleteCertificateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     certificateId: string;
 }
 
 export interface DeleteCertificateTemplateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
 
 export interface GetAgentConfigurationRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
@@ -147,13 +147,13 @@ export interface GetAgentProxyInfoRequest {
 }
 
 export interface GetCertPolicyRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
 }
 
 export interface GetCertificateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
 }
@@ -173,18 +173,18 @@ export interface ImportProfileRequest {
 }
 
 export interface ListCertPoliciesRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
 }
 
 export interface ListCertificatesRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     policyId?: string;
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     templateId: string;
 }
@@ -204,24 +204,17 @@ export interface ProvisionAgentProfileRequest {
 }
 
 export interface PutAgentConfigurationRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     configName: AgentConfigName;
     agentConfigurationParameters: AgentConfigurationParameters;
 }
 
 export interface PutCertPolicyRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
     certPolicyParameters: CertPolicyParameters;
-}
-
-export interface PutCertificateTemplateRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
-    certificateTemplateParameters: CertificateTemplateParameters;
 }
 
 export interface PutProfileRequest {
@@ -231,14 +224,14 @@ export interface PutProfileRequest {
 }
 
 export interface RemoveKeyVaultRoleAssignmentRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKindLegacy: NamespaceKind1;
     namespaceId: string;
     templateId: string;
     roleAssignmentId: string;
 }
 
 export interface SetIssuerCertificateRequest {
-    namespaceKind: NamespaceKind1;
+    namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
     policyIssuerCertRequest: PolicyIssuerCertRequest;
@@ -253,8 +246,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Add Key Vault role assignment
      */
     async addKeyVaultRoleAssignmentRaw(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AzureRoleAssignment>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -286,7 +279,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -306,8 +299,8 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      */
     async agentCallbackRaw(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentCallback.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling agentCallback.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -337,7 +330,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/agent-callback/{configName}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -403,8 +396,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Create linked certificate template
      */
     async createLinkedCertificateTemplateRaw(requestParameters: CreateLinkedCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createLinkedCertificateTemplate.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling createLinkedCertificateTemplate.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -430,7 +423,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-templates`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -493,8 +486,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Delete certificate
      */
     async deleteCertificateRaw(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificate.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling deleteCertificate.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -518,7 +511,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certificateId"}}`, encodeURIComponent(String(requestParameters.certificateId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate/{certificateId}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certificateId"}}`, encodeURIComponent(String(requestParameters.certificateId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -538,8 +531,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Delete certificate template
      */
     async deleteCertificateTemplateRaw(requestParameters: DeleteCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificateTemplate.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling deleteCertificateTemplate.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -563,7 +556,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -583,8 +576,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Get agent autoconfig
      */
     async getAgentConfigurationRaw(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentConfiguration.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling getAgentConfiguration.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -616,7 +609,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1049,8 +1042,8 @@ export class AdminApi extends runtime.BaseAPI {
      * List Key Vault role assignments
      */
     async listKeyVaultRoleAssignmentsRaw(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AzureRoleAssignment>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -1074,7 +1067,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1257,8 +1250,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Get agent autoconfig
      */
     async putAgentConfigurationRaw(requestParameters: PutAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentConfiguration.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling putAgentConfiguration.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -1288,7 +1281,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -1360,59 +1353,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Put certificate template
-     */
-    async putCertificateTemplateRaw(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateTemplate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateTemplate.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling putCertificateTemplate.');
-        }
-
-        if (requestParameters.certificateTemplateParameters === null || requestParameters.certificateTemplateParameters === undefined) {
-            throw new runtime.RequiredError('certificateTemplateParameters','Required parameter requestParameters.certificateTemplateParameters was null or undefined when calling putCertificateTemplate.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CertificateTemplateParametersToJSON(requestParameters.certificateTemplateParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateTemplateFromJSON(jsonValue));
-    }
-
-    /**
-     * Put certificate template
-     */
-    async putCertificateTemplate(requestParameters: PutCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
-        const response = await this.putCertificateTemplateRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Put profile
      */
     async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
@@ -1465,8 +1405,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Remove Key Vault role assignment
      */
     async removeKeyVaultRoleAssignmentRaw(requestParameters: RemoveKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling removeKeyVaultRoleAssignment.');
+        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
+            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling removeKeyVaultRoleAssignment.');
         }
 
         if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
@@ -1494,7 +1434,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))).replace(`{${"roleAssignmentId"}}`, encodeURIComponent(String(requestParameters.roleAssignmentId))),
+            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))).replace(`{${"roleAssignmentId"}}`, encodeURIComponent(String(requestParameters.roleAssignmentId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,

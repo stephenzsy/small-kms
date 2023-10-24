@@ -81,14 +81,14 @@ export function AgentConfigurationForm({
       if (params) {
         return await adminApi.putAgentConfiguration({
           configName: currentConfigName,
-          namespaceKind,
+          namespaceKindLegacy: namespaceKind,
           namespaceId,
           agentConfigurationParameters: params,
         });
       }
       try {
         return await adminApi.getAgentConfiguration({
-          namespaceKind,
+          namespaceKindLegacy: namespaceKind,
           namespaceId,
           configName: currentConfigName,
         });

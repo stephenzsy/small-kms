@@ -103,7 +103,7 @@ export interface CertPolicyParameters {
      * @type {string}
      * @memberof CertPolicyParameters
      */
-    issuerTemplateId?: string;
+    issuerTemplate?: string;
 }
 
 /**
@@ -135,7 +135,7 @@ export function CertPolicyParametersFromJSONTyped(json: any, ignoreDiscriminator
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
-        'issuerTemplateId': !exists(json, 'issuerTemplateId') ? undefined : json['issuerTemplateId'],
+        'issuerTemplate': !exists(json, 'issuerTemplate') ? undefined : json['issuerTemplate'],
     };
 }
 
@@ -156,7 +156,7 @@ export function CertPolicyParametersToJSON(value?: CertPolicyParameters | null):
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
-        'issuerTemplateId': value.issuerTemplateId,
+        'issuerTemplate': value.issuerTemplate,
     };
 }
 

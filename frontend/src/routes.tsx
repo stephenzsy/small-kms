@@ -13,7 +13,6 @@ const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./MainPage"));
 const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
-const NamespacePage2 = React.lazy(() => import("./admin/NamespacePage2"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const ServicePage = React.lazy(() => import("./service/Page"));
 const AgentDashboardPage = React.lazy(
@@ -64,7 +63,7 @@ export const router = createBrowserRouter([
                   </NamespaceContextProvider2>
                 ),
                 children: [
-                  { index: true, element: <NamespacePage2 /> },
+                  { index: true, element: <NamespacePage /> },
                   {
                     path: "cert-policy/:certPolicyId",
                     element: <CertPolicyPage />,
@@ -94,7 +93,6 @@ export const router = createBrowserRouter([
                       </NamespaceContextProvider>
                     ),
                     children: [
-                      { index: true, element: <NamespacePage /> },
                       {
                         path: "agent",
                         element: <AgentDashboardPage />,

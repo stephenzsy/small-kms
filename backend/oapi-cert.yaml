@@ -205,7 +205,7 @@ components:
           items:
             $ref: "#/components/schemas/CertificateFlag"
           x-go-type-skip-optional-pointer: true
-        issuerTemplateId:
+        issuerTemplate:
           $ref: "oapi-base.yaml#/components/schemas/SLocator"
       required:
         - expiryTime

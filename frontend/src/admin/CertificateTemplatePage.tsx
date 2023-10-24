@@ -146,7 +146,7 @@ function KeyvaultRoleAssignmentsCard({
     () => {
       return adminApi.listKeyVaultRoleAssignments({
         namespaceId,
-        namespaceKind,
+        namespaceKindLegacy: namespaceKind,
         templateId: templateId,
       });
     },
@@ -192,7 +192,7 @@ function KeyvaultRoleAssignmentsCard({
     async (roleAssignmentId: string) => {
       await adminApi.removeKeyVaultRoleAssignment({
         namespaceId,
-        namespaceKind,
+        namespaceKindLegacy: namespaceKind,
         templateId,
         roleAssignmentId,
       });
@@ -205,7 +205,7 @@ function KeyvaultRoleAssignmentsCard({
     async (roleDefId: string) => {
       await adminApi.addKeyVaultRoleAssignment({
         namespaceId,
-        namespaceKind,
+        namespaceKindLegacy: namespaceKind,
         templateId,
         roleDefinitionId: roleDefId,
       });

@@ -129,7 +129,7 @@ export function LinkTemplateForm() {
       }
       await adminApi.createLinkedCertificateTemplate({
         namespaceId,
-        namespaceKind,
+        namespaceKindLegacy: namespaceKind,
         createLinkedCertificateTemplateParameters: {
           targetTemplate: targetLocator,
           usage: selectedUsage,
