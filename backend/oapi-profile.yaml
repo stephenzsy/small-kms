@@ -49,6 +49,18 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/ProfileResponse"
+  /v1/profile/{profileResourceKind}/{namespaceIdentifier}/import:
+    parameters:
+      - $ref: "#/components/parameters/ProfileResourceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    post:
+      tags:
+        - admin
+      operationId: ImportProfile
+      summary: Import profile
+      responses:
+        200:
+          $ref: "#/components/responses/ProfileResponse"          
 security:
   - BearerAuth: []
 components:

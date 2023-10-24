@@ -11,20 +11,22 @@ import (
 
 // Defines values for NamespaceKind.
 const (
-	NamespaceKindIntermediateCA NamespaceKind = "int-ca"
-	NamespaceKindProfile        NamespaceKind = "profile"
-	NamespaceKindRootCA         NamespaceKind = "root-ca"
+	NamespaceKindIntermediateCA   NamespaceKind = "int-ca"
+	NamespaceKindProfile          NamespaceKind = "profile"
+	NamespaceKindRootCA           NamespaceKind = "root-ca"
+	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
 )
 
 // Defines values for ResourceKind.
 const (
-	ProfileResourceKindIntermediateCA ResourceKind = "int-ca"
-	ProfileResourceKindManagedApp     ResourceKind = "managed-app"
-	ProfileResourceKindRootCA         ResourceKind = "root-ca"
-	ResourceKindCert                  ResourceKind = "cert"
-	ResourceKindCertLink              ResourceKind = "cert-link"
-	ResourceKindCertPolicy            ResourceKind = "cert-policy"
-	ResourceKindKeyPolicy             ResourceKind = "key-policy"
+	ProfileResourceKindIntermediateCA   ResourceKind = "int-ca"
+	ProfileResourceKindManagedApp       ResourceKind = "managed-app"
+	ProfileResourceKindRootCA           ResourceKind = "root-ca"
+	ProfileResourceKindServicePrincipal ResourceKind = "service-principal"
+	ResourceKindCert                    ResourceKind = "cert"
+	ResourceKindCertLink                ResourceKind = "cert-link"
+	ResourceKindCertPolicy              ResourceKind = "cert-policy"
+	ResourceKindKeyPolicy               ResourceKind = "key-policy"
 )
 
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.

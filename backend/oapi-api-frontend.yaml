@@ -14,6 +14,8 @@ paths:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceIdentifier}"
+  /v1/profile/{profileResourceKind}/{namespaceIdentifier}/import:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceIdentifier}~1import"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}:
@@ -148,22 +150,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/profiles/{namespaceKind}/{namespaceId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    post:
-      tags:
-        - admin
-      summary: Sync namespace info with ms graph
-      operationId: SyncProfile
-      responses:
-        "200":
-          description: register namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Profile"
   /v3/{namespaceKind}/{namespaceId}/certificate-templates:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -376,27 +362,6 @@ components:
           $ref: "#/components/schemas/AgentProxyEndpoint"
         secondary:
           $ref: "#/components/schemas/AgentProxyEndpoint"
-    ProfileRefFields:
-      type: object
-      properties:
-        type:
-          $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
-        displayName:
-          description: Display name of the resource
-          type: string
-        isAppManaged:
-          description: Whether the resource is managed by the application
-          type: boolean
-      required:
-        - type
-        - displayName
-    LegacyProfileRef:
-      allOf:
-        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
-        - $ref: "#/components/schemas/ProfileRefFields"
-    Profile:
-      allOf:
-        - $ref: "#/components/schemas/LegacyProfileRef"
     AzureRoleAssignment:
       type: object
       properties:

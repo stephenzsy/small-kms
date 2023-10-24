@@ -163,9 +163,3 @@ func createAzKeysSigner(c context.Context, ioCertJwkSpec *CertJwkSpec, keyName s
 
 var _ SignerProvider = (*azKeysSelfSignerProvider)(nil)
 var _ CertificateRequestProvider = (*azKeysSelfSignerProvider)(nil)
-
-func newAzKeysSelfSignerProvider(certDoc *CertDoc) *azKeysSelfSignerProvider {
-	return &azKeysSelfSignerProvider{
-		certDoc: certDoc,
-	}
-}

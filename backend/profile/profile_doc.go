@@ -12,6 +12,12 @@ type ProfileDoc struct {
 	DisplayName string `json:"displayName"`
 }
 
+type ProfileCRUDDoc interface {
+	base.CRUDDoc
+	base.ModelPopulater[Profile]
+	base.ModelRefPopulater[ProfileRef]
+}
+
 const (
 	QueryColumnDisplayName = "c.displayName"
 )
@@ -47,5 +53,5 @@ func (d *ProfileDoc) PopulateModel(m *Profile) {
 	d.PopulateModelRef(m)
 }
 
-var _ base.ModelRefPopulater[ProfileRef] = (*ProfileDoc)(nil)
-var _ base.ModelPopulater[Profile] = (*ProfileDoc)(nil)
+var _ ProfileCRUDDoc = (*ProfileDoc)(nil)
+var _ ProfileCRUDDoc = (*ProfileDoc)(nil)

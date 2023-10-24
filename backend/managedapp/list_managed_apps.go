@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/profile/v2"
+	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 

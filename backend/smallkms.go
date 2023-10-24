@@ -25,7 +25,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/profile/v2"
+	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
 var BuildID = "dev"

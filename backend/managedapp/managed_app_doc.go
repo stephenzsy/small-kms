@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/profile/v2"
+	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
 type ManagedAppDoc struct {

@@ -1,53 +1,30 @@
 package profile
 
 import (
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/shared"
+	"context"
+
+	"github.com/stephenzsy/small-kms/backend/base"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func getBuiltInRootCaProfiles() []ProfileDoc {
-	return []ProfileDoc{
-		rootCaProfileDocs[idCaRoot],
-		rootCaProfileDocs[idCaRootTest],
-	}
-}
+func listProfiles(c context.Context, resourceKind base.ResourceKind) ([]*ProfileRef, error) {
+	ns := ns.GetNSContext(c)
+	docService := base.GetAzCosmosCRUDService(c)
+	qb := base.NewDefaultCosmoQueryBuilder(resourceKind).
+		WithExtraColumns(QueryColumnDisplayName)
+	storageNsID := getProfileDocStorageNamespaceID(c, ns.Identifier())
+	pager := base.NewQueryDocPager[*ProfileDoc](docService, qb, storageNsID)
 
-func getBuiltInIntermediateCaProfiles() []ProfileDoc {
-	return []ProfileDoc{
-		intCaProfileDocs[idIntCaServices],
-		intCaProfileDocs[idIntCaIntranet],
-		intCaProfileDocs[idIntCaMsEntraClientSecret],
-		intCaProfileDocs[idIntCaTest],
-	}
-}
+	modelPager := utils.NewMappedItemsPager(pager, func(d *ProfileDoc) *ProfileRef {
+		r := &ProfileRef{}
+		d.PopulateModelRef(r)
+		r.Id.NID = storageNsID
+		r.NamespaceKind = base.NamespaceKindProfile
+		r.NamespaceIdentifier = ns.Identifier()
+		r.ResourceKind = resourceKind
+		return r
+	})
+	return utils.PagerToSlice(c, modelPager)
 
-// ListProfiles implements ProfileService.
-func ListProfiles(c RequestContext, profileType models.NamespaceKind) ([]*models.ProfileRefComposed, error) {
-	switch profileType {
-	case shared.NamespaceKindCaRoot:
-		return utils.MapSlice(getBuiltInRootCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModelRef() }), nil
-	case shared.NamespaceKindCaInt:
-		return utils.MapSlice(getBuiltInIntermediateCaProfiles(), func(doc ProfileDoc) *models.ProfileRefComposed { return doc.toModel() }), nil
-	}
-	itemsPager := kmsdoc.QueryItemsPager[*ProfileDoc](c,
-		docNsIDProfileTenant,
-		shared.ResourceKindMsGraph,
-		kmsdoc.CosmosQueryBuilder{
-			ExtraColumns:      []string{"c.displayName", "c.isAppManaged"},
-			ExtraWhereClauses: []string{"c.profileType = @profileType"},
-			ExtraParameters: []azcosmos.QueryParameter{
-				{Name: "@profileType", Value: profileType},
-			},
-		})
-	allItems, err := utils.PagerAllItems[*models.ProfileRefComposed](
-		utils.NewMappedItemsPager(itemsPager, func(doc *ProfileDoc) *models.ProfileRefComposed {
-			return doc.toModel()
-		}), c)
-	if allItems == nil {
-		allItems = make([]*models.ProfileRefComposed, 0)
-	}
-	return allItems, err
 }

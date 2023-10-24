@@ -1,14 +1,10 @@
 package cert
 
 import (
-	"bytes"
 	"context"
 	"crypto"
-	"crypto/sha1"
-	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
-	"encoding/pem"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -38,61 +34,6 @@ type SignerProvider interface {
 type StorageProvider interface {
 	StoreCertificateChainPEM(c context.Context, pemBlob []byte, x5t []byte,
 		issuerLocatorStr string) (string, error)
-}
-
-func signCertificate(c context.Context,
-	csrProvider CertificateRequestProvider,
-	signerProvider SignerProvider,
-	storageProvider StorageProvider) (*CertDocSigningPatch, error) {
-
-	// load certificate public key first, in case of our implementation of self signer requires key created before signing
-	defer csrProvider.Close(c)
-	certTemplate, publicKey, certJwkSpec, err := csrProvider.Load(c)
-
-	if err != nil {
-		return nil, err
-	}
-
-	signer, err := signerProvider.LoadSigner(c)
-	if err != nil {
-		return nil, err
-	}
-	certTemplate.SignatureAlgorithm = signerProvider.X509SigningAlg()
-
-	certCreated, err := x509.CreateCertificate(nil,
-		certTemplate,
-		signerProvider.Certificate(),
-		publicKey,
-		signer)
-	if err != nil {
-		return nil, err
-	}
-	fullChain := append([][]byte{certCreated}, signerProvider.CertificatesInChain()...)
-	err = csrProvider.CollectCertificateChain(c, fullChain, certJwkSpec)
-	if err != nil {
-		return nil, err
-	}
-
-	pemBuf := bytes.Buffer{}
-	err = pem.Encode(&pemBuf, &pem.Block{Type: "CERTIFICATE", Bytes: certCreated})
-	if err != nil {
-		return nil, err
-	}
-	pemBuf.Write(signerProvider.CertificateChainPEM())
-	x5t := sha1.Sum(certCreated)
-	x5tS256 := sha256.Sum256(certCreated)
-	certJwkSpec.X5t = x5t[:]
-	certJwkSpec.X5tS256 = x5tS256[:]
-	blobKey, err := storageProvider.StoreCertificateChainPEM(c, pemBuf.Bytes(), x5t[:], signerProvider.GetIssuerCertStorePath())
-	if err != nil {
-		return nil, err
-	}
-	return &CertDocSigningPatch{
-		CertSpec:      *certJwkSpec,
-		Thumbprint:    x5t[:],
-		CertStorePath: blobKey,
-		Issuer:        signerProvider.Locator(),
-	}, nil
 }
 
 type azBlobStorageProvider struct {

@@ -2,7 +2,7 @@ package managedapp
 
 import (
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/profile/v2"
+	"github.com/stephenzsy/small-kms/backend/profile"
 )
 
 type ResourceReference = base.ResourceReference

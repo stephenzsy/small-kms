@@ -128,39 +128,6 @@ type CreateLinkedCertificateTemplateParameters struct {
 // LinkedCertificateTemplateUsage defines model for LinkedCertificateTemplateUsage.
 type LinkedCertificateTemplateUsage string
 
-// Profile defines model for Profile.
-type Profile = ProfileRef
-
-// ProfileRef defines model for ProfileRef.
-type ProfileRef struct {
-	// Deleted Time when the deleted was deleted
-	Deleted *time.Time `json:"deleted,omitempty"`
-
-	// DisplayName Display name of the resource
-	DisplayName string                  `json:"displayName"`
-	Id          externalRef0.Identifier `json:"id"`
-
-	// IsAppManaged Whether the resource is managed by the application
-	IsAppManaged *bool                        `json:"isAppManaged,omitempty"`
-	Locator      externalRef0.ResourceLocator `json:"locator"`
-	Metadata     map[string]interface{}       `json:"metadata,omitempty"`
-	Type         externalRef0.NamespaceKind   `json:"type"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// ProfileRefFields defines model for ProfileRefFields.
-type ProfileRefFields struct {
-	// DisplayName Display name of the resource
-	DisplayName string `json:"displayName"`
-
-	// IsAppManaged Whether the resource is managed by the application
-	IsAppManaged *bool                      `json:"isAppManaged,omitempty"`
-	Type         externalRef0.NamespaceKind `json:"type"`
-}
-
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
 	AppRoleIds struct {

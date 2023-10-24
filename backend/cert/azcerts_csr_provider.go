@@ -134,13 +134,6 @@ func (p *azCertsCsrProvider) Load(c context.Context) (certTemplate *x509.Certifi
 
 var _ CertificateRequestProvider = (*azCertsCsrProvider)(nil)
 
-func newAzCertsCsrProvider(certDoc *CertDoc, selfSigned bool) *azCertsCsrProvider {
-	return &azCertsCsrProvider{
-		certDoc:    certDoc,
-		selfSigned: selfSigned,
-	}
-}
-
 type azKeysExistingCertSigner struct {
 	issuerCertDoc *CertDoc
 
@@ -211,9 +204,3 @@ func (p *azKeysExistingCertSigner) Locator() shared.ResourceLocator {
 }
 
 var _ SignerProvider = (*azKeysExistingCertSigner)(nil)
-
-func newAzKeysExistingCertSigner(issuerCertDoc *CertDoc) *azKeysExistingCertSigner {
-	return &azKeysExistingCertSigner{
-		issuerCertDoc: issuerCertDoc,
-	}
-}

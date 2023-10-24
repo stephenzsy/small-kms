@@ -4,13 +4,6 @@ import "github.com/stephenzsy/small-kms/backend/shared"
 
 type Identifier = shared.Identifier
 
-type ProfileRefComposed struct {
-	shared.ResourceRef
-	ProfileRefFields
-}
-
-type ProfileComposed = ProfileRefComposed
-
 type CertificateTemplateRefComposed struct {
 	shared.ResourceRef
 	CertificateTemplateRefFields

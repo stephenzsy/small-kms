@@ -52,6 +52,9 @@ type ServerInterface interface {
 	// Put profile
 	// (PUT /v1/profile/{profileResourceKind}/{namespaceIdentifier})
 	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Import profile
+	// (POST /v1/profile/{profileResourceKind}/{namespaceIdentifier}/import)
+	ImportProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -129,6 +132,32 @@ func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
 	return err
 }
 
+// ImportProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) ImportProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "profileResourceKind" -------------
+	var profileResourceKind ProfileResourceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ImportProfile(ctx, profileResourceKind, namespaceIdentifier)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -160,5 +189,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/profile/:profileResourceKind", wrapper.ListProfiles)
 	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.GetProfile)
 	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.PutProfile)
+	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier/import", wrapper.ImportProfile)
 
 }

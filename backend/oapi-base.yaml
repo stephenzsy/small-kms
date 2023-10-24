@@ -27,10 +27,12 @@ components:
         - profile
         - root-ca
         - int-ca
+        - service-principal
       x-enum-varnames:
         - NamespaceKindProfile
         - NamespaceKindRootCA
         - NamespaceKindIntermediateCA
+        - NamespaceKindServicePrincipal
     NumericDate:
       type: integer
       format: int64
@@ -46,6 +48,7 @@ components:
         - managed-app
         - root-ca
         - int-ca
+        - service-principal
         - cert-policy
         - cert
         - cert-link
@@ -54,6 +57,7 @@ components:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
         - ProfileResourceKindIntermediateCA
+        - ProfileResourceKindServicePrincipal
         - ResourceKindCertPolicy
         - ResourceKindCert
         - ResourceKindCertLink

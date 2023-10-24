@@ -102,6 +102,32 @@ func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKi
 	return c.JSON(http.StatusOK, r)
 }
 
+// ImportProfile implements ServerInterface.
+func (s *server) ImportProfile(ec echo.Context,
+	profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	if err := ns.VerifyKeyVaultIdentifier(namespaceIdentifier); err != nil {
+		return err
+	}
+
+	nsId, err := getNamespaceIdentifier(profileResourceKind)
+	if err != nil {
+		return err
+	}
+	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+
+	r, err := importProfile(c, profileResourceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, r)
+}
+
 var _ ServerInterface = (*server)(nil)
 
 func NewServer(apiServer api.APIServer) *server {
