@@ -22,12 +22,6 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v3/diagnostics)
 	GetDiagnostics(ctx echo.Context) error
-	// List profiles by type
-	// (GET /v3/profiles/{namespaceKind})
-	ListProfiles(ctx echo.Context, namespaceKind NamespaceKindParameter) error
-	// Get namespace info with ms graph
-	// (GET /v3/profiles/{namespaceKind}/{namespaceId})
-	GetProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
 	// Sync namespace info with ms graph
 	// (POST /v3/profiles/{namespaceKind}/{namespaceId})
 	SyncProfile(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
@@ -124,50 +118,6 @@ func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetDiagnostics(ctx)
-	return err
-}
-
-// ListProfiles converts echo context to params.
-func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListProfiles(ctx, namespaceKind)
-	return err
-}
-
-// GetProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetProfile(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -684,8 +634,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
 	router.POST(baseURL+"/v3/application/:namespaceId/agent", wrapper.ProvisionAgentProfile)
 	router.GET(baseURL+"/v3/diagnostics", wrapper.GetDiagnostics)
-	router.GET(baseURL+"/v3/profiles/:namespaceKind", wrapper.ListProfiles)
-	router.GET(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v3/profiles/:namespaceKind/:namespaceId", wrapper.SyncProfile)
 	router.GET(baseURL+"/v3/service/config", wrapper.GetServiceConfig)
 	router.PATCH(baseURL+"/v3/service/config/:configPath", wrapper.PatchServiceConfig)

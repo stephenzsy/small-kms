@@ -32,23 +32,26 @@ type ProfileRefFields struct {
 	DisplayName string `json:"displayName"`
 }
 
+// ProfileResourceKindParameter defines model for ProfileResourceKindParameter.
+type ProfileResourceKindParameter = externalRef0.ResourceKind
+
 // ProfileResponse defines model for ProfileResponse.
 type ProfileResponse = Profile
 
-// PutRootCAJSONRequestBody defines body for PutRootCA for application/json ContentType.
-type PutRootCAJSONRequestBody = ProfileParameters
+// PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
+type PutProfileJSONRequestBody = ProfileParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List root CA profiles
-	// (GET /v1/profile/root-ca)
-	ListRootCAs(ctx echo.Context) error
+	// List profiles
+	// (GET /v1/profile/{profileResourceKind})
+	ListProfiles(ctx echo.Context, profileResourceKind ProfileResourceKindParameter) error
 	// Get profile
-	// (GET /v1/profile/root-ca/{namespaceIdentifier})
-	GetRootCA(ctx echo.Context, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/profile/{profileResourceKind}/{namespaceIdentifier})
+	GetProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 	// Put profile
-	// (PUT /v1/profile/root-ca/{namespaceIdentifier})
-	PutRootCA(ctx echo.Context, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (PUT /v1/profile/{profileResourceKind}/{namespaceIdentifier})
+	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -56,20 +59,35 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// ListRootCAs converts echo context to params.
-func (w *ServerInterfaceWrapper) ListRootCAs(ctx echo.Context) error {
+// ListProfiles converts echo context to params.
+func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "profileResourceKind" -------------
+	var profileResourceKind ProfileResourceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
+	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListRootCAs(ctx)
+	err = w.Handler.ListProfiles(ctx, profileResourceKind)
 	return err
 }
 
-// GetRootCA converts echo context to params.
-func (w *ServerInterfaceWrapper) GetRootCA(ctx echo.Context) error {
+// GetProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "profileResourceKind" -------------
+	var profileResourceKind ProfileResourceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
+	}
+
 	// ------------- Path parameter "namespaceIdentifier" -------------
 	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
 
@@ -81,13 +99,21 @@ func (w *ServerInterfaceWrapper) GetRootCA(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetRootCA(ctx, namespaceIdentifier)
+	err = w.Handler.GetProfile(ctx, profileResourceKind, namespaceIdentifier)
 	return err
 }
 
-// PutRootCA converts echo context to params.
-func (w *ServerInterfaceWrapper) PutRootCA(ctx echo.Context) error {
+// PutProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "profileResourceKind" -------------
+	var profileResourceKind ProfileResourceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
+	}
+
 	// ------------- Path parameter "namespaceIdentifier" -------------
 	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
 
@@ -99,7 +125,7 @@ func (w *ServerInterfaceWrapper) PutRootCA(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutRootCA(ctx, namespaceIdentifier)
+	err = w.Handler.PutProfile(ctx, profileResourceKind, namespaceIdentifier)
 	return err
 }
 
@@ -131,8 +157,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/profile/root-ca", wrapper.ListRootCAs)
-	router.GET(baseURL+"/v1/profile/root-ca/:namespaceIdentifier", wrapper.GetRootCA)
-	router.PUT(baseURL+"/v1/profile/root-ca/:namespaceIdentifier", wrapper.PutRootCA)
+	router.GET(baseURL+"/v1/profile/:profileResourceKind", wrapper.ListProfiles)
+	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.GetProfile)
+	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.PutProfile)
 
 }

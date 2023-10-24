@@ -10,10 +10,10 @@ security:
 paths:
   /v1/managed-app:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
-  /v1/profile/root-ca:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1root-ca"
-  /v1/profile/root-ca/{namespaceIdentifier}:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1root-ca~1{namespaceIdentifier}"
+  /v1/profile/{profileResourceKind}:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
+  /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceIdentifier}"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}:
@@ -148,39 +148,10 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/profiles/{namespaceKind}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-    get:
-      tags:
-        - admin
-      summary: List profiles by type
-      operationId: ListProfiles
-      responses:
-        200:
-          description: List RefsResponse
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/LegacyProfileRef"
   /v3/profiles/{namespaceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Get namespace info with ms graph
-      operationId: GetProfile
-      responses:
-        "200":
-          description: get namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Profile"
     post:
       tags:
         - admin

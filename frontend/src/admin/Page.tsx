@@ -29,11 +29,6 @@ export default function AdminPage() {
         NamespaceKind.NamespaceKindUser,
         NamespaceKind.NamespaceKindApplication,
       ];
-      for (const nsType of l) {
-        results[nsType] = await adminApi.listProfiles({
-          namespaceKind: nsType,
-        });
-      }
       return results;
     },
     {

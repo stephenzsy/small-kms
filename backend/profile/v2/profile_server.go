@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,19 +16,37 @@ type server struct {
 	api.APIServer
 }
 
-const namespaceIDCA = "ca"
+const (
+	namespaceIDCA = "ca"
+)
 
-var namespaceIdentifierCA = base.StringIdentifier(namespaceIDCA)
+var (
+	namespaceIdentifierCA = base.StringIdentifier(namespaceIDCA)
+)
+
+func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identifier, error) {
+	switch profileResourceKind {
+	case base.ProfileResourceKindRootCA,
+		base.ProfileResourceKindIntermediateCA:
+		return namespaceIdentifierCA, nil
+	}
+	return base.Identifier{}, fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)
+}
 
 // ListRootCAs implements ServerInterface.
-func (s *server) ListRootCAs(ec echo.Context) error {
+func (s *server) ListProfiles(ec echo.Context, profileResourceKind base.ResourceKind) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
 
-	result, err := listProfiles(c, namespaceIdentifierCA, base.ProfileResourceKindRootCA)
+	nsId, err := getNamespaceIdentifier(profileResourceKind)
+	if err != nil {
+		return err
+	}
+	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+	result, err := listProfiles(c, profileResourceKind)
 	if err != nil {
 		return err
 	}
@@ -38,18 +57,23 @@ func (s *server) ListRootCAs(ec echo.Context) error {
 }
 
 // GetRootCA implements ServerInterface.
-func (s *server) GetRootCA(ec echo.Context, namespaceIdentifier base.Identifier) error {
+func (s *server) GetProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
 
+	// nsId, err := getNamespaceIdentifier(profileResourceKind)
+	// if err != nil {
+	// 	return err
+	// }
+	// c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
 	return ec.JSON(400, map[string]string{"message": "not implemented"})
 }
 
 // PutRootCA implements ServerInterface.
-func (s *server) PutRootCA(ec echo.Context, namespaceIdentifier base.Identifier) error {
+func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -64,9 +88,14 @@ func (s *server) PutRootCA(ec echo.Context, namespaceIdentifier base.Identifier)
 	if err := ns.VerifyKeyVaultIdentifier(namespaceIdentifier); err != nil {
 		return err
 	}
-	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, namespaceIdentifierCA)
 
-	r, err := putProfile(c, base.ProfileResourceKindRootCA, namespaceIdentifier, params)
+	nsId, err := getNamespaceIdentifier(profileResourceKind)
+	if err != nil {
+		return err
+	}
+	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+
+	r, err := putProfile(c, profileResourceKind, namespaceIdentifier, params)
 	if err != nil {
 		return err
 	}

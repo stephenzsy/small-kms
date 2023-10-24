@@ -26,7 +26,8 @@ import { Link } from "../components/Link";
 import { DefaultOptionType } from "antd/es/cascader";
 
 type ProfileTypeMapRecord<T> = Record<
-  typeof ResourceKind.ProfileResourceKindRootCA,
+  | typeof ResourceKind.ProfileResourceKindRootCA
+  | typeof ResourceKind.ProfileResourceKindIntermediateCA,
   T
 >;
 
@@ -42,6 +43,10 @@ function useProfileTypeSelectOptions(): Array<DefaultOptionType> {
       {
         label: "Root CA",
         value: ResourceKind.ProfileResourceKindRootCA,
+      },
+      {
+        label: "Intermediate CA",
+        value: ResourceKind.ProfileResourceKindIntermediateCA,
       },
     ],
     []
@@ -66,10 +71,12 @@ function CreateProfileForm({
       const req = {
         namespaceIdentifier: name,
         profileParameters: params,
+        profileResourceKind: profileType,
       };
       switch (profileType) {
         case ResourceKind.ProfileResourceKindRootCA:
-          await adminApi.putRootCA(req);
+        case ResourceKind.ProfileResourceKindIntermediateCA:
+          await adminApi.putProfile(req);
           break;
       }
       onCreated[profileType]();
@@ -132,9 +139,7 @@ function useColumns() {
       {
         title: "Actions",
         render: (r: ProfileRef) => (
-          <Link to={`/ca/${r.resourceKind}/${r.resourceIdentifier}`}>
-            View
-          </Link>
+          <Link to={`/ca/${r.resourceKind}/${r.resourceIdentifier}`}>View</Link>
         ),
       },
     ],
@@ -145,29 +150,48 @@ function useColumns() {
 export default function CAsPage() {
   const adminApi = useAuthedClient(AdminApi);
 
-  const { data: rootCAs, run: listApps } = useRequest(
+  const { data: rootCAs, run: listRootCAs } = useRequest(
     () => {
-      return adminApi.listRootCAs();
+      return adminApi.listProfiles({
+        profileResourceKind: ResourceKind.ProfileResourceKindRootCA,
+      });
     },
     {
       refreshDeps: [],
     }
   );
-
+  const { data: intermediateCAs, run: listIntermediateCAs } = useRequest(
+    () => {
+      return adminApi.listProfiles({
+        profileResourceKind: ResourceKind.ProfileResourceKindIntermediateCA,
+      });
+    },
+    {
+      refreshDeps: [],
+    }
+  );
   const columns = useColumns();
   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
     return {
-      [ResourceKind.ProfileResourceKindRootCA]: listApps,
+      [ResourceKind.ProfileResourceKindRootCA]: listRootCAs,
+      [ResourceKind.ProfileResourceKindIntermediateCA]: listIntermediateCAs,
     };
-  }, [listApps]);
+  }, [listRootCAs]);
 
   return (
     <>
       <Title>Certificate Authorities</Title>
-      <Card title="Certificate Authorities">
+      <Card title="Root certificate authorities">
         <Table<ProfileRef>
           columns={columns}
           dataSource={rootCAs}
+          rowKey={(r) => r.resourceIdentifier}
+        />
+      </Card>
+      <Card title="Intermediate certificate authorities">
+        <Table<ProfileRef>
+          columns={columns}
+          dataSource={intermediateCAs}
           rowKey={(r) => r.resourceIdentifier}
         />
       </Card>

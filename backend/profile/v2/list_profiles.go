@@ -4,14 +4,16 @@ import (
 	"context"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func listProfiles(c context.Context, namespaceIdentifier base.Identifier, resourceKind base.ResourceKind) ([]*ProfileRef, error) {
+func listProfiles(c context.Context, resourceKind base.ResourceKind) ([]*ProfileRef, error) {
+	ns := ns.GetNSContext(c)
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder(resourceKind).
 		WithExtraColumns(QueryColumnDisplayName)
-	storageNsID := getProfileDocStorageNamespaceID(c, namespaceIdentifier)
+	storageNsID := getProfileDocStorageNamespaceID(c, ns.Identifier())
 	pager := base.NewQueryDocPager[*ProfileDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ProfileDoc) *ProfileRef {
@@ -19,7 +21,7 @@ func listProfiles(c context.Context, namespaceIdentifier base.Identifier, resour
 		d.PopulateModelRef(r)
 		r.Id.NID = storageNsID
 		r.NamespaceKind = base.NamespaceKindProfile
-		r.NamespaceIdentifier = namespaceIdentifier
+		r.NamespaceIdentifier = ns.Identifier()
 		r.ResourceKind = resourceKind
 		return r
 	})

@@ -6,12 +6,14 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/profile/root-ca:
+  /v1/profile/{profileResourceKind}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileResourceKindParameter"
     get:
       tags:
         - admin
-      operationId: ListRootCAs
-      summary: List root CA profiles
+      operationId: ListProfiles
+      summary: List profiles
       responses:
         200:
           description: OK
@@ -21,13 +23,14 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v1/profile/root-ca/{namespaceIdentifier}:
+  /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
     parameters:
+      - $ref: "#/components/parameters/ProfileResourceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
     get:
       tags:
         - admin
-      operationId: GetRootCA
+      operationId: GetProfile
       summary: Get profile
       responses:
         200:
@@ -35,7 +38,7 @@ paths:
     put:
       tags:
         - admin
-      operationId: PutRootCA
+      operationId: PutProfile
       summary: Put profile
       requestBody:
         required: true
@@ -49,6 +52,14 @@ paths:
 security:
   - BearerAuth: []
 components:
+  parameters:
+    ProfileResourceKindParameter:
+      name: profileResourceKind
+      in: path
+      description: Profile resource kind
+      required: true
+      schema:
+        $ref: "oapi-base.yaml#/components/schemas/ResourceKind"
   schemas:
     ProfileRef:
       allOf:

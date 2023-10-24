@@ -30,13 +30,13 @@ import type {
   CertificateTemplate,
   CertificateTemplateParameters,
   CreateLinkedCertificateTemplateParameters,
-  LegacyProfileRef,
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind1,
   Profile,
   ProfileParameters,
   ProfileRef,
+  ResourceKind,
   ServiceConfig,
 } from '../models/index';
 import {
@@ -70,8 +70,6 @@ import {
     CertificateTemplateParametersToJSON,
     CreateLinkedCertificateTemplateParametersFromJSON,
     CreateLinkedCertificateTemplateParametersToJSON,
-    LegacyProfileRefFromJSON,
-    LegacyProfileRefToJSON,
     ManagedAppParametersFromJSON,
     ManagedAppParametersToJSON,
     ManagedAppRefFromJSON,
@@ -84,6 +82,8 @@ import {
     ProfileParametersToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
+    ResourceKindFromJSON,
+    ResourceKindToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
 } from '../models/index';
@@ -163,11 +163,7 @@ export interface GetDockerInfoRequest {
 }
 
 export interface GetProfileRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
-}
-
-export interface GetRootCARequest {
+    profileResourceKind: ResourceKind;
     namespaceIdentifier: string;
 }
 
@@ -189,7 +185,7 @@ export interface ListKeyVaultRoleAssignmentsRequest {
 }
 
 export interface ListProfilesRequest {
-    namespaceKind: NamespaceKind1;
+    profileResourceKind: ResourceKind;
 }
 
 export interface PatchServiceConfigRequest {
@@ -223,7 +219,8 @@ export interface PutCertificateTemplateRequest {
     certificateTemplateParameters: CertificateTemplateParameters;
 }
 
-export interface PutRootCARequest {
+export interface PutProfileRequest {
+    profileResourceKind: ResourceKind;
     namespaceIdentifier: string;
     profileParameters: ProfileParameters;
 }
@@ -836,15 +833,15 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get namespace info with ms graph
+     * Get profile
      */
     async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getProfile.');
+        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
+            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling getProfile.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getProfile.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getProfile.');
         }
 
         const queryParameters: any = {};
@@ -860,7 +857,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}/{namespaceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -870,48 +867,10 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get namespace info with ms graph
+     * Get profile
      */
     async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getProfileRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get profile
-     */
-    async getRootCARaw(requestParameters: GetRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getRootCA.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Get profile
-     */
-    async getRootCA(requestParameters: GetRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
-        const response = await this.getRootCARaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1118,11 +1077,11 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * List profiles by type
+     * List profiles
      */
-    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<LegacyProfileRef>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listProfiles.');
+    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
+        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
+            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling listProfiles.');
         }
 
         const queryParameters: any = {};
@@ -1138,41 +1097,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(LegacyProfileRefFromJSON));
-    }
-
-    /**
-     * List profiles by type
-     */
-    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<LegacyProfileRef>> {
-        const response = await this.listProfilesRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List root CA profiles
-     */
-    async listRootCAsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/root-ca`,
+            path: `/v1/profile/{profileResourceKind}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1182,10 +1107,10 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * List root CA profiles
+     * List profiles
      */
-    async listRootCAs(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
-        const response = await this.listRootCAsRaw(initOverrides);
+    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
+        const response = await this.listProfilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1441,13 +1366,17 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Put profile
      */
-    async putRootCARaw(requestParameters: PutRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+    async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
+            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling putProfile.');
+        }
+
         if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putRootCA.');
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putProfile.');
         }
 
         if (requestParameters.profileParameters === null || requestParameters.profileParameters === undefined) {
-            throw new runtime.RequiredError('profileParameters','Required parameter requestParameters.profileParameters was null or undefined when calling putRootCA.');
+            throw new runtime.RequiredError('profileParameters','Required parameter requestParameters.profileParameters was null or undefined when calling putProfile.');
         }
 
         const queryParameters: any = {};
@@ -1465,7 +1394,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/profile/root-ca/{namespaceIdentifier}`.replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -1478,8 +1407,8 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Put profile
      */
-    async putRootCA(requestParameters: PutRootCARequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
-        const response = await this.putRootCARaw(requestParameters, initOverrides);
+    async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.putProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

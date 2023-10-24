@@ -1,7 +1,10 @@
-import { useRequest } from "ahooks";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { AdminApi, Profile, NamespaceKind1 as NamespaceKind } from "../generated";
+import {
+  AdminApi,
+  NamespaceKind1 as NamespaceKind,
+  Profile,
+} from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 
 export const NamespaceContext = React.createContext<{
@@ -14,21 +17,17 @@ export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
     profileType: NamespaceKind;
   };
   const adminApi = useAuthedClient(AdminApi);
-  const { data: namespaceInfo } = useRequest(
-    async () => {
-      return await adminApi.getProfile({
-        namespaceKind: profileType,
-        namespaceId: namespaceId,
-      });
-    },
-    {
-      refreshDeps: [namespaceId, profileType],
-    }
-  );
+  // const { data: namespaceInfo } = useRequest(
+  //   async () => {
+  //     return await adminApi.getProfile({
+  //       namespaceKind: profileType,
+  //       namespaceId: namespaceId,
+  //     });
+  //   },
+  //   {
+  //     refreshDeps: [namespaceId, profileType],
+  //   }
+  // );
 
-  return (
-    <NamespaceContext.Provider value={{ nsInfo: namespaceInfo }}>
-      {props.children}
-    </NamespaceContext.Provider>
-  );
+  return props.children;
 }

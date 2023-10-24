@@ -132,39 +132,10 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/profiles/{namespaceKind}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-    get:
-      tags:
-        - admin
-      summary: List profiles by type
-      operationId: ListProfiles
-      responses:
-        200:
-          description: List RefsResponse
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ProfileRef"
   /v3/profiles/{namespaceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Get namespace info with ms graph
-      operationId: GetProfile
-      responses:
-        "200":
-          description: get namespace profile response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Profile"
     post:
       tags:
         - admin
