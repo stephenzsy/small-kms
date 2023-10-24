@@ -3,7 +3,6 @@ package agentconfig
 import (
 	"context"
 	"crypto/md5"
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -107,21 +106,21 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			if !ok {
 				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
 			}
-			nsID := d.GetNamespaceID()
+			// nsID := d.GetNamespaceID()
 
 			// load the last certs
-			serverCertLocator := shared.NewResourceLocator(nsID, cert.NewLatestCertificateForTemplateID(d.ServerCertificateTemplateID))
+			// serverCertLocator := shared.NewResourceLocator(nsID, cert.NewLatestCertificateForTemplateID(d.ServerCertificateTemplateID))
 			prevServerCertId := d.ServerCertificateID
-			serverCertDoc, err := cert.ReadCertDocByLocator(c, serverCertLocator)
-			if err != nil {
-				if !errors.Is(err, common.ErrStatusNotFound) {
-					return nil, err
-				}
-				// should configure to drop the certificate
-				d.ServerCertificateID = shared.Identifier{}
-			} else {
-				d.ServerCertificateID = serverCertDoc.GetLocator().GetID().Identifier()
-			}
+			// serverCertDoc, err := cert.ReadCertDocByLocator(c, serverCertLocator)
+			// if err != nil {
+			// 	if !errors.Is(err, common.ErrStatusNotFound) {
+			// 		return nil, err
+			// 	}
+			// 	// should configure to drop the certificate
+			// 	d.ServerCertificateID = shared.Identifier{}
+			// } else {
+			// 	d.ServerCertificateID = serverCertDoc.GetLocator().GetID().Identifier()
+			// }
 
 			patchOps := azcosmos.PatchOperations{}
 			hasChanges := false
@@ -131,10 +130,10 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			}
 
 			// load latest authorized certs
-			_, err = cert.GetAuthorizedLatestCertByTemplateID(c, d.AuthorizedCertificateTemplateID)
-			if err != nil {
-				return nil, err
-			}
+			// _, err = cert.GetAuthorizedLatestCertByTemplateID(c, d.AuthorizedCertificateTemplateID)
+			// if err != nil {
+			// 	return nil, err
+			// }
 			certItems, err := cert.ListActiveCertDocsByTemplateID(c, d.AuthorizedCertificateTemplateID)
 			if err != nil {
 				return nil, err

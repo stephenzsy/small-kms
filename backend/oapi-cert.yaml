@@ -102,6 +102,26 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/CertificateResponse"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    post:
+      tags:
+        - admin
+      operationId: SetIssuerCertificate
+      summary: Set issuer certificate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyIssuerCertRequest"
+      responses:
+        204:
+          description: Issuer certificate set
+          content: {}
 security:
   - BearerAuth: []
 components:
@@ -237,6 +257,8 @@ components:
           type: string
         attributes:
           $ref: "#/components/schemas/CertificateAttributes"
+        issuerForPolicy:
+          $ref: "oapi-base.yaml#/components/schemas/SLocator"
       required:
         - thumbprint
         - attributes
@@ -280,6 +302,13 @@ components:
         - alg
         - x5t
         - x5t#S256
+    PolicyIssuerCertRequest:
+      type: object
+      properties:
+        issuerId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+      required:
+        - issuerId
   responses:
     CertPolicyResponse:
       description: Key spec reponse

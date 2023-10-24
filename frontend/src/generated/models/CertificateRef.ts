@@ -98,6 +98,12 @@ export interface CertificateRef {
      * @memberof CertificateRef
      */
     attributes: CertificateAttributes;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateRef
+     */
+    issuerForPolicy?: string;
 }
 
 /**
@@ -138,6 +144,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'updatedBy': json['updatedBy'],
         'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
+        'issuerForPolicy': !exists(json, 'issuerForPolicy') ? undefined : json['issuerForPolicy'],
     };
 }
 
@@ -160,6 +167,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'updatedBy': value.updatedBy,
         'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
+        'issuerForPolicy': value.issuerForPolicy,
     };
 }
 

@@ -8,6 +8,7 @@ import {
   Radio,
   Table,
   TableColumnType,
+  Tag,
   Typography,
 } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
@@ -23,6 +24,7 @@ import {
   JsonWebKeyCurveName,
   JsonWebKeyOperation,
   JsonWebKeyType,
+  NamespaceKind,
   NamespaceKind1,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
@@ -247,7 +249,39 @@ const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
-function useColumns() {
+type CertificateActionsProps = {
+  certRef: CertificateRef;
+  onSetIssuerPolicy?: (policyId: string) => void;
+  certPolicyId?: string;
+};
+
+function CertificateActions({
+  certRef,
+  certPolicyId,
+  onSetIssuerPolicy,
+}: CertificateActionsProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <Link to={`../cert/${certRef.resourceIdentifier}`}>View</Link>
+      {certPolicyId && certRef.issuerForPolicy ? (
+        <Tag color="success">Current Issuer</Tag>
+      ) : (
+        onSetIssuerPolicy && (
+          <Button
+            type="link"
+            onClick={() => {
+              onSetIssuerPolicy(certRef.resourceIdentifier);
+            }}
+          >
+            Set as issuer
+          </Button>
+        )
+      )}
+    </div>
+  );
+}
+
+function useColumns(restActionProps: Omit<CertificateActionsProps, "certRef">) {
   return useMemo<TableColumnType<CertificateRef>[]>(
     () => [
       {
@@ -275,10 +309,10 @@ function useColumns() {
       },
       {
         title: "Actions",
-        render: (r) => <Link to={`../cert/${r.resourceIdentifier}`}>View</Link>,
+        render: (r) => <CertificateActions certRef={r} {...restActionProps} />,
       },
     ],
-    []
+    [restActionProps]
   );
 }
 
@@ -311,8 +345,8 @@ export default function CertPolicyPage() {
       navigate(`./../${value.resourceIdentifier}`, { replace: true });
     }
   });
-  const columns = useColumns();
-  const { data: issuedCertificates } = useRequest(
+
+  const { data: issuedCertificates, refresh: refreshCertificate } = useRequest(
     () => {
       return adminApi.listCertificates({
         namespaceIdentifier: namespaceId,
@@ -322,6 +356,37 @@ export default function CertPolicyPage() {
     },
     { refreshDeps: [namespaceId, certPolicyId] }
   );
+
+  const { run: setIssuerPolicy } = useRequest(
+    async (issuerId: string) => {
+      await adminApi.setIssuerCertificate({
+        namespaceIdentifier: namespaceId,
+        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        resourceIdentifier: certPolicyId,
+        policyIssuerCertRequest: {
+          issuerId,
+        },
+      });
+      refreshCertificate();
+    },
+    {
+      manual: true,
+    }
+  );
+
+  const restProps = useMemo(() => {
+    switch (namespaceKind) {
+      case NamespaceKind.NamespaceKindRootCA:
+      case NamespaceKind.NamespaceKindIntermediateCA:
+        return {
+          onSetIssuerPolicy: setIssuerPolicy,
+          certPolicyId,
+        };
+    }
+    return {};
+  }, [namespaceKind]);
+
+  const columns = useColumns(restProps);
   return (
     <>
       <Typography.Title>

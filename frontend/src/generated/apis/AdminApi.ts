@@ -33,6 +33,7 @@ import type {
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind1,
+  PolicyIssuerCertRequest,
   ProfileParameters,
   ProfileRef,
   ResourceKind,
@@ -75,6 +76,8 @@ import {
     ManagedAppRefToJSON,
     NamespaceKind1FromJSON,
     NamespaceKind1ToJSON,
+    PolicyIssuerCertRequestFromJSON,
+    PolicyIssuerCertRequestToJSON,
     ProfileParametersFromJSON,
     ProfileParametersToJSON,
     ProfileRefFromJSON,
@@ -232,6 +235,13 @@ export interface RemoveKeyVaultRoleAssignmentRequest {
     namespaceId: string;
     templateId: string;
     roleAssignmentId: string;
+}
+
+export interface SetIssuerCertificateRequest {
+    namespaceKind: NamespaceKind1;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    policyIssuerCertRequest: PolicyIssuerCertRequest;
 }
 
 /**
@@ -1498,6 +1508,58 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async removeKeyVaultRoleAssignment(requestParameters: RemoveKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.removeKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Set issuer certificate
+     */
+    async setIssuerCertificateRaw(requestParameters: SetIssuerCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling setIssuerCertificate.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling setIssuerCertificate.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling setIssuerCertificate.');
+        }
+
+        if (requestParameters.policyIssuerCertRequest === null || requestParameters.policyIssuerCertRequest === undefined) {
+            throw new runtime.RequiredError('policyIssuerCertRequest','Required parameter requestParameters.policyIssuerCertRequest was null or undefined when calling setIssuerCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: PolicyIssuerCertRequestToJSON(requestParameters.policyIssuerCertRequest),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Set issuer certificate
+     */
+    async setIssuerCertificate(requestParameters: SetIssuerCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.setIssuerCertificateRaw(requestParameters, initOverrides);
     }
 
 }

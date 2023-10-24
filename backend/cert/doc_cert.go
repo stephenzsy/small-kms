@@ -5,11 +5,8 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/google/uuid"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -86,43 +83,6 @@ type CertDocSigningPatch struct {
 	Issuer        shared.ResourceLocator
 }
 
-func (d *CertDoc) patchSigned(c context.Context, patch *CertDocSigningPatch) (patchOps *azcosmos.PatchOperations) {
-	if !d.Updated.IsZero() {
-		patchOps = new(azcosmos.PatchOperations)
-		patchOps.AppendSet("/thumbprint", patch.Thumbprint.HexString())
-		patchOps.AppendSet("/certStorePath", patch.CertStorePath)
-		patchOps.AppendSet("/issuer", patch.Issuer.String())
-		patchOps.AppendSet("/status", CertStatusIssued)
-		patchOps.AppendRemove("/pendingExpires")
-		patchOps.AppendSet("/certSpec", patch.CertSpec)
-	}
-	d.Thumbprint = patch.Thumbprint
-	d.CertStorePath = patch.CertStorePath
-	d.Issuer = patch.Issuer
-	d.Status = CertStatusIssued
-	d.PendingExpires = nil
-	d.CertSpec = patch.CertSpec
-
-	return
-}
-
-func (d *CertDoc) readIssuerCertDoc(c RequestContext) (issuerDoc *CertDoc, err error) {
-	loadDocLocator := d.Issuer
-	switch loadDocLocator.GetID().Kind() {
-	case shared.ResourceKindCertTemplate:
-		// load the latest from template
-		loadDocLocator = loadDocLocator.WithIDKind(shared.ResourceKindLatestCertForTemplate)
-	case shared.ResourceKindCert,
-		shared.ResourceKindLatestCertForTemplate:
-		// ok
-	default:
-		return nil, fmt.Errorf("%w: invalid issuer locator", common.ErrStatusBadRequest)
-	}
-	issuerDoc = &CertDoc{}
-	err = kmsdoc.Read(c, loadDocLocator, issuerDoc)
-	return
-}
-
 func (doc *CertDoc) FetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 	blobClient := common.GetAdminServerClientProvider(c).CertsAzBlobContainerClient()
 	get, err := blobClient.NewBlobClient(doc.CertStorePath).DownloadStream(c, nil)
@@ -143,39 +103,6 @@ func (doc *CertDoc) FetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 
 	}
 	return downloadedData.Bytes(), nil
-}
-
-func prepareNewCertDoc(nsID shared.NamespaceIdentifier,
-	tmpl *ct.CertificateTemplateDoc) (*CertDoc, error) {
-
-	certID, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
-	now := time.Now().UTC()
-	doc := CertDoc{
-		BaseDoc: kmsdoc.BaseDoc{
-			NamespaceID:   nsID,
-			ID:            shared.NewResourceIdentifier(shared.ResourceKindCert, shared.UUIDIdentifier(certID)),
-			SchemaVersion: 1,
-		},
-		Status:            CertStatusInitialized,
-		SerialNumber:      certID[:],
-		SubjectCommonName: tmpl.SubjectCommonName,
-		Usages:            tmpl.Usages,
-		CertSpec: CertJwkSpec{
-			CertKeySpec: tmpl.KeySpec,
-		},
-		KeyStorePath:   tmpl.KeyStorePath,
-		Template:       tmpl.GetLocator(),
-		Issuer:         tmpl.IssuerTemplate,
-		NotBefore:      kmsdoc.TimeStorable(now),
-		NotAfter:       kmsdoc.TimeStorable(now.AddDate(0, int(tmpl.ValidityInMonths), 0)),
-		TemplateDigest: tmpl.Digest,
-		SANs:           tmpl.SANs,
-	}
-
-	return &doc, nil
 }
 
 func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {

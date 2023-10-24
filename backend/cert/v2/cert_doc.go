@@ -53,8 +53,9 @@ type CertDoc struct {
 
 type CertListQueryDoc struct {
 	base.BaseDoc
-	ThumbprintSHA1 base.Base64RawURLEncodedBytes `json:"x5t"`
-	NotAfter       base.NumericDate              `json:"exp"`
+	ThumbprintSHA1  base.Base64RawURLEncodedBytes `json:"x5t"`
+	NotAfter        base.NumericDate              `json:"exp"`
+	IssuerForPolicy *base.SLocator                `json:"issuerCertPolicyId,omitempty"`
 }
 
 const (
@@ -96,7 +97,7 @@ func (d *CertDoc) Init(
 	d.Subject = pDoc.Subject
 	d.SANs = pDoc.SANs
 	d.Flags = pDoc.Flags
-	d.Policy = pDoc.GetSLocator()
+	d.Policy = pDoc.GetPersistedSLocator()
 	d.PolicyVersion = pDoc.Version
 	d.KeyVaultStore.Name =
 		fmt.Sprintf("%s-%s-%s", d.NamespaceKind, d.NamespaceIdentifier.String(), pDoc.ResourceIdentifier.String())
@@ -125,10 +126,9 @@ func (d *CertListQueryDoc) PopulateModelRef(m *CertificateRef) {
 		return
 	}
 	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
-	if d.ThumbprintSHA1 != nil {
-		m.Thumbprint = d.ThumbprintSHA1.HexString()
-	}
+	m.Thumbprint = d.ThumbprintSHA1.HexString()
 	m.Attributes.Exp = &d.NotAfter
+	m.IssuerForPolicy = d.IssuerForPolicy
 }
 
 func (d *CertDoc) PopulateModel(m *Certificate) {

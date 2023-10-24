@@ -15,6 +15,31 @@ type server struct {
 	api.APIServer
 }
 
+// SetIssuerCertificate implements ServerInterface.
+func (s *server) SetIssuerCertificate(
+	ec echo.Context,
+	namespaceKind base.NamespaceKind,
+	namespaceIdentifier base.Identifier,
+	resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	params := new(PolicyIssuerCertRequest)
+	if err := c.Bind(params); err != nil {
+		return err
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	err := setIssuerCert(c, resourceIdentifier, params)
+	if err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 // GetCertificate implements ServerInterface.
 func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)

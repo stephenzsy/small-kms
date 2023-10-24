@@ -89,16 +89,16 @@ const (
 
 // Defines values for ResourceKind.
 const (
-	ResourceKindAgentCallback         ResourceKind = "agent-callback"
-	ResourceKindAgentConfig           ResourceKind = "agent-config"
-	ResourceKindApp                   ResourceKind = "app"
-	ResourceKindCaInt                 ResourceKind = "ca-int"
-	ResourceKindCaRoot                ResourceKind = "ca-root"
-	ResourceKindCert                  ResourceKind = "cert"
-	ResourceKindCertTemplate          ResourceKind = "cert-template"
-	ResourceKindLatestCertForTemplate ResourceKind = "latest-cert-for-template"
-	ResourceKindMsGraph               ResourceKind = "ms-graph"
-	ResourceKindReserved              ResourceKind = "reserved"
+	AgentCallback             ResourceKind = "agent-callback"
+	ResourceKindAgentCallback ResourceKind = "agent-config"
+	ResourceKindAgentConfig   ResourceKind = "latest-cert-for-template"
+	ResourceKindApp           ResourceKind = "app"
+	ResourceKindCaInt         ResourceKind = "ca-int"
+	ResourceKindCaRoot        ResourceKind = "ca-root"
+	ResourceKindCert          ResourceKind = "cert"
+	ResourceKindCertTemplate  ResourceKind = "cert-template"
+	ResourceKindMsGraph       ResourceKind = "ms-graph"
+	ResourceKindReserved      ResourceKind = "reserved"
 )
 
 // Defines values for TemplatedCertificateTag.

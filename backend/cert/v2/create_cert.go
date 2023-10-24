@@ -87,7 +87,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		if err != nil {
 			return nil, err
 		}
-		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetSLocator(), nil)
+		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
 		if err != nil {
 			return nil, err
 		}

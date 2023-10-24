@@ -26,6 +26,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1create-cert"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert: 
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1issuer-cert"
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

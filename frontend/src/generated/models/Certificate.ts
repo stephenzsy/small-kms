@@ -124,6 +124,12 @@ export interface Certificate {
     attributes: CertificateAttributes;
     /**
      * 
+     * @type {string}
+     * @memberof Certificate
+     */
+    issuerForPolicy?: string;
+    /**
+     * 
      * @type {CertificateSubject}
      * @memberof Certificate
      */
@@ -214,6 +220,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'updatedBy': json['updatedBy'],
         'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
+        'issuerForPolicy': !exists(json, 'issuerForPolicy') ? undefined : json['issuerForPolicy'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
@@ -244,6 +251,7 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'updatedBy': value.updatedBy,
         'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
+        'issuerForPolicy': value.issuerForPolicy,
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),

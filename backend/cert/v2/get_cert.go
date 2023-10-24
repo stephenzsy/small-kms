@@ -8,10 +8,9 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getCertificate(c context.Context, rID base.Identifier) (*Certificate, error) {
-
+func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 	if !rID.IsUUID() {
-		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
+		return nil, fmt.Errorf("%w: invalid resource identifier: %s", base.ErrResponseStatusBadRequest, rID.String())
 	}
 
 	nsCtx := ns.GetNSContext(c)
@@ -23,6 +22,11 @@ func getCertificate(c context.Context, rID base.Identifier) (*Certificate, error
 	}
 
 	err := base.GetAzCosmosCRUDService(c).Read(c, slocator.NID, slocator.RID, doc, nil)
+	return doc, err
+}
+
+func getCertificate(c context.Context, rID base.Identifier) (*Certificate, error) {
+	doc, err := getCertDocByID(c, rID)
 	m := new(Certificate)
 	doc.PopulateModel(m)
 	return m, err

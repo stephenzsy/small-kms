@@ -50,3 +50,10 @@ func (sl *storageLocator) String() string {
 	b, _ := sl.MarshalText()
 	return string(b)
 }
+
+func (sl *storageLocator) IsNilOrEmpty() bool {
+	if sl == nil {
+		return true
+	}
+	return sl.NID == uuid.Nil && sl.RID == uuid.Nil
+}

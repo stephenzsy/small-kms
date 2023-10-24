@@ -24,9 +24,9 @@ const (
 	ProfileResourceKindRootCA           ResourceKind = "root-ca"
 	ProfileResourceKindServicePrincipal ResourceKind = "service-principal"
 	ResourceKindCert                    ResourceKind = "cert"
-	ResourceKindCertLink                ResourceKind = "cert-link"
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy               ResourceKind = "key-policy"
+	ResourceKindRel                     ResourceKind = "rel"
 )
 
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.

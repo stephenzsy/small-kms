@@ -24,14 +24,24 @@ type CRUDDocHasCustomStorageID interface {
 
 type CRUDDoc interface {
 	// can only be used on a doc that has been read from storage
-	GetSLocator() SLocator
+	GetPersistedSLocator() SLocator
 	getDefaultStorageNamespaceID(c context.Context) uuid.UUID
 	getDefaultStorageID(c context.Context) uuid.UUID
 	GetUpdatedBy() string
+	getETag() *azcore.ETag
 	setETag(etag azcore.ETag)
 	setTimestamp(t time.Time)
 	setUpdatedBy(string)
 	prepareForWrite(c context.Context, storageNID, storageRID uuid.UUID)
+
+	setRelationsFunc(func(*DocRelations) *DocRelations)
+}
+
+type RelName string
+
+type DocRelations struct {
+	NamedFrom map[RelName]SLocator `json:"namedFrom,omitempty"`
+	NamedTo   map[RelName]SLocator `json:"namedTo,omitempty"`
 }
 
 type BaseDoc struct {
@@ -47,10 +57,17 @@ type BaseDoc struct {
 	ETag      *azcore.ETag     `json:"_etag,omitempty"`
 	Deleted   *time.Time       `json:"deleted,omitempty"`
 	UpdatedBy string           `json:"updatedBy,omitempty"`
+
+	Relations *DocRelations `json:"@rels,omitempty"`
 }
 
-// GetSLocator implements CRUDDoc.
-func (b *BaseDoc) GetSLocator() SLocator {
+// setRelations implements CRUDDoc.
+func (d *BaseDoc) setRelationsFunc(f func(*DocRelations) *DocRelations) {
+	d.Relations = f(d.Relations)
+}
+
+// GetPersistedSLocator implements CRUDDoc.
+func (b *BaseDoc) GetPersistedSLocator() SLocator {
 	return SLocator{
 		b.StorageNamespaceID,
 		b.StorageID,
@@ -76,6 +93,10 @@ func (d *BaseDoc) setUpdatedBy(val string) {
 
 const (
 	baseDocPatchColumnUpdatedBy = "/updatedBy"
+
+	baseDocPatchColumnRelations          = "/@rels"
+	baseDocPatchColumnRelationsNamedFrom = "/@rels/namedFrom"
+	baseDocPatchColumnRelationsNamedTo   = "/@rels/namedTo"
 )
 
 // GetUpdatedBy implements CRUDDoc.
@@ -127,6 +148,10 @@ func (d *BaseDoc) getDefaultStorageID(c context.Context) uuid.UUID {
 		d.ResourceIdentifier)
 }
 
+func (d *BaseDoc) getETag() *azcore.ETag {
+	return d.ETag
+}
+
 // setETag implements CRUDDoc.
 func (d *BaseDoc) setETag(eTag azcore.ETag) {
 	d.ETag = &eTag
@@ -149,7 +174,9 @@ type AzCosmosCRUDDocService interface {
 	Upsert(context.Context, CRUDDoc, *azcosmos.ItemOptions) error
 	Read(c context.Context, storageNamespaceID, storageID uuid.UUID, dst CRUDDoc, opts *azcosmos.ItemOptions) error
 	Patch(context.Context, CRUDDoc, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
+	patchByLocator(context.Context, SLocator, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
 	NewQueryItemsPager(query string, storageNamespaceID uuid.UUID, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
+	getClient() *azcosmos.ContainerClient
 	// TODO: SoftDelete(context.Context)
 	// TODO: Purge(context.Context)
 }
@@ -207,7 +234,7 @@ func (s *azcosmosContainerCRUDDocService) Read(c context.Context, storageNamespa
 	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
 	resp, err := s.client.ReadItem(c, partitionKey, storageID.String(), nil)
 	if err != nil {
-		return err
+		return HandleAzCosmosError(err)
 	}
 	err = json.Unmarshal(resp.Value, dst)
 	dst.setETag(resp.ETag)
@@ -256,6 +283,17 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc CRUDDoc, 
 	return nil
 }
 
+func (s *azcosmosContainerCRUDDocService) patchByLocator(c context.Context, locator SLocator, ops azcosmos.PatchOperations, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(locator.NID.String())
+	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
+	ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
+	_, err := s.client.PatchItem(c, partitionKey, locator.RID.String(), ops, o)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Purge implements AzCosmosCRUDDocService.
 func (*azcosmosContainerCRUDDocService) Purge(context.Context) {
 	panic("unimplemented")
@@ -264,6 +302,11 @@ func (*azcosmosContainerCRUDDocService) Purge(context.Context) {
 // SoftDelete implements AzCosmosCRUDDocService.
 func (*azcosmosContainerCRUDDocService) SoftDelete(context.Context) {
 	panic("unimplemented")
+}
+
+// getClient implements AzCosmosCRUDDocService.
+func (s *azcosmosContainerCRUDDocService) getClient() *azcosmos.ContainerClient {
+	return s.client
 }
 
 var _ AzCosmosCRUDDocService = (*azcosmosContainerCRUDDocService)(nil)

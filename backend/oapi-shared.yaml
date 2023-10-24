@@ -435,7 +435,6 @@ components:
         - ResourceKindApp
         - ResourceKindCertTemplate
         - ResourceKindCert
-        - ResourceKindLatestCertForTemplate
         - ResourceKindAgentConfig
         - ResourceKindAgentCallback
     ResourceLocator:

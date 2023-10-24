@@ -57,6 +57,7 @@ export * from './ManagedAppRef';
 export * from './ManagedAppRefFields';
 export * from './NamespaceKind';
 export * from './NamespaceKind1';
+export * from './PolicyIssuerCertRequest';
 export * from './ProfileParameters';
 export * from './ProfileRef';
 export * from './ProfileRefFields';

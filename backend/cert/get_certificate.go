@@ -9,11 +9,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/rs/zerolog/log"
 	certtemplate "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
-	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -23,10 +21,6 @@ import (
 
 func NewCertificateID(certId shared.Identifier) shared.ResourceIdentifier {
 	return shared.NewResourceIdentifier(shared.ResourceKindCert, certId)
-}
-
-func NewLatestCertificateForTemplateID(templateId shared.Identifier) shared.ResourceIdentifier {
-	return shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, templateId)
 }
 
 func ReadCertDocByLocator(c context.Context, locator shared.ResourceLocator) (*CertDoc, error) {
@@ -41,13 +35,6 @@ func ApiGetCertificate(c RequestContext, certificateId shared.Identifier, params
 		return err
 	}
 	return c.JSON(200, cert)
-}
-
-func getLatestCertificateByTemplateDoc(c RequestContext, templateLocator shared.ResourceLocator) (doc *CertDoc, err error) {
-	doc = &CertDoc{}
-	err = kmsdoc.Read[*CertDoc](c,
-		shared.NewResourceLocator(templateLocator.GetNamespaceID(), shared.NewResourceIdentifier(shared.ResourceKindLatestCertForTemplate, templateLocator.GetID().Identifier())), doc)
-	return
 }
 
 func getCertificate(c RequestContext, certificateId shared.Identifier, params models.GetCertificateParams) (*shared.CertificateInfo, error) {
@@ -112,9 +99,9 @@ func getCertificate(c RequestContext, certificateId shared.Identifier, params mo
 // This call has writes, please do not use for regular query
 func GetAuthorizedLatestCertByTemplateID(c context.Context, templateID shared.Identifier) (*CertDoc, error) {
 	nsID := ns.GetNamespaceContext(c).GetID()
-	if !templateID.IsUUID() || templateID.UUID().Version() != 5 {
-		return ReadCertDocByLocator(c, shared.NewResourceLocator(nsID, NewLatestCertificateForTemplateID(templateID)))
-	}
+	// if !templateID.IsUUID() || templateID.UUID().Version() != 5 {
+	// 	return ReadCertDocByLocator(c, shared.NewResourceLocator(nsID, NewLatestCertificateForTemplateID(templateID)))
+	// }
 
 	// read linked doc
 	localTemplateLocator := shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCertTemplate, templateID))
@@ -127,43 +114,44 @@ func GetAuthorizedLatestCertByTemplateID(c context.Context, templateID shared.Id
 	} else if localTemplateDoc.LinkProperties == nil || localTemplateDoc.LinkProperties.Usage != models.LinkedCertificateTemplateUsageClientAuthorization {
 		return nil, fmt.Errorf("%w: template is not linked for client authorization", common.ErrStatusBadRequest)
 	}
-	remoteTemplateLocator := *localTemplateDoc.Owner
-	remoteCertLinkLocator := remoteTemplateLocator.WithIDKind(shared.ResourceKindLatestCertForTemplate)
-	remoteCertLinkDoc, err := ReadCertDocByLocator(c, remoteCertLinkLocator)
-	if err != nil {
-		return nil, err
-	}
+	return nil, nil
+	// remoteTemplateLocator := *localTemplateDoc.Owner
+	// remoteCertLinkLocator := remoteTemplateLocator.WithIDKind(shared.ResourceKindLatestCertForTemplate)
+	// remoteCertLinkDoc, err := ReadCertDocByLocator(c, remoteCertLinkLocator)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	// create link
-	targetFinalLocator := remoteCertLinkDoc.GetLocator()
-	targetCertDoc, err := ReadCertDocByLocator(c, targetFinalLocator)
-	if err != nil {
-		return nil, err
-	}
+	// targetFinalLocator := remoteCertLinkDoc.GetLocator()
+	// targetCertDoc, err := ReadCertDocByLocator(c, targetFinalLocator)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	linkedCertDoc := *targetCertDoc
-	linkedCertDoc.NamespaceID = nsID
-	linkedCertDoc.ID = targetFinalLocator.GetID()
-	linkedCertDoc.Owner = &targetFinalLocator
-	linkedCertDoc.Owns = nil
-	linkedCertDoc.Template = localTemplateLocator
+	// linkedCertDoc := *targetCertDoc
+	// linkedCertDoc.NamespaceID = nsID
+	// linkedCertDoc.ID = targetFinalLocator.GetID()
+	// linkedCertDoc.Owner = &targetFinalLocator
+	// linkedCertDoc.Owns = nil
+	// linkedCertDoc.Template = localTemplateLocator
 
-	{
-		c := ctx.Elevate(c)
-		err = kmsdoc.Upsert(c, &linkedCertDoc)
-		if err != nil {
-			return nil, err
-		}
-		patchOps := azcosmos.PatchOperations{}
-		if targetCertDoc.Owns == nil {
-			patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
-				nsID: linkedCertDoc.GetLocator(),
-			})
-		} else {
-			patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), linkedCertDoc.GetLocator())
-		}
-		err = kmsdoc.Patch(c, targetCertDoc, patchOps, &azcosmos.ItemOptions{
-			IfMatchEtag: &targetCertDoc.ETag,
-		})
-		return &linkedCertDoc, err
-	}
+	// {
+	// 	c := ctx.Elevate(c)
+	// 	err = kmsdoc.Upsert(c, &linkedCertDoc)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	patchOps := azcosmos.PatchOperations{}
+	// 	if targetCertDoc.Owns == nil {
+	// 		patchOps.AppendSet(kmsdoc.PatchPathOwns, map[shared.NamespaceIdentifier]shared.ResourceLocator{
+	// 			nsID: linkedCertDoc.GetLocator(),
+	// 		})
+	// 	} else {
+	// 		patchOps.AppendSet(fmt.Sprintf("%s/%s", kmsdoc.PatchPathOwns, nsID), linkedCertDoc.GetLocator())
+	// 	}
+	// 	err = kmsdoc.Patch(c, targetCertDoc, patchOps, &azcosmos.ItemOptions{
+	// 		IfMatchEtag: &targetCertDoc.ETag,
+	// 	})
+	// 	return &linkedCertDoc, err
+	// }
 }

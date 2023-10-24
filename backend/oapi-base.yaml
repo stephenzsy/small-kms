@@ -51,8 +51,8 @@ components:
         - service-principal
         - cert-policy
         - cert
-        - cert-link
         - key-policy
+        - rel
       x-enum-varnames:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
@@ -60,8 +60,8 @@ components:
         - ProfileResourceKindServicePrincipal
         - ResourceKindCertPolicy
         - ResourceKindCert
-        - ResourceKindCertLink
         - ResourceKindKeyPolicy
+        - ResourceKindRel
     SLocator:
       type: string
       x-go-type: storageLocator

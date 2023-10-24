@@ -14,7 +14,7 @@ import (
 func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*CertificateRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder(base.ResourceKindCert).
-		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter).
+		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter, "c[\"@rels\"].namedFrom[\"issuer-cert\"] AS issuerCertPolicyId").
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated))
 	nsCtx := ns.GetNSContext(c)
 	storageNsID := base.GetDefaultStorageNamespaceID(c, nsCtx.Kind(), nsCtx.Identifier())

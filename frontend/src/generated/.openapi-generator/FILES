@@ -59,6 +59,7 @@ models/ManagedAppRef.ts
 models/ManagedAppRefFields.ts
 models/NamespaceKind.ts
 models/NamespaceKind1.ts
+models/PolicyIssuerCertRequest.ts
 models/ProfileParameters.ts
 models/ProfileRef.ts
 models/ProfileRefFields.ts
