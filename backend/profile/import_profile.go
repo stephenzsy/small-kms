@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -32,6 +33,10 @@ func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID bas
 			},
 		})
 		if err != nil {
+			err = base.HandleMsGraphError(err)
+			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
+				return nil, fmt.Errorf("%w: service principal not found: %s", base.ErrResponseStatusNotFound, rID.String())
+			}
 			return nil, err
 		}
 		d := new(ServicePrincipalProfileDoc)

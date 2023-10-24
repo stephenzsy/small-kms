@@ -65,20 +65,6 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
                         {isAdmin && (
                           <>
                             <Link
-                              to="/admin"
-                              className={classNames(
-                                isCurrentRouteAdmin
-                                  ? "bg-gray-900 text-white"
-                                  : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                                "rounded-md px-3 py-2 text-sm font-medium"
-                              )}
-                              aria-current={
-                                isCurrentRouteAdmin ? "page" : undefined
-                              }
-                            >
-                              Admin
-                            </Link>
-                            <Link
                               to="/admin/settings"
                               className={classNames(
                                 "text-gray-300 hover:bg-gray-700 hover:text-white",
@@ -95,7 +81,7 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
                               )}
                             >
                               CAs
-                            </NavLink>                            
+                            </NavLink>
                             <NavLink
                               to="/app"
                               className={classNames(

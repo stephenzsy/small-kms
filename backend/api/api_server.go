@@ -10,6 +10,7 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
@@ -20,13 +21,14 @@ type APIServer interface {
 }
 
 type apiServer struct {
-	chCtx                context.Context
-	siteURL              string
-	docService           base.AzCosmosCRUDDocService
-	serviceMsGraphClient *msgraphsdkgo.GraphServiceClient
-	azCertificatesClient *azcertificates.Client
-	azKeysClient         *azkeys.Client
-	legacyClientProvider common.AdminServerClientProvider
+	chCtx                   context.Context
+	siteURL                 string
+	docService              base.AzCosmosCRUDDocService
+	serviceMsGraphClient    *msgraphsdkgo.GraphServiceClient
+	azCertificatesClient    *azcertificates.Client
+	azKeysClient            *azkeys.Client
+	legacyClientProvider    common.AdminServerClientProvider
+	appConfidentialIdentity auth.AzureAppConfidentialIdentity
 }
 
 // AzCertificatesClient implements kv.AzKeyVaultService.
@@ -70,6 +72,8 @@ func (s *apiServer) Value(key any) any {
 		return s
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
+	case auth.AppConfidentialIdentityContextKey:
+		return s.appConfidentialIdentity
 	case common.AdminServerClientProviderContextKey:
 		return s.legacyClientProvider
 	}
@@ -81,13 +85,14 @@ var _ context.Context = (*apiServer)(nil)
 func NewApiServer(c context.Context, serverOld *server) *apiServer {
 
 	return &apiServer{
-		chCtx:                c,
-		siteURL:              common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
-		docService:           base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
-		serviceMsGraphClient: serverOld.clients.msGraphClient,
-		azCertificatesClient: serverOld.clients.azCertificatesClient,
-		azKeysClient:         serverOld.clients.azKeysClient,
-		legacyClientProvider: &serverOld.clients,
+		chCtx:                   c,
+		siteURL:                 common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
+		docService:              base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
+		serviceMsGraphClient:    serverOld.clients.msGraphClient,
+		azCertificatesClient:    serverOld.clients.azCertificatesClient,
+		azKeysClient:            serverOld.clients.azKeysClient,
+		appConfidentialIdentity: serverOld.appIdentity,
+		legacyClientProvider:    &serverOld.clients,
 	}
 }
 

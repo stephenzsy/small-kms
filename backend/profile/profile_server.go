@@ -17,11 +17,13 @@ type server struct {
 }
 
 const (
-	namespaceIDCA = "ca"
+	namespaceIDCA              = "ca"
+	namespaceIDDirectoryObject = "directoryObject"
 )
 
 var (
-	namespaceIdentifierCA = base.StringIdentifier(namespaceIDCA)
+	namespaceIdentifierCA              = base.StringIdentifier(namespaceIDCA)
+	namespaceIdentifierDirectoryObject = base.StringIdentifier(namespaceIDDirectoryObject)
 )
 
 func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identifier, error) {
@@ -29,6 +31,8 @@ func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identif
 	case base.ProfileResourceKindRootCA,
 		base.ProfileResourceKindIntermediateCA:
 		return namespaceIdentifierCA, nil
+	case base.ProfileResourceKindServicePrincipal:
+		return namespaceIdentifierDirectoryObject, nil
 	}
 	return base.Identifier{}, fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)
 }

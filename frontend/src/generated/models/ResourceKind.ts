@@ -21,6 +21,7 @@ export const ResourceKind = {
     ProfileResourceKindManagedApp: 'managed-app',
     ProfileResourceKindRootCA: 'root-ca',
     ProfileResourceKindIntermediateCA: 'int-ca',
+    ProfileResourceKindServicePrincipal: 'service-principal',
     ResourceKindCertPolicy: 'cert-policy',
     ResourceKindCert: 'cert',
     ResourceKindCertLink: 'cert-link',

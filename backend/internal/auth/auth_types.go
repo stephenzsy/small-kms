@@ -13,7 +13,7 @@ type contextKey int
 
 const (
 	authIdentityContextKey contextKey = iota
-	appConfidentialIdentityContextKey
+	AppConfidentialIdentityContextKey
 )
 
 const (
@@ -51,7 +51,7 @@ func (a *authIdentity) ClientPrincipalID() uuid.UUID {
 
 // GetOnBehalfOfTokenCredential implements AuthIdentity.
 func (a *authIdentity) GetOnBehalfOfTokenCredential(c context.Context, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error) {
-	i := c.Value(appConfidentialIdentityContextKey).(AzureAppConfidentialIdentity)
+	i := c.Value(AppConfidentialIdentityContextKey).(AzureAppConfidentialIdentity)
 	return i.NewOnBehalfOfTokenCredential(a.bearerToken, opts)
 }
 

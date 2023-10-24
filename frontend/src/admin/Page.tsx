@@ -1,41 +1,7 @@
-import { useRequest } from "ahooks";
-import { Link } from "react-router-dom";
-import {
-  AdminApi,
-  NamespaceKind1 as NamespaceKind,
-  LegacyProfileRef as ProfileRef,
-} from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { RefTableColumn, RefsTable } from "./RefsTable";
 import { Card, CardSection } from "../components/Card";
-
-const displayNameColumn: RefTableColumn<ProfileRef> = {
-  columnKey: "displayName",
-  header: "Display Name",
-  render: (item) => item.displayName,
-};
+import { NamespaceKind1 as NamespaceKind } from "../generated";
 
 export default function AdminPage() {
-  const adminApi = useAuthedClient(AdminApi);
-  const { data: allNs } = useRequest(
-    async () => {
-      const results = {} as any;
-      const l = [
-        NamespaceKind.NamespaceKindCaRoot,
-        NamespaceKind.NamespaceKindCaInt,
-        NamespaceKind.NamespaceKindServicePrincipal,
-        NamespaceKind.NamespaceKindGroup,
-        NamespaceKind.NamespaceKindDevice,
-        NamespaceKind.NamespaceKindUser,
-        NamespaceKind.NamespaceKindApplication,
-      ];
-      return results;
-    },
-    {
-      refreshDeps: [],
-    }
-  );
-
   return (
     <>
       {(
@@ -53,31 +19,7 @@ export default function AdminPage() {
         ] as Array<[NamespaceKind, string]>
       ).map(([t, title]: [NamespaceKind, string]) => (
         <Card key={t}>
-          <CardSection>
-            <RefsTable
-              items={allNs?.[t]}
-              title={title}
-              refActions={(ref) => (
-                <Link
-                  to={`/admin/${t}/${ref.id}`}
-                  className="text-indigo-600 hover:text-indigo-900"
-                >
-                  View
-                </Link>
-              )}
-              tableActions={
-                t == NamespaceKind.NamespaceKindApplication && (
-                  <Link
-                    to={`/admin/${t}/register`}
-                    className="text-indigo-600 hover:text-indigo-900"
-                  >
-                    Register
-                  </Link>
-                )
-              }
-              columns={[displayNameColumn]}
-            />
-          </CardSection>
+          <CardSection></CardSection>
         </Card>
       ))}
     </>

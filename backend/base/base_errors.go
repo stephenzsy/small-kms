@@ -28,6 +28,7 @@ var (
 
 	ErrResponseStatusBadRequest = httpResposneError(http.StatusBadRequest, "bad request")
 	ErrResponseStatusForbidden  = httpResposneError(http.StatusForbidden, "forbidden")
+	ErrResponseStatusNotFound   = httpResposneError(http.StatusNotFound, "not found")
 )
 
 func HandleMsGraphError(err error) error {

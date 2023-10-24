@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind1 } from './NamespaceKind1';
-import {
-    NamespaceKind1FromJSON,
-    NamespaceKind1FromJSONTyped,
-    NamespaceKind1ToJSON,
-} from './NamespaceKind1';
-
 /**
  * 
  * @export
@@ -28,22 +21,10 @@ import {
 export interface ProfileRefFields {
     /**
      * 
-     * @type {NamespaceKind1}
-     * @memberof ProfileRefFields
-     */
-    type: NamespaceKind1;
-    /**
-     * Display name of the resource
      * @type {string}
      * @memberof ProfileRefFields
      */
     displayName: string;
-    /**
-     * Whether the resource is managed by the application
-     * @type {boolean}
-     * @memberof ProfileRefFields
-     */
-    isAppManaged?: boolean;
 }
 
 /**
@@ -51,7 +32,6 @@ export interface ProfileRefFields {
  */
 export function instanceOfProfileRefFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "type" in value;
     isInstance = isInstance && "displayName" in value;
 
     return isInstance;
@@ -67,9 +47,7 @@ export function ProfileRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'type': NamespaceKind1FromJSON(json['type']),
         'displayName': json['displayName'],
-        'isAppManaged': !exists(json, 'isAppManaged') ? undefined : json['isAppManaged'],
     };
 }
 
@@ -82,9 +60,7 @@ export function ProfileRefFieldsToJSON(value?: ProfileRefFields | null): any {
     }
     return {
         
-        'type': NamespaceKind1ToJSON(value.type),
         'displayName': value.displayName,
-        'isAppManaged': value.isAppManaged,
     };
 }
 

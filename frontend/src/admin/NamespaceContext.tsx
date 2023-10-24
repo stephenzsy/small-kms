@@ -1,14 +1,10 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import {
-  AdminApi,
-  NamespaceKind1 as NamespaceKind,
-  Profile,
-} from "../generated";
+import { AdminApi, NamespaceKind1 as NamespaceKind } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 
 export const NamespaceContext = React.createContext<{
-  nsInfo: Profile | undefined;
+  nsInfo: undefined;
 }>({ nsInfo: undefined });
 
 export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {

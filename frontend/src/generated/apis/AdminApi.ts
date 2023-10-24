@@ -33,7 +33,6 @@ import type {
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind1,
-  Profile,
   ProfileParameters,
   ProfileRef,
   ResourceKind,
@@ -76,8 +75,6 @@ import {
     ManagedAppRefToJSON,
     NamespaceKind1FromJSON,
     NamespaceKind1ToJSON,
-    ProfileFromJSON,
-    ProfileToJSON,
     ProfileParametersFromJSON,
     ProfileParametersToJSON,
     ProfileRefFromJSON,
@@ -167,6 +164,11 @@ export interface GetProfileRequest {
     namespaceIdentifier: string;
 }
 
+export interface ImportProfileRequest {
+    profileResourceKind: ResourceKind;
+    namespaceIdentifier: string;
+}
+
 export interface ListCertPoliciesRequest {
     namespaceKind: NamespaceKind1;
     namespaceIdentifier: string;
@@ -230,11 +232,6 @@ export interface RemoveKeyVaultRoleAssignmentRequest {
     namespaceId: string;
     templateId: string;
     roleAssignmentId: string;
-}
-
-export interface SyncProfileRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
 }
 
 /**
@@ -835,7 +832,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Get profile
      */
-    async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+    async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
         if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
             throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling getProfile.');
         }
@@ -863,13 +860,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
     }
 
     /**
      * Get profile
      */
-    async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+    async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
         const response = await this.getProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -905,6 +902,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getServiceConfig(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
         const response = await this.getServiceConfigRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Import profile
+     */
+    async importProfileRaw(requestParameters: ImportProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
+        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
+            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling importProfile.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling importProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}/import`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Import profile
+     */
+    async importProfile(requestParameters: ImportProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
+        const response = await this.importProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1366,7 +1405,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Put profile
      */
-    async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+    async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
         if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
             throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling putProfile.');
         }
@@ -1401,13 +1440,13 @@ export class AdminApi extends runtime.BaseAPI {
             body: ProfileParametersToJSON(requestParameters.profileParameters),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
     }
 
     /**
      * Put profile
      */
-    async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+    async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
         const response = await this.putProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1459,48 +1498,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async removeKeyVaultRoleAssignment(requestParameters: RemoveKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.removeKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * Sync namespace info with ms graph
-     */
-    async syncProfileRaw(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling syncProfile.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/profiles/{namespaceKind}/{namespaceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Sync namespace info with ms graph
-     */
-    async syncProfile(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
-        const response = await this.syncProfileRaw(requestParameters, initOverrides);
-        return await response.value();
     }
 
 }

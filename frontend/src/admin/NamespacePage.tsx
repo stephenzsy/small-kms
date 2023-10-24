@@ -99,22 +99,10 @@ export function CertificateTemplatesList({
   );
 }
 
-function CommonNamespacePage({ children }: React.PropsWithChildren<{}>) {
-  const { nsInfo } = React.useContext(NamespaceContext);
-  return (
-    <>
-      <Typography.Title>
-        {nsInfo?.type}: {nsInfo?.displayName}
-      </Typography.Title>
-      <pre>{nsInfo?.id}</pre>
-      {children}
-    </>
-  );
-}
-
 function ApplicationNamespacePage({ namespaceId }: { namespaceId: string }) {
   return (
-    <CommonNamespacePage>
+    <>
+      {" "}
       <Card title="Certificate templates">
         <CertificateTemplateTable />
       </Card>
@@ -124,7 +112,7 @@ function ApplicationNamespacePage({ namespaceId }: { namespaceId: string }) {
       <Card title="Provision agent">
         <ProvisionAgentForm namespaceId={namespaceId} />
       </Card>
-    </CommonNamespacePage>
+    </>
   );
 }
 
@@ -138,33 +126,11 @@ export default function NamespacePage() {
   if (nsKind === NamespaceKind.NamespaceKindApplication) {
     return <ApplicationNamespacePage namespaceId={namespaceId} />;
   }
-  const nsType = nsInfo?.type;
   return (
     <>
       <h1>{namespaceId}</h1>
-      <div>{nsType}</div>
-      {(nsType === NamespaceKind.NamespaceKindCaRoot ||
-        nsType === NamespaceKind.NamespaceKindCaInt ||
-        nsType == NamespaceKind.NamespaceKindServicePrincipal ||
-        nsType == NamespaceKind.NamespaceKindDevice) && (
-        <CCard>
-          <CardSection>
-            <CertificateTemplatesList
-              nsType={nsType}
-              namespaceId={namespaceId}
-            />
-          </CardSection>
-        </CCard>
-      )}
-      {nsType === NamespaceKind.NamespaceKindDevice && (
-        <DeviceServicePrincipalLink namespaceId={namespaceId} />
-      )}
-      {nsType === NamespaceKind.NamespaceKindServicePrincipal && (
-        <AgentConfigurationForm
-          namespaceId={namespaceId}
-          namespaceKind={nsType}
-        />
-      )}
+
+      <DeviceServicePrincipalLink namespaceId={namespaceId} />
     </>
   );
 }

@@ -19,8 +19,7 @@ const ServicePage = React.lazy(() => import("./service/Page"));
 const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
-const ManagedAppsPage = React.lazy(() => import("./admin/ManagedAppsPage"));
-const RegisterPage = React.lazy(() => import("./admin/RegisterPage"));
+const AppsPage = React.lazy(() => import("./admin/AppsPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
 
@@ -50,7 +49,7 @@ export const router = createBrowserRouter([
             path: "app",
             id: RouteIds.apps,
             element: <Outlet />,
-            children: [{ index: true, element: <ManagedAppsPage /> }],
+            children: [{ index: true, element: <AppsPage /> }],
           },
           {
             path: "ca",
@@ -101,10 +100,6 @@ export const router = createBrowserRouter([
                         element: <AgentDashboardPage />,
                       },
                     ],
-                  },
-                  {
-                    path: "register",
-                    element: <RegisterPage />,
                   },
                 ],
               },
