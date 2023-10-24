@@ -3,6 +3,7 @@ package base
 import (
 	"encoding"
 	"encoding/base64"
+	"encoding/hex"
 )
 
 type base64RawURLEncodedBytesImpl []byte
@@ -15,11 +16,15 @@ func (b base64RawURLEncodedBytesImpl) MarshalText() (text []byte, err error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (b Base64RawURLEncodedBytes) UnmarshalText(text []byte) error {
-	b = make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
-	_, err := base64.RawURLEncoding.Decode(b, text)
+func (b *Base64RawURLEncodedBytes) UnmarshalText(text []byte) error {
+	*b = make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
+	_, err := base64.RawURLEncoding.Decode(*b, text)
 	return err
 }
 
 var _ encoding.TextMarshaler = base64RawURLEncodedBytesImpl{}
-var _ encoding.TextUnmarshaler = (base64RawURLEncodedBytesImpl)(nil)
+var _ encoding.TextUnmarshaler = (*base64RawURLEncodedBytesImpl)(nil)
+
+func (b Base64RawURLEncodedBytes) HexString() string {
+	return hex.EncodeToString(b)
+}

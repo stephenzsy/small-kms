@@ -94,23 +94,6 @@ type CertificateTemplateFields struct {
 	ValidityInMonths        int32                                 `json:"validity_months"`
 }
 
-// CertificateTemplateParameters Certificate fields, may accept template substitutions
-type CertificateTemplateParameters struct {
-	IssuerTemplate *externalRef0.ResourceLocator `json:"issuerTemplate,omitempty"`
-	KeyExportable  *bool                         `json:"keyExportable,omitempty"`
-
-	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties           *externalRef0.JwkProperties           `json:"keyProperties,omitempty"`
-	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
-	LifetimeTrigger         *CertificateLifetimeTrigger           `json:"lifetimeTrigger,omitempty"`
-	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string                          `json:"subjectCommonName"`
-	Usages            []externalRef0.CertificateUsage `json:"usages"`
-	ValidityInMonths  *int32                          `json:"validity_months,omitempty"`
-}
-
 // CertificateTemplateRef defines model for CertificateTemplateRef.
 type CertificateTemplateRef struct {
 	// Deleted Time when the deleted was deleted
@@ -276,9 +259,6 @@ type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration
 
 // PutAgentConfigurationJSONRequestBody defines body for PutAgentConfiguration for application/json ContentType.
 type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParameters
-
-// PutCertificateTemplateJSONRequestBody defines body for PutCertificateTemplate for application/json ContentType.
-type PutCertificateTemplateJSONRequestBody = CertificateTemplateParameters
 
 // CreateLinkedCertificateTemplateJSONRequestBody defines body for CreateLinkedCertificateTemplate for application/json ContentType.
 type CreateLinkedCertificateTemplateJSONRequestBody = CreateLinkedCertificateTemplateParameters

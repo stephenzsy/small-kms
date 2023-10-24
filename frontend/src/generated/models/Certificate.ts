@@ -19,6 +19,18 @@ import {
     CertificateAttributesFromJSONTyped,
     CertificateAttributesToJSON,
 } from './CertificateAttributes';
+import type { CertificateFlag } from './CertificateFlag';
+import {
+    CertificateFlagFromJSON,
+    CertificateFlagFromJSONTyped,
+    CertificateFlagToJSON,
+} from './CertificateFlag';
+import type { CertificateSubject } from './CertificateSubject';
+import {
+    CertificateSubjectFromJSON,
+    CertificateSubjectFromJSONTyped,
+    CertificateSubjectToJSON,
+} from './CertificateSubject';
 import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
 import {
     JsonWebKeySignatureAlgorithmFromJSON,
@@ -37,6 +49,12 @@ import {
     ResourceKindFromJSONTyped,
     ResourceKindToJSON,
 } from './ResourceKind';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * 
@@ -97,13 +115,31 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
-    x5t: string;
+    thumbprint: string;
     /**
      * 
      * @type {CertificateAttributes}
      * @memberof Certificate
      */
     attributes: CertificateAttributes;
+    /**
+     * 
+     * @type {CertificateSubject}
+     * @memberof Certificate
+     */
+    subject: CertificateSubject;
+    /**
+     * 
+     * @type {SubjectAlternativeNames}
+     * @memberof Certificate
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
+    /**
+     * 
+     * @type {Array<CertificateFlag>}
+     * @memberof Certificate
+     */
+    flags?: Array<CertificateFlag>;
     /**
      * 
      * @type {JsonWebKeySignatureAlgorithm}
@@ -127,6 +163,12 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
+    x5t: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Certificate
+     */
     x5tS256: string;
 }
 
@@ -142,9 +184,11 @@ export function instanceOfCertificate(value: object): boolean {
     isInstance = isInstance && "resourceIdentifier" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "attributes" in value;
+    isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "alg" in value;
+    isInstance = isInstance && "x5t" in value;
     isInstance = isInstance && "x5tS256" in value;
 
     return isInstance;
@@ -168,11 +212,15 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
-        'x5t': json['x5t'],
+        'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
+        'subject': CertificateSubjectFromJSON(json['subject']),
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
+        'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'alg': JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
         'x5u': !exists(json, 'x5u') ? undefined : json['x5u'],
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
+        'x5t': json['x5t'],
         'x5tS256': json['x5t#S256'],
     };
 }
@@ -194,11 +242,15 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'x5t': value.x5t,
+        'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
+        'subject': CertificateSubjectToJSON(value.subject),
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
+        'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
         'x5u': value.x5u,
         'x5c': value.x5c,
+        'x5t': value.x5t,
         'x5t#S256': value.x5tS256,
     };
 }

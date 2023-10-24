@@ -23,6 +23,7 @@ export const ResourceKind = {
     ProfileResourceKindIntermediateCA: 'int-ca',
     ResourceKindCertPolicy: 'cert-policy',
     ResourceKindCert: 'cert',
+    ResourceKindCertLink: 'cert-link',
     ResourceKindKeyPolicy: 'key-policy'
 } as const;
 export type ResourceKind = typeof ResourceKind[keyof typeof ResourceKind];

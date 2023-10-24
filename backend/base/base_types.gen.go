@@ -22,6 +22,7 @@ const (
 	ProfileResourceKindManagedApp     ResourceKind = "managed-app"
 	ProfileResourceKindRootCA         ResourceKind = "root-ca"
 	ResourceKindCert                  ResourceKind = "cert"
+	ResourceKindCertLink              ResourceKind = "cert-link"
 	ResourceKindCertPolicy            ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy             ResourceKind = "key-policy"
 )

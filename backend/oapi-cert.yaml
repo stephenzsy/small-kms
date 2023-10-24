@@ -6,6 +6,44 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListCertificates
+      summary: List certificates
+      parameters:
+        - name: policyId
+          in: query
+          description: Policy ID
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of cert specs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CertificateRef"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetCertificate
+      summary: Get certificate
+      responses:
+        200:
+          $ref: "#/components/responses/CertificateResponse"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -62,7 +100,7 @@ paths:
       operationId: CreateCertificate
       summary: Create certificate
       responses:
-        200:
+        201:
           $ref: "#/components/responses/CertificateResponse"
 security:
   - BearerAuth: []
@@ -195,13 +233,12 @@ components:
     CertificateRefFields:
       type: object
       properties:
-        x5t:
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-name: ThmbprintSHA1
+        thumbprint:
+          type: string
         attributes:
           $ref: "#/components/schemas/CertificateAttributes"
       required:
-        - x5t
+        - thumbprint
         - attributes
     Certificate:
       allOf:
@@ -211,6 +248,15 @@ components:
     CertificateFields:
       type: object
       properties:
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+          x-go-type-skip-optional-pointer: true
         alg:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
         x5u:
@@ -222,12 +268,17 @@ components:
             $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
           x-go-name: CertificateChain
           x-go-type-skip-optional-pointer: true
+        x5t:
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: ThmbprintSHA1
         x5t#S256:
           description: SHA-256 fingerprint of the certificate
           $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
           x-go-name: ThumbprintSHA256
       required:
+        - subject
         - alg
+        - x5t
         - x5t#S256
   responses:
     CertPolicyResponse:

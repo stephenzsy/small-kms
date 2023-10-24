@@ -3,7 +3,7 @@ import type { Result } from "ahooks/lib/useRequest/src/types";
 import { Button, Form, Input, Select, Table, type TableColumnType } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { DefaultOptionType } from "antd/es/select";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Link } from "../components/Link";
 import {
   AdminApi,
@@ -30,42 +30,6 @@ const CertificateTemplatesContext =
     namespaceKind: "" as never,
     namespaceId: "",
   });
-
-export function CertificateTemplatesProvider({
-  children,
-  namespaceId,
-  namespaceKind,
-}: React.PropsWithChildren<{
-  namespaceId: string;
-  namespaceKind: NamespaceKind;
-}>) {
-  const adminApi = useAuthedClient(AdminApi);
-  const { data, run, loading } = useRequest(
-    async () => {
-      return await adminApi.listCertificateTemplates({
-        namespaceId,
-        namespaceKind,
-      });
-    },
-    {
-      refreshDeps: [namespaceKind, namespaceId],
-    }
-  );
-
-  return (
-    <CertificateTemplatesContext.Provider
-      value={{
-        data,
-        run,
-        loading,
-        namespaceId,
-        namespaceKind,
-      }}
-    >
-      {children}
-    </CertificateTemplatesContext.Provider>
-  );
-}
 
 function useColumns(
   nsKind: NamespaceKind,

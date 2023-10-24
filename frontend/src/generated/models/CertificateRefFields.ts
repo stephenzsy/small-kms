@@ -31,7 +31,7 @@ export interface CertificateRefFields {
      * @type {string}
      * @memberof CertificateRefFields
      */
-    x5t: string;
+    thumbprint: string;
     /**
      * 
      * @type {CertificateAttributes}
@@ -45,7 +45,7 @@ export interface CertificateRefFields {
  */
 export function instanceOfCertificateRefFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "attributes" in value;
 
     return isInstance;
@@ -61,7 +61,7 @@ export function CertificateRefFieldsFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'x5t': json['x5t'],
+        'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
     };
 }
@@ -75,7 +75,7 @@ export function CertificateRefFieldsToJSON(value?: CertificateRefFields | null):
     }
     return {
         
-        'x5t': value.x5t,
+        'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
     };
 }

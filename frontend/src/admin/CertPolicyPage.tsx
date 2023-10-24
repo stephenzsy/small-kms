@@ -1,13 +1,25 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Checkbox, Form, Input, Radio, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Form,
+  Input,
+  Radio,
+  Table,
+  TableColumnType,
+  Typography,
+} from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
   CertPolicy,
   CertPolicyParameters,
+  Certificate,
+  CertificateRef,
   JsonWebKeyCurveName,
   JsonWebKeyOperation,
   JsonWebKeyType,
@@ -15,6 +27,7 @@ import {
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./NamespaceContext2";
+import { Link } from "../components/Link";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
@@ -228,6 +241,47 @@ function CertPolicyForm({
   );
 }
 
+const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function useColumns() {
+  return useMemo<TableColumnType<CertificateRef>[]>(
+    () => [
+      {
+        title: "Certificate ID",
+        render: (r: CertificateRef) => (
+          <span className="font-mono">{r.resourceIdentifier}</span>
+        ),
+      },
+      {
+        title: "Thumbprint (SHA-1)",
+        render: (r: CertificateRef) => {
+          return <span className="font-mono">{r.thumbprint}</span>;
+        },
+      },
+      {
+        title: "Expires",
+        render: (r: CertificateRef) => {
+          return (
+            <span className="font-mono">
+              {r.attributes.exp &&
+                dateShortFormatter.format(new Date(r.attributes.exp * 1000))}
+            </span>
+          );
+        },
+      },
+      {
+        title: "Actions",
+        render: (r) => <Link to={`../cert/${r.resourceIdentifier}`}>View</Link>,
+      },
+    ],
+    []
+  );
+}
+
 export default function CertPolicyPage() {
   const { certPolicyId: _certPolicyId } = useParams() as {
     certPolicyId: string;
@@ -257,6 +311,17 @@ export default function CertPolicyPage() {
       navigate(`./../${value.resourceIdentifier}`, { replace: true });
     }
   });
+  const columns = useColumns();
+  const { data: issuedCertificates } = useRequest(
+    () => {
+      return adminApi.listCertificates({
+        namespaceIdentifier: namespaceId,
+        namespaceKind: namespaceKind as unknown as NamespaceKind1,
+        policyId: certPolicyId,
+      });
+    },
+    { refreshDeps: [namespaceId, certPolicyId] }
+  );
   return (
     <>
       <Typography.Title>
@@ -265,6 +330,13 @@ export default function CertPolicyPage() {
       <div>
         {namespaceKind}/{namespaceId}
       </div>
+      <Card title="Certificate list">
+        <Table<CertificateRef>
+          columns={columns}
+          dataSource={issuedCertificates}
+          rowKey={(r) => r.resourceIdentifier}
+        />
+      </Card>
       <Card title="Manage certificates">
         <RequestCertificateControl certPolicyId={certPolicyId} />
       </Card>

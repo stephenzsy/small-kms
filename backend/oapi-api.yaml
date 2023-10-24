@@ -181,20 +181,6 @@ paths:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: List certificate templates
-      operationId: ListCertificateTemplates
-      responses:
-        200:
-          description: List certificate templates response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CertificateTemplateRef"
     post:
       tags:
         - admin
@@ -218,36 +204,6 @@ paths:
       - $ref: "#/components/parameters/NamespaceKindParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    get:
-      tags:
-        - admin
-      summary: Get certificate template
-      operationId: GetCertificateTemplate
-      responses:
-        200:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
-    put:
-      tags:
-        - admin
-      summary: Put certificate template
-      operationId: PutCertificateTemplate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateTemplateParameters"
-        required: true
-      responses:
-        200:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
     delete:
       tags:
         - admin
@@ -313,25 +269,6 @@ paths:
         204:
           description: List keyvault roles assignments response
           content: {}
-  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    get:
-      tags:
-        - admin
-      summary: List certificates issued by template
-      operationId: ListCertificatesByTemplate
-      responses:
-        200:
-          description: CertificateResponse
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "oapi-shared.yaml#/components/schemas/CertificateRef"
   /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"

@@ -3,6 +3,7 @@ import { useMemoizedFn, useRequest } from "ahooks";
 import { Alert, Button, Form, Input, InputNumber } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useEffect, useMemo } from "react";
+import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
   CertificateTemplateToJSON,
@@ -11,7 +12,6 @@ import {
   PutCertificateTemplateRequest,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { JsonDataDisplay } from "../components/JsonDataDisplay";
 
 type FieldType = {
   subjectCN?: string;
@@ -84,11 +84,6 @@ export function CertTemplateForm({
       if (putReq) {
         return await adminApi.putCertificateTemplate(putReq);
       } else {
-        return await adminApi.getCertificateTemplate({
-          namespaceKind,
-          namespaceId,
-          templateId,
-        });
       }
     },
     {}

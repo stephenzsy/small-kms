@@ -8,7 +8,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func listCertPolicies(c context.Context, nsKind base.NamespaceKind, namespaceIdentifier base.Identifier) ([]*CertPolicyRef, error) {
+func listCertPolicies(c context.Context) ([]*CertPolicyRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder(base.ResourceKindCertPolicy).
 		WithExtraColumns(queryColumnDisplayName)
@@ -20,8 +20,8 @@ func listCertPolicies(c context.Context, nsKind base.NamespaceKind, namespaceIde
 		r := &CertPolicyRef{}
 		d.PopulateModelRef(r)
 		r.Id.NID = storageNsID
-		r.NamespaceKind = base.NamespaceKindProfile
-		r.NamespaceIdentifier = namespaceIdentifier
+		r.NamespaceKind = nsCtx.Kind()
+		r.NamespaceIdentifier = nsCtx.Identifier()
 		r.ResourceKind = base.ResourceKindCertPolicy
 		return r
 	})

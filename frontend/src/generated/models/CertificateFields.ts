@@ -13,12 +13,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CertificateFlag } from './CertificateFlag';
+import {
+    CertificateFlagFromJSON,
+    CertificateFlagFromJSONTyped,
+    CertificateFlagToJSON,
+} from './CertificateFlag';
+import type { CertificateSubject } from './CertificateSubject';
+import {
+    CertificateSubjectFromJSON,
+    CertificateSubjectFromJSONTyped,
+    CertificateSubjectToJSON,
+} from './CertificateSubject';
 import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
 import {
     JsonWebKeySignatureAlgorithmFromJSON,
     JsonWebKeySignatureAlgorithmFromJSONTyped,
     JsonWebKeySignatureAlgorithmToJSON,
 } from './JsonWebKeySignatureAlgorithm';
+import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
+import {
+    SubjectAlternativeNamesFromJSON,
+    SubjectAlternativeNamesFromJSONTyped,
+    SubjectAlternativeNamesToJSON,
+} from './SubjectAlternativeNames';
 
 /**
  * 
@@ -26,6 +44,24 @@ import {
  * @interface CertificateFields
  */
 export interface CertificateFields {
+    /**
+     * 
+     * @type {CertificateSubject}
+     * @memberof CertificateFields
+     */
+    subject: CertificateSubject;
+    /**
+     * 
+     * @type {SubjectAlternativeNames}
+     * @memberof CertificateFields
+     */
+    subjectAlternativeNames?: SubjectAlternativeNames;
+    /**
+     * 
+     * @type {Array<CertificateFlag>}
+     * @memberof CertificateFields
+     */
+    flags?: Array<CertificateFlag>;
     /**
      * 
      * @type {JsonWebKeySignatureAlgorithm}
@@ -49,6 +85,12 @@ export interface CertificateFields {
      * @type {string}
      * @memberof CertificateFields
      */
+    x5t: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateFields
+     */
     x5tS256: string;
 }
 
@@ -57,7 +99,9 @@ export interface CertificateFields {
  */
 export function instanceOfCertificateFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "subject" in value;
     isInstance = isInstance && "alg" in value;
+    isInstance = isInstance && "x5t" in value;
     isInstance = isInstance && "x5tS256" in value;
 
     return isInstance;
@@ -73,9 +117,13 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'subject': CertificateSubjectFromJSON(json['subject']),
+        'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
+        'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'alg': JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
         'x5u': !exists(json, 'x5u') ? undefined : json['x5u'],
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
+        'x5t': json['x5t'],
         'x5tS256': json['x5t#S256'],
     };
 }
@@ -89,9 +137,13 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
     }
     return {
         
+        'subject': CertificateSubjectToJSON(value.subject),
+        'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
+        'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
         'x5u': value.x5u,
         'x5c': value.x5c,
+        'x5t': value.x5t,
         'x5t#S256': value.x5tS256,
     };
 }

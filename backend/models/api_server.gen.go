@@ -55,15 +55,6 @@ type ServerInterface interface {
 	// Delete certificate template
 	// (DELETE /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
 	DeleteCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
-	// Get certificate template
-	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
-	GetCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
-	// Put certificate template
-	// (PUT /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId})
-	PutCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
-	// List certificates issued by template
-	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates)
-	ListCertificatesByTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
 	// List Key Vault role assignments
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments)
 	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter) error
@@ -73,9 +64,6 @@ type ServerInterface interface {
 	// Remove Key Vault role assignment
 	// (DELETE /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId})
 	RemoveKeyVaultRoleAssignment(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter, roleAssignmentId string) error
-	// List certificate templates
-	// (GET /v3/{namespaceKind}/{namespaceId}/certificate-templates)
-	ListCertificateTemplates(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
 	// Create linked certificate template
 	// (POST /v3/{namespaceKind}/{namespaceId}/certificate-templates)
 	CreateLinkedCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
@@ -436,108 +424,6 @@ func (w *ServerInterfaceWrapper) DeleteCertificateTemplate(ctx echo.Context) err
 	return err
 }
 
-// GetCertificateTemplate converts echo context to params.
-func (w *ServerInterfaceWrapper) GetCertificateTemplate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId CertificateTemplateIdentifierParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetCertificateTemplate(ctx, namespaceKind, namespaceId, templateId)
-	return err
-}
-
-// PutCertificateTemplate converts echo context to params.
-func (w *ServerInterfaceWrapper) PutCertificateTemplate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId CertificateTemplateIdentifierParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutCertificateTemplate(ctx, namespaceKind, namespaceId, templateId)
-	return err
-}
-
-// ListCertificatesByTemplate converts echo context to params.
-func (w *ServerInterfaceWrapper) ListCertificatesByTemplate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId CertificateTemplateIdentifierParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificatesByTemplate(ctx, namespaceKind, namespaceId, templateId)
-	return err
-}
-
 // ListKeyVaultRoleAssignments converts echo context to params.
 func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) error {
 	var err error
@@ -654,32 +540,6 @@ func (w *ServerInterfaceWrapper) RemoveKeyVaultRoleAssignment(ctx echo.Context) 
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.RemoveKeyVaultRoleAssignment(ctx, namespaceKind, namespaceId, templateId, roleAssignmentId)
-	return err
-}
-
-// ListCertificateTemplates converts echo context to params.
-func (w *ServerInterfaceWrapper) ListCertificateTemplates(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificateTemplates(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -835,13 +695,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
 	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.DeleteCertificateTemplate)
-	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.GetCertificateTemplate)
-	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId", wrapper.PutCertificateTemplate)
-	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/certificates", wrapper.ListCertificatesByTemplate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.ListKeyVaultRoleAssignments)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.AddKeyVaultRoleAssignment)
 	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments/:roleAssignmentId", wrapper.RemoveKeyVaultRoleAssignment)
-	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-templates", wrapper.ListCertificateTemplates)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-templates", wrapper.CreateLinkedCertificateTemplate)
 	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)

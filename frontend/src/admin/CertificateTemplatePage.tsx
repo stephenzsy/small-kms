@@ -1,20 +1,10 @@
 import { useRequest } from "ahooks";
-import {
-  Button,
-  Card,
-  Checkbox,
-  Table,
-  TableColumnType,
-  Typography,
-} from "antd";
-import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Button, Card } from "antd";
+import React, { useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Link } from "../components/Link";
 import { WellknownId } from "../constants";
 import {
   AdminApi,
-  CertificateRef1 as CertificateRef,
   CertificateTemplate,
   CertificateUsage,
   NamespaceKind1 as NamespaceKind,
@@ -25,8 +15,6 @@ import {
   useFixedValueState,
   useValueState,
 } from "../utils/formStateUtils";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { CertTemplateForm } from "./CertTemplateForm";
 import { RefTableColumn, RefsTable } from "./RefsTable";
 
 export interface CertificateTemplateFormState {
@@ -121,148 +109,6 @@ const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
   month: "2-digit",
   day: "2-digit",
 });
-
-function useColumns(namespaceKind: NamespaceKind, namespaceId: string) {
-  return useMemo<TableColumnType<CertificateRef>[]>(
-    () => [
-      {
-        title: "ID",
-        render: (r) => <span className="font-mono">{r.id}</span>,
-      },
-      {
-        title: "Fingerprint (SHA-1)",
-        render: (r) => <span className="font-mono">{r.thumbprint}</span>,
-      },
-      {
-        title: "Date expires",
-        render: (r: CertificateRef) => (
-          <time
-            className="font-mono tabular-nums"
-            dateTime={r.notAfter.toISOString()}
-          >
-            {dateShortFormatter.format(r.notAfter)}
-          </time>
-        ),
-      },
-      {
-        title: "Status",
-        render: (r: CertificateRef) =>
-          r.isIssued ? (r.deleted ? "Disabled" : "Issued") : "Pending",
-      },
-      {
-        title: "Actions",
-        render: (r) => (
-          <Link
-            to={`/admin/${namespaceKind}/${namespaceId}/certificates/${r.id}`}
-          >
-            View
-          </Link>
-        ),
-      },
-    ],
-    [namespaceKind, namespaceId]
-  );
-}
-
-export default function CertificateTemplatePage() {
-  const {
-    namespaceId,
-    templateId,
-    profileType: namespaceKind,
-  } = useParams() as {
-    namespaceId: string;
-    templateId: string;
-    profileType: NamespaceKind;
-  };
-
-  const adminApi = useAuthedClient(AdminApi);
-
-  const { data: issuedCertificates } = useRequest(
-    () => {
-      return adminApi.listCertificatesByTemplate({
-        namespaceId,
-        namespaceKind,
-        templateId: templateId,
-      });
-    },
-    { refreshDeps: [namespaceId, templateId] }
-  );
-  const columns = useColumns(namespaceKind, namespaceId);
-  return (
-    <>
-      <Typography.Title>Certificate template</Typography.Title>
-      <div className="font-mono">
-        {namespaceKind}:{namespaceId}/cert-template:{templateId}
-      </div>
-      <Card title="Issued certificates">
-        <Table<CertificateRef>
-          columns={columns}
-          dataSource={issuedCertificates}
-          rowKey={(r) => r.id}
-        />
-      </Card>
-      <Card>
-        <RequestCertificateControl
-          namespaceId={namespaceId}
-          namespaceKind={namespaceKind}
-          templateId={templateId}
-        />
-      </Card>
-      <Card title="Certificate template">
-        <CertTemplateForm
-          namespaceId={namespaceId}
-          namespaceKind={namespaceKind}
-          templateId={templateId}
-        />
-      </Card>
-      {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
-        <KeyvaultRoleAssignmentsCard
-          namespaceId={namespaceId}
-          namespaceKind={namespaceKind}
-          templateId={templateId}
-          adminApi={adminApi}
-        />
-      )}
-    </>
-  );
-}
-
-function RequestCertificateControl({
-  namespaceId,
-  namespaceKind,
-  templateId,
-}: {
-  namespaceId: string;
-  namespaceKind: NamespaceKind;
-  templateId: string;
-}) {
-  const adminApi = useAuthedClient(AdminApi);
-  const [force, setForce] = useState(false);
-  const { run: issueCert } = useRequest(async (force: boolean) => {}, {
-    manual: true,
-  });
-
-  return (
-    <div className="flex gap-8 items-center">
-      <Button
-        type="primary"
-        onClick={() => {
-          issueCert(force);
-        }}
-      >
-        Request certificate
-      </Button>
-      <Checkbox
-        checked={force}
-        onChange={(e) => {
-          setForce(e.target.checked);
-        }}
-      >
-        Force
-      </Checkbox>
-    </div>
-  );
-}
 
 const topRoleDefIds = ["4633458b-17de-408a-b874-0445c86b69e6"];
 

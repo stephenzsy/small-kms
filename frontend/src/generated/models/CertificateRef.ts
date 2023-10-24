@@ -91,7 +91,7 @@ export interface CertificateRef {
      * @type {string}
      * @memberof CertificateRef
      */
-    x5t: string;
+    thumbprint: string;
     /**
      * 
      * @type {CertificateAttributes}
@@ -112,7 +112,7 @@ export function instanceOfCertificateRef(value: object): boolean {
     isInstance = isInstance && "resourceIdentifier" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "x5t" in value;
+    isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "attributes" in value;
 
     return isInstance;
@@ -136,7 +136,7 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
-        'x5t': json['x5t'],
+        'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
     };
 }
@@ -158,7 +158,7 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'x5t': value.x5t,
+        'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
     };
 }

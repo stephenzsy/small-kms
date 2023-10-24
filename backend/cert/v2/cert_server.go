@@ -15,6 +15,42 @@ type server struct {
 	api.APIServer
 }
 
+// GetCertificate implements ServerInterface.
+func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	r, err := getCertificate(c, resourceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, r)
+}
+
+// ListCertificates implements ServerInterface.
+func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceKind,
+	namespaceIdentifier base.Identifier, params ListCertificatesParams) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	l, err := listCertificates(c, params)
+	if err != nil {
+		return err
+	}
+	if l == nil {
+		l = make([]*CertificateRef, 0)
+	}
+	return c.JSON(http.StatusOK, l)
+}
+
 // CreateCertificate implements ServerInterface.
 func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
@@ -30,7 +66,7 @@ func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.Namespace
 	}
 	m := new(Certificate)
 	r.PopulateModel(m)
-	return c.JSON(http.StatusOK, m)
+	return c.JSON(http.StatusCreated, m)
 }
 
 // ListCertPolicies implements ServerInterface.
@@ -42,9 +78,12 @@ func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceK
 	}
 
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	l, err := listCertPolicies(c, namespaceKind, namespaceIdentifier)
+	l, err := listCertPolicies(c)
 	if err != nil {
 		return err
+	}
+	if l == nil {
+		l = make([]*CertPolicyRef, 0)
 	}
 	return c.JSON(http.StatusOK, l)
 }

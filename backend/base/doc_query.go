@@ -9,6 +9,7 @@ import (
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type DocPager[D CRUDDoc] struct {
@@ -84,8 +85,14 @@ func (b *CosmosQueryBuilder) WithExtraColumns(columns ...string) *CosmosQueryBui
 	return b
 }
 
+func (b *CosmosQueryBuilder) WithOrderBy(clause string) *CosmosQueryBuilder {
+	b.OrderBy = clause
+	return b
+}
+
 func NewQueryDocPager[D CRUDDoc](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID uuid.UUID) *DocPager[D] {
 	query, parameters := queryBuilder.BuildQuery()
+	log.Debug().Str("query", query).Interface("parameters", parameters).Msg("NewQueryDocPager")
 	pager := docService.NewQueryItemsPager(query, storageNamespaceID, &azcosmos.QueryOptions{
 		QueryParameters: parameters,
 	})

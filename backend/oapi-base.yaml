@@ -48,6 +48,7 @@ components:
         - int-ca
         - cert-policy
         - cert
+        - cert-link
         - key-policy
       x-enum-varnames:
         - ProfileResourceKindManagedApp
@@ -55,6 +56,7 @@ components:
         - ProfileResourceKindIntermediateCA
         - ResourceKindCertPolicy
         - ResourceKindCert
+        - ResourceKindCertLink
         - ResourceKindKeyPolicy
     SLocator:
       type: string

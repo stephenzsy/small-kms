@@ -75,10 +75,14 @@ type CertificateAttributes struct {
 
 // CertificateFields defines model for CertificateFields.
 type CertificateFields struct {
-	Alg externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
+	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
+	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
+	Subject                 CertificateSubject                        `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
 
 	// X5c Base64 encoded certificate chain
 	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
+	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t"`
 	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256"`
 	X5u              *string                                 `json:"x5u,omitempty"`
 }
@@ -91,8 +95,8 @@ type CertificateRef = certificateRefComposed
 
 // CertificateRefFields defines model for CertificateRefFields.
 type CertificateRefFields struct {
-	Attributes CertificateAttributes                 `json:"attributes"`
-	X5t        externalRef0.Base64RawURLEncodedBytes `json:"x5t"`
+	Attributes CertificateAttributes `json:"attributes"`
+	Thumbprint string                `json:"thumbprint"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -113,11 +117,20 @@ type CertPolicyResponse = CertPolicy
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = Certificate
 
+// ListCertificatesParams defines parameters for ListCertificates.
+type ListCertificatesParams struct {
+	// PolicyId Policy ID
+	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
+}
+
 // PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
 type PutCertPolicyJSONRequestBody = CertPolicyParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List certificates
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert)
+	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, params ListCertificatesParams) error
 	// List cert policies
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy)
 	ListCertPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
@@ -130,11 +143,49 @@ type ServerInterface interface {
 	// Create certificate
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert)
 	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// Get certificate
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier})
+	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// ListCertificates converts echo context to params.
+func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCertificatesParams
+	// ------------- Optional query parameter "policyId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceIdentifier, params)
+	return err
 }
 
 // ListCertPolicies converts echo context to params.
@@ -265,6 +316,40 @@ func (w *ServerInterfaceWrapper) CreateCertificate(ctx echo.Context) error {
 	return err
 }
 
+// GetCertificate converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -293,9 +378,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert", wrapper.ListCertificates)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.GetCertPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.GetCertificate)
 
 }

@@ -45,3 +45,8 @@ func (sl *storageLocator) UnmarshalText(text []byte) (err error) {
 
 var _ encoding.TextMarshaler = storageLocator{}
 var _ encoding.TextUnmarshaler = (*storageLocator)(nil)
+
+func (sl *storageLocator) String() string {
+	b, _ := sl.MarshalText()
+	return string(b)
+}

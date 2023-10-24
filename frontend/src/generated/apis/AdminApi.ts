@@ -25,11 +25,10 @@ import type {
   CertPolicy,
   CertPolicyParameters,
   CertPolicyRef,
-  CertificateInfo,
-  CertificateRef1,
+  Certificate,
+  CertificateRef,
   CertificateTemplate,
   CertificateTemplateParameters,
-  CertificateTemplateRef,
   CreateLinkedCertificateTemplateParameters,
   LegacyProfileRef,
   ManagedAppParameters,
@@ -61,16 +60,14 @@ import {
     CertPolicyParametersToJSON,
     CertPolicyRefFromJSON,
     CertPolicyRefToJSON,
-    CertificateInfoFromJSON,
-    CertificateInfoToJSON,
-    CertificateRef1FromJSON,
-    CertificateRef1ToJSON,
+    CertificateFromJSON,
+    CertificateToJSON,
+    CertificateRefFromJSON,
+    CertificateRefToJSON,
     CertificateTemplateFromJSON,
     CertificateTemplateToJSON,
     CertificateTemplateParametersFromJSON,
     CertificateTemplateParametersToJSON,
-    CertificateTemplateRefFromJSON,
-    CertificateTemplateRefToJSON,
     CreateLinkedCertificateTemplateParametersFromJSON,
     CreateLinkedCertificateTemplateParametersToJSON,
     LegacyProfileRefFromJSON,
@@ -157,16 +154,8 @@ export interface GetCertPolicyRequest {
 
 export interface GetCertificateRequest {
     namespaceKind: NamespaceKind1;
-    namespaceId: string;
-    certificateId: string;
-    includeCertificate?: boolean;
-    templateId?: string;
-}
-
-export interface GetCertificateTemplateRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
 }
 
 export interface GetDockerInfoRequest {
@@ -187,15 +176,10 @@ export interface ListCertPoliciesRequest {
     namespaceIdentifier: string;
 }
 
-export interface ListCertificateTemplatesRequest {
+export interface ListCertificatesRequest {
     namespaceKind: NamespaceKind1;
-    namespaceId: string;
-}
-
-export interface ListCertificatesByTemplateRequest {
-    namespaceKind: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
+    namespaceIdentifier: string;
+    policyId?: string;
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
@@ -368,7 +352,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Create certificate
      */
-    async createCertificateRaw(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
+    async createCertificateRaw(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createCertificate.');
         }
@@ -400,13 +384,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
     }
 
     /**
      * Create certificate
      */
-    async createCertificate(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
+    async createCertificate(requestParameters: CreateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
         const response = await this.createCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -770,28 +754,20 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Get certificate
      */
-    async getCertificateRaw(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateInfo>> {
+    async getCertificateRaw(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificate.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificate.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertificate.');
         }
 
-        if (requestParameters.certificateId === null || requestParameters.certificateId === undefined) {
-            throw new runtime.RequiredError('certificateId','Required parameter requestParameters.certificateId was null or undefined when calling getCertificate.');
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getCertificate.');
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.includeCertificate !== undefined) {
-            queryParameters['includeCertificate'] = requestParameters.includeCertificate;
-        }
-
-        if (requestParameters.templateId !== undefined) {
-            queryParameters['templateId'] = requestParameters.templateId;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -804,66 +780,20 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certificateId"}}`, encodeURIComponent(String(requestParameters.certificateId))),
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateInfoFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
     }
 
     /**
      * Get certificate
      */
-    async getCertificate(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateInfo> {
+    async getCertificate(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
         const response = await this.getCertificateRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get certificate template
-     */
-    async getCertificateTemplateRaw(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateTemplate>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificateTemplate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateTemplate.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling getCertificateTemplate.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateTemplateFromJSON(jsonValue));
-    }
-
-    /**
-     * Get certificate template
-     */
-    async getCertificateTemplate(requestParameters: GetCertificateTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateTemplate> {
-        const response = await this.getCertificateTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1062,18 +992,22 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * List certificate templates
+     * List certificates
      */
-    async listCertificateTemplatesRaw(requestParameters: ListCertificateTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateTemplateRef>>> {
+    async listCertificatesRaw(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef>>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificateTemplates.');
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificates.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificateTemplates.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listCertificates.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.policyId !== undefined) {
+            queryParameters['policyId'] = requestParameters.policyId;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1086,66 +1020,20 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-templates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateTemplateRefFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRefFromJSON));
     }
 
     /**
-     * List certificate templates
+     * List certificates
      */
-    async listCertificateTemplates(requestParameters: ListCertificateTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateTemplateRef>> {
-        const response = await this.listCertificateTemplatesRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List certificates issued by template
-     */
-    async listCertificatesByTemplateRaw(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertificateRef1>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificatesByTemplate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificatesByTemplate.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling listCertificatesByTemplate.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/certificates`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CertificateRef1FromJSON));
-    }
-
-    /**
-     * List certificates issued by template
-     */
-    async listCertificatesByTemplate(requestParameters: ListCertificatesByTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef1>> {
-        const response = await this.listCertificatesByTemplateRaw(requestParameters, initOverrides);
+    async listCertificates(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
+        const response = await this.listCertificatesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -29,13 +29,9 @@ models/Certificate.ts
 models/CertificateAttributes.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
-models/CertificateInfo.ts
-models/CertificateInfoFields.ts
 models/CertificateLifetimeTrigger.ts
 models/CertificateRef.ts
-models/CertificateRef1.ts
 models/CertificateRefFields.ts
-models/CertificateRefFields1.ts
 models/CertificateSubject.ts
 models/CertificateTemplate.ts
 models/CertificateTemplateFields.ts

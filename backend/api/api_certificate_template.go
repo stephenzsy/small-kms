@@ -2,12 +2,10 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -31,35 +29,6 @@ func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind shared.Na
 			return nil, err
 		}
 		return ct.GetCertificateTemplate(c)
-	})()
-	return wrapResponse(ec, http.StatusOK, respData, respErr)
-}
-
-// PutCertificateTemplate implements models.ServerInterface.
-func (s *server) PutCertificateTemplate(ec echo.Context,
-	namespaceKind shared.NamespaceKind,
-	namespaceId shared.Identifier,
-	templateID shared.Identifier) error {
-	c := ec.(RequestContext)
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
-		req := models.CertificateTemplateParameters{}
-		err := ec.Bind(&req)
-		if err != nil {
-			return nil, fmt.Errorf("%w: invalid input body", common.ErrStatusBadRequest)
-		}
-
-		c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
-		if err != nil {
-			return nil, err
-		}
-		c, err = ct.WithCertificateTemplateContext(c, templateID)
-		if err != nil {
-			return nil, err
-		}
-		return ct.PutCertificateTemplate(c, req)
 	})()
 	return wrapResponse(ec, http.StatusOK, respData, respErr)
 }

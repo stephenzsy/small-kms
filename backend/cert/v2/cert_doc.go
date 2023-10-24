@@ -51,6 +51,18 @@ type CertDoc struct {
 	Issuer        base.SLocator            `json:"issuer"`
 }
 
+type CertListQueryDoc struct {
+	base.BaseDoc
+	ThumbprintSHA1 base.Base64RawURLEncodedBytes `json:"x5t"`
+	NotAfter       base.NumericDate              `json:"exp"`
+}
+
+const (
+	certDocQueryColumnThumbprintSHA1 = "c.keySpec.x5t"
+	certDocQueryColumnCreated        = "c.iat"
+	certDocQueryColumnNotAfter       = "c.exp"
+)
+
 type CertDocSigningPatch struct {
 	KeySpec       key.SigningKeySpec   `json:"keySpec"`
 	KeyVaultStore CertDocKeyVaultStore `json:"keyVaultStore"`
@@ -103,7 +115,18 @@ func (d *CertDoc) PopulateModelRef(m *CertificateRef) {
 	}
 	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
 	if d.KeySpec.X5t != nil {
-		m.X5t = *d.KeySpec.X5t
+		m.Thumbprint = d.KeySpec.X5t.HexString()
+	}
+	m.Attributes.Exp = &d.NotAfter
+}
+
+func (d *CertListQueryDoc) PopulateModelRef(m *CertificateRef) {
+	if d == nil || m == nil {
+		return
+	}
+	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
+	if d.ThumbprintSHA1 != nil {
+		m.Thumbprint = d.ThumbprintSHA1.HexString()
 	}
 	m.Attributes.Exp = &d.NotAfter
 }
@@ -116,13 +139,22 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	if d.KeySpec.Alg != nil {
 		m.Alg = *d.KeySpec.Alg
 	}
+	if d.KeySpec.X5t != nil {
+		m.X5t = *d.KeySpec.X5t
+	}
 	if d.KeySpec.X5tS256 != nil {
 		m.X5tS256 = *d.KeySpec.X5tS256
 	}
+	m.Subject = d.Subject
+	m.Flags = d.Flags
+	m.Attributes.Nbf = &d.NotBefore
+	m.Attributes.Iat = &d.Created
+	m.SubjectAlternativeNames = d.SANs
 }
 
 var _ base.CRUDDocHasCustomStorageID = (*CertDoc)(nil)
-var _ base.ModelRefPopulater[CertificateRef] = (*CertDoc)(nil)
+
+var _ base.ModelRefPopulater[certificateRefComposed] = (*CertListQueryDoc)(nil)
 var _ base.ModelPopulater[Certificate] = (*CertDoc)(nil)
 
 func (d *CertDoc) getSigningParams() kv.SigningParams {

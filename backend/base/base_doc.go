@@ -112,11 +112,11 @@ func GetDefaultStorageID(c context.Context, storageNamespaceIDURL string, resour
 
 func GetDefaultStorageLocator(c context.Context,
 	namespaceKind NamespaceKind, namespaceIdentifier Identifier,
-	resourceKind ResourceKind, resourceIdentifier Identifier) (uuid.UUID, uuid.UUID) {
+	resourceKind ResourceKind, resourceIdentifier Identifier) SLocator {
 	storageNamespaceIDURL := GetDefaultStorageNamespaceIDURL(c, namespaceKind, namespaceIdentifier)
 
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(storageNamespaceIDURL)),
-		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))
+	return SLocator{uuid.NewSHA1(uuid.NameSpaceURL, []byte(storageNamespaceIDURL)),
+		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(c, storageNamespaceIDURL, resourceKind, resourceIdentifier)))}
 }
 
 func (d *BaseDoc) getDefaultStorageID(c context.Context) uuid.UUID {

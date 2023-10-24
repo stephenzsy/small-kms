@@ -1,28 +1,29 @@
 import { Link, useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind1 as NamespaceKind } from "../generated";
+import { AdminApi, NamespaceKind1 } from "../generated";
 import { useRequest } from "ahooks";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { useMemo } from "react";
-import { Button, Card, Descriptions, DescriptionsProps } from "antd";
+import { useMemo, useContext } from "react";
+import {
+  Button,
+  Card,
+  Descriptions,
+  DescriptionsProps,
+  Typography,
+} from "antd";
 import { DescriptionsItemType } from "antd/es/descriptions";
+import { NamespaceContext } from "./NamespaceContext2";
 
 export default function CertificatePage() {
-  const {
-    profileType: namespaceKind,
-    namespaceId,
-    certId,
-  } = useParams() as {
-    profileType: NamespaceKind;
-    namespaceId: string;
-    certId: string;
-  };
+  const { namespaceKind, namespaceId } = useContext(NamespaceContext);
+
+  const { certId } = useParams() as { certId: string };
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: cert } = useRequest(() => {
     return adminApi.getCertificate({
-      certificateId: certId,
-      namespaceId,
-      namespaceKind,
+      resourceIdentifier: certId,
+      namespaceIdentifier: namespaceId,
+      namespaceKind: namespaceKind as NamespaceKind1,
     });
   }, {});
 
@@ -35,7 +36,7 @@ export default function CertificatePage() {
       await adminApi.deleteCertificate({
         certificateId: certId,
         namespaceId,
-        namespaceKind,
+        namespaceKind: namespaceKind as NamespaceKind1,
       });
       return true;
     },
@@ -53,28 +54,28 @@ export default function CertificatePage() {
         children: cert.id,
       },
       {
-        key: 7,
-        label: "Status",
-        children: cert.deleted
-          ? "Deleted"
-          : cert.isIssued
-          ? "Issued"
-          : "Pending",
+        key: "serialNumber",
+        label: "Serial Number",
+        children: cert.resourceIdentifier,
       },
       {
         key: 1,
         label: "Common name",
-        children: cert.subjectCommonName,
+        children: cert.subject.commonName,
       },
       {
         key: 2,
         label: "Issued",
-        children: cert.notBefore.toString(),
+        children:
+          cert.attributes.iat &&
+          new Date(cert.attributes.iat * 1000).toString(),
       },
       {
         key: 3,
         label: "Expires",
-        children: cert.notAfter.toString(),
+        children:
+          cert.attributes.exp &&
+          new Date(cert.attributes.exp * 1000).toString(),
       },
       {
         key: 4,
@@ -96,6 +97,7 @@ export default function CertificatePage() {
 
   return (
     <>
+      <Typography.Title>Certificate</Typography.Title>
       <Card title="Certificate">
         <Descriptions items={certDescItems} column={1} />
       </Card>
