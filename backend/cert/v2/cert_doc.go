@@ -17,6 +17,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 	"github.com/stephenzsy/small-kms/backend/key"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateStatus string
@@ -158,11 +159,19 @@ var _ base.ModelRefPopulater[certificateRefComposed] = (*CertListQueryDoc)(nil)
 var _ base.ModelPopulater[Certificate] = (*CertDoc)(nil)
 
 func (d *CertDoc) getSigningParams() kv.SigningParams {
-	certID := d.KeyVaultStore.Name
 	params := kv.SigningParams{
-		CertName:      certID,
+		SigAlg: azkeys.SignatureAlgorithm(*d.KeySpec.Alg),
+	}
+	if d.KeySpec.KeyID != nil {
+		params.CertID = azcertificates.ID(*d.KeySpec.KeyID)
+	}
+	return params
+}
+
+func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
+	params := kv.CSRProviderParams{
+		CertName:      d.KeyVaultStore.Name,
 		KeyProperties: azcertificates.KeyProperties{},
-		SigAlg:        azkeys.SignatureAlgorithm(*d.KeySpec.Alg),
 	}
 	switch d.KeySpec.Kty {
 	case key.JsonWebKeyTypeRSA:
@@ -214,27 +223,6 @@ func (d *CertDoc) getX509CertTemplate() *x509.Certificate {
 		}
 	}
 
-	switch *d.KeySpec.Alg {
-	case key.JsonWebKeySignatureAlgorithmRS256:
-		cert.SignatureAlgorithm = x509.SHA256WithRSA
-	case key.JsonWebKeySignatureAlgorithmRS384:
-		cert.SignatureAlgorithm = x509.SHA384WithRSA
-	case key.JsonWebKeySignatureAlgorithmRS512:
-		cert.SignatureAlgorithm = x509.SHA512WithRSA
-	case key.JsonWebKeySignatureAlgorithmPS256:
-		cert.SignatureAlgorithm = x509.SHA256WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmPS384:
-		cert.SignatureAlgorithm = x509.SHA384WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmPS512:
-		cert.SignatureAlgorithm = x509.SHA512WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmES256:
-		cert.SignatureAlgorithm = x509.ECDSAWithSHA256
-	case key.JsonWebKeySignatureAlgorithmES384:
-		cert.SignatureAlgorithm = x509.ECDSAWithSHA384
-	case key.JsonWebKeySignatureAlgorithmES512:
-		cert.SignatureAlgorithm = x509.ECDSAWithSHA512
-	}
-
 	if d.SANs != nil {
 		cert.DNSNames = d.SANs.DNSNames
 		cert.EmailAddresses = d.SANs.Emails
@@ -268,4 +256,36 @@ func (d *CertDoc) applyPatch(c context.Context,
 	d.KeyVaultStore = patch.KeyVaultStore
 	d.Issuer = patch.Issuer
 	return nil
+}
+
+func (d *CertDoc) getIssuedX509Certificate() (*x509.Certificate, [][]byte, error) {
+	chain := utils.MapSlice(d.KeySpec.CertificateChain, func(certBytes base.Base64RawURLEncodedBytes) []byte {
+		return certBytes
+	})
+	cert, err := x509.ParseCertificate(chain[0])
+	return cert, chain, err
+}
+
+func (d *CertDoc) getX509SignatureAlgorithm() (sa x509.SignatureAlgorithm) {
+	switch *d.KeySpec.Alg {
+	case key.JsonWebKeySignatureAlgorithmRS256:
+		sa = x509.SHA256WithRSA
+	case key.JsonWebKeySignatureAlgorithmRS384:
+		sa = x509.SHA384WithRSA
+	case key.JsonWebKeySignatureAlgorithmRS512:
+		sa = x509.SHA512WithRSA
+	case key.JsonWebKeySignatureAlgorithmPS256:
+		sa = x509.SHA256WithRSAPSS
+	case key.JsonWebKeySignatureAlgorithmPS384:
+		sa = x509.SHA384WithRSAPSS
+	case key.JsonWebKeySignatureAlgorithmPS512:
+		sa = x509.SHA512WithRSAPSS
+	case key.JsonWebKeySignatureAlgorithmES256:
+		sa = x509.ECDSAWithSHA256
+	case key.JsonWebKeySignatureAlgorithmES384:
+		sa = x509.ECDSAWithSHA384
+	case key.JsonWebKeySignatureAlgorithmES512:
+		sa = x509.ECDSAWithSHA512
+	}
+	return sa
 }

@@ -27,20 +27,25 @@ type AzCertCSRProvider interface {
 	Cleanup(context.Context, *azcertificates.CreateCertificateResponse)
 }
 
-type SigningParams struct {
+type CSRProviderParams struct {
 	CertName      string
 	KeyProperties azcertificates.KeyProperties
-	SigAlg        azkeys.SignatureAlgorithm
+}
+
+type SigningParams struct {
+	CertID azcertificates.ID
+	SigAlg azkeys.SignatureAlgorithm
 }
 
 type azcertKeyPair struct {
 	signingCtx    *context.Context
+	csrParams     *CSRProviderParams
 	signingParams *SigningParams
 	isSelfSigning bool
 
-	certPublicKey crypto.PublicKey
-	skipCleanup   bool
-	certID        azcertificates.ID
+	temporalCertID *azcertificates.ID
+	certPublicKey  crypto.PublicKey
+	skipCleanup    bool
 }
 
 // Cleanup implements AzCertCSRProvider.
@@ -67,19 +72,18 @@ func (kp *azcertKeyPair) CollectCerts(c context.Context, ccr *azcertificates.Cre
 	if err != nil {
 		return nil, err
 	}
-
 	kp.skipCleanup = true
-	oldCertID := kp.certID
-	kp.certID = *resp.ID
+	if kp.temporalCertID != nil {
 
-	// disable temporal cert
-	_, err = client.UpdateCertificate(c, oldCertID.Name(), oldCertID.Version(), azcertificates.UpdateCertificateParameters{
-		CertificateAttributes: &azcertificates.CertificateAttributes{
-			Enabled: to.Ptr(false),
-		},
-	}, nil)
-	if err != nil {
-		return nil, err
+		// disable temporal cert
+		_, err = client.UpdateCertificate(c, kp.temporalCertID.Name(), kp.temporalCertID.Version(), azcertificates.UpdateCertificateParameters{
+			CertificateAttributes: &azcertificates.CertificateAttributes{
+				Enabled: to.Ptr(false),
+			},
+		}, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &resp, nil
 }
@@ -91,7 +95,6 @@ func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertif
 			return nil, err
 		}
 	}
-	ssp := kp.signingParams
 	client := getAzKeyVaultService(c).AzCertificatesClient()
 	subject := pkix.Name{CommonName: "dummy cert"}.String()
 	params := azcertificates.CreateCertificateParameters{
@@ -102,7 +105,7 @@ func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertif
 			X509CertificateProperties: &azcertificates.X509CertificateProperties{
 				Subject: &subject,
 			},
-			KeyProperties: &ssp.KeyProperties,
+			KeyProperties: &kp.csrParams.KeyProperties,
 			SecretProperties: &azcertificates.SecretProperties{
 				ContentType: to.Ptr("application/x-pem-file"),
 			},
@@ -111,7 +114,7 @@ func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertif
 	if kp.isSelfSigning {
 		params.CertificatePolicy.KeyProperties.ReuseKey = to.Ptr(true)
 	}
-	resp, err := client.CreateCertificate(c, kp.signingParams.CertName, params, nil)
+	resp, err := client.CreateCertificate(c, kp.csrParams.CertName, params, nil)
 	return &resp, err
 }
 
@@ -119,7 +122,6 @@ func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertif
 func (kp *azcertKeyPair) Load(c context.Context) error {
 	c = ctx.Elevate(c)
 
-	ssp := kp.signingParams
 	if kp.isSelfSigning {
 		// elevate context to ignore cancellation
 
@@ -133,7 +135,7 @@ func (kp *azcertKeyPair) Load(c context.Context) error {
 				X509CertificateProperties: &azcertificates.X509CertificateProperties{
 					Subject: &subject,
 				},
-				KeyProperties: &ssp.KeyProperties,
+				KeyProperties: &kp.csrParams.KeyProperties,
 				IssuerParameters: &azcertificates.IssuerParameters{
 					Name: to.Ptr("Self"),
 				},
@@ -142,7 +144,7 @@ func (kp *azcertKeyPair) Load(c context.Context) error {
 				},
 			},
 		}
-		resp, err := client.CreateCertificate(c, ssp.CertName, params, nil)
+		resp, err := client.CreateCertificate(c, kp.csrParams.CertName, params, nil)
 		if err != nil {
 			return err
 		}
@@ -161,7 +163,8 @@ func (kp *azcertKeyPair) Load(c context.Context) error {
 		if err != nil {
 			return err
 		}
-		kp.certID = *getCertResp.ID
+		kp.signingParams.CertID = *getCertResp.ID
+		kp.temporalCertID = getCertResp.ID
 		parsed, err := x509.ParseCertificate(getCertResp.CER)
 		if err != nil {
 			return err
@@ -184,7 +187,7 @@ func (p *azcertKeyPair) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts)
 		return nil, errors.New("signer not loaded")
 	}
 	resp, err := getAzKeyVaultService(*p.signingCtx).AzKeysClient().
-		Sign(*p.signingCtx, p.certID.Name(), p.certID.Version(), azkeys.SignParameters{
+		Sign(*p.signingCtx, p.signingParams.CertID.Name(), p.signingParams.CertID.Version(), azkeys.SignParameters{
 			Value:     digest,
 			Algorithm: &p.signingParams.SigAlg,
 		}, nil)
@@ -197,9 +200,25 @@ func (p *azcertKeyPair) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts)
 var _ AzCertSigner = (*azcertKeyPair)(nil)
 var _ AzCertCSRProvider = (*azcertKeyPair)(nil)
 
-func NewAzCertSelfSigner(p SigningParams) (*azcertKeyPair, error) {
+func NewAzCertSelfSigner(pCsr CSRProviderParams, pSigning SigningParams) *azcertKeyPair {
 	return &azcertKeyPair{
-		signingParams: &p,
+		signingParams: &pSigning,
+		csrParams:     &pCsr,
 		isSelfSigning: true,
-	}, nil
+	}
+}
+
+func NewAzCertSigner(pSigning SigningParams, publicKey crypto.PublicKey) AzCertSigner {
+	return &azcertKeyPair{
+		signingParams: &pSigning,
+		isSelfSigning: false,
+		certPublicKey: publicKey,
+	}
+}
+
+func NewAzCSRProvider(pCsr CSRProviderParams) AzCertCSRProvider {
+	return &azcertKeyPair{
+		csrParams:     &pCsr,
+		isSelfSigning: false,
+	}
 }

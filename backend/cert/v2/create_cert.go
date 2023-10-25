@@ -79,15 +79,41 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		return nil, err
 	}
 
-	if nsCtx.Kind() == base.NamespaceKindRootCA {
+	switch nsCtx.Kind() {
+	case base.NamespaceKindRootCA:
 		c = ctx.Elevate(c)
-		sp := doc.getSigningParams()
 		cert := doc.getX509CertTemplate()
-		signer, err := kv.NewAzCertSelfSigner(sp)
+		signer := kv.NewAzCertSelfSigner(doc.getCSRProviderParams(), doc.getSigningParams())
+		cert.SignatureAlgorithm = doc.getX509SignatureAlgorithm()
+		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
 		if err != nil {
 			return nil, err
 		}
-		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
+		err = doc.applyPatch(c, docService, patch)
+		if err != nil {
+			return nil, err
+		}
+	case base.NamespaceKindIntermediateCA:
+		c = ctx.Elevate(c)
+		cert := doc.getX509CertTemplate()
+		// load certDoc of signer
+		issuerPolicy := policyDoc.IssuerPolicy
+		linkDoc, err := getLinkDoc(c, issuerPolicy.NamespaceKind, issuerPolicy.NamespaceIdentifier, issuerPolicy.ResourceIdentifier)
+		if err != nil {
+			return nil, err
+		}
+		signerDoc, err := linkDoc.getLinkedToCertDoc(c)
+		if err != nil {
+			return nil, err
+		}
+		signerCert, signerChain, err := signerDoc.getIssuedX509Certificate()
+		if err != nil {
+			return nil, err
+		}
+		signer := kv.NewAzCertSigner(signerDoc.getSigningParams(), signerCert.PublicKey)
+		csrProvider := kv.NewAzCSRProvider(doc.getCSRProviderParams())
+		cert.SignatureAlgorithm = signerDoc.getX509SignatureAlgorithm()
+		patch, err := signCertificate(c, cert, signerCert, csrProvider, signer, doc.GetPersistedSLocator(), signerChain)
 		if err != nil {
 			return nil, err
 		}

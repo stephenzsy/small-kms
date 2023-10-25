@@ -48,7 +48,28 @@ export const router = createBrowserRouter([
             path: "app",
             id: RouteIds.apps,
             element: <Outlet />,
-            children: [{ index: true, element: <AppsPage /> }],
+            children: [
+              { index: true, element: <AppsPage /> },
+              {
+                path: ":nsKind/:nsId",
+                element: (
+                  <NamespaceContextProvider2>
+                    <Outlet />
+                  </NamespaceContextProvider2>
+                ),
+                children: [
+                  { index: true, element: <NamespacePage /> },
+                  {
+                    path: "cert-policy/:certPolicyId",
+                    element: <CertPolicyPage />,
+                  },
+                  {
+                    path: "cert/:certId",
+                    element: <CertificatePage />,
+                  },
+                ],
+              },
+            ],
           },
           {
             path: "ca",
