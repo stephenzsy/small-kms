@@ -119,9 +119,9 @@ export interface CreateManagedAppRequest {
 }
 
 export interface DeleteCertificateRequest {
-    namespaceKindLegacy: NamespaceKind1;
-    namespaceId: string;
-    certificateId: string;
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
 }
 
 export interface DeleteCertificateTemplateRequest {
@@ -490,16 +490,16 @@ export class AdminApi extends runtime.BaseAPI {
      * Delete certificate
      */
     async deleteCertificateRaw(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
-            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling deleteCertificate.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificate.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteCertificate.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling deleteCertificate.');
         }
 
-        if (requestParameters.certificateId === null || requestParameters.certificateId === undefined) {
-            throw new runtime.RequiredError('certificateId','Required parameter requestParameters.certificateId was null or undefined when calling deleteCertificate.');
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling deleteCertificate.');
         }
 
         const queryParameters: any = {};
@@ -515,7 +515,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate/{certificateId}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"certificateId"}}`, encodeURIComponent(String(requestParameters.certificateId))),
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,

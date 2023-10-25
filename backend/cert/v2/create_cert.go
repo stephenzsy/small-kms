@@ -75,10 +75,6 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 	nsCtx := ns.GetNSContext(c)
 	doc.Init(nsCtx.Kind(), nsCtx.Identifier(), policyDoc)
 	docService := base.GetAzCosmosCRUDService(c)
-	err = docService.Create(c, doc, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	switch nsCtx.Kind() {
 	case base.NamespaceKindRootCA:
@@ -86,6 +82,12 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		signer := kv.NewAzCertSelfSigner(doc.getCSRProviderParams(), doc.getSigningParams())
 		cert := doc.getX509CertTemplate()
 		cert.SignatureAlgorithm = doc.getX509SignatureAlgorithm()
+
+		err = docService.Create(c, doc, nil)
+		if err != nil {
+			return nil, err
+		}
+
 		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
 		if err != nil {
 			return nil, err
@@ -118,6 +120,12 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		csrProvider := kv.NewAzCSRProvider(doc.getCSRProviderParams())
 		cert := doc.getX509CertTemplate()
 		cert.SignatureAlgorithm = signerDoc.getX509SignatureAlgorithm()
+
+		err = docService.Create(c, doc, nil)
+		if err != nil {
+			return nil, err
+		}
+
 		patch, err := signCertificate(c, cert, signerCert, csrProvider, signer, doc.GetPersistedSLocator(), signerChain)
 		if err != nil {
 			return nil, err

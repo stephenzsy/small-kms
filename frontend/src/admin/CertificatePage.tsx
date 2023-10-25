@@ -34,9 +34,9 @@ export default function CertificatePage() {
   } = useRequest(
     async () => {
       await adminApi.deleteCertificate({
-        certificateId: certId,
-        namespaceId: namespaceIdentifier,
-        namespaceKindLegacy: namespaceKind as any,
+        resourceIdentifier: certId,
+        namespaceIdentifier,
+        namespaceKind,
       });
       return true;
     },

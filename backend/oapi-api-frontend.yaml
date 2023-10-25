@@ -246,20 +246,6 @@ paths:
         204:
           description: List keyvault roles assignments response
           content: {}
-  /v3/{namespaceKindLegacy}/{namespaceId}/certificate/{certificateId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateIdPathParameter"
-    delete:
-      tags:
-        - admin
-      summary: Delete certificate
-      operationId: DeleteCertificate
-      responses:
-        204:
-          description: ServiceConfig
-          content: {}
   /v3/service/config:
     get:
       tags:

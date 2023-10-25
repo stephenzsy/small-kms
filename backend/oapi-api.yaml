@@ -245,15 +245,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
-    delete:
-      tags:
-        - admin
-      summary: Delete certificate
-      operationId: DeleteCertificate
-      responses:
-        204:
-          description: ServiceConfig
-          content: {}
   /v3/service/config:
     get:
       tags:

@@ -58,9 +58,6 @@ type ServerInterface interface {
 	// Create linked certificate template
 	// (POST /v3/{namespaceKind}/{namespaceId}/certificate-templates)
 	CreateLinkedCertificateTemplate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter) error
-	// Delete certificate
-	// (DELETE /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId})
-	DeleteCertificate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter) error
 	// Get certificate
 	// (GET /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId})
 	GetCertificate(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params GetCertificateParams) error
@@ -490,40 +487,6 @@ func (w *ServerInterfaceWrapper) CreateLinkedCertificateTemplate(ctx echo.Contex
 	return err
 }
 
-// DeleteCertificate converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteCertificate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "certificateId" -------------
-	var certificateId CertificateIdPathParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "certificateId", runtime.ParamLocationPath, ctx.Param("certificateId"), &certificateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter certificateId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteCertificate(ctx, namespaceKind, namespaceId, certificateId)
-	return err
-}
-
 // GetCertificate converts echo context to params.
 func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 	var err error
@@ -617,7 +580,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments", wrapper.AddKeyVaultRoleAssignment)
 	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments/:roleAssignmentId", wrapper.RemoveKeyVaultRoleAssignment)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-templates", wrapper.CreateLinkedCertificateTemplate)
-	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/certificate/:certificateId", wrapper.GetCertificate)
 
 }

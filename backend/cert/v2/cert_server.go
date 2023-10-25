@@ -56,6 +56,22 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKin
 	return c.JSON(http.StatusOK, r)
 }
 
+// DeleteCertificate implements ServerInterface.
+func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	err := deleteCertificate(c, resourceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 // ListCertificates implements ServerInterface.
 func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceKind,
 	namespaceIdentifier base.Identifier, params ListCertificatesParams) error {
