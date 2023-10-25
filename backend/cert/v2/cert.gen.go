@@ -33,7 +33,7 @@ type CertPolicy = certPolicyComposed
 type CertPolicyFields struct {
 	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
 	Flags                   []CertificateFlag            `json:"flags"`
-	IssuerPolicy            externalRef0.SLocator        `json:"issuerPolicy"`
+	IssuerPolicy            externalRef0.ResourceLocator `json:"issuerPolicy"`
 	KeyExportable           bool                         `json:"keyExportable"`
 	KeySpec                 externalRef1.SigningKeySpec  `json:"keySpec"`
 	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`

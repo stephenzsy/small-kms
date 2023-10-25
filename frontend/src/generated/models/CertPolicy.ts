@@ -43,6 +43,12 @@ import {
     ResourceKindFromJSONTyped,
     ResourceKindToJSON,
 } from './ResourceKind';
+import type { ResourceLocator1 } from './ResourceLocator1';
+import {
+    ResourceLocator1FromJSON,
+    ResourceLocator1FromJSONTyped,
+    ResourceLocator1ToJSON,
+} from './ResourceLocator1';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -118,10 +124,10 @@ export interface CertPolicy {
     displayName: string;
     /**
      * 
-     * @type {string}
+     * @type {ResourceLocator1}
      * @memberof CertPolicy
      */
-    issuerPolicy: string;
+    issuerPolicy: ResourceLocator1;
     /**
      * 
      * @type {SigningKeySpec}
@@ -215,7 +221,7 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'issuerPolicy': json['issuerPolicy'],
+        'issuerPolicy': ResourceLocator1FromJSON(json['issuerPolicy']),
         'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
@@ -245,7 +251,7 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
-        'issuerPolicy': value.issuerPolicy,
+        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
         'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,

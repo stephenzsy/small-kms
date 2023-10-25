@@ -86,7 +86,7 @@ type CertPolicyFormState = {
   keySize: number;
   crv: JsonWebKeyCurveName;
   selfSigning: boolean;
-  issuerPolicyLocator: ResourceLocator1;
+  issuerPolicy: ResourceLocator1;
 };
 
 function CertPolicyForm({
@@ -137,6 +137,16 @@ function CertPolicyForm({
       manual: true,
     }
   );
+  
+  const ktyState = useWatch("kty", form);
+  const _selfSigning = useWatch("selfSigning", form);
+
+  const isSelfSigning =
+    namespaceKind === NamespaceKind.NamespaceKindRootCA
+      ? true
+      : namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
+      ? false
+      : _selfSigning;
 
   const onFinish = useMemoizedFn((values: CertPolicyFormState) => {
     run(certPolicyId || values.certPolicyId, {
@@ -155,17 +165,19 @@ function CertPolicyForm({
           JsonWebKeyOperation.JsonWebKeyOperationVerify,
         ],
       },
-      issuerPolicy: {
-        namespaceIdentifier: values.issuerPolicyLocator.namespaceIdentifier,
-        namespaceKind: values.issuerPolicyLocator.namespaceKind,
-        resourceIdentifier: values.issuerPolicyLocator.resourceIdentifier,
-        resourceKind: values.issuerPolicyLocator.resourceKind,
+      issuerPolicy: isSelfSigning ? {
+        namespaceIdentifier: namespaceId,
+        namespaceKind: namespaceKind,
+        resourceIdentifier: certPolicyId,
+        resourceKind: ResourceKind.ResourceKindCertPolicy,
+      } :{
+        namespaceIdentifier: values.issuerPolicy.namespaceIdentifier,
+        namespaceKind: values.issuerPolicy.namespaceKind,
+        resourceIdentifier: values.issuerPolicy.resourceIdentifier,
+        resourceKind: values.issuerPolicy.resourceKind,
       },
     });
   });
-
-  const [defaultIssuerPolicyLocator, setDefaultIssuerPolicyLocator] =
-    useState<string>();
 
   useEffect(() => {
     if (!value) {
@@ -180,12 +192,11 @@ function CertPolicyForm({
       kty: value.keySpec.kty,
       keySize: value.keySpec.keySize,
       crv: value.keySpec.crv,
+      issuerPolicy: value.issuerPolicy,
     });
-    setDefaultIssuerPolicyLocator(value.issuerPolicy);
   }, [value]);
 
-  const ktyState = useWatch("kty", form);
-  const isSelfSigning = useWatch("selfSigning", form);
+
   return (
     <>
       <Form<CertPolicyFormState>
@@ -224,15 +235,13 @@ function CertPolicyForm({
               <Checkbox>Self signing</Checkbox>
             </Form.Item>
           )}
-        {(namespaceKind == NamespaceKind.NamespaceKindIntermediateCA ||
-          !isSelfSigning) && (
+        {!isSelfSigning && (
           <Form.Item<CertPolicyFormState>
-            name="issuerPolicyLocator"
+            name="issuerPolicy"
             getValueFromEvent={(v: ResourceLocator1) => v}
           >
             <CertificatePolicySelect
               availableNamespaceProfiles={issuerProfiles}
-              defaultLocator={defaultIssuerPolicyLocator}
             />
           </Form.Item>
         )}

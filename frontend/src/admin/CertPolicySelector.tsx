@@ -13,10 +13,9 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemoizedFn, useRequest } from "ahooks";
 
 export type CertificatePolicySelectorProps = {
-  defaultLocator: string | undefined;
-  value?: CertPolicyRef;
+  value?: ResourceLocator1;
   availableNamespaceProfiles: ProfileRef[] | undefined | null;
-  onChange?: (value: CertPolicyRef | undefined) => void;
+  onChange?: (value: ResourceLocator1 | undefined) => void;
 };
 
 type NamespaceProfileOptionType = DefaultOptionType & {
@@ -24,7 +23,6 @@ type NamespaceProfileOptionType = DefaultOptionType & {
 };
 
 export function CertificatePolicySelect({
-  defaultLocator,
   value,
   availableNamespaceProfiles,
   onChange,
@@ -41,22 +39,23 @@ export function CertificatePolicySelect({
             {profile.resourceIdentifier})
           </span>
         ),
-        value: v5(
-          `https://example.com/v1/r/${profile.resourceKind}/${profile.resourceIdentifier}`,
-          v5.URL
-        ),
+        value: `${profile.resourceKind}/${profile.resourceIdentifier}`,
         profile,
       })
     );
   }, [availableNamespaceProfiles]);
-  const [selectedProfileStorageNID, setSelectedProfileStorageNID] =
+  const [_selectedProfileStorageNID, setSelectedProfileStorageNID] =
     useState<string>();
+
+  const selectedProfileValue =
+    _selectedProfileStorageNID ??
+    (value ? `${value.namespaceKind}/${value.namespaceIdentifier}` : undefined);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: certPolicies } = useRequest(
     async () => {
       const selectedProfile = namespaceOptions.find(
-        (option) => option.value === selectedProfileStorageNID
+        (option) => option.value === selectedProfileValue
       )?.profile;
       if (!selectedProfile) {
         return;
@@ -67,7 +66,7 @@ export function CertificatePolicySelect({
       });
     },
     {
-      refreshDeps: [selectedProfileStorageNID],
+      refreshDeps: [selectedProfileValue],
     }
   );
 
@@ -78,36 +77,30 @@ export function CertificatePolicySelect({
           {policy.displayName} ({policy.resourceIdentifier})
         </span>
       ),
-      value: policy.id,
+      value: policy.resourceIdentifier,
     }));
   }, [certPolicies]);
 
-  const onChangeDerived = useMemoizedFn((value: string) => {
-    const selected = certPolicies?.find((policy) => policy.id === value);
+  const onChangeDerived = useMemoizedFn((v: string) => {
+    const selected = certPolicies?.find(
+      (policy) => policy.resourceIdentifier === v
+    );
     onChange?.(selected);
   });
-
-  const [defaultNID, defaultRID] = useMemo(() => {
-    if (defaultLocator) {
-      const [nid, rid] = defaultLocator.split(":");
-      return [nid, rid];
-    }
-    return [];
-  }, [defaultLocator]);
 
   return (
     <>
       <Form.Item label="Select certificate policy namespace">
         <Select
           options={namespaceOptions}
-          value={selectedProfileStorageNID ?? defaultNID}
+          value={selectedProfileValue}
           onChange={setSelectedProfileStorageNID}
         />
       </Form.Item>
       <Form.Item label="Select certificate policy">
         <Select
           options={certPolicyOptions}
-          value={value?.id ?? defaultRID}
+          value={value?.resourceIdentifier}
           onChange={onChangeDerived}
         />
       </Form.Item>

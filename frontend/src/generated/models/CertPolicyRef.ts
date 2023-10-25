@@ -86,12 +86,6 @@ export interface CertPolicyRef {
      * @memberof CertPolicyRef
      */
     displayName: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertPolicyRef
-     */
-    issuerPolicy: string;
 }
 
 /**
@@ -107,7 +101,6 @@ export function instanceOfCertPolicyRef(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "issuerPolicy" in value;
 
     return isInstance;
 }
@@ -131,7 +124,6 @@ export function CertPolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boole
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'issuerPolicy': json['issuerPolicy'],
     };
 }
 
@@ -153,7 +145,6 @@ export function CertPolicyRefToJSON(value?: CertPolicyRef | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
-        'issuerPolicy': value.issuerPolicy,
     };
 }
 

@@ -75,3 +75,30 @@ func (sl *storageLocator) WriteToDigest(writer io.Writer) (s int, err error) {
 	}
 	return s, nil
 }
+
+func (rl *ResourceLocator) WriteToDigest(writer io.Writer) (s int, err error) {
+	if rl == nil {
+		return 0, nil
+	}
+	if c, err := writer.Write([]byte(rl.NamespaceKind)); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	if c, err := writer.Write(rl.NamespaceIdentifier.Bytes()); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	if c, err := writer.Write([]byte(rl.ResourceKind)); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	if c, err := writer.Write(rl.ResourceIdentifier.Bytes()); err != nil {
+		return s + c, err
+	} else {
+		s += c
+	}
+	return s, nil
+}

@@ -157,7 +157,7 @@ components:
     CertPolicyFields:
       properties:
         issuerPolicy:
-          $ref: "oapi-base.yaml#/components/schemas/SLocator"
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
         keySpec:
           $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:

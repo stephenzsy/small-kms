@@ -31,6 +31,12 @@ import {
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
+import type { ResourceLocator1 } from './ResourceLocator1';
+import {
+    ResourceLocator1FromJSON,
+    ResourceLocator1FromJSONTyped,
+    ResourceLocator1ToJSON,
+} from './ResourceLocator1';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -50,6 +56,12 @@ import {
  * @interface CertPolicyFields
  */
 export interface CertPolicyFields {
+    /**
+     * 
+     * @type {ResourceLocator1}
+     * @memberof CertPolicyFields
+     */
+    issuerPolicy: ResourceLocator1;
     /**
      * 
      * @type {SigningKeySpec}
@@ -105,6 +117,7 @@ export interface CertPolicyFields {
  */
 export function instanceOfCertPolicyFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "issuerPolicy" in value;
     isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -125,6 +138,7 @@ export function CertPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'issuerPolicy': ResourceLocator1FromJSON(json['issuerPolicy']),
         'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
@@ -145,6 +159,7 @@ export function CertPolicyFieldsToJSON(value?: CertPolicyFields | null): any {
     }
     return {
         
+        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
         'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
