@@ -14,6 +14,7 @@ export default function ManagedAppPage() {
     return adminApi.getManagedApp({ managedAppId: appId });
   }, {});
 
+  const routePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/cert-policy/`;
   return (
     <>
       <Typography.Title>
@@ -33,14 +34,12 @@ export default function ManagedAppPage() {
           <Card
             title="Certificate Policies"
             extra={
-              <Link
-                to={`/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/cert-policy/_create`}
-              >
+              <Link to={`${routePrefix}_create`}>
                 Create certificate policy
               </Link>
             }
           >
-            <CertPolicyRefTable />
+            <CertPolicyRefTable routePrefix={routePrefix} />
           </Card>
         </section>
       </NamespaceContext.Provider>

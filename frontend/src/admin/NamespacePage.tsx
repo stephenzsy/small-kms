@@ -19,7 +19,7 @@ export default function NamespacePage() {
           <Link to="./cert-policy/_create">Create certificate policy</Link>
         }
       >
-        <CertPolicyRefTable />
+        <CertPolicyRefTable routePrefix="./cert-policy/" />
       </Card>
     </>
   );

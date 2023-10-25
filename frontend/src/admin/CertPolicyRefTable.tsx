@@ -6,7 +6,7 @@ import { NamespaceContext } from "./NamespaceContext";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useRequest } from "ahooks";
 
-function useColumns() {
+function useColumns(routePrefix: string) {
   return useMemo<TableColumnType<CertPolicyRef>[]>(
     () => [
       {
@@ -23,15 +23,15 @@ function useColumns() {
       {
         title: "Actions",
         render: (r: CertPolicyRef) => (
-          <Link to={`./cert-policy/${r.resourceIdentifier}`}>View</Link>
+          <Link to={`${routePrefix}${r.resourceIdentifier}`}>View</Link>
         ),
       },
     ],
-    []
+    [routePrefix]
   );
 }
 
-export function CertPolicyRefTable() {
+export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
@@ -46,7 +46,7 @@ export function CertPolicyRefTable() {
       refreshDeps: [namespaceIdentifier, namespaceKind],
     }
   );
-  const columns = useColumns();
+  const columns = useColumns(routePrefix);
   return (
     <Table<CertPolicyRef>
       columns={columns}
