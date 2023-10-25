@@ -164,7 +164,7 @@ func bootstrapActiveHost(skipDockerPullPtr bool) {
 	}
 }
 
-func main() {
+func _oldmain() {
 	// Find .env file
 	skipDockerPullPtr := flag.Bool("skip-docker-pull", false, "skip docker pull")
 	envFilePathPtr := flag.String("env", "", "path to .env file")

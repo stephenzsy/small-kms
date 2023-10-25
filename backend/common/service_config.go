@@ -9,16 +9,17 @@ import (
 )
 
 const (
-	IdentityEnvVarNameAzTenantID     = "AZURE_TENANT_ID"
-	IdentityEnvVarNameAzClientID     = "AZURE_CLIENT_ID"
-	IdentityEnvVarNameAzClientSecret = "AZURE_CLIENT_SECRET"
-	// IdentityEnvVarNameAzClientCertPath   = "AZURE_CLIENT_CERTIFICATE_PATH"
+	IdentityEnvVarNameAzTenantID          = "AZURE_TENANT_ID"
+	IdentityEnvVarNameAzClientID          = "AZURE_CLIENT_ID"
+	IdentityEnvVarNameAzClientSecret      = "AZURE_CLIENT_SECRET"
+	IdentityEnvVarNameAzClientCertPath    = "AZURE_CLIENT_CERTIFICATE_PATH"
 	IdentityEnvVarNameAzSubscriptionID    = "AZURE_SUBSCRIPTION_ID"
 	IdentityEnvVarNameAzResourceGroupName = "AZURE_RESOURCE_GROUP_NAME"
 	IdentityEnvVarNameUseManagedIdentity  = "USE_MANAGED_IDENTITY"
 
 	IdentityEnvVarPrefixService = "SERVICE_"
 	IdentityEnvVarPrefixApp     = "APP_"
+	IdentityEnvVarPrefixAgent   = "AGENT_"
 )
 
 type AzureCredentialServiceIdentity struct {
