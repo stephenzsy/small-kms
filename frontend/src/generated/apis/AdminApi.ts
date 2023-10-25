@@ -162,6 +162,10 @@ export interface GetDockerInfoRequest {
     namespaceId: string;
 }
 
+export interface GetManagedAppRequest {
+    managedAppId: string;
+}
+
 export interface GetProfileRequest {
     profileResourceKind: ResourceKind;
     namespaceIdentifier: string;
@@ -829,6 +833,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getDockerInfo(requestParameters: GetDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
         const response = await this.getDockerInfoRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get managed app
+     */
+    async getManagedAppRaw(requestParameters: GetManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
+        if (requestParameters.managedAppId === null || requestParameters.managedAppId === undefined) {
+            throw new runtime.RequiredError('managedAppId','Required parameter requestParameters.managedAppId was null or undefined when calling getManagedApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/managed-app/{managedAppId}`.replace(`{${"managedAppId"}}`, encodeURIComponent(String(requestParameters.managedAppId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Get managed app
+     */
+    async getManagedApp(requestParameters: GetManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
+        const response = await this.getManagedAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -39,6 +39,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ManagedApp"
+  /v1/managed-app/{managedAppId}:
+    parameters:
+      - in: path
+        name: managedAppId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - admin
+      operationId: GetManagedApp
+      summary: Get managed app
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagedApp"
 security:
   - BearerAuth: []
 components:

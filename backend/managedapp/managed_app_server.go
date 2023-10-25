@@ -1,6 +1,7 @@
 package managedapp
 
 import (
+	"github.com/google/uuid"
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
@@ -9,6 +10,24 @@ import (
 
 type server struct {
 	api.APIServer
+}
+
+// GetManagedApp implements ServerInterface.
+func (s *server) GetManagedApp(ec echo.Context, managedAppId uuid.UUID) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	doc, err := getManagedApp(c, managedAppId)
+	if err != nil {
+		return err
+	}
+
+	m := &ManagedApp{}
+	doc.PopulateModel(m)
+	return c.JSON(200, doc)
 }
 
 // ListManagedApps implements ServerInterface.

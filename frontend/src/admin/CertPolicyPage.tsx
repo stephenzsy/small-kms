@@ -32,20 +32,20 @@ import {
   ResourceLocator1,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { NamespaceContext } from "./NamespaceContext2";
+import { NamespaceContext } from "./NamespaceContext";
 import { Link } from "../components/Link";
 import { DefaultOptionType } from "antd/es/select";
 import { v5 } from "uuid";
 import { CertificatePolicySelect } from "./CertPolicySelector";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
-  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const [force, setForce] = useState(false);
   const { run: issueCert, loading } = useRequest(
     async (force: boolean) => {
       await adminApi.createCertificate({
-        namespaceIdentifier: namespaceId,
+        namespaceIdentifier,
         namespaceKind,
         resourceIdentifier: certPolicyId,
       });
@@ -99,7 +99,7 @@ function CertPolicyForm({
   onChange?: (value: CertPolicy | undefined) => void;
 }) {
   const [form] = useForm<CertPolicyFormState>();
-  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
 
@@ -126,7 +126,7 @@ function CertPolicyForm({
     async (name: string, params: CertPolicyParameters) => {
       const result = await adminApi.putCertPolicy({
         namespaceKind: namespaceKind,
-        namespaceIdentifier: namespaceId,
+        namespaceIdentifier: namespaceIdentifier,
         resourceIdentifier: name,
         certPolicyParameters: params,
       });
@@ -137,7 +137,7 @@ function CertPolicyForm({
       manual: true,
     }
   );
-  
+
   const ktyState = useWatch("kty", form);
   const _selfSigning = useWatch("selfSigning", form);
 
@@ -165,17 +165,19 @@ function CertPolicyForm({
           JsonWebKeyOperation.JsonWebKeyOperationVerify,
         ],
       },
-      issuerPolicy: isSelfSigning ? {
-        namespaceIdentifier: namespaceId,
-        namespaceKind: namespaceKind,
-        resourceIdentifier: certPolicyId,
-        resourceKind: ResourceKind.ResourceKindCertPolicy,
-      } :{
-        namespaceIdentifier: values.issuerPolicy.namespaceIdentifier,
-        namespaceKind: values.issuerPolicy.namespaceKind,
-        resourceIdentifier: values.issuerPolicy.resourceIdentifier,
-        resourceKind: values.issuerPolicy.resourceKind,
-      },
+      issuerPolicy: isSelfSigning
+        ? {
+            namespaceIdentifier: namespaceIdentifier,
+            namespaceKind: namespaceKind,
+            resourceIdentifier: certPolicyId,
+            resourceKind: ResourceKind.ResourceKindCertPolicy,
+          }
+        : {
+            namespaceIdentifier: values.issuerPolicy.namespaceIdentifier,
+            namespaceKind: values.issuerPolicy.namespaceKind,
+            resourceIdentifier: values.issuerPolicy.resourceIdentifier,
+            resourceKind: values.issuerPolicy.resourceKind,
+          },
     });
   });
 
@@ -195,7 +197,6 @@ function CertPolicyForm({
       issuerPolicy: value.issuerPolicy,
     });
   }, [value]);
-
 
   return (
     <>
@@ -392,21 +393,21 @@ export default function CertPolicyPage() {
   };
   const navigate = useNavigate();
   const certPolicyId = _certPolicyId === "_create" ? "" : _certPolicyId;
-  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const { data, mutate } = useRequest(
     async () => {
       if (certPolicyId) {
         return await adminApi.getCertPolicy({
           namespaceKind,
-          namespaceIdentifier: namespaceId,
+          namespaceIdentifier,
           resourceIdentifier: certPolicyId,
         });
       }
       return undefined;
     },
     {
-      refreshDeps: [certPolicyId, namespaceId, namespaceKind],
+      refreshDeps: [certPolicyId, namespaceIdentifier, namespaceKind],
     }
   );
   const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
@@ -420,20 +421,20 @@ export default function CertPolicyPage() {
     async () => {
       if (certPolicyId) {
         return await adminApi.listCertificates({
-          namespaceIdentifier: namespaceId,
+          namespaceIdentifier,
           namespaceKind,
           policyId: certPolicyId,
         });
       }
       return undefined;
     },
-    { refreshDeps: [namespaceId, certPolicyId] }
+    { refreshDeps: [namespaceIdentifier, certPolicyId] }
   );
 
   const { run: setIssuerPolicy } = useRequest(
     async (issuerId: string) => {
       await adminApi.setIssuerCertificate({
-        namespaceIdentifier: namespaceId,
+        namespaceIdentifier,
         namespaceKind: namespaceKind,
         resourceIdentifier: certPolicyId,
         policyIssuerCertRequest: {
@@ -466,7 +467,7 @@ export default function CertPolicyPage() {
         Certificate Policy: {certPolicyId || "new policy"}
       </Typography.Title>
       <div>
-        {namespaceKind}/{namespaceId}
+        {namespaceKind}/{namespaceIdentifier}
       </div>
       <Card title="Certificate list">
         <Table<CertificateRef>

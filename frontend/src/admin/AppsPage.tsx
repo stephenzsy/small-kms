@@ -73,7 +73,7 @@ function useManagedAppsColumns() {
 
       {
         title: "Actions",
-        render: (r) => <Link to={`/app/${r.appId}`}>View</Link>,
+        render: (r) => <Link to={`/app/managed/${r.appId}`}>View</Link>,
       },
     ],
     []

@@ -10,6 +10,8 @@ security:
 paths:
   /v1/managed-app:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
+  /v1/managed-app/{managedAppId}:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app~1{managedAppId}"
   /v1/profile/{profileResourceKind}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:

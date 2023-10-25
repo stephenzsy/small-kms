@@ -11,10 +11,10 @@ import {
   Typography,
 } from "antd";
 import { DescriptionsItemType } from "antd/es/descriptions";
-import { NamespaceContext } from "./NamespaceContext2";
+import { NamespaceContext } from "./NamespaceContext";
 
 export default function CertificatePage() {
-  const { namespaceKind, namespaceId } = useContext(NamespaceContext);
+  const { namespaceKind, namespaceIdentifier } = useContext(NamespaceContext);
 
   const { certId } = useParams() as { certId: string };
 
@@ -22,7 +22,7 @@ export default function CertificatePage() {
   const { data: cert } = useRequest(() => {
     return adminApi.getCertificate({
       resourceIdentifier: certId,
-      namespaceIdentifier: namespaceId,
+      namespaceIdentifier,
       namespaceKind: namespaceKind,
     });
   }, {});
@@ -35,7 +35,7 @@ export default function CertificatePage() {
     async () => {
       await adminApi.deleteCertificate({
         certificateId: certId,
-        namespaceId,
+        namespaceId: namespaceIdentifier,
         namespaceKindLegacy: namespaceKind as any,
       });
       return true;

@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/x509"
+	"fmt"
 
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -82,8 +83,8 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 	switch nsCtx.Kind() {
 	case base.NamespaceKindRootCA:
 		c = ctx.Elevate(c)
-		cert := doc.getX509CertTemplate()
 		signer := kv.NewAzCertSelfSigner(doc.getCSRProviderParams(), doc.getSigningParams())
+		cert := doc.getX509CertTemplate()
 		cert.SignatureAlgorithm = doc.getX509SignatureAlgorithm()
 		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
 		if err != nil {
@@ -93,11 +94,14 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		if err != nil {
 			return nil, err
 		}
-	case base.NamespaceKindIntermediateCA:
+	case base.NamespaceKindIntermediateCA,
+		base.NamespaceKindServicePrincipal:
 		c = ctx.Elevate(c)
-		cert := doc.getX509CertTemplate()
 		// load certDoc of signer
 		issuerPolicy := policyDoc.IssuerPolicy
+		if issuerPolicy.NamespaceKind == nsCtx.Kind() && issuerPolicy.NamespaceIdentifier == nsCtx.Identifier() {
+			return nil, fmt.Errorf("%w: this operation does not support creating self-signed certificate", base.ErrResponseStatusBadRequest)
+		}
 		linkDoc, err := getLinkDoc(c, issuerPolicy.NamespaceKind, issuerPolicy.NamespaceIdentifier, issuerPolicy.ResourceIdentifier)
 		if err != nil {
 			return nil, err
@@ -112,6 +116,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		}
 		signer := kv.NewAzCertSigner(signerDoc.getSigningParams(), signerCert.PublicKey)
 		csrProvider := kv.NewAzCSRProvider(doc.getCSRProviderParams())
+		cert := doc.getX509CertTemplate()
 		cert.SignatureAlgorithm = signerDoc.getX509SignatureAlgorithm()
 		patch, err := signCertificate(c, cert, signerCert, csrProvider, signer, doc.GetPersistedSLocator(), signerChain)
 		if err != nil {
@@ -121,6 +126,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier) (*CertDoc, er
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	return doc, err

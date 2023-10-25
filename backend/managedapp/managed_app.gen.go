@@ -4,7 +4,11 @@
 package managedapp
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -44,6 +48,9 @@ type ServerInterface interface {
 	// Create a managed app
 	// (POST /v1/managed-app)
 	CreateManagedApp(ctx echo.Context) error
+	// Get managed app
+	// (GET /v1/managed-app/{managedAppId})
+	GetManagedApp(ctx echo.Context, managedAppId openapi_types.UUID) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -70,6 +77,24 @@ func (w *ServerInterfaceWrapper) CreateManagedApp(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.CreateManagedApp(ctx)
+	return err
+}
+
+// GetManagedApp converts echo context to params.
+func (w *ServerInterfaceWrapper) GetManagedApp(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "managedAppId" -------------
+	var managedAppId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "managedAppId", runtime.ParamLocationPath, ctx.Param("managedAppId"), &managedAppId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter managedAppId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetManagedApp(ctx, managedAppId)
 	return err
 }
 
@@ -103,5 +128,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/managed-app", wrapper.ListManagedApps)
 	router.POST(baseURL+"/v1/managed-app", wrapper.CreateManagedApp)
+	router.GET(baseURL+"/v1/managed-app/:managedAppId", wrapper.GetManagedApp)
 
 }
