@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   Radio,
-  Select,
   Table,
   TableColumnType,
   Tag,
@@ -16,27 +15,23 @@ import { useForm, useWatch } from "antd/es/form/Form";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
+import { Link } from "../components/Link";
 import {
   AdminApi,
   CertPolicy,
   CertPolicyParameters,
-  Certificate,
   CertificateRef,
   JsonWebKeyCurveName,
   JsonWebKeyOperation,
   JsonWebKeyType,
   NamespaceKind,
-  NamespaceKind1,
   ProfileRef,
   ResourceKind,
   ResourceLocator1,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { NamespaceContext } from "./NamespaceContext";
-import { Link } from "../components/Link";
-import { DefaultOptionType } from "antd/es/select";
-import { v5 } from "uuid";
 import { CertificatePolicySelect } from "./CertPolicySelector";
+import { NamespaceContext } from "./NamespaceContext";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
@@ -85,7 +80,7 @@ type CertPolicyFormState = {
   kty: JsonWebKeyType;
   keySize: number;
   crv: JsonWebKeyCurveName;
-  selfSigning: boolean;
+  // selfSigning: boolean;
   issuerPolicy: ResourceLocator1;
 };
 
@@ -139,14 +134,15 @@ function CertPolicyForm({
   );
 
   const ktyState = useWatch("kty", form);
-  const _selfSigning = useWatch("selfSigning", form);
 
-  const isSelfSigning =
-    namespaceKind === NamespaceKind.NamespaceKindRootCA
-      ? true
-      : namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-      ? false
-      : _selfSigning;
+  //const _selfSigning = useWatch("selfSigning", form);
+
+  const isSelfSigning = namespaceKind === NamespaceKind.NamespaceKindRootCA;
+  // ? true
+  // : namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
+  // ? false
+  // : _selfSigning;
+  // */
 
   const onFinish = useMemoizedFn((values: CertPolicyFormState) => {
     run(certPolicyId || values.certPolicyId, {
@@ -227,15 +223,6 @@ function CertPolicyForm({
         <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
           <Input />
         </Form.Item>
-        {namespaceKind !== NamespaceKind.NamespaceKindRootCA &&
-          namespaceKind !== NamespaceKind.NamespaceKindIntermediateCA && (
-            <Form.Item<CertPolicyFormState>
-              name="selfSigning"
-              valuePropName="checked"
-            >
-              <Checkbox>Self signing</Checkbox>
-            </Form.Item>
-          )}
         {!isSelfSigning && (
           <Form.Item<CertPolicyFormState>
             name="issuerPolicy"
@@ -334,19 +321,20 @@ function CertificateActions({
   return (
     <div className="flex items-center gap-2">
       <Link to={`../cert/${certRef.resourceIdentifier}`}>View</Link>
-      {certPolicyId && certRef.issuerForPolicy ? (
-        <Tag color="success">Current Issuer</Tag>
-      ) : (
-        onSetIssuerPolicy && (
-          <Button
-            type="link"
-            onClick={() => {
-              onSetIssuerPolicy(certRef.resourceIdentifier);
-            }}
-          >
-            Set as issuer
-          </Button>
-        )
+      {certPolicyId && (
+        <>
+          {onSetIssuerPolicy && (
+            <Button
+              type="link"
+              onClick={() => {
+                onSetIssuerPolicy(certRef.resourceIdentifier);
+              }}
+            >
+              Set as issuer
+            </Button>
+          )}
+          {certRef.issuerForPolicy && <Tag color="success">Current Issuer</Tag>}
+        </>
       )}
     </div>
   );

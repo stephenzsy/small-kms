@@ -11,7 +11,7 @@ import (
 
 type devJwtClaims struct {
 	jwt.Claims
-	AppID      string   `json:"appid"`
+	AppID      string   `json:"azp"`
 	ObjectID   string   `json:"oid"`
 	UniqueName string   `json:"unique_name"`
 	Roles      []string `json:"roles,omitempty"`
@@ -44,6 +44,7 @@ func UnverifiedAADJwtAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		for _, r := range claims.Roles {
 			a.appRoles[r] = true
 		}
+		a.appID = claims.AppID
 		return next(ctx.EchoContextWithValue(c, authIdentityContextKey, &a, false))
 	}
 }

@@ -38,10 +38,7 @@ func (i *identifierImpl) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (i *identifierImpl) String() string {
-	if i == nil {
-		return ""
-	}
+func (i identifierImpl) String() string {
 	if i.isUUID {
 		return i.uuidVal.String()
 	}

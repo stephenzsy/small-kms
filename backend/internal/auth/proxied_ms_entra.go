@@ -57,6 +57,8 @@ func ProxiedAADAuth(next echo.HandlerFunc) echo.HandlerFunc {
 					switch c.Type {
 					case "roles":
 						a.appRoles[c.Value] = true
+					case "azp":
+						a.appID = c.Value
 					}
 				}
 			}

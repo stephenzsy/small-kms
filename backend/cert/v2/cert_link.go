@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	RelNameIssuerCert base.RelName = "issuer-cert"
+	RelNameIssuerCert               base.RelName = "issuer-cert"
+	RelNameMsEntraClientCredentials base.RelName = "ms-entra-client-credentials"
 )
 
 type CertLinkRelDoc struct {
@@ -19,7 +20,7 @@ type CertLinkRelDoc struct {
 }
 
 func getLinkDocIdentifierForPolicyID(policyID base.Identifier) base.Identifier {
-	return base.StringIdentifier[string](fmt.Sprintf("%s:%s", policyID.String(), RelNameIssuerCert))
+	return base.StringIdentifier(fmt.Sprintf("%s:%s", RelNameIssuerCert, policyID.String()))
 }
 
 func (d *CertLinkRelDoc) Init(
@@ -33,6 +34,18 @@ func (d *CertLinkRelDoc) Init(
 	d.ResourceIdentifier = getLinkDocIdentifierForPolicyID(policyID)
 
 	d.RelName = RelNameIssuerCert
+}
+
+func (d *CertLinkRelDoc) initNamespaceMsEntraClientCredentials(
+	nsKind base.NamespaceKind,
+	nsID base.Identifier,
+) {
+	d.NamespaceKind = nsKind
+	d.NamespaceIdentifier = nsID
+	d.ResourceKind = base.ResourceKindRel
+	d.ResourceIdentifier = base.StringIdentifier(RelNameMsEntraClientCredentials)
+
+	d.RelName = RelNameMsEntraClientCredentials
 }
 
 func setIssuerCertRel(c context.Context, targetCert *CertDoc, policyID base.Identifier) error {
@@ -70,10 +83,10 @@ func setIssuerCert(c context.Context, policyID base.Identifier, params *PolicyIs
 	return setIssuerCertRel(c, certDoc, policyID)
 }
 
-func getLinkDoc(c context.Context, nsKind base.NamespaceKind, nsId base.Identifier, policyId base.Identifier) (*CertLinkRelDoc, error) {
+func getPolicyLinkRelDoc(c context.Context, nsKind base.NamespaceKind, nsId base.Identifier, policyId base.Identifier) (*CertLinkRelDoc, error) {
 	doc := &CertLinkRelDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
-	linkDocLocator := base.GetDefaultStorageLocator(nsKind, nsId, base.ResourceKindRel, base.StringIdentifier[string](fmt.Sprintf("%s:%s", policyId.String(), RelNameIssuerCert)))
+	linkDocLocator := base.GetDefaultStorageLocator(nsKind, nsId, base.ResourceKindRel, getLinkDocIdentifierForPolicyID(policyId))
 	err := docService.Read(c, linkDocLocator.NID, linkDocLocator.RID, doc, nil)
 	return doc, err
 }
@@ -86,4 +99,12 @@ func (d *CertLinkRelDoc) getLinkedToCertDoc(c context.Context) (*CertDoc, error)
 		return getCertDocBySLocator(c, certDocLocator)
 	}
 	return nil, fmt.Errorf("%w: no certificate found", base.ErrResponseStatusBadRequest)
+}
+
+func getNamespaceLinkRelDoc(c context.Context, nsKind base.NamespaceKind, nsId base.Identifier, relName base.RelName) (*CertLinkRelDoc, error) {
+	doc := &CertLinkRelDoc{}
+	docService := base.GetAzCosmosCRUDService(c)
+	linkDocLocator := base.GetDefaultStorageLocator(nsKind, nsId, base.ResourceKindRel, base.StringIdentifier(relName))
+	err := docService.Read(c, linkDocLocator.NID, linkDocLocator.RID, doc, nil)
+	return doc, err
 }

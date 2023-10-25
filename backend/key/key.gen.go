@@ -53,6 +53,15 @@ const (
 	JsonWebKeyTypeRSA JsonWebKeyType = "RSA"
 )
 
+// JsonWebKey defines model for JsonWebKey.
+type JsonWebKey struct {
+	E             *externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
+	KeyOperations *[]JsonWebKeyOperation                 `json:"key_ops,omitempty"`
+	KeyID         *string                                `json:"kid,omitempty"`
+	Kty           JsonWebKeyType                         `json:"kty"`
+	N             *externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
+}
+
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
 type JsonWebKeyCurveName string
 
@@ -82,7 +91,6 @@ type KeyAttributes struct {
 type KeyFields struct {
 	// Attributes these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
 	Attributes KeyAttributes `json:"attributes"`
-	Kid        string        `json:"kid"`
 }
 
 // KeyPolicy defines model for KeyPolicy.

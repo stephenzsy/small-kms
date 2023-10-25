@@ -15,6 +15,28 @@ type server struct {
 	api.APIServer
 }
 
+// EnrollMsEntraClientCredential implements ServerInterface.
+func (s *server) EnrollMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !namespaceIdentifier.IsUUID() {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "invalid namespace identifier"})
+	}
+
+	if !auth.AuthorizeApplicationOrAdmin(c, namespaceIdentifier.UUID()) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	params := new(EnrollMsEntraClientCredentialRequest)
+	if err := c.Bind(params); err != nil {
+		return err
+	}
+
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	return enrollMsEntraClientCredCert(c, resourceIdentifier, params)
+}
+
 // SetIssuerCertificate implements ServerInterface.
 func (s *server) SetIssuerCertificate(
 	ec echo.Context,
@@ -101,7 +123,7 @@ func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.Namespace
 	}
 
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	r, err := createCertFromPolicy(c, resourceIdentifier)
+	r, err := createCertFromPolicy(c, resourceIdentifier, nil)
 	if err != nil {
 		return err
 	}

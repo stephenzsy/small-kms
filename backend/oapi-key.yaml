@@ -161,6 +161,32 @@ components:
             x5t#S256:
               $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
               x-go-name: ThumbprintSHA256
+    JsonWebKey:
+      type: object
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+          x-go-name: KeyType
+        kid:
+          type: string
+          x-go-name: KeyID
+        key_ops:
+          type: array
+          items:
+            $ref: "#/components/schemas/JsonWebKeyOperation"
+          x-go-name: KeyOperations
+        n:
+          description: RSA modulus
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Modulus
+          x-go-type-skip-optional-pointer: true
+        e:
+          description: RSA public exponent
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Exponent
+          x-go-type-skip-optional-pointer: true
+      required:
+        - kty
     Key:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
@@ -183,8 +209,6 @@ components:
     KeyFields:
       type: object
       properties:
-        kid:
-          type: string
         attributes:
           $ref: "#/components/schemas/KeyAttributes"
       required:

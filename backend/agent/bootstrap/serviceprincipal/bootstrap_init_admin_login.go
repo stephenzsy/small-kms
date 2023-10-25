@@ -13,22 +13,19 @@ import (
 )
 
 type tokenCache struct {
-	LocalAccountID string            `json:"localAccountId"`
-	Tokens         map[string][]byte `json:"tokens"`
+	Account *public.Account `json:"account,omitempty"`
+	Token   []byte          `json:"tokens"`
 }
 
 // Export implements cache.ExportReplace.
 func (tc *tokenCache) Export(ctx context.Context, cache cache.Marshaler, hints cache.ExportHints) (err error) {
-	tc.Tokens[hints.PartitionKey], err = cache.Marshal()
+	tc.Token, err = cache.Marshal()
 	return err
 }
 
 // Replace implements cache.ExportReplace.
 func (tc *tokenCache) Replace(ctx context.Context, cache cache.Unmarshaler, hints cache.ReplaceHints) error {
-	if b, ok := tc.Tokens[hints.PartitionKey]; ok {
-		return cache.Unmarshal(b)
-	}
-	return nil
+	return cache.Unmarshal(tc.Token)
 }
 
 var _ cache.ExportReplace = (*tokenCache)(nil)
@@ -38,15 +35,13 @@ func (*ServicePrincipalBootstraper) Login(c context.Context, tokenCacheFile stri
 		return errors.New("missing client cert path")
 	}
 
-	appTokenCache := &tokenCache{
-		Tokens: map[string][]byte{},
-	}
-	if tokenJson, err := os.ReadFile(tokenCacheFile); err != nil {
+	appTokenCache := &tokenCache{}
+	if tokenJson, err := os.ReadFile(tokenCacheFile); err == nil {
 		json.Unmarshal(tokenJson, appTokenCache)
 	}
 	defer func() {
 		cacheFileBytes, _ := json.Marshal(appTokenCache)
-		os.WriteFile(tokenCacheFile, cacheFileBytes, 0400)
+		os.WriteFile(tokenCacheFile, cacheFileBytes, 0640)
 	}()
 
 	var appClient public.Client
@@ -66,25 +61,28 @@ func (*ServicePrincipalBootstraper) Login(c context.Context, tokenCacheFile stri
 			return err
 		}
 		authScopes := []string{apiAuthScope}
-		if appTokenCache.LocalAccountID != "" {
-			if _, err := appClient.AcquireTokenSilent(c, authScopes, public.WithTenantID(tenantID), public.WithSilentAccount(public.Account{
-				LocalAccountID: appTokenCache.LocalAccountID,
-			})); err == nil {
+		if appTokenCache.Account != nil {
+			if _, err := appClient.AcquireTokenSilent(c, authScopes, public.WithTenantID(tenantID), public.WithSilentAccount(*appTokenCache.Account)); err == nil {
 				return nil
+			} else {
+				fmt.Printf("Failed to acquire token silently: %v\n", err)
 			}
 		}
 		if !forceDeviceCode {
-			if resp, err := appClient.AcquireTokenInteractive(c, authScopes, public.WithTenantID(tenantID)); err == nil {
-				appTokenCache.LocalAccountID = resp.Account.LocalAccountID
+			if resp, err := appClient.AcquireTokenInteractive(c, authScopes, public.WithTenantID(tenantID),
+				public.WithRedirectURI(fmt.Sprintf("msal%s://auth", clientID)),
+			); err == nil {
+				appTokenCache.Account = &resp.Account
 				return nil
 			}
 		}
-		if resp, err := appClient.AcquireTokenByDeviceCode(c, authScopes); err != nil {
+		if resp, err := appClient.AcquireTokenByDeviceCode(c, authScopes, public.WithTenantID(tenantID)); err == nil {
 			fmt.Printf("\033[1;33m%s\033[0m\n", resp.Result.Message)
 			if r, err := resp.AuthenticationResult(c); err != nil {
-				appTokenCache.LocalAccountID = r.Account.LocalAccountID
-			} else {
 				return err
+			} else {
+
+				appTokenCache.Account = &r.Account
 			}
 		} else {
 			return err

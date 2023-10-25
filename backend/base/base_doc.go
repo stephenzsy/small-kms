@@ -40,8 +40,9 @@ type CRUDDoc interface {
 type RelName string
 
 type DocRelations struct {
-	NamedFrom map[RelName]SLocator `json:"namedFrom,omitempty"`
-	NamedTo   map[RelName]SLocator `json:"namedTo,omitempty"`
+	NamedFrom   map[RelName]SLocator   `json:"namedFrom,omitempty"`
+	NamedTo     map[RelName]SLocator   `json:"namedTo,omitempty"`
+	NamedToList map[RelName][]SLocator `json:"namedToList,omitempty"`
 }
 
 type BaseDoc struct {

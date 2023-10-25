@@ -23,6 +23,7 @@ const (
 type AuthIdentity interface {
 	ClientPrincipalID() uuid.UUID
 	ClientPrincipalDisplayName() string
+	AppID() string
 	HasAdminRole() bool
 	GetOnBehalfOfTokenCredential(c context.Context, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
 }
@@ -32,6 +33,12 @@ type authIdentity struct {
 	msClientPrincipalName string
 	appRoles              map[string]bool
 	bearerToken           string
+	appID                 string
+}
+
+// AppID implements AuthIdentity.
+func (a *authIdentity) AppID() string {
+	return a.appID
 }
 
 type AzureIdentity interface {

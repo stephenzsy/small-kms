@@ -22,9 +22,9 @@ type AzCertSigner interface {
 }
 
 type AzCertCSRProvider interface {
-	GetCSR(context.Context) (*azcertificates.CreateCertificateResponse, error)
-	CollectCerts(context.Context, *azcertificates.CreateCertificateResponse, [][]byte) (*azcertificates.MergeCertificateResponse, error)
-	Cleanup(context.Context, *azcertificates.CreateCertificateResponse)
+	GetCSRPublicKey(context.Context) (crypto.PublicKey, error)
+	CollectCerts(context.Context, [][]byte) (*azcertificates.MergeCertificateResponse, error)
+	Cleanup(context.Context)
 }
 
 type CSRProviderParams struct {
@@ -49,11 +49,11 @@ type azcertKeyPair struct {
 }
 
 // Cleanup implements AzCertCSRProvider.
-func (kp *azcertKeyPair) Cleanup(c context.Context, ccr *azcertificates.CreateCertificateResponse) {
+func (kp *azcertKeyPair) Cleanup(c context.Context) {
 	if !kp.skipCleanup {
 		client := getAzKeyVaultService(c).AzCertificatesClient()
 
-		_, err := client.DeleteCertificateOperation(c, ccr.ID.Name(), nil)
+		_, err := client.DeleteCertificateOperation(c, kp.csrParams.CertName, nil)
 		if err != nil {
 			log.Ctx(c).Error().Err(err).Msgf("failed to delete certificate operation")
 		}
@@ -61,9 +61,9 @@ func (kp *azcertKeyPair) Cleanup(c context.Context, ccr *azcertificates.CreateCe
 }
 
 // CollectCerts implements AzCertCSRProvider.
-func (kp *azcertKeyPair) CollectCerts(c context.Context, ccr *azcertificates.CreateCertificateResponse, certs [][]byte) (*azcertificates.MergeCertificateResponse, error) {
+func (kp *azcertKeyPair) CollectCerts(c context.Context, certs [][]byte) (*azcertificates.MergeCertificateResponse, error) {
 	client := getAzKeyVaultService(c).AzCertificatesClient()
-	resp, err := client.MergeCertificate(c, ccr.ID.Name(), azcertificates.MergeCertificateParameters{
+	resp, err := client.MergeCertificate(c, kp.csrParams.CertName, azcertificates.MergeCertificateParameters{
 		X509Certificates: certs,
 		CertificateAttributes: &azcertificates.CertificateAttributes{
 			Enabled: to.Ptr(true),
@@ -89,7 +89,7 @@ func (kp *azcertKeyPair) CollectCerts(c context.Context, ccr *azcertificates.Cre
 }
 
 // GetCSR implements AzCertCSRProvider.
-func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertificateResponse, error) {
+func (kp *azcertKeyPair) GetCSRPublicKey(c context.Context) (crypto.PublicKey, error) {
 	if kp.signingCtx == nil {
 		if err := kp.Load(c); err != nil {
 			return nil, err
@@ -114,8 +114,13 @@ func (kp *azcertKeyPair) GetCSR(c context.Context) (*azcertificates.CreateCertif
 	if kp.isSelfSigning {
 		params.CertificatePolicy.KeyProperties.ReuseKey = to.Ptr(true)
 	}
-	resp, err := client.CreateCertificate(c, kp.csrParams.CertName, params, nil)
-	return &resp, err
+	if resp, err := client.CreateCertificate(c, kp.csrParams.CertName, params, nil); err != nil {
+		return nil, err
+	} else if csrParsed, err := x509.ParseCertificateRequest(resp.CSR); err != nil {
+		return nil, err
+	} else {
+		return csrParsed.PublicKey, nil
+	}
 }
 
 // Load implements AzCertSigner.

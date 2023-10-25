@@ -46,15 +46,20 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
 
   const accountRef = useLatest(account);
   const acquireToken = useMemoizedFn(
-    (): Promise<AuthenticationResult | void> => {
-      return accountRef.current
-        ? instance.acquireTokenSilent({
+    async (): Promise<AuthenticationResult | void> => {
+      try {
+        if (accountRef.current) {
+          return await instance.acquireTokenSilent({
             scopes: [import.meta.env.VITE_API_SCOPE],
             account: accountRef.current,
-          })
-        : instance.loginRedirect({
-            scopes: [import.meta.env.VITE_API_SCOPE],
           });
+        }
+        instance.setActiveAccount(accountRef.current);
+      } catch {}
+      return instance.loginRedirect({
+        scopes: [import.meta.env.VITE_API_SCOPE],
+        redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
+      });
     }
   );
   useEffect(() => {
