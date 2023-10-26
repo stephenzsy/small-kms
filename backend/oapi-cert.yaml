@@ -150,7 +150,11 @@ paths:
               $ref: "#/components/schemas/EnrollMsEntraClientCredentialRequest"
       responses:
         200:
-          $ref: "#/components/responses/CertificateResponse"
+          description: Key spec reponse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Certificate"
 security:
   - BearerAuth: []
 components:

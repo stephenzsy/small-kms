@@ -146,6 +146,7 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	if d.KeySpec.X5tS256 != nil {
 		m.X5tS256 = *d.KeySpec.X5tS256
 	}
+	m.CertificateChain = d.KeySpec.CertificateChain
 	m.Subject = d.Subject
 	m.Flags = d.Flags
 	m.Attributes.Nbf = &d.NotBefore

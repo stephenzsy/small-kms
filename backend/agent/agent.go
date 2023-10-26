@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/agent/bootstrap/serviceprincipal"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/urfave/cli/v2"
 )
 
@@ -61,9 +62,22 @@ func main() {
 								EnvVars: []string{"AZURE_CLIENT_CERTIFICATE_PATH", "CLIENT_CERTIFICATE_PATH"},
 								Value:   "./sp-client-cert.pem",
 							},
+							&cli.StringFlag{
+								Name:     "namespace-id",
+								Usage:    "namespace identifier",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "cert-policy-id",
+								Usage:    "policy identifier for the client cert",
+								Required: true,
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return serviceprincipal.NewServicePrincipalBootstraper().Bootstrap(c.Context, c.String("cert-path"), c.String("token-cache-file"))
+							return serviceprincipal.NewServicePrincipalBootstraper().Bootstrap(c.Context,
+								base.IdentifierFromString(c.String("namespace-id")),
+								base.IdentifierFromString(c.String("cert-policy-id")),
+								c.String("cert-path"), c.String("token-cache-file"))
 						},
 					},
 				},

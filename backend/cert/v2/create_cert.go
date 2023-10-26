@@ -32,7 +32,7 @@ func (*existingPublicKeyProvider) CollectCerts(context.Context, [][]byte) (*azce
 
 // GetCSRPublicKey implements kv.AzCertCSRProvider.
 func (p *existingPublicKeyProvider) GetCSRPublicKey(context.Context) (crypto.PublicKey, error) {
-	return p, nil
+	return p.PublicKey, nil
 }
 
 var _ kv.AzCertCSRProvider = (*existingPublicKeyProvider)(nil)

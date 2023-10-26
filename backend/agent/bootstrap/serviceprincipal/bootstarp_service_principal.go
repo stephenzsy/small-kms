@@ -3,16 +3,24 @@ package serviceprincipal
 import (
 	"context"
 	"crypto"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/rs/zerolog/log"
+	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
+	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/certstore"
 	wincryptostore "github.com/stephenzsy/small-kms/backend/internal/certstore/windows"
+	"github.com/stephenzsy/small-kms/backend/key"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ServicePrincipalBootstraper struct {
@@ -22,7 +30,7 @@ func NewServicePrincipalBootstraper() *ServicePrincipalBootstraper {
 	return &ServicePrincipalBootstraper{}
 }
 
-func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPath, tokenCacheFile string) error {
+func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdentifier base.Identifier, certPolicyIdentifer base.Identifier, certPath string, tokenCacheFile string) error {
 	if certPath == "" {
 		return errors.New("missing client cert path")
 	}
@@ -44,33 +52,71 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPath, token
 		return nil
 	}
 
-	appTokenCache := newAppTokenCache(tokenCacheFile)
-	defer appTokenCache.Close()
-	var issuerId string
-	_, authResult, err := getAppWithSharedTokenCache(c, appTokenCache, true, false)
-	if err != nil {
-		issuerId = authResult.Account.LocalAccountID
+	var baseUrl, apiAuthScope string
+	if baseUrl = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_BASE_URL", ""); baseUrl == "" {
+		return errors.New("missing API_URL_BASE")
+	} else if apiAuthScope = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_AUTH_SCOPE", ""); apiAuthScope == "" {
+		return errors.New("missing APP_API_AUTH_SCOPE")
 	}
 
-	ksession, err := cryptoStore.CreateRSAKeySession("smallkms", 2048, false)
+	appTokenCache := newAppTokenCache(tokenCacheFile)
+	pubClient, authResult, err := getAppWithSharedTokenCache(c, appTokenCache, true, false)
 	if err != nil {
 		return err
 	}
-	defer ksession.Close()
+
+	privateKey, err := cryptoStore.GenerateRSAKeyPair(2048)
+	if err != nil {
+		return err
+	}
 
 	nbf := jwt.NewNumericDate(time.Now())
 
-	t := jwt.NewWithClaims(&ksessionSigningMethod{ksession}, jwt.RegisteredClaims{
+	t := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
 		Audience:  jwt.ClaimStrings{"00000003-0000-0000-c000-000000000000"},
 		NotBefore: nbf,
 		ExpiresAt: jwt.NewNumericDate(nbf.Time.Add(10 * time.Minute)),
-		Issuer:    issuerId,
+		Issuer:    namespaceIdentifier.String(),
 	})
-	signedToken, err := t.SignedString(ksession)
+	signedToken, err := t.SignedString(privateKey)
 	if err != nil {
 		return err
 	}
-	log.Info().Msg(signedToken)
+
+	client, err := agentclient.NewClientWithResponses(baseUrl,
+		agentclient.WithRequestEditorFn(common.ToSilenTokenRequestEditorFn(pubClient, apiAuthScope, authResult.Account)))
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.EnrollMsEntraClientCredentialWithResponse(c, base.NamespaceKindServicePrincipal,
+		namespaceIdentifier,
+		certPolicyIdentifer,
+		agentclient.EnrollMsEntraClientCredentialRequest{
+			PublicKey:    toJwk(privateKey.Public()),
+			MsEntraProof: signedToken,
+		})
+	if err != nil {
+		return err
+	}
+
+	pkBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return err
+	}
+
+	pem.Encode(os.Stdout, &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: pkBytes,
+	})
+
+	for _, cert := range resp.JSON200.CertificateChain {
+
+		pem.Encode(os.Stdout, &pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert,
+		})
+	}
 
 	return nil
 }
@@ -82,25 +128,11 @@ func getCryptoStoreProvider() (certstore.CryptoStoreProvider, error) {
 	return nil, nil
 }
 
-type ksessionSigningMethod struct {
-	ksession certstore.KeySession
+func toJwk(k crypto.PublicKey) (jwk key.JsonWebKey) {
+	if rsaPubKey, ok := k.(*rsa.PublicKey); ok {
+		jwk.Kty = key.JsonWebKeyTypeRSA
+		jwk.N = utils.ToPtr(base.Base64RawURLEncodedBytes(rsaPubKey.N.Bytes()))
+		jwk.E = utils.ToPtr(base.Base64RawURLEncodedBytes(big.NewInt(int64(rsaPubKey.E)).Bytes()))
+	}
+	return
 }
-
-// Alg implements jwt.SigningMethod.
-func (*ksessionSigningMethod) Alg() string {
-	return "RS256"
-}
-
-// Sign implements jwt.SigningMethod.
-func (ksm *ksessionSigningMethod) Sign(signingString string, key interface{}) ([]byte, error) {
-	hasher := crypto.SHA256.New()
-	hasher.Write([]byte(signingString))
-	return ksm.ksession.Sign(nil, hasher.Sum(nil), crypto.SHA256.HashFunc())
-}
-
-// Verify implements jwt.SigningMethod.
-func (*ksessionSigningMethod) Verify(signingString string, sig []byte, key interface{}) error {
-	panic("unimplemented")
-}
-
-var _ jwt.SigningMethod = (*ksessionSigningMethod)(nil)

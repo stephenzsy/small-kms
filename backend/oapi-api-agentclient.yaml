@@ -1,0 +1,23 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Admin API
+  version: 0.1.1
+servers:
+  - url: https://example.com
+    description: Local server
+security:
+  - BearerAuth: []
+paths:
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-ms-entra-client-credential:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1enroll-ms-entra-client-credential"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    EnrollMsEntraClientCredentialRequest:
+      $ref: "oapi-cert.yaml#/components/schemas/EnrollMsEntraClientCredentialRequest"
+    Certificate:
+      $ref: "oapi-cert.yaml#/components/schemas/Certificate"

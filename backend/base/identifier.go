@@ -91,11 +91,9 @@ func UUIDIdentifier(uuid uuid.UUID) identifierImpl {
 	}
 }
 
-func IdentifierFromString(s string) identifierImpl {
-	return identifierImpl{
-		isUUID: false,
-		strVal: s,
-	}
+func IdentifierFromString(s string) (i identifierImpl) {
+	(&i).UnmarshalText([]byte(s))
+	return
 }
 
 var _ encoding.TextMarshaler = identifierImpl{}

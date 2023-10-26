@@ -9,88 +9,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
-	externalRef1 "github.com/stephenzsy/small-kms/backend/key"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/cert/v2"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for CertificateFlag.
-const (
-	CertificateFlagCA         CertificateFlag = "ca"
-	CertificateFlagClientAuth CertificateFlag = "clientAuth"
-	CertificateFlagRootCA     CertificateFlag = "rootCa"
-	CertificateFlagServerAuth CertificateFlag = "serverAuth"
-)
-
 // Certificate defines model for Certificate.
-type Certificate = certificateComposed
-
-// CertificateAttributes defines model for CertificateAttributes.
-type CertificateAttributes struct {
-	Exp    *externalRef0.NumericDate `json:"exp,omitempty"`
-	Iat    *externalRef0.NumericDate `json:"iat,omitempty"`
-	Issuer *externalRef0.SLocator    `json:"issuer,omitempty"`
-	Nbf    *externalRef0.NumericDate `json:"nbf,omitempty"`
-}
-
-// CertificateFields defines model for CertificateFields.
-type CertificateFields struct {
-	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
-	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
-	Subject                 CertificateSubject                        `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
-
-	// X5c Base64 encoded certificate chain
-	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
-	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t"`
-	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256"`
-	X5u              *string                                 `json:"x5u,omitempty"`
-}
-
-// CertificateFlag defines model for CertificateFlag.
-type CertificateFlag string
-
-// CertificateRef defines model for CertificateRef.
-type CertificateRef = certificateRefComposed
-
-// CertificateRefFields defines model for CertificateRefFields.
-type CertificateRefFields struct {
-	Attributes      CertificateAttributes  `json:"attributes"`
-	IssuerForPolicy *externalRef0.SLocator `json:"issuerForPolicy,omitempty"`
-	Thumbprint      string                 `json:"thumbprint"`
-}
-
-// CertificateSubject defines model for CertificateSubject.
-type CertificateSubject struct {
-	CommonName string `json:"commonName"`
-}
+type Certificate = externalRef1.Certificate
 
 // EnrollMsEntraClientCredentialRequest defines model for EnrollMsEntraClientCredentialRequest.
-type EnrollMsEntraClientCredentialRequest struct {
-	// Force Force enrollment, will clear existing credential on graph, initial enrollment must be forced
-	Force        *bool                   `json:"force,omitempty"`
-	MsEntraProof string                  `json:"msEntraProof"`
-	PublicKey    externalRef1.JsonWebKey `json:"publicKey"`
-}
-
-// SubjectAlternativeNames defines model for SubjectAlternativeNames.
-type SubjectAlternativeNames struct {
-	DNSNames    []string `json:"dnsNames,omitempty"`
-	Emails      []string `json:"emails,omitempty"`
-	IPAddresses []net.IP `json:"ipAddresses,omitempty"`
-}
-
-// CertificateResponse defines model for CertificateResponse.
-type CertificateResponse = Certificate
+type EnrollMsEntraClientCredentialRequest = externalRef1.EnrollMsEntraClientCredentialRequest
 
 // EnrollMsEntraClientCredentialJSONRequestBody defines body for EnrollMsEntraClientCredential for application/json ContentType.
 type EnrollMsEntraClientCredentialJSONRequestBody = EnrollMsEntraClientCredentialRequest
@@ -311,7 +247,7 @@ type ClientWithResponsesInterface interface {
 type EnrollMsEntraClientCredentialResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *CertificateResponse
+	JSON200      *Certificate
 }
 
 // Status returns HTTPResponse.Status
@@ -362,7 +298,7 @@ func ParseEnrollMsEntraClientCredentialResponse(rsp *http.Response) (*EnrollMsEn
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest CertificateResponse
+		var dest Certificate
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
