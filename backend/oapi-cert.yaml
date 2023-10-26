@@ -139,6 +139,7 @@ paths:
     post:
       tags:
         - admin
+        - agentclient
       operationId: EnrollMsEntraClientCredential
       summary: Set issuer certificate
       requestBody:

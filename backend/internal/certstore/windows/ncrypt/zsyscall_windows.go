@@ -41,6 +41,7 @@ var (
 	modncrypt = windows.NewLazySystemDLL("ncrypt.dll")
 
 	procNCryptCreatePersistedKey  = modncrypt.NewProc("NCryptCreatePersistedKey")
+	procNCryptDeleteKey           = modncrypt.NewProc("NCryptDeleteKey")
 	procNCryptExportKey           = modncrypt.NewProc("NCryptExportKey")
 	procNCryptFinalizeKey         = modncrypt.NewProc("NCryptFinalizeKey")
 	procNCryptFreeObject          = modncrypt.NewProc("NCryptFreeObject")
@@ -52,6 +53,14 @@ var (
 
 func CreatePersistedKey(hProvider PROV_HANDLE, phKey *KEY_HANDLE, pszAlgId *uint16, pszKeyName *uint16, dwLegacyKeySpec uint32, dwFlags uint32) (s error) {
 	r0, _, _ := syscall.Syscall6(procNCryptCreatePersistedKey.Addr(), 6, uintptr(hProvider), uintptr(unsafe.Pointer(phKey)), uintptr(unsafe.Pointer(pszAlgId)), uintptr(unsafe.Pointer(pszKeyName)), uintptr(dwLegacyKeySpec), uintptr(dwFlags))
+	if r0 != 0 {
+		s = syscall.Errno(r0)
+	}
+	return
+}
+
+func DeleteKey(hKey KEY_HANDLE, dwFlags uint32) (s error) {
+	r0, _, _ := syscall.Syscall(procNCryptDeleteKey.Addr(), 2, uintptr(hKey), uintptr(dwFlags), 0)
 	if r0 != 0 {
 		s = syscall.Errno(r0)
 	}

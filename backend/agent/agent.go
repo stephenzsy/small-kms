@@ -63,7 +63,7 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return serviceprincipal.NewServicePrincipalBootstraper().Bootstrap(c.Context, c.String("cert-path"))
+							return serviceprincipal.NewServicePrincipalBootstraper().Bootstrap(c.Context, c.String("cert-path"), c.String("token-cache-file"))
 						},
 					},
 				},

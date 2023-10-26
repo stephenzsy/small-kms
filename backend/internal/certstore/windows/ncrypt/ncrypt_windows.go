@@ -102,6 +102,7 @@ type BufferDesc struct {
 }
 
 //sys   CreatePersistedKey(hProvider PROV_HANDLE, phKey *KEY_HANDLE, pszAlgId *uint16, pszKeyName *uint16, dwLegacyKeySpec uint32, dwFlags uint32) (s error) = ncrypt.NCryptCreatePersistedKey
+//sys   DeleteKey (hKey KEY_HANDLE, dwFlags uint32) (s error) = ncrypt.NCryptDeleteKey
 //sys   ExportKey(hKey KEY_HANDLE, hExportKey KEY_HANDLE, pszBlobType *uint16, pParameterList *BufferDesc, pbOutput []byte, pcbResult *uint32, dwFlags uint32) (s error) = ncrypt.NCryptExportKey
 //sys   FinalizeKey(hKey KEY_HANDLE, dwFlags uint32) (s error) = ncrypt.NCryptFinalizeKey
 //sys   FreeObject(hObject HANDLE) (s error) = ncrypt.NCryptFreeObject
