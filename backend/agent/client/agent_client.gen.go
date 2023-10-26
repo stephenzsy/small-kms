@@ -25,11 +25,11 @@ const (
 // Certificate defines model for Certificate.
 type Certificate = externalRef1.Certificate
 
-// EnrollMsEntraClientCredentialRequest defines model for EnrollMsEntraClientCredentialRequest.
-type EnrollMsEntraClientCredentialRequest = externalRef1.EnrollMsEntraClientCredentialRequest
+// EnrollCertificateRequest defines model for EnrollCertificateRequest.
+type EnrollCertificateRequest = externalRef1.EnrollCertificateRequest
 
-// EnrollMsEntraClientCredentialJSONRequestBody defines body for EnrollMsEntraClientCredential for application/json ContentType.
-type EnrollMsEntraClientCredentialJSONRequestBody = EnrollMsEntraClientCredentialRequest
+// EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
+type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -104,14 +104,14 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// EnrollMsEntraClientCredentialWithBody request with any body
-	EnrollMsEntraClientCredentialWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// EnrollCertificateWithBody request with any body
+	EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	EnrollMsEntraClientCredential(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollMsEntraClientCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	EnrollCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) EnrollMsEntraClientCredentialWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEnrollMsEntraClientCredentialRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body)
+func (c *Client) EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnrollCertificateRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (c *Client) EnrollMsEntraClientCredentialWithBody(ctx context.Context, name
 	return c.Client.Do(req)
 }
 
-func (c *Client) EnrollMsEntraClientCredential(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollMsEntraClientCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEnrollMsEntraClientCredentialRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, body)
+func (c *Client) EnrollCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnrollCertificateRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, body)
 	if err != nil {
 		return nil, err
 	}
@@ -134,19 +134,19 @@ func (c *Client) EnrollMsEntraClientCredential(ctx context.Context, namespaceKin
 	return c.Client.Do(req)
 }
 
-// NewEnrollMsEntraClientCredentialRequest calls the generic EnrollMsEntraClientCredential builder with application/json body
-func NewEnrollMsEntraClientCredentialRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollMsEntraClientCredentialJSONRequestBody) (*http.Request, error) {
+// NewEnrollCertificateRequest calls the generic EnrollCertificate builder with application/json body
+func NewEnrollCertificateRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewEnrollMsEntraClientCredentialRequestWithBody(server, namespaceKind, namespaceIdentifier, resourceIdentifier, "application/json", bodyReader)
+	return NewEnrollCertificateRequestWithBody(server, namespaceKind, namespaceIdentifier, resourceIdentifier, "application/json", bodyReader)
 }
 
-// NewEnrollMsEntraClientCredentialRequestWithBody generates requests for EnrollMsEntraClientCredential with any type of body
-func NewEnrollMsEntraClientCredentialRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader) (*http.Request, error) {
+// NewEnrollCertificateRequestWithBody generates requests for EnrollCertificate with any type of body
+func NewEnrollCertificateRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -175,7 +175,7 @@ func NewEnrollMsEntraClientCredentialRequestWithBody(server string, namespaceKin
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/%s/%s/cert-policy/%s/enroll-ms-entra-client-credential", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1/%s/%s/cert-policy/%s/enroll-cert", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -238,20 +238,20 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// EnrollMsEntraClientCredentialWithBodyWithResponse request with any body
-	EnrollMsEntraClientCredentialWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollMsEntraClientCredentialResponse, error)
+	// EnrollCertificateWithBodyWithResponse request with any body
+	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 
-	EnrollMsEntraClientCredentialWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollMsEntraClientCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollMsEntraClientCredentialResponse, error)
+	EnrollCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 }
 
-type EnrollMsEntraClientCredentialResponse struct {
+type EnrollCertificateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Certificate
 }
 
 // Status returns HTTPResponse.Status
-func (r EnrollMsEntraClientCredentialResponse) Status() string {
+func (r EnrollCertificateResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -259,39 +259,39 @@ func (r EnrollMsEntraClientCredentialResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r EnrollMsEntraClientCredentialResponse) StatusCode() int {
+func (r EnrollCertificateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// EnrollMsEntraClientCredentialWithBodyWithResponse request with arbitrary body returning *EnrollMsEntraClientCredentialResponse
-func (c *ClientWithResponses) EnrollMsEntraClientCredentialWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollMsEntraClientCredentialResponse, error) {
-	rsp, err := c.EnrollMsEntraClientCredentialWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body, reqEditors...)
+// EnrollCertificateWithBodyWithResponse request with arbitrary body returning *EnrollCertificateResponse
+func (c *ClientWithResponses) EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error) {
+	rsp, err := c.EnrollCertificateWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseEnrollMsEntraClientCredentialResponse(rsp)
+	return ParseEnrollCertificateResponse(rsp)
 }
 
-func (c *ClientWithResponses) EnrollMsEntraClientCredentialWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollMsEntraClientCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollMsEntraClientCredentialResponse, error) {
-	rsp, err := c.EnrollMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, body, reqEditors...)
+func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error) {
+	rsp, err := c.EnrollCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseEnrollMsEntraClientCredentialResponse(rsp)
+	return ParseEnrollCertificateResponse(rsp)
 }
 
-// ParseEnrollMsEntraClientCredentialResponse parses an HTTP response from a EnrollMsEntraClientCredentialWithResponse call
-func ParseEnrollMsEntraClientCredentialResponse(rsp *http.Response) (*EnrollMsEntraClientCredentialResponse, error) {
+// ParseEnrollCertificateResponse parses an HTTP response from a EnrollCertificateWithResponse call
+func ParseEnrollCertificateResponse(rsp *http.Response) (*EnrollCertificateResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &EnrollMsEntraClientCredentialResponse{
+	response := &EnrollCertificateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

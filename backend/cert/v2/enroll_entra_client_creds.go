@@ -14,7 +14,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier, params *EnrollMsEntraClientCredentialRequest) error {
+func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier, params *EnrollCertificateRequest) error {
 
 	// verify jwt is 2048
 	if params.PublicKey.Kty != key.JsonWebKeyTypeRSA {
@@ -29,7 +29,7 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier
 	nsCtx := ns.GetNSContext(c)
 
 	// verify proof of jwt, so make sure client has possession of the private key
-	if token, err := jwt.Parse(params.MsEntraProof, func(token *jwt.Token) (interface{}, error) {
+	if token, err := jwt.Parse(params.Proof, func(token *jwt.Token) (interface{}, error) {
 		return pKey, nil
 	}); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof"})

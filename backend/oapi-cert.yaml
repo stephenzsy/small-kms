@@ -131,7 +131,7 @@ paths:
         204:
           description: Issuer certificate set
           content: {}
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-ms-entra-client-credential:
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
@@ -140,14 +140,14 @@ paths:
       tags:
         - admin
         - agentclient
-      operationId: EnrollMsEntraClientCredential
-      summary: Set issuer certificate
+      operationId: EnrollCertificate
+      summary: Enroll certificate
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EnrollMsEntraClientCredentialRequest"
+              $ref: "#/components/schemas/EnrollCertificateRequest"
       responses:
         200:
           description: Key spec reponse
@@ -339,19 +339,20 @@ components:
         - alg
         - x5t
         - x5t#S256
-    EnrollMsEntraClientCredentialRequest:
+    EnrollCertificateRequest:
       type: object
       properties:
         publicKey:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKey"
-        msEntraProof:
+        proof:
+          description: Signed JWT to show proof of possession of the private key
           type: string
         force:
           description: Force enrollment, will clear existing credential on graph, initial enrollment must be forced
           type: boolean
       required:
         - publicKey
-        - msEntraProof
+        - proof
     PolicyIssuerCertRequest:
       type: object
       properties:

@@ -69,7 +69,7 @@ func createLinkedCertificateTemplate(c RequestContext, target shared.ResourceLoc
 
 func ApiCreateLinkedCertificateTemplate(c RequestContext, params models.CreateLinkedCertificateTemplateParameters) error {
 	switch params.Usage {
-	case models.LinkedCertificateTemplateUsageClientAuthorization, models.LinkedCertificateTemplateUsageMemberDelegatedEnrollment:
+	case models.LinkedCertificateTemplateUsageClientAuthorization:
 		// ok
 	default:
 		return fmt.Errorf("%w: invalid usage: %s", common.ErrStatusBadRequest, params.Usage)

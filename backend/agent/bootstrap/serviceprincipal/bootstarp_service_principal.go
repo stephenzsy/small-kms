@@ -89,12 +89,12 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		return err
 	}
 
-	resp, err := client.EnrollMsEntraClientCredentialWithResponse(c, base.NamespaceKindServicePrincipal,
+	resp, err := client.EnrollCertificateWithResponse(c, base.NamespaceKindServicePrincipal,
 		namespaceIdentifier,
 		certPolicyIdentifer,
-		agentclient.EnrollMsEntraClientCredentialRequest{
-			PublicKey:    toJwk(privateKey.Public()),
-			MsEntraProof: signedToken,
+		agentclient.EnrollCertificateRequest{
+			PublicKey: toJwk(privateKey.Public()),
+			Proof:     signedToken,
 		})
 	if err != nil {
 		return err

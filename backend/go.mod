@@ -17,6 +17,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.2
+	github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54
 	github.com/microsoftgraph/msgraph-sdk-go v1.23.0
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/rs/zerolog v1.31.0
@@ -46,7 +47,6 @@ require (
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54 // indirect
 	github.com/microsoft/kiota-abstractions-go v1.3.0 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.1 // indirect
 	github.com/microsoft/kiota-http-go v1.1.0 // indirect

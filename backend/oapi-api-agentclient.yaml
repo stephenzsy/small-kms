@@ -8,8 +8,8 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-ms-entra-client-credential:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1enroll-ms-entra-client-credential"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1enroll-cert"
 components:
   securitySchemes:
     BearerAuth:
@@ -17,7 +17,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    EnrollMsEntraClientCredentialRequest:
-      $ref: "oapi-cert.yaml#/components/schemas/EnrollMsEntraClientCredentialRequest"
+    EnrollCertificateRequest:
+      $ref: "oapi-cert.yaml#/components/schemas/EnrollCertificateRequest"
     Certificate:
       $ref: "oapi-cert.yaml#/components/schemas/Certificate"

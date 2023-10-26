@@ -106,12 +106,14 @@ type CertificateSubject struct {
 	CommonName string `json:"commonName"`
 }
 
-// EnrollMsEntraClientCredentialRequest defines model for EnrollMsEntraClientCredentialRequest.
-type EnrollMsEntraClientCredentialRequest struct {
+// EnrollCertificateRequest defines model for EnrollCertificateRequest.
+type EnrollCertificateRequest struct {
 	// Force Force enrollment, will clear existing credential on graph, initial enrollment must be forced
-	Force        *bool                   `json:"force,omitempty"`
-	MsEntraProof string                  `json:"msEntraProof"`
-	PublicKey    externalRef1.JsonWebKey `json:"publicKey"`
+	Force *bool `json:"force,omitempty"`
+
+	// Proof Signed JWT to show proof of possession of the private key
+	Proof     string                  `json:"proof"`
+	PublicKey externalRef1.JsonWebKey `json:"publicKey"`
 }
 
 // PolicyIssuerCertRequest defines model for PolicyIssuerCertRequest.
@@ -141,8 +143,8 @@ type ListCertificatesParams struct {
 // PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
 type PutCertPolicyJSONRequestBody = CertPolicyParameters
 
-// EnrollMsEntraClientCredentialJSONRequestBody defines body for EnrollMsEntraClientCredential for application/json ContentType.
-type EnrollMsEntraClientCredentialJSONRequestBody = EnrollMsEntraClientCredentialRequest
+// EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
+type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
 // SetIssuerCertificateJSONRequestBody defines body for SetIssuerCertificate for application/json ContentType.
 type SetIssuerCertificateJSONRequestBody = PolicyIssuerCertRequest
@@ -164,9 +166,9 @@ type ServerInterface interface {
 	// Create certificate
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert)
 	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
-	// Set issuer certificate
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-ms-entra-client-credential)
-	EnrollMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// Enroll certificate
+	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert)
+	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 	// Set issuer certificate
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert)
 	SetIssuerCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
@@ -346,8 +348,8 @@ func (w *ServerInterfaceWrapper) CreateCertificate(ctx echo.Context) error {
 	return err
 }
 
-// EnrollMsEntraClientCredential converts echo context to params.
-func (w *ServerInterfaceWrapper) EnrollMsEntraClientCredential(ctx echo.Context) error {
+// EnrollCertificate converts echo context to params.
+func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
 	var namespaceKind externalRef0.NamespaceKindParameter
@@ -376,7 +378,7 @@ func (w *ServerInterfaceWrapper) EnrollMsEntraClientCredential(ctx echo.Context)
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.EnrollMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
 	return err
 }
 
@@ -515,7 +517,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.GetCertPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-ms-entra-client-credential", wrapper.EnrollMsEntraClientCredential)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-cert", wrapper.EnrollCertificate)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/issuer-cert", wrapper.SetIssuerCertificate)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.GetCertificate)

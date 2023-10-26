@@ -16,7 +16,7 @@ type server struct {
 }
 
 // EnrollMsEntraClientCredential implements ServerInterface.
-func (s *server) EnrollMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 
 	if !namespaceIdentifier.IsUUID() {
@@ -27,7 +27,7 @@ func (s *server) EnrollMsEntraClientCredential(ec echo.Context, namespaceKind ba
 		return s.RespondRequireAdmin(c)
 	}
 
-	params := new(EnrollMsEntraClientCredentialRequest)
+	params := new(EnrollCertificateRequest)
 	if err := c.Bind(params); err != nil {
 		return err
 	}

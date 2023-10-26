@@ -439,10 +439,8 @@ components:
       type: string
       enum:
         - cliant-authorization
-        - member-delegated-enrollment
       x-enum-varnames:
         - LinkedCertificateTemplateUsageClientAuthorization
-        - LinkedCertificateTemplateUsageMemberDelegatedEnrollment
     CreateLinkedCertificateTemplateParameters:
       type: object
       properties:

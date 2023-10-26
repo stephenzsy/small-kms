@@ -16,8 +16,7 @@ const (
 
 // Defines values for LinkedCertificateTemplateUsage.
 const (
-	LinkedCertificateTemplateUsageClientAuthorization       LinkedCertificateTemplateUsage = "cliant-authorization"
-	LinkedCertificateTemplateUsageMemberDelegatedEnrollment LinkedCertificateTemplateUsage = "member-delegated-enrollment"
+	LinkedCertificateTemplateUsageClientAuthorization LinkedCertificateTemplateUsage = "cliant-authorization"
 )
 
 // Defines values for PatchServiceConfigParamsConfigPath.
