@@ -17,8 +17,8 @@ func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicyDoc, erro
 	nsCtx := ns.GetNSContext(c)
 	doc := new(CertPolicyDoc)
 
-	slocator := base.GetDefaultStorageLocator(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, rID)
+	slocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, rID)
 
-	err := base.GetAzCosmosCRUDService(c).Read(c, slocator.NID, slocator.RID, doc, nil)
+	err := base.GetAzCosmosCRUDService(c).Read(c, slocator, doc, nil)
 	return doc, err
 }

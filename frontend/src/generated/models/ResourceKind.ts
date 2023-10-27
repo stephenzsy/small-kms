@@ -25,7 +25,7 @@ export const ResourceKind = {
     ResourceKindCertPolicy: 'cert-policy',
     ResourceKindCert: 'cert',
     ResourceKindKeyPolicy: 'key-policy',
-    ResourceKindRel: 'rel'
+    ResourceKindNamespaceConfig: 'ns-config'
 } as const;
 export type ResourceKind = typeof ResourceKind[keyof typeof ResourceKind];
 

@@ -18,8 +18,7 @@
  * @export
  */
 export const LinkedCertificateTemplateUsage = {
-    LinkedCertificateTemplateUsageClientAuthorization: 'cliant-authorization',
-    LinkedCertificateTemplateUsageMemberDelegatedEnrollment: 'member-delegated-enrollment'
+    LinkedCertificateTemplateUsageClientAuthorization: 'cliant-authorization'
 } as const;
 export type LinkedCertificateTemplateUsage = typeof LinkedCertificateTemplateUsage[keyof typeof LinkedCertificateTemplateUsage];
 

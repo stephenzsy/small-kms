@@ -15,6 +15,34 @@ type server struct {
 	api.APIServer
 }
 
+// GetCertificateRuleIssuer implements ServerInterface.
+func (*server) GetCertificateRuleIssuer(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	panic("unimplemented")
+}
+
+// PutCertificateRuleIssuer implements ServerInterface.
+func (*server) PutCertificateRuleIssuer(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	panic("unimplemented")
+}
+
+func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) (ctx.RequestContext, error) {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return c, s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	return c, nil
+}
+
+func (s *server) GetCertificateRules(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ctx, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]string{"error": "unimplemented"})
+}
+
 // EnrollMsEntraClientCredential implements ServerInterface.
 func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
@@ -37,40 +65,13 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 	return enrollMsEntraClientCredCert(c, resourceIdentifier, params)
 }
 
-// SetIssuerCertificate implements ServerInterface.
-func (s *server) SetIssuerCertificate(
-	ec echo.Context,
-	namespaceKind base.NamespaceKind,
-	namespaceIdentifier base.Identifier,
-	resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	params := new(PolicyIssuerCertRequest)
-	if err := c.Bind(params); err != nil {
-		return err
-	}
-
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	err := setIssuerCert(c, resourceIdentifier, params)
+// GetCertificate implements ServerInterface.
+func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
 	}
-	return c.NoContent(http.StatusNoContent)
-}
 
-// GetCertificate implements ServerInterface.
-func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	r, err := getCertificate(c, resourceIdentifier)
 	if err != nil {
 		return err
@@ -80,14 +81,12 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKin
 
 // DeleteCertificate implements ServerInterface.
 func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	err := deleteCertificate(c, resourceIdentifier)
+	err = deleteCertificate(c, resourceIdentifier)
 	if err != nil {
 		return err
 	}
@@ -97,13 +96,11 @@ func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.Namespace
 // ListCertificates implements ServerInterface.
 func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceKind,
 	namespaceIdentifier base.Identifier, params ListCertificatesParams) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	l, err := listCertificates(c, params)
 	if err != nil {
 		return err
@@ -116,13 +113,11 @@ func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceK
 
 // CreateCertificate implements ServerInterface.
 func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	r, err := createCertFromPolicy(c, resourceIdentifier, nil)
 	if err != nil {
 		return err
@@ -134,13 +129,11 @@ func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.Namespace
 
 // ListCertPolicies implements ServerInterface.
 func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	l, err := listCertPolicies(c)
 	if err != nil {
 		return err
@@ -153,13 +146,11 @@ func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceK
 
 // GetCertPolicy implements ServerInterface.
 func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	r, err := getCertPolicy(c, resourceIdentifier)
 	if err != nil {
 		return err
@@ -174,10 +165,9 @@ func (s *server) PutCertPolicy(ec echo.Context,
 	namespaceKind base.NamespaceKind,
 	namespaceIdentifier base.Identifier,
 	resourceIdentifier base.Identifier) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
 	}
 
 	params := new(CertPolicyParameters)
@@ -188,7 +178,6 @@ func (s *server) PutCertPolicy(ec echo.Context,
 	if err := ns.VerifyKeyVaultIdentifier(namespaceIdentifier); err != nil {
 		return err
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	r, err := putCertPolicy(c, resourceIdentifier, params)
 	if err != nil {
 		return err

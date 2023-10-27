@@ -21,7 +21,7 @@ func deleteCertificate(c context.Context, rID base.Identifier) error {
 		return errors.New("cannot delete certificate with status other than pending")
 	}
 
-	return base.GetAzCosmosCRUDService(c).Delete(c, doc.StorageNamespaceID, doc.StorageID, &azcosmos.ItemOptions{
+	return base.GetAzCosmosCRUDService(c).Delete(c, doc, &azcosmos.ItemOptions{
 		IfMatchEtag: doc.ETag,
 	})
 }

@@ -31,28 +31,30 @@ type CertPolicy = certPolicyComposed
 
 // CertPolicyFields defines model for CertPolicyFields.
 type CertPolicyFields struct {
-	ExpiryTime              externalRef0.Period          `json:"expiryTime"`
-	Flags                   []CertificateFlag            `json:"flags"`
-	IssuerPolicy            externalRef0.ResourceLocator `json:"issuerPolicy"`
-	KeyExportable           bool                         `json:"keyExportable"`
-	KeySpec                 externalRef1.SigningKeySpec  `json:"keySpec"`
-	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
-	Subject                 CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
-	Version                 HexDigest                    `json:"version"`
+	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
+	Flags                     []CertificateFlag            `json:"flags"`
+	IssuerNamespaceIdentifier externalRef0.Identifier      `json:"issuerNamespaceIdentifier"`
+	IssuerNamespaceKind       externalRef0.NamespaceKind   `json:"issuerNamespaceKind"`
+	KeyExportable             bool                         `json:"keyExportable"`
+	KeySpec                   externalRef1.SigningKeySpec  `json:"keySpec"`
+	LifetimeAction            *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
+	Subject                   CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames   *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+	Version                   HexDigest                    `json:"version"`
 }
 
 // CertPolicyParameters defines model for CertPolicyParameters.
 type CertPolicyParameters struct {
-	DisplayName             *string                       `json:"displayName,omitempty"`
-	ExpiryTime              externalRef0.Period           `json:"expiryTime"`
-	Flags                   []CertificateFlag             `json:"flags,omitempty"`
-	IssuerPolicy            *externalRef0.ResourceLocator `json:"issuerPolicy,omitempty"`
-	KeyExportable           *bool                         `json:"keyExportable,omitempty"`
-	KeySpec                 *externalRef1.SigningKeySpec  `json:"keySpec,omitempty"`
-	LifetimeAction          *externalRef1.LifetimeAction  `json:"lifetimeAction,omitempty"`
-	Subject                 CertificateSubject            `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames      `json:"subjectAlternativeNames,omitempty"`
+	DisplayName               *string                      `json:"displayName,omitempty"`
+	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
+	Flags                     []CertificateFlag            `json:"flags,omitempty"`
+	IssuerNamespaceIdentifier *externalRef0.Identifier     `json:"issuerNamespaceIdentifier,omitempty"`
+	IssuerNamespaceKind       *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
+	KeyExportable             *bool                        `json:"keyExportable,omitempty"`
+	KeySpec                   *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
+	LifetimeAction            *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
+	Subject                   CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames   *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
 // CertPolicyRef defines model for CertPolicyRef.
@@ -68,10 +70,10 @@ type Certificate = certificateComposed
 
 // CertificateAttributes defines model for CertificateAttributes.
 type CertificateAttributes struct {
-	Exp    *externalRef0.NumericDate `json:"exp,omitempty"`
-	Iat    *externalRef0.NumericDate `json:"iat,omitempty"`
-	Issuer *externalRef0.SLocator    `json:"issuer,omitempty"`
-	Nbf    *externalRef0.NumericDate `json:"nbf,omitempty"`
+	Exp    *externalRef0.NumericDate              `json:"exp,omitempty"`
+	Iat    *externalRef0.NumericDate              `json:"iat,omitempty"`
+	Issuer *externalRef0.ResourceUniqueIdentifier `json:"issuer,omitempty"`
+	Nbf    *externalRef0.NumericDate              `json:"nbf,omitempty"`
 }
 
 // CertificateFields defines model for CertificateFields.
@@ -96,9 +98,14 @@ type CertificateRef = certificateRefComposed
 
 // CertificateRefFields defines model for CertificateRefFields.
 type CertificateRefFields struct {
-	Attributes      CertificateAttributes  `json:"attributes"`
-	IssuerForPolicy *externalRef0.SLocator `json:"issuerForPolicy,omitempty"`
-	Thumbprint      string                 `json:"thumbprint"`
+	Attributes CertificateAttributes `json:"attributes"`
+	Thumbprint string                `json:"thumbprint"`
+}
+
+// CertificateRuleIssuer defines model for CertificateRuleIssuer.
+type CertificateRuleIssuer struct {
+	CertificateId externalRef0.Identifier `json:"certificateId"`
+	PolicyId      externalRef0.Identifier `json:"policyId"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -114,11 +121,6 @@ type EnrollCertificateRequest struct {
 	// Proof Signed JWT to show proof of possession of the private key
 	Proof     string                  `json:"proof"`
 	PublicKey externalRef1.JsonWebKey `json:"publicKey"`
-}
-
-// PolicyIssuerCertRequest defines model for PolicyIssuerCertRequest.
-type PolicyIssuerCertRequest struct {
-	IssuerId externalRef0.Identifier `json:"issuerId"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
@@ -146,8 +148,8 @@ type PutCertPolicyJSONRequestBody = CertPolicyParameters
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
-// SetIssuerCertificateJSONRequestBody defines body for SetIssuerCertificate for application/json ContentType.
-type SetIssuerCertificateJSONRequestBody = PolicyIssuerCertRequest
+// PutCertificateRuleIssuerJSONRequestBody defines body for PutCertificateRuleIssuer for application/json ContentType.
+type PutCertificateRuleIssuerJSONRequestBody = CertificateRuleIssuer
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -169,9 +171,12 @@ type ServerInterface interface {
 	// Enroll certificate
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert)
 	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
-	// Set issuer certificate
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert)
-	SetIssuerCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// Get certificate rules for namespace
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
+	GetCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Update certificate rules for namespace
+	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
+	PutCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 	// Delete certificate
 	// (DELETE /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier})
 	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
@@ -382,8 +387,8 @@ func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 	return err
 }
 
-// SetIssuerCertificate converts echo context to params.
-func (w *ServerInterfaceWrapper) SetIssuerCertificate(ctx echo.Context) error {
+// GetCertificateRuleIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificateRuleIssuer(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
 	var namespaceKind externalRef0.NamespaceKindParameter
@@ -401,18 +406,36 @@ func (w *ServerInterfaceWrapper) SetIssuerCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	ctx.Set(BearerAuthScopes, []string{})
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificateRuleIssuer(ctx, namespaceKind, namespaceIdentifier)
+	return err
+}
+
+// PutCertificateRuleIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) PutCertificateRuleIssuer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.SetIssuerCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.PutCertificateRuleIssuer(ctx, namespaceKind, namespaceIdentifier)
 	return err
 }
 
@@ -518,7 +541,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-cert", wrapper.EnrollCertificate)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/issuer-cert", wrapper.SetIssuerCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.GetCertificate)
 

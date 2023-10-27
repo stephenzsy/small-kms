@@ -26,14 +26,14 @@ const (
 	ResourceKindCert                    ResourceKind = "cert"
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy               ResourceKind = "key-policy"
-	ResourceKindRel                     ResourceKind = "rel"
+	ResourceKindNamespaceConfig         ResourceKind = "ns-config"
 )
 
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.
 type Base64RawURLEncodedBytes = base64RawURLEncodedBytesImpl
 
 // Identifier defines model for Identifier.
-type Identifier = identifierImpl
+type Identifier = identifier
 
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
@@ -47,28 +47,17 @@ type Period = periodImpl
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
-// ResourceLocator defines model for ResourceLocator.
-type ResourceLocator struct {
-	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
-	NamespaceKind       NamespaceKind `json:"namespaceKind"`
-	ResourceIdentifier  Identifier    `json:"resourceIdentifier"`
-	ResourceKind        ResourceKind  `json:"resourceKind"`
-}
-
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
-	Id                  SLocator      `json:"_id"`
-	Deleted             *time.Time    `json:"deleted,omitempty"`
-	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
-	NamespaceKind       NamespaceKind `json:"namespaceKind"`
-	ResourceIdentifier  Identifier    `json:"resourceIdentifier"`
-	ResourceKind        ResourceKind  `json:"resourceKind"`
-	Updated             time.Time     `json:"updated"`
-	UpdatedBy           string        `json:"updatedBy"`
+	Deleted   *time.Time               `json:"deleted,omitempty"`
+	Id        Identifier               `json:"id"`
+	Uid       ResourceUniqueIdentifier `json:"uid"`
+	Updated   time.Time                `json:"updated"`
+	UpdatedBy string                   `json:"updatedBy"`
 }
 
-// SLocator defines model for SLocator.
-type SLocator = storageLocator
+// ResourceUniqueIdentifier defines model for ResourceUniqueIdentifier.
+type ResourceUniqueIdentifier = DocFullIdentifier
 
 // NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.
 type NamespaceIdentifierParameter = Identifier

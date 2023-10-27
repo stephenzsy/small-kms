@@ -53,6 +53,40 @@ paths:
         204:
           description: Certificate deleted
           content: {}
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetCertificateRuleIssuer
+      summary: Get certificate rules for namespace
+      responses:
+        200:
+          description: Certificate rules response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateRuleIssuer"
+    put:
+      tags:
+        - admin
+      operationId: PutCertificateRuleIssuer
+      summary: Update certificate rules for namespace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateRuleIssuer"
+      responses:
+        200:
+          description: Certificate rules response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertificateRuleIssuer"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -111,26 +145,6 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/CertificateResponse"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
-    post:
-      tags:
-        - admin
-      operationId: SetIssuerCertificate
-      summary: Set issuer certificate
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PolicyIssuerCertRequest"
-      responses:
-        204:
-          description: Issuer certificate set
-          content: {}
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -189,8 +203,10 @@ components:
         - x-go-type: certPolicyComposed
     CertPolicyFields:
       properties:
-        issuerPolicy:
-          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+        issuerNamespaceKind:
+          $ref: "oapi-base.yaml#/components/schemas/NamespaceKind"
+        issuerNamespaceIdentifier:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
         keySpec:
           $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
@@ -211,7 +227,8 @@ components:
           type: string
           x-go-type: HexDigest
       required:
-        - issuerPolicy
+        - issuerNamespaceKind
+        - issuerNamespaceIdentifier
         - keySpec
         - keyExportable
         - expiryTime
@@ -241,12 +258,14 @@ components:
           items:
             $ref: "#/components/schemas/CertificateFlag"
           x-go-type-skip-optional-pointer: true
-        issuerPolicy:
-          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+        issuerNamespaceKind:
+          $ref: "oapi-base.yaml#/components/schemas/NamespaceKind"
+        issuerNamespaceIdentifier:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
       required:
         - expiryTime
         - subject
-        - issuerTemplate
+
     CertificateSubject:
       type: object
       properties:
@@ -286,7 +305,7 @@ components:
         - type: object
           properties:
             issuer:
-              $ref: "oapi-base.yaml#/components/schemas/SLocator"
+              $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
     CertificateRefFields:
       type: object
       properties:
@@ -294,8 +313,6 @@ components:
           type: string
         attributes:
           $ref: "#/components/schemas/CertificateAttributes"
-        issuerForPolicy:
-          $ref: "oapi-base.yaml#/components/schemas/SLocator"
       required:
         - thumbprint
         - attributes
@@ -360,6 +377,28 @@ components:
           $ref: "oapi-base.yaml#/components/schemas/Identifier"
       required:
         - issuerId
+    CertificateRuleIssuer:
+      type: object
+      properties:
+        policyId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+        certificateId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+      required:
+        - policyId
+        - certificateId
+    CertificateRuleMsEntraClientCredential:
+      type: object
+      properties:
+        policyId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+        certificateIds:
+          type: array
+          items:
+            $ref: "oapi-base.yaml#/components/schemas/Identifier"
+      required:
+        - policyId
+        - certificateIds
   responses:
     CertPolicyResponse:
       description: Key spec reponse

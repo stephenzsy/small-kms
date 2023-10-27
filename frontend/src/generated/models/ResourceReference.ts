@@ -13,19 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-import type { ResourceKind } from './ResourceKind';
-import {
-    ResourceKindFromJSON,
-    ResourceKindFromJSONTyped,
-    ResourceKindToJSON,
-} from './ResourceKind';
-
 /**
  * 
  * @export
@@ -34,34 +21,16 @@ import {
 export interface ResourceReference {
     /**
      * 
-     * @type {NamespaceKind}
-     * @memberof ResourceReference
-     */
-    namespaceKind: NamespaceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResourceReference
-     */
-    namespaceIdentifier: string;
-    /**
-     * 
-     * @type {ResourceKind}
-     * @memberof ResourceReference
-     */
-    resourceKind: ResourceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResourceReference
-     */
-    resourceIdentifier: string;
-    /**
-     * 
      * @type {string}
      * @memberof ResourceReference
      */
     id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResourceReference
+     */
+    uid: string;
     /**
      * 
      * @type {Date}
@@ -87,11 +56,8 @@ export interface ResourceReference {
  */
 export function instanceOfResourceReference(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "namespaceKind" in value;
-    isInstance = isInstance && "namespaceIdentifier" in value;
-    isInstance = isInstance && "resourceKind" in value;
-    isInstance = isInstance && "resourceIdentifier" in value;
     isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
 
@@ -108,11 +74,8 @@ export function ResourceReferenceFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
-        'namespaceIdentifier': json['namespaceIdentifier'],
-        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
-        'resourceIdentifier': json['resourceIdentifier'],
-        'id': json['_id'],
+        'id': json['id'],
+        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
@@ -128,11 +91,8 @@ export function ResourceReferenceToJSON(value?: ResourceReference | null): any {
     }
     return {
         
-        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
-        'namespaceIdentifier': value.namespaceIdentifier,
-        'resourceKind': ResourceKindToJSON(value.resourceKind),
-        'resourceIdentifier': value.resourceIdentifier,
-        '_id': value.id,
+        'id': value.id,
+        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

@@ -37,18 +37,6 @@ import {
     JsonWebKeySignatureAlgorithmFromJSONTyped,
     JsonWebKeySignatureAlgorithmToJSON,
 } from './JsonWebKeySignatureAlgorithm';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-import type { ResourceKind } from './ResourceKind';
-import {
-    ResourceKindFromJSON,
-    ResourceKindFromJSONTyped,
-    ResourceKindToJSON,
-} from './ResourceKind';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -70,28 +58,10 @@ export interface Certificate {
     id: string;
     /**
      * 
-     * @type {NamespaceKind}
-     * @memberof Certificate
-     */
-    namespaceKind: NamespaceKind;
-    /**
-     * 
      * @type {string}
      * @memberof Certificate
      */
-    namespaceIdentifier: string;
-    /**
-     * 
-     * @type {ResourceKind}
-     * @memberof Certificate
-     */
-    resourceKind: ResourceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof Certificate
-     */
-    resourceIdentifier: string;
+    uid: string;
     /**
      * 
      * @type {Date}
@@ -122,12 +92,6 @@ export interface Certificate {
      * @memberof Certificate
      */
     attributes: CertificateAttributes;
-    /**
-     * 
-     * @type {string}
-     * @memberof Certificate
-     */
-    issuerForPolicy?: string;
     /**
      * 
      * @type {CertificateSubject}
@@ -184,10 +148,7 @@ export interface Certificate {
 export function instanceOfCertificate(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "namespaceKind" in value;
-    isInstance = isInstance && "namespaceIdentifier" in value;
-    isInstance = isInstance && "resourceKind" in value;
-    isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "thumbprint" in value;
@@ -210,17 +171,13 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
-        'id': json['_id'],
-        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
-        'namespaceIdentifier': json['namespaceIdentifier'],
-        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
-        'resourceIdentifier': json['resourceIdentifier'],
+        'id': json['id'],
+        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
-        'issuerForPolicy': !exists(json, 'issuerForPolicy') ? undefined : json['issuerForPolicy'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
@@ -241,17 +198,13 @@ export function CertificateToJSON(value?: Certificate | null): any {
     }
     return {
         
-        '_id': value.id,
-        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
-        'namespaceIdentifier': value.namespaceIdentifier,
-        'resourceKind': ResourceKindToJSON(value.resourceKind),
-        'resourceIdentifier': value.resourceIdentifier,
+        'id': value.id,
+        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
-        'issuerForPolicy': value.issuerForPolicy,
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),

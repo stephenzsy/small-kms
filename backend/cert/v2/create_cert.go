@@ -41,7 +41,7 @@ func signCertificate(
 	c context.Context,
 	template, parent *x509.Certificate,
 	csrProvider kv.AzCertCSRProvider, signer kv.AzCertSigner,
-	signerLocator base.SLocator, signingCertChain [][]byte) (*CertDocSigningPatch, error) {
+	signerLocator base.DocFullIdentifier, signingCertChain [][]byte) (*CertDocSigningPatch, error) {
 	err := signer.Load(c)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey cry
 			return nil, err
 		}
 
-		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetPersistedSLocator(), nil)
+		patch, err := signCertificate(c, cert, cert, signer, signer, doc.GetStorageFullIdentifier(), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -123,15 +123,12 @@ func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey cry
 		base.NamespaceKindServicePrincipal:
 		c = ctx.Elevate(c)
 		// load certDoc of signer
-		issuerPolicy := policyDoc.IssuerPolicy
-		if issuerPolicy.NamespaceKind == nsCtx.Kind() && issuerPolicy.NamespaceIdentifier == nsCtx.Identifier() {
+		issuerNamespace := policyDoc.IssuerNamespace
+		if issuerNamespace.Kind() == nsCtx.Kind() && issuerNamespace.Identifier() == nsCtx.Identifier() {
 			return nil, fmt.Errorf("%w: this operation does not support creating self-signed certificate", base.ErrResponseStatusBadRequest)
 		}
-		linkDoc, err := getPolicyLinkRelDoc(c, issuerPolicy.NamespaceKind, issuerPolicy.NamespaceIdentifier, issuerPolicy.ResourceIdentifier)
-		if err != nil {
-			return nil, err
-		}
-		signerDoc, err := linkDoc.getLinkedToCertDoc(c)
+
+		signerDoc, err := getNamespaceIssuerCert(c, issuerNamespace)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +151,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey cry
 			return nil, err
 		}
 
-		patch, err := signCertificate(c, cert, signerCert, csrProvider, signer, doc.GetPersistedSLocator(), signerChain)
+		patch, err := signCertificate(c, cert, signerCert, csrProvider, signer, doc.GetStorageFullIdentifier(), signerChain)
 		if err != nil {
 			return nil, err
 		}

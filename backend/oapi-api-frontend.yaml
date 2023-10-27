@@ -28,8 +28,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1create-cert"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/issuer-cert:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1issuer-cert"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1issuer"
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -172,10 +172,7 @@ paths:
       responses:
         200:
           description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
+          content: {}
   /v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
@@ -366,76 +363,6 @@ components:
           $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
       required:
         - subjectCommonName
-    CertificateTemplateRef:
-      allOf:
-        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
-        - $ref: "#/components/schemas/CertificateTemplateRefFields"
-    CertificateTemplateParameters:
-      type: object
-      description: Certificate fields, may accept template substitutions
-      properties:
-        issuerTemplate:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        keyProperties:
-          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
-        subjectCommonName:
-          description: Common name
-          type: string
-        subjectAlternativeNames:
-          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
-        usages:
-          type: array
-          items:
-            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
-        validity_months:
-          x-go-name: ValidityInMonths
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 120
-        keyStorePath:
-          type: string
-        keyExportable:
-          type: boolean
-        lifetimeTrigger:
-          $ref: "#/components/schemas/CertificateLifetimeTrigger"
-      required:
-        - subjectCommonName
-        - usages
-    CertificateTemplateFields:
-      type: object
-      description: Certificate fields, may accept template substitutions
-      properties:
-        issuerTemplate:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        keyProperties:
-          $ref: "oapi-shared.yaml#/components/schemas/JwkProperties"
-        subjectAlternativeNames:
-          $ref: "oapi-shared.yaml#/components/schemas/SubjectAlternativeNames"
-        usages:
-          type: array
-          items:
-            $ref: "oapi-shared.yaml#/components/schemas/CertificateUsage"
-        validity_months:
-          x-go-name: ValidityInMonths
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 120
-        keyStorePath:
-          type: string
-        lifetimeTrigger:
-          $ref: "#/components/schemas/CertificateLifetimeTrigger"
-      required:
-        - issuerTemplate
-        - keyProperties
-        - usages
-        - validity_months
-        - lifetimeTrigger
-    CertificateTemplate:
-      allOf:
-        - $ref: "#/components/schemas/CertificateTemplateRef"
-        - $ref: "#/components/schemas/CertificateTemplateFields"
     LinkedCertificateTemplateUsage:
       type: string
       enum:

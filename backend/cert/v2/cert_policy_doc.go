@@ -16,89 +16,70 @@ import (
 type CertPolicyDoc struct {
 	base.BaseDoc
 
-	DisplayName    string                   `json:"displayName"`
-	KeySpec        key.SigningKeySpec       `json:"keySpec"`
-	KeyExportable  bool                     `json:"keyExportable"`
-	ExpiryTime     base.Period              `json:"expiryTime"`
-	LifetimeAction *key.LifetimeAction      `json:"lifetimeActions,omitempty"`
-	Subject        CertificateSubject       `json:"subject"`
-	SANs           *SubjectAlternativeNames `json:"sans,omitempty"`
-	Flags          []CertificateFlag        `json:"flags"`
-	Version        HexDigest                `json:"version"`
-	IssuerPolicy   base.ResourceLocator     `json:"issuerPolicy"`
+	DisplayName     string                   `json:"displayName"`
+	KeySpec         key.SigningKeySpec       `json:"keySpec"`
+	KeyExportable   bool                     `json:"keyExportable"`
+	ExpiryTime      base.Period              `json:"expiryTime"`
+	LifetimeAction  *key.LifetimeAction      `json:"lifetimeActions,omitempty"`
+	Subject         CertificateSubject       `json:"subject"`
+	SANs            *SubjectAlternativeNames `json:"sans,omitempty"`
+	Flags           []CertificateFlag        `json:"flags"`
+	Version         HexDigest                `json:"version"`
+	IssuerNamespace base.NamespaceIdentifier `json:"issuerNamespace"`
 }
 
 const (
 	queryColumnDisplayName = "c.displayName"
 )
 
-func GetCertPolicyResourceLocator(c context.Context,
-	nsKind base.NamespaceKind, nsID base.Identifier,
-	rID base.Identifier) base.ResourceLocator {
-	return base.ResourceLocator{
-		NamespaceKind:       nsKind,
-		NamespaceIdentifier: nsID,
-		ResourceKind:        base.ResourceKindCertPolicy,
-		ResourceIdentifier:  rID,
-	}
-}
-
 func (d *CertPolicyDoc) Init(
 	c context.Context,
 	nsKind base.NamespaceKind,
 	nsID base.Identifier,
-	rID base.Identifier,
+	policyID base.Identifier,
 	p *CertPolicyParameters) error {
 	if d == nil {
 		return nil
 	}
-	d.NamespaceKind = nsKind
-	d.NamespaceIdentifier = nsID
-	d.ResourceKind = base.ResourceKindCertPolicy
-	d.ResourceIdentifier = rID
+	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCertPolicy, policyID)
 
-	d.DisplayName = rID.String()
+	d.DisplayName = policyID.String()
 	if p.DisplayName != nil && *p.DisplayName != "" {
 		d.DisplayName = *p.DisplayName
 	}
 
 	digest := md5.New()
 
-	var isSelfSigning bool
-	if p.IssuerPolicy == nil {
-		isSelfSigning = nsKind == base.NamespaceKindRootCA
-	} else {
-		isSelfSigning = p.IssuerPolicy.NamespaceKind == nsKind && p.IssuerPolicy.NamespaceIdentifier == nsID
-	}
+	isSelfSigning := nsKind == base.NamespaceKindRootCA
 
 	switch nsKind {
 	case base.NamespaceKindRootCA:
 		if !isSelfSigning {
 			return fmt.Errorf("%w: issuer namespace must be Self", base.ErrResponseStatusBadRequest)
 		}
-		d.IssuerPolicy = GetCertPolicyResourceLocator(c, nsKind, nsID, rID)
+		d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
 	case base.NamespaceKindIntermediateCA:
-		if p.IssuerPolicy == nil {
-			d.IssuerPolicy = GetCertPolicyResourceLocator(c, base.NamespaceKindRootCA, base.StringIdentifier("default"), base.StringIdentifier("default"))
-		} else if p.IssuerPolicy.NamespaceKind != base.NamespaceKindRootCA {
+		if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
+			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindRootCA, base.StringIdentifier("default"))
+		} else if *p.IssuerNamespaceKind != base.NamespaceKindRootCA {
 			return fmt.Errorf("%w: issuer namespace must be root ca", base.ErrResponseStatusBadRequest)
 		} else {
-			d.IssuerPolicy = GetCertPolicyResourceLocator(c, p.IssuerPolicy.NamespaceKind, p.IssuerPolicy.NamespaceIdentifier, p.IssuerPolicy.ResourceIdentifier)
+			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, *p.IssuerNamespaceIdentifier)
 		}
 	case base.NamespaceKindServicePrincipal:
 		if isSelfSigning {
-			d.IssuerPolicy = GetCertPolicyResourceLocator(c, nsKind, nsID, rID)
-		} else if p.IssuerPolicy == nil {
-			d.IssuerPolicy = GetCertPolicyResourceLocator(c, base.NamespaceKindIntermediateCA, base.StringIdentifier("default"), base.StringIdentifier("default"))
-		} else if p.IssuerPolicy.NamespaceKind != base.NamespaceKindIntermediateCA {
+			d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
+		} else if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
+			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindIntermediateCA, base.StringIdentifier("default"))
+		} else if *p.IssuerNamespaceKind != base.NamespaceKindIntermediateCA {
 			return fmt.Errorf("%w: issuer namespace must be intermediate ca", base.ErrResponseStatusBadRequest)
 		} else {
-			d.IssuerPolicy = GetCertPolicyResourceLocator(c, p.IssuerPolicy.NamespaceKind, p.IssuerPolicy.NamespaceIdentifier, p.IssuerPolicy.ResourceIdentifier)
+			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, *p.IssuerNamespaceIdentifier)
 		}
 	default:
 		return fmt.Errorf("%w: unsupported namespace kind: %s", base.ErrResponseStatusBadRequest, nsKind)
 	}
-	d.IssuerPolicy.WriteToDigest(digest)
+	digest.Write(([]byte)(d.IssuerNamespace.String()))
 
 	if p.KeySpec == nil {
 		d.KeySpec = key.SigningKeySpec{
@@ -289,7 +270,8 @@ func (d *CertPolicyDoc) PopulateModel(m *CertPolicy) {
 	m.SubjectAlternativeNames = d.SANs
 	m.Flags = d.Flags
 	m.Version = d.Version
-	m.IssuerPolicy = d.IssuerPolicy
+	m.IssuerNamespaceKind = d.IssuerNamespace.Kind()
+	m.IssuerNamespaceIdentifier = d.IssuerNamespace.Identifier()
 }
 
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyDoc)(nil)

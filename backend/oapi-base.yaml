@@ -20,7 +20,7 @@ components:
       x-go-type: base64RawURLEncodedBytesImpl
     Identifier:
       type: string
-      x-go-type: identifierImpl
+      x-go-type: identifier
     NamespaceKind:
       type: string
       enum:
@@ -33,15 +33,6 @@ components:
         - NamespaceKindRootCA
         - NamespaceKindIntermediateCA
         - NamespaceKindServicePrincipal
-    NumericDate:
-      type: integer
-      format: int64
-      x-go-type: jwt.NumericDate
-      x-go-type-import:
-        path: github.com/golang-jwt/jwt/v5
-    Period:
-      type: string
-      x-go-type: periodImpl
     ResourceKind:
       type: string
       enum:
@@ -52,7 +43,7 @@ components:
         - cert-policy
         - cert
         - key-policy
-        - rel
+        - ns-config
       x-enum-varnames:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
@@ -61,49 +52,41 @@ components:
         - ResourceKindCertPolicy
         - ResourceKindCert
         - ResourceKindKeyPolicy
-        - ResourceKindRel
-    SLocator:
+        - ResourceKindNamespaceConfig
+    NumericDate:
+      type: integer
+      format: int64
+      x-go-type: jwt.NumericDate
+      x-go-type-import:
+        path: github.com/golang-jwt/jwt/v5
+    Period:
       type: string
-      x-go-type: storageLocator
-    ResourceLocator:
+      x-go-type: periodImpl
+    ResourceUniqueIdentifier:
+      type: string
+      x-go-type: DocFullIdentifier
+    ResourceReference:
       type: object
       properties:
-        namespaceKind:
-          $ref: "#/components/schemas/NamespaceKind"
-        namespaceIdentifier:
+        id:
           $ref: "#/components/schemas/Identifier"
-        resourceKind:
-          $ref: "#/components/schemas/ResourceKind"
-        resourceIdentifier:
-          $ref: "#/components/schemas/Identifier"
+          x-go-name: ID
+        uid:
+          $ref: "#/components/schemas/ResourceUniqueIdentifier"
+          x-go-name: UniqueID
+        updated:
+          type: string
+          format: date-time
+        deleted:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
       required:
-        - namespaceKind
-        - namespaceIdentifier
-        - resourceKind
-        - resourceIdentifier
-    ResourceReference:
-      allOf:
-        - type: object
-          properties:
-            _id:
-              $ref: "#/components/schemas/SLocator"
-              x-go-name: LocatorID
-          required:
-            - _id
-        - $ref: "#/components/schemas/ResourceLocator"
-        - type: object
-          properties:
-            updated:
-              type: string
-              format: date-time
-            deleted:
-              type: string
-              format: date-time
-            updatedBy:
-              type: string
-          required:
-            - updated
-            - updatedBy
+        - id
+        - uid
+        - updated
+        - updatedBy
   parameters:
     NamespaceKindParameter:
       in: path

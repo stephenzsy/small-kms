@@ -37,18 +37,6 @@ import {
     NamespaceKindFromJSONTyped,
     NamespaceKindToJSON,
 } from './NamespaceKind';
-import type { ResourceKind } from './ResourceKind';
-import {
-    ResourceKindFromJSON,
-    ResourceKindFromJSONTyped,
-    ResourceKindToJSON,
-} from './ResourceKind';
-import type { ResourceLocator1 } from './ResourceLocator1';
-import {
-    ResourceLocator1FromJSON,
-    ResourceLocator1FromJSONTyped,
-    ResourceLocator1ToJSON,
-} from './ResourceLocator1';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -76,28 +64,10 @@ export interface CertPolicy {
     id: string;
     /**
      * 
-     * @type {NamespaceKind}
-     * @memberof CertPolicy
-     */
-    namespaceKind: NamespaceKind;
-    /**
-     * 
      * @type {string}
      * @memberof CertPolicy
      */
-    namespaceIdentifier: string;
-    /**
-     * 
-     * @type {ResourceKind}
-     * @memberof CertPolicy
-     */
-    resourceKind: ResourceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertPolicy
-     */
-    resourceIdentifier: string;
+    uid: string;
     /**
      * 
      * @type {Date}
@@ -124,10 +94,16 @@ export interface CertPolicy {
     displayName: string;
     /**
      * 
-     * @type {ResourceLocator1}
+     * @type {NamespaceKind}
      * @memberof CertPolicy
      */
-    issuerPolicy: ResourceLocator1;
+    issuerNamespaceKind: NamespaceKind;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicy
+     */
+    issuerNamespaceIdentifier: string;
     /**
      * 
      * @type {SigningKeySpec}
@@ -184,14 +160,12 @@ export interface CertPolicy {
 export function instanceOfCertPolicy(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "namespaceKind" in value;
-    isInstance = isInstance && "namespaceIdentifier" in value;
-    isInstance = isInstance && "resourceKind" in value;
-    isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "issuerPolicy" in value;
+    isInstance = isInstance && "issuerNamespaceKind" in value;
+    isInstance = isInstance && "issuerNamespaceIdentifier" in value;
     isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -212,16 +186,14 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'id': json['_id'],
-        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
-        'namespaceIdentifier': json['namespaceIdentifier'],
-        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
-        'resourceIdentifier': json['resourceIdentifier'],
+        'id': json['id'],
+        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'displayName': json['displayName'],
-        'issuerPolicy': ResourceLocator1FromJSON(json['issuerPolicy']),
+        'issuerNamespaceKind': NamespaceKindFromJSON(json['issuerNamespaceKind']),
+        'issuerNamespaceIdentifier': json['issuerNamespaceIdentifier'],
         'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
@@ -242,16 +214,14 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
     }
     return {
         
-        '_id': value.id,
-        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
-        'namespaceIdentifier': value.namespaceIdentifier,
-        'resourceKind': ResourceKindToJSON(value.resourceKind),
-        'resourceIdentifier': value.resourceIdentifier,
+        'id': value.id,
+        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'displayName': value.displayName,
-        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
+        'issuerNamespaceKind': NamespaceKindToJSON(value.issuerNamespaceKind),
+        'issuerNamespaceIdentifier': value.issuerNamespaceIdentifier,
         'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,

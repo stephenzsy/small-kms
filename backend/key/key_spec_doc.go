@@ -23,14 +23,8 @@ func NewKeySpecDoc(
 	rID base.Identifier,
 	params *KeyPolicyParameters,
 ) (*KeyPolicyDoc, error) {
-	doc := &KeyPolicyDoc{
-		BaseDoc: base.BaseDoc{
-			NamespaceKind:       nsKind,
-			NamespaceIdentifier: nsIdentifier,
-			ResourceKind:        base.ResourceKindKeyPolicy,
-			ResourceIdentifier:  rID,
-		},
-	}
+	doc := &KeyPolicyDoc{}
+	doc.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindKeyPolicy, rID)
 	switch nsKind {
 	case base.NamespaceKindRootCA:
 		if params.Exportable != nil && *params.Exportable {

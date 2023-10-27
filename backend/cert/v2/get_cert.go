@@ -8,9 +8,9 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getCertDocBySLocator(c context.Context, slocator base.SLocator) (*CertDoc, error) {
+func getCertDocBySLocator(c context.Context, slocator base.DocFullIdentifier) (*CertDoc, error) {
 	doc := new(CertDoc)
-	err := base.GetAzCosmosCRUDService(c).Read(c, slocator.NID, slocator.RID, doc, nil)
+	err := base.GetAzCosmosCRUDService(c).Read(c, slocator, doc, nil)
 	return doc, err
 }
 
@@ -20,12 +20,7 @@ func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	slocator := base.SLocator{
-		NID: base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier()),
-		RID: rID.UUID(),
-	}
-
-	return getCertDocBySLocator(c, slocator)
+	return getCertDocBySLocator(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCert, rID))
 }
 
 func getCertificate(c context.Context, rID base.Identifier) (*Certificate, error) {

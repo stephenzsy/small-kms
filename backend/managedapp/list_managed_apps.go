@@ -10,18 +10,15 @@ import (
 
 func listManagedApps(c context.Context) ([]*ManagedAppRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
-	qb := base.NewDefaultCosmoQueryBuilder(base.ProfileResourceKindManagedApp).
+	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(profile.QueryColumnDisplayName, queryColumnApplicationID, queryColumnServicePrincipalID)
-	storageNsID := getManageAppDocStorageNamespaceID()
+	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile, namespaceIdentifierManagedApp, base.ProfileResourceKindManagedApp)
 	pager := base.NewQueryDocPager[*ManagedAppDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ManagedAppDoc) *ManagedAppRef {
 		r := &ManagedAppRef{}
 		d.PopulateModelRef(r)
-		r.Id.NID = storageNsID
-		r.NamespaceKind = base.NamespaceKindProfile
-		r.NamespaceIdentifier = namespaceIdentifierManagedApp
-		r.ResourceKind = base.ProfileResourceKindManagedApp
+
 		return r
 	})
 	return utils.PagerToSlice(c, modelPager)

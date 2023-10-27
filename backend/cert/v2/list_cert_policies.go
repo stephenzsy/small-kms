@@ -10,19 +10,15 @@ import (
 
 func listCertPolicies(c context.Context) ([]*CertPolicyRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
-	qb := base.NewDefaultCosmoQueryBuilder(base.ResourceKindCertPolicy).
+	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(queryColumnDisplayName)
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier())
+	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy)
 	pager := base.NewQueryDocPager[*CertPolicyDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertPolicyDoc) *CertPolicyRef {
 		r := &CertPolicyRef{}
 		d.PopulateModelRef(r)
-		r.Id.NID = storageNsID
-		r.NamespaceKind = nsCtx.Kind()
-		r.NamespaceIdentifier = nsCtx.Identifier()
-		r.ResourceKind = base.ResourceKindCertPolicy
 		return r
 	})
 	return utils.PagerToSlice(c, modelPager)

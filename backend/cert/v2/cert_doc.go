@@ -42,21 +42,20 @@ type CertDoc struct {
 	KeyExportable bool                     `json:"keyExportable"`
 	Subject       CertificateSubject       `json:"subject"`
 	SANs          *SubjectAlternativeNames `json:"sans,omitempty"`
-	Policy        base.SLocator            `json:"policyLocator"`
+	Policy        base.DocFullIdentifier   `json:"policy"`
 	PolicyVersion HexDigest                `json:"policyVersion"`
 	Created       base.NumericDate         `json:"iat"`
 	NotBefore     base.NumericDate         `json:"nbf"`
 	NotAfter      base.NumericDate         `json:"exp"`
 	Flags         []CertificateFlag        `json:"flags"`
 	KeyVaultStore CertDocKeyVaultStore     `json:"keyVaultStore"`
-	Issuer        base.SLocator            `json:"issuer"`
+	Issuer        base.DocFullIdentifier   `json:"issuer"`
 }
 
 type CertListQueryDoc struct {
 	base.BaseDoc
-	ThumbprintSHA1  base.Base64RawURLEncodedBytes `json:"x5t"`
-	NotAfter        base.NumericDate              `json:"exp"`
-	IssuerForPolicy *base.SLocator                `json:"issuerCertPolicyId,omitempty"`
+	ThumbprintSHA1 base.Base64RawURLEncodedBytes `json:"x5t"`
+	NotAfter       base.NumericDate              `json:"exp"`
 }
 
 const (
@@ -66,14 +65,9 @@ const (
 )
 
 type CertDocSigningPatch struct {
-	KeySpec       key.SigningKeySpec   `json:"keySpec"`
-	KeyVaultStore CertDocKeyVaultStore `json:"keyVaultStore"`
-	Issuer        base.SLocator        `json:"issuer"`
-}
-
-// GetStorageID implements base.CRUDDocHasCustomStorageID.
-func (d *CertDoc) GetStorageID(context.Context) uuid.UUID {
-	return d.ResourceIdentifier.UUID()
+	KeySpec       key.SigningKeySpec     `json:"keySpec"`
+	KeyVaultStore CertDocKeyVaultStore   `json:"keyVaultStore"`
+	Issuer        base.DocFullIdentifier `json:"issuer"`
 }
 
 func (d *CertDoc) Init(
@@ -87,10 +81,7 @@ func (d *CertDoc) Init(
 	if err != nil {
 		return err
 	}
-	d.NamespaceKind = nsKind
-	d.NamespaceIdentifier = nsID
-	d.ResourceKind = base.ResourceKindCert
-	d.ResourceIdentifier = base.UUIDIdentifier(certID)
+	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCert, base.UUIDIdentifier(certID))
 
 	d.Status = CertificateStatusPending
 	d.KeySpec = pDoc.KeySpec
@@ -98,10 +89,10 @@ func (d *CertDoc) Init(
 	d.Subject = pDoc.Subject
 	d.SANs = pDoc.SANs
 	d.Flags = pDoc.Flags
-	d.Policy = pDoc.GetPersistedSLocator()
+	d.Policy = pDoc.GetStorageFullIdentifier()
 	d.PolicyVersion = pDoc.Version
 	d.KeyVaultStore.Name =
-		fmt.Sprintf("%s-%s-%s", d.NamespaceKind, d.NamespaceIdentifier.String(), pDoc.ResourceIdentifier.String())
+		fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.StorageID.String())
 
 	now := time.Now()
 	d.Created = *jwt.NewNumericDate(now)
@@ -129,7 +120,6 @@ func (d *CertListQueryDoc) PopulateModelRef(m *CertificateRef) {
 	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
 	m.Thumbprint = d.ThumbprintSHA1.HexString()
 	m.Attributes.Exp = &d.NotAfter
-	m.IssuerForPolicy = d.IssuerForPolicy
 }
 
 func (d *CertDoc) PopulateModel(m *Certificate) {
@@ -153,8 +143,6 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	m.Attributes.Iat = &d.Created
 	m.SubjectAlternativeNames = d.SANs
 }
-
-var _ base.CRUDDocHasCustomStorageID = (*CertDoc)(nil)
 
 var _ base.ModelRefPopulater[certificateRefComposed] = (*CertListQueryDoc)(nil)
 var _ base.ModelPopulater[Certificate] = (*CertDoc)(nil)
@@ -194,8 +182,9 @@ func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
 }
 
 func (d *CertDoc) getX509CertTemplate() *x509.Certificate {
+	certID := d.StorageID.UUID()
 	cert := &x509.Certificate{
-		SerialNumber: big.NewInt(0).SetBytes(d.ResourceIdentifier.Bytes()),
+		SerialNumber: new(big.Int).SetBytes(certID[:]),
 		Subject:      d.Subject.ToPkixName(),
 		NotBefore:    d.NotBefore.Time,
 		NotAfter:     d.NotAfter.Time,

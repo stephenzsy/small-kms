@@ -8,11 +8,10 @@ import (
 
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
-type DocPager[D CRUDDoc] struct {
+type DocPager[D BaseDocument] struct {
 	innerPager *azruntime.Pager[azcosmos.QueryItemsResponse]
 }
 
@@ -38,16 +37,15 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 	return
 }
 
-func ToDocPager[D CRUDDoc](pager *azruntime.Pager[azcosmos.QueryItemsResponse]) *DocPager[D] {
+func ToDocPager[D BaseDocument](pager *azruntime.Pager[azcosmos.QueryItemsResponse]) *DocPager[D] {
 	return &DocPager[D]{innerPager: pager}
 }
 
 type CosmosQueryBuilder struct {
-	Columns           []string
-	ExtraWhereClauses []string
-	OrderBy           string
-	ExtraParameters   []azcosmos.QueryParameter
-	ResourceKind      ResourceKind
+	Columns      []string
+	WhereClauses []string
+	OrderBy      string
+	Parameters   []azcosmos.QueryParameter
 }
 
 func (b *CosmosQueryBuilder) BuildQuery() (string, []azcosmos.QueryParameter) {
@@ -59,9 +57,13 @@ func (b *CosmosQueryBuilder) BuildQuery() (string, []azcosmos.QueryParameter) {
 		}
 		sb.WriteString(column)
 	}
-	sb.WriteString(" FROM c WHERE c.resourceKind = @kind")
-	for _, clause := range b.ExtraWhereClauses {
-		sb.WriteString(" AND (")
+	sb.WriteString(" FROM c")
+	for i, clause := range b.WhereClauses {
+		if i == 0 {
+			sb.WriteString(" WHERE (")
+		} else {
+			sb.WriteString(" AND (")
+		}
 		sb.WriteString(clause)
 		sb.WriteString(")")
 	}
@@ -69,14 +71,12 @@ func (b *CosmosQueryBuilder) BuildQuery() (string, []azcosmos.QueryParameter) {
 		sb.WriteString(" ORDER BY ")
 		sb.WriteString(b.OrderBy)
 	}
-	return sb.String(), append([]azcosmos.QueryParameter{
-		{Name: "@kind", Value: string(b.ResourceKind)}}, b.ExtraParameters...)
+	return sb.String(), b.Parameters
 }
 
-func NewDefaultCosmoQueryBuilder(kind ResourceKind) *CosmosQueryBuilder {
+func NewDefaultCosmoQueryBuilder() *CosmosQueryBuilder {
 	return &CosmosQueryBuilder{
-		Columns:      queryDefaultColumns[:],
-		ResourceKind: kind,
+		Columns: queryDefaultColumns[:],
 	}
 }
 
@@ -90,7 +90,7 @@ func (b *CosmosQueryBuilder) WithOrderBy(clause string) *CosmosQueryBuilder {
 	return b
 }
 
-func NewQueryDocPager[D CRUDDoc](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID uuid.UUID) *DocPager[D] {
+func NewQueryDocPager[D BaseDocument](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID DocNamespacePartitionKey) *DocPager[D] {
 	query, parameters := queryBuilder.BuildQuery()
 	log.Debug().Str("query", query).Interface("parameters", parameters).Msg("NewQueryDocPager")
 	pager := docService.NewQueryItemsPager(query, storageNamespaceID, &azcosmos.QueryOptions{

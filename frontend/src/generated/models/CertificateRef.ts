@@ -19,18 +19,6 @@ import {
     CertificateAttributesFromJSONTyped,
     CertificateAttributesToJSON,
 } from './CertificateAttributes';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-import type { ResourceKind } from './ResourceKind';
-import {
-    ResourceKindFromJSON,
-    ResourceKindFromJSONTyped,
-    ResourceKindToJSON,
-} from './ResourceKind';
 
 /**
  * 
@@ -46,28 +34,10 @@ export interface CertificateRef {
     id: string;
     /**
      * 
-     * @type {NamespaceKind}
-     * @memberof CertificateRef
-     */
-    namespaceKind: NamespaceKind;
-    /**
-     * 
      * @type {string}
      * @memberof CertificateRef
      */
-    namespaceIdentifier: string;
-    /**
-     * 
-     * @type {ResourceKind}
-     * @memberof CertificateRef
-     */
-    resourceKind: ResourceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    resourceIdentifier: string;
+    uid: string;
     /**
      * 
      * @type {Date}
@@ -98,12 +68,6 @@ export interface CertificateRef {
      * @memberof CertificateRef
      */
     attributes: CertificateAttributes;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertificateRef
-     */
-    issuerForPolicy?: string;
 }
 
 /**
@@ -112,10 +76,7 @@ export interface CertificateRef {
 export function instanceOfCertificateRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "namespaceKind" in value;
-    isInstance = isInstance && "namespaceIdentifier" in value;
-    isInstance = isInstance && "resourceKind" in value;
-    isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "thumbprint" in value;
@@ -134,17 +95,13 @@ export function CertificateRefFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
-        'id': json['_id'],
-        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
-        'namespaceIdentifier': json['namespaceIdentifier'],
-        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
-        'resourceIdentifier': json['resourceIdentifier'],
+        'id': json['id'],
+        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
         'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
-        'issuerForPolicy': !exists(json, 'issuerForPolicy') ? undefined : json['issuerForPolicy'],
     };
 }
 
@@ -157,17 +114,13 @@ export function CertificateRefToJSON(value?: CertificateRef | null): any {
     }
     return {
         
-        '_id': value.id,
-        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
-        'namespaceIdentifier': value.namespaceIdentifier,
-        'resourceKind': ResourceKindToJSON(value.resourceKind),
-        'resourceIdentifier': value.resourceIdentifier,
+        'id': value.id,
+        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'thumbprint': value.thumbprint,
         'attributes': CertificateAttributesToJSON(value.attributes),
-        'issuerForPolicy': value.issuerForPolicy,
     };
 }
 

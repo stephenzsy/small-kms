@@ -31,12 +31,12 @@ import {
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
-import type { ResourceLocator1 } from './ResourceLocator1';
+import type { NamespaceKind } from './NamespaceKind';
 import {
-    ResourceLocator1FromJSON,
-    ResourceLocator1FromJSONTyped,
-    ResourceLocator1ToJSON,
-} from './ResourceLocator1';
+    NamespaceKindFromJSON,
+    NamespaceKindFromJSONTyped,
+    NamespaceKindToJSON,
+} from './NamespaceKind';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -58,10 +58,16 @@ import {
 export interface CertPolicyFields {
     /**
      * 
-     * @type {ResourceLocator1}
+     * @type {NamespaceKind}
      * @memberof CertPolicyFields
      */
-    issuerPolicy: ResourceLocator1;
+    issuerNamespaceKind: NamespaceKind;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicyFields
+     */
+    issuerNamespaceIdentifier: string;
     /**
      * 
      * @type {SigningKeySpec}
@@ -117,7 +123,8 @@ export interface CertPolicyFields {
  */
 export function instanceOfCertPolicyFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "issuerPolicy" in value;
+    isInstance = isInstance && "issuerNamespaceKind" in value;
+    isInstance = isInstance && "issuerNamespaceIdentifier" in value;
     isInstance = isInstance && "keySpec" in value;
     isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -138,7 +145,8 @@ export function CertPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'issuerPolicy': ResourceLocator1FromJSON(json['issuerPolicy']),
+        'issuerNamespaceKind': NamespaceKindFromJSON(json['issuerNamespaceKind']),
+        'issuerNamespaceIdentifier': json['issuerNamespaceIdentifier'],
         'keySpec': SigningKeySpecFromJSON(json['keySpec']),
         'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
@@ -159,7 +167,8 @@ export function CertPolicyFieldsToJSON(value?: CertPolicyFields | null): any {
     }
     return {
         
-        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
+        'issuerNamespaceKind': NamespaceKindToJSON(value.issuerNamespaceKind),
+        'issuerNamespaceIdentifier': value.issuerNamespaceIdentifier,
         'keySpec': SigningKeySpecToJSON(value.keySpec),
         'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,

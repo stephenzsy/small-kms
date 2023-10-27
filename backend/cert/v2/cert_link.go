@@ -1,13 +1,6 @@
 package cert
 
-import (
-	"context"
-	"errors"
-	"fmt"
-
-	"github.com/stephenzsy/small-kms/backend/base"
-	ns "github.com/stephenzsy/small-kms/backend/namespace"
-)
+/*
 
 const (
 	RelNameIssuerCert               base.RelName = "issuer-cert"
@@ -108,3 +101,4 @@ func getNamespaceLinkRelDoc(c context.Context, nsKind base.NamespaceKind, nsId b
 	err := docService.Read(c, linkDocLocator.NID, linkDocLocator.RID, doc, nil)
 	return doc, err
 }
+*/

@@ -13,19 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { NamespaceKind } from './NamespaceKind';
-import {
-    NamespaceKindFromJSON,
-    NamespaceKindFromJSONTyped,
-    NamespaceKindToJSON,
-} from './NamespaceKind';
-import type { ResourceKind } from './ResourceKind';
-import {
-    ResourceKindFromJSON,
-    ResourceKindFromJSONTyped,
-    ResourceKindToJSON,
-} from './ResourceKind';
-
 /**
  * 
  * @export
@@ -40,28 +27,10 @@ export interface CertPolicyRef {
     id: string;
     /**
      * 
-     * @type {NamespaceKind}
-     * @memberof CertPolicyRef
-     */
-    namespaceKind: NamespaceKind;
-    /**
-     * 
      * @type {string}
      * @memberof CertPolicyRef
      */
-    namespaceIdentifier: string;
-    /**
-     * 
-     * @type {ResourceKind}
-     * @memberof CertPolicyRef
-     */
-    resourceKind: ResourceKind;
-    /**
-     * 
-     * @type {string}
-     * @memberof CertPolicyRef
-     */
-    resourceIdentifier: string;
+    uid: string;
     /**
      * 
      * @type {Date}
@@ -94,10 +63,7 @@ export interface CertPolicyRef {
 export function instanceOfCertPolicyRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "namespaceKind" in value;
-    isInstance = isInstance && "namespaceIdentifier" in value;
-    isInstance = isInstance && "resourceKind" in value;
-    isInstance = isInstance && "resourceIdentifier" in value;
+    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
@@ -115,11 +81,8 @@ export function CertPolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
-        'id': json['_id'],
-        'namespaceKind': NamespaceKindFromJSON(json['namespaceKind']),
-        'namespaceIdentifier': json['namespaceIdentifier'],
-        'resourceKind': ResourceKindFromJSON(json['resourceKind']),
-        'resourceIdentifier': json['resourceIdentifier'],
+        'id': json['id'],
+        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': json['updatedBy'],
@@ -136,11 +99,8 @@ export function CertPolicyRefToJSON(value?: CertPolicyRef | null): any {
     }
     return {
         
-        '_id': value.id,
-        'namespaceKind': NamespaceKindToJSON(value.namespaceKind),
-        'namespaceIdentifier': value.namespaceIdentifier,
-        'resourceKind': ResourceKindToJSON(value.resourceKind),
-        'resourceIdentifier': value.resourceIdentifier,
+        'id': value.id,
+        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

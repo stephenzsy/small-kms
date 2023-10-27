@@ -3,76 +3,60 @@ package base
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
-type CRUDDocHasCustomStorageNamespaceID interface {
-	GetStorageNamespaceID(context.Context) uuid.UUID
-}
-
-type CRUDDocHasCustomStorageID interface {
-	GetStorageID(context.Context) uuid.UUID
-}
-
-type CRUDDoc interface {
-	// can only be used on a doc that has been read from storage
-	GetPersistedSLocator() SLocator
-	getDefaultStorageNamespaceID() uuid.UUID
-	getDefaultStorageID() uuid.UUID
+type BaseDocument interface {
+	GetStorageNamespaceID() DocNamespacePartitionKey
+	GetStorageID() Identifier
+	GetStorageFullIdentifier() DocFullIdentifier
 	GetUpdatedBy() string
 	getETag() *azcore.ETag
 	setETag(etag azcore.ETag)
 	setTimestamp(t time.Time)
 	setUpdatedBy(string)
-	prepareForWrite(c context.Context, storageNID, storageRID uuid.UUID)
-
-	setRelationsFunc(func(*DocRelations) *DocRelations)
-}
-
-type RelName string
-
-type DocRelations struct {
-	NamedFrom   map[RelName]SLocator   `json:"namedFrom,omitempty"`
-	NamedTo     map[RelName]SLocator   `json:"namedTo,omitempty"`
-	NamedToList map[RelName][]SLocator `json:"namedToList,omitempty"`
+	prepareForWrite(c context.Context)
 }
 
 type BaseDoc struct {
-	StorageNamespaceID uuid.UUID `json:"namespaceId"`
-	StorageID          uuid.UUID `json:"id"`
+	StorageNamespaceID DocNamespacePartitionKey `json:"namespaceId"`
+	StorageID          Identifier               `json:"id"`
 
-	NamespaceKind       NamespaceKind `json:"namespaceKind"`
-	NamespaceIdentifier Identifier    `json:"namespaceIdentifier"`
-	ResourceKind        ResourceKind  `json:"resourceKind"`
-	ResourceIdentifier  Identifier    `json:"resourceIdentifier"`
+	ResourceKind ResourceKind `json:"resourceKind"`
 
 	Timestamp *jwt.NumericDate `json:"_ts,omitempty"`
 	ETag      *azcore.ETag     `json:"_etag,omitempty"`
 	Deleted   *time.Time       `json:"deleted,omitempty"`
 	UpdatedBy string           `json:"updatedBy,omitempty"`
-
-	Relations *DocRelations `json:"@rels,omitempty"`
 }
 
-// setRelations implements CRUDDoc.
-func (d *BaseDoc) setRelationsFunc(f func(*DocRelations) *DocRelations) {
-	d.Relations = f(d.Relations)
+func (d *BaseDoc) GetStorageNamespaceID() DocNamespacePartitionKey {
+	return d.StorageNamespaceID
+}
+
+// GetID implements BaseDocument.
+func (d *BaseDoc) GetStorageID() Identifier {
+	return d.StorageID
 }
 
 // GetPersistedSLocator implements CRUDDoc.
-func (b *BaseDoc) GetPersistedSLocator() SLocator {
-	return SLocator{
-		b.StorageNamespaceID,
-		b.StorageID,
+func (d *BaseDoc) GetStorageFullIdentifier() DocFullIdentifier {
+	return DocFullIdentifier{
+		d.StorageNamespaceID,
+		d.StorageID,
 	}
+}
+
+func (d *BaseDoc) Init(nsKind NamespaceKind, nsID Identifier, rKind ResourceKind, rID identifier) {
+	d.StorageNamespaceID = NewDocNamespacePartitionKey(nsKind, nsID, rKind)
+	d.StorageID = rID
+	d.ResourceKind = rKind
 }
 
 var queryDefaultColumns = []string{
@@ -94,50 +78,11 @@ func (d *BaseDoc) setUpdatedBy(val string) {
 
 const (
 	baseDocPatchColumnUpdatedBy = "/updatedBy"
-
-	baseDocPatchColumnRelations          = "/@rels"
-	baseDocPatchColumnRelationsNamedFrom = "/@rels/namedFrom"
-	baseDocPatchColumnRelationsNamedTo   = "/@rels/namedTo"
 )
 
 // GetUpdatedBy implements CRUDDoc.
 func (d *BaseDoc) GetUpdatedBy() string {
 	return d.UpdatedBy
-}
-
-func GetDefaultStorageNamespaceIDURL(namespaceKind NamespaceKind, namespaceIdentifier Identifier) string {
-	return fmt.Sprintf("https://example.com/v1/r/%s/%s", namespaceKind, namespaceIdentifier.String())
-}
-
-func GetDefaultStorageNamespaceID(namespaceKind NamespaceKind, namespaceIdentifier Identifier) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageNamespaceIDURL(namespaceKind, namespaceIdentifier)))
-}
-
-func (d *BaseDoc) getDefaultStorageNamespaceID() uuid.UUID {
-	return GetDefaultStorageNamespaceID(d.NamespaceKind, d.NamespaceIdentifier)
-}
-
-func GetDefaultStorageIDURL(storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) string {
-	return fmt.Sprintf("%s/%s/%s", storageNamespaceIDURL, resourceKind, resourceIdentifier.String())
-}
-
-func GetDefaultStorageID(storageNamespaceIDURL string, resourceKind ResourceKind, resourceIdentifier Identifier) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(storageNamespaceIDURL, resourceKind, resourceIdentifier)))
-}
-
-func GetDefaultStorageLocator(namespaceKind NamespaceKind, namespaceIdentifier Identifier,
-	resourceKind ResourceKind, resourceIdentifier Identifier) SLocator {
-	storageNamespaceIDURL := GetDefaultStorageNamespaceIDURL(namespaceKind, namespaceIdentifier)
-
-	return SLocator{uuid.NewSHA1(uuid.NameSpaceURL, []byte(storageNamespaceIDURL)),
-		uuid.NewSHA1(uuid.NameSpaceURL, []byte(GetDefaultStorageIDURL(storageNamespaceIDURL, resourceKind, resourceIdentifier)))}
-}
-
-func (d *BaseDoc) getDefaultStorageID() uuid.UUID {
-	return GetDefaultStorageID(
-		GetDefaultStorageNamespaceIDURL(d.NamespaceKind, d.NamespaceIdentifier),
-		d.ResourceKind,
-		d.ResourceIdentifier)
 }
 
 func (d *BaseDoc) getETag() *azcore.ETag {
@@ -150,27 +95,24 @@ func (d *BaseDoc) setETag(eTag azcore.ETag) {
 }
 
 // setUpdated implements CRUDDoc.
-func (d *BaseDoc) prepareForWrite(c context.Context, sNID, sRID uuid.UUID) {
-	d.StorageNamespaceID = sNID
-	d.StorageID = sRID
+func (d *BaseDoc) prepareForWrite(c context.Context) {
 	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	// clear read-only fields
 	d.ETag = nil
 	d.Timestamp = nil
 }
 
-var _ CRUDDoc = (*BaseDoc)(nil)
+var _ BaseDocument = (*BaseDoc)(nil)
 
 type AzCosmosCRUDDocService interface {
-	Create(context.Context, CRUDDoc, *azcosmos.ItemOptions) error
-	Upsert(context.Context, CRUDDoc, *azcosmos.ItemOptions) error
-	Read(c context.Context, storageNamespaceID, storageID uuid.UUID, dst CRUDDoc, opts *azcosmos.ItemOptions) error
-	Patch(context.Context, CRUDDoc, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
-	patchByLocator(context.Context, SLocator, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
-	NewQueryItemsPager(query string, storageNamespaceID uuid.UUID, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
+	Create(context.Context, BaseDocument, *azcosmos.ItemOptions) error
+	Upsert(context.Context, BaseDocument, *azcosmos.ItemOptions) error
+	Read(c context.Context, docFullIdentifier DocFullIdentifier, dst BaseDocument, opts *azcosmos.ItemOptions) error
+	Patch(context.Context, BaseDocument, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
+	NewQueryItemsPager(query string, storageNamespaceID DocNamespacePartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
 	getClient() *azcosmos.ContainerClient
 	// TODO: SoftDelete(context.Context)
-	Delete(c context.Context, storageNamespaceID, storageID uuid.UUID, opts *azcosmos.ItemOptions) error
+	Delete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error
 }
 
 func NewAzCosmosCRUDDocService(client *azcosmos.ContainerClient) *azcosmosContainerCRUDDocService {
@@ -190,24 +132,9 @@ type azcosmosContainerCRUDDocService struct {
 	client *azcosmos.ContainerClient
 }
 
-func resolveStorageNamespaceID(c context.Context, doc CRUDDoc) uuid.UUID {
-	if doc, ok := doc.(CRUDDocHasCustomStorageNamespaceID); ok {
-		return doc.GetStorageNamespaceID(c)
-	}
-	return doc.getDefaultStorageNamespaceID()
-}
-
-func resolveStorageID(c context.Context, doc CRUDDoc) uuid.UUID {
-	if doc, ok := doc.(CRUDDocHasCustomStorageID); ok {
-		return doc.GetStorageID(c)
-	}
-	return doc.getDefaultStorageID()
-}
-
-func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
-	sNID := resolveStorageNamespaceID(c, doc)
-	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
-	doc.prepareForWrite(c, sNID, resolveStorageID(c, doc))
+func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc BaseDocument, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
+	doc.prepareForWrite(c)
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -222,9 +149,9 @@ func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc CRUDDoc,
 }
 
 // Read implements CRUDDocService.
-func (s *azcosmosContainerCRUDDocService) Read(c context.Context, storageNamespaceID, storageID uuid.UUID, dst CRUDDoc, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
-	resp, err := s.client.ReadItem(c, partitionKey, storageID.String(), nil)
+func (s *azcosmosContainerCRUDDocService) Read(c context.Context, docFullID DocFullIdentifier, dst BaseDocument, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(docFullID.pKey.String())
+	resp, err := s.client.ReadItem(c, partitionKey, docFullID.docID.String(), nil)
 	if err != nil {
 		return HandleAzCosmosError(err)
 	}
@@ -233,16 +160,15 @@ func (s *azcosmosContainerCRUDDocService) Read(c context.Context, storageNamespa
 	return err
 }
 
-func (s *azcosmosContainerCRUDDocService) NewQueryItemsPager(query string, storageNamespaceID uuid.UUID, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse] {
+func (s *azcosmosContainerCRUDDocService) NewQueryItemsPager(query string, storageNamespaceID DocNamespacePartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse] {
 	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
 	return s.client.NewQueryItemsPager(query, partitionKey, o)
 }
 
 // Upsert implements CRUDDocService.
-func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc CRUDDoc, o *azcosmos.ItemOptions) error {
-	sNID := resolveStorageNamespaceID(c, doc)
-	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
-	doc.prepareForWrite(c, sNID, resolveStorageID(c, doc))
+func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc BaseDocument, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
+	doc.prepareForWrite(c)
 	content, err := json.Marshal(doc)
 	if err != nil {
 		return err
@@ -258,14 +184,13 @@ func (s *azcosmosContainerCRUDDocService) Upsert(c context.Context, doc CRUDDoc,
 
 // Patch implements CRUDDocService.
 // this operation does not update fields patched, fields need to be updated manually after call is done
-func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc CRUDDoc, ops azcosmos.PatchOperations, o *azcosmos.ItemOptions) error {
-	sNID := resolveStorageNamespaceID(c, doc)
-	partitionKey := azcosmos.NewPartitionKeyString(sNID.String())
+func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc BaseDocument, ops azcosmos.PatchOperations, o *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
 	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	if doc.GetUpdatedBy() != nextUpdatedBy {
 		ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
 	}
-	resp, err := s.client.PatchItem(c, partitionKey, resolveStorageID(c, doc).String(), ops, o)
+	resp, err := s.client.PatchItem(c, partitionKey, doc.GetStorageID().String(), ops, o)
 	if err != nil {
 		return err
 	}
@@ -275,20 +200,9 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc CRUDDoc, 
 	return nil
 }
 
-func (s *azcosmosContainerCRUDDocService) patchByLocator(c context.Context, locator SLocator, ops azcosmos.PatchOperations, o *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(locator.NID.String())
-	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
-	ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
-	_, err := s.client.PatchItem(c, partitionKey, locator.RID.String(), ops, o)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *azcosmosContainerCRUDDocService) Delete(c context.Context, storageNamespaceID, storageID uuid.UUID, opts *azcosmos.ItemOptions) error {
-	partitionKey := azcosmos.NewPartitionKeyString(storageNamespaceID.String())
-	_, err := s.client.DeleteItem(c, partitionKey, storageID.String(), opts)
+func (s *azcosmosContainerCRUDDocService) Delete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
+	_, err := s.client.DeleteItem(c, partitionKey, doc.GetStorageID().String(), opts)
 	return err
 }
 
@@ -309,14 +223,11 @@ func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
 	if d == nil || m == nil {
 		return
 	}
-	m.Id = SLocator{d.StorageNamespaceID, d.StorageID}
+	m.Id = d.StorageID
+	m.Uid = d.GetStorageFullIdentifier()
 	m.Updated = d.Timestamp.Time
 	m.Deleted = d.Deleted
 	m.UpdatedBy = d.UpdatedBy
-	m.NamespaceKind = d.NamespaceKind
-	m.NamespaceIdentifier = d.NamespaceIdentifier
-	m.ResourceKind = d.ResourceKind
-	m.ResourceIdentifier = d.ResourceIdentifier
 }
 
 var _ ModelRefPopulater[ResourceReference] = (*BaseDoc)(nil)

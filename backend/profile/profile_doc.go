@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
 )
 
@@ -11,7 +10,7 @@ type ProfileDoc struct {
 }
 
 type ProfileCRUDDoc interface {
-	base.CRUDDoc
+	base.BaseDocument
 	base.ModelPopulater[Profile]
 	base.ModelRefPopulater[ProfileRef]
 }
@@ -19,10 +18,6 @@ type ProfileCRUDDoc interface {
 const (
 	QueryColumnDisplayName = "c.displayName"
 )
-
-func getProfileDocStorageNamespaceID(namespaceIdentifier base.Identifier) uuid.UUID {
-	return base.GetDefaultStorageNamespaceID(base.NamespaceKindProfile, namespaceIdentifier)
-}
 
 func (d *ProfileDoc) Init(
 	nsID base.Identifier,
@@ -32,10 +27,7 @@ func (d *ProfileDoc) Init(
 	if d == nil {
 		return
 	}
-	d.NamespaceKind = base.NamespaceKindProfile
-	d.NamespaceIdentifier = nsID
-	d.ResourceKind = rKind
-	d.ResourceIdentifier = rID
+	d.BaseDoc.Init(base.NamespaceKindProfile, nsID, rKind, rID)
 	d.DisplayName = displayName
 }
 

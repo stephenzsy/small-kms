@@ -31,12 +31,12 @@ import {
     LifetimeActionFromJSONTyped,
     LifetimeActionToJSON,
 } from './LifetimeAction';
-import type { ResourceLocator1 } from './ResourceLocator1';
+import type { NamespaceKind } from './NamespaceKind';
 import {
-    ResourceLocator1FromJSON,
-    ResourceLocator1FromJSONTyped,
-    ResourceLocator1ToJSON,
-} from './ResourceLocator1';
+    NamespaceKindFromJSON,
+    NamespaceKindFromJSONTyped,
+    NamespaceKindToJSON,
+} from './NamespaceKind';
 import type { SigningKeySpec } from './SigningKeySpec';
 import {
     SigningKeySpecFromJSON,
@@ -106,10 +106,16 @@ export interface CertPolicyParameters {
     flags?: Array<CertificateFlag>;
     /**
      * 
-     * @type {ResourceLocator1}
+     * @type {NamespaceKind}
      * @memberof CertPolicyParameters
      */
-    issuerPolicy?: ResourceLocator1;
+    issuerNamespaceKind?: NamespaceKind;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertPolicyParameters
+     */
+    issuerNamespaceIdentifier?: string;
 }
 
 /**
@@ -141,7 +147,8 @@ export function CertPolicyParametersFromJSONTyped(json: any, ignoreDiscriminator
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
-        'issuerPolicy': !exists(json, 'issuerPolicy') ? undefined : ResourceLocator1FromJSON(json['issuerPolicy']),
+        'issuerNamespaceKind': !exists(json, 'issuerNamespaceKind') ? undefined : NamespaceKindFromJSON(json['issuerNamespaceKind']),
+        'issuerNamespaceIdentifier': !exists(json, 'issuerNamespaceIdentifier') ? undefined : json['issuerNamespaceIdentifier'],
     };
 }
 
@@ -162,7 +169,8 @@ export function CertPolicyParametersToJSON(value?: CertPolicyParameters | null):
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
-        'issuerPolicy': ResourceLocator1ToJSON(value.issuerPolicy),
+        'issuerNamespaceKind': NamespaceKindToJSON(value.issuerNamespaceKind),
+        'issuerNamespaceIdentifier': value.issuerNamespaceIdentifier,
     };
 }
 

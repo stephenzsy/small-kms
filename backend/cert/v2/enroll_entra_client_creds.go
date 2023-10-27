@@ -1,7 +1,6 @@
 package cert
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -35,7 +34,7 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof"})
 	} else if aud, err := token.Claims.GetAudience(); err != nil || !slices.Contains(aud, "00000003-0000-0000-c000-000000000000") {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof, must has audience of '00000003-0000-0000-c000-000000000000'"})
-	} else if iss, err := token.Claims.GetIssuer(); err != nil || base.IdentifierFromString(iss) != nsCtx.Identifier() {
+	} else if iss, err := token.Claims.GetIssuer(); err != nil || base.ParseIdentifier(iss) != nsCtx.Identifier() {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("invalid proof, must has issuer of '%s'", nsCtx.Identifier().String())})
 	} else if nbf, err := token.Claims.GetNotBefore(); err != nil || time.Until(nbf.Time) > 5*time.Minute || time.Until(nbf.Time) < -5*time.Minute {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof, must has not before within 5 minutes"})
@@ -49,33 +48,28 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier
 		return err
 	}
 
-	certLocator := base.SLocator{
-		NID: base.GetDefaultStorageNamespaceID(nsCtx.Kind(), nsCtx.Identifier()),
-		RID: certDoc.GetStorageID(c),
-	}
-
 	// check existing certificates
-	linkDoc := &CertLinkRelDoc{}
-	linkDoc.initNamespaceMsEntraClientCredentials(nsCtx.Kind(), nsCtx.Identifier())
+	// linkDoc := &CertLinkRelDoc{}
+	// linkDoc.initNamespaceMsEntraClientCredentials(nsCtx.Kind(), nsCtx.Identifier())
 
-	linkDoc, err = getNamespaceLinkRelDoc(c, nsCtx.Kind(), nsCtx.Identifier(), RelNameMsEntraClientCredentials)
-	if err != nil {
-		if !errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return err
-		}
-	}
+	// linkDoc, err = getNamespaceLinkRelDoc(c, nsCtx.Kind(), nsCtx.Identifier(), RelNameMsEntraClientCredentials)
+	// if err != nil {
+	// 	if !errors.Is(err, base.ErrAzCosmosDocNotFound) {
+	// 		return err
+	// 	}
+	// }
 
-	if linkDoc.Relations == nil {
-		linkDoc.Relations = new(base.DocRelations)
-	}
-	if linkDoc.Relations.NamedToList == nil {
-		linkDoc.Relations.NamedToList = make(map[base.RelName][]base.SLocator, 1)
-	}
-	if l, hasValue := linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials]; !hasValue || len(l) == 0 {
-		linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials] = []base.SLocator{certLocator}
-	} else {
-		linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials] = []base.SLocator{certLocator, l[0]}
-	}
+	// if linkDoc.Relations == nil {
+	// 	linkDoc.Relations = new(base.DocRelations)
+	// }
+	// if linkDoc.Relations.NamedToList == nil {
+	// 	linkDoc.Relations.NamedToList = make(map[base.RelName][]base.SLocator, 1)
+	// }
+	// if l, hasValue := linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials]; !hasValue || len(l) == 0 {
+	// 	linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials] = []base.SLocator{certLocator}
+	// } else {
+	// 	linkDoc.Relations.NamedToList[RelNameMsEntraClientCredentials] = []base.SLocator{certLocator, l[0]}
+	// }
 
 	m := new(Certificate)
 	certDoc.PopulateModel(m)
