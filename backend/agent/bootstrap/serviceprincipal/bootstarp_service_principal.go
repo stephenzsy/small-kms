@@ -10,15 +10,13 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/internal/certstore"
-	wincryptostore "github.com/stephenzsy/small-kms/backend/internal/certstore/windows"
+	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -44,7 +42,7 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 	}
 
 	// create keypair
-	cryptoStore, err := getCryptoStoreProvider()
+	cryptoStore, err := cryptoprovider.NewCryptoProvider()
 	if err != nil {
 		return err
 	}
@@ -124,13 +122,6 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 	}
 
 	return nil
-}
-
-func getCryptoStoreProvider() (certstore.CryptoStoreProvider, error) {
-	if runtime.GOOS == "windows" {
-		return wincryptostore.NewWindowsNCryptCryptoStoreProvider(), nil
-	}
-	return nil, nil
 }
 
 func toJwk(k crypto.PublicKey) (jwk key.JsonWebKey) {

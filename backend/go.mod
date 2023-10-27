@@ -17,12 +17,12 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.2
+	github.com/microsoft/go-crypto-openssl v0.2.8
 	github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54
 	github.com/microsoftgraph/msgraph-sdk-go v1.23.0
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/rs/zerolog v1.31.0
 	github.com/urfave/cli/v2 v2.25.7
-	golang.org/x/sys v0.13.0
 )
 
 require (
@@ -74,6 +74,7 @@ require (
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect

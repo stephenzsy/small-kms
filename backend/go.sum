@@ -95,6 +95,8 @@ github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+github.com/microsoft/go-crypto-openssl v0.2.8 h1:16B6DVeBCimOAG0B92PSySOnVDq6Qr/siI3TyyMHXoI=
+github.com/microsoft/go-crypto-openssl v0.2.8/go.mod h1:xOSmQnWz4xvNB2+KQN2g2UUwMG9vqDHBk9nk/NdmyRw=
 github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54 h1:TCT5sTFxoPwPQkdegvnmgmcZRpecDsrLSCyWYUwAWTs=
 github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54/go.mod h1:fveERXKbeK+XLmOyU24caKnIT/S5nniAX9XCRHfnrM4=
 github.com/microsoft/kiota-abstractions-go v1.3.0 h1:mZTAg+Lf43+hoqTYWT53F/Dg+f0bqtHULnTI/GyiXn8=

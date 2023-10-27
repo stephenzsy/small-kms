@@ -1,4 +1,6 @@
-FROM golang:1.21-alpine as builder
+FROM golang:1.21.3-alpine as builder
+
+RUN apk add --no-cache gcc g++
 
 # Set destination for COPY
 WORKDIR /app
@@ -15,11 +17,11 @@ ARG BUILD_ID=dev
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'main.BuildID=${BUILD_ID}'" .
-RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'main.BuildID=${BUILD_ID}'" ./agent
+RUN CGO_ENABLED=1 GOOS=linux go build -o agent-server -ldflags="-X 'main.BuildID=${BUILD_ID}'" ./agent
 
 FROM alpine:3.18
 
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates openssl
 
 # Copy our static executable.
 COPY --from=builder /app/server /server
