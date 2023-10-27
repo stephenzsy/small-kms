@@ -31,6 +31,7 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
 import { NamespaceContext } from "./NamespaceContext";
+import { CertificateIssuerContext } from "./CertIssuerContext";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
@@ -325,13 +326,18 @@ function CertificateActions({
   );
 }
 
-function useColumns(restActionProps: Omit<CertificateActionsProps, "certRef">) {
+function useCertTableColumns(activeIssuerCertificateId: string | undefined) {
   return useMemo<TableColumnType<CertificateRef>[]>(
     () => [
       {
         title: "Certificate ID",
         render: (r: CertificateRef) => (
-          <span className="font-mono">{r.id}</span>
+          <>
+            <span className="font-mono">{r.id}</span>
+            {activeIssuerCertificateId === r.id && (
+              <Tag className="ml-2" color="blue">Current issuer</Tag>
+            )}
+          </>
         ),
       },
       {
@@ -353,10 +359,10 @@ function useColumns(restActionProps: Omit<CertificateActionsProps, "certRef">) {
       },
       {
         title: "Actions",
-        render: (r) => <CertificateActions certRef={r} {...restActionProps} />,
+        render: (r) => <CertificateActions certRef={r} />,
       },
     ],
-    [restActionProps]
+    [activeIssuerCertificateId]
   );
 }
 
@@ -383,12 +389,6 @@ export default function CertPolicyPage() {
       refreshDeps: [certPolicyId, namespaceIdentifier, namespaceKind],
     }
   );
-  const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
-    mutate(value);
-    if (!certPolicyId && value) {
-      navigate(`./../${value.id}`, { replace: true });
-    }
-  });
 
   const { data: issuedCertificates, refresh: refreshCertificate } = useRequest(
     async () => {
@@ -403,50 +403,21 @@ export default function CertPolicyPage() {
     },
     { refreshDeps: [namespaceIdentifier, certPolicyId] }
   );
-  /*
-  const { run: setIssuerPolicy } = useRequest(
-    async (issuerId: string) => {
-      await adminApi.setIssuerCertificate({
-        namespaceIdentifier,
-        namespaceKind: namespaceKind,
-        resourceIdentifier: certPolicyId,
-        policyIssuerCertRequest: {
-          issuerId,
-        },
-      });
+
+  const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
+    mutate(value);
+    if (!certPolicyId && value) {
+      navigate(`./../${value.id}`, { replace: true });
+    } else {
       refreshCertificate();
-    },
-    {
-      manual: true,
     }
-  );
-*/
-  const restProps = useMemo(() => {
-    switch (namespaceKind) {
-      case NamespaceKind.NamespaceKindRootCA:
-      case NamespaceKind.NamespaceKindIntermediateCA:
-        return {
-          //   onSetIssuerPolicy: setIssuerPolicy,
-          certPolicyId,
-        };
-    }
-    return {};
-  }, [namespaceKind]);
+  });
 
-  const { run: setAsCertIssuer } = useRequest(
-    () => {
-      return adminApi.putCertificateRuleIssuer({
-        namespaceIdentifier,
-        namespaceKind,
-        certificateRuleIssuer: {
-          policyId: certPolicyId,
-        },
-      });
-    },
-    { manual: true }
+  const { rule: issuerRule, setRule: setIssuerRule } = useContext(
+    CertificateIssuerContext
   );
 
-  const columns = useColumns(restProps);
+  const certListColumns = useCertTableColumns(issuerRule?.certificateId);
   return (
     <>
       <Typography.Title>
@@ -457,7 +428,7 @@ export default function CertPolicyPage() {
       </div>
       <Card title="Certificate list">
         <Table<CertificateRef>
-          columns={columns}
+          columns={certListColumns}
           dataSource={issuedCertificates}
           rowKey={(r) => r.id}
         />
@@ -466,9 +437,18 @@ export default function CertPolicyPage() {
         <div className="space-y-4">
           <RequestCertificateControl certPolicyId={certPolicyId} />
           {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
-            namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) && (
-            <Button onClick={setAsCertIssuer}>Set as issuer template</Button>
-          )}
+            namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
+            (certPolicyId !== issuerRule?.policyId ? (
+              <Button
+                onClick={() => {
+                  setIssuerRule({ policyId: certPolicyId });
+                }}
+              >
+                Set as issuer policy
+              </Button>
+            ) : (
+              <Tag color="blue">Current issuer policy</Tag>
+            ))}
         </div>
       </Card>
       <Card title="Current certificate policy">
