@@ -335,7 +335,9 @@ function useCertTableColumns(activeIssuerCertificateId: string | undefined) {
           <>
             <span className="font-mono">{r.id}</span>
             {activeIssuerCertificateId === r.id && (
-              <Tag className="ml-2" color="blue">Current issuer</Tag>
+              <Tag className="ml-2" color="blue">
+                Current issuer
+              </Tag>
             )}
           </>
         ),
@@ -413,7 +415,7 @@ export default function CertPolicyPage() {
     }
   });
 
-  const { rule: issuerRule, setRule: setIssuerRule } = useContext(
+  const { issuer: issuerRule, setIssuer: setIssuerRule, entraClientCred, setEntraClientCred } = useContext(
     CertificateIssuerContext
   );
 
@@ -448,6 +450,18 @@ export default function CertPolicyPage() {
               </Button>
             ) : (
               <Tag color="blue">Current issuer policy</Tag>
+            ))}
+          {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal &&
+            (certPolicyId !== entraClientCred?.policyId ? (
+              <Button
+                onClick={() => {
+                  setEntraClientCred({ policyId: certPolicyId });
+                }}
+              >
+                Set as Microsoft Entra ID client credential policy
+              </Button>
+            ) : (
+              <Tag color="blue">Current Microsoft Entra ID client credential policy</Tag>
             ))}
         </div>
       </Card>

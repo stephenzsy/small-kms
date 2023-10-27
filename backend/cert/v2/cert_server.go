@@ -15,6 +15,31 @@ type server struct {
 	api.APIServer
 }
 
+// GetCertificateRuleMsEntraClientCredential implements ServerInterface.
+func (s *server) GetCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+
+	return apiGetCertRuleMsEntraClientCredential(c)
+}
+
+// PutCertificateRuleMsEntraClientCredential implements ServerInterface.
+func (s *server) PutCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	params := new(CertificateRuleMsEntraClientCredential)
+	if err := ec.Bind(params); err != nil {
+		return err
+	}
+
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+
+	return apiPutCertRuleMsEntraClientCredentrial(c, params)
+}
+
 // PutCertificateRuleIssuer implements ServerInterface.
 func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	params := new(CertificateRuleIssuer)

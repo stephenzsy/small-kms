@@ -108,6 +108,12 @@ type CertificateRuleIssuer struct {
 	PolicyId      externalRef0.Identifier  `json:"policyId"`
 }
 
+// CertificateRuleMsEntraClientCredential defines model for CertificateRuleMsEntraClientCredential.
+type CertificateRuleMsEntraClientCredential struct {
+	CertificateIds []externalRef0.Identifier `json:"certificateIds,omitempty"`
+	PolicyId       externalRef0.Identifier   `json:"policyId"`
+}
+
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
 	CommonName string `json:"commonName"`
@@ -151,6 +157,9 @@ type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 // PutCertificateRuleIssuerJSONRequestBody defines body for PutCertificateRuleIssuer for application/json ContentType.
 type PutCertificateRuleIssuerJSONRequestBody = CertificateRuleIssuer
 
+// PutCertificateRuleMsEntraClientCredentialJSONRequestBody defines body for PutCertificateRuleMsEntraClientCredential for application/json ContentType.
+type PutCertificateRuleMsEntraClientCredentialJSONRequestBody = CertificateRuleMsEntraClientCredential
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List certificates
@@ -177,6 +186,12 @@ type ServerInterface interface {
 	// Update certificate rules for namespace
 	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
 	PutCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Get certificate rules for namespace
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential)
+	GetCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Update certificate rules for namespace
+	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential)
+	PutCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 	// Delete certificate
 	// (DELETE /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier})
 	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
@@ -439,6 +454,58 @@ func (w *ServerInterfaceWrapper) PutCertificateRuleIssuer(ctx echo.Context) erro
 	return err
 }
 
+// GetCertificateRuleMsEntraClientCredential converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificateRuleMsEntraClientCredential(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier)
+	return err
+}
+
+// PutCertificateRuleMsEntraClientCredential converts echo context to params.
+func (w *ServerInterfaceWrapper) PutCertificateRuleMsEntraClientCredential(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier)
+	return err
+}
+
 // DeleteCertificate converts echo context to params.
 func (w *ServerInterfaceWrapper) DeleteCertificate(ctx echo.Context) error {
 	var err error
@@ -543,6 +610,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-cert", wrapper.EnrollCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/ms-entra-client-credential", wrapper.GetCertificateRuleMsEntraClientCredential)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/ms-entra-client-credential", wrapper.PutCertificateRuleMsEntraClientCredential)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.GetCertificate)
 

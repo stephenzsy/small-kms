@@ -24,14 +24,8 @@ const (
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
-// CertificateIdPathParameter defines model for CertificateIdPathParameter.
-type CertificateIdPathParameter = externalRef0.Identifier
-
 // CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
-
-// IncludeCertificateParameter defines model for IncludeCertificateParameter.
-type IncludeCertificateParameter = bool
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
@@ -42,19 +36,10 @@ type NamespaceKindParameter = externalRef0.NamespaceKind
 // AgentConfigurationResponse defines model for AgentConfigurationResponse.
 type AgentConfigurationResponse = externalRef0.AgentConfiguration
 
-// CertificateResponse defines model for CertificateResponse.
-type CertificateResponse = externalRef0.CertificateInfo
-
 // GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
 type GetAgentConfigurationParams struct {
 	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
 	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
-}
-
-// GetCertificateParams defines parameters for GetCertificate.
-type GetCertificateParams struct {
-	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
 }
 
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
@@ -143,9 +128,6 @@ type ClientInterface interface {
 
 	// GetAgentConfiguration request
 	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetCertificate request
-	GetCertificate(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -186,18 +168,6 @@ func (c *Client) AgentCallback(ctx context.Context, namespaceKind NamespaceKindP
 
 func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentConfigurationRequest(c.Server, namespaceKind, namespaceId, configName, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetCertificate(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCertificateRequest(c.Server, namespaceKind, namespaceId, certificateId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -381,92 +351,6 @@ func NewGetAgentConfigurationRequest(server string, namespaceKind NamespaceKindP
 	return req, nil
 }
 
-// NewGetCertificateRequest generates requests for GetCertificate
-func NewGetCertificateRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "certificateId", runtime.ParamLocationPath, certificateId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v3/%s/%s/certificate/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.IncludeCertificate != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "includeCertificate", runtime.ParamLocationQuery, *params.IncludeCertificate); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.TemplateId != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "templateId", runtime.ParamLocationQuery, *params.TemplateId); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -520,9 +404,6 @@ type ClientWithResponsesInterface interface {
 
 	// GetAgentConfigurationWithResponse request
 	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
-
-	// GetCertificateWithResponse request
-	GetCertificateWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
 }
 
 type GetDiagnosticsResponse struct {
@@ -590,28 +471,6 @@ func (r GetAgentConfigurationResponse) StatusCode() int {
 	return 0
 }
 
-type GetCertificateResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *CertificateResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetCertificateResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetCertificateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
 func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
 	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
@@ -645,15 +504,6 @@ func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetAgentConfigurationResponse(rsp)
-}
-
-// GetCertificateWithResponse request returning *GetCertificateResponse
-func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, certificateId CertificateIdPathParameter, params *GetCertificateParams, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error) {
-	rsp, err := c.GetCertificate(ctx, namespaceKind, namespaceId, certificateId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetCertificateResponse(rsp)
 }
 
 // ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
@@ -714,32 +564,6 @@ func ParseGetAgentConfigurationResponse(rsp *http.Response) (*GetAgentConfigurat
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AgentConfigurationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetCertificateResponse parses an HTTP response from a GetCertificateWithResponse call
-func ParseGetCertificateResponse(rsp *http.Response) (*GetCertificateResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetCertificateResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest CertificateResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

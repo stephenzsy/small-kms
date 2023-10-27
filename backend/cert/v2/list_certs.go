@@ -56,23 +56,16 @@ func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*C
 	return utils.PagerToSlice(c, modelPager)
 }
 
-func queryLatestCertificateIdIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier) (*base.Identifier, error) {
+func queryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated)).
-		WithOffsetLimit(0, 1)
+		WithOffsetLimit(0, limit)
 	qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy", "NOT IS_DEFINED(c.deleted)", "c.status = 'issued'")
 	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyFullIdentifier.String()})
 	docService := base.GetAzCosmosCRUDService(c)
 	pager := base.NewQueryDocPager[*CertQueryDoc](docService, qb, base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
 
-	allItems, err := utils.PagerAllItems(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
+	return utils.PagerAllItems(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
 		return d.ID
 	}), c)
-	if err != nil {
-		return nil, err
-	}
-	if len(allItems) > 0 {
-		return &allItems[0], nil
-	}
-	return nil, nil
 }

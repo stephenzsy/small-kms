@@ -31,6 +31,7 @@ export * from './CertificateLifetimeTrigger';
 export * from './CertificateRef';
 export * from './CertificateRefFields';
 export * from './CertificateRuleIssuer';
+export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
 export * from './CertificateTemplateRefFields';
 export * from './CreateLinkedCertificateTemplateParameters';

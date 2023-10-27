@@ -10,17 +10,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-type CertRuleIssuerDoc struct {
-	base.BaseDoc
-	PolicyID      base.Identifier `json:"policyId"`
-	CertificateID base.Identifier `json:"certificateId"`
-}
-
-func (d *CertRuleIssuerDoc) init(
-	nsKind base.NamespaceKind, nsIdentifier base.Identifier,
-) {
-	d.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindNamespaceConfig, base.StringIdentifier(CertRuleNameIssuer))
-}
+type CertRuleIssuerDoc = CertRuleIssuerLatestCertificateDoc
 
 // PopulateModel implements base.ModelPopulater.
 func (d *CertRuleIssuerDoc) PopulateModel(r *CertificateRuleIssuer) {
@@ -73,15 +63,13 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier())
+	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), CertRuleNameIssuer)
 	ruleDoc.PolicyID = p.PolicyId
 	if p.CertificateId.IsNilOrEmpty() {
-		certId, err := queryLatestCertificateIdIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId))
-		if err != nil {
+		if certIds, err := queryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
 			return err
-		}
-		if certId != nil {
-			ruleDoc.CertificateID = *certId
+		} else if len(certIds) > 0 {
+			ruleDoc.CertificateID = certIds[0]
 		} else {
 			return fmt.Errorf("%w, no certificate issued by policy: %s", base.ErrResponseStatusNotFound, p.PolicyId.String())
 		}
@@ -89,13 +77,6 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 		ruleDoc.CertificateID = *p.CertificateId
 	}
 	docSvc.Upsert(c, ruleDoc, nil)
-	ruleDoc, err := readCertRuleIssuerDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.Identifier()))
-	if err != nil {
-		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w, issuer configuration not found: %s", base.ErrResponseStatusNotFound, CertRuleNameIssuer)
-		}
-		return err
-	}
 	m := new(CertificateRuleIssuer)
 	ruleDoc.PopulateModel(m)
 	return c.JSON(200, m)

@@ -19,9 +19,6 @@ const (
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
-// CertificateIdPathParameter defines model for CertificateIdPathParameter.
-type CertificateIdPathParameter = externalRef0.Identifier
-
 // CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 

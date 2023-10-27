@@ -10,12 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
-	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type activeServerProcessor struct {
@@ -205,45 +202,45 @@ func (p *activeServerProcessor) processCertificate(ctx context.Context, certID s
 			}
 		}
 		if requirePrivateKey {
-			certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
-				shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-				certID, nil)
-			if err != nil {
-				return bad(err)
-			}
-			kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
+			// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+			// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+			// 	certID, nil)
+			// if err != nil {
+			// 	return bad(err)
+			// }
+			// kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
 
-			secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
-			if err != nil {
-				return bad(err)
-			}
-			pemBytes := []byte(*secretResp.Value)
-			block, rest := pem.Decode(pemBytes)
-			if block.Type != "CERTIFICATE" {
-				// this is the private key
-				if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
-					return bad(err)
-				}
-				if err := os.WriteFile(certFilename, rest, 0600); err != nil {
-					return bad(err)
-				}
-			}
-			if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
-				return bad(err)
-			}
+			// secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
+			// if err != nil {
+			// 	return bad(err)
+			// }
+			// pemBytes := []byte(*secretResp.Value)
+			// block, rest := pem.Decode(pemBytes)
+			// if block.Type != "CERTIFICATE" {
+			// 	// this is the private key
+			// 	if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
+			// 		return bad(err)
+			// 	}
+			// 	if err := os.WriteFile(certFilename, rest, 0600); err != nil {
+			// 		return bad(err)
+			// 	}
+			// }
+			// if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
+			// 	return bad(err)
+			// }
 		} else {
-			certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
-				shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-				certID, &agentclient.GetCertificateParams{
-					IncludeCertificate: utils.ToPtr(true),
-				})
-			if err != nil {
-				return bad(err)
-			}
-			pemBytes := []byte(*certResp.JSON200.Pem)
-			if err := os.WriteFile(certFilename, pemBytes, 0600); err != nil {
-				return bad(err)
-			}
+			// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+			// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+			// 	certID, &agentclient.GetCertificateParams{
+			// 		IncludeCertificate: utils.ToPtr(true),
+			// 	})
+			// if err != nil {
+			// 	return bad(err)
+			// }
+			// pemBytes := []byte(*certResp.JSON200.Pem)
+			// if err := os.WriteFile(certFilename, pemBytes, 0600); err != nil {
+			// 	return bad(err)
+			// }
 		}
 	}
 

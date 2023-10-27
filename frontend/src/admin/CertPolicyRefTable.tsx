@@ -59,7 +59,7 @@ export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
     }
   );
 
-  const { rule: issuerRule } = useContext(CertificateIssuerContext);
+  const { issuer: issuerRule } = useContext(CertificateIssuerContext);
 
   const columns = useColumns(routePrefix, issuerRule?.policyId);
   return (

@@ -132,42 +132,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/{namespaceKind}/{namespaceId}/certificate-templates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    post:
-      tags:
-        - admin
-      summary: Create linked certificate template
-      operationId: CreateLinkedCertificateTemplate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateLinkedCertificateTemplateParameters"
-        required: true
-      responses:
-        200:
-          description: Certificate template response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateTemplate"
-  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    delete:
-      tags:
-        - admin
-      summary: Delete certificate template
-      operationId: DeleteCertificateTemplate
-      responses:
-        204:
-          description: Certificate template response
-          content: {}
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -224,27 +188,6 @@ paths:
         204:
           description: List keyvault roles assignments response
           content: {}
-  /v3/{namespaceKind}/{namespaceId}/certificate/{certificateId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateIdPathParameter"
-    get:
-      parameters:
-        - $ref: "#/components/parameters/IncludeCertificateParameter"
-        - in: query
-          name: "templateId"
-          schema:
-            $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-          required: false
-      tags:
-        - admin
-        - agentclient
-      summary: Get certificate
-      operationId: GetCertificate
-      responses:
-        200:
-          $ref: "#/components/responses/CertificateResponse"
   /v3/service/config:
     get:
       tags:

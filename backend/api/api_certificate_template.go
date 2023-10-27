@@ -12,63 +12,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
-// GetCertificateTemplate implements models.ServerInterface.
-func (s *server) GetCertificateTemplate(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier, templateID shared.Identifier) error {
-	c := ec.(RequestContext)
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	respData, respErr := (func() (*models.CertificateTemplateComposed, error) {
-
-		c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
-		if err != nil {
-			return nil, err
-		}
-		c, err = ct.WithCertificateTemplateContext(c, templateID)
-		if err != nil {
-			return nil, err
-		}
-		return ct.GetCertificateTemplate(c)
-	})()
-	return wrapResponse(ec, http.StatusOK, respData, respErr)
-}
-
-// ListProfiles implements models.ServerInterface.
-func (s *server) ListCertificateTemplates(ec echo.Context, namespaceKind shared.NamespaceKind, namespaceId shared.Identifier) error {
-	c := ec.(RequestContext)
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	respData, respErr := (func() ([]*models.CertificateTemplateRefComposed, error) {
-		c, err := ns.WithNamespaceContext(c, namespaceKind, namespaceId)
-		if err != nil {
-			return nil, err
-		}
-		return ct.ListCertificateTemplates(c)
-	})()
-	return wrapResponse(ec, http.StatusOK, respData, respErr)
-}
-
-// CreateLinkedCertificateTemplate implements models.ServerInterface.
-func (*server) CreateLinkedCertificateTemplate(ctx echo.Context,
-	namespaceKind shared.NamespaceKind,
-	namespaceId shared.Identifier) error {
-	params := models.CreateLinkedCertificateTemplateParameters{}
-	err := ctx.Bind(&params)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, nil)
-	}
-	c := ctx.(RequestContext)
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	c, err = ns.WithNamespaceContext(c, namespaceKind, namespaceId)
-	if err != nil {
-		return wrapEchoResponse(c, err)
-	}
-	return wrapEchoResponse(c, ct.ApiCreateLinkedCertificateTemplate(c, params))
-}
-
 // ListKeyVaultRoleAssignments implements models.ServerInterface.
 func (*server) ListKeyVaultRoleAssignments(ctx echo.Context,
 	namespaceKind shared.NamespaceKind,

@@ -30,6 +30,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1create-cert"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1issuer"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"   
   /v3/application/{namespaceId}/agent:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -154,39 +156,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/{namespaceKindLegacy}/{namespaceId}/certificate-templates:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    post:
-      tags:
-        - admin
-      summary: Create linked certificate template
-      operationId: CreateLinkedCertificateTemplate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateLinkedCertificateTemplateParameters"
-        required: true
-      responses:
-        200:
-          description: Certificate template response
-          content: {}
-  /v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    delete:
-      tags:
-        - admin
-      summary: Delete certificate template
-      operationId: DeleteCertificateTemplate
-      responses:
-        204:
-          description: Certificate template response
-          content: {}
   /v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindLegacyParameter"

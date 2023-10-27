@@ -11,7 +11,7 @@ import (
 )
 
 func ApiProxyGetDockerInfo(c ctx.RequestContext) error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 	// nsID := ns.GetNamespaceContext(c).GetID()
 	// if !nsID.Identifier().IsUUID() {
 	// 	return fmt.Errorf("%w:namespace id is not uuid: %v", common.ErrStatusBadRequest, nsID)

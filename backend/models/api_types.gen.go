@@ -14,11 +14,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for LinkedCertificateTemplateUsage.
-const (
-	LinkedCertificateTemplateUsageClientAuthorization LinkedCertificateTemplateUsage = "cliant-authorization"
-)
-
 // Defines values for PatchServiceConfigParamsConfigPath.
 const (
 	ServiceConfigPathAppRoleIds             PatchServiceConfigParamsConfigPath = "appRoleIds"
@@ -47,85 +42,6 @@ type AzureRoleAssignment struct {
 	PrincipalId      *string `json:"principalId,omitempty"`
 	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
 }
-
-// CertificateLifetimeTrigger defines model for CertificateLifetimeTrigger.
-type CertificateLifetimeTrigger struct {
-	DaysBeforeExpiry   *int32 `json:"days_before_expiry,omitempty"`
-	LifetimePercentage *int32 `json:"lifetime_percentage,omitempty"`
-}
-
-// CertificateTemplate defines model for CertificateTemplate.
-type CertificateTemplate struct {
-	// Deleted Time when the deleted was deleted
-	Deleted        *time.Time                   `json:"deleted,omitempty"`
-	Id             Identifier                   `json:"id"`
-	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
-
-	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties           externalRef0.JwkProperties            `json:"keyProperties"`
-	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
-	LifetimeTrigger         CertificateLifetimeTrigger            `json:"lifetimeTrigger"`
-	LinkTo                  *externalRef0.ResourceLocator         `json:"linkTo,omitempty"`
-	Locator                 ResourceLocator                       `json:"locator"`
-	Metadata                map[string]interface{}                `json:"metadata,omitempty"`
-	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string `json:"subjectCommonName"`
-
-	// Updated Time when the resoruce was last updated
-	Updated          *time.Time                      `json:"updated,omitempty"`
-	UpdatedBy        *string                         `json:"updatedBy,omitempty"`
-	Usages           []externalRef0.CertificateUsage `json:"usages"`
-	ValidityInMonths int32                           `json:"validity_months"`
-}
-
-// CertificateTemplateFields Certificate fields, may accept template substitutions
-type CertificateTemplateFields struct {
-	IssuerTemplate externalRef0.ResourceLocator `json:"issuerTemplate"`
-
-	// KeyProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	KeyProperties           externalRef0.JwkProperties            `json:"keyProperties"`
-	KeyStorePath            *string                               `json:"keyStorePath,omitempty"`
-	LifetimeTrigger         CertificateLifetimeTrigger            `json:"lifetimeTrigger"`
-	SubjectAlternativeNames *externalRef0.SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usages                  []externalRef0.CertificateUsage       `json:"usages"`
-	ValidityInMonths        int32                                 `json:"validity_months"`
-}
-
-// CertificateTemplateRef defines model for CertificateTemplateRef.
-type CertificateTemplateRef struct {
-	// Deleted Time when the deleted was deleted
-	Deleted  *time.Time                    `json:"deleted,omitempty"`
-	Id       externalRef0.Identifier       `json:"id"`
-	LinkTo   *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
-	Locator  externalRef0.ResourceLocator  `json:"locator"`
-	Metadata map[string]interface{}        `json:"metadata,omitempty"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string `json:"subjectCommonName"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// CertificateTemplateRefFields defines model for CertificateTemplateRefFields.
-type CertificateTemplateRefFields struct {
-	LinkTo *externalRef0.ResourceLocator `json:"linkTo,omitempty"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string `json:"subjectCommonName"`
-}
-
-// CreateLinkedCertificateTemplateParameters defines model for CreateLinkedCertificateTemplateParameters.
-type CreateLinkedCertificateTemplateParameters struct {
-	TargetTemplate externalRef0.ResourceLocator   `json:"targetTemplate"`
-	Usage          LinkedCertificateTemplateUsage `json:"usage"`
-}
-
-// LinkedCertificateTemplateUsage defines model for LinkedCertificateTemplateUsage.
-type LinkedCertificateTemplateUsage string
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
@@ -170,14 +86,8 @@ type ServiceConfigFields struct {
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
-// CertificateIdPathParameter defines model for CertificateIdPathParameter.
-type CertificateIdPathParameter = externalRef0.Identifier
-
 // CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
 type CertificateTemplateIdentifierParameter = externalRef0.Identifier
-
-// IncludeCertificateParameter defines model for IncludeCertificateParameter.
-type IncludeCertificateParameter = bool
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
@@ -187,9 +97,6 @@ type NamespaceKindParameter = externalRef0.NamespaceKind
 
 // AgentConfigurationResponse defines model for AgentConfigurationResponse.
 type AgentConfigurationResponse = externalRef0.AgentConfiguration
-
-// CertificateResponse defines model for CertificateResponse.
-type CertificateResponse = externalRef0.CertificateInfo
 
 // PatchServiceConfigJSONBody defines parameters for PatchServiceConfig.
 type PatchServiceConfigJSONBody = interface{}
@@ -208,12 +115,6 @@ type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
 }
 
-// GetCertificateParams defines parameters for GetCertificate.
-type GetCertificateParams struct {
-	IncludeCertificate *IncludeCertificateParameter `form:"includeCertificate,omitempty" json:"includeCertificate,omitempty"`
-	TemplateId         *externalRef0.Identifier     `form:"templateId,omitempty" json:"templateId,omitempty"`
-}
-
 // ProvisionAgentProfileJSONRequestBody defines body for ProvisionAgentProfile for application/json ContentType.
 type ProvisionAgentProfileJSONRequestBody = externalRef0.AgentProfileParameters
 
@@ -225,6 +126,3 @@ type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration
 
 // PutAgentConfigurationJSONRequestBody defines body for PutAgentConfiguration for application/json ContentType.
 type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParameters
-
-// CreateLinkedCertificateTemplateJSONRequestBody defines body for CreateLinkedCertificateTemplate for application/json ContentType.
-type CreateLinkedCertificateTemplateJSONRequestBody = CreateLinkedCertificateTemplateParameters

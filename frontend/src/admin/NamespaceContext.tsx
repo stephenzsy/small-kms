@@ -18,17 +18,19 @@ export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
     <NamespaceContext.Provider
       value={{ namespaceIdentifier: nsId, namespaceKind: nsKind }}
     >
-      {nsKind === NamespaceKind.NamespaceKindRootCA ||
-      nsKind === NamespaceKind.NamespaceKindIntermediateCA ? (
-        <CertificateIssuerContextProvider
-          namespaceKind={nsKind}
-          namespaceIdentifier={nsId}
-        >
-          {props.children}
-        </CertificateIssuerContextProvider>
-      ) : (
-        props.children
-      )}
+      <CertificateIssuerContextProvider
+        namespaceKind={nsKind}
+        namespaceIdentifier={nsId}
+        ruleIssuer={
+          nsKind === NamespaceKind.NamespaceKindRootCA ||
+          nsKind === NamespaceKind.NamespaceKindIntermediateCA
+        }
+        ruleEntraClientCred={
+          nsKind === NamespaceKind.NamespaceKindServicePrincipal
+        }
+      >
+        {props.children}
+      </CertificateIssuerContextProvider>
     </NamespaceContext.Provider>
   );
 }

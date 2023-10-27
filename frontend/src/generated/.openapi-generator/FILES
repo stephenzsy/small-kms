@@ -33,6 +33,7 @@ models/CertificateLifetimeTrigger.ts
 models/CertificateRef.ts
 models/CertificateRefFields.ts
 models/CertificateRuleIssuer.ts
+models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
 models/CertificateTemplateRefFields.ts
 models/CreateLinkedCertificateTemplateParameters.ts

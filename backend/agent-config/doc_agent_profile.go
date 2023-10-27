@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/base64"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
@@ -76,10 +75,10 @@ func getToBeProvisionedClientCreds(c context.Context, templateID shared.Identifi
 		return nil, nil, e
 	}
 
-	latestCert, err := cert.GetAuthorizedLatestCertByTemplateID(c, templateID)
-	if err != nil {
-		return bad(err)
-	}
+	// latestCert, err := cert.GetAuthorizedLatestCertByTemplateID(c, templateID)
+	// if err != nil {
+	// 	return bad(err)
+	// }
 
 	certDocs, err := cert.ListActiveCertDocsByTemplateID(c, templateID)
 	if err != nil {
@@ -99,23 +98,23 @@ func getToBeProvisionedClientCreds(c context.Context, templateID shared.Identifi
 
 	hasChange := false
 	patchKeyCredentials := make([]gmodels.KeyCredentialable, 0, len(certDocs))
-	if _, hasKey := installedKeys[[sha1.Size]byte(latestCert.Thumbprint)]; !hasKey {
-		log.Info().Msgf("latest cert not installed, thumbprint: %s", latestCert.Thumbprint.HexString())
-		// not installed, install in graph
-		kc := gmodels.NewKeyCredential()
-		pemBlob, err := latestCert.FetchCertificatePEMBlob(c)
-		if err != nil {
-			return bad(err)
-		}
-		block, _ := pem.Decode(pemBlob)
-		kc.SetKey(block.Bytes)
-		kc.SetUsage(to.Ptr("Verify"))
-		kc.SetTypeEscaped(to.Ptr("AsymmetricX509Cert"))
-		kc.SetStartDateTime(latestCert.NotBefore.TimePtr())
-		kc.SetEndDateTime(latestCert.NotAfter.TimePtr())
-		patchKeyCredentials = append(patchKeyCredentials, kc)
-		hasChange = true
-	}
+	// if _, hasKey := installedKeys[[sha1.Size]byte(latestCert.Thumbprint)]; !hasKey {
+	// 	log.Info().Msgf("latest cert not installed, thumbprint: %s", latestCert.Thumbprint.HexString())
+	// 	// not installed, install in graph
+	// 	kc := gmodels.NewKeyCredential()
+	// 	pemBlob, err := latestCert.FetchCertificatePEMBlob(c)
+	// 	if err != nil {
+	// 		return bad(err)
+	// 	}
+	// 	block, _ := pem.Decode(pemBlob)
+	// 	kc.SetKey(block.Bytes)
+	// 	kc.SetUsage(to.Ptr("Verify"))
+	// 	kc.SetTypeEscaped(to.Ptr("AsymmetricX509Cert"))
+	// 	kc.SetStartDateTime(latestCert.NotBefore.TimePtr())
+	// 	kc.SetEndDateTime(latestCert.NotAfter.TimePtr())
+	// 	patchKeyCredentials = append(patchKeyCredentials, kc)
+	// 	hasChange = true
+	// }
 	for tp, key := range installedKeys {
 		if _, ok := allowedCerts[tp]; ok {
 			// key still allowed, keep it
