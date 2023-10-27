@@ -22,7 +22,7 @@ var identifierRegex = regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (p *identifier) UnmarshalText(text []byte) error {
 	if len(text) == 36 || len(text) == 36+2 {
-		if parsedUUID, err := uuid.ParseBytes(text); err != nil {
+		if parsedUUID, err := uuid.ParseBytes(text); err == nil {
 			*p = identifier{
 				isUUID:  true,
 				uuidVal: parsedUUID,
