@@ -27,12 +27,6 @@ export interface ResourceReference {
     id: string;
     /**
      * 
-     * @type {string}
-     * @memberof ResourceReference
-     */
-    uid: string;
-    /**
-     * 
      * @type {Date}
      * @memberof ResourceReference
      */
@@ -48,7 +42,7 @@ export interface ResourceReference {
      * @type {string}
      * @memberof ResourceReference
      */
-    updatedBy: string;
+    updatedBy?: string;
 }
 
 /**
@@ -57,9 +51,7 @@ export interface ResourceReference {
 export function instanceOfResourceReference(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
 
     return isInstance;
 }
@@ -75,10 +67,9 @@ export function ResourceReferenceFromJSONTyped(json: any, ignoreDiscriminator: b
     return {
         
         'id': json['id'],
-        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
     };
 }
 
@@ -92,7 +83,6 @@ export function ResourceReferenceToJSON(value?: ResourceReference | null): any {
     return {
         
         'id': value.id,
-        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

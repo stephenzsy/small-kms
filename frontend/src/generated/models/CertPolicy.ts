@@ -64,12 +64,6 @@ export interface CertPolicy {
     id: string;
     /**
      * 
-     * @type {string}
-     * @memberof CertPolicy
-     */
-    uid: string;
-    /**
-     * 
      * @type {Date}
      * @memberof CertPolicy
      */
@@ -85,7 +79,7 @@ export interface CertPolicy {
      * @type {string}
      * @memberof CertPolicy
      */
-    updatedBy: string;
+    updatedBy?: string;
     /**
      * 
      * @type {string}
@@ -160,9 +154,7 @@ export interface CertPolicy {
 export function instanceOfCertPolicy(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "issuerNamespaceKind" in value;
     isInstance = isInstance && "issuerNamespaceIdentifier" in value;
@@ -187,10 +179,9 @@ export function CertPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     return {
         
         'id': json['id'],
-        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'displayName': json['displayName'],
         'issuerNamespaceKind': NamespaceKindFromJSON(json['issuerNamespaceKind']),
         'issuerNamespaceIdentifier': json['issuerNamespaceIdentifier'],
@@ -215,7 +206,6 @@ export function CertPolicyToJSON(value?: CertPolicy | null): any {
     return {
         
         'id': value.id,
-        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

@@ -71,9 +71,6 @@ components:
         id:
           $ref: "#/components/schemas/Identifier"
           x-go-name: ID
-        uid:
-          $ref: "#/components/schemas/ResourceUniqueIdentifier"
-          x-go-name: UniqueID
         updated:
           type: string
           format: date-time
@@ -86,7 +83,6 @@ components:
         - id
         - uid
         - updated
-        - updatedBy
   parameters:
     NamespaceKindParameter:
       in: path

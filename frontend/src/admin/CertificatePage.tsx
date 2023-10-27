@@ -56,7 +56,7 @@ export default function CertificatePage() {
       {
         key: "serialNumber",
         label: "Serial Number",
-        children: cert.resourceIdentifier,
+        children: cert.id,
       },
       {
         key: 1,

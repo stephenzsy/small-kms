@@ -63,7 +63,7 @@ function useManagedAppsColumns() {
       {
         title: "App ID",
         render: (r: ManagedAppRef) => (
-          <span className="font-mono">{r.appId}</span>
+          <span className="font-mono">{r.id}</span>
         ),
       },
       {
@@ -73,7 +73,7 @@ function useManagedAppsColumns() {
 
       {
         title: "Actions",
-        render: (r) => <Link to={`/app/managed/${r.appId}`}>View</Link>,
+        render: (r) => <Link to={`/app/managed/${r.id}`}>View</Link>,
       },
     ],
     []
@@ -86,7 +86,7 @@ function useProfileRefColumns(profileKind: ResourceKind) {
       {
         title: "ID",
         render: (r: ProfileRef) => (
-          <span className="font-mono">{r.resourceIdentifier}</span>
+          <span className="font-mono">{r.id}</span>
         ),
       },
       {
@@ -97,7 +97,7 @@ function useProfileRefColumns(profileKind: ResourceKind) {
       {
         title: "Actions",
         render: (r: ProfileRef) => (
-          <Link to={`/app/${profileKind}/${r.resourceIdentifier}`}>View</Link>
+          <Link to={`/app/${profileKind}/${r.id}`}>View</Link>
         ),
       },
     ],
@@ -193,7 +193,7 @@ export default function ManagedAppsPage() {
         <Table<ProfileRef>
           columns={managedAppColumns}
           dataSource={managedApps}
-          rowKey={(r) => r.resourceIdentifier}
+          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Create managed application">
@@ -203,7 +203,7 @@ export default function ManagedAppsPage() {
         <Table<ProfileRef>
           columns={spColumns}
           dataSource={servicePrincipals}
-          rowKey={(r) => r.resourceIdentifier}
+          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Import service principal">

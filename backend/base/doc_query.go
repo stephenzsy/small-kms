@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
 )
 
-type DocPager[D BaseDocument] struct {
+type DocPager[D QueryDocument] struct {
 	innerPager *azruntime.Pager[azcosmos.QueryItemsResponse]
 }
 
@@ -37,15 +39,16 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 	return
 }
 
-func ToDocPager[D BaseDocument](pager *azruntime.Pager[azcosmos.QueryItemsResponse]) *DocPager[D] {
+func ToDocPager[D QueryDocument](pager *azruntime.Pager[azcosmos.QueryItemsResponse]) *DocPager[D] {
 	return &DocPager[D]{innerPager: pager}
 }
 
 type CosmosQueryBuilder struct {
-	Columns      []string
-	WhereClauses []string
-	OrderBy      string
-	Parameters   []azcosmos.QueryParameter
+	Columns           []string
+	WhereClauses      []string
+	OrderBy           string
+	Parameters        []azcosmos.QueryParameter
+	OffsetLimitClause string
 }
 
 func (b *CosmosQueryBuilder) BuildQuery() (string, []azcosmos.QueryParameter) {
@@ -71,8 +74,44 @@ func (b *CosmosQueryBuilder) BuildQuery() (string, []azcosmos.QueryParameter) {
 		sb.WriteString(" ORDER BY ")
 		sb.WriteString(b.OrderBy)
 	}
+	if b.OffsetLimitClause != "" {
+		sb.WriteString(b.OffsetLimitClause)
+	}
 	return sb.String(), b.Parameters
 }
+
+var queryDefaultColumns = []string{
+	"c.id",
+	"c._ts",
+	"c.deleted",
+}
+
+type QueryBaseDoc struct {
+	ID        Identifier      `json:"id"`
+	Timestamp jwt.NumericDate `json:"_ts"`
+	Deleted   *time.Time      `json:"deleted"`
+}
+
+// PopulateModelRef implements ModelRefPopulater.
+func (d *QueryBaseDoc) PopulateModelRef(r *ResourceReference) {
+	if d == nil || r == nil {
+		return
+	}
+	r.Id = d.ID
+	r.Deleted = d.Deleted
+	r.Updated = d.Timestamp.Time
+}
+
+// GetID implements QueryDocument.
+func (d *QueryBaseDoc) GetID() identifier {
+	return d.ID
+}
+
+type QueryDocument interface {
+	GetID() Identifier
+}
+
+var _ QueryDocument = (*QueryBaseDoc)(nil)
 
 func NewDefaultCosmoQueryBuilder() *CosmosQueryBuilder {
 	return &CosmosQueryBuilder{
@@ -90,7 +129,12 @@ func (b *CosmosQueryBuilder) WithOrderBy(clause string) *CosmosQueryBuilder {
 	return b
 }
 
-func NewQueryDocPager[D BaseDocument](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID DocNamespacePartitionKey) *DocPager[D] {
+func (b *CosmosQueryBuilder) WithOffsetLimit(offset uint, limit uint) *CosmosQueryBuilder {
+	b.OffsetLimitClause = fmt.Sprintf(" OFFSET %d LIMIT %d", offset, limit)
+	return b
+}
+
+func NewQueryDocPager[D QueryDocument](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID DocNamespacePartitionKey) *DocPager[D] {
 	query, parameters := queryBuilder.BuildQuery()
 	log.Debug().Str("query", query).Interface("parameters", parameters).Msg("NewQueryDocPager")
 	pager := docService.NewQueryItemsPager(query, storageNamespaceID, &azcosmos.QueryOptions{
@@ -98,3 +142,5 @@ func NewQueryDocPager[D BaseDocument](docService AzCosmosCRUDDocService, queryBu
 	})
 	return &DocPager[D]{innerPager: pager}
 }
+
+var _ ModelRefPopulater[ResourceReference] = (*QueryBaseDoc)(nil)

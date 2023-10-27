@@ -89,7 +89,7 @@ func signCertificate(
 }
 
 func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey crypto.PublicKey) (*CertDoc, error) {
-	policyDoc, err := getCertPolicy(c, policyRID)
+	policyDoc, err := getCertPolicyDoc(c, policyRID)
 	if err != nil {
 		return nil, err
 	}

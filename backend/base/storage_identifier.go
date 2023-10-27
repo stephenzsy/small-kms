@@ -41,7 +41,7 @@ func (p *identifier) UnmarshalText(text []byte) error {
 	} else if len(p.strVal) < 4 {
 		return errors.New("identifier too short min 4 characters")
 	} else if !identifierRegex.MatchString(p.strVal) {
-		return errors.New("invalid identifier format")
+		return errors.New("invalid identifier format: " + p.strVal)
 	}
 	return nil
 }
@@ -74,6 +74,16 @@ func (k identifier) IsUUID() bool {
 
 func (k identifier) UUID() UUID {
 	return k.uuidVal
+}
+
+func (k *identifier) IsNilOrEmpty() bool {
+	if k == nil {
+		return true
+	}
+	if k.isUUID {
+		return k.uuidVal == uuid.Nil
+	}
+	return k.strVal == ""
 }
 
 var _ encoding.TextMarshaler = identifier{}
@@ -161,7 +171,7 @@ type DocNamespacePartitionKey struct {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (p *DocNamespacePartitionKey) UnmarshalText(text []byte) error {
-	parts := bytes.SplitAfterN(text, []byte(":"), 3)
+	parts := bytes.SplitN(text, []byte(":"), 3)
 	if len(parts) != 3 {
 		return errors.New("invalid storage namespace ID format")
 	}
@@ -208,6 +218,10 @@ func NewDocNamespacePartitionKey(nsKind NamespaceKind, nsID Identifier, rKind Re
 type DocFullIdentifier struct {
 	pKey  DocNamespacePartitionKey
 	docID identifier
+}
+
+func (i DocFullIdentifier) PartitionKey() DocNamespacePartitionKey {
+	return i.pKey
 }
 
 func (i DocFullIdentifier) NamespaceKind() NamespaceKind {

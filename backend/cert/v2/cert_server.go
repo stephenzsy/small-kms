@@ -15,14 +15,19 @@ type server struct {
 	api.APIServer
 }
 
-// GetCertificateRuleIssuer implements ServerInterface.
-func (*server) GetCertificateRuleIssuer(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
-	panic("unimplemented")
-}
-
 // PutCertificateRuleIssuer implements ServerInterface.
-func (*server) PutCertificateRuleIssuer(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
-	panic("unimplemented")
+func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	params := new(CertificateRuleIssuer)
+	if err := ec.Bind(params); err != nil {
+		return err
+	}
+
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+
+	return apiPutCertRuleIssuer(c, params)
 }
 
 func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) (ctx.RequestContext, error) {
@@ -35,12 +40,14 @@ func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind b
 	return c, nil
 }
 
-func (s *server) GetCertificateRules(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ctx, namespaceKind, namespaceIdentifier)
+// GetCertificateRuleIssuer implements ServerInterface.
+func (s *server) GetCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, map[string]string{"error": "unimplemented"})
+
+	return apiGetCertRuleIssuer(c)
 }
 
 // EnrollMsEntraClientCredential implements ServerInterface.
@@ -151,13 +158,7 @@ func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind
 		return err
 	}
 
-	r, err := getCertPolicy(c, resourceIdentifier)
-	if err != nil {
-		return err
-	}
-	m := new(CertPolicy)
-	r.PopulateModel(m)
-	return c.JSON(http.StatusOK, m)
+	return apiGetCertPolicy(c, resourceIdentifier)
 }
 
 // PutCertPolicy implements ServerInterface.

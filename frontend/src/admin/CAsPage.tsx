@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { Link } from "../components/Link";
 import {
   AdminApi,
+  NamespaceKind,
   ProfileParameters,
   ProfileRef,
   ResourceKind
@@ -119,13 +120,13 @@ function CreateProfileForm({
   );
 }
 
-function useColumns() {
+function useColumns(nsKind: NamespaceKind) {
   return useMemo<TableColumnType<ProfileRef>[]>(
     () => [
       {
         title: "Name",
         render: (r: ProfileRef) => (
-          <span className="font-mono">{r.resourceIdentifier}</span>
+          <span className="font-mono">{r.id}</span>
         ),
       },
       {
@@ -135,7 +136,7 @@ function useColumns() {
       {
         title: "Actions",
         render: (r: ProfileRef) => (
-          <Link to={`/ca/${r.resourceKind}/${r.resourceIdentifier}`}>View</Link>
+          <Link to={`/ca/${nsKind}/${r.id}`}>View</Link>
         ),
       },
     ],
@@ -166,7 +167,8 @@ export default function CAsPage() {
       refreshDeps: [],
     }
   );
-  const columns = useColumns();
+  const rootColumns = useColumns(NamespaceKind.NamespaceKindRootCA);
+  const intColumns = useColumns(NamespaceKind.NamespaceKindIntermediateCA);
   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
     return {
       [ResourceKind.ProfileResourceKindRootCA]: listRootCAs,
@@ -179,16 +181,16 @@ export default function CAsPage() {
       <Title>Certificate Authorities</Title>
       <Card title="Root certificate authorities">
         <Table<ProfileRef>
-          columns={columns}
+          columns={rootColumns}
           dataSource={rootCAs}
-          rowKey={(r) => r.resourceIdentifier}
+          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Intermediate certificate authorities">
         <Table<ProfileRef>
-          columns={columns}
+          columns={intColumns}
           dataSource={intermediateCAs}
-          rowKey={(r) => r.resourceIdentifier}
+          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Create certificate authority profile">

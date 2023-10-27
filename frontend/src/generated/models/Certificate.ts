@@ -58,12 +58,6 @@ export interface Certificate {
     id: string;
     /**
      * 
-     * @type {string}
-     * @memberof Certificate
-     */
-    uid: string;
-    /**
-     * 
      * @type {Date}
      * @memberof Certificate
      */
@@ -79,7 +73,7 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
-    updatedBy: string;
+    updatedBy?: string;
     /**
      * 
      * @type {string}
@@ -148,9 +142,7 @@ export interface Certificate {
 export function instanceOfCertificate(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "attributes" in value;
     isInstance = isInstance && "subject" in value;
@@ -172,10 +164,9 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
     return {
         
         'id': json['id'],
-        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'thumbprint': json['thumbprint'],
         'attributes': CertificateAttributesFromJSON(json['attributes']),
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -199,7 +190,6 @@ export function CertificateToJSON(value?: Certificate | null): any {
     return {
         
         'id': value.id,
-        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

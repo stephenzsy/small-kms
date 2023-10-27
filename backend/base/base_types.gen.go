@@ -49,11 +49,10 @@ type ResourceKind string
 
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
-	Deleted   *time.Time               `json:"deleted,omitempty"`
-	Id        Identifier               `json:"id"`
-	Uid       ResourceUniqueIdentifier `json:"uid"`
-	Updated   time.Time                `json:"updated"`
-	UpdatedBy string                   `json:"updatedBy"`
+	Deleted   *time.Time `json:"deleted,omitempty"`
+	Id        Identifier `json:"id"`
+	Updated   time.Time  `json:"updated"`
+	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
 
 // ResourceUniqueIdentifier defines model for ResourceUniqueIdentifier.

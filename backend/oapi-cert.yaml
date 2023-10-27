@@ -386,7 +386,6 @@ components:
           $ref: "oapi-base.yaml#/components/schemas/Identifier"
       required:
         - policyId
-        - certificateId
     CertificateRuleMsEntraClientCredential:
       type: object
       properties:

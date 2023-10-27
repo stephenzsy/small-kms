@@ -25,45 +25,34 @@ type BaseDocument interface {
 }
 
 type BaseDoc struct {
-	StorageNamespaceID DocNamespacePartitionKey `json:"namespaceId"`
-	StorageID          Identifier               `json:"id"`
-
-	ResourceKind ResourceKind `json:"resourceKind"`
-
-	Timestamp *jwt.NumericDate `json:"_ts,omitempty"`
-	ETag      *azcore.ETag     `json:"_etag,omitempty"`
-	Deleted   *time.Time       `json:"deleted,omitempty"`
-	UpdatedBy string           `json:"updatedBy,omitempty"`
+	PartitionKey DocNamespacePartitionKey `json:"namespaceId"`
+	ID           Identifier               `json:"id"`
+	Timestamp    *jwt.NumericDate         `json:"_ts,omitempty"`
+	ETag         *azcore.ETag             `json:"_etag,omitempty"`
+	Deleted      *time.Time               `json:"deleted,omitempty"`
+	UpdatedBy    string                   `json:"updatedBy,omitempty"`
 }
 
 func (d *BaseDoc) GetStorageNamespaceID() DocNamespacePartitionKey {
-	return d.StorageNamespaceID
+	return d.PartitionKey
 }
 
 // GetID implements BaseDocument.
 func (d *BaseDoc) GetStorageID() Identifier {
-	return d.StorageID
+	return d.ID
 }
 
 // GetPersistedSLocator implements CRUDDoc.
 func (d *BaseDoc) GetStorageFullIdentifier() DocFullIdentifier {
 	return DocFullIdentifier{
-		d.StorageNamespaceID,
-		d.StorageID,
+		d.PartitionKey,
+		d.ID,
 	}
 }
 
 func (d *BaseDoc) Init(nsKind NamespaceKind, nsID Identifier, rKind ResourceKind, rID identifier) {
-	d.StorageNamespaceID = NewDocNamespacePartitionKey(nsKind, nsID, rKind)
-	d.StorageID = rID
-	d.ResourceKind = rKind
-}
-
-var queryDefaultColumns = []string{
-	"c.id",
-	"c.resourceIdentifier",
-	"c._ts",
-	"c.deleted",
+	d.PartitionKey = NewDocNamespacePartitionKey(nsKind, nsID, rKind)
+	d.ID = rID
 }
 
 // setTimestamp implements CRUDDoc.
@@ -223,11 +212,10 @@ func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
 	if d == nil || m == nil {
 		return
 	}
-	m.Id = d.StorageID
-	m.Uid = d.GetStorageFullIdentifier()
+	m.Id = d.ID
 	m.Updated = d.Timestamp.Time
 	m.Deleted = d.Deleted
-	m.UpdatedBy = d.UpdatedBy
+	m.UpdatedBy = &d.UpdatedBy
 }
 
 var _ ModelRefPopulater[ResourceReference] = (*BaseDoc)(nil)

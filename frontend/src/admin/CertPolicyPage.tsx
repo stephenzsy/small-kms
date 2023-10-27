@@ -27,10 +27,9 @@ import {
   NamespaceKind,
   ProfileRef,
   ResourceKind,
-  ResourceLocator1,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { CertificatePolicySelect } from "./CertPolicySelector";
+import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
 import { NamespaceContext } from "./NamespaceContext";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
@@ -81,7 +80,7 @@ type CertPolicyFormState = {
   keySize: number;
   crv: JsonWebKeyCurveName;
   // selfSigning: boolean;
-  issuerPolicy: ResourceLocator1;
+  issuerNamespaceId: string;
 };
 
 function CertPolicyForm({
@@ -161,19 +160,15 @@ function CertPolicyForm({
           JsonWebKeyOperation.JsonWebKeyOperationVerify,
         ],
       },
-      issuerPolicy: isSelfSigning
-        ? {
-            namespaceIdentifier: namespaceIdentifier,
-            namespaceKind: namespaceKind,
-            resourceIdentifier: certPolicyId,
-            resourceKind: ResourceKind.ResourceKindCertPolicy,
-          }
-        : {
-            namespaceIdentifier: values.issuerPolicy.namespaceIdentifier,
-            namespaceKind: values.issuerPolicy.namespaceKind,
-            resourceIdentifier: values.issuerPolicy.resourceIdentifier,
-            resourceKind: values.issuerPolicy.resourceKind,
-          },
+      issuerNamespaceKind:
+        namespaceKind === NamespaceKind.NamespaceKindRootCA ||
+        namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
+          ? NamespaceKind.NamespaceKindRootCA
+          : NamespaceKind.NamespaceKindIntermediateCA,
+      issuerNamespaceIdentifier:
+        namespaceKind === NamespaceKind.NamespaceKindRootCA
+          ? namespaceIdentifier
+          : values.issuerNamespaceId,
     });
   });
 
@@ -182,7 +177,7 @@ function CertPolicyForm({
       return;
     }
     form.setFieldsValue({
-      certPolicyId: value.resourceIdentifier,
+      certPolicyId: value.id,
       displayName: value.displayName,
       subjectCN: value.subject.commonName,
       expiryTime: value.expiryTime,
@@ -190,7 +185,7 @@ function CertPolicyForm({
       kty: value.keySpec.kty,
       keySize: value.keySpec.keySize,
       crv: value.keySpec.crv,
-      issuerPolicy: value.issuerPolicy,
+      issuerNamespaceId: value.issuerNamespaceIdentifier,
     });
   }, [value]);
 
@@ -225,11 +220,16 @@ function CertPolicyForm({
         </Form.Item>
         {!isSelfSigning && (
           <Form.Item<CertPolicyFormState>
-            name="issuerPolicy"
-            getValueFromEvent={(v: ResourceLocator1) => v}
+            name="issuerNamespaceId"
+            getValueFromEvent={(v: any) => v}
           >
-            <CertificatePolicySelect
+            <CertificateIssuerNamespaceSelect
               availableNamespaceProfiles={issuerProfiles}
+              profileKind={
+                namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
+                  ? ResourceKind.ProfileResourceKindRootCA
+                  : ResourceKind.ProfileResourceKindIntermediateCA
+              }
             />
           </Form.Item>
         )}
@@ -320,22 +320,7 @@ function CertificateActions({
 }: CertificateActionsProps) {
   return (
     <div className="flex items-center gap-2">
-      <Link to={`../cert/${certRef.resourceIdentifier}`}>View</Link>
-      {certPolicyId && (
-        <>
-          {onSetIssuerPolicy && (
-            <Button
-              type="link"
-              onClick={() => {
-                onSetIssuerPolicy(certRef.resourceIdentifier);
-              }}
-            >
-              Set as issuer
-            </Button>
-          )}
-          {certRef.issuerForPolicy && <Tag color="success">Current Issuer</Tag>}
-        </>
-      )}
+      <Link to={`../cert/${certRef.id}`}>View</Link>
     </div>
   );
 }
@@ -346,7 +331,7 @@ function useColumns(restActionProps: Omit<CertificateActionsProps, "certRef">) {
       {
         title: "Certificate ID",
         render: (r: CertificateRef) => (
-          <span className="font-mono">{r.resourceIdentifier}</span>
+          <span className="font-mono">{r.id}</span>
         ),
       },
       {
@@ -401,7 +386,7 @@ export default function CertPolicyPage() {
   const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
     mutate(value);
     if (!certPolicyId && value) {
-      navigate(`./../${value.resourceIdentifier}`, { replace: true });
+      navigate(`./../${value.id}`, { replace: true });
     }
   });
 
@@ -418,7 +403,7 @@ export default function CertPolicyPage() {
     },
     { refreshDeps: [namespaceIdentifier, certPolicyId] }
   );
-
+  /*
   const { run: setIssuerPolicy } = useRequest(
     async (issuerId: string) => {
       await adminApi.setIssuerCertificate({
@@ -435,18 +420,31 @@ export default function CertPolicyPage() {
       manual: true,
     }
   );
-
+*/
   const restProps = useMemo(() => {
     switch (namespaceKind) {
       case NamespaceKind.NamespaceKindRootCA:
       case NamespaceKind.NamespaceKindIntermediateCA:
         return {
-          onSetIssuerPolicy: setIssuerPolicy,
+          //   onSetIssuerPolicy: setIssuerPolicy,
           certPolicyId,
         };
     }
     return {};
   }, [namespaceKind]);
+
+  const { run: setAsCertIssuer } = useRequest(
+    () => {
+      return adminApi.putCertificateRuleIssuer({
+        namespaceIdentifier,
+        namespaceKind,
+        certificateRuleIssuer: {
+          policyId: certPolicyId,
+        },
+      });
+    },
+    { manual: true }
+  );
 
   const columns = useColumns(restProps);
   return (
@@ -461,11 +459,17 @@ export default function CertPolicyPage() {
         <Table<CertificateRef>
           columns={columns}
           dataSource={issuedCertificates}
-          rowKey={(r) => r.resourceIdentifier}
+          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Manage certificates">
-        <RequestCertificateControl certPolicyId={certPolicyId} />
+        <div className="space-y-4">
+          <RequestCertificateControl certPolicyId={certPolicyId} />
+          {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
+            namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) && (
+            <Button onClick={setAsCertIssuer}>Set as issuer template</Button>
+          )}
+        </div>
       </Card>
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />

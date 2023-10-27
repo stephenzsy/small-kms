@@ -36,7 +36,7 @@ func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string) {
 }
 
 func (d *ManagedAppDoc) GetAppID() uuid.UUID {
-	return d.StorageID.UUID()
+	return d.ID.UUID()
 }
 
 func (d *ManagedAppDoc) PopulateModelRef(m *ManagedAppRef) {

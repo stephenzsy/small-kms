@@ -1,5 +1,5 @@
-import { Table, type TableColumnType } from "antd";
-import { AdminApi, CertPolicyRef } from "../generated";
+import { Button, Table, type TableColumnType } from "antd";
+import { AdminApi, CertPolicyRef, NamespaceKind } from "../generated";
 import { useMemo, useContext } from "react";
 import { Link } from "../components/Link";
 import { NamespaceContext } from "./NamespaceContext";
@@ -11,9 +11,7 @@ function useColumns(routePrefix: string) {
     () => [
       {
         title: "App ID",
-        render: (r: CertPolicyRef) => (
-          <span className="font-mono">{r.resourceIdentifier}</span>
-        ),
+        render: (r: CertPolicyRef) => <span className="font-mono">{r.id}</span>,
       },
       {
         title: "Display name",
@@ -23,7 +21,9 @@ function useColumns(routePrefix: string) {
       {
         title: "Actions",
         render: (r: CertPolicyRef) => (
-          <Link to={`${routePrefix}${r.resourceIdentifier}`}>View</Link>
+          <>
+            <Link to={`${routePrefix}${r.id}`}>View</Link>
+          </>
         ),
       },
     ],
@@ -44,6 +44,22 @@ export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
     },
     {
       refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready: !!namespaceIdentifier,
+    }
+  );
+
+  const { data } = useRequest(
+    () => {
+      return adminApi.getCertificateRuleIssuer({
+        namespaceIdentifier,
+        namespaceKind,
+      });
+    },
+    {
+      refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready:
+        namespaceKind === NamespaceKind.NamespaceKindRootCA ||
+        namespaceKind === NamespaceKind.NamespaceKindIntermediateCA,
     }
   );
   const columns = useColumns(routePrefix);
@@ -51,7 +67,7 @@ export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
     <Table<CertPolicyRef>
       columns={columns}
       dataSource={certPolicies}
-      rowKey={(r) => r.resourceIdentifier}
+      rowKey={(r) => r.id}
     />
   );
 }

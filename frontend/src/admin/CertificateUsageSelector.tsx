@@ -1,7 +1,4 @@
-import { CertificateUsage } from "../generated";
-import { certUsageNames } from "./displayConstants";
-import { useId } from "react";
-
+/*
 export const configurableCertificateUsages: CertificateUsage[] = [
   CertificateUsage.CertUsageServerAuth,
   CertificateUsage.CertUsageClientAuth,
@@ -47,3 +44,4 @@ export function CertificateUsageSelector({
     </fieldset>
   );
 }
+*/

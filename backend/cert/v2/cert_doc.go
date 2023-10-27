@@ -52,12 +52,6 @@ type CertDoc struct {
 	Issuer        base.DocFullIdentifier   `json:"issuer"`
 }
 
-type CertListQueryDoc struct {
-	base.BaseDoc
-	ThumbprintSHA1 base.Base64RawURLEncodedBytes `json:"x5t"`
-	NotAfter       base.NumericDate              `json:"exp"`
-}
-
 const (
 	certDocQueryColumnThumbprintSHA1 = "c.keySpec.x5t"
 	certDocQueryColumnCreated        = "c.iat"
@@ -92,7 +86,7 @@ func (d *CertDoc) Init(
 	d.Policy = pDoc.GetStorageFullIdentifier()
 	d.PolicyVersion = pDoc.Version
 	d.KeyVaultStore.Name =
-		fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.StorageID.String())
+		fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.ID.String())
 
 	now := time.Now()
 	d.Created = *jwt.NewNumericDate(now)
@@ -110,15 +104,6 @@ func (d *CertDoc) PopulateModelRef(m *CertificateRef) {
 	if d.KeySpec.X5t != nil {
 		m.Thumbprint = d.KeySpec.X5t.HexString()
 	}
-	m.Attributes.Exp = &d.NotAfter
-}
-
-func (d *CertListQueryDoc) PopulateModelRef(m *CertificateRef) {
-	if d == nil || m == nil {
-		return
-	}
-	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
-	m.Thumbprint = d.ThumbprintSHA1.HexString()
 	m.Attributes.Exp = &d.NotAfter
 }
 
@@ -144,7 +129,6 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	m.SubjectAlternativeNames = d.SANs
 }
 
-var _ base.ModelRefPopulater[certificateRefComposed] = (*CertListQueryDoc)(nil)
 var _ base.ModelPopulater[Certificate] = (*CertDoc)(nil)
 
 func (d *CertDoc) getSigningParams() kv.SigningParams {
@@ -182,7 +166,7 @@ func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
 }
 
 func (d *CertDoc) getX509CertTemplate() *x509.Certificate {
-	certID := d.StorageID.UUID()
+	certID := d.ID.UUID()
 	cert := &x509.Certificate{
 		SerialNumber: new(big.Int).SetBytes(certID[:]),
 		Subject:      d.Subject.ToPkixName(),

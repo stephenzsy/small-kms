@@ -10,6 +10,24 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
+type CertQueryDoc struct {
+	base.QueryBaseDoc
+	ThumbprintSHA1 base.Base64RawURLEncodedBytes `json:"x5t"`
+	NotAfter       base.NumericDate              `json:"exp"`
+}
+
+// PopulateModelRef implements base.ModelRefPopulater.
+func (d *CertQueryDoc) PopulateModelRef(m *CertificateRef) {
+	if d == nil || m == nil {
+		return
+	}
+	d.QueryBaseDoc.PopulateModelRef(&m.ResourceReference)
+	m.Thumbprint = d.ThumbprintSHA1.HexString()
+	m.Attributes.Exp = &d.NotAfter
+}
+
+var _ base.ModelRefPopulater[CertificateRef] = (*CertQueryDoc)(nil)
+
 // ListCertificates implements ServerInterface.
 func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*CertificateRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
@@ -28,12 +46,33 @@ func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*C
 		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
 	}
 
-	pager := base.NewQueryDocPager[*CertListQueryDoc](docService, qb, storageNsID)
+	pager := base.NewQueryDocPager[*CertQueryDoc](docService, qb, storageNsID)
 
-	modelPager := utils.NewMappedItemsPager(pager, func(d *CertListQueryDoc) *CertificateRef {
+	modelPager := utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) *CertificateRef {
 		r := &CertificateRef{}
 		d.PopulateModelRef(r)
 		return r
 	})
 	return utils.PagerToSlice(c, modelPager)
+}
+
+func queryLatestCertificateIdIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier) (*base.Identifier, error) {
+	qb := base.NewDefaultCosmoQueryBuilder().
+		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated)).
+		WithOffsetLimit(0, 1)
+	qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy", "NOT IS_DEFINED(c.deleted)", "c.status = 'issued'")
+	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyFullIdentifier.String()})
+	docService := base.GetAzCosmosCRUDService(c)
+	pager := base.NewQueryDocPager[*CertQueryDoc](docService, qb, base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
+
+	allItems, err := utils.PagerAllItems(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
+		return d.ID
+	}), c)
+	if err != nil {
+		return nil, err
+	}
+	if len(allItems) > 0 {
+		return &allItems[0], nil
+	}
+	return nil, nil
 }

@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/AdminApi.ts
 apis/DiagnosticsApi.ts
 apis/index.ts

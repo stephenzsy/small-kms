@@ -30,7 +30,7 @@ export interface CertificateRuleIssuer {
      * @type {string}
      * @memberof CertificateRuleIssuer
      */
-    certificateId: string;
+    certificateId?: string;
 }
 
 /**
@@ -39,7 +39,6 @@ export interface CertificateRuleIssuer {
 export function instanceOfCertificateRuleIssuer(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "policyId" in value;
-    isInstance = isInstance && "certificateId" in value;
 
     return isInstance;
 }
@@ -55,7 +54,7 @@ export function CertificateRuleIssuerFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'policyId': json['policyId'],
-        'certificateId': json['certificateId'],
+        'certificateId': !exists(json, 'certificateId') ? undefined : json['certificateId'],
     };
 }
 

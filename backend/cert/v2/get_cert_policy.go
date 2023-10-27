@@ -2,13 +2,16 @@ package cert
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
+func getCertPolicyDoc(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -21,4 +24,22 @@ func getCertPolicy(c context.Context, rID base.Identifier) (*CertPolicyDoc, erro
 
 	err := base.GetAzCosmosCRUDService(c).Read(c, slocator, doc, nil)
 	return doc, err
+}
+
+func apiGetCertPolicy(c ctx.RequestContext, rID base.Identifier) error {
+
+	if ns.VerifyKeyVaultIdentifier(rID) != nil {
+		return fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
+	}
+	doc, err := getCertPolicyDoc(c, rID)
+	if err != nil {
+		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
+			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, rID.String())
+		} else {
+			return err
+		}
+	}
+	m := new(CertPolicy)
+	doc.PopulateModel(m)
+	return c.JSON(http.StatusOK, m)
 }

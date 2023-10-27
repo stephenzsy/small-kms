@@ -1,31 +1,24 @@
 import { Form } from "antd";
 import Select, { DefaultOptionType } from "antd/es/select";
-import { useMemo, useState, useEffect } from "react";
-import { v5 } from "uuid";
-import {
-  AdminApi,
-  CertPolicyRef,
-  NamespaceKind,
-  ProfileRef,
-  ResourceLocator1,
-} from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { useMemoizedFn, useRequest } from "ahooks";
+import { useMemo, useState } from "react";
+import { ProfileRef, ResourceKind } from "../generated";
 
 export type CertificatePolicySelectorProps = {
-  value?: ResourceLocator1;
+  value?: string;
   availableNamespaceProfiles: ProfileRef[] | undefined | null;
-  onChange?: (value: ResourceLocator1 | undefined) => void;
+  onChange?: (value: string | undefined) => void;
+  profileKind: ResourceKind;
 };
 
 type NamespaceProfileOptionType = DefaultOptionType & {
   profile: ProfileRef;
 };
 
-export function CertificatePolicySelect({
+export function CertificateIssuerNamespaceSelect({
   value,
   availableNamespaceProfiles,
   onChange,
+  profileKind,
 }: CertificatePolicySelectorProps) {
   const namespaceOptions = useMemo(() => {
     if (!availableNamespaceProfiles) {
@@ -35,11 +28,10 @@ export function CertificatePolicySelect({
       (profile): NamespaceProfileOptionType => ({
         label: (
           <span>
-            {profile.displayName} ({profile.resourceKind}:{" "}
-            {profile.resourceIdentifier})
+            {profile.displayName} ({profileKind}:{profile.id})
           </span>
         ),
-        value: `${profile.resourceKind}/${profile.resourceIdentifier}`,
+        value: profile.id,
         profile,
       })
     );
@@ -47,62 +39,10 @@ export function CertificatePolicySelect({
   const [_selectedProfileStorageNID, setSelectedProfileStorageNID] =
     useState<string>();
 
-  const selectedProfileValue =
-    _selectedProfileStorageNID ??
-    (value ? `${value.namespaceKind}/${value.namespaceIdentifier}` : undefined);
-
-  const adminApi = useAuthedClient(AdminApi);
-  const { data: certPolicies } = useRequest(
-    async () => {
-      const selectedProfile = namespaceOptions.find(
-        (option) => option.value === selectedProfileValue
-      )?.profile;
-      if (!selectedProfile) {
-        return;
-      }
-      return await adminApi.listCertPolicies({
-        namespaceKind: selectedProfile.resourceKind as unknown as NamespaceKind,
-        namespaceIdentifier: selectedProfile.resourceIdentifier,
-      });
-    },
-    {
-      refreshDeps: [selectedProfileValue],
-    }
-  );
-
-  const certPolicyOptions = useMemo(() => {
-    return certPolicies?.map((policy) => ({
-      label: (
-        <span>
-          {policy.displayName} ({policy.resourceIdentifier})
-        </span>
-      ),
-      value: policy.resourceIdentifier,
-    }));
-  }, [certPolicies]);
-
-  const onChangeDerived = useMemoizedFn((v: string) => {
-    const selected = certPolicies?.find(
-      (policy) => policy.resourceIdentifier === v
-    );
-    onChange?.(selected);
-  });
-
   return (
     <>
-      <Form.Item label="Select certificate policy namespace">
-        <Select
-          options={namespaceOptions}
-          value={selectedProfileValue}
-          onChange={setSelectedProfileStorageNID}
-        />
-      </Form.Item>
-      <Form.Item label="Select certificate policy">
-        <Select
-          options={certPolicyOptions}
-          value={value?.resourceIdentifier}
-          onChange={onChangeDerived}
-        />
+      <Form.Item label="Select issuer namespace">
+        <Select options={namespaceOptions} value={value} onChange={onChange} />
       </Form.Item>
     </>
   );

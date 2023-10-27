@@ -27,12 +27,6 @@ export interface CertPolicyRef {
     id: string;
     /**
      * 
-     * @type {string}
-     * @memberof CertPolicyRef
-     */
-    uid: string;
-    /**
-     * 
      * @type {Date}
      * @memberof CertPolicyRef
      */
@@ -48,7 +42,7 @@ export interface CertPolicyRef {
      * @type {string}
      * @memberof CertPolicyRef
      */
-    updatedBy: string;
+    updatedBy?: string;
     /**
      * 
      * @type {string}
@@ -63,9 +57,7 @@ export interface CertPolicyRef {
 export function instanceOfCertPolicyRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
 
     return isInstance;
@@ -82,10 +74,9 @@ export function CertPolicyRefFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'id': json['id'],
-        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'displayName': json['displayName'],
     };
 }
@@ -100,7 +91,6 @@ export function CertPolicyRefToJSON(value?: CertPolicyRef | null): any {
     return {
         
         'id': value.id,
-        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,

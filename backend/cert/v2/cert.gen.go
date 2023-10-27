@@ -104,8 +104,8 @@ type CertificateRefFields struct {
 
 // CertificateRuleIssuer defines model for CertificateRuleIssuer.
 type CertificateRuleIssuer struct {
-	CertificateId externalRef0.Identifier `json:"certificateId"`
-	PolicyId      externalRef0.Identifier `json:"policyId"`
+	CertificateId *externalRef0.Identifier `json:"certificateId,omitempty"`
+	PolicyId      externalRef0.Identifier  `json:"policyId"`
 }
 
 // CertificateSubject defines model for CertificateSubject.

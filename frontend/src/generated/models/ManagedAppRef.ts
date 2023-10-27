@@ -27,12 +27,6 @@ export interface ManagedAppRef {
     id: string;
     /**
      * 
-     * @type {string}
-     * @memberof ManagedAppRef
-     */
-    uid: string;
-    /**
-     * 
      * @type {Date}
      * @memberof ManagedAppRef
      */
@@ -48,7 +42,7 @@ export interface ManagedAppRef {
      * @type {string}
      * @memberof ManagedAppRef
      */
-    updatedBy: string;
+    updatedBy?: string;
     /**
      * 
      * @type {string}
@@ -81,9 +75,7 @@ export interface ManagedAppRef {
 export function instanceOfManagedAppRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "uid" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "appId" in value;
     isInstance = isInstance && "applicationId" in value;
@@ -103,10 +95,9 @@ export function ManagedAppRefFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'id': json['id'],
-        'uid': json['uid'],
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'updatedBy': json['updatedBy'],
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'displayName': json['displayName'],
         'appId': json['appId'],
         'applicationId': json['applicationId'],
@@ -124,7 +115,6 @@ export function ManagedAppRefToJSON(value?: ManagedAppRef | null): any {
     return {
         
         'id': value.id,
-        'uid': value.uid,
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
