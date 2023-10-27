@@ -12,6 +12,16 @@ type server struct {
 	api.APIServer
 }
 
+// SyncManagedApp implements ServerInterface.
+func (s *server) SyncManagedApp(ec echo.Context, managedAppId uuid.UUID) error {
+	c := ec.(ctx.RequestContext)
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	return apiSyncManagedApp(c, managedAppId)
+}
+
 // GetManagedApp implements ServerInterface.
 func (s *server) GetManagedApp(ec echo.Context, managedAppId uuid.UUID) error {
 	c := ec.(ctx.RequestContext)

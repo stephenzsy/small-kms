@@ -25,6 +25,7 @@ const (
 type AzureCredentialServiceIdentity struct {
 	creds    azcore.TokenCredential
 	tenantID string
+	clientID string
 }
 
 // TokenCredential implements AzureIdentity.
@@ -34,6 +35,10 @@ func (identity AzureCredentialServiceIdentity) TokenCredential() azcore.TokenCre
 
 func (identity AzureCredentialServiceIdentity) TenantID() string {
 	return identity.tenantID
+}
+
+func (identity AzureCredentialServiceIdentity) ClientID() string {
+	return identity.clientID
 }
 
 var _ AzureIdentity = (*AzureCredentialServiceIdentity)(nil)
@@ -69,6 +74,7 @@ func NewAzureIdentityFromEnv(envVarPrefix string) (AzureIdentity, error) {
 		return AzureCredentialServiceIdentity{
 			creds:    creds,
 			tenantID: LookupPrefixedEnvWithDefault(envVarPrefix, IdentityEnvVarNameAzTenantID, ""),
+			clientID: LookupPrefixedEnvWithDefault(envVarPrefix, IdentityEnvVarNameAzClientID, ""),
 		}, err
 	}
 	creds, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{
@@ -77,5 +83,6 @@ func NewAzureIdentityFromEnv(envVarPrefix string) (AzureIdentity, error) {
 	return AzureCredentialServiceIdentity{
 		creds:    creds,
 		tenantID: LookupPrefixedEnvWithDefault(envVarPrefix, IdentityEnvVarNameAzTenantID, ""),
+		clientID: LookupPrefixedEnvWithDefault(envVarPrefix, IdentityEnvVarNameAzClientID, ""),
 	}, err
 }

@@ -12,6 +12,7 @@ type ContextKey int
 
 const (
 	ServiceMsGraphClientContextKey ContextKey = iota
+	ServiceMsGraphClientClientID
 	delegatedMsGraphClientContextKey
 )
 
@@ -34,7 +35,7 @@ func WithDelegatedMsGraphClient(c ctx.RequestContext) (ctx.RequestContext, *msgr
 	return c.WithValue(delegatedMsGraphClientContextKey, client), client, nil
 }
 
-func GetDelegatedMsGraphCLient(c context.Context) *msgraph.GraphServiceClient {
+func GetDelegatedMsGraphClient(c context.Context) *msgraph.GraphServiceClient {
 	if p, ok := c.Value(delegatedMsGraphClientContextKey).(*msgraph.GraphServiceClient); ok {
 		return p
 	}

@@ -1,4 +1,4 @@
-import { Card, Typography } from "antd";
+import { Button, Card, Typography } from "antd";
 import { NamespaceContext, NamespaceContextProvider } from "./NamespaceContext";
 import { AdminApi, NamespaceKind } from "../generated";
 import { useRequest } from "ahooks";
@@ -10,9 +10,17 @@ import { CertPolicyRefTable } from "./CertPolicyRefTable";
 export default function ManagedAppPage() {
   const { appId } = useParams() as { appId: string };
   const adminApi = useAuthedClient(AdminApi);
-  const { data: managedApp } = useRequest(() => {
-    return adminApi.getManagedApp({ managedAppId: appId });
-  }, {});
+  const { data: managedApp, run } = useRequest(
+    (sync?: boolean) => {
+      if (sync) {
+        return adminApi.syncManagedApp({ managedAppId: appId });
+      }
+      return adminApi.getManagedApp({ managedAppId: appId });
+    },
+    {
+      refreshDeps: [appId],
+    }
+  );
 
   const routePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/cert-policy/`;
   return (
@@ -26,6 +34,16 @@ export default function ManagedAppPage() {
           namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
         }}
       >
+        <Card title="Sync">
+          <Button
+            type="primary"
+            onClick={() => {
+              run(true);
+            }}
+          >
+            Sync
+          </Button>
+        </Card>
         <section>
           <Typography.Title level={2}>Service Principal</Typography.Title>
           <div>

@@ -105,14 +105,19 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		return err
 	}
 
-	pem.Encode(os.Stdout, &pem.Block{
+	certFile, err := os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0400)
+	if err != nil {
+		return err
+	}
+	defer certFile.Close()
+
+	pem.Encode(certFile, &pem.Block{
 		Type:  "PRIVATE KEY",
 		Bytes: pkBytes,
 	})
 
 	for _, cert := range resp.JSON200.CertificateChain {
-
-		pem.Encode(os.Stdout, &pem.Block{
+		pem.Encode(certFile, &pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: cert,
 		})

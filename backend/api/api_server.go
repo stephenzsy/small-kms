@@ -72,6 +72,8 @@ func (s *apiServer) Value(key any) any {
 		return s
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
+	case graph.ServiceMsGraphClientClientID:
+		return s.appConfidentialIdentity.ClientID()
 	case auth.AppConfidentialIdentityContextKey:
 		return s.appConfidentialIdentity
 	case common.AdminServerClientProviderContextKey:

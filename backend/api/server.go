@@ -85,6 +85,11 @@ type appConfidentialIdentity struct {
 	clientSecretCredential *azidentity.ClientSecretCredential
 }
 
+// ClientID implements auth.AzureAppConfidentialIdentity.
+func (i *appConfidentialIdentity) ClientID() string {
+	return i.clientID
+}
+
 // TenantID implements common.AzureAppConfidentialIdentity.
 func (i *appConfidentialIdentity) TenantID() string {
 	return i.tenantID

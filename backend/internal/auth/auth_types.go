@@ -44,6 +44,7 @@ func (a *authIdentity) AppID() string {
 type AzureIdentity interface {
 	TokenCredential() azcore.TokenCredential
 	TenantID() string
+	ClientID() string
 }
 
 type AzureAppConfidentialIdentity interface {

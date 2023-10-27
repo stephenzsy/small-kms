@@ -51,6 +51,9 @@ type ServerInterface interface {
 	// Get managed app
 	// (GET /v1/managed-app/{managedAppId})
 	GetManagedApp(ctx echo.Context, managedAppId openapi_types.UUID) error
+	// Sync managed app
+	// (POST /v1/managed-app/{managedAppId})
+	SyncManagedApp(ctx echo.Context, managedAppId openapi_types.UUID) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -98,6 +101,24 @@ func (w *ServerInterfaceWrapper) GetManagedApp(ctx echo.Context) error {
 	return err
 }
 
+// SyncManagedApp converts echo context to params.
+func (w *ServerInterfaceWrapper) SyncManagedApp(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "managedAppId" -------------
+	var managedAppId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "managedAppId", runtime.ParamLocationPath, ctx.Param("managedAppId"), &managedAppId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter managedAppId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.SyncManagedApp(ctx, managedAppId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -129,5 +150,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/managed-app", wrapper.ListManagedApps)
 	router.POST(baseURL+"/v1/managed-app", wrapper.CreateManagedApp)
 	router.GET(baseURL+"/v1/managed-app/:managedAppId", wrapper.GetManagedApp)
+	router.POST(baseURL+"/v1/managed-app/:managedAppId", wrapper.SyncManagedApp)
 
 }

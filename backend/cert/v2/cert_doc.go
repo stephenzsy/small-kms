@@ -263,3 +263,12 @@ func (d *CertDoc) getX509SignatureAlgorithm() (sa x509.SignatureAlgorithm) {
 	}
 	return sa
 }
+
+// func (d *CertDoc) x5cPEMBlocks() []pem.Block {
+// 	return utils.MapSlice(d.KeySpec.CertificateChain, func(certBytes base.Base64RawURLEncodedBytes) pem.Block {
+// 		return pem.Block{
+// 			Type:  "CERTIFICATE",
+// 			Bytes: certBytes,
+// 		}
+// 	})
+// }

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -47,6 +48,9 @@ func createManagedApp(c context.Context, params *ManagedAppParameters) (*Managed
 	displayName := params.DisplayName
 	application.SetDisplayName(&displayName)
 	application.SetSignInAudience(to.Ptr("AzureADMyOrg"))
+	apiApplication := gmodels.NewApiApplication()
+	apiApplication.SetRequestedAccessTokenVersion(to.Ptr(int32(2)))
+	application.SetApi(apiApplication)
 	if application, err := gclient.Applications().Post(c, application, nil); err != nil {
 		return bad(err)
 	} else {
@@ -74,6 +78,54 @@ func createManagedApp(c context.Context, params *ManagedAppParameters) (*Managed
 				return bad(err)
 			}
 		}
+
 		return doc, nil
 	}
+}
+
+func apiSyncManagedApp(c ctx.RequestContext, appID uuid.UUID) error {
+	gclient := graph.GetServiceMsGraphClient(c)
+	application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
+			Select: []string{"id", "api", "displayName", "appId"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	var patchApplication *gmodels.Application
+
+	if application.GetApi().GetRequestedAccessTokenVersion() == nil || *application.GetApi().GetRequestedAccessTokenVersion() != 2 {
+		if patchApplication == nil {
+			patchApplication = gmodels.NewApplication()
+		}
+		if patchApplication.GetApi() == nil {
+			patchApplication.SetApi(gmodels.NewApiApplication())
+		}
+		patchApplication.GetApi().SetRequestedAccessTokenVersion(to.Ptr(int32(2)))
+	}
+
+	if patchApplication != nil {
+		_, err = gclient.Applications().ByApplicationId(*application.GetId()).Patch(c, patchApplication, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	// serviceAppA, serviceAppSP, err := graph.GetServiceAppAndSP(c, gclient)
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, ar := range serviceAppSP.GetAppRoles() {
+	// 	log.Debug().Any("id", ar.GetId()).Any("value", ar.GetValue()).Msg("serviceApplication")
+	// }
+
+	doc, err := getManagedApp(c, appID)
+	if err != nil {
+		return err
+	}
+	m := new(ManagedApp)
+	doc.PopulateModel(m)
+	return c.JSON(200, m)
 }

@@ -59,6 +59,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ManagedApp"
+    post:
+      tags:
+        - admin
+      operationId: SyncManagedApp
+      summary: Sync managed app
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagedApp"
 security:
   - BearerAuth: []
 components:

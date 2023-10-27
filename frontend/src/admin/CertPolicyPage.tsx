@@ -415,9 +415,12 @@ export default function CertPolicyPage() {
     }
   });
 
-  const { issuer: issuerRule, setIssuer: setIssuerRule, entraClientCred, setEntraClientCred } = useContext(
-    CertificateIssuerContext
-  );
+  const {
+    issuer: issuerRule,
+    setIssuer: setIssuerRule,
+    entraClientCred,
+    setEntraClientCred,
+  } = useContext(CertificateIssuerContext);
 
   const certListColumns = useCertTableColumns(issuerRule?.certificateId);
   return (
@@ -451,8 +454,8 @@ export default function CertPolicyPage() {
             ) : (
               <Tag color="blue">Current issuer policy</Tag>
             ))}
-          {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal &&
-            (certPolicyId !== entraClientCred?.policyId ? (
+          {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
+            <div className="flex gap-4 items-center">
               <Button
                 onClick={() => {
                   setEntraClientCred({ policyId: certPolicyId });
@@ -460,9 +463,13 @@ export default function CertPolicyPage() {
               >
                 Set as Microsoft Entra ID client credential policy
               </Button>
-            ) : (
-              <Tag color="blue">Current Microsoft Entra ID client credential policy</Tag>
-            ))}
+              {certPolicyId === entraClientCred?.policyId && (
+                <Tag color="blue">
+                  Current Microsoft Entra ID client credential policy
+                </Tag>
+              )}
+            </div>
+          )}
         </div>
       </Card>
       <Card title="Current certificate policy">

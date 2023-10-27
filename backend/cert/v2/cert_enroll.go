@@ -73,7 +73,6 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier
 
 	m := new(Certificate)
 	certDoc.PopulateModel(m)
-	// materialize certificate
 	return c.JSON(http.StatusOK, m)
 
 }

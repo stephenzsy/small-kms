@@ -2,11 +2,19 @@ package cert
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/google/uuid"
+	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
+	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
@@ -72,8 +80,79 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 		}
 		ruleDoc.CertificateIDs = certIds
 	}
-	docSvc.Upsert(c, ruleDoc, nil)
+	{
+		c := ctx.Elevate(c)
+		err := docSvc.Upsert(c, ruleDoc, nil)
+		if err != nil {
+			return err
+		}
+		if err := applyMsEntraClientCredential(c, nsCtx.Identifier().UUID(), ruleDoc.CertificateIDs); err != nil {
+			return err
+		}
+	}
 	m := new(CertificateRuleMsEntraClientCredential)
 	ruleDoc.PopulateModel(m)
 	return c.JSON(200, m)
+}
+
+func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUID, certIDs []base.Identifier) error {
+	provisioningCerts := make(map[string]*CertDoc, len(certIDs))
+	for _, certID := range certIDs {
+		certDoc, err := getCertDocByID(c, certID)
+		if err != nil {
+			continue
+		}
+		provisioningCerts[certDoc.KeySpec.X5t.HexString()] = certDoc
+	}
+
+	gclient := graph.GetServiceMsGraphClient(c)
+	sp, err := gclient.ServicePrincipals().ByServicePrincipalId(servicePrincipalID.String()).Get(c,
+		&serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{
+				Select: []string{"id", "appId"},
+			},
+		})
+	if err != nil {
+		return err
+	}
+	application, err := gclient.ApplicationsWithAppId(sp.GetAppId()).Get(c,
+		&applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+			QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
+				Select: []string{"id", "keyCredentials"},
+			},
+		})
+	if err != nil {
+		return err
+	}
+	nextKeyCredentials := make([]gmodels.KeyCredentialable, 0, len(certIDs))
+	hasPatch := false
+	for _, installedKey := range application.GetKeyCredentials() {
+		tp := strings.ToLower(base64.StdEncoding.EncodeToString(installedKey.GetCustomKeyIdentifier()))
+		if _, hasValue := provisioningCerts[tp]; hasValue {
+			nextKeyCredentials = append(nextKeyCredentials, installedKey)
+			delete(provisioningCerts, tp)
+		} else {
+			hasPatch = true
+		}
+	}
+	for _, certDoc := range provisioningCerts {
+		kc := gmodels.NewKeyCredential()
+		kc.SetKey(certDoc.KeySpec.CertificateChain[0])
+		kc.SetUsage(to.Ptr("Verify"))
+		kc.SetTypeEscaped(to.Ptr("AsymmetricX509Cert"))
+		kc.SetStartDateTime(&certDoc.NotBefore.Time)
+		kc.SetEndDateTime(&certDoc.NotAfter.Time)
+		nextKeyCredentials = append(nextKeyCredentials, kc)
+		hasPatch = true
+	}
+
+	if hasPatch {
+		patchApplication := gmodels.NewApplication()
+		patchApplication.SetKeyCredentials(nextKeyCredentials)
+		_, err = gclient.Applications().ByApplicationId(*application.GetId()).Patch(c, patchApplication, nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
