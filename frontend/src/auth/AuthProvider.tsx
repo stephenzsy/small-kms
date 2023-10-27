@@ -19,6 +19,7 @@ const pca = new PublicClientApplication({
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`,
+    redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -57,6 +58,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       } catch {}
       return instance.loginRedirect({
         scopes: [import.meta.env.VITE_API_SCOPE],
+        redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
       });
     }
   );
