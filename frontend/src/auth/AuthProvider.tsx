@@ -19,7 +19,6 @@ const pca = new PublicClientApplication({
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`,
-    redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -58,35 +57,24 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       } catch {}
       return instance.loginRedirect({
         scopes: [import.meta.env.VITE_API_SCOPE],
-        redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
       });
     }
   );
   useEffect(() => {
-    if (inProgress !== InteractionStatus.None) {
-      return;
+    if (inProgress === InteractionStatus.None && accounts.length === 0) {
+      acquireToken();
     }
-    if (!accountRef.current) {
-      const t = setTimeout(() => {
-        if (!accountRef.current) {
-          acquireToken();
-        }
-      }, 1000);
-      return () => clearTimeout(t);
-    }
-  }, [account, inProgress]);
+  }, [inProgress, account]);
   return (
-    inProgress !== InteractionStatus.Startup && (
-      <AppAuthContext.Provider
-        value={{
-          account: account ?? undefined,
-          logout,
-          acquireToken,
-        }}
-      >
-        {children}
-      </AppAuthContext.Provider>
-    )
+    <AppAuthContext.Provider
+      value={{
+        account: account ?? undefined,
+        logout,
+        acquireToken,
+      }}
+    >
+      {children}
+    </AppAuthContext.Provider>
   );
 }
 
