@@ -55,11 +55,11 @@ const (
 
 // JsonWebKey defines model for JsonWebKey.
 type JsonWebKey struct {
-	E             *externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
-	KeyOperations *[]JsonWebKeyOperation                 `json:"key_ops,omitempty"`
-	KeyID         *string                                `json:"kid,omitempty"`
-	Kty           JsonWebKeyType                         `json:"kty"`
-	N             *externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
+	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
+	KeyOperations *[]JsonWebKeyOperation                `json:"key_ops,omitempty"`
+	KeyID         *string                               `json:"kid,omitempty"`
+	Kty           JsonWebKeyType                        `json:"kty"`
+	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
 }
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
@@ -124,15 +124,15 @@ type KeyPolicyRefFields struct {
 
 // KeySpec these attributes should mostly confirm to JWK (RFC7517)
 type KeySpec struct {
-	Crv           *JsonWebKeyCurveName                   `json:"crv,omitempty"`
-	E             *externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
-	KeyOperations []JsonWebKeyOperation                  `json:"key_ops"`
-	KeySize       *JsonWeyKeySize                        `json:"key_size,omitempty"`
-	KeyID         *string                                `json:"kid,omitempty"`
-	Kty           JsonWebKeyType                         `json:"kty"`
-	N             *externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
-	X             *externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
-	Y             *externalRef0.Base64RawURLEncodedBytes `json:"y,omitempty"`
+	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
+	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
+	KeyOperations []JsonWebKeyOperation                 `json:"key_ops"`
+	KeySize       *JsonWeyKeySize                       `json:"key_size,omitempty"`
+	KeyID         *string                               `json:"kid,omitempty"`
+	Kty           JsonWebKeyType                        `json:"kty"`
+	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
+	X             externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
+	Y             externalRef0.Base64RawURLEncodedBytes `json:"y,omitempty"`
 }
 
 // LifetimeAction defines model for LifetimeAction.
@@ -149,21 +149,21 @@ type LifetimeTrigger struct {
 
 // SigningKeySpec defines model for SigningKeySpec.
 type SigningKeySpec struct {
-	Alg           *JsonWebKeySignatureAlgorithm          `json:"alg,omitempty"`
-	Crv           *JsonWebKeyCurveName                   `json:"crv,omitempty"`
-	E             *externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
-	KeyOperations []JsonWebKeyOperation                  `json:"key_ops"`
-	KeySize       *JsonWeyKeySize                        `json:"key_size,omitempty"`
-	KeyID         *string                                `json:"kid,omitempty"`
-	Kty           JsonWebKeyType                         `json:"kty"`
-	N             *externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
-	X             *externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
+	Alg           *JsonWebKeySignatureAlgorithm         `json:"alg,omitempty"`
+	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
+	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
+	KeyOperations []JsonWebKeyOperation                 `json:"key_ops"`
+	KeySize       *JsonWeyKeySize                       `json:"key_size,omitempty"`
+	KeyID         *string                               `json:"kid,omitempty"`
+	Kty           JsonWebKeyType                        `json:"kty"`
+	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
+	X             externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
 
 	// X5c Base64 encoded certificate chain
 	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
-	X5t              *externalRef0.Base64RawURLEncodedBytes  `json:"x5t,omitempty"`
-	X5tS256          *externalRef0.Base64RawURLEncodedBytes  `json:"x5t#S256,omitempty"`
-	Y                *externalRef0.Base64RawURLEncodedBytes  `json:"y,omitempty"`
+	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t,omitempty"`
+	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256,omitempty"`
+	Y                externalRef0.Base64RawURLEncodedBytes   `json:"y,omitempty"`
 }
 
 // KeyPolicyResponse defines model for KeyPolicyResponse.

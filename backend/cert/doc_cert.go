@@ -3,15 +3,12 @@ package cert
 import (
 	"bytes"
 	"context"
-	"crypto/x509"
-	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	ct "github.com/stephenzsy/small-kms/backend/cert-template"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/shared"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type CertificateStatus string
@@ -28,8 +25,6 @@ type CertJwkSpec struct {
 	X5u     *string                           `json:"x5u,omitempty"`
 	X5t     shared.Base64RawURLEncodableBytes `json:"x5t,omitempty"`
 	X5tS256 shared.Base64RawURLEncodableBytes `json:"x5t#S256,omitempty"`
-
-	keyExportable bool
 }
 
 const queryColumnTemplate = "c.template"
@@ -105,42 +100,6 @@ func (doc *CertDoc) FetchCertificatePEMBlob(c context.Context) ([]byte, error) {
 	return downloadedData.Bytes(), nil
 }
 
-func (doc *CertDoc) createX509Certificate() (*x509.Certificate, error) {
-	if doc.Status != CertStatusInitialized && doc.Status != CertStatusPending {
-		return nil, fmt.Errorf("certficiate doc status error: %s", doc.Status)
-	}
-	cert := x509.Certificate{}
-	cert.SerialNumber = doc.SerialNumber.BigInt()
-	cert.Subject.CommonName = doc.SubjectCommonName
-	cert.NotBefore = doc.NotBefore.Time()
-	cert.NotAfter = doc.NotAfter.Time()
-	usageSet := utils.NewSet(doc.Usages...)
-	if usageSet.Contains(shared.CertUsageCA) {
-		cert.BasicConstraintsValid = true
-		cert.IsCA = true
-		if usageSet.Contains(shared.CertUsageCARoot) {
-			cert.MaxPathLen = 1
-		} else {
-			cert.MaxPathLenZero = true
-		}
-		cert.KeyUsage |= x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature
-	} else {
-		cert.KeyUsage |= x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment
-		if usageSet.Contains(shared.CertUsageClientAuth) {
-			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
-		}
-		if usageSet.Contains(shared.CertUsageServerAuth) {
-			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageServerAuth)
-		}
-	}
-	if doc.SANs != nil {
-		cert.DNSNames = doc.SANs.DNSNames
-		cert.IPAddresses = doc.SANs.IPAddresses
-		cert.EmailAddresses = doc.SANs.Emails
-	}
-	return &cert, nil
-}
-
 func (d *CertDoc) populateRef(r *shared.CertificateRef) {
 	if d == nil || r == nil {
 		return
@@ -160,20 +119,6 @@ func (d *CertDoc) toModelRef() (r *shared.CertificateRef) {
 	r = new(shared.CertificateRef)
 	d.populateRef(r)
 	return
-}
-
-func (d *CertDoc) toModel() *shared.CertificateInfo {
-	if d == nil {
-		return nil
-	}
-	r := new(shared.CertificateInfo)
-	d.populateRef(&r.CertificateRef)
-	r.Issuer = d.Issuer
-	d.CertSpec.PopulateKeyProperties(&r.Jwk)
-	r.NotBefore = d.NotBefore.Time()
-	r.Usages = d.Usages
-	r.SubjectAlternativeNames = d.SANs
-	return r
 }
 
 func (k *CertJwkSpec) PopulateKeyProperties(r *shared.JwkProperties) {

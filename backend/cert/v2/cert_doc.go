@@ -116,10 +116,10 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 		m.Alg = *d.KeySpec.Alg
 	}
 	if d.KeySpec.X5t != nil {
-		m.X5t = *d.KeySpec.X5t
+		m.X5t = d.KeySpec.X5t
 	}
 	if d.KeySpec.X5tS256 != nil {
-		m.X5tS256 = *d.KeySpec.X5tS256
+		m.X5tS256 = d.KeySpec.X5tS256
 	}
 	m.CertificateChain = d.KeySpec.CertificateChain
 	m.Subject = d.Subject

@@ -144,17 +144,8 @@ func apiSyncSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 		return err
 	}
 
-	gclient := graph.GetServiceMsGraphClient(c)
-	application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
-		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
-			Select: []string{"id", "displayName", "appId"},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	sp, err := gclient.ServicePrincipalsWithAppId(application.GetAppId()).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+	gclient := graph.GetDelegatedMsGraphClient(c)
+	sp, err := gclient.ServicePrincipalsWithAppId(to.Ptr(appID.String())).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
 		QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
 			Select: []string{"id", "displayName", "appId", "servicePrincipalType"},
 		},
@@ -162,17 +153,27 @@ func apiSyncSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 	if err != nil {
 		return err
 	}
-
 	doc := &ManagedAppDoc{}
-	doc.Init(appID, *application.GetDisplayName(), namespaceIDNameSystemApp)
-	if doc.ApplicationID, err = uuid.Parse(*application.GetId()); err != nil {
-		return err
-	}
+	doc.Init(appID, *sp.GetDisplayName(), namespaceIDNameSystemApp)
+
 	if doc.ServicePrincipalID, err = uuid.Parse(*sp.GetId()); err != nil {
 		return err
 	}
-
 	doc.ServicePrincipalType = sp.GetServicePrincipalType()
+
+	if *sp.GetServicePrincipalType() == "Application" {
+		application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+			QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
+				Select: []string{"id", "displayName", "appId"},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if doc.ApplicationID, err = uuid.Parse(*application.GetId()); err != nil {
+			return err
+		}
+	}
 
 	docSvc := base.GetAzCosmosCRUDService(c)
 	err = docSvc.Upsert(c, doc, nil)

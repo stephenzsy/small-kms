@@ -1,10 +1,17 @@
 package key
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"fmt"
 	"io"
+	"math/big"
 	"strconv"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type (
@@ -115,4 +122,30 @@ func (lt *LifetimeTrigger) WriteToDigest(w io.Writer) (s int, err error) {
 		}
 	}
 	return s, nil
+}
+
+func (ks *SigningKeySpec) PopulatePublicKey(pubKey crypto.PublicKey) error {
+	switch pubKey := pubKey.(type) {
+	case *rsa.PublicKey:
+		ks.Kty = JsonWebKeyTypeRSA
+		ks.N = base.Base64RawURLEncodedBytes(pubKey.N.Bytes())
+		ks.E = base.Base64RawURLEncodedBytes(big.NewInt(int64(pubKey.E)).Bytes())
+	case *ecdsa.PublicKey:
+		ks.Kty = JsonWebKeyTypeEC
+		ks.X = base.Base64RawURLEncodedBytes(pubKey.X.Bytes())
+		ks.Y = base.Base64RawURLEncodedBytes(pubKey.Y.Bytes())
+		switch pubKey.Curve.Params().Name {
+		case elliptic.P256().Params().Name:
+			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP256)
+		case elliptic.P384().Params().Name:
+			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP384)
+		case elliptic.P521().Params().Name:
+			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP521)
+		default:
+			return fmt.Errorf("unsupported EC curve: %s", pubKey.Curve.Params().Name)
+		}
+	default:
+		return fmt.Errorf("unsupported public key type: %T", pubKey)
+	}
+	return nil
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 	"github.com/stephenzsy/small-kms/backend/key"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ServicePrincipalBootstraper struct {
@@ -127,8 +126,8 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 func toJwk(k crypto.PublicKey) (jwk key.JsonWebKey) {
 	if rsaPubKey, ok := k.(*rsa.PublicKey); ok {
 		jwk.Kty = key.JsonWebKeyTypeRSA
-		jwk.N = utils.ToPtr(base.Base64RawURLEncodedBytes(rsaPubKey.N.Bytes()))
-		jwk.E = utils.ToPtr(base.Base64RawURLEncodedBytes(big.NewInt(int64(rsaPubKey.E)).Bytes()))
+		jwk.N = base.Base64RawURLEncodedBytes(rsaPubKey.N.Bytes())
+		jwk.E = base.Base64RawURLEncodedBytes(big.NewInt(int64(rsaPubKey.E)).Bytes())
 	}
 	return
 }

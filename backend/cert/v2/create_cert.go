@@ -65,6 +65,7 @@ func signCertificate(
 	}
 
 	patch := new(CertDocSigningPatch)
+	patch.KeySpec.PopulatePublicKey(csrPubKey)
 	patch.KeySpec.CertificateChain = utils.MapSlice(collectCert, func(certBytes []byte) base.Base64RawURLEncodedBytes {
 		return base.Base64RawURLEncodedBytes(certBytes)
 	})
@@ -80,9 +81,9 @@ func signCertificate(
 		patch.KeySpec.KeyID = &privateLabel
 	}
 	certSHA1 := sha1.Sum(signedCert)
-	patch.KeySpec.X5t = utils.ToPtr(base.Base64RawURLEncodedBytes(certSHA1[:]))
+	patch.KeySpec.X5t = base.Base64RawURLEncodedBytes(certSHA1[:])
 	certSHA256 := sha256.Sum256(signedCert)
-	patch.KeySpec.X5tS256 = utils.ToPtr(base.Base64RawURLEncodedBytes(certSHA256[:]))
+	patch.KeySpec.X5tS256 = base.Base64RawURLEncodedBytes(certSHA256[:])
 
 	patch.Issuer = signerLocator
 	return patch, nil
