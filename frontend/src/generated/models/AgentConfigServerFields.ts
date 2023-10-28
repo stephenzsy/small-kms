@@ -36,7 +36,7 @@ export interface AgentConfigServerFields {
      * @type {string}
      * @memberof AgentConfigServerFields
      */
-    imageTag: string;
+    imageRefStr: string;
 }
 
 /**
@@ -46,7 +46,7 @@ export function instanceOfAgentConfigServerFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificateId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
-    isInstance = isInstance && "imageTag" in value;
+    isInstance = isInstance && "imageRefStr" in value;
 
     return isInstance;
 }
@@ -63,7 +63,7 @@ export function AgentConfigServerFieldsFromJSONTyped(json: any, ignoreDiscrimina
         
         'tlsCertificateId': json['tlsCertificateId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageTag': json['imageTag'],
+        'imageRefStr': json['imageRefStr'],
     };
 }
 
@@ -78,7 +78,7 @@ export function AgentConfigServerFieldsToJSON(value?: AgentConfigServerFields | 
         
         'tlsCertificateId': value.tlsCertificateId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageTag': value.imageTag,
+        'imageRefStr': value.imageRefStr,
     };
 }
 

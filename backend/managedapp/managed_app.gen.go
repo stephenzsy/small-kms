@@ -38,13 +38,14 @@ type AgentConfigServer = agentConfigServerComposed
 
 // AgentConfigServerFields defines model for AgentConfigServerFields.
 type AgentConfigServerFields struct {
-	ImageTag         string                                  `json:"imageTag"`
+	ImageRefStr      string                                  `json:"imageRefStr"`
 	JWTKeyCertIDs    []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
 	TlsCertificateId externalRef0.Identifier                 `json:"tlsCertificateId"`
 }
 
 // AgentConfigServerParameters defines model for AgentConfigServerParameters.
 type AgentConfigServerParameters struct {
+	ImageRefPrefix         string                                `json:"imageRefPrefix"`
 	JwtKeyCertPolicyId     externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertPolicyId"`
 	TlsCertificatePolicyId externalRef0.Identifier               `json:"tlsCertificatePolicyId"`
 }

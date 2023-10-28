@@ -31,6 +31,12 @@ export interface AgentConfigServerParameters {
      * @memberof AgentConfigServerParameters
      */
     jwtKeyCertPolicyId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServerParameters
+     */
+    imageRefPrefix: string;
 }
 
 /**
@@ -40,6 +46,7 @@ export function instanceOfAgentConfigServerParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "jwtKeyCertPolicyId" in value;
+    isInstance = isInstance && "imageRefPrefix" in value;
 
     return isInstance;
 }
@@ -56,6 +63,7 @@ export function AgentConfigServerParametersFromJSONTyped(json: any, ignoreDiscri
         
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
         'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
+        'imageRefPrefix': json['imageRefPrefix'],
     };
 }
 
@@ -70,6 +78,7 @@ export function AgentConfigServerParametersToJSON(value?: AgentConfigServerParam
         
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
         'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
+        'imageRefPrefix': value.imageRefPrefix,
     };
 }
 

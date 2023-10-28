@@ -201,12 +201,12 @@ components:
           items:
             $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
           x-go-name: JWTKeyCertIDs
-        imageTag:
+        imageRefStr:
           type: string
       required:
         - tlsCertificateId
         - jwtKeyCertIds
-        - imageTag
+        - imageRefStr
     AgentConfigServerParameters:
       type: object
       properties:
@@ -216,9 +216,12 @@ components:
         jwtKeyCertPolicyId:
           $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
           x-go-name: JWKPolicyID
+        imageRefPrefix:
+          type: string
       required:
         - tlsCertificatePolicyId
         - jwtKeyCertPolicyId
+        - imageRefPrefix
   parameters:
     ManagedAppIdParameter:
       in: path

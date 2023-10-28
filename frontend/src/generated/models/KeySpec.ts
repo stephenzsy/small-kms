@@ -68,6 +68,30 @@ export interface KeySpec {
      * @memberof KeySpec
      */
     keyOps: Array<JsonWebKeyOperation>;
+    /**
+     * 
+     * @type {string}
+     * @memberof KeySpec
+     */
+    e?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof KeySpec
+     */
+    n?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof KeySpec
+     */
+    x?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof KeySpec
+     */
+    y?: string;
 }
 
 /**
@@ -96,6 +120,10 @@ export function KeySpecFromJSONTyped(json: any, ignoreDiscriminator: boolean): K
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
+        'e': !exists(json, 'e') ? undefined : json['e'],
+        'n': !exists(json, 'n') ? undefined : json['n'],
+        'x': !exists(json, 'x') ? undefined : json['x'],
+        'y': !exists(json, 'y') ? undefined : json['y'],
     };
 }
 
@@ -113,6 +141,10 @@ export function KeySpecToJSON(value?: KeySpec | null): any {
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
+        'e': value.e,
+        'n': value.n,
+        'x': value.x,
+        'y': value.y,
     };
 }
 

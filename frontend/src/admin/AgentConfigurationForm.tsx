@@ -1,8 +1,6 @@
-import { useRequest } from "ahooks";
 import { useMemo, useState } from "react";
-import { Button } from "../components/Button";
+import { Link } from "react-router-dom";
 import { Card, CardSection, CardTitle } from "../components/Card";
-import Select, { SelectItem } from "../components/Select";
 import {
   AdminApi,
   AgentConfigName,
@@ -10,23 +8,20 @@ import {
   AgentConfigurationAgentActiveServerToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
-  AgentConfigurationParametersToJSON,
-  AgentConfigurationToJSON,
-  NamespaceKind1 as NamespaceKind,
+  NamespaceKind1 as NamespaceKind
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { Link } from "react-router-dom";
 
-const selectOptions: Array<SelectItem<AgentConfigName>> = [
-  {
-    id: AgentConfigName.AgentConfigNameActiveHostBootstrap,
-    name: "Agent Active Host Bootstrap",
-  },
-  {
-    id: AgentConfigName.AgentConfigNameActiveServer,
-    name: "Agent Active Host Server",
-  },
-];
+// const selectOptions: Array<SelectItem<AgentConfigName>> = [
+//   {
+//     id: AgentConfigName.AgentConfigNameActiveHostBootstrap,
+//     name: "Agent Active Host Bootstrap",
+//   },
+//   {
+//     id: AgentConfigName.AgentConfigNameActiveServer,
+//     name: "Agent Active Host Server",
+//   },
+// ];
 
 function useConfigurationSkeleton(
   configName: AgentConfigName,
@@ -70,53 +65,53 @@ export function AgentConfigurationForm({
   namespaceKind: NamespaceKind;
 }) {
   const adminApi = useAuthedClient(AdminApi);
-  const [selectedItem, setSelectedItem] = useState<SelectItem<AgentConfigName>>(
-    selectOptions[0]
-  );
+  // const [selectedItem, setSelectedItem] = useState<SelectItem<AgentConfigName>>(
+  //   selectOptions[0]
+  // );
 
-  const currentConfigName = selectedItem.id;
+  // const currentConfigName = selectedItem.id;
 
-  const { data, loading, run } = useRequest(
-    async (params?: AgentConfigurationParameters) => {
-      if (params) {
-        return await adminApi.putAgentConfiguration({
-          configName: currentConfigName,
-          namespaceKindLegacy: namespaceKind,
-          namespaceId,
-          agentConfigurationParameters: params,
-        });
-      }
-      try {
-        return await adminApi.getAgentConfiguration({
-          namespaceKindLegacy: namespaceKind,
-          namespaceId,
-          configName: currentConfigName,
-        });
-      } catch (e) {
-        return undefined;
-      }
-    },
-    {
-      refreshDeps: [namespaceId, namespaceKind, currentConfigName],
-    }
-  );
+  // const { data, loading, run } = useRequest(
+  //   async (params?: AgentConfigurationParameters) => {
+  //     if (params) {
+  //       return await adminApi.putAgentConfiguration({
+  //         configName: currentConfigName,
+  //         namespaceKindLegacy: namespaceKind,
+  //         namespaceId,
+  //         agentConfigurationParameters: params,
+  //       });
+  //     }
+  //     try {
+  //       return await adminApi.getAgentConfiguration({
+  //         namespaceKindLegacy: namespaceKind,
+  //         namespaceId,
+  //         configName: currentConfigName,
+  //       });
+  //     } catch (e) {
+  //       return undefined;
+  //     }
+  //   },
+  //   {
+  //     refreshDeps: [namespaceId, namespaceKind, currentConfigName],
+  //   }
+  // );
 
-  const skeleton = useConfigurationSkeleton(
-    currentConfigName,
-    namespaceId,
-    namespaceKind
-  );
-  const defaultValue = useMemo(() => {
-    return loading
-      ? ""
-      : (data?.config
-          ? JSON.stringify(
-              AgentConfigurationParametersToJSON(data.config),
-              undefined,
-              2
-            )
-          : undefined) ?? skeleton;
-  }, [loading, data, skeleton]);
+  // const skeleton = useConfigurationSkeleton(
+  //   currentConfigName,
+  //   namespaceId,
+  //   namespaceKind
+  // );
+  // const defaultValue = useMemo(() => {
+  //   return loading
+  //     ? ""
+  //     : (data?.config
+  //         ? JSON.stringify(
+  //             AgentConfigurationParametersToJSON(data.config),
+  //             undefined,
+  //             2
+  //           )
+  //         : undefined) ?? skeleton;
+  // }, [loading, data, skeleton]);
   const [configInput, setConfigInput] = useState<string>("");
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -129,7 +124,7 @@ export function AgentConfigurationForm({
     let typeParsed: AgentConfigurationParameters;
 
     typeParsed = AgentConfigurationParametersFromJSON(parsed);
-    run(typeParsed);
+   // run(typeParsed);
   };
   return (
     <Card>
@@ -142,7 +137,7 @@ export function AgentConfigurationForm({
           Go to agent dashboard
         </Link>
       </CardSection>
-      <CardSection>
+      {/*<CardSection>
         Current configuration:
         {loading ? (
           <div>loading</div>
@@ -155,7 +150,7 @@ export function AgentConfigurationForm({
         ) : (
           <div>No configuration</div>
         )}
-      </CardSection>
+        </CardSection>
       <CardSection>
         <form className="space-y-4" onSubmit={onSubmit}>
           <Select
@@ -175,7 +170,7 @@ export function AgentConfigurationForm({
             Update
           </Button>
         </form>
-      </CardSection>
+      </CardSection>*/}
     </Card>
   );
 }

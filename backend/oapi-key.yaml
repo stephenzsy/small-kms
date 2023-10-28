@@ -137,6 +137,26 @@ components:
           items:
             $ref: "#/components/schemas/JsonWebKeyOperation"
           x-go-name: KeyOperations
+        e:
+          description: RSA public exponent
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Exponent
+          x-go-type-skip-optional-pointer: true
+        n:
+          description: RSA modulus
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Modulus
+          x-go-type-skip-optional-pointer: true
+        x:
+          description: X component of an EC public key.
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: X
+          x-go-type-skip-optional-pointer: true
+        y:
+          description: Y component of an EC public key.
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Y
+          x-go-type-skip-optional-pointer: true
       required:
         - kty
         - key_ops

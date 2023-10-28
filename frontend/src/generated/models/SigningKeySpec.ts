@@ -76,6 +76,30 @@ export interface SigningKeySpec {
     keyOps: Array<JsonWebKeyOperation>;
     /**
      * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    e?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    n?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    x?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SigningKeySpec
+     */
+    y?: string;
+    /**
+     * 
      * @type {JsonWebKeySignatureAlgorithm}
      * @memberof SigningKeySpec
      */
@@ -126,6 +150,10 @@ export function SigningKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
+        'e': !exists(json, 'e') ? undefined : json['e'],
+        'n': !exists(json, 'n') ? undefined : json['n'],
+        'x': !exists(json, 'x') ? undefined : json['x'],
+        'y': !exists(json, 'y') ? undefined : json['y'],
         'alg': !exists(json, 'alg') ? undefined : JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
         'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
@@ -147,6 +175,10 @@ export function SigningKeySpecToJSON(value?: SigningKeySpec | null): any {
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
+        'e': value.e,
+        'n': value.n,
+        'x': value.x,
+        'y': value.y,
         'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
         'x5c': value.x5c,
         'x5t': value.x5t,

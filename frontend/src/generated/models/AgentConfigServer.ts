@@ -72,6 +72,12 @@ export interface AgentConfigServer {
      * @type {string}
      * @memberof AgentConfigServer
      */
+    imageRefPrefix: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServer
+     */
     tlsCertificateId: string;
     /**
      * 
@@ -84,7 +90,7 @@ export interface AgentConfigServer {
      * @type {string}
      * @memberof AgentConfigServer
      */
-    imageTag: string;
+    imageRefStr: string;
 }
 
 /**
@@ -98,9 +104,10 @@ export function instanceOfAgentConfigServer(value: object): boolean {
     isInstance = isInstance && "refreshAfter" in value;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "jwtKeyCertPolicyId" in value;
+    isInstance = isInstance && "imageRefPrefix" in value;
     isInstance = isInstance && "tlsCertificateId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
-    isInstance = isInstance && "imageTag" in value;
+    isInstance = isInstance && "imageRefStr" in value;
 
     return isInstance;
 }
@@ -123,9 +130,10 @@ export function AgentConfigServerFromJSONTyped(json: any, ignoreDiscriminator: b
         'refreshAfter': (new Date(json['refreshAfter'])),
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
         'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
+        'imageRefPrefix': json['imageRefPrefix'],
         'tlsCertificateId': json['tlsCertificateId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageTag': json['imageTag'],
+        'imageRefStr': json['imageRefStr'],
     };
 }
 
@@ -146,9 +154,10 @@ export function AgentConfigServerToJSON(value?: AgentConfigServer | null): any {
         'refreshAfter': (value.refreshAfter.toISOString()),
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
         'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
+        'imageRefPrefix': value.imageRefPrefix,
         'tlsCertificateId': value.tlsCertificateId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageTag': value.imageTag,
+        'imageRefStr': value.imageRefStr,
     };
 }
 
