@@ -41,12 +41,7 @@ paths:
                 $ref: "#/components/schemas/ManagedApp"
   /v1/managed-app/{managedAppId}:
     parameters:
-      - in: path
-        name: managedAppId
-        required: true
-        schema:
-          type: string
-          format: uuid
+      - $ref: "#/components/parameters/ManagedAppIdParameter"
     get:
       tags:
         - admin
@@ -71,10 +66,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ManagedApp"
+  /v1/system-app/{systemAppName}:
+    parameters:
+      - in: path
+        name: systemAppName
+        required: true
+        schema:
+          $ref: "#/components/schemas/SystemAppName"
+    get:
+      tags:
+        - admin
+      operationId: GetSystemApp
+      summary: Get system app
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagedApp"
+    post:
+      tags:
+        - admin
+      operationId: SyncSystemApp
+      summary: Sync managed app
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagedApp"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    put:
+      tags:
+        - admin
+      operationId: PutAgentConfigServer
+      summary: Put agent config server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentConfigServerParameters"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConfigServer"
 security:
   - BearerAuth: []
 components:
   schemas:
+    SystemAppName:
+      type: string
+      enum:
+        - backend
+        - api
+      x-enum-varnames:
+        - SystemAppNameBackend
+        - SystemAppNameAPI
     ManagedAppRef:
       allOf:
         - $ref: "oapi-profile.yaml#/components/schemas/ProfileRef"
@@ -95,6 +151,8 @@ components:
           type: string
           format: uuid
           x-go-name: ServicePrincipalID
+        servicePrincipalType:
+          type: string
       required:
         - appId
         - applicationId
@@ -110,3 +168,62 @@ components:
           type: boolean
       required:
         - displayName
+    AgentConfig:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/AgentConfigFields"
+        - x-go-type: agentConfigComposed
+    AgentConfigFields:
+      type: object
+      properties:
+        version:
+          type: string
+        refreshAfter:
+          type: string
+          format: date-time
+      required:
+        - version
+        - refreshAfter
+    AgentConfigServer:
+      allOf:
+        - $ref: "#/components/schemas/AgentConfig"
+        - $ref: "#/components/schemas/AgentConfigServerParameters"
+        - $ref: "#/components/schemas/AgentConfigServerFields"
+        - x-go-type: agentConfigServerComposed
+    AgentConfigServerFields:
+      type: object
+      properties:
+        tlsCertificateId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          x-go-name: TLSCertificateID
+        jwtKeyCertIds:
+          type: array
+          items:
+            $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+          x-go-name: JWTKeyCertIDs
+        imageTag:
+          type: string
+      required:
+        - tlsCertificateId
+        - jwtKeyCertIds
+        - imageTag
+    AgentConfigServerParameters:
+      type: object
+      properties:
+        tlsCertificatePolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          x-go-name: TLSCertificatePolicyID
+        jwtKeyCertPolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+          x-go-name: JWKPolicyID
+      required:
+        - tlsCertificatePolicyId
+        - jwtKeyCertPolicyId
+  parameters:
+    ManagedAppIdParameter:
+      in: path
+      name: managedAppId
+      required: true
+      schema:
+        type: string
+        format: uuid

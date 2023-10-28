@@ -56,7 +56,7 @@ func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*C
 	return utils.PagerToSlice(c, modelPager)
 }
 
-func queryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {
+func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated)).
 		WithOffsetLimit(0, limit)

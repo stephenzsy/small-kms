@@ -6,6 +6,7 @@ import {
   ManagedAppRef,
   ProfileRef,
   ResourceKind,
+  SystemAppName,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useRequest } from "ahooks";
@@ -62,9 +63,7 @@ function useManagedAppsColumns() {
     () => [
       {
         title: "App ID",
-        render: (r: ManagedAppRef) => (
-          <span className="font-mono">{r.id}</span>
-        ),
+        render: (r: ManagedAppRef) => <span className="font-mono">{r.id}</span>,
       },
       {
         title: "Display name",
@@ -85,9 +84,7 @@ function useProfileRefColumns(profileKind: ResourceKind) {
     () => [
       {
         title: "ID",
-        render: (r: ProfileRef) => (
-          <span className="font-mono">{r.id}</span>
-        ),
+        render: (r: ProfileRef) => <span className="font-mono">{r.id}</span>,
       },
       {
         title: "Display name",
@@ -158,6 +155,48 @@ function ImportProfileForm({
   );
 }
 
+function SystemAppsEntry({ systemAppName }: { systemAppName: SystemAppName }) {
+  const adminApi = useAuthedClient(AdminApi);
+  const { data: systemApp, run: syncSystemApp } = useRequest(
+    (isSync?: boolean) => {
+      if (isSync) {
+        return adminApi.syncSystemApp({
+          systemAppName: systemAppName,
+        });
+      }
+      return adminApi.getSystemApp({
+        systemAppName: systemAppName,
+      });
+    },
+    {
+      refreshDeps: [systemAppName],
+    }
+  );
+  return (
+    <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-2">
+      <div>
+        Type: <span className="font-mono">{systemAppName}</span>
+      </div>
+      <div>Display name: {systemApp?.displayName}</div>
+      <div>
+        Application ID (Client ID):{" "}
+        <span className="font-mono">{systemApp?.id}</span>
+      </div>
+      <div className="flex items-center gap-4">
+        {systemApp && <Link to={`/app/system/${systemAppName}`}>View</Link>}
+        <Button
+          type="link"
+          onClick={() => {
+            syncSystemApp(true);
+          }}
+        >
+          Sync
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function ManagedAppsPage() {
   const adminApi = useAuthedClient(AdminApi);
 
@@ -189,6 +228,12 @@ export default function ManagedAppsPage() {
   return (
     <>
       <Title>Applications</Title>
+      <Card title="System applications">
+        <div className="space-y-4">
+          <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameAPI} />
+          <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameBackend} />
+        </div>
+      </Card>
       <Card title="Managed applications">
         <Table<ProfileRef>
           columns={managedAppColumns}

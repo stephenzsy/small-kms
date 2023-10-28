@@ -2,6 +2,7 @@ package managedapp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -9,6 +10,7 @@ import (
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
@@ -59,7 +61,7 @@ func createManagedApp(c context.Context, params *ManagedAppParameters) (*Managed
 			return bad(err)
 		}
 		doc := &ManagedAppDoc{}
-		doc.Init(appID, displayName)
+		doc.Init(appID, displayName, namespaceIDNameManagedApp)
 		doc.ApplicationID, err = uuid.Parse(*application.GetId())
 		if err != nil {
 			return bad(err)
@@ -113,18 +115,71 @@ func apiSyncManagedApp(c ctx.RequestContext, appID uuid.UUID) error {
 		}
 	}
 
-	// serviceAppA, serviceAppSP, err := graph.GetServiceAppAndSP(c, gclient)
-	// if err != nil {
-	// 	return err
-	// }
-	// for _, ar := range serviceAppSP.GetAppRoles() {
-	// 	log.Debug().Any("id", ar.GetId()).Any("value", ar.GetValue()).Msg("serviceApplication")
-	// }
-
 	doc, err := getManagedApp(c, appID)
 	if err != nil {
 		return err
 	}
+	m := new(ManagedApp)
+	doc.PopulateModel(m)
+	return c.JSON(200, m)
+}
+
+func resolveSystemAppID(c context.Context, systemAppName SystemAppName) (uuid.UUID, error) {
+	switch systemAppName {
+	case SystemAppNameBackend:
+		if systemAppID, ok := c.Value(graph.ServiceClientIDContextKey).(string); ok {
+			return uuid.Parse(systemAppID)
+		}
+	case SystemAppNameAPI:
+		if systemAppID, ok := c.Value(graph.ServiceMsGraphClientClientIDContextKey).(string); ok {
+			return uuid.Parse(systemAppID)
+		}
+	}
+	return uuid.Nil, fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)
+}
+
+func apiSyncSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
+	appID, err := resolveSystemAppID(c, systemAppName)
+	if err != nil {
+		return err
+	}
+
+	gclient := graph.GetServiceMsGraphClient(c)
+	application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
+			Select: []string{"id", "displayName", "appId"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	sp, err := gclient.ServicePrincipalsWithAppId(application.GetAppId()).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+		QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+			Select: []string{"id", "displayName", "appId", "servicePrincipalType"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	doc := &ManagedAppDoc{}
+	doc.Init(appID, *application.GetDisplayName(), namespaceIDNameSystemApp)
+	if doc.ApplicationID, err = uuid.Parse(*application.GetId()); err != nil {
+		return err
+	}
+	if doc.ServicePrincipalID, err = uuid.Parse(*sp.GetId()); err != nil {
+		return err
+	}
+
+	doc.ServicePrincipalType = sp.GetServicePrincipalType()
+
+	docSvc := base.GetAzCosmosCRUDService(c)
+	err = docSvc.Upsert(c, doc, nil)
+	if err != nil {
+		return err
+	}
+
 	m := new(ManagedApp)
 	doc.PopulateModel(m)
 	return c.JSON(200, m)

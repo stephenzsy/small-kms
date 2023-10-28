@@ -1,14 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { NamespaceKind } from "../generated";
-import { CertificateIssuerContextProvider } from "./CertIssuerContext";
+import { NamespaceKind } from "../../generated";
+import { NamespaceConfigContextProvider } from "./NamespaceConfigContextProvider";
+import { NamespaceContext } from "./NamespaceContext";
 
-export const NamespaceContext = React.createContext<{
-  namespaceKind: NamespaceKind;
-  namespaceIdentifier: string;
-}>({ namespaceKind: "" as never, namespaceIdentifier: "" as never });
-
-export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
+export function NamespaceContextRouteProvider(
+  props: React.PropsWithChildren<{}>
+) {
   const { nsKind, nsId } = useParams() as {
     nsKind: NamespaceKind;
     nsId: string;
@@ -18,9 +16,7 @@ export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
     <NamespaceContext.Provider
       value={{ namespaceIdentifier: nsId, namespaceKind: nsKind }}
     >
-      <CertificateIssuerContextProvider
-        namespaceKind={nsKind}
-        namespaceIdentifier={nsId}
+      <NamespaceConfigContextProvider
         ruleIssuer={
           nsKind === NamespaceKind.NamespaceKindRootCA ||
           nsKind === NamespaceKind.NamespaceKindIntermediateCA
@@ -30,7 +26,7 @@ export function NamespaceContextProvider(props: React.PropsWithChildren<{}>) {
         }
       >
         {props.children}
-      </CertificateIssuerContextProvider>
+      </NamespaceConfigContextProvider>
     </NamespaceContext.Provider>
   );
 }

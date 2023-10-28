@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"fmt"
 	"net/http"
 
 	echo "github.com/labstack/echo/v4"
@@ -80,7 +81,7 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 	c := ec.(ctx.RequestContext)
 
 	if !namespaceIdentifier.IsUUID() {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "invalid namespace identifier"})
+		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusForbidden)
 	}
 
 	if !auth.AuthorizeApplicationOrAdmin(c, namespaceIdentifier.UUID()) {

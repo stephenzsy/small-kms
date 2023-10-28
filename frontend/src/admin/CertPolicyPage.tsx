@@ -30,8 +30,10 @@ import {
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
-import { NamespaceContext } from "./NamespaceContext";
-import { CertificateIssuerContext } from "./CertIssuerContext";
+import {
+  NamespaceConfigContext,
+  NamespaceContext,
+} from "./contexts/NamespaceContext";
 
 function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
@@ -420,7 +422,7 @@ export default function CertPolicyPage() {
     setIssuer: setIssuerRule,
     entraClientCred,
     setEntraClientCred,
-  } = useContext(CertificateIssuerContext);
+  } = useContext(NamespaceConfigContext);
 
   const certListColumns = useCertTableColumns(issuerRule?.certificateId);
   return (

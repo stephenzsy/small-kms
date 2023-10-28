@@ -27,7 +27,7 @@ func readCertRuleIssuerDoc(c context.Context, nsIdentifier base.NamespaceIdentif
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerDoc)
-	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), CertRuleNameIssuer), ruleDoc, nil)
+	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), base.CertRuleNameIssuer), ruleDoc, nil)
 	return ruleDoc, err
 }
 
@@ -49,7 +49,7 @@ func apiGetCertRuleIssuer(c ctx.RequestContext) error {
 	ruleDoc, err := readCertRuleIssuerDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.Identifier()))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w, issuer configuration not found: %s", base.ErrResponseStatusNotFound, CertRuleNameIssuer)
+			return fmt.Errorf("%w, issuer configuration not found: %s", base.ErrResponseStatusNotFound, base.CertRuleNameIssuer)
 		}
 		return err
 	}
@@ -63,10 +63,10 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), CertRuleNameIssuer)
+	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), base.CertRuleNameIssuer)
 	ruleDoc.PolicyID = p.PolicyId
 	if p.CertificateId.IsNilOrEmpty() {
-		if certIds, err := queryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
+		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
 			return err
 		} else if len(certIds) > 0 {
 			ruleDoc.CertificateID = certIds[0]

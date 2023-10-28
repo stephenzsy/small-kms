@@ -1,37 +1,20 @@
 import { useRequest } from "ahooks";
-import React from "react";
+import React, { useContext } from "react";
 import {
   AdminApi,
   CertificateRuleIssuer,
   CertificateRuleMsEntraClientCredential,
-  NamespaceKind,
-} from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
+} from "../../generated";
+import { useAuthedClient } from "../../utils/useCertsApi";
+import { NamespaceConfigContext, NamespaceContext } from "./NamespaceContext";
 
-type CertificateRulesContextValue = {
-  issuer: CertificateRuleIssuer | undefined;
-  setIssuer: (rule: CertificateRuleIssuer) => void;
-  entraClientCred: CertificateRuleMsEntraClientCredential | undefined;
-  setEntraClientCred: (rule: CertificateRuleMsEntraClientCredential) => void;
-};
-
-export const CertificateIssuerContext =
-  React.createContext<CertificateRulesContextValue>({
-    issuer: undefined,
-    setIssuer: () => {},
-    entraClientCred: undefined,
-    setEntraClientCred: () => {},
-  });
-
-export function CertificateIssuerContextProvider(
+export function NamespaceConfigContextProvider(
   props: React.PropsWithChildren<{
-    namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
     ruleIssuer?: boolean;
     ruleEntraClientCred?: boolean;
   }>
 ) {
-  const { namespaceKind, namespaceIdentifier } = props;
+  const { namespaceKind, namespaceIdentifier } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: issuer, run: setIssuer } = useRequest(
@@ -50,7 +33,7 @@ export function CertificateIssuerContextProvider(
     },
     {
       refreshDeps: [namespaceIdentifier, namespaceKind],
-      ready: !!props.ruleIssuer,
+      ready: !!props.ruleIssuer && !!namespaceIdentifier,
     }
   );
 
@@ -70,12 +53,12 @@ export function CertificateIssuerContextProvider(
     },
     {
       refreshDeps: [namespaceIdentifier, namespaceKind],
-      ready: !!props.ruleEntraClientCred,
+      ready: !!props.ruleEntraClientCred && !!namespaceIdentifier,
     }
   );
 
   return (
-    <CertificateIssuerContext.Provider
+    <NamespaceConfigContext.Provider
       value={{
         issuer: issuer,
         setIssuer: setIssuer,
@@ -84,6 +67,6 @@ export function CertificateIssuerContextProvider(
       }}
     >
       {props.children}
-    </CertificateIssuerContext.Provider>
+    </NamespaceConfigContext.Provider>
   );
 }

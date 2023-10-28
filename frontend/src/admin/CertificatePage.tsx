@@ -1,17 +1,11 @@
-import { Link, useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind1 } from "../generated";
 import { useRequest } from "ahooks";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { useMemo, useContext } from "react";
-import {
-  Button,
-  Card,
-  Descriptions,
-  DescriptionsProps,
-  Typography,
-} from "antd";
+import { Button, Card, Descriptions, Typography } from "antd";
 import { DescriptionsItemType } from "antd/es/descriptions";
-import { NamespaceContext } from "./NamespaceContext";
+import { useContext, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { AdminApi } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
+import { NamespaceContext } from "./contexts/NamespaceContext";
 
 export default function CertificatePage() {
   const { namespaceKind, namespaceIdentifier } = useContext(NamespaceContext);

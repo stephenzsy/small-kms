@@ -11,8 +11,9 @@ import (
 
 type ManagedAppQueryDoc struct {
 	profile.ProfileQueryDoc
-	ApplicationID      uuid.UUID `json:"applicationId"`
-	ServicePrincipalID uuid.UUID `json:"servicePrincipalId"`
+	ApplicationID        uuid.UUID `json:"applicationId"`
+	ServicePrincipalID   uuid.UUID `json:"servicePrincipalId"`
+	ServicePrincipalType *string   `json:"servicePrincipalType,omitempty"`
 }
 
 var _ base.ModelRefPopulater[ManagedAppRef] = (*ManagedAppQueryDoc)(nil)
@@ -27,7 +28,9 @@ func listManagedApps(c context.Context) ([]*ManagedAppRef, error) {
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(profile.QueryColumnDisplayName, queryColumnApplicationID, queryColumnServicePrincipalID)
-	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile, namespaceIdentifierManagedApp, base.ProfileResourceKindManagedApp)
+	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile,
+		base.StringIdentifier(namespaceIDNameManagedApp),
+		base.ProfileResourceKindManagedApp)
 	pager := base.NewQueryDocPager[*ManagedAppQueryDoc](docService, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ManagedAppQueryDoc) *ManagedAppRef {

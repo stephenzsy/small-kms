@@ -8,8 +8,9 @@ import (
 
 type ManagedAppDoc struct {
 	profile.ProfileDoc
-	ApplicationID      uuid.UUID `json:"applicationId"`
-	ServicePrincipalID uuid.UUID `json:"servicePrincipalId"`
+	ApplicationID        uuid.UUID `json:"applicationId"`
+	ServicePrincipalID   uuid.UUID `json:"servicePrincipalId"`
+	ServicePrincipalType *string   `json:"servicePrincipalType,omitempty"`
 }
 
 const (
@@ -19,16 +20,17 @@ const (
 	patchColumnServicePrincipalID = "/servicePrincipalId"
 )
 
-const namespaceIDName = "managed-app"
+const (
+	namespaceIDNameManagedApp = "managed-app"
+	namespaceIDNameSystemApp  = "system-app"
+)
 
-var namespaceIdentifierManagedApp = base.StringIdentifier(namespaceIDName)
-
-func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string) {
+func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string, name string) {
 	if d == nil {
 		return
 	}
 	d.ProfileDoc.Init(
-		namespaceIdentifierManagedApp,
+		base.StringIdentifier(name),
 		base.ProfileResourceKindManagedApp,
 		base.UUIDIdentifier(appID),
 		displayName,
@@ -50,7 +52,11 @@ func (d *ManagedAppDoc) PopulateModelRef(m *ManagedAppRef) {
 }
 
 func (d *ManagedAppDoc) PopulateModel(m *ManagedApp) {
+	if d == nil || m == nil {
+		return
+	}
 	d.PopulateModelRef(m)
+	m.ServicePrincipalType = d.ServicePrincipalType
 }
 
 var _ base.ModelRefPopulater[managedAppRefComposed] = (*ManagedAppDoc)(nil)

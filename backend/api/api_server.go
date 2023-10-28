@@ -22,6 +22,7 @@ type APIServer interface {
 
 type apiServer struct {
 	chCtx                   context.Context
+	serviceIdentity         auth.AzureIdentity
 	siteURL                 string
 	docService              base.AzCosmosCRUDDocService
 	serviceMsGraphClient    *msgraphsdkgo.GraphServiceClient
@@ -70,9 +71,11 @@ func (s *apiServer) Value(key any) any {
 		return s.docService
 	case kv.AzKeyVaultServiceContextKey:
 		return s
+	case graph.ServiceClientIDContextKey:
+		return s.serviceIdentity.ClientID()
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
-	case graph.ServiceMsGraphClientClientID:
+	case graph.ServiceMsGraphClientClientIDContextKey:
 		return s.appConfidentialIdentity.ClientID()
 	case auth.AppConfidentialIdentityContextKey:
 		return s.appConfidentialIdentity
@@ -88,6 +91,7 @@ func NewApiServer(c context.Context, serverOld *server) *apiServer {
 
 	return &apiServer{
 		chCtx:                   c,
+		serviceIdentity:         serverOld.ServiceIdentity(),
 		siteURL:                 common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
 		docService:              base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
 		serviceMsGraphClient:    serverOld.clients.msGraphClient,

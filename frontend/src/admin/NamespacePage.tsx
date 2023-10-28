@@ -2,7 +2,7 @@ import { Card } from "antd";
 import { useContext } from "react";
 import { Link } from "../components/Link";
 import { CertPolicyRefTable } from "./CertPolicyRefTable";
-import { NamespaceContext } from "./NamespaceContext";
+import { NamespaceContext } from "./contexts/NamespaceContext";
 
 export default function NamespacePage() {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);

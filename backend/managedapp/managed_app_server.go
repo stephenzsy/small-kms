@@ -4,12 +4,50 @@ import (
 	"github.com/google/uuid"
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/api"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 type server struct {
 	api.APIServer
+}
+
+// SyncSystemApp implements ServerInterface.
+func (s *server) SyncSystemApp(ec echo.Context, systemAppName SystemAppName) error {
+	c := ec.(ctx.RequestContext)
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	return apiSyncSystemApp(c, systemAppName)
+}
+
+// GetSystemApp implements ServerInterface.
+func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) error {
+	c := ec.(ctx.RequestContext)
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+
+	return apiGetSystemApp(c, systemAppName)
+}
+
+func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	param := &AgentConfigServerParameters{}
+	if err := c.Bind(param); err != nil {
+		return err
+	}
+
+	return apiPutAgentConfigServer(c, param)
 }
 
 // SyncManagedApp implements ServerInterface.

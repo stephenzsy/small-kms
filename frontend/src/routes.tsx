@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { AdminLayout } from "./admin/Layout";
-import { NamespaceContextProvider } from "./admin/NamespaceContext";
+import { NamespaceContextRouteProvider } from "./admin/contexts/NamespaceContextRouteProvider";
 import AdminPage from "./admin/Page";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
@@ -51,15 +51,19 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <AppsPage /> },
               {
+                path: "system/:appId",
+                element: <ManagedAppPage isSystemApp />,
+              },
+              {
                 path: "managed/:appId",
                 element: <ManagedAppPage />,
               },
               {
                 path: ":nsKind/:nsId",
                 element: (
-                  <NamespaceContextProvider>
+                  <NamespaceContextRouteProvider>
                     <Outlet />
-                  </NamespaceContextProvider>
+                  </NamespaceContextRouteProvider>
                 ),
                 children: [
                   { index: true, element: <NamespacePage /> },
@@ -83,9 +87,9 @@ export const router = createBrowserRouter([
               {
                 path: ":nsKind/:nsId",
                 element: (
-                  <NamespaceContextProvider>
+                  <NamespaceContextRouteProvider>
                     <Outlet />
-                  </NamespaceContextProvider>
+                  </NamespaceContextRouteProvider>
                 ),
                 children: [
                   { index: true, element: <NamespacePage /> },
@@ -113,9 +117,9 @@ export const router = createBrowserRouter([
                   {
                     path: ":namespaceId",
                     element: (
-                      <NamespaceContextProvider>
+                      <NamespaceContextRouteProvider>
                         <Outlet />
-                      </NamespaceContextProvider>
+                      </NamespaceContextRouteProvider>
                     ),
                     children: [
                       {

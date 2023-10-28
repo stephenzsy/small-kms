@@ -11,8 +11,9 @@ import (
 type ContextKey int
 
 const (
-	ServiceMsGraphClientContextKey ContextKey = iota
-	ServiceMsGraphClientClientID
+	ServiceClientIDContextKey ContextKey = iota
+	ServiceMsGraphClientContextKey
+	ServiceMsGraphClientClientIDContextKey
 	delegatedMsGraphClientContextKey
 )
 

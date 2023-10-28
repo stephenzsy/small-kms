@@ -16,6 +16,8 @@
 import * as runtime from '../runtime';
 import type {
   AgentConfigName,
+  AgentConfigServer,
+  AgentConfigServerParameters,
   AgentConfiguration,
   AgentConfigurationParameters,
   AgentProfile,
@@ -37,10 +39,15 @@ import type {
   ProfileRef,
   ResourceKind,
   ServiceConfig,
+  SystemAppName,
 } from '../models/index';
 import {
     AgentConfigNameFromJSON,
     AgentConfigNameToJSON,
+    AgentConfigServerFromJSON,
+    AgentConfigServerToJSON,
+    AgentConfigServerParametersFromJSON,
+    AgentConfigServerParametersToJSON,
     AgentConfigurationFromJSON,
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
@@ -83,6 +90,8 @@ import {
     ResourceKindToJSON,
     ServiceConfigFromJSON,
     ServiceConfigToJSON,
+    SystemAppNameFromJSON,
+    SystemAppNameToJSON,
 } from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
@@ -166,6 +175,10 @@ export interface GetProfileRequest {
     namespaceIdentifier: string;
 }
 
+export interface GetSystemAppRequest {
+    systemAppName: SystemAppName;
+}
+
 export interface ImportProfileRequest {
     profileResourceKind: ResourceKind;
     namespaceIdentifier: string;
@@ -200,6 +213,12 @@ export interface PatchServiceConfigRequest {
 export interface ProvisionAgentProfileRequest {
     namespaceId: string;
     agentProfileParameters: AgentProfileParameters;
+}
+
+export interface PutAgentConfigServerRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    agentConfigServerParameters: AgentConfigServerParameters;
 }
 
 export interface PutAgentConfigurationRequest {
@@ -243,6 +262,10 @@ export interface RemoveKeyVaultRoleAssignmentRequest {
 
 export interface SyncManagedAppRequest {
     managedAppId: string;
+}
+
+export interface SyncSystemAppRequest {
+    systemAppName: SystemAppName;
 }
 
 /**
@@ -945,6 +968,44 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get system app
+     */
+    async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
+        if (requestParameters.systemAppName === null || requestParameters.systemAppName === undefined) {
+            throw new runtime.RequiredError('systemAppName','Required parameter requestParameters.systemAppName was null or undefined when calling getSystemApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/system-app/{systemAppName}`.replace(`{${"systemAppName"}}`, encodeURIComponent(String(requestParameters.systemAppName))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Get system app
+     */
+    async getSystemApp(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
+        const response = await this.getSystemAppRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Import profile
      */
     async importProfileRaw(requestParameters: ImportProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
@@ -1279,6 +1340,55 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async provisionAgentProfile(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProfile> {
         const response = await this.provisionAgentProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put agent config server
+     */
+    async putAgentConfigServerRaw(requestParameters: PutAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigServer>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentConfigServer.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putAgentConfigServer.');
+        }
+
+        if (requestParameters.agentConfigServerParameters === null || requestParameters.agentConfigServerParameters === undefined) {
+            throw new runtime.RequiredError('agentConfigServerParameters','Required parameter requestParameters.agentConfigServerParameters was null or undefined when calling putAgentConfigServer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentConfigServerParametersToJSON(requestParameters.agentConfigServerParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigServerFromJSON(jsonValue));
+    }
+
+    /**
+     * Put agent config server
+     */
+    async putAgentConfigServer(requestParameters: PutAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigServer> {
+        const response = await this.putAgentConfigServerRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1619,6 +1729,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async syncManagedApp(requestParameters: SyncManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
         const response = await this.syncManagedAppRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync managed app
+     */
+    async syncSystemAppRaw(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
+        if (requestParameters.systemAppName === null || requestParameters.systemAppName === undefined) {
+            throw new runtime.RequiredError('systemAppName','Required parameter requestParameters.systemAppName was null or undefined when calling syncSystemApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/system-app/{systemAppName}`.replace(`{${"systemAppName"}}`, encodeURIComponent(String(requestParameters.systemAppName))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ManagedAppRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync managed app
+     */
+    async syncSystemApp(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
+        const response = await this.syncSystemAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

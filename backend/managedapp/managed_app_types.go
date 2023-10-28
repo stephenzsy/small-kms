@@ -7,7 +7,20 @@ import (
 
 type ResourceReference = base.ResourceReference
 
-type managedAppRefComposed struct {
-	profile.ProfileRef
-	ManagedAppRefFields
-}
+type (
+	managedAppRefComposed struct {
+		profile.ProfileRef
+		ManagedAppRefFields
+	}
+
+	agentConfigComposed struct {
+		base.ResourceReference
+		AgentConfigFields
+	}
+
+	agentConfigServerComposed struct {
+		AgentConfig
+		AgentConfigServerParameters
+		AgentConfigServerFields
+	}
+)

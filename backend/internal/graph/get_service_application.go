@@ -12,7 +12,7 @@ import (
 
 // should use service client
 func GetServiceAppAndSP(c context.Context, client *msgraph.GraphServiceClient) (gmodels.Applicationable, gmodels.ServicePrincipalable, error) {
-	if appID, ok := c.Value(ServiceMsGraphClientClientID).(string); ok {
+	if appID, ok := c.Value(ServiceMsGraphClientClientIDContextKey).(string); ok {
 		app, err := client.ApplicationsWithAppId(&appID).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
 			QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
 				Select: []string{"id", "appRoles"},

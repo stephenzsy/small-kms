@@ -35,7 +35,7 @@ func readCertRuleMsEntraClientDoc(c context.Context, nsIdentifier base.Namespace
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerLastNCertificateDoc)
-	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), CertRuleNameMsEntraClientCredential), ruleDoc, nil)
+	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), base.CertRuleNameMsEntraClientCredential), ruleDoc, nil)
 	return ruleDoc, err
 }
 
@@ -57,7 +57,7 @@ func apiGetCertRuleMsEntraClientCredential(c ctx.RequestContext) error {
 	ruleDoc, err := readCertRuleMsEntraClientDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.Identifier()))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w, ms entra credential configuration not found: %s", base.ErrResponseStatusNotFound, CertRuleNameMsEntraClientCredential)
+			return fmt.Errorf("%w, ms entra credential configuration not found: %s", base.ErrResponseStatusNotFound, base.CertRuleNameMsEntraClientCredential)
 		}
 		return err
 	}
@@ -71,10 +71,10 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleMsEntraClientCredDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), CertRuleNameMsEntraClientCredential)
+	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), base.CertRuleNameMsEntraClientCredential)
 	ruleDoc.PolicyID = p.PolicyId
 	if len(p.CertificateIds) == 0 {
-		certIds, err := queryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 2)
+		certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 2)
 		if err != nil {
 			return err
 		}

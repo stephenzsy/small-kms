@@ -11,7 +11,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func getCertPolicyDoc(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
+func readCertPolicyDoc(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -31,7 +31,7 @@ func apiGetCertPolicy(c ctx.RequestContext, rID base.Identifier) error {
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
 	}
-	doc, err := getCertPolicyDoc(c, rID)
+	doc, err := readCertPolicyDoc(c, rID)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, rID.String())

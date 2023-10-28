@@ -2,14 +2,16 @@ import { Button, Table, Tag, type TableColumnType } from "antd";
 import { AdminApi, CertPolicyRef, NamespaceKind } from "../generated";
 import { useMemo, useContext } from "react";
 import { Link } from "../components/Link";
-import { NamespaceContext } from "./NamespaceContext";
+import {
+  NamespaceContext,
+  NamespaceConfigContext,
+} from "./contexts/NamespaceContext";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { useRequest } from "ahooks";
-import { CertificateIssuerContext } from "./CertIssuerContext";
+import { useMemoizedFn, useRequest } from "ahooks";
 
-function useColumns(
+export function usePolicyRefTableColumns(
   routePrefix: string,
-  activeIssuerPolicyId: string | undefined
+  onRenderTags?: (r: CertPolicyRef) => React.ReactNode
 ) {
   return useMemo<TableColumnType<CertPolicyRef>[]>(
     () => [
@@ -18,9 +20,7 @@ function useColumns(
         render: (r: CertPolicyRef) => (
           <>
             <span className="font-mono">{r.id}</span>
-            {r.id === activeIssuerPolicyId && (
-              <Tag className="ml-2" color="blue">Current issuer</Tag>
-            )}
+            {onRenderTags?.(r)}
           </>
         ),
       },
@@ -38,8 +38,46 @@ function useColumns(
         ),
       },
     ],
-    [routePrefix, activeIssuerPolicyId]
+    [routePrefix, onRenderTags]
   );
+}
+
+function useColumns(
+  routePrefix: string,
+  activeIssuerPolicyId: string | undefined
+) {
+  return usePolicyRefTableColumns(
+    routePrefix,
+    useMemoizedFn((r: CertPolicyRef) => {
+      return (
+        r.id === activeIssuerPolicyId && (
+          <Tag className="ml-2" color="blue">
+            Current issuer
+          </Tag>
+        )
+      );
+    })
+  );
+}
+
+export function useCertPolicies() {
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+
+  const adminApi = useAuthedClient(AdminApi);
+  const { data: certPolicies } = useRequest(
+    () => {
+      return adminApi.listCertPolicies({
+        namespaceIdentifier,
+        namespaceKind: namespaceKind,
+      });
+    },
+    {
+      refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready: !!namespaceIdentifier,
+    }
+  );
+
+  return certPolicies;
 }
 
 export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
@@ -59,7 +97,7 @@ export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
     }
   );
 
-  const { issuer: issuerRule } = useContext(CertificateIssuerContext);
+  const { issuer: issuerRule } = useContext(NamespaceConfigContext);
 
   const columns = useColumns(routePrefix, issuerRule?.policyId);
   return (

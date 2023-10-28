@@ -2,15 +2,8 @@ package cert
 
 import "github.com/stephenzsy/small-kms/backend/base"
 
-type CertRuleName string
-
-const (
-	CertRuleNameIssuer                  CertRuleName = "issuer"
-	CertRuleNameMsEntraClientCredential CertRuleName = "ms-entra-client-credential"
-)
-
 func getNamespaceCertificateRuleDocFullIdentifier(
-	nsKind base.NamespaceKind, nsID base.Identifier, ruleName CertRuleName) base.DocFullIdentifier {
+	nsKind base.NamespaceKind, nsID base.Identifier, ruleName base.NamespaceConfigName) base.DocFullIdentifier {
 	return base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindNamespaceConfig, base.StringIdentifier(string(ruleName)))
 }
 
@@ -20,7 +13,7 @@ type CertRulePolicyDoc struct {
 }
 
 func (d *CertRulePolicyDoc) init(
-	nsKind base.NamespaceKind, nsIdentifier base.Identifier, ruleName CertRuleName,
+	nsKind base.NamespaceKind, nsIdentifier base.Identifier, ruleName base.NamespaceConfigName,
 ) {
 	d.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindNamespaceConfig, base.StringIdentifier(string(ruleName)))
 }

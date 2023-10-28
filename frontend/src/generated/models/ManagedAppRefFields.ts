@@ -37,6 +37,12 @@ export interface ManagedAppRefFields {
      * @memberof ManagedAppRefFields
      */
     servicePrincipalId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ManagedAppRefFields
+     */
+    servicePrincipalType?: string;
 }
 
 /**
@@ -64,6 +70,7 @@ export function ManagedAppRefFieldsFromJSONTyped(json: any, ignoreDiscriminator:
         'appId': json['appId'],
         'applicationId': json['applicationId'],
         'servicePrincipalId': json['servicePrincipalId'],
+        'servicePrincipalType': !exists(json, 'servicePrincipalType') ? undefined : json['servicePrincipalType'],
     };
 }
 
@@ -79,6 +86,7 @@ export function ManagedAppRefFieldsToJSON(value?: ManagedAppRefFields | null): a
         'appId': value.appId,
         'applicationId': value.applicationId,
         'servicePrincipalId': value.servicePrincipalId,
+        'servicePrincipalType': value.servicePrincipalType,
     };
 }
 
