@@ -17,7 +17,6 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.2
-	github.com/microsoft/go-crypto-openssl v0.2.8
 	github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54
 	github.com/microsoftgraph/msgraph-sdk-go v1.23.0
 	github.com/oapi-codegen/runtime v1.0.0

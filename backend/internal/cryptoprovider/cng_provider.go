@@ -38,6 +38,6 @@ func (*cryptoProviderImpl) GenerateRSAKeyPair(keyLength int) (*rsa.PrivateKey, e
 
 var _ CryptoProvider = (*cryptoProviderImpl)(nil)
 
-func newCryptoProvider() *cryptoProviderImpl {
+func newCryptoProvider() CryptoProvider {
 	return &cryptoProviderImpl{}
 }

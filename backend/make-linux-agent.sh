@@ -1,4 +1,4 @@
 #!/bin/bash
 
-go build  -o ./agent ./agent
+GOOS=linux go build  -o ./agent ./agent
 

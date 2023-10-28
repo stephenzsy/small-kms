@@ -17,7 +17,7 @@ ARG BUILD_ID=dev
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'main.BuildID=${BUILD_ID}'" .
-RUN CGO_ENABLED=1 GOOS=linux go build -o agent-server -ldflags="-X 'main.BuildID=${BUILD_ID}'" ./agent
+RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'main.BuildID=${BUILD_ID}'" ./agent
 
 FROM alpine:3.18
 
