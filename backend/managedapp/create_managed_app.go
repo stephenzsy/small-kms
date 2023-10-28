@@ -144,7 +144,10 @@ func apiSyncSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 		return err
 	}
 
-	gclient := graph.GetDelegatedMsGraphClient(c)
+	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	if err != nil {
+		return err
+	}
 	sp, err := gclient.ServicePrincipalsWithAppId(to.Ptr(appID.String())).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
 		QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
 			Select: []string{"id", "displayName", "appId", "servicePrincipalType"},

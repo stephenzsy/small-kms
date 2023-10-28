@@ -25,6 +25,9 @@ func GetServiceMsGraphClient(c context.Context) *msgraph.GraphServiceClient {
 }
 
 func WithDelegatedMsGraphClient(c ctx.RequestContext) (ctx.RequestContext, *msgraph.GraphServiceClient, error) {
+	if p, ok := c.Value(delegatedMsGraphClientContextKey).(*msgraph.GraphServiceClient); ok {
+		return c, p, nil
+	}
 	creds, err := auth.GetAuthIdentity(c).GetOnBehalfOfTokenCredential(c, nil)
 	if err != nil {
 		return c, nil, err
