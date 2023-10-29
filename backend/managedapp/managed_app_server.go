@@ -43,7 +43,7 @@ func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 
-	return s.apiGetAgentConfigServer(c)
+	return apiGetAgentConfigServer(c)
 }
 
 func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
@@ -54,7 +54,7 @@ func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 
-	param := &AgentConfigServerParameters{}
+	param := &AgentConfigServerFields{}
 	if err := c.Bind(param); err != nil {
 		return err
 	}

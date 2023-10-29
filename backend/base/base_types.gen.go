@@ -19,6 +19,7 @@ const (
 	NamespaceKindProfile          NamespaceKind = "profile"
 	NamespaceKindRootCA           NamespaceKind = "root-ca"
 	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
+	NamespaceKindSystem           NamespaceKind = "sys"
 )
 
 // Defines values for ResourceKind.

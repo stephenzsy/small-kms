@@ -64,18 +64,6 @@ export interface AgentConfigServer {
     refreshAfter: Date;
     /**
      * 
-     * @type {string}
-     * @memberof AgentConfigServer
-     */
-    tlsCertificatePolicyId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AgentConfigServer
-     */
-    jwtKeyCertPolicyId: string;
-    /**
-     * 
      * @type {AgentConfigServerEnv}
      * @memberof AgentConfigServer
      */
@@ -85,7 +73,19 @@ export interface AgentConfigServer {
      * @type {string}
      * @memberof AgentConfigServer
      */
+    tlsCertificatePolicyId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServer
+     */
     tlsCertificateId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServer
+     */
+    jwtKeyCertPolicyId: string;
     /**
      * 
      * @type {Array<string>}
@@ -97,7 +97,7 @@ export interface AgentConfigServer {
      * @type {string}
      * @memberof AgentConfigServer
      */
-    imageTag?: string;
+    azureAcrImageRef: string;
 }
 
 /**
@@ -109,11 +109,12 @@ export function instanceOfAgentConfigServer(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
     isInstance = isInstance && "refreshAfter" in value;
-    isInstance = isInstance && "tlsCertificatePolicyId" in value;
-    isInstance = isInstance && "jwtKeyCertPolicyId" in value;
     isInstance = isInstance && "env" in value;
+    isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "tlsCertificateId" in value;
+    isInstance = isInstance && "jwtKeyCertPolicyId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
+    isInstance = isInstance && "azureAcrImageRef" in value;
 
     return isInstance;
 }
@@ -134,12 +135,12 @@ export function AgentConfigServerFromJSONTyped(json: any, ignoreDiscriminator: b
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'version': json['version'],
         'refreshAfter': (new Date(json['refreshAfter'])),
-        'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
-        'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
         'env': AgentConfigServerEnvFromJSON(json['env']),
+        'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
         'tlsCertificateId': json['tlsCertificateId'],
+        'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageTag': !exists(json, 'imageTag') ? undefined : json['imageTag'],
+        'azureAcrImageRef': json['azureAcrImageRef'],
     };
 }
 
@@ -158,12 +159,12 @@ export function AgentConfigServerToJSON(value?: AgentConfigServer | null): any {
         'updatedBy': value.updatedBy,
         'version': value.version,
         'refreshAfter': (value.refreshAfter.toISOString()),
-        'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
-        'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
         'env': AgentConfigServerEnvToJSON(value.env),
+        'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
         'tlsCertificateId': value.tlsCertificateId,
+        'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageTag': value.imageTag,
+        'azureAcrImageRef': value.azureAcrImageRef,
     };
 }
 

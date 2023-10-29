@@ -38,22 +38,21 @@ type AgentConfigServer = agentConfigServerComposed
 
 // AgentConfigServerEnv Environment variables for the agent config server, must be set manually
 type AgentConfigServerEnv struct {
-	AZUREKEYVAULTRESOURCEENDPOINT string `json:"AZURE_KEYVAULT_RESOURCEENDPOINT"`
+	EnvVarAzureContainerRegistryImageRepository string `json:"AZURE_ACR_IMAGE_REPOSITORY"`
+	EnvVarAzureKeyVaultResourceEndpoint         string `json:"AZURE_KEYVAULT_RESOURCEENDPOINT"`
+	Message                                     string `json:"_message"`
 }
 
 // AgentConfigServerFields defines model for AgentConfigServerFields.
 type AgentConfigServerFields struct {
-	// Env Environment variables for the agent config server, must be set manually
-	Env              AgentConfigServerEnv                    `json:"env"`
-	ImageTag         string                                  `json:"imageTag"`
-	JWTKeyCertIDs    []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
-	TlsCertificateId externalRef0.Identifier                 `json:"tlsCertificateId"`
-}
+	AzureACRImageRef string `json:"azureAcrImageRef"`
 
-// AgentConfigServerParameters defines model for AgentConfigServerParameters.
-type AgentConfigServerParameters struct {
-	JwtKeyCertPolicyId     externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertPolicyId"`
-	TlsCertificatePolicyId externalRef0.Identifier               `json:"tlsCertificatePolicyId"`
+	// Env Environment variables for the agent config server, must be set manually
+	Env                    AgentConfigServerEnv                    `json:"env"`
+	JWTKeyCertIDs          []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
+	JwtKeyCertPolicyId     externalRef0.ResourceUniqueIdentifier   `json:"jwtKeyCertPolicyId"`
+	TlsCertificateId       externalRef0.Identifier                 `json:"tlsCertificateId"`
+	TlsCertificatePolicyId externalRef0.Identifier                 `json:"tlsCertificatePolicyId"`
 }
 
 // ManagedApp defines model for ManagedApp.
@@ -88,7 +87,7 @@ type ManagedAppIdParameter = openapi_types.UUID
 type CreateManagedAppJSONRequestBody = ManagedAppParameters
 
 // PutAgentConfigServerJSONRequestBody defines body for PutAgentConfigServer for application/json ContentType.
-type PutAgentConfigServerJSONRequestBody = AgentConfigServerParameters
+type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {

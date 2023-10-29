@@ -37,7 +37,19 @@ export interface AgentConfigServerFields {
      * @type {string}
      * @memberof AgentConfigServerFields
      */
+    tlsCertificatePolicyId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServerFields
+     */
     tlsCertificateId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServerFields
+     */
+    jwtKeyCertPolicyId: string;
     /**
      * 
      * @type {Array<string>}
@@ -49,7 +61,7 @@ export interface AgentConfigServerFields {
      * @type {string}
      * @memberof AgentConfigServerFields
      */
-    imageTag?: string;
+    azureAcrImageRef: string;
 }
 
 /**
@@ -58,8 +70,11 @@ export interface AgentConfigServerFields {
 export function instanceOfAgentConfigServerFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "env" in value;
+    isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "tlsCertificateId" in value;
+    isInstance = isInstance && "jwtKeyCertPolicyId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
+    isInstance = isInstance && "azureAcrImageRef" in value;
 
     return isInstance;
 }
@@ -75,9 +90,11 @@ export function AgentConfigServerFieldsFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'env': AgentConfigServerEnvFromJSON(json['env']),
+        'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
         'tlsCertificateId': json['tlsCertificateId'],
+        'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageTag': !exists(json, 'imageTag') ? undefined : json['imageTag'],
+        'azureAcrImageRef': json['azureAcrImageRef'],
     };
 }
 
@@ -91,9 +108,11 @@ export function AgentConfigServerFieldsToJSON(value?: AgentConfigServerFields | 
     return {
         
         'env': AgentConfigServerEnvToJSON(value.env),
+        'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
         'tlsCertificateId': value.tlsCertificateId,
+        'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageTag': value.imageTag,
+        'azureAcrImageRef': value.azureAcrImageRef,
     };
 }
 

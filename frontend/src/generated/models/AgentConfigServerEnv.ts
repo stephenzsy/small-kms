@@ -24,7 +24,19 @@ export interface AgentConfigServerEnv {
      * @type {string}
      * @memberof AgentConfigServerEnv
      */
+    message: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServerEnv
+     */
     aZUREKEYVAULTRESOURCEENDPOINT: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentConfigServerEnv
+     */
+    aZUREACRIMAGEREPOSITORY: string;
 }
 
 /**
@@ -32,7 +44,9 @@ export interface AgentConfigServerEnv {
  */
 export function instanceOfAgentConfigServerEnv(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "message" in value;
     isInstance = isInstance && "aZUREKEYVAULTRESOURCEENDPOINT" in value;
+    isInstance = isInstance && "aZUREACRIMAGEREPOSITORY" in value;
 
     return isInstance;
 }
@@ -47,7 +61,9 @@ export function AgentConfigServerEnvFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
+        'message': json['_message'],
         'aZUREKEYVAULTRESOURCEENDPOINT': json['AZURE_KEYVAULT_RESOURCEENDPOINT'],
+        'aZUREACRIMAGEREPOSITORY': json['AZURE_ACR_IMAGE_REPOSITORY'],
     };
 }
 
@@ -60,7 +76,9 @@ export function AgentConfigServerEnvToJSON(value?: AgentConfigServerEnv | null):
     }
     return {
         
+        '_message': value.message,
         'AZURE_KEYVAULT_RESOURCEENDPOINT': value.aZUREKEYVAULTRESOURCEENDPOINT,
+        'AZURE_ACR_IMAGE_REPOSITORY': value.aZUREACRIMAGEREPOSITORY,
     };
 }
 

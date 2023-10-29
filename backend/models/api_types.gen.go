@@ -4,22 +4,11 @@
 package models
 
 import (
-	"time"
-
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
-// Defines values for PatchServiceConfigParamsConfigPath.
-const (
-	ServiceConfigPathAppRoleIds             PatchServiceConfigParamsConfigPath = "appRoleIds"
-	ServiceConfigPathAzureContainerRegistry PatchServiceConfigParamsConfigPath = "azureContainerRegistry"
-	ServiceConfigPathAzureSubscriptionId    PatchServiceConfigParamsConfigPath = "azureSubscriptionId"
-	ServiceConfigPathKeyvaultArmResourceId  PatchServiceConfigParamsConfigPath = "keyvaultArmResourceId"
 )
 
 // AgentProxyEndpoint defines model for AgentProxyEndpoint.
@@ -43,46 +32,6 @@ type AzureRoleAssignment struct {
 	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
 }
 
-// ServiceConfig defines model for ServiceConfig.
-type ServiceConfig struct {
-	AppRoleIds struct {
-		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
-		AppAdmin        openapi_types.UUID `json:"App.Admin"`
-	} `json:"appRoleIds"`
-	AzureContainerRegistry struct {
-		ArmResourceId string `json:"armResourceId"`
-		LoginServer   string `json:"loginServer"`
-		Name          string `json:"name"`
-	} `json:"azureContainerRegistry"`
-	AzureSubscriptionId string `json:"azureSubscriptionId"`
-
-	// Deleted Time when the deleted was deleted
-	Deleted               *time.Time                   `json:"deleted,omitempty"`
-	Id                    externalRef0.Identifier      `json:"id"`
-	KeyvaultArmResourceId string                       `json:"keyvaultArmResourceId"`
-	Locator               externalRef0.ResourceLocator `json:"locator"`
-	Metadata              map[string]interface{}       `json:"metadata,omitempty"`
-
-	// Updated Time when the resoruce was last updated
-	Updated   *time.Time `json:"updated,omitempty"`
-	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// ServiceConfigFields defines model for ServiceConfigFields.
-type ServiceConfigFields struct {
-	AppRoleIds struct {
-		AgentActiveHost openapi_types.UUID `json:"Agent.ActiveHost"`
-		AppAdmin        openapi_types.UUID `json:"App.Admin"`
-	} `json:"appRoleIds"`
-	AzureContainerRegistry struct {
-		ArmResourceId string `json:"armResourceId"`
-		LoginServer   string `json:"loginServer"`
-		Name          string `json:"name"`
-	} `json:"azureContainerRegistry"`
-	AzureSubscriptionId   string `json:"azureSubscriptionId"`
-	KeyvaultArmResourceId string `json:"keyvaultArmResourceId"`
-}
-
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
@@ -98,12 +47,6 @@ type NamespaceKindParameter = externalRef0.NamespaceKind
 // AgentConfigurationResponse defines model for AgentConfigurationResponse.
 type AgentConfigurationResponse = externalRef0.AgentConfiguration
 
-// PatchServiceConfigJSONBody defines parameters for PatchServiceConfig.
-type PatchServiceConfigJSONBody = interface{}
-
-// PatchServiceConfigParamsConfigPath defines parameters for PatchServiceConfig.
-type PatchServiceConfigParamsConfigPath string
-
 // GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
 type GetAgentConfigurationParams struct {
 	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
@@ -117,9 +60,6 @@ type AddKeyVaultRoleAssignmentParams struct {
 
 // ProvisionAgentProfileJSONRequestBody defines body for ProvisionAgentProfile for application/json ContentType.
 type ProvisionAgentProfileJSONRequestBody = externalRef0.AgentProfileParameters
-
-// PatchServiceConfigJSONRequestBody defines body for PatchServiceConfig for application/json ContentType.
-type PatchServiceConfigJSONRequestBody = PatchServiceConfigJSONBody
 
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
 type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration

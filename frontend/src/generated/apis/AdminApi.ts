@@ -17,7 +17,7 @@ import * as runtime from '../runtime';
 import type {
   AgentConfigName,
   AgentConfigServer,
-  AgentConfigServerParameters,
+  AgentConfigServerFields,
   AgentConfiguration,
   AgentConfigurationParameters,
   AgentProfile,
@@ -39,7 +39,6 @@ import type {
   ProfileRef,
   RequestDiagnostics,
   ResourceKind,
-  ServiceConfig,
   SystemAppName,
 } from '../models/index';
 import {
@@ -47,8 +46,8 @@ import {
     AgentConfigNameToJSON,
     AgentConfigServerFromJSON,
     AgentConfigServerToJSON,
-    AgentConfigServerParametersFromJSON,
-    AgentConfigServerParametersToJSON,
+    AgentConfigServerFieldsFromJSON,
+    AgentConfigServerFieldsToJSON,
     AgentConfigurationFromJSON,
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
@@ -91,8 +90,6 @@ import {
     RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
-    ServiceConfigFromJSON,
-    ServiceConfigToJSON,
     SystemAppNameFromJSON,
     SystemAppNameToJSON,
 } from '../models/index';
@@ -213,11 +210,6 @@ export interface ListProfilesRequest {
     profileResourceKind: ResourceKind;
 }
 
-export interface PatchServiceConfigRequest {
-    configPath: PatchServiceConfigConfigPathEnum;
-    body: any | null;
-}
-
 export interface ProvisionAgentProfileRequest {
     namespaceId: string;
     agentProfileParameters: AgentProfileParameters;
@@ -226,7 +218,7 @@ export interface ProvisionAgentProfileRequest {
 export interface PutAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
-    agentConfigServerParameters: AgentConfigServerParameters;
+    agentConfigServerFields: AgentConfigServerFields;
 }
 
 export interface PutAgentConfigurationRequest {
@@ -1018,40 +1010,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get service config
-     */
-    async getServiceConfigRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/service/config`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ServiceConfigFromJSON(jsonValue));
-    }
-
-    /**
-     * Get service config
-     */
-    async getServiceConfig(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
-        const response = await this.getServiceConfigRaw(initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Get system app
      */
     async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
@@ -1338,51 +1296,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update service config
-     */
-    async patchServiceConfigRaw(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ServiceConfig>> {
-        if (requestParameters.configPath === null || requestParameters.configPath === undefined) {
-            throw new runtime.RequiredError('configPath','Required parameter requestParameters.configPath was null or undefined when calling patchServiceConfig.');
-        }
-
-        if (requestParameters.body === null || requestParameters.body === undefined) {
-            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling patchServiceConfig.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/service/config/{configPath}`.replace(`{${"configPath"}}`, encodeURIComponent(String(requestParameters.configPath))),
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters.body as any,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ServiceConfigFromJSON(jsonValue));
-    }
-
-    /**
-     * Update service config
-     */
-    async patchServiceConfig(requestParameters: PatchServiceConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ServiceConfig> {
-        const response = await this.patchServiceConfigRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Provision agent
      */
     async provisionAgentProfileRaw(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProfile>> {
@@ -1439,8 +1352,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putAgentConfigServer.');
         }
 
-        if (requestParameters.agentConfigServerParameters === null || requestParameters.agentConfigServerParameters === undefined) {
-            throw new runtime.RequiredError('agentConfigServerParameters','Required parameter requestParameters.agentConfigServerParameters was null or undefined when calling putAgentConfigServer.');
+        if (requestParameters.agentConfigServerFields === null || requestParameters.agentConfigServerFields === undefined) {
+            throw new runtime.RequiredError('agentConfigServerFields','Required parameter requestParameters.agentConfigServerFields was null or undefined when calling putAgentConfigServer.');
         }
 
         const queryParameters: any = {};
@@ -1462,7 +1375,7 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: AgentConfigServerParametersToJSON(requestParameters.agentConfigServerParameters),
+            body: AgentConfigServerFieldsToJSON(requestParameters.agentConfigServerFields),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigServerFromJSON(jsonValue));
@@ -1855,14 +1768,3 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
 }
-
-/**
- * @export
- */
-export const PatchServiceConfigConfigPathEnum = {
-    ServiceConfigPathAzureSubscriptionId: 'azureSubscriptionId',
-    ServiceConfigPathKeyvaultArmResourceId: 'keyvaultArmResourceId',
-    ServiceConfigPathAppRoleIds: 'appRoleIds',
-    ServiceConfigPathAzureContainerRegistry: 'azureContainerRegistry'
-} as const;
-export type PatchServiceConfigConfigPathEnum = typeof PatchServiceConfigConfigPathEnum[keyof typeof PatchServiceConfigConfigPathEnum];

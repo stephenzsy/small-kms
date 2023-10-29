@@ -20,7 +20,6 @@ type (
 
 	agentConfigServerComposed struct {
 		AgentConfig
-		AgentConfigServerParameters
 		AgentConfigServerFields
 	}
 )

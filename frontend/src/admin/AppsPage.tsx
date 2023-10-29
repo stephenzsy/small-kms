@@ -232,6 +232,9 @@ export default function ManagedAppsPage() {
         <div className="space-y-4">
           <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameAPI} />
           <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameBackend} />
+          <Link className="block" to={`/app/system/default/provision-agent`}>
+            Agent global configurations
+          </Link>
         </div>
       </Card>
       <Card title="Managed applications">

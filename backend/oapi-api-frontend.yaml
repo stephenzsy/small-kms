@@ -218,54 +218,6 @@ paths:
         204:
           description: List keyvault roles assignments response
           content: {}
-  /v3/service/config:
-    get:
-      tags:
-        - admin
-      summary: Get service config
-      operationId: GetServiceConfig
-      responses:
-        200:
-          description: ServiceConfig
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ServiceConfig"
-  /v3/service/config/{configPath}:
-    patch:
-      tags:
-        - admin
-      parameters:
-        - in: path
-          name: configPath
-          schema:
-            title: ServiceConfigPath
-            type: string
-            enum:
-              - azureSubscriptionId
-              - keyvaultArmResourceId
-              - appRoleIds
-              - azureContainerRegistry
-            x-enum-varnames:
-              - ServiceConfigPathAzureSubscriptionId
-              - ServiceConfigPathKeyvaultArmResourceId
-              - ServiceConfigPathAppRoleIds
-              - ServiceConfigPathAzureContainerRegistry
-          required: true
-      summary: Update service config
-      operationId: PatchServiceConfig
-      requestBody:
-        content:
-          application/json:
-            schema: {}
-        required: true
-      responses:
-        200:
-          description: ServiceConfig
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ServiceConfig"
 components:
   securitySchemes:
     BearerAuth:
@@ -347,49 +299,6 @@ components:
         - radiusServer
       x-enum-varnames:
         - AgentHostRoleRadiusServer
-    ServiceConfig:
-      allOf:
-        - $ref: "oapi-shared.yaml#/components/schemas/ResourceRef"
-        - $ref: "#/components/schemas/ServiceConfigFields"
-    ServiceConfigFields:
-      type: object
-      properties:
-        azureSubscriptionId:
-          type: string
-        keyvaultArmResourceId:
-          type: string
-        appRoleIds:
-          type: object
-          title: ServiceConfigAppRoleIds
-          properties:
-            "App.Admin":
-              type: string
-              format: uuid
-            "Agent.ActiveHost":
-              type: string
-              format: uuid
-          required:
-            - "App.Admin"
-            - "Agent.ActiveHost"
-        azureContainerRegistry:
-          title: ServiceConfigAcrInfo
-          type: object
-          properties:
-            loginServer:
-              type: string
-            name:
-              type: string
-            armResourceId:
-              type: string
-          required:
-            - loginServer
-            - name
-            - armResourceId
-      required:
-        - azureSubscriptionId
-        - keyvaultArmResourceId
-        - appRoleIds
-        - azureContainerRegistry
   parameters:
     AgentConfigNameParameter:
       in: path

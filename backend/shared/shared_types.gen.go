@@ -83,7 +83,6 @@ const (
 	NamespaceKindManagedApp       NamespaceKind = "managed-app"
 	NamespaceKindProfile          NamespaceKind = "profile"
 	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
-	NamespaceKindSystem           NamespaceKind = "sys"
 	NamespaceKindUser             NamespaceKind = "user"
 )
 

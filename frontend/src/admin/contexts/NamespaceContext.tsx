@@ -5,10 +5,15 @@ import {
   NamespaceKind,
 } from "../../generated";
 
-export const NamespaceContext = React.createContext<{
+export type NamespaceContextValue = {
   namespaceKind: NamespaceKind;
   namespaceIdentifier: string;
-}>({ namespaceKind: "" as never, namespaceIdentifier: "" as never });
+};
+
+export const NamespaceContext = React.createContext<NamespaceContextValue>({
+  namespaceKind: "" as never,
+  namespaceIdentifier: "" as never,
+});
 
 type NamespaceConfigContextValue = {
   issuer: CertificateRuleIssuer | undefined;

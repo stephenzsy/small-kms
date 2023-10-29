@@ -340,7 +340,6 @@ components:
     NamespaceKind:
       type: string
       enum:
-        - sys
         - profile
         - ca-root
         - ca-int
@@ -351,7 +350,6 @@ components:
         - application
         - managed-app
       x-enum-varnames:
-        - NamespaceKindSystem
         - NamespaceKindProfile
         - NamespaceKindCaRoot
         - NamespaceKindCaInt

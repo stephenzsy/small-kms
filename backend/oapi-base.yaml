@@ -51,11 +51,13 @@ components:
     NamespaceKind:
       type: string
       enum:
+        - sys
         - profile
         - root-ca
         - int-ca
         - service-principal
       x-enum-varnames:
+        - NamespaceKindSystem
         - NamespaceKindProfile
         - NamespaceKindRootCA
         - NamespaceKindIntermediateCA

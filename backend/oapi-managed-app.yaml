@@ -124,7 +124,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AgentConfigServerParameters"
+              $ref: "#/components/schemas/AgentConfigServerFields"
       responses:
         200:
           description: OK
@@ -200,49 +200,53 @@ components:
     AgentConfigServer:
       allOf:
         - $ref: "#/components/schemas/AgentConfig"
-        - $ref: "#/components/schemas/AgentConfigServerParameters"
         - $ref: "#/components/schemas/AgentConfigServerFields"
         - x-go-type: agentConfigServerComposed
     AgentConfigServerEnv:
       description: Environment variables for the agent config server, must be set manually
       type: object
       properties:
+        _message:
+          type: string
         AZURE_KEYVAULT_RESOURCEENDPOINT:
           type: string
+          x-go-name: EnvVarAzureKeyVaultResourceEndpoint
+        AZURE_ACR_IMAGE_REPOSITORY:
+          type: string
+          x-go-name: EnvVarAzureContainerRegistryImageRepository
       required:
+        - _message
         - AZURE_KEYVAULT_RESOURCEENDPOINT
+        - AZURE_ACR_IMAGE_REPOSITORY
     AgentConfigServerFields:
       type: object
       properties:
         env:
           $ref: "#/components/schemas/AgentConfigServerEnv"
+        tlsCertificatePolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          x-go-name: TLSCertificatePolicyID
         tlsCertificateId:
           $ref: "oapi-base.yaml#/components/schemas/Identifier"
           x-go-name: TLSCertificateID
+        jwtKeyCertPolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+          x-go-name: JWKPolicyID
         jwtKeyCertIds:
           type: array
           items:
             $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
           x-go-name: JWTKeyCertIDs
-        imageTag:
+        azureAcrImageRef:
           type: string
+          x-go-name: AzureACRImageRef
       required:
         - env
-        - tlsCertificateId
-        - jwtKeyCertIds
-        - imageTag
-    AgentConfigServerParameters:
-      type: object
-      properties:
-        tlsCertificatePolicyId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
-          x-go-name: TLSCertificatePolicyID
-        jwtKeyCertPolicyId:
-          $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
-          x-go-name: JWKPolicyID
-      required:
         - tlsCertificatePolicyId
+        - tlsCertificateId
         - jwtKeyCertPolicyId
+        - jwtKeyCertIds
+        - azureAcrImageRef
   parameters:
     ManagedAppIdParameter:
       in: path

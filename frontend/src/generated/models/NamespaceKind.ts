@@ -18,6 +18,7 @@
  * @export
  */
 export const NamespaceKind = {
+    NamespaceKindSystem: 'sys',
     NamespaceKindProfile: 'profile',
     NamespaceKindRootCA: 'root-ca',
     NamespaceKindIntermediateCA: 'int-ca',

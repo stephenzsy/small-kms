@@ -3,7 +3,6 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 import { ManagedAppContextProvider } from "./admin/contexts/ManagedAppContext";
 import { NamespaceContextRouteProvider } from "./admin/contexts/NamespaceContextRouteProvider";
 import { AdminLayout } from "./admin/Layout";
-import AdminPage from "./admin/Page";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
@@ -11,13 +10,8 @@ import { RouteIds } from "./route-constants";
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 
 const MainPage = React.lazy(() => import("./MainPage"));
-const AdminEnrollPage = React.lazy(() => import("./admin/AdminEnroll"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
-const ServicePage = React.lazy(() => import("./service/Page"));
-const AgentDashboardPage = React.lazy(
-  () => import("./admin/AgentDashboardPage")
-);
 const AppsPage = React.lazy(() => import("./admin/AppsPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
@@ -61,6 +55,10 @@ export const router = createBrowserRouter([
                     <ManagedAppPage isSystemApp />
                   </ManagedAppContextProvider>
                 ),
+              },
+              {
+                path: "system/default/provision-agent",
+                element: <ProvisionAgentPage isGlobalConfig />,
               },
               {
                 path: "managed/:appId",
@@ -118,41 +116,6 @@ export const router = createBrowserRouter([
                     element: <CertificatePage />,
                   },
                 ],
-              },
-            ],
-          },
-          {
-            path: "admin",
-            id: RouteIds.admin,
-            element: <Outlet />,
-            children: [
-              { index: true, element: <AdminPage /> },
-              {
-                path: ":profileType",
-                children: [
-                  {
-                    path: ":namespaceId",
-                    element: (
-                      <NamespaceContextRouteProvider>
-                        <Outlet />
-                      </NamespaceContextRouteProvider>
-                    ),
-                    children: [
-                      {
-                        path: "agent",
-                        element: <AgentDashboardPage />,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                path: "settings",
-                element: <ServicePage />,
-              },
-              {
-                path: "enroll",
-                element: <AdminEnrollPage />,
               },
             ],
           },

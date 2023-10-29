@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 
-import { useRequest } from "ahooks";
+import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Form, Input, Select, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { DefaultOptionType } from "antd/es/select";
@@ -8,18 +8,21 @@ import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
   AgentConfigName,
-  AgentConfigServerParameters,
+  AgentConfigServerFields,
   AgentConfigServerToJSON,
   AgentConfigurationAgentActiveHostBootstrapToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
   CertPolicyRef,
-  NamespaceKind1 as NamespaceKind,
+  NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useCertPolicies } from "./CertPolicyRefTable";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
-import { NamespaceContext } from "./contexts/NamespaceContext";
+import {
+  NamespaceContext,
+  NamespaceContextValue,
+} from "./contexts/NamespaceContext";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -172,7 +175,7 @@ export function AgentConfigurationForm({
       </CardSection>*/
 }
 
-type AgentServerConfigFormState = AgentConfigServerParameters & {};
+type AgentServerConfigFormState = Partial<AgentConfigServerFields> & {};
 
 function useCertPolicyOptions(
   certPolicies: CertPolicyRef[] | undefined
@@ -183,7 +186,11 @@ function useCertPolicyOptions(
   }));
 }
 
-function AgentConfigServerFormCard() {
+function AgentConfigServerFormCard({
+  isGlobalConfig,
+}: {
+  isGlobalConfig: boolean;
+}) {
   const [form] = useForm<AgentServerConfigFormState>();
   const certPolicies = useCertPolicies();
   const certPolicyOptions = useCertPolicyOptions(certPolicies);
@@ -191,10 +198,10 @@ function AgentConfigServerFormCard() {
 
   const api = useAuthedClient(AdminApi);
   const { data, run } = useRequest(
-    (params?: AgentConfigServerParameters) => {
+    (params?: Partial<AgentConfigServerFields>) => {
       if (params) {
         return api.putAgentConfigServer({
-          agentConfigServerParameters: params,
+          agentConfigServerFields: params as AgentConfigServerFields,
           namespaceKind,
           namespaceIdentifier,
         });
@@ -214,7 +221,16 @@ function AgentConfigServerFormCard() {
     if (data) {
       form.setFieldsValue(data);
     }
-  }, [data])
+  }, [data]);
+
+  const setCurrentBuildTag = useMemoizedFn(async () => {
+    const tag = (await api.getDiagnostics()).serviceRuntime.buildId.split(
+      "\\."
+    )[0];
+    const currentValue = form.getFieldValue("azureAcrImageRef");
+    const currentPrfix = currentValue.split(":")[0];
+    form.setFieldValue("azureAcrImageRef", `${currentPrfix}:${tag}`);
+  });
 
   return (
     <Card title="Agent server configuration">
@@ -229,20 +245,40 @@ function AgentConfigServerFormCard() {
           run(values);
         }}
       >
-        <Form.Item<AgentServerConfigFormState>
-          name="tlsCertificatePolicyId"
-          label="Select server TLS certificate policy"
-          required
-        >
-          <Select options={certPolicyOptions} />
-        </Form.Item>
-        <Form.Item<AgentServerConfigFormState>
-          name="jwtKeyCertPolicyId"
-          label="Json web token key certificate policy"
-          required
-        >
-          <Input />
-        </Form.Item>
+        {isGlobalConfig && (
+          <Form.Item<AgentServerConfigFormState>
+            name="azureAcrImageRef"
+            label={
+              <span>
+                Azure Container Registry image Reference{" "}
+                <Button type="link" onClick={setCurrentBuildTag}>
+                  Use current build tag
+                </Button>
+              </span>
+            }
+            required
+          >
+            <Input placeholder="example.com/image:latest" />
+          </Form.Item>
+        )}
+        {!isGlobalConfig && (
+          <Form.Item<AgentServerConfigFormState>
+            name="tlsCertificatePolicyId"
+            label="Select server TLS certificate policy"
+            required
+          >
+            <Select options={certPolicyOptions} />
+          </Form.Item>
+        )}
+        {!isGlobalConfig && (
+          <Form.Item<AgentServerConfigFormState>
+            name="jwtKeyCertPolicyId"
+            label="Json web token key certificate policy"
+            required
+          >
+            <Input />
+          </Form.Item>
+        )}
         <Form.Item>
           <Button htmlType="submit" type="primary">
             Submit
@@ -253,21 +289,34 @@ function AgentConfigServerFormCard() {
   );
 }
 
-export default function ProvisionAgentPage() {
+export default function ProvisionAgentPage({
+  isGlobalConfig = false,
+}: {
+  isGlobalConfig?: boolean;
+}) {
   const { managedApp } = useContext(ManagedAppContext);
+  const nsCtxValue: NamespaceContextValue = useMemo(
+    () =>
+      isGlobalConfig
+        ? {
+            namespaceKind: NamespaceKind.NamespaceKindSystem,
+            namespaceIdentifier: "default",
+          }
+        : {
+            namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
+            namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
+          },
+    [isGlobalConfig, managedApp]
+  );
   return (
     <>
       <Typography.Title>
-        Provision agent: {managedApp?.displayName}
+        Provision agent:{" "}
+        {isGlobalConfig ? "Global configuration" : managedApp?.displayName}
       </Typography.Title>
 
-      <NamespaceContext.Provider
-        value={{
-          namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
-          namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
-        }}
-      >
-        <AgentConfigServerFormCard />
+      <NamespaceContext.Provider value={nsCtxValue}>
+        <AgentConfigServerFormCard isGlobalConfig={isGlobalConfig} />
       </NamespaceContext.Provider>
     </>
   );

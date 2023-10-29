@@ -7,7 +7,6 @@ models/AgentConfigName.ts
 models/AgentConfigServer.ts
 models/AgentConfigServerEnv.ts
 models/AgentConfigServerFields.ts
-models/AgentConfigServerParameters.ts
 models/AgentConfiguration.ts
 models/AgentConfigurationActiveHostControllerContainer.ts
 models/AgentConfigurationAgentActiveHostBootstrap.ts
@@ -61,10 +60,6 @@ models/RequestHeaderEntry.ts
 models/ResourceKind.ts
 models/ResourceRef.ts
 models/ResourceReference.ts
-models/ServiceConfig.ts
-models/ServiceConfigAcrInfo.ts
-models/ServiceConfigAppRoleIds.ts
-models/ServiceConfigFields.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts
