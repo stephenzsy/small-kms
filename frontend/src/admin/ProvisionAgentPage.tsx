@@ -1,22 +1,24 @@
 import { useContext, useMemo, useState } from "react";
 
-import { Card, Form, Select, Typography } from "antd";
+import { useRequest } from "ahooks";
+import { Button, Card, Form, Input, Select, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
+import { DefaultOptionType } from "antd/es/select";
+import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
   AgentConfigName,
+  AgentConfigServerParameters,
   AgentConfigurationAgentActiveHostBootstrapToJSON,
-  AgentConfigurationAgentActiveServerToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
   CertPolicyRef,
   NamespaceKind1 as NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
+import { useCertPolicies } from "./CertPolicyRefTable";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { useCertPolicies } from "./CertPolicyRefTable";
-import { DefaultOptionType } from "antd/es/select";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -48,16 +50,16 @@ function useConfigurationSkeleton(
           2
         );
       case AgentConfigName.AgentConfigNameActiveServer:
-        return JSON.stringify(
-          AgentConfigurationAgentActiveServerToJSON({
-            name: configName,
-            authorizedCertificateTemplateId:
-              "00000000-0000-0000-0000-000000000000",
-            serverCertificateTemplateId: `cert-template:default-mtls`,
-          }),
-          undefined,
-          2
-        );
+        // return JSON.stringify(
+        //   AgentConfigurationAgentActiveServerToJSON({
+        //     name: configName,
+        //     authorizedCertificateTemplateId:
+        //       "00000000-0000-0000-0000-000000000000",
+        //     serverCertificateTemplateId: `cert-template:default-mtls`,
+        //   }),
+        //   undefined,
+        //   2
+        // );
     }
     return "";
   }, [configName, nsId]);
@@ -169,9 +171,7 @@ export function AgentConfigurationForm({
       </CardSection>*/
 }
 
-type AgentServerConfigFormState = {
-  tlsCertPolicyId: string | undefined;
-};
+type AgentServerConfigFormState = AgentConfigServerParameters & {};
 
 function useCertPolicyOptions(
   certPolicies: CertPolicyRef[] | undefined
@@ -186,21 +186,57 @@ function AgentConfigServerFormCard() {
   const [form] = useForm<AgentServerConfigFormState>();
   const certPolicies = useCertPolicies();
   const certPolicyOptions = useCertPolicyOptions(certPolicies);
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+
+  const api = useAuthedClient(AdminApi);
+  const { data, run } = useRequest(
+    (params?: AgentConfigServerParameters) => {
+      if (params) {
+        return api.putAgentConfigServer({
+          agentConfigServerParameters: params,
+          namespaceKind,
+          namespaceIdentifier,
+        });
+      }
+      return api.getAgentConfigServer({
+        namespaceIdentifier,
+        namespaceKind,
+      });
+    },
+    { refreshDeps: [namespaceIdentifier, namespaceKind] }
+  );
 
   return (
     <Card title="Agent server configuration">
+      <div className="mb-6">
+        Current configuration:
+        <JsonDataDisplay data={data} />
+      </div>
       <Form
         form={form}
-        initialValues={{
-          tlsCertPolicyId: undefined,
-        }}
         layout="vertical"
+        onFinish={(values) => {
+          run(values);
+        }}
       >
         <Form.Item<AgentServerConfigFormState>
-          name="tlsCertPolicyId"
+          name="tlsCertificatePolicyId"
           label="Select server TLS certificate policy"
+          required
         >
           <Select options={certPolicyOptions} />
+        </Form.Item>
+        <Form.Item<AgentServerConfigFormState>
+          name="jwtKeyCertPolicyId"
+          label="Json web token key certificate policy"
+          required
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item>
+          <Button htmlType="submit" type="primary">
+            Submit
+          </Button>
         </Form.Item>
       </Form>
     </Card>

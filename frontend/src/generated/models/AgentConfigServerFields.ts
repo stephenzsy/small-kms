@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentConfigServerEnv } from './AgentConfigServerEnv';
+import {
+    AgentConfigServerEnvFromJSON,
+    AgentConfigServerEnvFromJSONTyped,
+    AgentConfigServerEnvToJSON,
+} from './AgentConfigServerEnv';
+
 /**
  * 
  * @export
  * @interface AgentConfigServerFields
  */
 export interface AgentConfigServerFields {
+    /**
+     * 
+     * @type {AgentConfigServerEnv}
+     * @memberof AgentConfigServerFields
+     */
+    env: AgentConfigServerEnv;
     /**
      * 
      * @type {string}
@@ -36,7 +49,7 @@ export interface AgentConfigServerFields {
      * @type {string}
      * @memberof AgentConfigServerFields
      */
-    imageRefStr: string;
+    imageTag?: string;
 }
 
 /**
@@ -44,9 +57,9 @@ export interface AgentConfigServerFields {
  */
 export function instanceOfAgentConfigServerFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "env" in value;
     isInstance = isInstance && "tlsCertificateId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
-    isInstance = isInstance && "imageRefStr" in value;
 
     return isInstance;
 }
@@ -61,9 +74,10 @@ export function AgentConfigServerFieldsFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
+        'env': AgentConfigServerEnvFromJSON(json['env']),
         'tlsCertificateId': json['tlsCertificateId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageRefStr': json['imageRefStr'],
+        'imageTag': !exists(json, 'imageTag') ? undefined : json['imageTag'],
     };
 }
 
@@ -76,9 +90,10 @@ export function AgentConfigServerFieldsToJSON(value?: AgentConfigServerFields | 
     }
     return {
         
+        'env': AgentConfigServerEnvToJSON(value.env),
         'tlsCertificateId': value.tlsCertificateId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageRefStr': value.imageRefStr,
+        'imageTag': value.imageTag,
     };
 }
 

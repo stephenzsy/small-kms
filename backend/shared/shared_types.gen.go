@@ -140,18 +140,6 @@ type AgentConfigurationAgentActiveHostBootstrap struct {
 	Name                AgentConfigName                                 `json:"name"`
 }
 
-// AgentConfigurationAgentActiveServer defines model for AgentConfigurationAgentActiveServer.
-type AgentConfigurationAgentActiveServer struct {
-	// AuthorizedCertificateIds (Read-only)
-	AuthorizedCertificateIds        []Identifier                                     `json:"authorizedCertificateIds,omitempty"`
-	AuthorizedCertificateTemplateId *Identifier                                      `json:"authorizedCertificateTemplateId,omitempty"`
-	EndpointUrls                    *AgentConfigurationAgentActiveServerEndpointUrls `json:"endpointUrls,omitempty"`
-	Name                            AgentConfigName                                  `json:"name"`
-	Reply                           *AgentConfigurationAgentActiveServerReply        `json:"reply,omitempty"`
-	ServerCertificateId             *Identifier                                      `json:"serverCertificateId,omitempty"`
-	ServerCertificateTemplateId     *Identifier                                      `json:"serverCertificateTemplateId,omitempty"`
-}
-
 // AgentConfigurationAgentActiveServerEndpointUrls defines model for AgentConfigurationAgentActiveServerEndpointUrls.
 type AgentConfigurationAgentActiveServerEndpointUrls struct {
 	Primary   *string `json:"primary,omitempty"`
@@ -299,18 +287,6 @@ type NamespaceIdentifier = identifierWithKind[NamespaceKind]
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
 
-// RequestDiagnostics defines model for RequestDiagnostics.
-type RequestDiagnostics struct {
-	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
-	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
-}
-
-// RequestHeaderEntry defines model for RequestHeaderEntry.
-type RequestHeaderEntry struct {
-	Key   string   `json:"key"`
-	Value []string `json:"value"`
-}
-
 // ResourceIdentifier defines model for ResourceIdentifier.
 type ResourceIdentifier = identifierWithKind[ResourceKind]
 
@@ -331,12 +307,6 @@ type ResourceRef struct {
 	// Updated Time when the resoruce was last updated
 	Updated   *time.Time `json:"updated,omitempty"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
-type ServiceRuntimeInfo struct {
-	BuildID   string `json:"buildId"`
-	GoVersion string `json:"goVersion"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
@@ -380,34 +350,6 @@ func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveHostBoo
 	return err
 }
 
-// AsAgentConfigurationAgentActiveServer returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveServer
-func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveServer() (AgentConfigurationAgentActiveServer, error) {
-	var body AgentConfigurationAgentActiveServer
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAgentConfigurationAgentActiveServer overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveServer
-func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
-	v.Name = "agent-active-server"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAgentConfigurationAgentActiveServer performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveServer
-func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveServer(v AgentConfigurationAgentActiveServer) error {
-	v.Name = "agent-active-server"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
 func (t AgentConfigurationParameters) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"name"`
@@ -424,8 +366,6 @@ func (t AgentConfigurationParameters) ValueByDiscriminator() (interface{}, error
 	switch discriminator {
 	case "agent-active-host-bootstrap":
 		return t.AsAgentConfigurationAgentActiveHostBootstrap()
-	case "agent-active-server":
-		return t.AsAgentConfigurationAgentActiveServer()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}

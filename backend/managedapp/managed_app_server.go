@@ -34,6 +34,18 @@ func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) erro
 	return apiGetSystemApp(c, systemAppName)
 }
 
+// GetAgentConfigServer implements ServerInterface.
+func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	return apiGetAgentConfigServer(c)
+}
+
 func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 

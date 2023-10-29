@@ -103,30 +103,6 @@ components:
           type: string
       required:
         - imageRefStr
-    AgentConfigurationAgentActiveServer:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/AgentConfigName"
-        endpointUrls:
-          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerEndpointUrls"
-        serverCertificateTemplateId:
-          $ref: "#/components/schemas/Identifier"
-        authorizedCertificateTemplateId:
-          $ref: "#/components/schemas/Identifier"
-        serverCertificateId:
-          description: (Read-only)
-          $ref: "#/components/schemas/Identifier"
-        authorizedCertificateIds:
-          type: array
-          description: (Read-only)
-          x-go-type-skip-optional-pointer: true
-          items:
-            $ref: "#/components/schemas/Identifier"
-        reply:
-          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerReply"
-      required:
-        - name
     AgentConfigurationAgentActiveServerEndpointUrls:
       type: object
       properties:
@@ -160,12 +136,10 @@ components:
     AgentConfigurationParameters:
       oneOf:
         - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-        - $ref: "#/components/schemas/AgentConfigurationAgentActiveServer"
       discriminator:
         propertyName: name
         mapping:
           agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-          agent-active-server: "#/components/schemas/AgentConfigurationAgentActiveServer"
     CertificateFingerprint:
       type: string
       x-go-type: certificateFingerprintImpl
@@ -387,30 +361,6 @@ components:
         - NamespaceKindUser
         - NamespaceKindApplication
         - NamespaceKindManagedApp
-    RequestDiagnostics:
-      type: object
-      properties:
-        requestHeaders:
-          type: array
-          items:
-            $ref: "#/components/schemas/RequestHeaderEntry"
-        serviceRuntime:
-          $ref: "#/components/schemas/ServiceRuntimeInfo"
-      required:
-        - requestHeaders
-        - serviceRuntime
-    RequestHeaderEntry:
-      type: object
-      properties:
-        key:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-      required:
-        - key
-        - value
     ResourceIdentifier:
       type: string
       x-go-type: identifierWithKind[ResourceKind]
@@ -465,17 +415,6 @@ components:
       required:
         - id
         - locator
-    ServiceRuntimeInfo:
-      type: object
-      properties:
-        goVersion:
-          type: string
-        buildId:
-          type: string
-          x-go-name: BuildID
-      required:
-        - goVersion
-        - buildId
     SubjectAlternativeNames:
       type: object
       properties:

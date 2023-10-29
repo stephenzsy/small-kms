@@ -10,6 +10,8 @@ security:
 paths:
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1enroll-cert"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server"
 components:
   securitySchemes:
     BearerAuth:
@@ -21,3 +23,5 @@ components:
       $ref: "oapi-cert.yaml#/components/schemas/EnrollCertificateRequest"
     Certificate:
       $ref: "oapi-cert.yaml#/components/schemas/Certificate"
+    AgentConfigServer:
+      $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigServer"

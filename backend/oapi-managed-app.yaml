@@ -101,6 +101,19 @@ paths:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+        - agentclient
+      operationId: GetAgentConfigServer
+      summary: Get agent config server
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConfigServer"
     put:
       tags:
         - admin
@@ -190,9 +203,19 @@ components:
         - $ref: "#/components/schemas/AgentConfigServerParameters"
         - $ref: "#/components/schemas/AgentConfigServerFields"
         - x-go-type: agentConfigServerComposed
+    AgentConfigServerEnv:
+      description: Environment variables for the agent config server, must be set manually
+      type: object
+      properties:
+        AZURE_KEYVAULT_RESOURCEENDPOINT:
+          type: string
+      required:
+        - AZURE_KEYVAULT_RESOURCEENDPOINT
     AgentConfigServerFields:
       type: object
       properties:
+        env:
+          $ref: "#/components/schemas/AgentConfigServerEnv"
         tlsCertificateId:
           $ref: "oapi-base.yaml#/components/schemas/Identifier"
           x-go-name: TLSCertificateID
@@ -201,9 +224,10 @@ components:
           items:
             $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
           x-go-name: JWTKeyCertIDs
-        imageRefStr:
+        imageTag:
           type: string
       required:
+        - env
         - tlsCertificateId
         - jwtKeyCertIds
         - imageRefStr
@@ -216,12 +240,9 @@ components:
         jwtKeyCertPolicyId:
           $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
           x-go-name: JWKPolicyID
-        imageRefPrefix:
-          type: string
       required:
         - tlsCertificatePolicyId
         - jwtKeyCertPolicyId
-        - imageRefPrefix
   parameters:
     ManagedAppIdParameter:
       in: path

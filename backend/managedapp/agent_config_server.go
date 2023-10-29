@@ -1,6 +1,7 @@
 package managedapp
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -31,6 +32,24 @@ func (d *AgentConfigServerDoc) PopulateModel(m *AgentConfigServer) {
 	m.TlsCertificateId = d.TLSCertificateID
 	m.JwtKeyCertPolicyId = d.JWTKeyCertPolicyID
 	m.JWTKeyCertIDs = d.JWTKeyCertIDs
+}
+
+func apiGetAgentConfigServer(c ctx.RequestContext) error {
+	nsCtx := ns.GetNSContext(c)
+
+	doc := &AgentConfigServerDoc{}
+
+	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocFullIdentifier(nsCtx.Kind(),
+		nsCtx.Identifier(), base.ResourceKindNamespaceConfig, base.StringIdentifier(string(base.AgentConfigNameServer))), doc, nil); err != nil {
+		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
+			return fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
+		}
+		return err
+	}
+
+	m := &AgentConfigServer{}
+	doc.PopulateModel(m)
+	return c.JSON(200, m)
 }
 
 func apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfigServerParameters) error {

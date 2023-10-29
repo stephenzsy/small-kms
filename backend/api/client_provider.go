@@ -9,8 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
@@ -25,10 +23,8 @@ const (
 )
 
 type clientProvider struct {
-	azKeyvaultEndpoint   string
-	cachedKeyvaultName   string
-	azKeysClient         *azkeys.Client
-	azCertificatesClient *azcertificates.Client
+	azKeyvaultEndpoint string
+	cachedKeyvaultName string
 
 	azCosmosEndpoint             string
 	azCosmosClient               *azcosmos.Client
@@ -55,16 +51,6 @@ func (p *clientProvider) CertsAzBlobContainerClient() *azblobcontainer.Client {
 	return p.azBlobContainerClient
 }
 
-// AzCertificatesClient implements common.AdminServerClientProvider.
-func (p *clientProvider) AzCertificatesClient() *azcertificates.Client {
-	return p.azCertificatesClient
-}
-
-// AzKeysClient implements common.AdminServerClientProvider.
-func (p *clientProvider) AzKeysClient() *azkeys.Client {
-	return p.azKeysClient
-}
-
 func (p *clientProvider) AzCosmosContainerClient() *azcosmos.ContainerClient {
 	return p.azCosmosContainerClientCerts
 }
@@ -87,14 +73,6 @@ func newServerClientProvider(s *server) (p clientProvider, err error) {
 		p.cachedKeyvaultName = strings.Split(parsed.Host, ".")[0]
 	} else {
 		err = fmt.Errorf("%w: %s=%s", common.ErrInvalidEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint, p.azKeyvaultEndpoint)
-		return
-	}
-
-	if p.azKeysClient, err = azkeys.NewClient(p.azKeyvaultEndpoint, creds, nil); err != nil {
-		return
-	}
-
-	if p.azCertificatesClient, err = azcertificates.NewClient(p.azKeyvaultEndpoint, creds, nil); err != nil {
 		return
 	}
 

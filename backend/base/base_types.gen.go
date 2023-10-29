@@ -9,6 +9,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Defines values for NamespaceKind.
 const (
 	NamespaceKindIntermediateCA   NamespaceKind = "int-ca"
@@ -44,6 +48,18 @@ type NumericDate = jwt.NumericDate
 // Period defines model for Period.
 type Period = periodImpl
 
+// RequestDiagnostics defines model for RequestDiagnostics.
+type RequestDiagnostics struct {
+	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
+	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
+}
+
+// RequestHeaderEntry defines model for RequestHeaderEntry.
+type RequestHeaderEntry struct {
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
+}
+
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
@@ -57,6 +73,12 @@ type ResourceReference struct {
 
 // ResourceUniqueIdentifier defines model for ResourceUniqueIdentifier.
 type ResourceUniqueIdentifier = DocFullIdentifier
+
+// ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
+type ServiceRuntimeInfo struct {
+	BuildID   string `json:"buildId"`
+	GoVersion string `json:"goVersion"`
+}
 
 // NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.
 type NamespaceIdentifierParameter = Identifier

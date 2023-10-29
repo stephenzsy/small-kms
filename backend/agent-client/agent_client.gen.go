@@ -118,9 +118,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetDiagnostics request
-	GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AgentCallbackWithBody request with any body
 	AgentCallbackWithBody(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -128,18 +125,6 @@ type ClientInterface interface {
 
 	// GetAgentConfiguration request
 	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDiagnosticsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) AgentCallbackWithBody(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -176,33 +161,6 @@ func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind Namesp
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewGetDiagnosticsRequest generates requests for GetDiagnostics
-func NewGetDiagnosticsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v3/diagnostics")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewAgentCallbackRequest calls the generic AgentCallback builder with application/json body
@@ -394,9 +352,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetDiagnosticsWithResponse request
-	GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error)
-
 	// AgentCallbackWithBodyWithResponse request with any body
 	AgentCallbackWithBodyWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error)
 
@@ -404,28 +359,6 @@ type ClientWithResponsesInterface interface {
 
 	// GetAgentConfigurationWithResponse request
 	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
-}
-
-type GetDiagnosticsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.RequestDiagnostics
-}
-
-// Status returns HTTPResponse.Status
-func (r GetDiagnosticsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetDiagnosticsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type AgentCallbackResponse struct {
@@ -471,15 +404,6 @@ func (r GetAgentConfigurationResponse) StatusCode() int {
 	return 0
 }
 
-// GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
-func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
-	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetDiagnosticsResponse(rsp)
-}
-
 // AgentCallbackWithBodyWithResponse request with arbitrary body returning *AgentCallbackResponse
 func (c *ClientWithResponses) AgentCallbackWithBodyWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentCallbackResponse, error) {
 	rsp, err := c.AgentCallbackWithBody(ctx, namespaceKind, namespaceId, configName, contentType, body, reqEditors...)
@@ -504,32 +428,6 @@ func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetAgentConfigurationResponse(rsp)
-}
-
-// ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
-func ParseGetDiagnosticsResponse(rsp *http.Response) (*GetDiagnosticsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetDiagnosticsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.RequestDiagnostics
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseAgentCallbackResponse parses an HTTP response from a AgentCallbackWithResponse call

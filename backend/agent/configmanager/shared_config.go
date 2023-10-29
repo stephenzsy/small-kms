@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent-client"
@@ -14,7 +13,6 @@ import (
 type sharedConfig struct {
 	client             agentclient.ClientWithResponsesInterface
 	azSecretsClient    *azsecrets.Client
-	serviceRuntimeInfo shared.ServiceRuntimeInfo
 	configDir          string
 	versionedConfigDir string
 }
@@ -27,10 +25,6 @@ func (sc *sharedConfig) AzSecretesClient() *azsecrets.Client {
 	return sc.azSecretsClient
 }
 
-func (sc *sharedConfig) ServiceRuntime() *shared.ServiceRuntimeInfo {
-	return &sc.serviceRuntimeInfo
-}
-
 func (sc *sharedConfig) init(
 	buildID string,
 	client agentclient.ClientWithResponsesInterface,
@@ -39,10 +33,7 @@ func (sc *sharedConfig) init(
 ) error {
 	sc.client = client
 	sc.azSecretsClient = azSecretsClient
-	sc.serviceRuntimeInfo = shared.ServiceRuntimeInfo{
-		BuildID:   buildID,
-		GoVersion: runtime.Version(),
-	}
+
 	// ensure config dir
 	if _, err := os.Stat(configDir); err != nil {
 		return err

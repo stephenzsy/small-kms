@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentConfigServerEnv } from './AgentConfigServerEnv';
+import {
+    AgentConfigServerEnvFromJSON,
+    AgentConfigServerEnvFromJSONTyped,
+    AgentConfigServerEnvToJSON,
+} from './AgentConfigServerEnv';
+
 /**
  * 
  * @export
@@ -69,10 +76,10 @@ export interface AgentConfigServer {
     jwtKeyCertPolicyId: string;
     /**
      * 
-     * @type {string}
+     * @type {AgentConfigServerEnv}
      * @memberof AgentConfigServer
      */
-    imageRefPrefix: string;
+    env: AgentConfigServerEnv;
     /**
      * 
      * @type {string}
@@ -90,7 +97,7 @@ export interface AgentConfigServer {
      * @type {string}
      * @memberof AgentConfigServer
      */
-    imageRefStr: string;
+    imageTag?: string;
 }
 
 /**
@@ -104,10 +111,9 @@ export function instanceOfAgentConfigServer(value: object): boolean {
     isInstance = isInstance && "refreshAfter" in value;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "jwtKeyCertPolicyId" in value;
-    isInstance = isInstance && "imageRefPrefix" in value;
+    isInstance = isInstance && "env" in value;
     isInstance = isInstance && "tlsCertificateId" in value;
     isInstance = isInstance && "jwtKeyCertIds" in value;
-    isInstance = isInstance && "imageRefStr" in value;
 
     return isInstance;
 }
@@ -130,10 +136,10 @@ export function AgentConfigServerFromJSONTyped(json: any, ignoreDiscriminator: b
         'refreshAfter': (new Date(json['refreshAfter'])),
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
         'jwtKeyCertPolicyId': json['jwtKeyCertPolicyId'],
-        'imageRefPrefix': json['imageRefPrefix'],
+        'env': AgentConfigServerEnvFromJSON(json['env']),
         'tlsCertificateId': json['tlsCertificateId'],
         'jwtKeyCertIds': json['jwtKeyCertIds'],
-        'imageRefStr': json['imageRefStr'],
+        'imageTag': !exists(json, 'imageTag') ? undefined : json['imageTag'],
     };
 }
 
@@ -154,10 +160,10 @@ export function AgentConfigServerToJSON(value?: AgentConfigServer | null): any {
         'refreshAfter': (value.refreshAfter.toISOString()),
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
         'jwtKeyCertPolicyId': value.jwtKeyCertPolicyId,
-        'imageRefPrefix': value.imageRefPrefix,
+        'env': AgentConfigServerEnvToJSON(value.env),
         'tlsCertificateId': value.tlsCertificateId,
         'jwtKeyCertIds': value.jwtKeyCertIds,
-        'imageRefStr': value.imageRefStr,
+        'imageTag': value.imageTag,
     };
 }
 

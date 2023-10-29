@@ -2,12 +2,9 @@ package cm
 
 import (
 	"context"
-	"crypto/sha512"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -84,34 +81,34 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 			return fmt.Errorf("no pending fetched config slot to process: %s", p.configName)
 		}
 
-		activeServerCfg, err := pslot.configFetched.Config.AsAgentConfigurationAgentActiveServer()
-		if err != nil {
-			return err
-		}
+		// activeServerCfg, err := pslot.configFetched.Config.AsAgentConfigurationAgentActiveServer()
+		// if err != nil {
+		// 	return err
+		// }
 
 		// fetch server certificate with private key
-		bundleFilename, err := p.processCertificate(ctx, *activeServerCfg.ServerCertificateId, true)
-		if err != nil {
-			return err
-		}
+		// bundleFilename, err := p.processCertificate(ctx, *activeServerCfg.ServerCertificateId, true)
+		// if err != nil {
+		// 	return err
+		// }
 
 		readyConfig := ActiveServerReadyConfig{
-			ServerCertificateFile:                         bundleFilename,
-			AuthorizedClientCertificateFingerprintsSHA384: make([][]byte, 0, len(activeServerCfg.AuthorizedCertificateIds)),
+			// ServerCertificateFile:                         bundleFilename,
+			// AuthorizedClientCertificateFingerprintsSHA384: make([][]byte, 0, len(activeServerCfg.AuthorizedCertificateIds)),
 		}
 		// fetch authrorized client certificates
-		for _, clientCertId := range activeServerCfg.AuthorizedCertificateIds {
-			if rawCertFilename, err := p.processCertificate(ctx, clientCertId, false); err != nil {
-				return err
-			} else {
-				hash, err := getCertFingprintSHA384FromFile(rawCertFilename)
-				if err != nil {
-					return err
-				}
-				readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
-					append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash[:])
-			}
-		}
+		// for _, clientCertId := range activeServerCfg.AuthorizedCertificateIds {
+		// 	if rawCertFilename, err := p.processCertificate(ctx, clientCertId, false); err != nil {
+		// 		return err
+		// 	} else {
+		// 		hash, err := getCertFingprintSHA384FromFile(rawCertFilename)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 		readyConfig.AuthorizedClientCertificateFingerprintsSHA384 =
+		// 			append(readyConfig.AuthorizedClientCertificateFingerprintsSHA384, hash[:])
+		// 	}
+		// }
 
 		p.configCtx.setActiveConfig(readyConfig, pslot)
 		if err := p.configCtx.persistConfig(p.configDir, p.configName, true); err != nil {
@@ -125,14 +122,14 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 		return nil
 	case TaskNameConfirm:
 		params := shared.AgentConfigurationParameters{}
-		params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
-			Name: shared.AgentConfigNameActiveServer,
-			Reply: &shared.AgentConfigurationAgentActiveServerReply{
-				Listener: p.listener,
-				SlotId:   p.slotID,
-				State:    shared.AgentConfigurationAgentActiveServerReplyStateUp,
-			},
-		})
+		// params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
+		// 	Name: shared.AgentConfigNameActiveServer,
+		// 	Reply: &shared.AgentConfigurationAgentActiveServerReply{
+		// 		Listener: p.listener,
+		// 		SlotId:   p.slotID,
+		// 		State:    shared.AgentConfigurationAgentActiveServerReplyStateUp,
+		// 	},
+		// })
 		_, err := p.AgentClient().AgentCallbackWithResponse(ctx,
 			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
 			shared.AgentConfigNameActiveServer,
@@ -147,105 +144,96 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 	}
 }
 
-func getCertFingprintSHA384FromFile(filename string) ([sha512.Size384]byte, error) {
-	certBytes, err := os.ReadFile(filename)
-	if err != nil {
-		return [sha512.Size384]byte{}, err
-	}
-	block, _ := pem.Decode(certBytes)
-	return sha512.Sum384(block.Bytes), nil
-}
-
 // returns bytes of the first (chain) certificate in the chain
-func (p *activeServerProcessor) processCertificate(ctx context.Context, certID shared.Identifier, requirePrivateKey bool) (string, error) {
-	bad := func(e error) (string, error) {
-		return "", e
-	}
-	certDir := filepath.Join(p.configDir, "certs", string(p.configName), certID.String())
-	needFetch := false
-	certFilename := filepath.Join(certDir, "cert.pem")
-	keyFilename := filepath.Join(certDir, "key.pem")
-	bundleFilename := filepath.Join(certDir, "bundle.pem")
+// func (p *activeServerProcessor) processCertificate(ctx context.Context, certID shared.Identifier, requirePrivateKey bool) (string, error) {
+// 	bad := func(e error) (string, error) {
+// 		return "", e
+// 	}
+// 	certDir := filepath.Join(p.configDir, "certs", string(p.configName), certID.String())
+// 	needFetch := false
+// 	certFilename := filepath.Join(certDir, "cert.pem")
+// 	keyFilename := filepath.Join(certDir, "key.pem")
+// 	bundleFilename := filepath.Join(certDir, "bundle.pem")
 
-	var returnFilename = certFilename
-	if requirePrivateKey {
-		returnFilename = bundleFilename
-	}
+// 	var returnFilename = certFilename
+// 	if requirePrivateKey {
+// 		returnFilename = bundleFilename
+// 	}
 
-	if _, err := os.Stat(certFilename); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return bad(err)
-		}
-		needFetch = true
-	}
-	if requirePrivateKey && !needFetch {
-		if _, err := os.Stat(keyFilename); err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				return bad(err)
-			}
-			needFetch = true
-		} else if _, err := os.Stat(bundleFilename); err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				return bad(err)
-			}
-			needFetch = true
-		}
-	}
+// 	if _, err := os.Stat(certFilename); err != nil {
+// 		if !errors.Is(err, os.ErrNotExist) {
+// 			return bad(err)
+// 		}
+// 		needFetch = true
+// 	}
+// 	if requirePrivateKey && !needFetch {
+// 		if _, err := os.Stat(keyFilename); err != nil {
+// 			if !errors.Is(err, os.ErrNotExist) {
+// 				return bad(err)
+// 			}
+// 			needFetch = true
+// 		} else if _, err := os.Stat(bundleFilename); err != nil {
+// 			if !errors.Is(err, os.ErrNotExist) {
+// 				return bad(err)
+// 			}
+// 			needFetch = true
+// 		}
+// 	}
 
-	if needFetch {
-		if _, err := os.Stat(certDir); err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				return bad(err)
-			}
-			if err = os.MkdirAll(certDir, 0700); err != nil {
-				return bad(err)
-			}
-		}
-		if requirePrivateKey {
-			// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
-			// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-			// 	certID, nil)
-			// if err != nil {
-			// 	return bad(err)
-			// }
-			// kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
+// 	if needFetch {
+// 		if _, err := os.Stat(certDir); err != nil {
+// 			if !errors.Is(err, os.ErrNotExist) {
+// 				return bad(err)
+// 			}
+// 			if err = os.MkdirAll(certDir, 0700); err != nil {
+// 				return bad(err)
+// 			}
+// 		}
+// if requirePrivateKey {
+// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+// 	certID, nil)
+// if err != nil {
+// 	return bad(err)
+// }
+// kid := azsecrets.ID(*certResp.JSON200.Jwk.KeyID)
 
-			// secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
-			// if err != nil {
-			// 	return bad(err)
-			// }
-			// pemBytes := []byte(*secretResp.Value)
-			// block, rest := pem.Decode(pemBytes)
-			// if block.Type != "CERTIFICATE" {
-			// 	// this is the private key
-			// 	if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
-			// 		return bad(err)
-			// 	}
-			// 	if err := os.WriteFile(certFilename, rest, 0600); err != nil {
-			// 		return bad(err)
-			// 	}
-			// }
-			// if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
-			// 	return bad(err)
-			// }
-		} else {
-			// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
-			// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-			// 	certID, &agentclient.GetCertificateParams{
-			// 		IncludeCertificate: utils.ToPtr(true),
-			// 	})
-			// if err != nil {
-			// 	return bad(err)
-			// }
-			// pemBytes := []byte(*certResp.JSON200.Pem)
-			// if err := os.WriteFile(certFilename, pemBytes, 0600); err != nil {
-			// 	return bad(err)
-			// }
-		}
-	}
+// secretResp, err := p.AzSecretesClient().GetSecret(ctx, kid.Name(), kid.Version(), nil)
+// if err != nil {
+// 	return bad(err)
+// }
+// pemBytes := []byte(*secretResp.Value)
+// block, rest := pem.Decode(pemBytes)
+// if block.Type != "CERTIFICATE" {
+// 	// this is the private key
+// 	if err := os.WriteFile(keyFilename, pem.EncodeToMemory(block), 0400); err != nil {
+// 		return bad(err)
+// 	}
+// 	if err := os.WriteFile(certFilename, rest, 0600); err != nil {
+// 		return bad(err)
+// 	}
+// }
+// if err := os.WriteFile(bundleFilename, pemBytes, 0400); err != nil {
+// 	return bad(err)
+// }
+// } else {
+// certResp, err := p.AgentClient().GetCertificateWithResponse(ctx,
+// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+// 	certID, &agentclient.GetCertificateParams{
+// 		IncludeCertificate: utils.ToPtr(true),
+// 	})
+// if err != nil {
+// 	return bad(err)
+// }
+// pemBytes := []byte(*certResp.JSON200.Pem)
+// if err := os.WriteFile(certFilename, pemBytes, 0600); err != nil {
+// 	return bad(err)
+// }
+// }
+// 	}
 
-	return returnFilename, nil
-}
+// 	return returnFilename, nil
+// }
 
 func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<- pollConfigMsg, shutdownNotifier common.LeafShutdownNotifier) {
 
@@ -292,14 +280,14 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 		p.configCtx.persistSymlinks(p.configDir, p.configName)
 
 		params := shared.AgentConfigurationParameters{}
-		params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
-			Name: shared.AgentConfigNameActiveServer,
-			Reply: &shared.AgentConfigurationAgentActiveServerReply{
-				Listener: p.listener,
-				SlotId:   p.slotID,
-				State:    shared.AgentConfigurationAgentActiveServerReplyStateDown,
-			},
-		})
+		// params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
+		// 	Name: shared.AgentConfigNameActiveServer,
+		// 	Reply: &shared.AgentConfigurationAgentActiveServerReply{
+		// 		Listener: p.listener,
+		// 		SlotId:   p.slotID,
+		// 		State:    shared.AgentConfigurationAgentActiveServerReplyStateDown,
+		// 	},
+		// })
 		_, err := p.AgentClient().AgentCallbackWithResponse(c,
 			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
 			shared.AgentConfigNameActiveServer,

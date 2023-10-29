@@ -5,15 +5,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
 type AdminServerClientProvider interface {
-	AzKeysClient() *azkeys.Client
-	AzCertificatesClient() *azcertificates.Client
 	AzCosmosContainerClient() *azcosmos.ContainerClient
 	CertsAzBlobContainerClient() *container.Client
 	MsGraphClient() *msgraphsdkgo.GraphServiceClient

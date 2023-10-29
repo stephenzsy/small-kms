@@ -5,10 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
@@ -44,31 +41,31 @@ func deleteCertificate(c RequestContext, certDoc *CertDoc) error {
 			patchOps.AppendRemove(kmsdoc.PatchPathOwns)
 		}
 		// disable in keyvault
-		kid := certDoc.CertSpec.KID
-		if kid != "" {
-			if certDoc.NamespaceID.Kind() == shared.NamespaceKindCaRoot {
-				kid := azkeys.ID(kid)
-				// disable key
-				_, err := common.GetAdminServerClientProvider(c).AzKeysClient().UpdateKey(c, kid.Name(), kid.Version(), azkeys.UpdateKeyParameters{
-					KeyAttributes: &azkeys.KeyAttributes{
-						Enabled: to.Ptr(false),
-					},
-				}, nil)
-				if err != nil {
-					return err
-				}
-			} else {
-				kid := azcertificates.ID(kid)
-				_, err := common.GetAdminServerClientProvider(c).AzCertificatesClient().UpdateCertificate(c, kid.Name(), kid.Version(), azcertificates.UpdateCertificateParameters{
-					CertificateAttributes: &azcertificates.CertificateAttributes{
-						Enabled: to.Ptr(false),
-					},
-				}, nil)
-				if err != nil {
-					return err
-				}
-			}
-		}
+		// kid := certDoc.CertSpec.KID
+		// if kid != "" {
+		// 	if certDoc.NamespaceID.Kind() == shared.NamespaceKindCaRoot {
+		// 		kid := azkeys.ID(kid)
+		// 		// disable key
+		// 		_, err := common.GetAdminServerClientProvider(c).AzKeysClient().UpdateKey(c, kid.Name(), kid.Version(), azkeys.UpdateKeyParameters{
+		// 			KeyAttributes: &azkeys.KeyAttributes{
+		// 				Enabled: to.Ptr(false),
+		// 			},
+		// 		}, nil)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 	} else {
+		// 		kid := azcertificates.ID(kid)
+		// 		_, err := common.GetAdminServerClientProvider(c).AzCertificatesClient().UpdateCertificate(c, kid.Name(), kid.Version(), azcertificates.UpdateCertificateParameters{
+		// 			CertificateAttributes: &azcertificates.CertificateAttributes{
+		// 				Enabled: to.Ptr(false),
+		// 			},
+		// 		}, nil)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 	}
+		// }
 
 		patchOps.AppendSet(kmsdoc.PatchPathDeleted, time.Now().UTC().Format(time.RFC3339))
 		err := kmsdoc.Patch(c, certDoc, patchOps, nil)

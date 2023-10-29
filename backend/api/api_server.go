@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
@@ -26,6 +27,7 @@ type apiServer struct {
 	siteURL                 string
 	docService              base.AzCosmosCRUDDocService
 	serviceMsGraphClient    *msgraphsdkgo.GraphServiceClient
+	azKeyVaultEndpoint      string
 	azCertificatesClient    *azcertificates.Client
 	azKeysClient            *azkeys.Client
 	legacyClientProvider    common.AdminServerClientProvider
@@ -87,19 +89,27 @@ func (s *apiServer) Value(key any) any {
 
 var _ context.Context = (*apiServer)(nil)
 
-func NewApiServer(c context.Context, serverOld *server) *apiServer {
-
-	return &apiServer{
+func NewApiServer(c context.Context, serverOld *server) (*apiServer, error) {
+	var err error
+	s := &apiServer{
 		chCtx:                   c,
 		serviceIdentity:         serverOld.ServiceIdentity(),
 		siteURL:                 common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
 		docService:              base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
 		serviceMsGraphClient:    serverOld.clients.msGraphClient,
-		azCertificatesClient:    serverOld.clients.azCertificatesClient,
-		azKeysClient:            serverOld.clients.azKeysClient,
 		appConfidentialIdentity: serverOld.appIdentity,
 		legacyClientProvider:    &serverOld.clients,
 	}
+	if s.azKeyVaultEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, DefualtEnvVarAzKeyvaultResourceEndpoint, ""); s.azKeyVaultEndpoint == "" {
+		return s, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint)
+	}
+	if s.azKeysClient, err = azkeys.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
+		return s, err
+	}
+	if s.azCertificatesClient, err = azcertificates.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
+		return s, err
+	}
+	return s, nil
 }
 
 func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {

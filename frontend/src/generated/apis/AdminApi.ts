@@ -37,6 +37,7 @@ import type {
   NamespaceKind1,
   ProfileParameters,
   ProfileRef,
+  RequestDiagnostics,
   ResourceKind,
   ServiceConfig,
   SystemAppName,
@@ -86,6 +87,8 @@ import {
     ProfileParametersToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
+    RequestDiagnosticsFromJSON,
+    RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
     ServiceConfigFromJSON,
@@ -122,6 +125,11 @@ export interface DeleteCertificateRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
+}
+
+export interface GetAgentConfigServerRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
 }
 
 export interface GetAgentConfigurationRequest {
@@ -510,6 +518,48 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get agent config server
+     */
+    async getAgentConfigServerRaw(requestParameters: GetAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigServer>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentConfigServer.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentConfigServer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigServerFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent config server
+     */
+    async getAgentConfigServer(requestParameters: GetAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigServer> {
+        const response = await this.getAgentConfigServerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get agent autoconfig
      */
     async getAgentConfigurationRaw(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfiguration>> {
@@ -812,6 +862,40 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateRuleMsEntraClientCredential(requestParameters: GetCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
         const response = await this.getCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnosticsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/diagnostics`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
+        const response = await this.getDiagnosticsRaw(initOverrides);
         return await response.value();
     }
 

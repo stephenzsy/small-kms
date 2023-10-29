@@ -19,9 +19,6 @@ type ServerInterface interface {
 	// Provision agent
 	// (POST /v3/application/{namespaceId}/agent)
 	ProvisionAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
-	// Get diagnostics
-	// (GET /v3/diagnostics)
-	GetDiagnostics(ctx echo.Context) error
 	// Get service config
 	// (GET /v3/service/config)
 	GetServiceConfig(ctx echo.Context) error
@@ -92,17 +89,6 @@ func (w *ServerInterfaceWrapper) ProvisionAgentProfile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.ProvisionAgentProfile(ctx, namespaceId)
-	return err
-}
-
-// GetDiagnostics converts echo context to params.
-func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetDiagnostics(ctx)
 	return err
 }
 
@@ -448,7 +434,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
 	router.POST(baseURL+"/v3/application/:namespaceId/agent", wrapper.ProvisionAgentProfile)
-	router.GET(baseURL+"/v3/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v3/service/config", wrapper.GetServiceConfig)
 	router.PATCH(baseURL+"/v3/service/config/:configPath", wrapper.PatchServiceConfig)
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy", wrapper.GetAgentProxyInfo)

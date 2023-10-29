@@ -36,16 +36,22 @@ type AgentConfigFields struct {
 // AgentConfigServer defines model for AgentConfigServer.
 type AgentConfigServer = agentConfigServerComposed
 
+// AgentConfigServerEnv Environment variables for the agent config server, must be set manually
+type AgentConfigServerEnv struct {
+	AZUREKEYVAULTRESOURCEENDPOINT string `json:"AZURE_KEYVAULT_RESOURCEENDPOINT"`
+}
+
 // AgentConfigServerFields defines model for AgentConfigServerFields.
 type AgentConfigServerFields struct {
-	ImageRefStr      string                                  `json:"imageRefStr"`
+	// Env Environment variables for the agent config server, must be set manually
+	Env              AgentConfigServerEnv                    `json:"env"`
+	ImageTag         *string                                 `json:"imageTag,omitempty"`
 	JWTKeyCertIDs    []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
 	TlsCertificateId externalRef0.Identifier                 `json:"tlsCertificateId"`
 }
 
 // AgentConfigServerParameters defines model for AgentConfigServerParameters.
 type AgentConfigServerParameters struct {
-	ImageRefPrefix         string                                `json:"imageRefPrefix"`
 	JwtKeyCertPolicyId     externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertPolicyId"`
 	TlsCertificatePolicyId externalRef0.Identifier               `json:"tlsCertificatePolicyId"`
 }
@@ -104,6 +110,9 @@ type ServerInterface interface {
 	// Sync managed app
 	// (POST /v1/system-app/{systemAppName})
 	SyncSystemApp(ctx echo.Context, systemAppName SystemAppName) error
+	// Get agent config server
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server)
+	GetAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 	// Put agent config server
 	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server)
 	PutAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
@@ -208,6 +217,32 @@ func (w *ServerInterfaceWrapper) SyncSystemApp(ctx echo.Context) error {
 	return err
 }
 
+// GetAgentConfigServer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentConfigServer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentConfigServer(ctx, namespaceKind, namespaceIdentifier)
+	return err
+}
+
 // PutAgentConfigServer converts echo context to params.
 func (w *ServerInterfaceWrapper) PutAgentConfigServer(ctx echo.Context) error {
 	var err error
@@ -268,6 +303,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/managed-app/:managedAppId", wrapper.SyncManagedApp)
 	router.GET(baseURL+"/v1/system-app/:systemAppName", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.PutAgentConfigServer)
 
 }

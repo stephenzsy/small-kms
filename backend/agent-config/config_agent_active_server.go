@@ -9,12 +9,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
-	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -41,17 +39,17 @@ func (d *AgentActiveServerDoc) toModel(isAdmin bool) *shared.AgentConfiguration 
 		NextRefreshAfter: &refreshTime,
 		NextRefreshToken: &refreshToken,
 	}
-	params := shared.AgentConfigurationAgentActiveServer{
-		Name: shared.AgentConfigNameActiveServer,
-	}
-	if isAdmin {
-		params.EndpointUrls = &d.EndpointURLs
-		params.AuthorizedCertificateTemplateId = &d.AuthorizedCertificateTemplateID
-		params.ServerCertificateTemplateId = &d.ServerCertificateTemplateID
-	}
-	params.AuthorizedCertificateIds = d.AuthorizedCertificateIDs
-	params.ServerCertificateId = &d.ServerCertificateID
-	m.Config.FromAgentConfigurationAgentActiveServer(params)
+	// params := shared.AgentConfigurationAgentActiveServer{
+	// 	Name: shared.AgentConfigNameActiveServer,
+	// }
+	// if isAdmin {
+	// 	params.EndpointUrls = &d.EndpointURLs
+	// 	params.AuthorizedCertificateTemplateId = &d.AuthorizedCertificateTemplateID
+	// 	params.ServerCertificateTemplateId = &d.ServerCertificateTemplateID
+	// }
+	// params.AuthorizedCertificateIds = d.AuthorizedCertificateIDs
+	// params.ServerCertificateId = &d.ServerCertificateID
+	// m.Config.FromAgentConfigurationAgentActiveServer(params)
 	return &m
 }
 
@@ -62,43 +60,44 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 		preparePut: func(
 			c context.Context,
 			nsID shared.NamespaceIdentifier, params shared.AgentConfigurationParameters) (AgentConfigDocument, error) {
-			p, err := params.AsAgentConfigurationAgentActiveServer()
-			if err != nil {
-				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
-			}
+			// p, err := params.AsAgentConfigurationAgentActiveServer()
+			// if err != nil {
+			// 	return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
+			// }
 
-			if p.ServerCertificateTemplateId == nil || p.AuthorizedCertificateTemplateId == nil {
-				return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
-			}
+			// if p.ServerCertificateTemplateId == nil || p.AuthorizedCertificateTemplateId == nil {
+			// 	return nil, fmt.Errorf("%w:invalid input", common.ErrStatusBadRequest)
+			// }
 
-			d := AgentActiveServerDoc{
-				ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
-				AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
-			}
-			if p.EndpointUrls != nil {
-				d.EndpointURLs.Primary = p.EndpointUrls.Primary
-				d.EndpointURLs.Secondary = p.EndpointUrls.Secondary
-			}
-			d.initLocator(nsID, shared.AgentConfigNameActiveServer)
-			digester := md5.New()
-			digester.Write([]byte(d.ServerCertificateTemplateID.String()))
-			digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
-			d.BaseVersion = digester.Sum(nil)
+			// d := AgentActiveServerDoc{
+			// 	ServerCertificateTemplateID:     *p.ServerCertificateTemplateId,
+			// 	AuthorizedCertificateTemplateID: *p.AuthorizedCertificateTemplateId,
+			// }
+			// if p.EndpointUrls != nil {
+			// 	d.EndpointURLs.Primary = p.EndpointUrls.Primary
+			// 	d.EndpointURLs.Secondary = p.EndpointUrls.Secondary
+			// }
+			// d.initLocator(nsID, shared.AgentConfigNameActiveServer)
+			// digester := md5.New()
+			// digester.Write([]byte(d.ServerCertificateTemplateID.String()))
+			// digester.Write([]byte(d.AuthorizedCertificateTemplateID.String()))
+			// d.BaseVersion = digester.Sum(nil)
 
-			callbackDoc := AgentActiveServerCallbackDoc{
-				AgentCallbackDoc: AgentCallbackDoc{
-					BaseDoc: kmsdoc.BaseDoc{
-						NamespaceID: nsID,
-						ID:          shared.NewResourceIdentifier(shared.ResourceKindAgentCallback, shared.StringIdentifier(shared.AgentConfigNameActiveServer)),
-					},
-					Name: shared.AgentConfigNameActiveServer,
-				},
-			}
+			// callbackDoc := AgentActiveServerCallbackDoc{
+			// 	AgentCallbackDoc: AgentCallbackDoc{
+			// 		BaseDoc: kmsdoc.BaseDoc{
+			// 			NamespaceID: nsID,
+			// 			ID:          shared.NewResourceIdentifier(shared.ResourceKindAgentCallback, shared.StringIdentifier(shared.AgentConfigNameActiveServer)),
+			// 		},
+			// 		Name: shared.AgentConfigNameActiveServer,
+			// 	},
+			// }
 
-			err = kmsdoc.Create(c, &callbackDoc)
-			log.Ctx(c).Error().Err(err).Msg("failed to create callback doc")
+			// err = kmsdoc.Create(c, &callbackDoc)
+			// log.Ctx(c).Error().Err(err).Msg("failed to create callback doc")
 
-			return &d, nil
+			// return &d, nil
+			return nil, nil
 		},
 
 		eval: func(c context.Context, doc AgentConfigDocument) (*azcosmos.PatchOperations, error) {
@@ -220,32 +219,32 @@ func NewAgentCallbackDocLocator(nsID shared.NamespaceIdentifier, configName shar
 
 func ApiRecordAgentActiveServerCallback(c RequestContext, req *shared.AgentConfiguration) error {
 
-	if reqConfig, err := req.Config.AsAgentConfigurationAgentActiveServer(); err != nil {
-		return fmt.Errorf("%w:invalid input:%s", common.ErrStatusBadRequest, err)
-	} else if reqConfig.Reply == nil {
-		return fmt.Errorf("%w:invalid input, nil reply", common.ErrStatusBadRequest)
-	} else {
-		nsID := ns.GetNamespaceContext(c).GetID()
-		docLocator := NewAgentCallbackDocLocator(nsID, shared.AgentConfigNameActiveServer)
-		patchOps := azcosmos.PatchOperations{}
-		var prefix string
-		if reqConfig.Reply.SlotId == 0 {
-			prefix = "/primary"
-		} else {
-			prefix = "/secondary"
-		}
-		endpoint := fmt.Sprintf("https://%s%s", c.RealIP(), reqConfig.Reply.Listener)
-		patchOps.AppendSet(prefix, &AgentActiveServerCallbackDocEndpointState{
-			Endpoint: endpoint,
-			State:    reqConfig.Reply.State,
-			Version:  req.Version,
-		})
+	// if reqConfig, err := req.Config.AsAgentConfigurationAgentActiveServer(); err != nil {
+	// 	return fmt.Errorf("%w:invalid input:%s", common.ErrStatusBadRequest, err)
+	// } else if reqConfig.Reply == nil {
+	// 	return fmt.Errorf("%w:invalid input, nil reply", common.ErrStatusBadRequest)
+	// } else {
+	// 	nsID := ns.GetNamespaceContext(c).GetID()
+	// 	docLocator := NewAgentCallbackDocLocator(nsID, shared.AgentConfigNameActiveServer)
+	// 	patchOps := azcosmos.PatchOperations{}
+	// 	var prefix string
+	// 	if reqConfig.Reply.SlotId == 0 {
+	// 		prefix = "/primary"
+	// 	} else {
+	// 		prefix = "/secondary"
+	// 	}
+	// 	endpoint := fmt.Sprintf("https://%s%s", c.RealIP(), reqConfig.Reply.Listener)
+	// 	patchOps.AppendSet(prefix, &AgentActiveServerCallbackDocEndpointState{
+	// 		Endpoint: endpoint,
+	// 		State:    reqConfig.Reply.State,
+	// 		Version:  req.Version,
+	// 	})
 
-		err = kmsdoc.PatchWithLocator(c, docLocator, patchOps)
-		if err != nil {
-			return err
-		}
-	}
+	// 	err = kmsdoc.PatchWithLocator(c, docLocator, patchOps)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return c.NoContent(http.StatusNoContent)
 }

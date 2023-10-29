@@ -8,6 +8,8 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /v1/diagnostics:
+    $ref: "oapi-base.yaml#/paths/~1v1~1diagnostics"
   /v1/managed-app:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app"
   /v1/managed-app/{managedAppId}:
@@ -264,19 +266,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceConfig"
-  /v3/diagnostics:
-    get:
-      tags:
-        - diagnostics
-      summary: Get diagnostics
-      operationId: GetDiagnostics
-      responses:
-        "200":
-          description: Diagnostics response
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/RequestDiagnostics"
 components:
   securitySchemes:
     BearerAuth:

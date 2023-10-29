@@ -19,20 +19,13 @@ import {
     AgentConfigurationAgentActiveHostBootstrapFromJSONTyped,
     AgentConfigurationAgentActiveHostBootstrapToJSON,
 } from './AgentConfigurationAgentActiveHostBootstrap';
-import {
-    AgentConfigurationAgentActiveServer,
-    instanceOfAgentConfigurationAgentActiveServer,
-    AgentConfigurationAgentActiveServerFromJSON,
-    AgentConfigurationAgentActiveServerFromJSONTyped,
-    AgentConfigurationAgentActiveServerToJSON,
-} from './AgentConfigurationAgentActiveServer';
 
 /**
  * @type AgentConfigurationParameters
  * 
  * @export
  */
-export type AgentConfigurationParameters = { name: 'agent-active-host-bootstrap' } & AgentConfigurationAgentActiveHostBootstrap | { name: 'agent-active-server' } & AgentConfigurationAgentActiveServer;
+export type AgentConfigurationParameters = { name: 'agent-active-host-bootstrap' } & AgentConfigurationAgentActiveHostBootstrap;
 
 export function AgentConfigurationParametersFromJSON(json: any): AgentConfigurationParameters {
     return AgentConfigurationParametersFromJSONTyped(json, false);
@@ -45,8 +38,6 @@ export function AgentConfigurationParametersFromJSONTyped(json: any, ignoreDiscr
     switch (json['name']) {
         case 'agent-active-host-bootstrap':
             return {...AgentConfigurationAgentActiveHostBootstrapFromJSONTyped(json, true), name: 'agent-active-host-bootstrap'};
-        case 'agent-active-server':
-            return {...AgentConfigurationAgentActiveServerFromJSONTyped(json, true), name: 'agent-active-server'};
         default:
             throw new Error(`No variant of AgentConfigurationParameters exists with 'name=${json['name']}'`);
     }
@@ -62,8 +53,6 @@ export function AgentConfigurationParametersToJSON(value?: AgentConfigurationPar
     switch (value['name']) {
         case 'agent-active-host-bootstrap':
             return AgentConfigurationAgentActiveHostBootstrapToJSON(value);
-        case 'agent-active-server':
-            return AgentConfigurationAgentActiveServerToJSON(value);
         default:
             throw new Error(`No variant of AgentConfigurationParameters exists with 'name=${value['name']}'`);
     }

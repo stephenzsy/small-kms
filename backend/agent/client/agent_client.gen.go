@@ -16,11 +16,15 @@ import (
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/cert/v2"
+	externalRef3 "github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
+
+// AgentConfigServer defines model for AgentConfigServer.
+type AgentConfigServer = externalRef3.AgentConfigServer
 
 // Certificate defines model for Certificate.
 type Certificate = externalRef1.Certificate
@@ -104,10 +108,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetAgentConfigServer request
+	GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EnrollCertificateWithBody request with any body
 	EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EnrollCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConfigServerRequest(c.Server, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -132,6 +151,47 @@ func (c *Client) EnrollCertificate(ctx context.Context, namespaceKind externalRe
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetAgentConfigServerRequest generates requests for GetAgentConfigServer
+func NewGetAgentConfigServerRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent-config/server", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewEnrollCertificateRequest calls the generic EnrollCertificate builder with application/json body
@@ -238,10 +298,35 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetAgentConfigServerWithResponse request
+	GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error)
+
 	// EnrollCertificateWithBodyWithResponse request with any body
 	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 
 	EnrollCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
+}
+
+type GetAgentConfigServerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AgentConfigServer
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentConfigServerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentConfigServerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type EnrollCertificateResponse struct {
@@ -266,6 +351,15 @@ func (r EnrollCertificateResponse) StatusCode() int {
 	return 0
 }
 
+// GetAgentConfigServerWithResponse request returning *GetAgentConfigServerResponse
+func (c *ClientWithResponses) GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error) {
+	rsp, err := c.GetAgentConfigServer(ctx, namespaceKind, namespaceIdentifier, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConfigServerResponse(rsp)
+}
+
 // EnrollCertificateWithBodyWithResponse request with arbitrary body returning *EnrollCertificateResponse
 func (c *ClientWithResponses) EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error) {
 	rsp, err := c.EnrollCertificateWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body, reqEditors...)
@@ -281,6 +375,32 @@ func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseEnrollCertificateResponse(rsp)
+}
+
+// ParseGetAgentConfigServerResponse parses an HTTP response from a GetAgentConfigServerWithResponse call
+func ParseGetAgentConfigServerResponse(rsp *http.Response) (*GetAgentConfigServerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentConfigServerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AgentConfigServer
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseEnrollCertificateResponse parses an HTTP response from a EnrollCertificateWithResponse call

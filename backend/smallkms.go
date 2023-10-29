@@ -60,8 +60,11 @@ func main() {
 			e.Use(middleware.CORS())
 		}
 		ctx := context.Background()
-		server := api.NewServer(BuildID)
-		apiServer := api.NewApiServer(ctx, server)
+		server := api.NewServer()
+		apiServer, err := api.NewApiServer(ctx, server)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to initialize api server")
+		}
 		e.Use(base.HandleResponseError)
 		e.Use(apiServer.InjectServiceContextMiddleware())
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
@@ -71,6 +74,7 @@ func main() {
 		}
 		e.Use(server.GetAfterAuthMiddleware())
 		models.RegisterHandlers(e, server)
+		base.RegisterHandlers(e, base.NewBaseServer(BuildID))
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))

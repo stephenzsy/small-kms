@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"net/http"
-	"runtime"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -12,7 +11,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
-	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
 type server struct {
@@ -21,7 +19,6 @@ type server struct {
 	appIdentity       common.AzureAppConfidentialIdentity
 	subscriptionId    string
 	resourceGroupName string
-	buildID           string
 }
 
 // ConfidentialAppIdentity implements common.ConfidentialAppIdentityProvider.
@@ -108,7 +105,7 @@ func (i *appConfidentialIdentity) TokenCredential() azcore.TokenCredential {
 var _ common.AzureAppConfidentialIdentity = (*appConfidentialIdentity)(nil)
 var _ models.ServerInterface = (*server)(nil)
 
-func NewServer(buildId string) *server {
+func NewServer() *server {
 
 	commonConfig, err := common.NewCommonConfig()
 	if err != nil {
@@ -117,7 +114,6 @@ func NewServer(buildId string) *server {
 
 	s := server{
 		CommonServer: &commonConfig,
-		buildID:      buildId,
 	}
 
 	appId := appConfidentialIdentity{}
@@ -162,10 +158,3 @@ func (s *server) GetAfterAuthMiddleware() echo.MiddlewareFunc {
 }
 
 var _ common.ConfidentialAppIdentityProvider = (*server)(nil)
-
-func (s *server) getRuntimeInfo() shared.ServiceRuntimeInfo {
-	return shared.ServiceRuntimeInfo{
-		BuildID:   s.buildID,
-		GoVersion: runtime.Version(),
-	}
-}
