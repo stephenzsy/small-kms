@@ -1,7 +1,8 @@
 import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
-import { AdminLayout } from "./admin/Layout";
+import { ManagedAppContextProvider } from "./admin/contexts/ManagedAppContext";
 import { NamespaceContextRouteProvider } from "./admin/contexts/NamespaceContextRouteProvider";
+import { AdminLayout } from "./admin/Layout";
 import AdminPage from "./admin/Page";
 import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
@@ -21,6 +22,9 @@ const AppsPage = React.lazy(() => import("./admin/AppsPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
 const ManagedAppPage = React.lazy(() => import("./admin/ManagedAppPage"));
+const ProvisionAgentPage = React.lazy(
+  () => import("./admin/ProvisionAgentPage")
+);
 
 export const router = createBrowserRouter([
   {
@@ -52,11 +56,23 @@ export const router = createBrowserRouter([
               { index: true, element: <AppsPage /> },
               {
                 path: "system/:appId",
-                element: <ManagedAppPage isSystemApp />,
+                element: (
+                  <ManagedAppContextProvider isSystemApp={true}>
+                    <ManagedAppPage isSystemApp />
+                  </ManagedAppContextProvider>
+                ),
               },
               {
                 path: "managed/:appId",
-                element: <ManagedAppPage />,
+                element: (
+                  <ManagedAppContextProvider isSystemApp={false}>
+                    <Outlet />
+                  </ManagedAppContextProvider>
+                ),
+                children: [
+                  { index: true, element: <ManagedAppPage /> },
+                  { path: "provision-agent", element: <ProvisionAgentPage /> },
+                ],
               },
               {
                 path: ":nsKind/:nsId",

@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardSection, CardTitle } from "../components/Card";
+import { useContext, useMemo, useState } from "react";
+
+import { Card, Form, Select, Typography } from "antd";
+import { useForm } from "antd/es/form/Form";
 import {
   AdminApi,
   AgentConfigName,
@@ -8,9 +9,14 @@ import {
   AgentConfigurationAgentActiveServerToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
-  NamespaceKind1 as NamespaceKind
+  CertPolicyRef,
+  NamespaceKind1 as NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
+import { ManagedAppContext } from "./contexts/ManagedAppContext";
+import { NamespaceContext } from "./contexts/NamespaceContext";
+import { useCertPolicies } from "./CertPolicyRefTable";
+import { DefaultOptionType } from "antd/es/select";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -124,20 +130,10 @@ export function AgentConfigurationForm({
     let typeParsed: AgentConfigurationParameters;
 
     typeParsed = AgentConfigurationParametersFromJSON(parsed);
-   // run(typeParsed);
+    // run(typeParsed);
   };
-  return (
-    <Card>
-      <CardTitle>Agent Configuration</CardTitle>
-      <CardSection>
-        <Link
-          to={`/admin/${namespaceKind}/${namespaceId}/agent`}
-          className="text-indigo-600 hover:text-indigo-900"
-        >
-          Go to agent dashboard
-        </Link>
-      </CardSection>
-      {/*<CardSection>
+  return null;
+  /*<CardSection>
         Current configuration:
         {loading ? (
           <div>loading</div>
@@ -170,7 +166,63 @@ export function AgentConfigurationForm({
             Update
           </Button>
         </form>
-      </CardSection>*/}
+      </CardSection>*/
+}
+
+type AgentServerConfigFormState = {
+  tlsCertPolicyId: string | undefined;
+};
+
+function useCertPolicyOptions(
+  certPolicies: CertPolicyRef[] | undefined
+): DefaultOptionType[] | undefined {
+  return certPolicies?.map((p) => ({
+    label: p.displayName,
+    value: p.id,
+  }));
+}
+
+function AgentConfigServerFormCard() {
+  const [form] = useForm<AgentServerConfigFormState>();
+  const certPolicies = useCertPolicies();
+  const certPolicyOptions = useCertPolicyOptions(certPolicies);
+
+  return (
+    <Card title="Agent server configuration">
+      <Form
+        form={form}
+        initialValues={{
+          tlsCertPolicyId: undefined,
+        }}
+        layout="vertical"
+      >
+        <Form.Item<AgentServerConfigFormState>
+          name="tlsCertPolicyId"
+          label="Select server TLS certificate policy"
+        >
+          <Select options={certPolicyOptions} />
+        </Form.Item>
+      </Form>
     </Card>
+  );
+}
+
+export default function ProvisionAgentPage() {
+  const { managedApp } = useContext(ManagedAppContext);
+  return (
+    <>
+      <Typography.Title>
+        Provision agent: {managedApp?.displayName}
+      </Typography.Title>
+
+      <NamespaceContext.Provider
+        value={{
+          namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
+          namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
+        }}
+      >
+        <AgentConfigServerFormCard />
+      </NamespaceContext.Provider>
+    </>
   );
 }

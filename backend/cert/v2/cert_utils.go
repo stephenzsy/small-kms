@@ -39,7 +39,7 @@ func SanitizeEmailAddresses(emailAddresses []string) []string {
 
 func SanitizeIpAddresses(ips []net.IP) []net.IP {
 	ips = slices.DeleteFunc(ips, func(ip net.IP) bool {
-		return ip.IsUnspecified()
+		return len(ip) == 0 || ip.IsUnspecified()
 	})
 	slices.SortFunc(ips, func(a, b net.IP) int {
 		lcmp := len(a) - len(b)
