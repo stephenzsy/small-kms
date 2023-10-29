@@ -20,9 +20,8 @@ import type {
   AgentConfigServerFields,
   AgentConfiguration,
   AgentConfigurationParameters,
-  AgentProfile,
-  AgentProfileParameters,
   AgentProxyInfo,
+  AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   CertPolicy,
   CertPolicyParameters,
@@ -52,12 +51,10 @@ import {
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
     AgentConfigurationParametersToJSON,
-    AgentProfileFromJSON,
-    AgentProfileToJSON,
-    AgentProfileParametersFromJSON,
-    AgentProfileParametersToJSON,
     AgentProxyInfoFromJSON,
     AgentProxyInfoToJSON,
+    AzureKeyvaultResourceCategoryFromJSON,
+    AzureKeyvaultResourceCategoryToJSON,
     AzureRoleAssignmentFromJSON,
     AzureRoleAssignmentToJSON,
     CertPolicyFromJSON,
@@ -95,9 +92,10 @@ import {
 } from '../models/index';
 
 export interface AddKeyVaultRoleAssignmentRequest {
-    namespaceKindLegacy: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    resourceCategory: AzureKeyvaultResourceCategory;
     roleDefinitionId: string;
 }
 
@@ -135,10 +133,6 @@ export interface GetAgentConfigurationRequest {
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
     refreshToken?: string;
-}
-
-export interface GetAgentProfileRequest {
-    namespaceId: string;
 }
 
 export interface GetAgentProxyInfoRequest {
@@ -201,18 +195,15 @@ export interface ListCertificatesRequest {
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
-    namespaceKindLegacy: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    resourceCategory: AzureKeyvaultResourceCategory;
+    principalId?: string;
 }
 
 export interface ListProfilesRequest {
     profileResourceKind: ResourceKind;
-}
-
-export interface ProvisionAgentProfileRequest {
-    namespaceId: string;
-    agentProfileParameters: AgentProfileParameters;
 }
 
 export interface PutAgentConfigServerRequest {
@@ -253,13 +244,6 @@ export interface PutProfileRequest {
     profileParameters: ProfileParameters;
 }
 
-export interface RemoveKeyVaultRoleAssignmentRequest {
-    namespaceKindLegacy: NamespaceKind1;
-    namespaceId: string;
-    templateId: string;
-    roleAssignmentId: string;
-}
-
 export interface SyncManagedAppRequest {
     managedAppId: string;
 }
@@ -277,16 +261,20 @@ export class AdminApi extends runtime.BaseAPI {
      * Add Key Vault role assignment
      */
     async addKeyVaultRoleAssignmentRaw(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AzureRoleAssignment>> {
-        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
-            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling addKeyVaultRoleAssignment.');
+        }
+
+        if (requestParameters.resourceCategory === null || requestParameters.resourceCategory === undefined) {
+            throw new runtime.RequiredError('resourceCategory','Required parameter requestParameters.resourceCategory was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
         if (requestParameters.roleDefinitionId === null || requestParameters.roleDefinitionId === undefined) {
@@ -310,7 +298,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -602,44 +590,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Provision agent
-     */
-    async getAgentProfileRaw(requestParameters: GetAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProfile>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/application/{namespaceId}/agent`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Provision agent
-     */
-    async getAgentProfile(requestParameters: GetAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProfile> {
-        const response = await this.getAgentProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1181,19 +1131,27 @@ export class AdminApi extends runtime.BaseAPI {
      * List Key Vault role assignments
      */
     async listKeyVaultRoleAssignmentsRaw(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AzureRoleAssignment>>> {
-        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
-            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling listKeyVaultRoleAssignments.');
+        }
+
+        if (requestParameters.resourceCategory === null || requestParameters.resourceCategory === undefined) {
+            throw new runtime.RequiredError('resourceCategory','Required parameter requestParameters.resourceCategory was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.principalId !== undefined) {
+            queryParameters['principalId'] = requestParameters.principalId;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1206,7 +1164,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))),
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1292,51 +1250,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
         const response = await this.listProfilesRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Provision agent
-     */
-    async provisionAgentProfileRaw(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProfile>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling provisionAgentProfile.');
-        }
-
-        if (requestParameters.agentProfileParameters === null || requestParameters.agentProfileParameters === undefined) {
-            throw new runtime.RequiredError('agentProfileParameters','Required parameter requestParameters.agentProfileParameters was null or undefined when calling provisionAgentProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/application/{namespaceId}/agent`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AgentProfileParametersToJSON(requestParameters.agentProfileParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProfileFromJSON(jsonValue));
-    }
-
-    /**
-     * Provision agent
-     */
-    async provisionAgentProfile(requestParameters: ProvisionAgentProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProfile> {
-        const response = await this.provisionAgentProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1640,55 +1553,6 @@ export class AdminApi extends runtime.BaseAPI {
     async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
         const response = await this.putProfileRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     * Remove Key Vault role assignment
-     */
-    async removeKeyVaultRoleAssignmentRaw(requestParameters: RemoveKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
-            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling removeKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling removeKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.templateId === null || requestParameters.templateId === undefined) {
-            throw new runtime.RequiredError('templateId','Required parameter requestParameters.templateId was null or undefined when calling removeKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.roleAssignmentId === null || requestParameters.roleAssignmentId === undefined) {
-            throw new runtime.RequiredError('roleAssignmentId','Required parameter requestParameters.roleAssignmentId was null or undefined when calling removeKeyVaultRoleAssignment.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"templateId"}}`, encodeURIComponent(String(requestParameters.templateId))).replace(`{${"roleAssignmentId"}}`, encodeURIComponent(String(requestParameters.roleAssignmentId))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Remove Key Vault role assignment
-     */
-    async removeKeyVaultRoleAssignment(requestParameters: RemoveKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.removeKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
     }
 
     /**

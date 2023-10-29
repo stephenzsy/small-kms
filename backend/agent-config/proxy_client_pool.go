@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/admin/agentproxyclient"
-	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/shared"
@@ -59,20 +58,20 @@ func (p *agentProxyHttpClientPool) GetProxyHttpClient(eCtx context.Context, nsID
 		return nil, err
 	}
 	clientCerts := make([]tls.Certificate, 0, 2)
-	for i, certId := range d.AuthorizedCertificateIDs {
-		if i > 1 {
-			break
-		}
-		certDoc, err := cert.ReadCertDocByLocator(eCtx, shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCert, certId)))
-		if err != nil {
-			return nil, err
-		}
-		clientCert, err := cert.CertDocKeyPair(eCtx, certDoc)
-		if err != nil {
-			return nil, err
-		}
-		clientCerts = append(clientCerts, clientCert)
-	}
+	// for i, certId := range d.AuthorizedCertificateIDs {
+	// 	if i > 1 {
+	// 		break
+	// 	}
+	// certDoc, err := cert.ReadCertDocByLocator(eCtx, shared.NewResourceLocator(nsID, shared.NewResourceIdentifier(shared.ResourceKindCert, certId)))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// clientCert, err := cert.CertDocKeyPair(eCtx, certDoc)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// 	clientCerts = append(clientCerts, clientCert)
+	// }
 	caCertPool := x509.NewCertPool()
 	for _, c := range clientCerts {
 		for _, cBytes := range c.Certificate[1:] {

@@ -1,7 +1,16 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Form, Input, Select, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Divider,
+  Form,
+  Input,
+  Select,
+  Table,
+  Typography,
+} from "antd";
 import { useForm } from "antd/es/form/Form";
 import { DefaultOptionType } from "antd/es/select";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
@@ -13,6 +22,9 @@ import {
   AgentConfigurationAgentActiveHostBootstrapToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
+  AzureKeyvaultResourceCategory,
+  AzureRoleAssignment,
+  AzureRoleAssignmentFromJSON,
   CertPolicyRef,
   NamespaceKind,
 } from "../generated";
@@ -23,6 +35,8 @@ import {
   NamespaceContext,
   NamespaceContextValue,
 } from "./contexts/NamespaceContext";
+import { ColumnsType } from "antd/es/table";
+import { WellknownId } from "../constants";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -69,110 +83,35 @@ function useConfigurationSkeleton(
   }, [configName, nsId]);
 }
 
-export function AgentConfigurationForm({
-  namespaceId,
-  namespaceKind,
-}: {
-  namespaceId: string;
-  namespaceKind: NamespaceKind;
-}) {
-  const adminApi = useAuthedClient(AdminApi);
-  // const [selectedItem, setSelectedItem] = useState<SelectItem<AgentConfigName>>(
-  //   selectOptions[0]
-  // );
+const wellKnownRoleDefinitionIds: Record<string, string> = {
+  "21090545-7ca7-4776-b22c-e363652d74d2": "Key Vault Reader",
+};
 
-  // const currentConfigName = selectedItem.id;
-
-  // const { data, loading, run } = useRequest(
-  //   async (params?: AgentConfigurationParameters) => {
-  //     if (params) {
-  //       return await adminApi.putAgentConfiguration({
-  //         configName: currentConfigName,
-  //         namespaceKindLegacy: namespaceKind,
-  //         namespaceId,
-  //         agentConfigurationParameters: params,
-  //       });
-  //     }
-  //     try {
-  //       return await adminApi.getAgentConfiguration({
-  //         namespaceKindLegacy: namespaceKind,
-  //         namespaceId,
-  //         configName: currentConfigName,
-  //       });
-  //     } catch (e) {
-  //       return undefined;
-  //     }
-  //   },
-  //   {
-  //     refreshDeps: [namespaceId, namespaceKind, currentConfigName],
-  //   }
-  // );
-
-  // const skeleton = useConfigurationSkeleton(
-  //   currentConfigName,
-  //   namespaceId,
-  //   namespaceKind
-  // );
-  // const defaultValue = useMemo(() => {
-  //   return loading
-  //     ? ""
-  //     : (data?.config
-  //         ? JSON.stringify(
-  //             AgentConfigurationParametersToJSON(data.config),
-  //             undefined,
-  //             2
-  //           )
-  //         : undefined) ?? skeleton;
-  // }, [loading, data, skeleton]);
-  const [configInput, setConfigInput] = useState<string>("");
-
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!configInput.trim()) {
-      return;
-    }
-    const parsed = JSON.parse(configInput);
-    let typeParsed: AgentConfigurationParameters;
-
-    typeParsed = AgentConfigurationParametersFromJSON(parsed);
-    // run(typeParsed);
-  };
-  return null;
-  /*<CardSection>
-        Current configuration:
-        {loading ? (
-          <div>loading</div>
-        ) : data ? (
-          <div className="p-4">
-            <pre>
-              {JSON.stringify(AgentConfigurationToJSON(data), undefined, 2)}{" "}
-            </pre>
-          </div>
-        ) : (
-          <div>No configuration</div>
-        )}
-        </CardSection>
-      <CardSection>
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <Select
-            label="Select Configuration Name"
-            items={selectOptions}
-            selected={selectedItem}
-            setSelected={setSelectedItem}
-          />
-          <textarea
-            className="w-full min-h-[400px]"
-            value={configInput || defaultValue}
-            onChange={(e) => {
-              setConfigInput(e.target.value);
-            }}
-          />
-          <Button type="submit" variant="primary">
-            Update
-          </Button>
-        </form>
-      </CardSection>*/
+function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
+  return useMemo(() => {
+    return [
+      {
+        title: "Name",
+        key: "name",
+        render: (r: AzureRoleAssignment) => (
+          <span className="font-mono">{r.name}</span>
+        ),
+      },
+      {
+        title: "Role definition id",
+        key: "name",
+        render: (r: AzureRoleAssignment) => {
+          const parts = r.roleDefinitionId?.split("/");
+          const defId = parts?.[parts.length - 1];
+          return defId && wellKnownRoleDefinitionIds[defId] ? (
+            wellKnownRoleDefinitionIds[defId]
+          ) : (
+            <span className="font-mono">{defId}</span>
+          );
+        },
+      },
+    ];
+  }, []);
 }
 
 type AgentServerConfigFormState = Partial<AgentConfigServerFields> & {};
@@ -197,7 +136,7 @@ function AgentConfigServerFormCard({
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
-  const { data, run } = useRequest(
+  const { data: agentServerConfig, run } = useRequest(
     (params?: Partial<AgentConfigServerFields>) => {
       if (params) {
         return api.putAgentConfigServer({
@@ -216,12 +155,34 @@ function AgentConfigServerFormCard({
       ready: !!namespaceIdentifier && !!namespaceKind,
     }
   );
+  const jwtKeyCertPolicyId = agentServerConfig?.jwtKeyCertPolicyId;
+
+  const { data: keysData } = useRequest(
+    () => {
+      const policyNsKind = (jwtKeyCertPolicyId?.split(":")[0] ??
+        "") as NamespaceKind;
+      const policyNsId = jwtKeyCertPolicyId?.split(":")[1] ?? "";
+      const certPolicyId = jwtKeyCertPolicyId?.split("/")[1] ?? "";
+      return api.listKeyVaultRoleAssignments({
+        namespaceIdentifier: policyNsId,
+        namespaceKind: policyNsKind,
+        resourceCategory:
+          AzureKeyvaultResourceCategory.AzureKeyvaultResourceCategoryCertificates,
+        resourceIdentifier: certPolicyId,
+        principalId: namespaceIdentifier,
+      });
+    },
+    {
+      ready: !!namespaceIdentifier && !!jwtKeyCertPolicyId,
+      refreshDeps: [namespaceIdentifier, jwtKeyCertPolicyId],
+    }
+  );
 
   useEffect(() => {
-    if (data) {
-      form.setFieldsValue(data);
+    if (agentServerConfig) {
+      form.setFieldsValue(agentServerConfig);
     }
-  }, [data]);
+  }, [agentServerConfig]);
 
   const setCurrentBuildTag = useMemoizedFn(async () => {
     const tag = (await api.getDiagnostics()).serviceRuntime.buildId.split(
@@ -232,11 +193,15 @@ function AgentConfigServerFormCard({
     form.setFieldValue("azureAcrImageRef", `${currentPrfix}:${tag}`);
   });
 
+  const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();
   return (
     <Card title="Agent server configuration">
       <div className="mb-6">
         Current configuration:
-        <JsonDataDisplay data={data} toJson={AgentConfigServerToJSON} />
+        <JsonDataDisplay
+          data={agentServerConfig}
+          toJson={AgentConfigServerToJSON}
+        />
       </div>
       <Form
         form={form}
@@ -285,6 +250,13 @@ function AgentConfigServerFormCard({
           </Button>
         </Form.Item>
       </Form>
+      <Divider />
+      <JsonDataDisplay data={keysData} />
+      <Table<AzureRoleAssignment>
+        columns={roleAssignmentTableColumns}
+        dataSource={keysData}
+        rowKey={(r) => r.id ?? ""}
+      />
     </Card>
   );
 }

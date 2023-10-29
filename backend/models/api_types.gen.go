@@ -58,9 +58,6 @@ type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
 }
 
-// ProvisionAgentProfileJSONRequestBody defines body for ProvisionAgentProfile for application/json ContentType.
-type ProvisionAgentProfileJSONRequestBody = externalRef0.AgentProfileParameters
-
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
 type AgentCallbackJSONRequestBody = externalRef0.AgentConfiguration
 

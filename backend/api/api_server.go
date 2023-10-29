@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/labstack/echo/v4"
@@ -21,6 +22,8 @@ type APIServer interface {
 	RespondRequireAdmin(c echo.Context) error
 	GetAzKeyVaultEndpoint() string
 	GetBuildID() string
+	WithDelegatedARMAuthRoleAssignmentsClient(c ctx.RequestContext) (ctx.RequestContext, *armauthorization.RoleAssignmentsClient, error)
+	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
 }
 
 type apiServer struct {
@@ -35,6 +38,9 @@ type apiServer struct {
 	legacyClientProvider    common.AdminServerClientProvider
 	appConfidentialIdentity auth.AzureAppConfidentialIdentity
 	buildID                 string
+	azSubscriptionID        string
+	resourceGroupName       string
+	extractedKeyVaultName   string
 }
 
 // GetBuildID implements APIServer.
@@ -117,12 +123,16 @@ func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiSer
 	if s.azKeyVaultEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, DefualtEnvVarAzKeyvaultResourceEndpoint, ""); s.azKeyVaultEndpoint == "" {
 		return s, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint)
 	}
+	s.extractedKeyVaultName = extractKeyVaultName(s.azKeyVaultEndpoint)
 	if s.azKeysClient, err = azkeys.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
 		return s, err
 	}
 	if s.azCertificatesClient, err = azcertificates.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
 		return s, err
 	}
+	s.azSubscriptionID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
+	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
+
 	return s, nil
 }
 
@@ -137,3 +147,13 @@ func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {
 
 var _ kv.AzKeyVaultService = (*apiServer)(nil)
 var _ APIServer = (*apiServer)(nil)
+
+// GetKeyvaultCertificateResourceScopeID implements common.AdminServerRequestClientProvider.
+func (s *apiServer) GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string {
+	return fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/%s/%s",
+		s.azSubscriptionID,
+		s.resourceGroupName,
+		s.extractedKeyVaultName,
+		category,
+		certificateName)
+}

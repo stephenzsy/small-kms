@@ -20,7 +20,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/cert/v2"
+	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/managedapp"

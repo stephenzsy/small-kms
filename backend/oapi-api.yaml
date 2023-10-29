@@ -23,24 +23,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
-    post:
-      tags:
-        - admin
-      summary: Provision agent
-      operationId: ProvisionAgentProfile
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentProfileParameters"
-        required: true
-      responses:
-        200:
-          description: Agent Profile
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
   /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"

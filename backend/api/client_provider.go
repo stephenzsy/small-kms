@@ -23,9 +23,6 @@ const (
 )
 
 type clientProvider struct {
-	azKeyvaultEndpoint string
-	cachedKeyvaultName string
-
 	azCosmosEndpoint             string
 	azCosmosClient               *azcosmos.Client
 	azCosmosDatabaseID           string
@@ -55,26 +52,18 @@ func (p *clientProvider) AzCosmosContainerClient() *azcosmos.ContainerClient {
 	return p.azCosmosContainerClientCerts
 }
 
-func (p *clientProvider) keyvaultName() string {
-	return p.cachedKeyvaultName
-}
-
 var _ common.AdminServerClientProvider = (*clientProvider)(nil)
+
+func extractKeyVaultName(keyvaultEndpoing string) string {
+	if parsed, err := url.Parse(keyvaultEndpoing); err == nil {
+		return strings.Split(parsed.Host, ".")[0]
+	}
+	return ""
+}
 
 func newServerClientProvider(s *server) (p clientProvider, err error) {
 
 	creds := s.ServiceIdentity().TokenCredential()
-	if p.azKeyvaultEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, DefualtEnvVarAzKeyvaultResourceEndpoint, ""); p.azKeyvaultEndpoint == "" {
-		err = fmt.Errorf("%w: %s", common.ErrMissingEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint)
-		return
-	}
-
-	if parsed, parseErr := url.Parse(p.azKeyvaultEndpoint); parseErr == nil {
-		p.cachedKeyvaultName = strings.Split(parsed.Host, ".")[0]
-	} else {
-		err = fmt.Errorf("%w: %s=%s", common.ErrInvalidEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint, p.azKeyvaultEndpoint)
-		return
-	}
 
 	if cosmosConnStr := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, "AZURE_COSMOS_CONNECTION_STRING", ""); cosmosConnStr != "" {
 		p.azCosmosClient, err = azcosmos.NewClientFromConnectionString(cosmosConnStr, nil)
@@ -124,19 +113,6 @@ type requestClientProvider struct {
 	cachedArmRoleAssignmentsClient *armauthorization.RoleAssignmentsClient
 }
 
-// GetKeyvaultCertificateResourceScopeID implements common.AdminServerRequestClientProvider.
-func (p *requestClientProvider) GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string {
-	if category != "secrets" {
-		category = "certificates"
-	}
-	return fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/%s/%s",
-		p.parent.subscriptionId,
-		p.parent.resourceGroupName,
-		p.parent.clients.keyvaultName(),
-		category,
-		certificateName)
-}
-
 func (p *requestClientProvider) getOnbehalfOfCreds() (azcore.TokenCredential, error) {
 	var err error
 	if p.onBehalfOfCreds == nil {
@@ -159,19 +135,6 @@ func (p *requestClientProvider) MsGraphClient() (*msgraphsdkgo.GraphServiceClien
 		p.cachedDelegatedMsGraphClient, err = msgraphsdkgo.NewGraphServiceClientWithCredentials(creds, nil)
 	}
 	return p.cachedDelegatedMsGraphClient, err
-}
-
-// ArmRoleAssignmentsClient implements common.AdminServerRequestClientProvider.
-func (p *requestClientProvider) ArmRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error) {
-	var err error
-	if p.cachedArmRoleAssignmentsClient == nil {
-		var creds azcore.TokenCredential
-		if creds, err = p.getOnbehalfOfCreds(); err != nil {
-			return nil, err
-		}
-		p.cachedArmRoleAssignmentsClient, err = armauthorization.NewRoleAssignmentsClient(p.parent.subscriptionId, creds, nil)
-	}
-	return p.cachedArmRoleAssignmentsClient, err
 }
 
 var _ common.AdminServerRequestClientProvider = (*requestClientProvider)(nil)

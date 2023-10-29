@@ -16,6 +16,20 @@ type server struct {
 	api.APIServer
 }
 
+// AddKeyVaultRoleAssignment implements ServerInterface.
+func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error {
+	return fmt.Errorf("%w: unimplemented", base.ErrResponseStatusBadRequest)
+}
+
+// ListKeyVaultRoleAssignments implements ServerInterface.
+func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory, params ListKeyVaultRoleAssignmentsParams) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+	if err != nil {
+		return err
+	}
+	return s.apiListKeyVaultRoleAssignments(c, resourceIdentifier, kvCategory, params)
+}
+
 // GetCertificateRuleMsEntraClientCredential implements ServerInterface.
 func (s *server) GetCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)

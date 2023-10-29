@@ -15,10 +15,8 @@ import (
 
 type server struct {
 	common.CommonServer
-	clients           clientProvider
-	appIdentity       common.AzureAppConfidentialIdentity
-	subscriptionId    string
-	resourceGroupName string
+	clients     clientProvider
+	appIdentity common.AzureAppConfidentialIdentity
 }
 
 // ConfidentialAppIdentity implements common.ConfidentialAppIdentityProvider.
@@ -135,9 +133,6 @@ func NewServer() *server {
 	if s.clients, err = newServerClientProvider(&s); err != nil {
 		log.Panic().Err(err).Msg("failed to create client provider")
 	}
-
-	s.subscriptionId = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
-	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
 
 	return &s
 }

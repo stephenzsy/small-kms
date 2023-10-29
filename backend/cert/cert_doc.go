@@ -64,6 +64,10 @@ type CertDocSigningPatch struct {
 	Issuer        base.DocFullIdentifier `json:"issuer"`
 }
 
+func getKeyStoreName(nsKind base.NamespaceKind, nsID Identifier, pDoc *CertPolicyDoc) string {
+	return fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.ID.String())
+}
+
 func (d *CertDoc) Init(
 	nsKind base.NamespaceKind,
 	nsID Identifier,
@@ -85,8 +89,7 @@ func (d *CertDoc) Init(
 	d.Flags = pDoc.Flags
 	d.Policy = pDoc.GetStorageFullIdentifier()
 	d.PolicyVersion = pDoc.Version
-	d.KeyVaultStore.Name =
-		fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.ID.String())
+	d.KeyVaultStore.Name = getKeyStoreName(nsKind, nsID, pDoc)
 
 	now := time.Now()
 	d.Created = *jwt.NewNumericDate(now)

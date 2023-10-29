@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 )
@@ -28,8 +27,6 @@ func GetAdminServerClientProvider(c context.Context) AdminServerClientProvider {
 
 type AdminServerRequestClientProvider interface {
 	MsGraphClient() (*msgraphsdkgo.GraphServiceClient, error)
-	ArmRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error)
-	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
 }
 
 func GetAdminServerRequestClientProvider(c context.Context) AdminServerRequestClientProvider {

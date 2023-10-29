@@ -102,20 +102,3 @@ func (*server) GetAgentProfile(ctx echo.Context, namespaceId shared.Identifier) 
 	}
 	return wrapEchoResponse(c, agentconfig.ApiGetAgentProfile(c))
 }
-
-// ProvisionAgentProfile implements models.ServerInterface.
-func (*server) ProvisionAgentProfile(ctx echo.Context, namespaceId shared.Identifier) error {
-	c := ctx.(RequestContext)
-	if ok := auth.AuthorizeAdminOnly(c); !ok {
-		return respondRequireAdmin(c)
-	}
-	c, err := ns.WithNamespaceContext(c, shared.NamespaceKindApplication, namespaceId)
-	if err != nil {
-		return wrapEchoResponse(c, err)
-	}
-	params := shared.AgentProfileParameters{}
-	if err := c.Bind(&params); err != nil {
-		return wrapEchoResponse(c, fmt.Errorf("%w:%w", common.ErrStatusBadRequest, err))
-	}
-	return wrapEchoResponse(c, agentconfig.ApiProvisionAgentProfile(c, &params))
-}

@@ -15,7 +15,7 @@ import (
 
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
-	externalRef1 "github.com/stephenzsy/small-kms/backend/cert/v2"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/cert"
 	externalRef3 "github.com/stephenzsy/small-kms/backend/managedapp"
 )
 

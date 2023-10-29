@@ -120,7 +120,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"                
+                $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -203,10 +203,80 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Certificate"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - in : path
+        name: resourceCategory
+        required: true
+        schema:
+          $ref: "#/components/schemas/AzureKeyvaultResourceCategory"
+    get:
+      tags:
+        - admin
+      summary: List Key Vault role assignments
+      operationId: ListKeyVaultRoleAssignments
+      parameters:
+        - in: query
+          name: principalId
+          x-go-name: PrincipalID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: List keyvault roles assignments response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AzureRoleAssignment"
+    post:
+      tags:
+        - admin
+      summary: Add Key Vault role assignment
+      operationId: AddKeyVaultRoleAssignment
+      parameters:
+        - in: query
+          name: roleDefinitionId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Role Assignment response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AzureRoleAssignment"
 security:
   - BearerAuth: []
 components:
   schemas:
+    AzureRoleAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roleDefinitionId:
+          type: string
+        principalId:
+          type: string
+    AzureKeyvaultResourceCategory:
+      type: string
+      enum:
+        - keys
+        - secrets
+        - certificates
+      x-enum-varnames:
+        - AzureKeyvaultResourceCategoryKeys
+        - AzureKeyvaultResourceCategorySecrets
+        - AzureKeyvaultResourceCategoryCertificates
     CertificateFlag:
       type: string
       enum:

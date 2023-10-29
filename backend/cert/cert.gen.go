@@ -10,12 +10,20 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/key"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// Defines values for AzureKeyvaultResourceCategory.
+const (
+	AzureKeyvaultResourceCategoryCertificates AzureKeyvaultResourceCategory = "certificates"
+	AzureKeyvaultResourceCategoryKeys         AzureKeyvaultResourceCategory = "keys"
+	AzureKeyvaultResourceCategorySecrets      AzureKeyvaultResourceCategory = "secrets"
 )
 
 // Defines values for CertificateFlag.
@@ -25,6 +33,17 @@ const (
 	CertificateFlagRootCA     CertificateFlag = "rootCa"
 	CertificateFlagServerAuth CertificateFlag = "serverAuth"
 )
+
+// AzureKeyvaultResourceCategory defines model for AzureKeyvaultResourceCategory.
+type AzureKeyvaultResourceCategory string
+
+// AzureRoleAssignment defines model for AzureRoleAssignment.
+type AzureRoleAssignment struct {
+	Id               *string `json:"id,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	PrincipalId      *string `json:"principalId,omitempty"`
+	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
+}
 
 // CertPolicy defines model for CertPolicy.
 type CertPolicy = certPolicyComposed
@@ -148,6 +167,16 @@ type ListCertificatesParams struct {
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
+// ListKeyVaultRoleAssignmentsParams defines parameters for ListKeyVaultRoleAssignments.
+type ListKeyVaultRoleAssignmentsParams struct {
+	PrincipalID *openapi_types.UUID `form:"principalId,omitempty" json:"principalId,omitempty"`
+}
+
+// AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
+type AddKeyVaultRoleAssignmentParams struct {
+	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
+}
+
 // PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
 type PutCertPolicyJSONRequestBody = CertPolicyParameters
 
@@ -180,6 +209,12 @@ type ServerInterface interface {
 	// Enroll certificate
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert)
 	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// List Key Vault role assignments
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
+	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory, params ListKeyVaultRoleAssignmentsParams) error
+	// Add Key Vault role assignment
+	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
+	AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error
 	// Get certificate rules for namespace
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
 	GetCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
@@ -402,6 +437,108 @@ func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 	return err
 }
 
+// ListKeyVaultRoleAssignments converts echo context to params.
+func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceCategory" -------------
+	var resourceCategory AzureKeyvaultResourceCategory
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceCategory", runtime.ParamLocationPath, ctx.Param("resourceCategory"), &resourceCategory)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceCategory: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListKeyVaultRoleAssignmentsParams
+	// ------------- Optional query parameter "principalId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "principalId", ctx.QueryParams(), &params.PrincipalID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter principalId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListKeyVaultRoleAssignments(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory, params)
+	return err
+}
+
+// AddKeyVaultRoleAssignment converts echo context to params.
+func (w *ServerInterfaceWrapper) AddKeyVaultRoleAssignment(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceCategory" -------------
+	var resourceCategory AzureKeyvaultResourceCategory
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceCategory", runtime.ParamLocationPath, ctx.Param("resourceCategory"), &resourceCategory)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceCategory: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AddKeyVaultRoleAssignmentParams
+	// ------------- Required query parameter "roleDefinitionId" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "roleDefinitionId", ctx.QueryParams(), &params.RoleDefinitionId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter roleDefinitionId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AddKeyVaultRoleAssignment(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory, params)
+	return err
+}
+
 // GetCertificateRuleIssuer converts echo context to params.
 func (w *ServerInterfaceWrapper) GetCertificateRuleIssuer(ctx echo.Context) error {
 	var err error
@@ -608,6 +745,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-cert", wrapper.EnrollCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/ms-entra-client-credential", wrapper.GetCertificateRuleMsEntraClientCredential)

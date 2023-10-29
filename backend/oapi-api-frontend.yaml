@@ -38,39 +38,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1issuer"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"
-  /v3/application/{namespaceId}/agent:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Provision agent
-      operationId: GetAgentProfile
-      responses:
-        200:
-          description: Agent Profile
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
-    post:
-      tags:
-        - admin
-      summary: Provision agent
-      operationId: ProvisionAgentProfile
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentProfileParameters"
-        required: true
-      responses:
-        200:
-          description: Agent Profile
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
+  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1keyvault-role-assignments~1{resourceCategory}"
   /v3/{namespaceKindLegacy}/{namespaceId}/agent-callback/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
@@ -162,62 +131,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    get:
-      tags:
-        - admin
-      summary: List Key Vault role assignments
-      operationId: ListKeyVaultRoleAssignments
-      responses:
-        200:
-          description: List keyvault roles assignments response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AzureRoleAssignment"
-    post:
-      tags:
-        - admin
-      summary: Add Key Vault role assignment
-      operationId: AddKeyVaultRoleAssignment
-      parameters:
-        - in: query
-          name: roleDefinitionId
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: Role Assignment response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AzureRoleAssignment"
-  /v3/{namespaceKindLegacy}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-      - in: path
-        name: roleAssignmentId
-        schema:
-          type: string
-        required: true
-    delete:
-      tags:
-        - admin
-      summary: Remove Key Vault role assignment
-      operationId: RemoveKeyVaultRoleAssignment
-      responses:
-        204:
-          description: List keyvault roles assignments response
-          content: {}
 components:
   securitySchemes:
     BearerAuth:
@@ -245,17 +158,6 @@ components:
           $ref: "#/components/schemas/AgentProxyEndpoint"
         secondary:
           $ref: "#/components/schemas/AgentProxyEndpoint"
-    AzureRoleAssignment:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        roleDefinitionId:
-          type: string
-        principalId:
-          type: string
     CertificateLifetimeTrigger:
       type: object
       properties:

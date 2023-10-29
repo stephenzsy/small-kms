@@ -5,16 +5,13 @@ import (
 	"crypto/md5"
 	"fmt"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type AgentActiveServerDoc struct {
@@ -133,23 +130,23 @@ func newAgentActiveServerConfigurator() *docConfigurator[AgentConfigDocument] {
 			// if err != nil {
 			// 	return nil, err
 			// }
-			certItems, err := cert.ListActiveCertDocsByTemplateID(c, d.AuthorizedCertificateTemplateID)
-			if err != nil {
-				return nil, err
-			}
-			certLocators := utils.MapSlice(certItems, func(item *cert.CertDoc) shared.Identifier {
-				return item.ID.Identifier()
-			})
-			if certLocators == nil {
-				certLocators = []shared.Identifier{}
-			}
+			// certItems, err := cert.ListActiveCertDocsByTemplateID(c, d.AuthorizedCertificateTemplateID)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// certLocators := utils.MapSlice(certItems, func(item *cert.CertDoc) shared.Identifier {
+			// 	return item.ID.Identifier()
+			// })
+			// if certLocators == nil {
+			// 	certLocators = []shared.Identifier{}
+			// }
 
-			prevAuthorizedCertIDs := d.AuthorizedCertificateIDs
-			d.AuthorizedCertificateIDs = certLocators
-			if !slices.Equal(certLocators, prevAuthorizedCertIDs) {
-				patchOps.AppendSet("/authorizedCertificateIds", d.AuthorizedCertificateIDs)
-				hasChanges = true
-			}
+			// prevAuthorizedCertIDs := d.AuthorizedCertificateIDs
+			// d.AuthorizedCertificateIDs = certLocators
+			// if !slices.Equal(certLocators, prevAuthorizedCertIDs) {
+			// 	patchOps.AppendSet("/authorizedCertificateIds", d.AuthorizedCertificateIDs)
+			// 	hasChanges = true
+			// }
 
 			if hasChanges {
 				digester := md5.New()

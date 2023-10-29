@@ -13,13 +13,9 @@ models/AgentConfigurationAgentActiveHostBootstrap.ts
 models/AgentConfigurationAgentActiveServerReplyState.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
-models/AgentProfile.ts
-models/AgentProfileAppRole.ts
-models/AgentProfileFields.ts
-models/AgentProfileParameters.ts
-models/AgentProfileStatus.ts
 models/AgentProxyEndpoint.ts
 models/AgentProxyInfo.ts
+models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts
 models/CertPolicy.ts
 models/CertPolicyFields.ts
@@ -58,7 +54,6 @@ models/ProfileRefFields.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts
-models/ResourceRef.ts
 models/ResourceReference.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts

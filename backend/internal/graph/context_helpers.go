@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	msgraph "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -25,23 +26,11 @@ func GetServiceMsGraphClient(c context.Context) *msgraph.GraphServiceClient {
 }
 
 func WithDelegatedMsGraphClient(c ctx.RequestContext) (ctx.RequestContext, *msgraph.GraphServiceClient, error) {
-	if p, ok := c.Value(delegatedMsGraphClientContextKey).(*msgraph.GraphServiceClient); ok {
-		return c, p, nil
-	}
-	creds, err := auth.GetAuthIdentity(c).GetOnBehalfOfTokenCredential(c, nil)
-	if err != nil {
-		return c, nil, err
-	}
-	client, err := msgraph.NewGraphServiceClientWithCredentials(creds, nil)
-	if err != nil {
-		return c, client, err
-	}
-	return c.WithValue(delegatedMsGraphClientContextKey, client), client, nil
+	return auth.WithDelegatedClient[msgraph.GraphServiceClient, ContextKey](c, delegatedMsGraphClientContextKey, func(creds azcore.TokenCredential) (*msgraph.GraphServiceClient, error) {
+		return msgraph.NewGraphServiceClientWithCredentials(creds, nil)
+	})
 }
 
 func GetDelegatedMsGraphClient(c context.Context) *msgraph.GraphServiceClient {
-	if p, ok := c.Value(delegatedMsGraphClientContextKey).(*msgraph.GraphServiceClient); ok {
-		return p
-	}
-	return nil
+	return auth.GetDelegateClient[msgraph.GraphServiceClient, ContextKey](c, delegatedMsGraphClientContextKey)
 }

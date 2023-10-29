@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/cert/v2"
+	"github.com/stephenzsy/small-kms/backend/cert"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"

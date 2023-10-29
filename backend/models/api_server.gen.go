@@ -16,9 +16,6 @@ type ServerInterface interface {
 	// Provision agent
 	// (GET /v3/application/{namespaceId}/agent)
 	GetAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
-	// Provision agent
-	// (POST /v3/application/{namespaceId}/agent)
-	ProvisionAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
 
 	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy)
 	GetAgentProxyInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
@@ -65,24 +62,6 @@ func (w *ServerInterfaceWrapper) GetAgentProfile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentProfile(ctx, namespaceId)
-	return err
-}
-
-// ProvisionAgentProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) ProvisionAgentProfile(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ProvisionAgentProfile(ctx, namespaceId)
 	return err
 }
 
@@ -398,7 +377,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
-	router.POST(baseURL+"/v3/application/:namespaceId/agent", wrapper.ProvisionAgentProfile)
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy", wrapper.GetAgentProxyInfo)
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
