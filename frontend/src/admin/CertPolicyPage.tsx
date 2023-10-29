@@ -28,6 +28,7 @@ import {
   NamespaceKind,
   ProfileRef,
   ResourceKind,
+  SubjectAlternativeNames,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
@@ -35,8 +36,15 @@ import {
   NamespaceConfigContext,
   NamespaceContext,
 } from "./contexts/NamespaceContext";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
-function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
+function RequestCertificateControl({
+  certPolicyId,
+  onComplete,
+}: {
+  certPolicyId: string;
+  onComplete?: () => void;
+}) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const [force, setForce] = useState(false);
@@ -47,6 +55,7 @@ function RequestCertificateControl({ certPolicyId }: { certPolicyId: string }) {
         namespaceKind,
         resourceIdentifier: certPolicyId,
       });
+      onComplete?.();
     },
     { manual: true }
   );
@@ -83,7 +92,7 @@ type CertPolicyFormState = {
   kty: JsonWebKeyType;
   keySize: number;
   crv: JsonWebKeyCurveName;
-  // selfSigning: boolean;
+  sans: SubjectAlternativeNames;
   issuerNamespaceId: string;
 };
 
@@ -165,6 +174,7 @@ function CertPolicyForm({
           JsonWebKeyOperation.JsonWebKeyOperationVerify,
         ],
       },
+      subjectAlternativeNames: values.sans,
       issuerNamespaceKind:
         namespaceKind === NamespaceKind.NamespaceKindRootCA ||
         namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
@@ -191,6 +201,7 @@ function CertPolicyForm({
       keySize: value.keySpec.keySize,
       crv: value.keySpec.crv,
       issuerNamespaceId: value.issuerNamespaceIdentifier,
+      sans: value.subjectAlternativeNames ?? {},
     });
   }, [value]);
 
@@ -278,6 +289,33 @@ function CertPolicyForm({
           <Input placeholder="example.org" />
         </Form.Item>
       </div>
+
+      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
+        <div className="text-lg font-semibold">Subject alternative names</div>
+        <Form.Item<CertPolicyFormState> label="DNS names">
+          <SANFormList
+            name={["sans", "dnsNames"]}
+            addButtonLabel="+ Add DNS name"
+            inputPlaceholder="example.com"
+          />
+        </Form.Item>
+        <Form.Item<CertPolicyFormState> label="IP addresses">
+          <SANFormList
+            name={["sans", "ipAddresses"]}
+            addButtonLabel="+ Add IP Address"
+            inputPlaceholder="127.0.0.1 or ::1"
+          />
+        </Form.Item>
+
+        <Form.Item<CertPolicyFormState> label="Email addresses">
+          <SANFormList
+            name={["sans", "emails"]}
+            addButtonLabel="+ Add Email Address"
+            inputPlaceholder="example@example.com"
+          />
+        </Form.Item>
+      </div>
+
       <Form.Item<CertPolicyFormState>
         name="expiryTime"
         label="Expiry time"
@@ -291,7 +329,6 @@ function CertPolicyForm({
           name="keyExportable"
           valuePropName="checked"
           getValueFromEvent={(e: CheckboxChangeEvent) => {
-            console.log(e);
             if (e.target.indeterminate) {
               return undefined;
             }
@@ -335,6 +372,45 @@ type CertificateActionsProps = {
   onSetIssuerPolicy?: (policyId: string) => void;
   certPolicyId?: string;
 };
+
+function SANFormList({
+  name,
+  addButtonLabel,
+  inputPlaceholder,
+}: {
+  addButtonLabel: React.ReactNode;
+  inputPlaceholder?: string;
+  name: string[];
+}) {
+  return (
+    <Form.List name={name}>
+      {(subFields, subOpt) => {
+        return (
+          <div className="flex flex-col gap-4">
+            {subFields.map((subField) => (
+              <div key={subField.key} className="flex items-center gap-4">
+                <Form.Item noStyle name={subField.name} className="flex-auto">
+                  <Input placeholder={inputPlaceholder} />
+                </Form.Item>
+                <Button
+                  type="text"
+                  onClick={() => {
+                    subOpt.remove(subField.name);
+                  }}
+                >
+                  <XMarkIcon className="h-em w-em" />
+                </Button>
+              </div>
+            ))}
+            <Button type="dashed" onClick={() => subOpt.add()} block>
+              {addButtonLabel}
+            </Button>
+          </div>
+        );
+      }}
+    </Form.List>
+  );
+}
 
 function CertificateActions({
   certRef,
@@ -414,7 +490,7 @@ export default function CertPolicyPage() {
     }
   );
 
-  const { data: issuedCertificates, refresh: refreshCertificate } = useRequest(
+  const { data: issuedCertificates, refresh: refreshCertificates } = useRequest(
     async () => {
       if (certPolicyId) {
         return await adminApi.listCertificates({
@@ -433,7 +509,7 @@ export default function CertPolicyPage() {
     if (!certPolicyId && value) {
       navigate(`./../${value.id}`, { replace: true });
     } else {
-      refreshCertificate();
+      refreshCertificates();
     }
   });
 
@@ -450,8 +526,9 @@ export default function CertPolicyPage() {
       <Typography.Title>
         Certificate Policy: {certPolicyId || "new policy"}
       </Typography.Title>
-      <div>
-        {namespaceKind}/{namespaceIdentifier}
+      <div className="font-mono">
+        {namespaceKind}:{namespaceIdentifier}:
+        {ResourceKind.ResourceKindCertPolicy}/{certPolicyId}
       </div>
       <Card title="Certificate list">
         <Table<CertificateRef>
@@ -462,7 +539,10 @@ export default function CertPolicyPage() {
       </Card>
       <Card title="Manage certificates">
         <div className="space-y-4">
-          <RequestCertificateControl certPolicyId={certPolicyId} />
+          <RequestCertificateControl
+            certPolicyId={certPolicyId}
+            onComplete={refreshCertificates}
+          />
           {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
             namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
             (certPolicyId !== issuerRule?.policyId ? (
