@@ -61,7 +61,7 @@ func main() {
 		}
 		ctx := context.Background()
 		server := api.NewServer()
-		apiServer, err := api.NewApiServer(ctx, server)
+		apiServer, err := api.NewApiServer(ctx, BuildID, server)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to initialize api server")
 		}

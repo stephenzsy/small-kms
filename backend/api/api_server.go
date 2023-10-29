@@ -19,6 +19,8 @@ import (
 
 type APIServer interface {
 	RespondRequireAdmin(c echo.Context) error
+	GetAzKeyVaultEndpoint() string
+	GetBuildID() string
 }
 
 type apiServer struct {
@@ -32,6 +34,17 @@ type apiServer struct {
 	azKeysClient            *azkeys.Client
 	legacyClientProvider    common.AdminServerClientProvider
 	appConfidentialIdentity auth.AzureAppConfidentialIdentity
+	buildID                 string
+}
+
+// GetBuildID implements APIServer.
+func (s *apiServer) GetBuildID() string {
+	return s.buildID
+}
+
+// GetAzKeyVaultEndpoint implements APIServer.
+func (s *apiServer) GetAzKeyVaultEndpoint() string {
+	return s.azKeyVaultEndpoint
 }
 
 // AzCertificatesClient implements kv.AzKeyVaultService.
@@ -89,7 +102,7 @@ func (s *apiServer) Value(key any) any {
 
 var _ context.Context = (*apiServer)(nil)
 
-func NewApiServer(c context.Context, serverOld *server) (*apiServer, error) {
+func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiServer, error) {
 	var err error
 	s := &apiServer{
 		chCtx:                   c,
@@ -99,6 +112,7 @@ func NewApiServer(c context.Context, serverOld *server) (*apiServer, error) {
 		serviceMsGraphClient:    serverOld.clients.msGraphClient,
 		appConfidentialIdentity: serverOld.appIdentity,
 		legacyClientProvider:    &serverOld.clients,
+		buildID:                 buildID,
 	}
 	if s.azKeyVaultEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, DefualtEnvVarAzKeyvaultResourceEndpoint, ""); s.azKeyVaultEndpoint == "" {
 		return s, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint)

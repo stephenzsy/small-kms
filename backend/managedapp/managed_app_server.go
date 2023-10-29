@@ -43,7 +43,7 @@ func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 
-	return apiGetAgentConfigServer(c)
+	return s.apiGetAgentConfigServer(c)
 }
 
 func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
@@ -59,7 +59,7 @@ func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 		return err
 	}
 
-	return apiPutAgentConfigServer(c, param)
+	return s.apiPutAgentConfigServer(c, param)
 }
 
 // SyncManagedApp implements ServerInterface.

@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 
 import { useRequest } from "ahooks";
 import { Button, Card, Form, Input, Select, Typography } from "antd";
@@ -9,6 +9,7 @@ import {
   AdminApi,
   AgentConfigName,
   AgentConfigServerParameters,
+  AgentConfigServerToJSON,
   AgentConfigurationAgentActiveHostBootstrapToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
@@ -50,16 +51,16 @@ function useConfigurationSkeleton(
           2
         );
       case AgentConfigName.AgentConfigNameActiveServer:
-        // return JSON.stringify(
-        //   AgentConfigurationAgentActiveServerToJSON({
-        //     name: configName,
-        //     authorizedCertificateTemplateId:
-        //       "00000000-0000-0000-0000-000000000000",
-        //     serverCertificateTemplateId: `cert-template:default-mtls`,
-        //   }),
-        //   undefined,
-        //   2
-        // );
+      // return JSON.stringify(
+      //   AgentConfigurationAgentActiveServerToJSON({
+      //     name: configName,
+      //     authorizedCertificateTemplateId:
+      //       "00000000-0000-0000-0000-000000000000",
+      //     serverCertificateTemplateId: `cert-template:default-mtls`,
+      //   }),
+      //   undefined,
+      //   2
+      // );
     }
     return "";
   }, [configName, nsId]);
@@ -203,14 +204,23 @@ function AgentConfigServerFormCard() {
         namespaceKind,
       });
     },
-    { refreshDeps: [namespaceIdentifier, namespaceKind] }
+    {
+      refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready: !!namespaceIdentifier && !!namespaceKind,
+    }
   );
+
+  useEffect(() => {
+    if (data) {
+      form.setFieldsValue(data);
+    }
+  }, [data])
 
   return (
     <Card title="Agent server configuration">
       <div className="mb-6">
         Current configuration:
-        <JsonDataDisplay data={data} />
+        <JsonDataDisplay data={data} toJson={AgentConfigServerToJSON} />
       </div>
       <Form
         form={form}

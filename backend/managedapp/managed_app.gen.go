@@ -45,7 +45,7 @@ type AgentConfigServerEnv struct {
 type AgentConfigServerFields struct {
 	// Env Environment variables for the agent config server, must be set manually
 	Env              AgentConfigServerEnv                    `json:"env"`
-	ImageTag         *string                                 `json:"imageTag,omitempty"`
+	ImageTag         string                                  `json:"imageTag"`
 	JWTKeyCertIDs    []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
 	TlsCertificateId externalRef0.Identifier                 `json:"tlsCertificateId"`
 }

@@ -1,8 +1,11 @@
 package managedapp
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert/v2"
@@ -23,18 +26,23 @@ func (d *AgentConfigServerDoc) init(nsKind base.NamespaceKind, nsIdentifier base
 	d.AgentConfigDoc.init(nsKind, nsIdentifier, base.AgentConfigNameServer)
 }
 
-func (d *AgentConfigServerDoc) PopulateModel(m *AgentConfigServer) {
+func (d *AgentConfigServerDoc) populateModel(s *server, m *AgentConfigServer) {
 	if d == nil || m == nil {
 		return
 	}
 	d.AgentConfigDoc.PopulateModel(&m.AgentConfig)
+	m.Env = AgentConfigServerEnv{
+		AZUREKEYVAULTRESOURCEENDPOINT: s.GetAzKeyVaultEndpoint(),
+	}
 	m.TlsCertificatePolicyId = d.TLSCertificatePolicyID
 	m.TlsCertificateId = d.TLSCertificateID
 	m.JwtKeyCertPolicyId = d.JWTKeyCertPolicyID
 	m.JWTKeyCertIDs = d.JWTKeyCertIDs
+	m.RefreshAfter = time.Now().Add(24 * time.Hour).UTC()
+	m.ImageTag = s.GetBuildID()
 }
 
-func apiGetAgentConfigServer(c ctx.RequestContext) error {
+func (s *server) apiGetAgentConfigServer(c ctx.RequestContext) error {
 	nsCtx := ns.GetNSContext(c)
 
 	doc := &AgentConfigServerDoc{}
@@ -48,11 +56,11 @@ func apiGetAgentConfigServer(c ctx.RequestContext) error {
 	}
 
 	m := &AgentConfigServer{}
-	doc.PopulateModel(m)
+	doc.populateModel(s, m)
 	return c.JSON(200, m)
 }
 
-func apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfigServerParameters) error {
+func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfigServerParameters) error {
 
 	nsCtx := ns.GetNSContext(c)
 
@@ -71,11 +79,6 @@ func apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfigServerParam
 	}
 	doc.TLSCertificateID = certIds[0]
 
-	err = base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil)
-	if err != nil {
-		return err
-	}
-
 	doc.JWTKeyCertPolicyID = param.JwtKeyCertPolicyId
 	jwtKeyCertIdentifiers, err := cert.QueryLatestCertificateIdsIssuedByPolicy(c,
 		doc.JWTKeyCertPolicyID, 2)
@@ -86,7 +89,19 @@ func apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfigServerParam
 		return base.NewDocFullIdentifier(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceIdentifier(), base.ResourceKindCert, id)
 	})
 
+	digest := md5.New()
+	digest.Write([]byte(doc.TLSCertificateID.String()))
+	for _, certID := range doc.JWTKeyCertIDs {
+		digest.Write([]byte(certID.String()))
+	}
+	doc.Version = hex.EncodeToString(digest.Sum(nil))
+
+	err = base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil)
+	if err != nil {
+		return err
+	}
+
 	m := &AgentConfigServer{}
-	doc.PopulateModel(m)
+	doc.populateModel(s, m)
 	return c.JSON(200, m)
 }

@@ -230,7 +230,7 @@ components:
         - env
         - tlsCertificateId
         - jwtKeyCertIds
-        - imageRefStr
+        - imageTag
     AgentConfigServerParameters:
       type: object
       properties:
