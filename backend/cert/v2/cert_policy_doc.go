@@ -156,6 +156,8 @@ func (d *CertPolicyDoc) Init(
 
 	if p.KeyExportable == nil {
 		switch nsKind {
+		case base.NamespaceKindServicePrincipal:
+			d.KeyExportable = true
 		default:
 			d.KeyExportable = false
 		}

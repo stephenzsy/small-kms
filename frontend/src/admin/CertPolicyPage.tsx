@@ -11,6 +11,7 @@ import {
   Tag,
   Typography,
 } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -78,7 +79,7 @@ type CertPolicyFormState = {
   displayName: string;
   subjectCN: string;
   expiryTime: string;
-  //keyExportable: boolean;
+  keyExportable?: boolean;
   kty: JsonWebKeyType;
   keySize: number;
   crv: JsonWebKeyCurveName;
@@ -136,6 +137,7 @@ function CertPolicyForm({
   );
 
   const ktyState = useWatch("kty", form);
+  const keyExportable = useWatch("keyExportable", form);
 
   //const _selfSigning = useWatch("selfSigning", form);
 
@@ -153,7 +155,7 @@ function CertPolicyForm({
         commonName: values.subjectCN,
       },
       displayName: values.displayName,
-      //      keyExportable: values.keyExportable,
+      keyExportable: values.keyExportable,
       keySpec: {
         kty: values.kty,
         keySize: values.keySize,
@@ -184,7 +186,7 @@ function CertPolicyForm({
       displayName: value.displayName,
       subjectCN: value.subject.commonName,
       expiryTime: value.expiryTime,
-      // keyExportable: value.keyExportable,
+      keyExportable: value.keyExportable,
       kty: value.keySpec.kty,
       keySize: value.keySpec.keySize,
       crv: value.keySpec.crv,
@@ -193,114 +195,132 @@ function CertPolicyForm({
   }, [value]);
 
   return (
-    <>
-      <Form<CertPolicyFormState>
-        form={form}
-        layout="vertical"
-        initialValues={{
-          certPolicyId: certPolicyId,
-          expiryTime: "",
-          subjectCN: "",
-          displayName: "",
-          keyExportable: false,
-          kty: JsonWebKeyType.JsonWebKeyTypeRSA,
-          keySize: 2048,
-          selfSigning: false,
-        }}
-        onFinish={onFinish}
-      >
-        {!certPolicyId && (
-          <Form.Item<CertPolicyFormState>
-            name="certPolicyId"
-            label="Policy ID"
-            required
-          >
-            <Input />
-          </Form.Item>
-        )}
-        <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
-          <Input />
-        </Form.Item>
-        {!isSelfSigning && (
-          <Form.Item<CertPolicyFormState>
-            name="issuerNamespaceId"
-            getValueFromEvent={(v: any) => v}
-          >
-            <CertificateIssuerNamespaceSelect
-              availableNamespaceProfiles={issuerProfiles}
-              profileKind={
-                namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-                  ? ResourceKind.ProfileResourceKindRootCA
-                  : ResourceKind.ProfileResourceKindIntermediateCA
-              }
-            />
-          </Form.Item>
-        )}
-        <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
-          <div className="text-lg font-semibold">Key specification</div>
-          <Form.Item<CertPolicyFormState> name="kty" label="Key type">
-            <Radio.Group>
-              <Radio value={JsonWebKeyType.JsonWebKeyTypeRSA}>RSA</Radio>
-              <Radio value={JsonWebKeyType.JsonWebKeyTypeEC}>EC</Radio>
-            </Radio.Group>
-          </Form.Item>
-          {ktyState === JsonWebKeyType.JsonWebKeyTypeRSA ? (
-            <Form.Item<CertPolicyFormState> name="keySize" label="RSA key size">
-              <Radio.Group>
-                <Radio value={2048}>2048</Radio>
-                <Radio value={3072}>3072</Radio>
-                <Radio value={4096}>4096</Radio>
-              </Radio.Group>
-            </Form.Item>
-          ) : ktyState === JsonWebKeyType.JsonWebKeyTypeEC ? (
-            <Form.Item<CertPolicyFormState> name="crv" label="EC curve name">
-              <Radio.Group>
-                <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP256}>
-                  P-256
-                </Radio>
-                <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP384}>
-                  P-384
-                </Radio>
-                <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP521}>
-                  P-521
-                </Radio>
-              </Radio.Group>
-            </Form.Item>
-          ) : null}
-        </div>
-        <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
-          <div className="text-lg font-semibold">Subject</div>
-          <Form.Item<CertPolicyFormState>
-            name="subjectCN"
-            label="Common name (CN)"
-            required
-          >
-            <Input placeholder="example.org" />
-          </Form.Item>
-        </div>
+    <Form<CertPolicyFormState>
+      form={form}
+      layout="vertical"
+      initialValues={{
+        certPolicyId: certPolicyId,
+        expiryTime: "",
+        subjectCN: "",
+        displayName: "",
+        kty: JsonWebKeyType.JsonWebKeyTypeRSA,
+        keySize: 2048,
+        selfSigning: false,
+      }}
+      onFinish={onFinish}
+    >
+      {!certPolicyId && (
         <Form.Item<CertPolicyFormState>
-          name="expiryTime"
-          label="Expiry time"
+          name="certPolicyId"
+          label="Policy ID"
           required
         >
-          <Input placeholder="P1Y" />
+          <Input />
         </Form.Item>
+      )}
+      <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
+        <Input />
+      </Form.Item>
+      {!isSelfSigning && (
+        <Form.Item<CertPolicyFormState>
+          name="issuerNamespaceId"
+          getValueFromEvent={(v: any) => v}
+        >
+          <CertificateIssuerNamespaceSelect
+            availableNamespaceProfiles={issuerProfiles}
+            profileKind={
+              namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
+                ? ResourceKind.ProfileResourceKindRootCA
+                : ResourceKind.ProfileResourceKindIntermediateCA
+            }
+          />
+        </Form.Item>
+      )}
+      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
+        <div className="text-lg font-semibold">Key specification</div>
+        <Form.Item<CertPolicyFormState> name="kty" label="Key type">
+          <Radio.Group>
+            <Radio value={JsonWebKeyType.JsonWebKeyTypeRSA}>RSA</Radio>
+            <Radio value={JsonWebKeyType.JsonWebKeyTypeEC}>EC</Radio>
+          </Radio.Group>
+        </Form.Item>
+        {ktyState === JsonWebKeyType.JsonWebKeyTypeRSA ? (
+          <Form.Item<CertPolicyFormState> name="keySize" label="RSA key size">
+            <Radio.Group>
+              <Radio value={2048}>2048</Radio>
+              <Radio value={3072}>3072</Radio>
+              <Radio value={4096}>4096</Radio>
+            </Radio.Group>
+          </Form.Item>
+        ) : ktyState === JsonWebKeyType.JsonWebKeyTypeEC ? (
+          <Form.Item<CertPolicyFormState> name="crv" label="EC curve name">
+            <Radio.Group>
+              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP256}>
+                P-256
+              </Radio>
+              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP384}>
+                P-384
+              </Radio>
+              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP521}>
+                P-521
+              </Radio>
+            </Radio.Group>
+          </Form.Item>
+        ) : null}
+      </div>
+      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
+        <div className="text-lg font-semibold">Subject</div>
+        <Form.Item<CertPolicyFormState>
+          name="subjectCN"
+          label="Common name (CN)"
+          required
+        >
+          <Input placeholder="example.org" />
+        </Form.Item>
+      </div>
+      <Form.Item<CertPolicyFormState>
+        name="expiryTime"
+        label="Expiry time"
+        required
+      >
+        <Input placeholder="P1Y" />
+      </Form.Item>
 
-        {/*
+      <div className="flex items-start gap-6">
         <Form.Item<CertPolicyFormState>
           name="keyExportable"
           valuePropName="checked"
+          getValueFromEvent={(e: CheckboxChangeEvent) => {
+            console.log(e);
+            if (e.target.indeterminate) {
+              return undefined;
+            }
+            return e.target.checked;
+          }}
         >
-          <Checkbox>Key exportable</Checkbox>
-        </Form.Item> */}
-
-        <Form.Item>
-          <Button htmlType="submit" type="primary">
-            Submit
-          </Button>
+          <Checkbox indeterminate={keyExportable === undefined}>
+            Key exportable:{" "}
+            {keyExportable === undefined ? "default" : keyExportable.toString()}
+          </Checkbox>
         </Form.Item>
-      </Form>
-    </>
+        {keyExportable !== undefined && (
+          <Button
+            type="link"
+            onClick={() => {
+              form.setFieldValue("keyExportable", undefined);
+            }}
+          >
+            Reset to default
+          </Button>
+        )}
+      </div>
+
+      <Form.Item>
+        <Button htmlType="submit" type="primary">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
   );
 }
 
