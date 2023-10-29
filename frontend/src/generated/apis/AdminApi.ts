@@ -183,6 +183,11 @@ export interface ImportProfileRequest {
     namespaceIdentifier: string;
 }
 
+export interface ListAgentServerAzureRoleAssignmentsRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+}
+
 export interface ListCertPoliciesRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -199,7 +204,6 @@ export interface ListKeyVaultRoleAssignmentsRequest {
     namespaceIdentifier: string;
     resourceIdentifier: string;
     resourceCategory: AzureKeyvaultResourceCategory;
-    principalId?: string;
 }
 
 export interface ListProfilesRequest {
@@ -1040,6 +1044,48 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * List Key Vault role assignments
+     */
+    async listAgentServerAzureRoleAssignmentsRaw(requestParameters: ListAgentServerAzureRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AzureRoleAssignment>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listAgentServerAzureRoleAssignments.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listAgentServerAzureRoleAssignments.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AzureRoleAssignmentFromJSON));
+    }
+
+    /**
+     * List Key Vault role assignments
+     */
+    async listAgentServerAzureRoleAssignments(requestParameters: ListAgentServerAzureRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AzureRoleAssignment>> {
+        const response = await this.listAgentServerAzureRoleAssignmentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List cert policies
      */
     async listCertPoliciesRaw(requestParameters: ListCertPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CertPolicyRef>>> {
@@ -1148,10 +1194,6 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.principalId !== undefined) {
-            queryParameters['principalId'] = requestParameters.principalId;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

@@ -34,6 +34,14 @@ const (
 	ResourceKindNamespaceConfig         ResourceKind = "ns-config"
 )
 
+// AzureRoleAssignment defines model for AzureRoleAssignment.
+type AzureRoleAssignment struct {
+	ID               *string `json:"id,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	PrincipalId      *string `json:"principalId,omitempty"`
+	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
+}
+
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.
 type Base64RawURLEncodedBytes = base64RawURLEncodedBytesImpl
 
@@ -89,3 +97,9 @@ type NamespaceKindParameter = NamespaceKind
 
 // ResourceIdentifierParameter defines model for ResourceIdentifierParameter.
 type ResourceIdentifierParameter = Identifier
+
+// AzureRoleAssignmentResponse defines model for AzureRoleAssignmentResponse.
+type AzureRoleAssignmentResponse = AzureRoleAssignment
+
+// ListAzureRoleAssignmentsResponse defines model for ListAzureRoleAssignmentsResponse.
+type ListAzureRoleAssignmentsResponse = []AzureRoleAssignment

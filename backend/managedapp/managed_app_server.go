@@ -1,6 +1,8 @@
 package managedapp
 
 import (
+	"net/http"
+
 	"github.com/google/uuid"
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/api"
@@ -12,6 +14,18 @@ import (
 
 type server struct {
 	api.APIServer
+}
+
+// ListAgentServerAzureRoleAssignments implements ServerInterface.
+func (s *server) ListAgentServerAzureRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	return s.apiListAgentConfigServerRoleAssignments(c)
 }
 
 // SyncSystemApp implements ServerInterface.
@@ -38,8 +52,12 @@ func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) erro
 func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	if namespaceIdentifier != base.StringIdentifier("me") && auth.AuthorizeAdminOnly(c) {
+		// ok
+	} else if authedNamespaceId, ok := auth.AuthorizeApplicationMe(c, namespaceIdentifier.UUID(), namespaceIdentifier == base.StringIdentifier("me")); !ok {
+		return c.JSON(http.StatusForbidden, map[string]string{"message": "unauthorized"})
+	} else {
+		namespaceIdentifier = base.UUIDIdentifier(authedNamespaceId)
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 

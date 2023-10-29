@@ -115,6 +115,9 @@ type ServerInterface interface {
 	// Put agent config server
 	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server)
 	PutAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// List Key Vault role assignments
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments)
+	ListAgentServerAzureRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -268,6 +271,32 @@ func (w *ServerInterfaceWrapper) PutAgentConfigServer(ctx echo.Context) error {
 	return err
 }
 
+// ListAgentServerAzureRoleAssignments converts echo context to params.
+func (w *ServerInterfaceWrapper) ListAgentServerAzureRoleAssignments(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListAgentServerAzureRoleAssignments(ctx, namespaceKind, namespaceIdentifier)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -304,5 +333,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.PutAgentConfigServer)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server/role-assignments", wrapper.ListAgentServerAzureRoleAssignments)
 
 }

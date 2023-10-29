@@ -84,6 +84,7 @@ function useConfigurationSkeleton(
 }
 
 const wellKnownRoleDefinitionIds: Record<string, string> = {
+  "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
   "21090545-7ca7-4776-b22c-e363652d74d2": "Key Vault Reader",
 };
 
@@ -159,17 +160,9 @@ function AgentConfigServerFormCard({
 
   const { data: keysData } = useRequest(
     () => {
-      const policyNsKind = (jwtKeyCertPolicyId?.split(":")[0] ??
-        "") as NamespaceKind;
-      const policyNsId = jwtKeyCertPolicyId?.split(":")[1] ?? "";
-      const certPolicyId = jwtKeyCertPolicyId?.split("/")[1] ?? "";
-      return api.listKeyVaultRoleAssignments({
-        namespaceIdentifier: policyNsId,
-        namespaceKind: policyNsKind,
-        resourceCategory:
-          AzureKeyvaultResourceCategory.AzureKeyvaultResourceCategoryCertificates,
-        resourceIdentifier: certPolicyId,
-        principalId: namespaceIdentifier,
+      return api.listAgentServerAzureRoleAssignments({
+        namespaceIdentifier,
+        namespaceKind,
       });
     },
     {

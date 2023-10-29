@@ -41,6 +41,18 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    AzureRoleAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+        name:
+          type: string
+        roleDefinitionId:
+          type: string
+        principalId:
+          type: string
     Base64RawURLEncodedBytes:
       type: string
       x-go-type: base64RawURLEncodedBytesImpl
@@ -166,3 +178,18 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/Identifier"
+  responses:
+    AzureRoleAssignmentResponse:
+      description: Role Assignment response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AzureRoleAssignment"
+    ListAzureRoleAssignmentsResponse:
+      description: list of azure role assignments
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AzureRoleAssignment"

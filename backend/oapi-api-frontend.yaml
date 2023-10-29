@@ -18,6 +18,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1system-app~1{systemAppName}"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server~1role-assignments"
   /v1/profile/{profileResourceKind}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:

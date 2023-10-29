@@ -38,8 +38,8 @@ func (p *identifier) UnmarshalText(text []byte) error {
 		p.strVal = "default"
 	} else if len(p.strVal) > 48 {
 		return errors.New("identifier too long, max 48 characters")
-	} else if len(p.strVal) < 4 {
-		return errors.New("identifier too short min 4 characters")
+	} else if len(p.strVal) < 2 {
+		return errors.New("identifier too short min 2 characters")
 	} else if !identifierRegex.MatchString(p.strVal) {
 		return errors.New("invalid identifier format: " + p.strVal)
 	}

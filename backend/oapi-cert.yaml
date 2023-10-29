@@ -208,7 +208,7 @@ paths:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
       - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
-      - in : path
+      - in: path
         name: resourceCategory
         required: true
         schema:
@@ -218,22 +218,9 @@ paths:
         - admin
       summary: List Key Vault role assignments
       operationId: ListKeyVaultRoleAssignments
-      parameters:
-        - in: query
-          name: principalId
-          x-go-name: PrincipalID
-          schema:
-            type: string
-            format: uuid
       responses:
         200:
-          description: List keyvault roles assignments response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AzureRoleAssignment"
+          $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"
     post:
       tags:
         - admin
@@ -247,26 +234,11 @@ paths:
           required: true
       responses:
         200:
-          description: Role Assignment response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AzureRoleAssignment"
+          $ref: "oapi-base.yaml#/components/responses/AzureRoleAssignmentResponse"
 security:
   - BearerAuth: []
 components:
   schemas:
-    AzureRoleAssignment:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        roleDefinitionId:
-          type: string
-        principalId:
-          type: string
     AzureKeyvaultResourceCategory:
       type: string
       enum:

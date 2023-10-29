@@ -132,6 +132,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      summary: List Key Vault role assignments
+      operationId: ListAgentServerAzureRoleAssignments
+      responses:
+        200:
+          $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"      
 security:
   - BearerAuth: []
 components:
@@ -247,6 +259,17 @@ components:
         - jwtKeyCertPolicyId
         - jwtKeyCertIds
         - azureAcrImageRef
+    AzureRoleAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roleDefinitionId:
+          type: string
+        principalId:
+          type: string        
   parameters:
     ManagedAppIdParameter:
       in: path
@@ -255,3 +278,18 @@ components:
       schema:
         type: string
         format: uuid
+  responses:
+    AzureRoleAssignmentResponse:
+      description: Role Assignment response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AzureRoleAssignment"
+    ListAzureRoleAssignmentsResponse:
+      description: list of azure role assignments
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AzureRoleAssignment"

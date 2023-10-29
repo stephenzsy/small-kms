@@ -13,7 +13,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory, params ListKeyVaultRoleAssignmentsParams) error {
+func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory) error {
 	switch kvCategory {
 	case AzureKeyvaultResourceCategoryCertificates,
 		AzureKeyvaultResourceCategoryKeys,
@@ -41,9 +41,9 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	}
 
 	assignee := nsCtx.Identifier().UUID()
-	if params.PrincipalID != nil {
-		assignee = *params.PrincipalID
-	}
+	// if params.PrincipalID != nil {
+	// 	assignee = *params.PrincipalID
+	// }
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", assignee.String())
 	scope := s.GetKeyvaultCertificateResourceScopeID(keyStoreName, string(kvCategory))
 	log.Debug().Msgf("Lookup role assignments for scope: %s", scope)
@@ -59,14 +59,14 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 		func(resp armauthorization.RoleAssignmentsClientListForScopeResponse) []*armauthorization.RoleAssignment {
 			return resp.Value
 		})
-	allItems, err := utils.PagerAllItems[*AzureRoleAssignment](
-		utils.NewMappedItemsPager[*AzureRoleAssignment, *armauthorization.RoleAssignment](
-			itemsPager, func(item *armauthorization.RoleAssignment) *AzureRoleAssignment {
+	allItems, err := utils.PagerAllItems[*base.AzureRoleAssignment](
+		utils.NewMappedItemsPager[*base.AzureRoleAssignment, *armauthorization.RoleAssignment](
+			itemsPager, func(item *armauthorization.RoleAssignment) *base.AzureRoleAssignment {
 				if item == nil {
 					return nil
 				}
-				return &AzureRoleAssignment{
-					Id:               item.ID,
+				return &base.AzureRoleAssignment{
+					ID:               item.ID,
 					Name:             item.Name,
 					PrincipalId:      item.Properties.PrincipalID,
 					RoleDefinitionId: item.Properties.RoleDefinitionID,
@@ -76,7 +76,7 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 		return err
 	}
 	if allItems == nil {
-		allItems = make([]*AzureRoleAssignment, 0)
+		allItems = make([]*base.AzureRoleAssignment, 0)
 	}
 	return c.JSON(http.StatusOK, allItems)
 }

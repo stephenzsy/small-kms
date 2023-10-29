@@ -1,4 +1,4 @@
-package serviceprincipal
+package bootstrap
 
 import (
 	"context"

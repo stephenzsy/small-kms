@@ -23,7 +23,9 @@ type APIServer interface {
 	GetAzKeyVaultEndpoint() string
 	GetBuildID() string
 	WithDelegatedARMAuthRoleAssignmentsClient(c ctx.RequestContext) (ctx.RequestContext, *armauthorization.RoleAssignmentsClient, error)
+	// legacy
 	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
+	GetAzSubscriptionID() string
 }
 
 type apiServer struct {
@@ -156,4 +158,8 @@ func (s *apiServer) GetKeyvaultCertificateResourceScopeID(certificateName string
 		s.extractedKeyVaultName,
 		category,
 		certificateName)
+}
+
+func (s *apiServer) GetAzSubscriptionID() string {
+	return s.azSubscriptionID
 }

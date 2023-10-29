@@ -10,7 +10,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/key"
 )
@@ -36,14 +35,6 @@ const (
 
 // AzureKeyvaultResourceCategory defines model for AzureKeyvaultResourceCategory.
 type AzureKeyvaultResourceCategory string
-
-// AzureRoleAssignment defines model for AzureRoleAssignment.
-type AzureRoleAssignment struct {
-	Id               *string `json:"id,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	PrincipalId      *string `json:"principalId,omitempty"`
-	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
-}
 
 // CertPolicy defines model for CertPolicy.
 type CertPolicy = certPolicyComposed
@@ -167,11 +158,6 @@ type ListCertificatesParams struct {
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
-// ListKeyVaultRoleAssignmentsParams defines parameters for ListKeyVaultRoleAssignments.
-type ListKeyVaultRoleAssignmentsParams struct {
-	PrincipalID *openapi_types.UUID `form:"principalId,omitempty" json:"principalId,omitempty"`
-}
-
 // AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
 type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
@@ -211,7 +197,7 @@ type ServerInterface interface {
 	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 	// List Key Vault role assignments
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
-	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory, params ListKeyVaultRoleAssignmentsParams) error
+	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory) error
 	// Add Key Vault role assignment
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
 	AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error
@@ -474,17 +460,8 @@ func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) e
 
 	ctx.Set(BearerAuthScopes, []string{})
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListKeyVaultRoleAssignmentsParams
-	// ------------- Optional query parameter "principalId" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "principalId", ctx.QueryParams(), &params.PrincipalID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter principalId: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListKeyVaultRoleAssignments(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory, params)
+	err = w.Handler.ListKeyVaultRoleAssignments(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory)
 	return err
 }
 

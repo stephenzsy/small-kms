@@ -5,10 +5,12 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/stephenzsy/small-kms/backend/agent/bootstrap/serviceprincipal"
+	"github.com/stephenzsy/small-kms/backend/agent/bootstrap"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/urfave/cli/v2"
 )
+
+var BuildID = "dev"
 
 func main() {
 	app := &cli.App{
@@ -49,7 +51,7 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							cacheFilePath := c.String("token-cache-file")
-							return serviceprincipal.NewServicePrincipalBootstraper().Login(c.Context, cacheFilePath, c.Bool("device-code"))
+							return bootstrap.NewServicePrincipalBootstraper().Login(c.Context, cacheFilePath, c.Bool("device-code"))
 						},
 					},
 					{
@@ -74,10 +76,17 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return serviceprincipal.NewServicePrincipalBootstraper().Bootstrap(c.Context,
+							return bootstrap.NewServicePrincipalBootstraper().Bootstrap(c.Context,
 								base.ParseIdentifier(c.String("namespace-id")),
 								base.ParseIdentifier(c.String("cert-policy-id")),
 								c.String("cert-path"), c.String("token-cache-file"))
+						},
+					},
+					{
+						Name:  "active-server",
+						Usage: "bootstrap active server for agent",
+						Action: func(c *cli.Context) error {
+							return bootstrap.NewServicePrincipalBootstraper().BootstarpActiveServer(c.Context)
 						},
 					},
 				},

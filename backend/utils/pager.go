@@ -9,7 +9,9 @@ type Pager[T any] interface {
 	NextPage(c context.Context) (page T, err error)
 }
 
-type ItemsPager[T any] Pager[[]T]
+type ItemsPager[T any] interface {
+	Pager[[]T]
+}
 
 type mappedPager[T any, U any] struct {
 	from    Pager[U]
@@ -85,4 +87,32 @@ func ReservedFirst[T any](
 		}
 	}
 	return
+}
+
+type chainedItemPagers[T any] struct {
+	pagers []ItemsPager[T]
+	index  int
+}
+
+// More implements ItemsPager.
+func (p *chainedItemPagers[T]) More() bool {
+	if p.index >= len(p.pagers) {
+		return false
+	}
+	return true
+}
+
+// NextPage implements ItemsPager.
+func (p *chainedItemPagers[T]) NextPage(c context.Context) (page []T, err error) {
+	for p.index < len(p.pagers) && !p.pagers[p.index].More() {
+		p.index++
+	}
+	if p.index >= len(p.pagers) {
+		return nil, nil
+	}
+	return p.pagers[p.index].NextPage(c)
+}
+
+func NewChainedItemPagers[T any](pagers ...ItemsPager[T]) ItemsPager[T] {
+	return &chainedItemPagers[T]{pagers: pagers}
 }

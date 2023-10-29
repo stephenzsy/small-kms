@@ -5,11 +5,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
+	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
+	"github.com/stephenzsy/small-kms/backend/cloudutils"
+	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -49,16 +54,23 @@ func (d *AgentConfigServerDoc) populateModel(m *AgentConfigServer) {
 	m.AzureACRImageRef = d.GlobalACRImageRef
 }
 
-func apiGetAgentConfigServer(c ctx.RequestContext) error {
+// will wrap 404 if doc is not found
+func apiGetAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) {
 	nsCtx := ns.GetNSContext(c)
-
 	doc := &AgentConfigServerDoc{}
-
 	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocFullIdentifier(nsCtx.Kind(),
 		nsCtx.Identifier(), base.ResourceKindNamespaceConfig, base.StringIdentifier(string(base.AgentConfigNameServer))), doc, nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
+			return nil, fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
 		}
+		return nil, err
+	}
+	return doc, nil
+}
+
+func apiGetAgentConfigServer(c ctx.RequestContext) error {
+	doc, err := apiGetAgentConfigDoc(c)
+	if err != nil {
 		return err
 	}
 
@@ -140,7 +152,106 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		return err
 	}
 
+	s.assignAgentServerRoles(c, nsCtx.Identifier().UUID(), doc)
+
 	m := &AgentConfigServer{}
 	doc.populateModel(m)
 	return c.JSON(200, m)
+}
+
+var (
+	acrPullRoleDefinitionID = uuid.MustParse("7f951dda-4ed3-4680-a7ca-43fe172d538d")
+)
+
+func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UUID, doc *AgentConfigServerDoc) error {
+	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
+	if err != nil {
+		return err
+	}
+	subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
+		SubscriptionID: s.GetAzSubscriptionID(),
+	}
+	// AcrPull
+	{
+		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
+		if err != nil {
+			return err
+		}
+		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
+			p := cloudutils.RoleAssignmentProvisioner{
+				RoleDefinitionID: acrPullRoleDefinitionID,
+				Scope:            subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build(),
+				AssignedTo:       assignedTo,
+			}
+
+			if isAssigned, err := p.IsRoleAssigned(c, armRAClient, subscriptionIDBuilder.WithRoleDefinitionID(acrPullRoleDefinitionID).Build()); err != nil {
+				return err
+			} else if !isAssigned {
+				if err := p.AssignRole(c, armRAClient, subscriptionIDBuilder.WithRoleDefinitionID(acrPullRoleDefinitionID).Build()); err != nil {
+					return err
+				}
+			}
+		}
+
+	}
+	return nil
+
+}
+
+func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) error {
+	doc, err := apiGetAgentConfigDoc(c)
+	if err != nil {
+		return err
+	}
+
+	if doc.GlobalACRImageRef == "" {
+		return fmt.Errorf("%w: image ref is not specified", base.ErrResponseStatusBadRequest)
+	}
+
+	nsCtx := ns.GetNSContext(c)
+	if !nsCtx.Identifier().IsUUID() {
+		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusBadRequest)
+	}
+	assignedTo := nsCtx.Identifier().UUID()
+	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
+	if err != nil {
+		return err
+	}
+
+	// ACR Pull
+	pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 1)
+	{
+		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
+		if err != nil {
+			return err
+		}
+		subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
+			SubscriptionID: s.GetAzSubscriptionID(),
+		}
+		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
+			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
+			pagers = append(pagers, cloudutils.ListRoleAssignments(armRAClient, scope, assignedTo))
+		}
+	}
+
+	allItems, err := utils.PagerToSlice[*base.AzureRoleAssignment](c,
+		utils.NewMappedItemsPager[*base.AzureRoleAssignment, *armauthorization.RoleAssignment](utils.NewChainedItemPagers(pagers...), func(ra *armauthorization.RoleAssignment) *base.AzureRoleAssignment {
+			if ra == nil {
+				return nil
+			}
+			return &base.AzureRoleAssignment{
+				ID:               ra.ID,
+				Name:             ra.Name,
+				RoleDefinitionId: ra.Properties.RoleDefinitionID,
+				PrincipalId:      ra.Properties.PrincipalID,
+			}
+		}))
+	if err != nil {
+		return err
+	}
+
+	if allItems == nil {
+		allItems = make([]*base.AzureRoleAssignment, 0)
+	}
+	return c.JSON(http.StatusOK, allItems)
 }

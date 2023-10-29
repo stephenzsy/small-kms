@@ -22,12 +22,12 @@ func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.Na
 }
 
 // ListKeyVaultRoleAssignments implements ServerInterface.
-func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory, params ListKeyVaultRoleAssignmentsParams) error {
+func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
 	}
-	return s.apiListKeyVaultRoleAssignments(c, resourceIdentifier, kvCategory, params)
+	return s.apiListKeyVaultRoleAssignments(c, resourceIdentifier, kvCategory)
 }
 
 // GetCertificateRuleMsEntraClientCredential implements ServerInterface.
