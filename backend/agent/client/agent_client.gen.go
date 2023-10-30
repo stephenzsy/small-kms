@@ -32,6 +32,9 @@ type Certificate = externalRef1.Certificate
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest = externalRef1.EnrollCertificateRequest
 
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = externalRef1.Certificate
+
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
@@ -115,6 +118,9 @@ type ClientInterface interface {
 	EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EnrollCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCertificate request
+	GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -143,6 +149,18 @@ func (c *Client) EnrollCertificateWithBody(ctx context.Context, namespaceKind ex
 
 func (c *Client) EnrollCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEnrollCertificateRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCertificateRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier)
 	if err != nil {
 		return nil, err
 	}
@@ -255,6 +273,54 @@ func NewEnrollCertificateRequestWithBody(server string, namespaceKind externalRe
 	return req, nil
 }
 
+// NewGetCertificateRequest generates requests for GetCertificate
+func NewGetCertificateRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/cert/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -305,6 +371,9 @@ type ClientWithResponsesInterface interface {
 	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 
 	EnrollCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
+
+	// GetCertificateWithResponse request
+	GetCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
 }
 
 type GetAgentConfigServerResponse struct {
@@ -351,6 +420,28 @@ func (r EnrollCertificateResponse) StatusCode() int {
 	return 0
 }
 
+type GetCertificateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CertificateResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCertificateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCertificateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetAgentConfigServerWithResponse request returning *GetAgentConfigServerResponse
 func (c *ClientWithResponses) GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error) {
 	rsp, err := c.GetAgentConfigServer(ctx, namespaceKind, namespaceIdentifier, reqEditors...)
@@ -375,6 +466,15 @@ func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseEnrollCertificateResponse(rsp)
+}
+
+// GetCertificateWithResponse request returning *GetCertificateResponse
+func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error) {
+	rsp, err := c.GetCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCertificateResponse(rsp)
 }
 
 // ParseGetAgentConfigServerResponse parses an HTTP response from a GetAgentConfigServerWithResponse call
@@ -419,6 +519,32 @@ func ParseEnrollCertificateResponse(rsp *http.Response) (*EnrollCertificateRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Certificate
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCertificateResponse parses an HTTP response from a GetCertificateWithResponse call
+func ParseGetCertificateResponse(rsp *http.Response) (*GetCertificateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCertificateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CertificateResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

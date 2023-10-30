@@ -64,8 +64,8 @@ type CertDocSigningPatch struct {
 	Issuer        base.DocFullIdentifier `json:"issuer"`
 }
 
-func getKeyStoreName(nsKind base.NamespaceKind, nsID Identifier, pDoc *CertPolicyDoc) string {
-	return fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), pDoc.ID.String())
+func GetKeyStoreName(nsKind base.NamespaceKind, nsID Identifier, policyIdentifier Identifier) string {
+	return fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), policyIdentifier.String())
 }
 
 func (d *CertDoc) Init(
@@ -89,7 +89,7 @@ func (d *CertDoc) Init(
 	d.Flags = pDoc.Flags
 	d.Policy = pDoc.GetStorageFullIdentifier()
 	d.PolicyVersion = pDoc.Version
-	d.KeyVaultStore.Name = getKeyStoreName(nsKind, nsID, pDoc)
+	d.KeyVaultStore.Name = GetKeyStoreName(nsKind, nsID, pDoc.ID)
 
 	now := time.Now()
 	d.Created = *jwt.NewNumericDate(now)
@@ -124,6 +124,7 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	if d.KeySpec.X5tS256 != nil {
 		m.X5tS256 = d.KeySpec.X5tS256
 	}
+
 	m.CertificateChain = d.KeySpec.CertificateChain
 	m.Subject = d.Subject
 	m.Flags = d.Flags

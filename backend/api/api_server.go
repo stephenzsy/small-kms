@@ -23,9 +23,9 @@ type APIServer interface {
 	GetAzKeyVaultEndpoint() string
 	GetBuildID() string
 	WithDelegatedARMAuthRoleAssignmentsClient(c ctx.RequestContext) (ctx.RequestContext, *armauthorization.RoleAssignmentsClient, error)
-	// legacy
-	GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string
 	GetAzSubscriptionID() string
+	GetResourceGroupName() string
+	GetKeyVaultName() string
 }
 
 type apiServer struct {
@@ -150,16 +150,14 @@ func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {
 var _ kv.AzKeyVaultService = (*apiServer)(nil)
 var _ APIServer = (*apiServer)(nil)
 
-// GetKeyvaultCertificateResourceScopeID implements common.AdminServerRequestClientProvider.
-func (s *apiServer) GetKeyvaultCertificateResourceScopeID(certificateName string, category string) string {
-	return fmt.Sprintf("subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/%s/%s",
-		s.azSubscriptionID,
-		s.resourceGroupName,
-		s.extractedKeyVaultName,
-		category,
-		certificateName)
-}
-
 func (s *apiServer) GetAzSubscriptionID() string {
 	return s.azSubscriptionID
+}
+
+func (s *apiServer) GetResourceGroupName() string {
+	return s.resourceGroupName
+}
+
+func (s *apiServer) GetKeyVaultName() string {
+	return s.extractedKeyVaultName
 }

@@ -86,6 +86,7 @@ function useConfigurationSkeleton(
 const wellKnownRoleDefinitionIds: Record<string, string> = {
   "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
   "21090545-7ca7-4776-b22c-e363652d74d2": "Key Vault Reader",
+  "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
 };
 
 function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {

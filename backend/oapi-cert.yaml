@@ -39,6 +39,7 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetCertificate
       summary: Get certificate
       responses:
@@ -411,6 +412,9 @@ components:
           x-go-type-skip-optional-pointer: true
         alg:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
+        sid:
+          type: string
+          x-go-name: KeyVaultSecretID
         x5u:
           type: string
         x5c:

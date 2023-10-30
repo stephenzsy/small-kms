@@ -160,7 +160,8 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 }
 
 var (
-	acrPullRoleDefinitionID = uuid.MustParse("7f951dda-4ed3-4680-a7ca-43fe172d538d")
+	roleDefIDAcrPull             = uuid.MustParse("7f951dda-4ed3-4680-a7ca-43fe172d538d")
+	roleDefIDKeyVaultSecretsUser = uuid.MustParse("4633458b-17de-408a-b874-0445c86b69e6")
 )
 
 func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UUID, doc *AgentConfigServerDoc) error {
@@ -171,6 +172,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 	subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
 		SubscriptionID: s.GetAzSubscriptionID(),
 	}
+	nsCtx := ns.GetNSContext(c)
 	// AcrPull
 	{
 		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
@@ -179,20 +181,45 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 		}
 		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
 			p := cloudutils.RoleAssignmentProvisioner{
-				RoleDefinitionID: acrPullRoleDefinitionID,
+				RoleDefinitionID: roleDefIDAcrPull,
 				Scope:            subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build(),
 				AssignedTo:       assignedTo,
 			}
 
-			if isAssigned, err := p.IsRoleAssigned(c, armRAClient, subscriptionIDBuilder.WithRoleDefinitionID(acrPullRoleDefinitionID).Build()); err != nil {
+			roleDefID := subscriptionIDBuilder.WithRoleDefinitionID(roleDefIDAcrPull).Build()
+			if isAssigned, err := p.IsRoleAssigned(c, armRAClient, roleDefID); err != nil {
 				return err
 			} else if !isAssigned {
-				if err := p.AssignRole(c, armRAClient, subscriptionIDBuilder.WithRoleDefinitionID(acrPullRoleDefinitionID).Build()); err != nil {
+				if err := p.AssignRole(c, armRAClient, roleDefID); err != nil {
 					return err
 				}
 			}
 		}
 
+	}
+	// tls cert secret
+	{
+		certPolicyDoc, err := cert.ReadCertPolicyDoc(c, doc.TLSCertificatePolicyID)
+		if err != nil {
+			return err
+		}
+
+		p := cloudutils.RoleAssignmentProvisioner{
+			RoleDefinitionID: roleDefIDKeyVaultSecretsUser,
+			Scope: subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
+				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), certPolicyDoc.ID)).Build(),
+			AssignedTo: assignedTo,
+		}
+
+		roleDefID := subscriptionIDBuilder.WithRoleDefinitionID(roleDefIDKeyVaultSecretsUser).Build()
+
+		if isAssigned, err := p.IsRoleAssigned(c, armRAClient, roleDefID); err != nil {
+			return err
+		} else if !isAssigned {
+			if err := p.AssignRole(c, armRAClient, roleDefID); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 
@@ -218,20 +245,26 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 		return err
 	}
 
+	subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
+		SubscriptionID: s.GetAzSubscriptionID(),
+	}
+	pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 2)
 	// ACR Pull
-	pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 1)
 	{
 		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
 		if err != nil {
 			return err
 		}
-		subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
-			SubscriptionID: s.GetAzSubscriptionID(),
-		}
 		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
 			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
 			pagers = append(pagers, cloudutils.ListRoleAssignments(armRAClient, scope, assignedTo))
 		}
+	}
+	// Key Vault Secrets User
+	{
+		scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
+			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), doc.TLSCertificatePolicyID)).Build()
+		pagers = append(pagers, cloudutils.ListRoleAssignments(armRAClient, scope, assignedTo))
 	}
 
 	allItems, err := utils.PagerToSlice[*base.AzureRoleAssignment](c,

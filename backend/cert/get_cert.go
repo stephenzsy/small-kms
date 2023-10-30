@@ -23,9 +23,13 @@ func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 	return getCertDocBySLocator(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCert, rID))
 }
 
-func getCertificate(c context.Context, rID base.Identifier) (*Certificate, error) {
+func apiGetCertificate(c context.Context, rID base.Identifier, isAdminOrSelf bool) (*Certificate, error) {
 	doc, err := getCertDocByID(c, rID)
 	m := new(Certificate)
 	doc.PopulateModel(m)
+
+	if isAdminOrSelf && doc.KeyVaultStore.SID != "" {
+		m.KeyVaultSecretID = &doc.KeyVaultStore.SID
+	}
 	return m, err
 }

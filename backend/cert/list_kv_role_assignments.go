@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/cloudutils"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -24,7 +25,7 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	}
 
 	// verify policy exists
-	policyDoc, err := readCertPolicyDoc(c, policyIdentifier)
+	policyDoc, err := ReadCertPolicyDoc(c, policyIdentifier)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier.String())
@@ -33,7 +34,7 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	keyStoreName := getKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), policyDoc)
+	keyStoreName := GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), policyDoc.ID)
 
 	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
 	if err != nil {
@@ -45,7 +46,10 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	// 	assignee = *params.PrincipalID
 	// }
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", assignee.String())
-	scope := s.GetKeyvaultCertificateResourceScopeID(keyStoreName, string(kvCategory))
+	subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
+		SubscriptionID: s.GetAzSubscriptionID(),
+	}
+	scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), string(kvCategory), keyStoreName).Build()
 	log.Debug().Msgf("Lookup role assignments for scope: %s", scope)
 	pager := armRAClient.NewListForScopePager(
 		scope,

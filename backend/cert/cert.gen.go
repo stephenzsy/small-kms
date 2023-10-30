@@ -90,6 +90,7 @@ type CertificateAttributes struct {
 type CertificateFields struct {
 	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
 	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
+	KeyVaultSecretID        *string                                   `json:"sid,omitempty"`
 	Subject                 CertificateSubject                        `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
 

@@ -1,100 +1,97 @@
 package main
 
 import (
-	"log"
+	"context"
+	"flag"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/stephenzsy/small-kms/backend/agent/bootstrap"
-	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/urfave/cli/v2"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/agent/keeper"
+	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
+
+const DefaultEnvVarTenantID = "AZURE_TENANT_ID"
+const DefaultEnvVarClientID = "AZURE_CLIENT_ID"
+const DefaultEnvVarCertBundlePath = "AZURE_CERT_BUNDLE"
+const DefaultEnvVarApiBaseUrl = "SMALLKMS_API_BASE_URL"
+const DefaultEnvVarApiScope = "SMALLKMS_API_SCOPE"
 
 var BuildID = "dev"
 
 func main() {
-	app := &cli.App{
-		Name: "agent",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "env-file",
-				Usage: "path to the .env file",
-				Action: func(ctx *cli.Context, s string) error {
-					if s != "" {
-						return godotenv.Load(s)
-					}
-					return nil
-				},
-			},
-		},
-		Commands: []*cli.Command{
-			{
-				Name:  "bootstrap",
-				Usage: "bootstrap the agent",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "token-cache-file",
-						Usage: "path to the token cache file",
-						Value: "./token-cache.json",
-					},
-				},
-				Subcommands: []*cli.Command{
-					{
-						Name:  "login",
-						Usage: "Admin login to initialize agent",
-						Flags: []cli.Flag{
-							&cli.BoolFlag{
-								Name:  "device-code",
-								Usage: "use device code to login",
-								Value: false,
-							},
-						},
-						Action: func(c *cli.Context) error {
-							cacheFilePath := c.String("token-cache-file")
-							return bootstrap.NewServicePrincipalBootstraper().Login(c.Context, cacheFilePath, c.Bool("device-code"))
-						},
-					},
-					{
-						Name:  "service-principal",
-						Usage: "bootstrap service principal for agent",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:    "cert-path",
-								Usage:   "path to the client cert",
-								EnvVars: []string{"AZURE_CLIENT_CERTIFICATE_PATH", "CLIENT_CERTIFICATE_PATH"},
-								Value:   "./sp-client-cert.pem",
-							},
-							&cli.StringFlag{
-								Name:     "namespace-id",
-								Usage:    "namespace identifier",
-								Required: true,
-							},
-							&cli.StringFlag{
-								Name:     "cert-policy-id",
-								Usage:    "policy identifier for the client cert",
-								Required: true,
-							},
-						},
-						Action: func(c *cli.Context) error {
-							return bootstrap.NewServicePrincipalBootstraper().Bootstrap(c.Context,
-								base.ParseIdentifier(c.String("namespace-id")),
-								base.ParseIdentifier(c.String("cert-policy-id")),
-								c.String("cert-path"), c.String("token-cache-file"))
-						},
-					},
-					{
-						Name:  "active-server",
-						Usage: "bootstrap active server for agent",
-						Action: func(c *cli.Context) error {
-							return bootstrap.NewServicePrincipalBootstraper().BootstarpActiveServer(c.Context)
-						},
-					},
-				},
-			},
-		},
+	// Find .env file
+	envFilePathPtr := flag.String("env", "", "path to .env file")
+	envPrettyLog := flag.Bool("pretty-log", false, "pretty log")
+	// slotPtr := flag.Uint("slot", 0, "slot")
+	// //	skipTlsPtr := flag.Bool("skip-tls", false, "skip tls")
+	flag.Parse()
+
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logger := log.Logger
+	if *envPrettyLog {
+		output := zerolog.ConsoleWriter{Out: os.Stderr}
+		output.FormatLevel = func(i interface{}) string {
+			return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
+		}
+		output.FormatMessage = func(i interface{}) string {
+			return fmt.Sprintf("%s", i)
+		}
+		output.FormatFieldName = func(i interface{}) string {
+			return fmt.Sprintf("%s:", i)
+		}
+		logger = zerolog.New(output).With().Timestamp().Logger()
+
+	}
+	c := logger.WithContext(context.Background())
+
+	if *envFilePathPtr != "" {
+		logger.Printf("Loading environment file: %s\n", *envFilePathPtr)
+		err := godotenv.Load(*envFilePathPtr)
+		if err != nil {
+			log.Printf("Error loading environment file: %s: %s\n", *envFilePathPtr, err.Error())
+		}
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+	configDir := common.MustGetenv("AGENT_CONFIG_DIR")
+	configManager, err := keeper.NewConfigManager(configDir)
+	if err != nil {
+		log.Panic().Err(err).Msg("Failed to create config manager")
 	}
+
+	args := flag.Args()
+	if len(args) >= 2 {
+		switch args[0] {
+		case "server":
+			tm := taskmanager.NewChainedTaskManager().WithTask(
+				taskmanager.IntervalExecutorTask(keeper.NewKeeper(configManager), 0))
+			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
+			// e := echo.New()
+			// e.Use(middleware.Logger())
+			// e.Use(middleware.Recover())
+			// e.TLSServer.Addr = args[1]
+			// configManager, err := cm.NewConfigManager(BuildID, configDir, args[1], uint32(*slotPtr))
+			// if err != nil {
+			// 	log.Panicf("Failed to create config manager: %v\n", err)
+			// }
+			// s, err := agentserver.NewServer()
+			// if err != nil {
+			// 	log.Panicf("Failed to create server: %v\n", err)
+			// }
+			// agentserver.RegisterHandlers(e, s)
+
+			// configManager.Manage(e)
+
+			// cm.StartConfigManagerWithGracefulShutdown(context.Background(), configManager)
+			// //bootstrapServer(args[1], *skipTlsPtr)
+			return
+		}
+	}
+
+	fmt.Printf("Version: %s\n", BuildID)
+	fmt.Printf("Usage: %s server :8443\n", os.Args[0])
 }

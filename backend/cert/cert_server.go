@@ -114,12 +114,18 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 
 // GetCertificate implements ServerInterface.
 func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
+	c := ec.(ctx.RequestContext)
+	if namespaceIdentifier != base.StringIdentifier("me") && auth.AuthorizeAdminOnly(c) {
+		// ok
+	} else if authedNamespaceId, ok := auth.AuthorizeApplicationMe(c, namespaceIdentifier.UUID(), namespaceIdentifier == base.StringIdentifier("me")); !ok {
+		return c.JSON(http.StatusForbidden, map[string]string{"message": "unauthorized"})
+	} else {
+		namespaceIdentifier = base.UUIDIdentifier(authedNamespaceId)
 	}
 
-	r, err := getCertificate(c, resourceIdentifier)
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	r, err := apiGetCertificate(c, resourceIdentifier, true)
 	if err != nil {
 		return err
 	}
