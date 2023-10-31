@@ -100,7 +100,7 @@ type AzCosmosCRUDDocService interface {
 	Patch(context.Context, BaseDocument, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
 	NewQueryItemsPager(query string, storageNamespaceID DocNamespacePartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
 	getClient() *azcosmos.ContainerClient
-	// TODO: SoftDelete(context.Context)
+	SoftDelete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error
 	Delete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error
 }
 
@@ -196,8 +196,10 @@ func (s *azcosmosContainerCRUDDocService) Delete(c context.Context, doc BaseDocu
 }
 
 // SoftDelete implements AzCosmosCRUDDocService.
-func (*azcosmosContainerCRUDDocService) SoftDelete(context.Context) {
-	panic("unimplemented")
+func (s *azcosmosContainerCRUDDocService) SoftDelete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error {
+	patchOps := azcosmos.PatchOperations{}
+	patchOps.AppendSet("/deleted", time.Now().UTC())
+	return s.Patch(c, doc, patchOps, opts)
 }
 
 // getClient implements AzCosmosCRUDDocService.

@@ -17,7 +17,8 @@ const (
 )
 
 const (
-	roleKeyAppAdmin string = "App.Admin"
+	roleValueAppAdmin        string = "App.Admin"
+	RoleValueAgentActiveHost        = "Agent.ActiveHost"
 )
 
 type AuthIdentity interface {
@@ -25,6 +26,7 @@ type AuthIdentity interface {
 	ClientPrincipalDisplayName() string
 	AppID() string
 	HasAdminRole() bool
+	HasRole(roleValue string) bool
 	GetOnBehalfOfTokenCredential(c context.Context, opts *azidentity.OnBehalfOfCredentialOptions) (azcore.TokenCredential, error)
 }
 
@@ -34,6 +36,14 @@ type authIdentity struct {
 	appRoles              map[string]bool
 	bearerToken           string
 	appID                 string
+}
+
+// HasRole implements AuthIdentity.
+func (a *authIdentity) HasRole(roleValue string) bool {
+	if v, ok := a.appRoles[roleValue]; ok {
+		return v
+	}
+	return false
 }
 
 // AppID implements AuthIdentity.
@@ -65,7 +75,7 @@ func (a *authIdentity) GetOnBehalfOfTokenCredential(c context.Context, opts *azi
 
 // HasAdminRole implements AuthIdentity.
 func (a *authIdentity) HasAdminRole() bool {
-	return a.appRoles[roleKeyAppAdmin]
+	return a.appRoles[roleValueAppAdmin]
 }
 
 func GetAuthIdentity(c context.Context) AuthIdentity {

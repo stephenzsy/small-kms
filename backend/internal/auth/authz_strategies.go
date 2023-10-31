@@ -26,3 +26,10 @@ func AuthorizeApplicationMe(c context.Context, namespaceID uuid.UUID, me bool) (
 	}
 	return uuid.UUID{}, false
 }
+
+func HasRole(c context.Context, roleValue string) bool {
+	if identity, ok := c.Value(authIdentityContextKey).(AuthIdentity); ok {
+		return identity.HasRole(roleValue)
+	}
+	return false
+}

@@ -27,7 +27,8 @@ type AgentEnv struct {
 	azSecretsClient *azsecrets.Client
 }
 
-func NewAgentEnv() (env AgentEnv, err error) {
+func NewAgentEnv() (env *AgentEnv, err error) {
+	env = &AgentEnv{}
 	env.tenantID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzTenantID, "")
 	env.clientID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzClientID, "")
 	env.clientCertPath = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzClientCertPath, "")

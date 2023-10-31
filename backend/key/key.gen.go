@@ -55,11 +55,20 @@ const (
 
 // JsonWebKey defines model for JsonWebKey.
 type JsonWebKey struct {
+	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
 	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
 	KeyOperations *[]JsonWebKeyOperation                `json:"key_ops,omitempty"`
 	KeyID         *string                               `json:"kid,omitempty"`
 	Kty           JsonWebKeyType                        `json:"kty"`
 	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
+	X             externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
+
+	// X5c Base64 encoded certificate chain
+	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
+	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t,omitempty"`
+	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256,omitempty"`
+	X5u              *string                                 `json:"x5u,omitempty"`
+	Y                externalRef0.Base64RawURLEncodedBytes   `json:"y,omitempty"`
 }
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.

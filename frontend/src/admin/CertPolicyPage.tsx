@@ -458,6 +458,17 @@ function useCertTableColumns(activeIssuerCertificateId: string | undefined) {
         },
       },
       {
+        title: "Status",
+        render: (r: CertificateRef) => {
+          if (r.deleted) {
+            return <Tag color="red">Deleted</Tag>;
+          } else if (!r.thumbprint) {
+            return <Tag color="yellow">Pending</Tag>;
+          }
+          return <Tag color="green">Issued</Tag>;
+        },
+      },
+      {
         title: "Actions",
         render: (r) => <CertificateActions certRef={r} />,
       },

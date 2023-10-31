@@ -115,17 +115,22 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 		return
 	}
 	d.PopulateModelRef(&m.CertificateRef)
+	m.Jwk = key.JsonWebKey{
+		Kty:              d.KeySpec.Kty,
+		Crv:              d.KeySpec.Crv,
+		E:                d.KeySpec.E,
+		N:                d.KeySpec.N,
+		X:                d.KeySpec.X,
+		Y:                d.KeySpec.Y,
+		X5t:              d.KeySpec.X5t,
+		X5tS256:          d.KeySpec.X5tS256,
+		KeyOperations:    &d.KeySpec.KeyOperations,
+		KeyID:            d.KeySpec.KeyID,
+		CertificateChain: d.KeySpec.CertificateChain,
+	}
 	if d.KeySpec.Alg != nil {
 		m.Alg = *d.KeySpec.Alg
 	}
-	if d.KeySpec.X5t != nil {
-		m.X5t = d.KeySpec.X5t
-	}
-	if d.KeySpec.X5tS256 != nil {
-		m.X5tS256 = d.KeySpec.X5tS256
-	}
-
-	m.CertificateChain = d.KeySpec.CertificateChain
 	m.Subject = d.Subject
 	m.Flags = d.Flags
 	m.Attributes.Nbf = &d.NotBefore
@@ -214,6 +219,10 @@ func (d *CertDoc) applyPatch(c context.Context,
 	docService base.AzCosmosCRUDDocService,
 	patch *CertDocSigningPatch) error {
 	nextKeySpec := d.KeySpec
+	nextKeySpec.E = patch.KeySpec.E
+	nextKeySpec.N = patch.KeySpec.N
+	nextKeySpec.X = patch.KeySpec.X
+	nextKeySpec.Y = patch.KeySpec.Y
 	nextKeySpec.CertificateChain = patch.KeySpec.CertificateChain
 	nextKeySpec.KeyID = patch.KeySpec.KeyID
 	nextKeySpec.X5t = patch.KeySpec.X5t

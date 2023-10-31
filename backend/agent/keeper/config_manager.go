@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
 	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -12,9 +11,10 @@ import (
 type ConfigiManagerState int
 
 type ConfigManager struct {
-	envConfig agentutils.AgentEnv
-	configDir string
-	isReady   bool
+	envConfig       *agentutils.AgentEnv
+	configDir       string
+	configProcessor AgentConfigServerProcessor
+	isReady         bool
 }
 
 func (m *ConfigManager) IsReady() bool {
@@ -37,32 +37,7 @@ func (m *ConfigManager) PullConfig(c context.Context) error {
 	if err != nil {
 		return err
 	}
-	agentConfigServer := resp.JSON200
-	logger.Debug().Any("config", agentConfigServer).Msg("agent config")
-	_ = agentConfigServer
-
-	// pull certificate
-	{
-		resp, err := client.GetCertificateWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"), agentConfigServer.TlsCertificateId)
-		if err != nil {
-			return err
-		}
-		cert := resp.JSON200
-		logger.Debug().Any("cert", cert).Msg("cert")
-
-		azSecretsClient, err := m.envConfig.AzSecretsClient()
-		if err != nil {
-			return err
-		}
-		sid := azsecrets.ID(*cert.KeyVaultSecretID)
-		getSecretResposne, err := azSecretsClient.GetSecret(c, sid.Name(), sid.Version(), nil)
-		if err != nil {
-			return err
-		}
-		logger.Debug().Any("secrets resp", getSecretResposne).Msg("secrets resp")
-	}
-
-	return nil
+	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
 }
 
 func NewConfigManager(configDir string) (*ConfigManager, error) {
@@ -70,5 +45,9 @@ func NewConfigManager(configDir string) (*ConfigManager, error) {
 	return &ConfigManager{
 		envConfig: envConfig,
 		configDir: configDir,
+		configProcessor: AgentConfigServerProcessor{
+			configDir: configDir,
+			envConfig: envConfig,
+		},
 	}, err
 }

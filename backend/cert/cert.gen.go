@@ -90,15 +90,10 @@ type CertificateAttributes struct {
 type CertificateFields struct {
 	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
 	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
+	Jwk                     externalRef1.JsonWebKey                   `json:"jwk"`
 	KeyVaultSecretID        *string                                   `json:"sid,omitempty"`
 	Subject                 CertificateSubject                        `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
-
-	// X5c Base64 encoded certificate chain
-	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
-	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t"`
-	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256"`
-	X5u              *string                                 `json:"x5u,omitempty"`
 }
 
 // CertificateFlag defines model for CertificateFlag.

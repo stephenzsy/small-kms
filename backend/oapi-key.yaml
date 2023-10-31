@@ -195,6 +195,9 @@ components:
           items:
             $ref: "#/components/schemas/JsonWebKeyOperation"
           x-go-name: KeyOperations
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+          x-go-name: CurveName
         n:
           description: RSA modulus
           $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
@@ -205,6 +208,32 @@ components:
           $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
           x-go-name: Exponent
           x-go-type-skip-optional-pointer: true
+        x:
+          description: X component of an EC public key.
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: X
+          x-go-type-skip-optional-pointer: true
+        y:
+          description: Y component of an EC public key.
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: Y
+          x-go-type-skip-optional-pointer: true
+        x5u:
+          type: string
+        x5c:
+          description: Base64 encoded certificate chain
+          type: array
+          items:
+            $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: CertificateChain
+          x-go-type-skip-optional-pointer: true
+        x5t:
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: ThmbprintSHA1
+        x5t#S256:
+          description: SHA-256 fingerprint of the certificate
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-name: ThumbprintSHA256          
       required:
         - kty
     Key:

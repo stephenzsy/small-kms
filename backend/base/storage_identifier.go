@@ -232,6 +232,10 @@ func (i DocFullIdentifier) NamespaceIdentifier() Identifier {
 	return i.pKey.nsIdentifier.id
 }
 
+func (i DocFullIdentifier) ResourceIdentifier() Identifier {
+	return i.docID
+}
+
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (p *DocFullIdentifier) UnmarshalText(text []byte) error {
 	parts := bytes.SplitN(text, []byte("/"), 2)

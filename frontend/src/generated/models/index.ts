@@ -33,6 +33,7 @@ export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
 export * from './CertificateTemplateRefFields';
 export * from './CreateLinkedCertificateTemplateParameters';
+export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeySignatureAlgorithm';

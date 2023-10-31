@@ -124,7 +124,7 @@ func (lt *LifetimeTrigger) WriteToDigest(w io.Writer) (s int, err error) {
 	return s, nil
 }
 
-func (ks *SigningKeySpec) PopulatePublicKey(pubKey crypto.PublicKey) error {
+func (ks *SigningKeySpec) SetPublicKey(pubKey crypto.PublicKey) error {
 	switch pubKey := pubKey.(type) {
 	case *rsa.PublicKey:
 		ks.Kty = JsonWebKeyTypeRSA

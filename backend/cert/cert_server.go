@@ -115,7 +115,7 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 // GetCertificate implements ServerInterface.
 func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
-	if namespaceIdentifier != base.StringIdentifier("me") && auth.AuthorizeAdminOnly(c) {
+	if namespaceIdentifier != base.StringIdentifier("me") && (auth.AuthorizeAdminOnly(c) || auth.HasRole(c, auth.RoleValueAgentActiveHost)) {
 		// ok
 	} else if authedNamespaceId, ok := auth.AuthorizeApplicationMe(c, namespaceIdentifier.UUID(), namespaceIdentifier == base.StringIdentifier("me")); !ok {
 		return c.JSON(http.StatusForbidden, map[string]string{"message": "unauthorized"})

@@ -410,32 +410,17 @@ components:
           items:
             $ref: "#/components/schemas/CertificateFlag"
           x-go-type-skip-optional-pointer: true
+        jwk:
+          $ref: "oapi-key.yaml#/components/schemas/JsonWebKey"
         alg:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
         sid:
           type: string
-          x-go-name: KeyVaultSecretID
-        x5u:
-          type: string
-        x5c:
-          description: Base64 encoded certificate chain
-          type: array
-          items:
-            $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-name: CertificateChain
-          x-go-type-skip-optional-pointer: true
-        x5t:
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-name: ThmbprintSHA1
-        x5t#S256:
-          description: SHA-256 fingerprint of the certificate
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-name: ThumbprintSHA256
+          x-go-name: KeyVaultSecretID          
       required:
         - subject
+        - jwk
         - alg
-        - x5t
-        - x5t#S256
     EnrollCertificateRequest:
       type: object
       properties:

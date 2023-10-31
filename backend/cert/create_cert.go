@@ -65,7 +65,7 @@ func signCertificate(
 	}
 
 	patch := new(CertDocSigningPatch)
-	// patch.KeySpec.PopulatePublicKey(csrPubKey)
+	patch.KeySpec.SetPublicKey(csrPubKey)
 	patch.KeySpec.CertificateChain = utils.MapSlice(collectCert, func(certBytes []byte) base.Base64RawURLEncodedBytes {
 		return base.Base64RawURLEncodedBytes(certBytes)
 	})
