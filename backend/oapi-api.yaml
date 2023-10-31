@@ -114,43 +114,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-    get:
-      tags:
-        - admin
-      summary: List Key Vault role assignments
-      operationId: ListKeyVaultRoleAssignments
-      responses:
-        200:
-          description: List keyvault roles assignments response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AzureRoleAssignment"
-    post:
-      tags:
-        - admin
-      summary: Add Key Vault role assignment
-      operationId: AddKeyVaultRoleAssignment
-      parameters:
-        - in: query
-          name: roleDefinitionId
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: Role Assignment response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AzureRoleAssignment"
   /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"

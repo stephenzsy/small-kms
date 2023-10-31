@@ -24,14 +24,6 @@ type AgentProxyInfo struct {
 	Secondary *AgentProxyEndpoint `json:"secondary,omitempty"`
 }
 
-// AzureRoleAssignment defines model for AzureRoleAssignment.
-type AzureRoleAssignment struct {
-	Id               *string `json:"id,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	PrincipalId      *string `json:"principalId,omitempty"`
-	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
-}
-
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
 
@@ -51,11 +43,6 @@ type AgentConfigurationResponse = externalRef0.AgentConfiguration
 type GetAgentConfigurationParams struct {
 	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
 	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
-}
-
-// AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
-type AddKeyVaultRoleAssignmentParams struct {
-	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
 }
 
 // AgentCallbackJSONRequestBody defines body for AgentCallback for application/json ContentType.
