@@ -22,6 +22,7 @@ import (
 type AgentServerConfiguration interface {
 	NextWaitInterval() time.Duration
 	TLSCertificateBundleFile() string
+	GetVersion() string
 }
 
 type agentServerConfiguration struct {
@@ -34,6 +35,10 @@ type agentServerConfiguration struct {
 // TLSCertificateBundleFile implements AgentServerConfiguration.
 func (asc *agentServerConfiguration) TLSCertificateBundleFile() string {
 	return asc.TLSCertificateFile
+}
+
+func (asc *agentServerConfiguration) GetVersion() string {
+	return asc.Version
 }
 
 func (c *agentServerConfiguration) NextWaitInterval() time.Duration {

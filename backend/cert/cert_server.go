@@ -10,6 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type server struct {
@@ -98,7 +99,7 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusForbidden)
 	}
 
-	if !auth.AuthorizeApplicationOrAdmin(c, namespaceIdentifier.UUID()) {
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceIdentifier.UUID()) {
 		return s.RespondRequireAdmin(c)
 	}
 
@@ -115,14 +116,12 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 // GetCertificate implements ServerInterface.
 func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
-	if namespaceIdentifier != base.StringIdentifier("me") && (auth.AuthorizeAdminOnly(c) || auth.HasRole(c, auth.RoleValueAgentActiveHost)) {
-		// ok
-	} else if authedNamespaceId, ok := auth.AuthorizeApplicationMe(c, namespaceIdentifier.UUID(), namespaceIdentifier == base.StringIdentifier("me")); !ok {
-		return c.JSON(http.StatusForbidden, map[string]string{"message": "unauthorized"})
-	} else {
-		namespaceIdentifier = base.UUIDIdentifier(authedNamespaceId)
+	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) && !auth.HasRole(c, auth.RoleValueAgentActiveHost) {
+		s.RespondRequireAdmin(c)
+	} else if !utils.IsUUIDNil(namespaceID) {
+		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
 	}
-
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 
 	r, err := apiGetCertificate(c, resourceIdentifier, true)

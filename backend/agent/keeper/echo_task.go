@@ -5,14 +5,21 @@ import (
 	"crypto/tls"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
+	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
+	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type echoTask struct {
+	buildID      string
 	configUpdate <-chan AgentServerConfiguration
 	newEcho      func(config AgentServerConfiguration) (*echo.Echo, error)
+	agentEnv     *agentutils.AgentEnv
+	port         int
 }
 
 // Name implements taskmanager.Task.
@@ -37,6 +44,11 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 	logger.Debug().Msg("echo server starting")
 	active := true
 	var e *echo.Echo
+	agentClient, err := et.agentEnv.AgentClient()
+	if err != nil {
+		return err
+	}
+
 	for active {
 		select {
 		case <-c.Done():
@@ -58,6 +70,14 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 				continue
 			}
 			go e.StartServer(e.TLSServer)
+
+			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
+				base.StringIdentifier("me"), uuid.New().String()[:8], managedapp.AgentInstanceFields{
+					Version:  config.GetVersion(),
+					Port:     et.port,
+					Hostname: "localhost",
+					BuildID:  et.buildID,
+				})
 		}
 	}
 	return nil
@@ -65,9 +85,12 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 
 var _ taskmanager.Task = (*echoTask)(nil)
 
-func NewEchoTask(newEcho func(config AgentServerConfiguration) (*echo.Echo, error), configUpdate <-chan AgentServerConfiguration) *echoTask {
+func NewEchoTask(buildID string, newEcho func(config AgentServerConfiguration) (*echo.Echo, error), keeper *keeperTaskExecutor, port int) *echoTask {
 	return &echoTask{
+		buildID:      buildID,
 		newEcho:      newEcho,
-		configUpdate: configUpdate,
+		configUpdate: keeper.ConfigUpdate(),
+		agentEnv:     keeper.cm.envConfig,
+		port:         port,
 	}
 }

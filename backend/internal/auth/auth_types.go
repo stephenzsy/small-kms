@@ -17,8 +17,8 @@ const (
 )
 
 const (
-	roleValueAppAdmin        string = "App.Admin"
-	RoleValueAgentActiveHost        = "Agent.ActiveHost"
+	roleValueAppAdmin        = "App.Admin"
+	RoleValueAgentActiveHost = "Agent.ActiveHost"
 )
 
 type AuthIdentity interface {

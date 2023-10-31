@@ -85,6 +85,7 @@ components:
         - cert
         - key-policy
         - ns-config
+        - agent-instance
       x-enum-varnames:
         - ProfileResourceKindManagedApp
         - ProfileResourceKindRootCA
@@ -94,6 +95,7 @@ components:
         - ResourceKindCert
         - ResourceKindKeyPolicy
         - ResourceKindNamespaceConfig
+        - ResourceKindAgentInstance
     NumericDate:
       type: integer
       format: int64

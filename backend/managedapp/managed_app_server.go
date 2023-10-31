@@ -1,8 +1,6 @@
 package managedapp
 
 import (
-	"net/http"
-
 	"github.com/google/uuid"
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/api"
@@ -10,10 +8,46 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type server struct {
 	api.APIServer
+}
+
+// DeleteAgentConfigServerInstance implements ServerInterface.
+func (s *server) DeleteAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
+	c := ec.(ctx.RequestContext)
+	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
+		s.RespondRequireAdmin(c)
+	} else if !utils.IsUUIDNil(namespaceID) {
+		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	panic("unimplemented")
+}
+
+// GetAgentConfigServerInstance implements ServerInterface.
+func (s *server) GetAgentInstance(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
+	panic("unimplemented")
+}
+
+// PutAgentConfigServerInstance implements ServerInterface.
+func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
+	c := ec.(ctx.RequestContext)
+	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
+		s.RespondRequireAdmin(c)
+	} else if !utils.IsUUIDNil(namespaceID) {
+		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	fields := AgentInstanceFields{}
+	if err := c.Bind(&fields); err != nil {
+		return err
+	}
+	return apiPutAgentConfigServerInstance(c, instanceId, fields)
 }
 
 // ListAgentServerAzureRoleAssignments implements ServerInterface.
@@ -52,12 +86,11 @@ func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) erro
 func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 
-	if namespaceIdentifier != base.StringIdentifier("me") && auth.AuthorizeAdminOnly(c) {
-		// ok
-	} else if authedNamespaceId, ok := auth.AuthorizeApplicationMe(c, namespaceIdentifier.UUID(), namespaceIdentifier == base.StringIdentifier("me")); !ok {
-		return c.JSON(http.StatusForbidden, map[string]string{"message": "unauthorized"})
-	} else {
-		namespaceIdentifier = base.UUIDIdentifier(authedNamespaceId)
+	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
+		s.RespondRequireAdmin(c)
+	} else if !utils.IsUUIDNil(namespaceID) {
+		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 

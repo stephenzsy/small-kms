@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -66,6 +67,12 @@ func main() {
 		log.Panic().Err(err).Msg("Failed to create config manager")
 	}
 
+	agentPort := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "GATEWAY_PORT", "8443")
+	agentPortNum, err := strconv.Atoi(agentPort)
+	if err != nil {
+		log.Panic().Err(err).Msg("Failed to parse AGENT_GATEWAY_PORT")
+	}
+
 	args := flag.Args()
 	if len(args) >= 2 {
 		switch args[0] {
@@ -86,7 +93,7 @@ func main() {
 				return e, nil
 			}
 			keeperTask := keeper.NewKeeper(configManager)
-			echoTask := keeper.NewEchoTask(newEcho, keeperTask.ConfigUpdate())
+			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPortNum)
 
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
@@ -115,5 +122,5 @@ func main() {
 	}
 
 	fmt.Printf("Version: %s\n", BuildID)
-	fmt.Printf("Usage: %s server :8443\n", os.Args[0])
+	fmt.Printf("Usage: %s server 8443\n", os.Args[0])
 }

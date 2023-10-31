@@ -132,6 +132,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{instance-id}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - in: path
+        name: instance-id
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - admin
+        - agentclient
+      operationId: PutAgentInstance
+      summary: Put agent config server instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentInstanceFields"
+      responses:
+        201:
+          description: No content
+          content: {}
+    # delete:
+    #   tags:
+    #     - admin
+    #     - agentclient
+    #   operationId: DeleteAgentInstance
+    #   summary: Delete agent config server instance
+    #   responses:
+    #     204:
+    #       description: No content
+    #       content: {}
+    # get:
+    #   tags:
+    #     - admin
+    #   operationId: GetAgentInstance
+    #   summary: Get agent config server instance
+    #   responses:
+    #     200:
+    #       description: OK
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/AgentInstance"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -143,7 +190,7 @@ paths:
       operationId: ListAgentServerAzureRoleAssignments
       responses:
         200:
-          $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"      
+          $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"
 security:
   - BearerAuth: []
 components:
@@ -193,6 +240,28 @@ components:
           type: boolean
       required:
         - displayName
+    AgentInstance:
+      allOf:
+        - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
+        - $ref: "#/components/schemas/AgentInstanceFields"
+        - x-go-type: agentInstanceComposed
+    AgentInstanceFields:
+      type: object
+      properties:
+        hostname:
+          type: string
+        port: 
+          type: integer
+        version:
+          type: string
+        buildId:
+          type: string
+          x-go-name: BuildID
+      required:
+        - hostname
+        - port
+        - version
+        - buildId
     AgentConfig:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
@@ -269,7 +338,7 @@ components:
         roleDefinitionId:
           type: string
         principalId:
-          type: string        
+          type: string
   parameters:
     ManagedAppIdParameter:
       in: path

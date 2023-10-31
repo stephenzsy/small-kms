@@ -342,7 +342,6 @@ components:
       required:
         - expiryTime
         - subject
-
     CertificateSubject:
       type: object
       properties:
@@ -416,7 +415,7 @@ components:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
         sid:
           type: string
-          x-go-name: KeyVaultSecretID          
+          x-go-name: KeyVaultSecretID
       required:
         - subject
         - jwk

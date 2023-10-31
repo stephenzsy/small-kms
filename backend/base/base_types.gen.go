@@ -28,6 +28,7 @@ const (
 	ProfileResourceKindManagedApp       ResourceKind = "managed-app"
 	ProfileResourceKindRootCA           ResourceKind = "root-ca"
 	ProfileResourceKindServicePrincipal ResourceKind = "service-principal"
+	ResourceKindAgentInstance           ResourceKind = "agent-instance"
 	ResourceKindCert                    ResourceKind = "cert"
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy               ResourceKind = "key-policy"

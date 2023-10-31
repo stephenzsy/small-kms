@@ -22,4 +22,9 @@ type (
 		AgentConfig
 		AgentConfigServerFields
 	}
+
+	agentInstanceComposed struct {
+		base.ResourceReference
+		AgentInstanceFields
+	}
 )

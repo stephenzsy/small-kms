@@ -55,6 +55,14 @@ type AgentConfigServerFields struct {
 	TlsCertificatePolicyId externalRef0.Identifier                 `json:"tlsCertificatePolicyId"`
 }
 
+// AgentInstanceFields defines model for AgentInstanceFields.
+type AgentInstanceFields struct {
+	BuildID  string `json:"buildId"`
+	Hostname string `json:"hostname"`
+	Port     int    `json:"port"`
+	Version  string `json:"version"`
+}
+
 // ManagedApp defines model for ManagedApp.
 type ManagedApp = ManagedAppRef
 
@@ -89,6 +97,9 @@ type CreateManagedAppJSONRequestBody = ManagedAppParameters
 // PutAgentConfigServerJSONRequestBody defines body for PutAgentConfigServer for application/json ContentType.
 type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
 
+// PutAgentInstanceJSONRequestBody defines body for PutAgentInstance for application/json ContentType.
+type PutAgentInstanceJSONRequestBody = AgentInstanceFields
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List managed apps
@@ -118,6 +129,9 @@ type ServerInterface interface {
 	// List Key Vault role assignments
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments)
 	ListAgentServerAzureRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Put agent config server instance
+	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{instance-id})
+	PutAgentInstance(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -297,6 +311,40 @@ func (w *ServerInterfaceWrapper) ListAgentServerAzureRoleAssignments(ctx echo.Co
 	return err
 }
 
+// PutAgentInstance converts echo context to params.
+func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "instance-id" -------------
+	var instanceId string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "instance-id", runtime.ParamLocationPath, ctx.Param("instance-id"), &instanceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter instance-id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutAgentInstance(ctx, namespaceKind, namespaceIdentifier, instanceId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -334,5 +382,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.PutAgentConfigServer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server/role-assignments", wrapper.ListAgentServerAzureRoleAssignments)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:instance-id", wrapper.PutAgentInstance)
 
 }

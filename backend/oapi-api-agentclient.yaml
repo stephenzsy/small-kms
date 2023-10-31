@@ -14,6 +14,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1enroll-cert"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{instance-id}:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{instance-id}"
 components:
   securitySchemes:
     BearerAuth:
@@ -27,6 +29,8 @@ components:
       $ref: "oapi-cert.yaml#/components/schemas/Certificate"
     AgentConfigServer:
       $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigServer"
+    AgentInstanceFields:
+      $ref: "oapi-managed-app.yaml#/components/schemas/AgentInstanceFields"
   responses:
     CertificateResponse:
       description: Key spec reponse

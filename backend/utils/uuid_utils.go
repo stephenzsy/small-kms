@@ -11,3 +11,13 @@ func IsUUIDInRange(id, start, end uuid.UUID) bool {
 	}
 	return true
 }
+
+// in case uuid.Nil is altered
+func IsUUIDNil(id uuid.UUID) bool {
+	for _, b := range id {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
