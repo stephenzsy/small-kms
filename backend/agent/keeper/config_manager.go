@@ -11,18 +11,19 @@ import (
 type ConfigiManagerState int
 
 type ConfigManager struct {
-	envConfig       *agentutils.AgentEnv
-	configDir       string
-	configProcessor AgentConfigServerProcessor
-	isReady         bool
+	envConfig        *agentutils.AgentEnv
+	configDir        string
+	configProcessor  agentConfigServerProcessor
+	hasAttemptedLoad bool
 }
 
-func (m *ConfigManager) IsReady() bool {
-	return m.isReady
+func (m *ConfigManager) HasAttemptedLoad() bool {
+	return m.hasAttemptedLoad
 }
 
-func (m *ConfigManager) LoadConfig(c context.Context) bool {
-	return false
+func (m *ConfigManager) LoadConfig(c context.Context) (AgentServerConfiguration, error) {
+	m.hasAttemptedLoad = true
+	return m.configProcessor.InitialLoad(c)
 }
 
 func (m *ConfigManager) PullConfig(c context.Context) error {
@@ -46,7 +47,7 @@ func NewConfigManager(configDir string) (*ConfigManager, error) {
 	return &ConfigManager{
 		envConfig: envConfig,
 		configDir: configDir,
-		configProcessor: AgentConfigServerProcessor{
+		configProcessor: agentConfigServerProcessor{
 			configDir: configDir,
 			envConfig: envConfig,
 		},

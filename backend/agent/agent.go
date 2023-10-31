@@ -8,10 +8,13 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -67,8 +70,27 @@ func main() {
 	if len(args) >= 2 {
 		switch args[0] {
 		case "server":
-			tm := taskmanager.NewChainedTaskManager().WithTask(
-				taskmanager.IntervalExecutorTask(keeper.NewKeeper(configManager), 0))
+			newEcho := func(config keeper.AgentServerConfiguration) (*echo.Echo, error) {
+				var err error
+				e := echo.New()
+				e.Use(middleware.Logger())
+				e.Use(middleware.Recover())
+				e.Use(base.HandleResponseError)
+				base.RegisterHandlers(e, base.NewBaseServer(BuildID))
+
+				e.TLSServer.Addr = args[1]
+				e.TLSServer.TLSConfig, err = keeper.GetTLSDefaultConfig(config)
+				if err != nil {
+					return nil, err
+				}
+				return e, nil
+			}
+			keeperTask := keeper.NewKeeper(configManager)
+			echoTask := keeper.NewEchoTask(newEcho, keeperTask.ConfigUpdate())
+
+			tm := taskmanager.NewChainedTaskManager().
+				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
+				WithTask(echoTask)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
 			// e := echo.New()
 			// e.Use(middleware.Logger())

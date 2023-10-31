@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
@@ -15,28 +16,48 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-type AgentServerConfiguration struct {
+type AgentServerConfiguration interface {
+	NextWaitInterval() time.Duration
+	TLSCertificateBundleFile() string
+}
+
+type agentServerConfiguration struct {
 	TLSCertificateFile string           `json:"tlsCertificate"`
 	JWTVerifyKeys      []key.JsonWebKey `json:"jwtVerifyKeys"`
 	Version            string           `json:"version"`
+	fetchedConfig      *managedapp.AgentConfigServer
 }
 
-type AgentConfigServerProcessor struct {
+// TLSCertificateBundleFile implements AgentServerConfiguration.
+func (asc *agentServerConfiguration) TLSCertificateBundleFile() string {
+	return asc.TLSCertificateFile
+}
+
+func (c *agentServerConfiguration) NextWaitInterval() time.Duration {
+	d := time.Until(c.fetchedConfig.RefreshAfter)
+	if d < time.Minute*5 {
+		return time.Minute * 5
+	}
+	return d
+}
+
+type agentConfigServerProcessor struct {
 	envConfig         *agentutils.AgentEnv
 	configDir         string
-	readyConfig       *AgentServerConfiguration
+	readyConfig       *agentServerConfiguration
 	configProvisioner configProvisioner
 }
 
 type configProvisioner struct {
-	processor    *AgentConfigServerProcessor
+	processor    *agentConfigServerProcessor
 	versionedDir string
 	config       *managedapp.AgentConfigServer
 }
 
-func (p *configProvisioner) provision(c context.Context) (*AgentServerConfiguration, error) {
+func (p *configProvisioner) provision(c context.Context) (*agentServerConfiguration, error) {
 	logger := log.Ctx(c)
 	if _, err := os.Stat(p.versionedDir); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -121,10 +142,10 @@ func (p *configProvisioner) provision(c context.Context) (*AgentServerConfigurat
 		}
 	}
 
-	activeConfig := AgentServerConfiguration{
+	activeConfig := agentServerConfiguration{
 		TLSCertificateFile: tlsCertFilePath,
 		JWTVerifyKeys:      verifyJwks,
-		Version:            p.config.Version,
+		fetchedConfig:      p.config,
 	}
 
 	if fileBytes, err := json.Marshal(activeConfig); err != nil {
@@ -136,7 +157,38 @@ func (p *configProvisioner) provision(c context.Context) (*AgentServerConfigurat
 	return &activeConfig, nil
 }
 
-func (p *AgentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (*AgentServerConfiguration, error) {
+func (p *agentConfigServerProcessor) activeDirLink() string {
+	return filepath.Join(p.configDir, "agent-server.active")
+}
+
+func (p *agentConfigServerProcessor) InitialLoad(c context.Context) (AgentServerConfiguration, error) {
+	// load current active config
+	logger := log.Ctx(c).With().Str("step", "initial load").Logger()
+	logger.Debug().Msg("enter")
+	defer logger.Debug().Msg("exit")
+
+	if _, err := os.Lstat(p.activeDirLink()); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	baseConfig := managedapp.AgentConfigServer{}
+	readyConfig := agentServerConfiguration{}
+	if err := utils.ReadJsonFile(filepath.Join(p.activeDirLink(), "config.json"), &baseConfig); err != nil {
+		return nil, err
+	}
+	if err := utils.ReadJsonFile(filepath.Join(p.activeDirLink(), "config.ready.json"), &readyConfig); err != nil {
+		return nil, err
+	}
+	readyConfig.fetchedConfig = &baseConfig
+
+	p.readyConfig = &readyConfig
+	return &readyConfig, nil
+}
+
+func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (AgentServerConfiguration, error) {
 	logger := log.Ctx(c)
 	if p.readyConfig != nil && p.readyConfig.Version == nextConfig.Version {
 		// nothing to do, except update timestamp
@@ -153,8 +205,8 @@ func (p *AgentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig
 		return nil, err
 	}
 	// make link
-	linkName := filepath.Join(p.configDir, "agent-server.active")
-	if _, err := os.Stat(linkName); err == nil {
+	linkName := p.activeDirLink()
+	if _, err := os.Lstat(linkName); err == nil {
 		if err := os.Remove(linkName); err != nil {
 			logger.Error().Err(err).Msg("failed to remove symlink")
 			return nil, err
@@ -168,7 +220,9 @@ func (p *AgentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig
 	return nextReadyConfig, nil
 }
 
-func (p *AgentConfigServerProcessor) Shutdown(c context.Context) error {
+func (p *agentConfigServerProcessor) Shutdown(c context.Context) error {
 	// TODO: persist config json
 	return nil
 }
+
+var _ AgentServerConfiguration = &agentServerConfiguration{}

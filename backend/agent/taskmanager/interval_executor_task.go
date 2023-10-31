@@ -11,6 +11,7 @@ import (
 type IntervalExecutor interface {
 	Name() string
 	Execute(context.Context) (time.Duration, error)
+	Close(context.Context) error
 }
 
 type intervalExecutorTask struct {
@@ -52,8 +53,7 @@ func (t *intervalExecutorTask) Start(c context.Context, sigCh <-chan os.Signal) 
 			}
 		}
 	}
-	// return last error
-	return err
+	return t.executor.Close(c)
 }
 
 func IntervalExecutorTask(executor IntervalExecutor, initialDelay time.Duration) Task {
