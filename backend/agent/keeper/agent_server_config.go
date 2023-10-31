@@ -13,17 +13,20 @@ import (
 	"github.com/rs/zerolog/log"
 	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type AgentServerConfiguration struct {
+	TLSCertificateFile string           `json:"tlsCertificate"`
+	JWTVerifyKeys      []key.JsonWebKey `json:"jwtVerifyKeys"`
+	Version            string           `json:"version"`
 }
 
 type AgentConfigServerProcessor struct {
 	envConfig         *agentutils.AgentEnv
 	configDir         string
-	readyVersion      string
-	readyConfig       AgentServerConfiguration
+	readyConfig       *AgentServerConfiguration
 	configProvisioner configProvisioner
 }
 
@@ -33,25 +36,25 @@ type configProvisioner struct {
 	config       *managedapp.AgentConfigServer
 }
 
-func (p *configProvisioner) provision(c context.Context) error {
+func (p *configProvisioner) provision(c context.Context) (*AgentServerConfiguration, error) {
 	logger := log.Ctx(c)
 	if _, err := os.Stat(p.versionedDir); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			os.MkdirAll(p.versionedDir, 0700)
 		} else {
-			return err
+			return nil, err
 		}
 	}
 
 	agentClient, err := p.processor.envConfig.AgentClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if fileBytes, err := json.Marshal(p.config); err != nil {
-		return err
+		return nil, err
 	} else if err := os.WriteFile(filepath.Join(p.versionedDir, "config.json"), fileBytes, 0600); err != nil {
-		return err
+		return nil, err
 	}
 
 	tlsCertFilePath := filepath.Join(p.versionedDir, "tls-cert.pem")
@@ -60,72 +63,109 @@ func (p *configProvisioner) provision(c context.Context) error {
 			// pull certificate
 			resp, err := agentClient.GetCertificateWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"), p.config.TlsCertificateId)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			cert := resp.JSON200
 			azSecretsClient, err := p.processor.envConfig.AzSecretsClient()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			sid := azsecrets.ID(*cert.KeyVaultSecretID)
 			getSecretResposne, err := azSecretsClient.GetSecret(c, sid.Name(), sid.Version(), nil)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			pemStr := *getSecretResposne.Value
 			err = os.WriteFile(tlsCertFilePath, []byte(pemStr), 0600)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			logger.Debug().Msgf("Stored certificate %s", p.config.TlsCertificateId)
 		} else {
-			return err
+			return nil, err
 		}
 	}
 
 	// pull jwk verification keys
+	verifyJwks := make([]key.JsonWebKey, 0, len(p.config.JWTKeyCertIDs))
 	for _, jwtCertID := range p.config.JWTKeyCertIDs {
 		jwkFilePath := filepath.Join(p.versionedDir, fmt.Sprintf("jwk-%s.json", jwtCertID.ResourceIdentifier()))
-		if _, err := os.Stat(jwkFilePath); err != nil {
+		if fileBytes, err := os.ReadFile(jwkFilePath); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				// pull key from key vault
 				resp, err := agentClient.GetCertificateWithResponse(c, jwtCertID.NamespaceKind(), jwtCertID.NamespaceIdentifier(), jwtCertID.ResourceIdentifier())
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if resp.StatusCode() != http.StatusOK {
-					return fmt.Errorf("failed to get certificate: %d", resp.StatusCode())
+					return nil, fmt.Errorf("failed to get certificate: %d", resp.StatusCode())
 				}
 				logger.Debug().Any("resp", resp.JSON200).Any("status", resp.Status()).Msg("get certificate response")
 				jwkBytes, err := json.Marshal(resp.JSON200.Jwk)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if err := os.WriteFile(jwkFilePath, jwkBytes, 0600); err != nil {
-					return err
+					return nil, err
 				}
+				verifyJwks = append(verifyJwks, resp.JSON200.Jwk)
 			} else {
-				return err
+				return nil, err
 			}
+		} else {
+			jwk := key.JsonWebKey{}
+			if err := json.Unmarshal(fileBytes, &jwk); err != nil {
+				return nil, err
+			}
+			verifyJwks = append(verifyJwks, jwk)
 		}
 	}
-	logger.Debug().Any("config", p.config).Msg("provision agent config")
 
-	return nil
+	activeConfig := AgentServerConfiguration{
+		TLSCertificateFile: tlsCertFilePath,
+		JWTVerifyKeys:      verifyJwks,
+		Version:            p.config.Version,
+	}
+
+	if fileBytes, err := json.Marshal(activeConfig); err != nil {
+		return nil, err
+	} else if err := os.WriteFile(filepath.Join(p.versionedDir, "config.ready.json"), fileBytes, 0600); err != nil {
+		return nil, err
+	}
+
+	return &activeConfig, nil
 }
 
-func (p *AgentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) error {
-	if p.readyVersion == nextConfig.Version {
+func (p *AgentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (*AgentServerConfiguration, error) {
+	logger := log.Ctx(c)
+	if p.readyConfig != nil && p.readyConfig.Version == nextConfig.Version {
 		// nothing to do, except update timestamp
 		p.configProvisioner.config = nextConfig
-		return nil
+		return p.readyConfig, nil
 	}
 	p.configProvisioner = configProvisioner{
 		processor:    p,
 		versionedDir: filepath.Join(p.configDir, "versioned", fmt.Sprintf("agent-server.%s", nextConfig.Version)),
 		config:       nextConfig,
 	}
-	return p.configProvisioner.provision(c)
+	nextReadyConfig, err := p.configProvisioner.provision(c)
+	if err != nil {
+		return nil, err
+	}
+	// make link
+	linkName := filepath.Join(p.configDir, "agent-server.active")
+	if _, err := os.Stat(linkName); err == nil {
+		if err := os.Remove(linkName); err != nil {
+			logger.Error().Err(err).Msg("failed to remove symlink")
+			return nil, err
+		}
+	}
+	if err := os.Symlink(filepath.Join(".", "versioned", fmt.Sprintf("agent-server.%s", nextConfig.Version)), linkName); err != nil {
+		logger.Error().Err(err).Msg("failed to create symlink")
+		return nil, err
+	}
+	p.readyConfig = nextReadyConfig
+	return nextReadyConfig, nil
 }
 
 func (p *AgentConfigServerProcessor) Shutdown(c context.Context) error {

@@ -37,7 +37,8 @@ func (m *ConfigManager) PullConfig(c context.Context) error {
 	if err != nil {
 		return err
 	}
-	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
+	_, err = m.configProcessor.ProcessUpdate(c, resp.JSON200)
+	return err
 }
 
 func NewConfigManager(configDir string) (*ConfigManager, error) {
