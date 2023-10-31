@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type DocPager[D QueryDocument] struct {
@@ -38,6 +39,8 @@ func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
 	}
 	return
 }
+
+var _ utils.ItemsPager[QueryDocument] = (*DocPager[QueryDocument])(nil)
 
 func ToDocPager[D QueryDocument](pager *azruntime.Pager[azcosmos.QueryItemsResponse]) *DocPager[D] {
 	return &DocPager[D]{innerPager: pager}

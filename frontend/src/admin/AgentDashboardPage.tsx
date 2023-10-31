@@ -17,16 +17,16 @@ export default function AgentDashboardPage() {
     { manual: true }
   );
 
-  const { data: proxyInfo } = useRequest(() => {
-    return client.getAgentProxyInfo({
-      namespaceId,
-    });
-  }, {});
+  // const { data: proxyInfo } = useRequest(() => {
+  //   return client.getAgentProxyInfo({
+  //     namespaceId,
+  //   });
+  // }, {});
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
       <Card title="Agent proxy information">
-        <pre>{JSON.stringify(proxyInfo, undefined, 2)}</pre>
+        {/* <pre>{JSON.stringify(proxyInfo, undefined, 2)}</pre> */}
       </Card>
     </>
   );

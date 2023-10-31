@@ -15,6 +15,17 @@ type server struct {
 	api.APIServer
 }
 
+// ListAgentInstances implements ServerInterface.
+func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	return apiListAgentInstances(c)
+}
+
 // DeleteAgentConfigServerInstance implements ServerInterface.
 func (s *server) DeleteAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
 	c := ec.(ctx.RequestContext)
@@ -34,7 +45,7 @@ func (s *server) GetAgentInstance(ctx echo.Context, namespaceKind base.Namespace
 }
 
 // PutAgentConfigServerInstance implements ServerInterface.
-func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
+func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId base.Identifier) error {
 	c := ec.(ctx.RequestContext)
 	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
 	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
@@ -47,7 +58,7 @@ func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 	if err := c.Bind(&fields); err != nil {
 		return err
 	}
-	return apiPutAgentConfigServerInstance(c, instanceId, fields)
+	return apiPutAgentInstance(c, instanceId, fields)
 }
 
 // ListAgentServerAzureRoleAssignments implements ServerInterface.

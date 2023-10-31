@@ -22,6 +22,7 @@ import {
   AgentConfigurationAgentActiveHostBootstrapToJSON,
   AgentConfigurationParameters,
   AgentConfigurationParametersFromJSON,
+  AgentInstance,
   AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   AzureRoleAssignmentFromJSON,
@@ -37,6 +38,7 @@ import {
 } from "./contexts/NamespaceContext";
 import { ColumnsType } from "antd/es/table";
 import { WellknownId } from "../constants";
+import { Link } from "../components/Link";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -255,6 +257,76 @@ function AgentConfigServerFormCard({
   );
 }
 
+function useAgentInstanceColumns(
+  namespaceKind: NamespaceKind,
+  namespaceIdentifier: string
+) {
+  return useMemo(
+    (): ColumnsType<AgentInstance> => [
+      {
+        key: "id",
+        title: "ID",
+        render: (r: AgentInstance) => <span className="font-mono">{r.id}</span>,
+      },
+      {
+        key: "endpoint",
+        title: "Endpoint",
+        render: (r: AgentInstance) => (
+          <span className="font-mono">{r.endpoint}</span>
+        ),
+      },
+      {
+        key: "version",
+        title: "Config version",
+        render: (r: AgentInstance) => (
+          <span className="font-mono">{r.version}</span>
+        ),
+      },
+      {
+        key: "buildID",
+        title: "Build ID",
+        render: (r: AgentInstance) => (
+          <span className="font-mono">{r.buildId}</span>
+        ),
+      },
+      {
+        key: "actions",
+        title: "Actions",
+        render: (r: AgentInstance) => (
+          <Link
+            to={`/app/${namespaceKind}/${namespaceIdentifier}/agent/${r.id}/dashboard`}
+          >
+            Dashboard
+          </Link>
+        ),
+      },
+    ],
+    [namespaceKind, namespaceIdentifier]
+  );
+}
+
+export function AgentInstancesList() {
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+
+  const api = useAuthedClient(AdminApi);
+  const { data } = useRequest(
+    () => {
+      return api.listAgentInstances({ namespaceIdentifier, namespaceKind });
+    },
+    {
+      refreshDeps: [namespaceIdentifier, namespaceKind],
+    }
+  );
+  const columns = useAgentInstanceColumns(namespaceKind, namespaceIdentifier);
+  return (
+    <Table
+      dataSource={data}
+      columns={columns}
+      rowKey={(r: AgentInstance) => r.id}
+    />
+  );
+}
+
 export default function ProvisionAgentPage({
   isGlobalConfig = false,
 }: {
@@ -283,6 +355,11 @@ export default function ProvisionAgentPage({
 
       <NamespaceContext.Provider value={nsCtxValue}>
         <AgentConfigServerFormCard isGlobalConfig={isGlobalConfig} />
+        {!isGlobalConfig && (
+          <Card title="Instances">
+            <AgentInstancesList />
+          </Card>
+        )}
       </NamespaceContext.Provider>
     </>
   );

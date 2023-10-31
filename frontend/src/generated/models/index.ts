@@ -12,6 +12,8 @@ export * from './AgentConfigurationAgentActiveHostBootstrap';
 export * from './AgentConfigurationAgentActiveServerReplyState';
 export * from './AgentConfigurationParameters';
 export * from './AgentHostRole';
+export * from './AgentInstance';
+export * from './AgentInstanceFields';
 export * from './AgentProxyEndpoint';
 export * from './AgentProxyInfo';
 export * from './AzureKeyvaultResourceCategory';

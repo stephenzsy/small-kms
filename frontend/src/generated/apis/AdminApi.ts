@@ -20,7 +20,8 @@ import type {
   AgentConfigServerFields,
   AgentConfiguration,
   AgentConfigurationParameters,
-  AgentProxyInfo,
+  AgentInstance,
+  AgentInstanceFields,
   AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   CertPolicy,
@@ -51,8 +52,10 @@ import {
     AgentConfigurationToJSON,
     AgentConfigurationParametersFromJSON,
     AgentConfigurationParametersToJSON,
-    AgentProxyInfoFromJSON,
-    AgentProxyInfoToJSON,
+    AgentInstanceFromJSON,
+    AgentInstanceToJSON,
+    AgentInstanceFieldsFromJSON,
+    AgentInstanceFieldsToJSON,
     AzureKeyvaultResourceCategoryFromJSON,
     AzureKeyvaultResourceCategoryToJSON,
     AzureRoleAssignmentFromJSON,
@@ -99,13 +102,6 @@ export interface AddKeyVaultRoleAssignmentRequest {
     roleDefinitionId: string;
 }
 
-export interface AgentCallbackRequest {
-    namespaceKindLegacy: NamespaceKind1;
-    namespaceId: string;
-    configName: AgentConfigName;
-    agentConfiguration: AgentConfiguration;
-}
-
 export interface CreateCertificateRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -133,10 +129,6 @@ export interface GetAgentConfigurationRequest {
     configName: AgentConfigName;
     xSmallkmsIfVersionNotMatch?: string;
     refreshToken?: string;
-}
-
-export interface GetAgentProxyInfoRequest {
-    namespaceId: string;
 }
 
 export interface GetCertPolicyRequest {
@@ -183,6 +175,11 @@ export interface ImportProfileRequest {
     namespaceIdentifier: string;
 }
 
+export interface ListAgentInstancesRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+}
+
 export interface ListAgentServerAzureRoleAssignmentsRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -221,6 +218,13 @@ export interface PutAgentConfigurationRequest {
     namespaceId: string;
     configName: AgentConfigName;
     agentConfigurationParameters: AgentConfigurationParameters;
+}
+
+export interface PutAgentInstanceRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    agentInstanceFields: AgentInstanceFields;
 }
 
 export interface PutCertPolicyRequest {
@@ -317,56 +321,6 @@ export class AdminApi extends runtime.BaseAPI {
     async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
         const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     */
-    async agentCallbackRaw(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKindLegacy === null || requestParameters.namespaceKindLegacy === undefined) {
-            throw new runtime.RequiredError('namespaceKindLegacy','Required parameter requestParameters.namespaceKindLegacy was null or undefined when calling agentCallback.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentCallback.');
-        }
-
-        if (requestParameters.configName === null || requestParameters.configName === undefined) {
-            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling agentCallback.');
-        }
-
-        if (requestParameters.agentConfiguration === null || requestParameters.agentConfiguration === undefined) {
-            throw new runtime.RequiredError('agentConfiguration','Required parameter requestParameters.agentConfiguration was null or undefined when calling agentCallback.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/{namespaceKindLegacy}/{namespaceId}/agent-callback/{configName}`.replace(`{${"namespaceKindLegacy"}}`, encodeURIComponent(String(requestParameters.namespaceKindLegacy))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AgentConfigurationToJSON(requestParameters.agentConfiguration),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     */
-    async agentCallback(requestParameters: AgentCallbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.agentCallbackRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -594,44 +548,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get agent proxy information
-     */
-    async getAgentProxyInfoRaw(requestParameters: GetAgentProxyInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentProxyInfo>> {
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentProxyInfo.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v3/servicePrincipal/{namespaceId}/agent-proxy`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentProxyInfoFromJSON(jsonValue));
-    }
-
-    /**
-     * Get agent proxy information
-     */
-    async getAgentProxyInfo(requestParameters: GetAgentProxyInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentProxyInfo> {
-        const response = await this.getAgentProxyInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1044,6 +960,48 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * List agent config server instances
+     */
+    async listAgentInstancesRaw(requestParameters: ListAgentInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AgentInstance>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listAgentInstances.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listAgentInstances.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AgentInstanceFromJSON));
+    }
+
+    /**
+     * List agent config server instances
+     */
+    async listAgentInstances(requestParameters: ListAgentInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AgentInstance>> {
+        const response = await this.listAgentInstancesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List Key Vault role assignments
      */
     async listAgentServerAzureRoleAssignmentsRaw(requestParameters: ListAgentServerAzureRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AzureRoleAssignment>>> {
@@ -1395,6 +1353,58 @@ export class AdminApi extends runtime.BaseAPI {
     async putAgentConfiguration(requestParameters: PutAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.putAgentConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Put agent config server instance
+     */
+    async putAgentInstanceRaw(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentInstance.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putAgentInstance.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putAgentInstance.');
+        }
+
+        if (requestParameters.agentInstanceFields === null || requestParameters.agentInstanceFields === undefined) {
+            throw new runtime.RequiredError('agentInstanceFields','Required parameter requestParameters.agentInstanceFields was null or undefined when calling putAgentInstance.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentInstanceFieldsToJSON(requestParameters.agentInstanceFields),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Put agent config server instance
+     */
+    async putAgentInstance(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.putAgentInstanceRaw(requestParameters, initOverrides);
     }
 
     /**

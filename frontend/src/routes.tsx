@@ -20,6 +20,10 @@ const ProvisionAgentPage = React.lazy(
   () => import("./admin/ProvisionAgentPage")
 );
 
+const AgentDashboardPage = React.lazy(
+  () => import("./admin/AgentDashboardPage")
+);
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -88,6 +92,10 @@ export const router = createBrowserRouter([
                   {
                     path: "cert/:certId",
                     element: <CertificatePage />,
+                  },
+                  {
+                    path: "agent/:agentId/dashboard",
+                    element: <AgentDashboardPage />,
                   },
                 ],
               },

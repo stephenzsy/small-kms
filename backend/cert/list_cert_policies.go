@@ -1,9 +1,10 @@
 package cert
 
 import (
-	"context"
+	"net/http"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -24,7 +25,7 @@ func (d *CertPolicyQueryDoc) PopulateModelRef(r *CertPolicyRef) {
 
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyQueryDoc)(nil)
 
-func listCertPolicies(c context.Context) ([]*CertPolicyRef, error) {
+func apiListCertPolicies(c ctx.RequestContext) error {
 	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(queryColumnDisplayName)
@@ -37,6 +38,7 @@ func listCertPolicies(c context.Context) ([]*CertPolicyRef, error) {
 		d.PopulateModelRef(r)
 		return r
 	})
-	return utils.PagerToSlice(c, modelPager)
+	sPager := utils.NewSerializableItemsPager(c, modelPager)
+	return c.JSON(http.StatusOK, sPager)
 
 }

@@ -19,7 +19,7 @@ type echoTask struct {
 	configUpdate <-chan AgentServerConfiguration
 	newEcho      func(config AgentServerConfiguration) (*echo.Echo, error)
 	agentEnv     *agentutils.AgentEnv
-	port         int
+	endpoint     string
 }
 
 // Name implements taskmanager.Task.
@@ -49,6 +49,8 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 		return err
 	}
 
+	instanceID := uuid.NewSHA1(uuid.NameSpaceURL, []byte(et.endpoint))
+	instanceIdenfier := base.UUIDIdentifier(instanceID)
 	for active {
 		select {
 		case <-c.Done():
@@ -72,10 +74,9 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 			go e.StartServer(e.TLSServer)
 
 			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
-				base.StringIdentifier("me"), uuid.New().String()[:8], managedapp.AgentInstanceFields{
+				base.StringIdentifier("me"), instanceIdenfier, managedapp.AgentInstanceFields{
 					Version:  config.GetVersion(),
-					Port:     et.port,
-					Hostname: "localhost",
+					Endpoint: &et.endpoint,
 					BuildID:  et.buildID,
 				})
 		}
@@ -85,12 +86,12 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 
 var _ taskmanager.Task = (*echoTask)(nil)
 
-func NewEchoTask(buildID string, newEcho func(config AgentServerConfiguration) (*echo.Echo, error), keeper *keeperTaskExecutor, port int) *echoTask {
+func NewEchoTask(buildID string, newEcho func(config AgentServerConfiguration) (*echo.Echo, error), keeper *keeperTaskExecutor, endpoint string) *echoTask {
 	return &echoTask{
 		buildID:      buildID,
 		newEcho:      newEcho,
 		configUpdate: keeper.ConfigUpdate(),
 		agentEnv:     keeper.cm.envConfig,
-		port:         port,
+		endpoint:     endpoint,
 	}
 }

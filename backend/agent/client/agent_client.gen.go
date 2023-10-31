@@ -121,9 +121,9 @@ type ClientInterface interface {
 	GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PutAgentInstanceWithBody request with any body
-	PutAgentInstanceWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PutAgentInstanceWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutAgentInstance(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PutAgentInstance(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EnrollCertificateWithBody request with any body
 	EnrollCertificateWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -146,8 +146,8 @@ func (c *Client) GetAgentConfigServer(ctx context.Context, namespaceKind externa
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutAgentInstanceWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutAgentInstanceRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, instanceId, contentType, body)
+func (c *Client) PutAgentInstanceWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutAgentInstanceRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +158,8 @@ func (c *Client) PutAgentInstanceWithBody(ctx context.Context, namespaceKind ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutAgentInstance(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutAgentInstanceRequest(c.Server, namespaceKind, namespaceIdentifier, instanceId, body)
+func (c *Client) PutAgentInstance(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutAgentInstanceRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, body)
 	if err != nil {
 		return nil, err
 	}
@@ -248,18 +248,18 @@ func NewGetAgentConfigServerRequest(server string, namespaceKind externalRef0.Na
 }
 
 // NewPutAgentInstanceRequest calls the generic PutAgentInstance builder with application/json body
-func NewPutAgentInstanceRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, body PutAgentInstanceJSONRequestBody) (*http.Request, error) {
+func NewPutAgentInstanceRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body PutAgentInstanceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPutAgentInstanceRequestWithBody(server, namespaceKind, namespaceIdentifier, instanceId, "application/json", bodyReader)
+	return NewPutAgentInstanceRequestWithBody(server, namespaceKind, namespaceIdentifier, resourceIdentifier, "application/json", bodyReader)
 }
 
 // NewPutAgentInstanceRequestWithBody generates requests for PutAgentInstance with any type of body
-func NewPutAgentInstanceRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, contentType string, body io.Reader) (*http.Request, error) {
+func NewPutAgentInstanceRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -278,7 +278,7 @@ func NewPutAgentInstanceRequestWithBody(server string, namespaceKind externalRef
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "instance-id", runtime.ParamLocationPath, instanceId)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
 	if err != nil {
 		return nil, err
 	}
@@ -464,9 +464,9 @@ type ClientWithResponsesInterface interface {
 	GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error)
 
 	// PutAgentInstanceWithBodyWithResponse request with any body
-	PutAgentInstanceWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error)
+	PutAgentInstanceWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error)
 
-	PutAgentInstanceWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error)
+	PutAgentInstanceWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error)
 
 	// EnrollCertificateWithBodyWithResponse request with any body
 	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
@@ -574,16 +574,16 @@ func (c *ClientWithResponses) GetAgentConfigServerWithResponse(ctx context.Conte
 }
 
 // PutAgentInstanceWithBodyWithResponse request with arbitrary body returning *PutAgentInstanceResponse
-func (c *ClientWithResponses) PutAgentInstanceWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error) {
-	rsp, err := c.PutAgentInstanceWithBody(ctx, namespaceKind, namespaceIdentifier, instanceId, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PutAgentInstanceWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error) {
+	rsp, err := c.PutAgentInstanceWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePutAgentInstanceResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutAgentInstanceWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, instanceId string, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error) {
-	rsp, err := c.PutAgentInstance(ctx, namespaceKind, namespaceIdentifier, instanceId, body, reqEditors...)
+func (c *ClientWithResponses) PutAgentInstanceWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, body PutAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*PutAgentInstanceResponse, error) {
+	rsp, err := c.PutAgentInstance(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

@@ -20,6 +20,10 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent-config~1server~1role-assignments"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}"
   /v1/profile/{profileResourceKind}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
@@ -42,25 +46,6 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1keyvault-role-assignments~1{resourceCategory}"
-  /v3/{namespaceKindLegacy}/{namespaceId}/agent-callback/{configName}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/AgentConfigNameParameter"
-    post:
-      tags:
-        - admin
-        - agentclient
-      operationId: AgentCallback
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
-        required: true
-      responses:
-        204:
-          description: No content
   /v3/{namespaceKindLegacy}/{namespaceId}/agent-config/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
@@ -101,21 +86,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
-  /v3/servicePrincipal/{namespaceId}/agent-proxy:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      description: Get agent proxy information
-      operationId: GetAgentProxyInfo
-      responses:
-        200:
-          description: Agent proxy info
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentProxyInfo"
   /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

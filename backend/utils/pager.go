@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 )
 
 type Pager[T any] interface {
@@ -96,10 +97,7 @@ type chainedItemPagers[T any] struct {
 
 // More implements ItemsPager.
 func (p *chainedItemPagers[T]) More() bool {
-	if p.index >= len(p.pagers) {
-		return false
-	}
-	return true
+	return p.index < len(p.pagers)
 }
 
 // NextPage implements ItemsPager.
@@ -115,4 +113,38 @@ func (p *chainedItemPagers[T]) NextPage(c context.Context) (page []T, err error)
 
 func NewChainedItemPagers[T any](pagers ...ItemsPager[T]) ItemsPager[T] {
 	return &chainedItemPagers[T]{pagers: pagers}
+}
+
+type SerializableItemsPager[T any] struct {
+	ItemsPager[T]
+	ctx context.Context
+}
+
+// MarshalJSON implements json.Marshaler.
+func (p *SerializableItemsPager[T]) MarshalJSON() ([]byte, error) {
+	b := append([]byte(nil), '[')
+	for p.More() {
+		items, err := p.NextPage(p.ctx)
+		if err != nil {
+			return nil, err
+		}
+		for i, item := range items {
+			itemBytes, err := json.Marshal(item)
+			if err != nil {
+				return nil, err
+			}
+			if i > 0 {
+				b = append(b, ',')
+			}
+			b = append(b, itemBytes...)
+		}
+	}
+	b = append(b, ']')
+	return b, nil
+}
+
+var _ json.Marshaler = (*SerializableItemsPager[any])(nil)
+
+func NewSerializableItemsPager[T any](ctx context.Context, pager ItemsPager[T]) *SerializableItemsPager[T] {
+	return &SerializableItemsPager[T]{ctx: ctx, ItemsPager: pager}
 }

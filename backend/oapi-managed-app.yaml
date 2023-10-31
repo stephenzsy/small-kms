@@ -132,15 +132,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{instance-id}:
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance:
+    parameters :
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListAgentInstances
+      summary: List agent config server instances
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentInstance"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - in: path
-        name: instance-id
-        required: true
-        schema:
-          type: string
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
     put:
       tags:
         - admin
@@ -248,18 +262,14 @@ components:
     AgentInstanceFields:
       type: object
       properties:
-        hostname:
+        endpoint:
           type: string
-        port: 
-          type: integer
         version:
           type: string
         buildId:
           type: string
           x-go-name: BuildID
       required:
-        - hostname
-        - port
         - version
         - buildId
     AgentConfig:

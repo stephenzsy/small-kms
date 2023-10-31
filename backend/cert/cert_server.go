@@ -186,14 +186,7 @@ func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceK
 		return err
 	}
 
-	l, err := listCertPolicies(c)
-	if err != nil {
-		return err
-	}
-	if l == nil {
-		l = make([]*CertPolicyRef, 0)
-	}
-	return c.JSON(http.StatusOK, l)
+	return apiListCertPolicies(c)
 }
 
 // GetCertPolicy implements ServerInterface.
