@@ -113,7 +113,7 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		Bytes: pkBytes,
 	})
 
-	for _, cert := range resp.JSON200.CertificateChain {
+	for _, cert := range resp.JSON200.Jwk.CertificateChain {
 		pem.Encode(certFile, &pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: cert,
