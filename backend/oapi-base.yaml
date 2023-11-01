@@ -8,23 +8,11 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v1/_health:
-    get:
-      tags:
-        - admin
-      summary: Get health
-      operationId: GetHealth
-      responses:
-        "200":
-          description: Health response
-          content:
-            text/plain:
-              schema:
-                type: string
   /v1/diagnostics:
     get:
       tags:
         - admin
+        - agentproxy
       summary: Get diagnostics
       operationId: GetDiagnostics
       responses:

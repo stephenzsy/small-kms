@@ -82,21 +82,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/AgentConfigurationResponse"
-  /v3/servicePrincipal/{namespaceId}/agent-proxy:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      description: Get agent proxy information
-      operationId: GetAgentProxyInfo
-      responses:
-        200:
-          description: Agent proxy info
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentProxyInfo"
   /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -114,25 +99,6 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
-  /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/CertificateTemplateIdentifierParameter"
-      - in: path
-        name: roleAssignmentId
-        schema:
-          type: string
-        required: true
-    delete:
-      tags:
-        - admin
-      summary: Remove Key Vault role assignment
-      operationId: RemoveKeyVaultRoleAssignment
-      responses:
-        204:
-          description: List keyvault roles assignments response
-          content: {}
 components:
   securitySchemes:
     BearerAuth:

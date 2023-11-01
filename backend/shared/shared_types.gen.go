@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for AgentConfigName.
@@ -163,17 +162,10 @@ type AgentConfigurationParameters struct {
 // AgentProfile defines model for AgentProfile.
 type AgentProfile = agentProfileComposed
 
-// AgentProfileAppRole defines model for AgentProfileAppRole.
-type AgentProfileAppRole struct {
-	ID    openapi_types.UUID `json:"id"`
-	Value string             `json:"value"`
-}
-
 // AgentProfileFields defines model for AgentProfileFields.
 type AgentProfileFields struct {
-	AppRoles                                       []AgentProfileAppRole `json:"appRoles"`
-	MsEntraClientCredentialInstalledCertificateIds []Identifier          `json:"msEntraClientCredentialInstalledCertificateIds"`
-	Status                                         AgentProfileStatus    `json:"status"`
+	MsEntraClientCredentialInstalledCertificateIds []Identifier       `json:"msEntraClientCredentialInstalledCertificateIds"`
+	Status                                         AgentProfileStatus `json:"status"`
 }
 
 // AgentProfileParameters defines model for AgentProfileParameters.

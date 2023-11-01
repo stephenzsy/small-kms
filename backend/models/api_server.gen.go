@@ -17,9 +17,6 @@ type ServerInterface interface {
 	// (GET /v3/application/{namespaceId}/agent)
 	GetAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
 
-	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy)
-	GetAgentProxyInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
-
 	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info)
 	GetDockerInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
 
@@ -31,9 +28,6 @@ type ServerInterface interface {
 	// Get agent autoconfig
 	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
 	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
-	// Remove Key Vault role assignment
-	// (DELETE /v3/{namespaceKind}/{namespaceId}/certificate-template/{templateId}/keyvault-role-assignments/{roleAssignmentId})
-	RemoveKeyVaultRoleAssignment(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, templateId CertificateTemplateIdentifierParameter, roleAssignmentId string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -56,24 +50,6 @@ func (w *ServerInterfaceWrapper) GetAgentProfile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentProfile(ctx, namespaceId)
-	return err
-}
-
-// GetAgentProxyInfo converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentProxyInfo(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentProxyInfo(ctx, namespaceId)
 	return err
 }
 
@@ -223,48 +199,6 @@ func (w *ServerInterfaceWrapper) PutAgentConfiguration(ctx echo.Context) error {
 	return err
 }
 
-// RemoveKeyVaultRoleAssignment converts echo context to params.
-func (w *ServerInterfaceWrapper) RemoveKeyVaultRoleAssignment(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "templateId" -------------
-	var templateId CertificateTemplateIdentifierParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "templateId", runtime.ParamLocationPath, ctx.Param("templateId"), &templateId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateId: %s", err))
-	}
-
-	// ------------- Path parameter "roleAssignmentId" -------------
-	var roleAssignmentId string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "roleAssignmentId", runtime.ParamLocationPath, ctx.Param("roleAssignmentId"), &roleAssignmentId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter roleAssignmentId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.RemoveKeyVaultRoleAssignment(ctx, namespaceKind, namespaceId, templateId, roleAssignmentId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -294,11 +228,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
-	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy", wrapper.GetAgentProxyInfo)
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
 	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
-	router.DELETE(baseURL+"/v3/:namespaceKind/:namespaceId/certificate-template/:templateId/keyvault-role-assignments/:roleAssignmentId", wrapper.RemoveKeyVaultRoleAssignment)
 
 }

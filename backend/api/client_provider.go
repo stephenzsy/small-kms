@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	azblobcontainer "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
@@ -106,11 +105,10 @@ func newServerClientProvider(s *server) (p clientProvider, err error) {
 }
 
 type requestClientProvider struct {
-	parent                         *server
-	credentialContext              RequestContext
-	onBehalfOfCreds                azcore.TokenCredential
-	cachedDelegatedMsGraphClient   *msgraphsdkgo.GraphServiceClient
-	cachedArmRoleAssignmentsClient *armauthorization.RoleAssignmentsClient
+	parent                       *server
+	credentialContext            RequestContext
+	onBehalfOfCreds              azcore.TokenCredential
+	cachedDelegatedMsGraphClient *msgraphsdkgo.GraphServiceClient
 }
 
 func (p *requestClientProvider) getOnbehalfOfCreds() (azcore.TokenCredential, error) {

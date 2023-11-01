@@ -27,7 +27,6 @@ type AgentProfileDoc struct {
 	Status                                  shared.AgentProfileStatus                    `json:"status"`
 	MsEntraClientCredsTemplateID            shared.Identifier                            `json:"msEntraClientCredsTemplateId"`
 	MsEntraClientCredsInstalledCertificates []AgentProfileDocInstalledMsEntraClientCreds `json:"msEntraClientCredsInstalledCertificates"`
-	AppRoles                                []shared.AgentProfileAppRole                 `json:"appRoles"`
 }
 
 func (d *AgentProfileDoc) toModel() *shared.AgentProfile {
@@ -42,14 +41,8 @@ func (d *AgentProfileDoc) toModel() *shared.AgentProfile {
 	r.MsEntraClientCredentialInstalledCertificateIds = utils.MapSlice(d.MsEntraClientCredsInstalledCertificates, func(item AgentProfileDocInstalledMsEntraClientCreds) shared.Identifier {
 		return item.CertificateID
 	})
-	r.AppRoles = d.AppRoles
 	return r
 }
-
-const (
-	patchKeyMsEntraClientCredsInstalledCertificates = "/msEntraClientCredsInstalledCertificates"
-	patchKeyAppRoles                                = "/appRoles"
-)
 
 var agentProfileIdentifier = shared.NewResourceIdentifier(shared.ResourceKindReserved, shared.StringIdentifier("agent-profile"))
 

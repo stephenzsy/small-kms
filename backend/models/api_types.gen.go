@@ -11,24 +11,8 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// AgentProxyEndpoint defines model for AgentProxyEndpoint.
-type AgentProxyEndpoint struct {
-	IpUrl string                                                     `json:"ipUrl"`
-	State externalRef0.AgentConfigurationAgentActiveServerReplyState `json:"state"`
-	Url   string                                                     `json:"url"`
-}
-
-// AgentProxyInfo defines model for AgentProxyInfo.
-type AgentProxyInfo struct {
-	Primary   *AgentProxyEndpoint `json:"primary,omitempty"`
-	Secondary *AgentProxyEndpoint `json:"secondary,omitempty"`
-}
-
 // AgentConfigNameParameter defines model for AgentConfigNameParameter.
 type AgentConfigNameParameter = externalRef0.AgentConfigName
-
-// CertificateTemplateIdentifierParameter defines model for CertificateTemplateIdentifierParameter.
-type CertificateTemplateIdentifierParameter = externalRef0.Identifier
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier

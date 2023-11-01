@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
 
@@ -177,37 +176,11 @@ type AgentActiveServerCallbackDocEndpointState struct {
 	Version  string                                               `json:"version"` // version of the config after evaluation
 }
 
-func (doc *AgentActiveServerCallbackDocEndpointState) toModel() *models.AgentProxyEndpoint {
-	if doc == nil {
-		return nil
-	}
-	switch doc.State {
-	case shared.AgentConfigurationAgentActiveServerReplyStateUp,
-		shared.AgentConfigurationAgentActiveServerReplyStateDown:
-		return &models.AgentProxyEndpoint{
-			Url:   doc.Endpoint,
-			IpUrl: doc.Endpoint,
-			State: doc.State,
-		}
-	}
-	return nil
-}
-
 type AgentActiveServerCallbackDoc struct {
 	AgentCallbackDoc
 
 	Primary   AgentActiveServerCallbackDocEndpointState `json:"primary"`
 	Secondary AgentActiveServerCallbackDocEndpointState `json:"secondary"`
-}
-
-func (doc *AgentActiveServerCallbackDoc) toModel() *models.AgentProxyInfo {
-	if doc == nil {
-		return nil
-	}
-	return &models.AgentProxyInfo{
-		Primary:   doc.Primary.toModel(),
-		Secondary: doc.Secondary.toModel(),
-	}
 }
 
 func NewAgentCallbackDocLocator(nsID shared.NamespaceIdentifier, configName shared.AgentConfigName) shared.ResourceLocator {

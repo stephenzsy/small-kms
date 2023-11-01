@@ -12,22 +12,15 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/oapi-codegen/runtime"
-	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// AgentConfigNameParameter defines model for AgentConfigNameParameter.
-type AgentConfigNameParameter = externalRef0.AgentConfigName
-
-// NamespaceIdParameter defines model for NamespaceIdParameter.
-type NamespaceIdParameter = externalRef0.Identifier
-
-// NamespaceKindParameter defines model for NamespaceKindParameter.
-type NamespaceKindParameter = externalRef0.NamespaceKind
+// RequestDiagnostics defines model for RequestDiagnostics.
+type RequestDiagnostics = externalRef0.RequestDiagnostics
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -102,12 +95,12 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetDockerInfo request
-	GetDockerInfo(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDiagnostics request
+	GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetDockerInfo(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDockerInfoRequest(c.Server, namespaceId)
+func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDiagnosticsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -118,23 +111,16 @@ func (c *Client) GetDockerInfo(ctx context.Context, namespaceId NamespaceIdParam
 	return c.Client.Do(req)
 }
 
-// NewGetDockerInfoRequest generates requests for GetDockerInfo
-func NewGetDockerInfoRequest(server string, namespaceId NamespaceIdParameter) (*http.Request, error) {
+// NewGetDiagnosticsRequest generates requests for GetDiagnostics
+func NewGetDiagnosticsRequest(server string) (*http.Request, error) {
 	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v3/servicePrincipal/%s/agent-proxy/docker/info", pathParam0)
+	operationPath := fmt.Sprintf("/v1/diagnostics")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -195,18 +181,18 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetDockerInfoWithResponse request
-	GetDockerInfoWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetDockerInfoResponse, error)
+	// GetDiagnosticsWithResponse request
+	GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error)
 }
 
-type GetDockerInfoResponse struct {
+type GetDiagnosticsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.DockerInfo
+	JSON200      *RequestDiagnostics
 }
 
 // Status returns HTTPResponse.Status
-func (r GetDockerInfoResponse) Status() string {
+func (r GetDiagnosticsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -214,38 +200,38 @@ func (r GetDockerInfoResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetDockerInfoResponse) StatusCode() int {
+func (r GetDiagnosticsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// GetDockerInfoWithResponse request returning *GetDockerInfoResponse
-func (c *ClientWithResponses) GetDockerInfoWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetDockerInfoResponse, error) {
-	rsp, err := c.GetDockerInfo(ctx, namespaceId, reqEditors...)
+// GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
+func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
+	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetDockerInfoResponse(rsp)
+	return ParseGetDiagnosticsResponse(rsp)
 }
 
-// ParseGetDockerInfoResponse parses an HTTP response from a GetDockerInfoWithResponse call
-func ParseGetDockerInfoResponse(rsp *http.Response) (*GetDockerInfoResponse, error) {
+// ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
+func ParseGetDiagnosticsResponse(rsp *http.Response) (*GetDiagnosticsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetDockerInfoResponse{
+	response := &GetDiagnosticsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.DockerInfo
+		var dest RequestDiagnostics
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

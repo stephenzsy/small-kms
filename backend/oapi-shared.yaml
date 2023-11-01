@@ -11,17 +11,6 @@ components:
         - $ref: "#/components/schemas/AgentProfileParameters"
         - $ref: "#/components/schemas/AgentProfileFields"
         - x-go-type: agentProfileComposed
-    AgentProfileAppRole:
-      properties:
-        id:
-          type: string
-          format: uuid
-          x-go-name: ID
-        value:
-          type: string
-      required:
-        - id
-        - value
     AgentProfileFields:
       type: object
       properties:
@@ -32,10 +21,6 @@ components:
           items:
             $ref: "#/components/schemas/Identifier"
             x-go-name: MsEntraClientCredentialInstalledCertificateIDs
-        appRoles:
-          type: array
-          items:
-            $ref: "#/components/schemas/AgentProfileAppRole"
       required:
         - status
         - msEntraClientCredentialInstalledCertificateIds
