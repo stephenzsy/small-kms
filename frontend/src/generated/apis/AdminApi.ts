@@ -131,6 +131,12 @@ export interface GetAgentConfigurationRequest {
     refreshToken?: string;
 }
 
+export interface GetAgentInstanceRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+}
+
 export interface GetCertPolicyRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -548,6 +554,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfiguration(requestParameters: GetAgentConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfiguration> {
         const response = await this.getAgentConfigurationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent config server instance
+     */
+    async getAgentInstanceRaw(requestParameters: GetAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentInstance>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentInstance.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentInstance.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getAgentInstance.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentInstanceFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent config server instance
+     */
+    async getAgentInstance(requestParameters: GetAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentInstance> {
+        const response = await this.getAgentInstanceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

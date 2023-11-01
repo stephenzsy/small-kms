@@ -19,6 +19,14 @@ func (d *AgentInstanceDoc) init(nsKind base.NamespaceKind, nsID base.Identifier,
 	d.AgentInstanceFields = req
 }
 
+func (d *AgentInstanceDoc) PopulateModel(r *AgentInstance) {
+	if d == nil || r == nil {
+		return
+	}
+	d.BaseDoc.PopulateModelRef(&r.ResourceReference)
+	r.AgentInstanceFields = d.AgentInstanceFields
+}
+
 func apiPutAgentInstance(c ctx.RequestContext, instanceID base.Identifier, req AgentInstanceFields) error {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
@@ -47,4 +55,17 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](docSvc, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance))
 	sPager := utils.NewSerializableItemsPager(c, pager)
 	return c.JSON(http.StatusOK, sPager)
+}
+
+func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error {
+	nsCtx := ns.GetNSContext(c)
+	doc := &AgentInstanceDoc{}
+	docSvc := base.GetAzCosmosCRUDService(c)
+	if err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance, instanceID), doc, nil); err != nil {
+		return err
+	}
+
+	m := &AgentInstance{}
+	doc.PopulateModel(m)
+	return c.JSON(http.StatusOK, m)
 }

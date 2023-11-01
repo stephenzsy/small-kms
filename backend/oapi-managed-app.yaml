@@ -133,7 +133,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance:
-    parameters :
+    parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
     get:
@@ -181,18 +181,55 @@ paths:
     #     204:
     #       description: No content
     #       content: {}
-    # get:
-    #   tags:
-    #     - admin
-    #   operationId: GetAgentInstance
-    #   summary: Get agent config server instance
-    #   responses:
-    #     200:
-    #       description: OK
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/AgentInstance"
+    get:
+      tags:
+        - admin
+      operationId: GetAgentInstance
+      summary: Get agent config server instance
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentInstance"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - in: header
+        name: "X-Cryptocat-Proxy-Authorization"
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - admin
+      operationId: GetAgentInstanceDiagnostics
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+    post:
+      tags:
+        - admin
+      operationId: GetAgentInstanceProxyAuthToken
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -348,6 +385,11 @@ components:
         roleDefinitionId:
           type: string
         principalId:
+          type: string
+    AuthResult:
+      type: object
+      properties:
+        accessToken:
           type: string
   parameters:
     ManagedAppIdParameter:

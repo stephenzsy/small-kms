@@ -1,32 +1,40 @@
 import { useRequest } from "ahooks";
-import { Card, Typography } from "antd";
+import { Button, Card, Typography } from "antd";
 import { useParams } from "react-router-dom";
 import { AdminApi } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
+import { NamespaceContext } from "./contexts/NamespaceContext";
+import { useContext } from "react";
+import { JsonDataDisplay } from "../components/JsonDataDisplay";
 
 export default function AgentDashboardPage() {
-  const { namespaceId } = useParams() as { namespaceId: string };
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { instanceId } = useParams<{ instanceId: string }>();
 
-  const client = useAuthedClient(AdminApi);
-  const { run } = useRequest(
+  const api = useAuthedClient(AdminApi);
+  const { data } = useRequest(
     async () => {
-      await client.getDockerInfo({
-        namespaceId,
-      });
+      if (instanceId) {
+        return await api.getAgentInstance({
+          namespaceKind,
+          namespaceIdentifier,
+          resourceIdentifier: instanceId,
+        });
+      }
     },
-    { manual: true }
+    {
+      refreshDeps: [namespaceKind, namespaceIdentifier, instanceId],
+    }
   );
 
-  // const { data: proxyInfo } = useRequest(() => {
-  //   return client.getAgentProxyInfo({
-  //     namespaceId,
-  //   });
-  // }, {});
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
       <Card title="Agent proxy information">
-        {/* <pre>{JSON.stringify(proxyInfo, undefined, 2)}</pre> */}
+        <JsonDataDisplay data={data} />
+        <div className="mt-6">
+          <Button type="primary">Authorize</Button>
+        </div>
       </Card>
     </>
   );

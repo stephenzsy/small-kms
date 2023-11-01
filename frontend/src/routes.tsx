@@ -94,7 +94,7 @@ export const router = createBrowserRouter([
                     element: <CertificatePage />,
                   },
                   {
-                    path: "agent/:agentId/dashboard",
+                    path: "agent/:instanceId/dashboard",
                     element: <AgentDashboardPage />,
                   },
                 ],

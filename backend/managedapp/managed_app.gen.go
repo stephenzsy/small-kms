@@ -65,6 +65,11 @@ type AgentInstanceFields struct {
 	Version  string  `json:"version"`
 }
 
+// AuthResult defines model for AuthResult.
+type AuthResult struct {
+	AccessToken *string `json:"accessToken,omitempty"`
+}
+
 // ManagedApp defines model for ManagedApp.
 type ManagedApp = ManagedAppRef
 
@@ -92,6 +97,11 @@ type SystemAppName string
 
 // ManagedAppIdParameter defines model for ManagedAppIdParameter.
 type ManagedAppIdParameter = openapi_types.UUID
+
+// GetAgentInstanceDiagnosticsParams defines parameters for GetAgentInstanceDiagnostics.
+type GetAgentInstanceDiagnosticsParams struct {
+	XCryptocatProxyAuthorization string `json:"X-Cryptocat-Proxy-Authorization"`
+}
 
 // CreateManagedAppJSONRequestBody defines body for CreateManagedApp for application/json ContentType.
 type CreateManagedAppJSONRequestBody = ManagedAppParameters
@@ -134,9 +144,18 @@ type ServerInterface interface {
 	// List agent config server instances
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance)
 	ListAgentInstances(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// Get agent config server instance
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier})
+	GetAgentInstance(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 	// Put agent config server instance
 	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier})
 	PutAgentInstance(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+
+	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics)
+	GetAgentInstanceDiagnostics(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params GetAgentInstanceDiagnosticsParams) error
+
+	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token)
+	GetAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -342,6 +361,40 @@ func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
 	return err
 }
 
+// GetAgentInstance converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentInstance(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	return err
+}
+
 // PutAgentInstance converts echo context to params.
 func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 	var err error
@@ -373,6 +426,96 @@ func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutAgentInstance(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	return err
+}
+
+// GetAgentInstanceDiagnostics converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentInstanceDiagnostics(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAgentInstanceDiagnosticsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Cryptocat-Proxy-Authorization" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cryptocat-Proxy-Authorization")]; found {
+		var XCryptocatProxyAuthorization string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Cryptocat-Proxy-Authorization, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, valueList[0], &XCryptocatProxyAuthorization)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Cryptocat-Proxy-Authorization: %s", err))
+		}
+
+		params.XCryptocatProxyAuthorization = XCryptocatProxyAuthorization
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Cryptocat-Proxy-Authorization is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentInstanceDiagnostics(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	return err
+}
+
+// GetAgentInstanceProxyAuthToken converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentInstanceProxyAuthToken(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentInstanceProxyAuthToken(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
 	return err
 }
 
@@ -414,6 +557,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server", wrapper.PutAgentConfigServer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent-config/server/role-assignments", wrapper.ListAgentServerAzureRoleAssignments)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance", wrapper.ListAgentInstances)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier", wrapper.GetAgentInstance)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier", wrapper.PutAgentInstance)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/diagnostics", wrapper.GetAgentInstanceDiagnostics)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/proxy-auth/token", wrapper.GetAgentInstanceProxyAuthToken)
 
 }

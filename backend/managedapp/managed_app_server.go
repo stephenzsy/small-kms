@@ -15,6 +15,28 @@ type server struct {
 	api.APIServer
 }
 
+// GetAgentInstanceProxyAuthToken implements ServerInterface.
+func (*server) GetAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	panic("unimplemented")
+}
+
+// GetAgentInstance implements ServerInterface.
+func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+
+	return apiGetAgentInstance(c, resourceIdentifier)
+}
+
+// GetAgentInstanceDiagnostics implements ServerInterface.
+func (*server) GetAgentInstanceDiagnostics(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params GetAgentInstanceDiagnosticsParams) error {
+	panic("unimplemented")
+}
+
 // ListAgentInstances implements ServerInterface.
 func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
 	c := ec.(ctx.RequestContext)
@@ -24,24 +46,6 @@ func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.Namespac
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	return apiListAgentInstances(c)
-}
-
-// DeleteAgentConfigServerInstance implements ServerInterface.
-func (s *server) DeleteAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
-	c := ec.(ctx.RequestContext)
-	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
-	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
-		s.RespondRequireAdmin(c)
-	} else if !utils.IsUUIDNil(namespaceID) {
-		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
-	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	panic("unimplemented")
-}
-
-// GetAgentConfigServerInstance implements ServerInterface.
-func (s *server) GetAgentInstance(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId string) error {
-	panic("unimplemented")
 }
 
 // PutAgentConfigServerInstance implements ServerInterface.
