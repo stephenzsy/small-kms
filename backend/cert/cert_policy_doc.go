@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -84,7 +85,7 @@ func (d *CertPolicyDoc) Init(
 	if p.KeySpec == nil {
 		d.KeySpec = key.SigningKeySpec{
 			Alg:     to.Ptr(key.JsonWebKeySignatureAlgorithmRS256),
-			Kty:     key.JsonWebKeyTypeRSA,
+			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(int32(2048)),
 			KeyOperations: []key.JsonWebKeyOperation{
 				key.JsonWebKeyOperationSign,
@@ -94,25 +95,25 @@ func (d *CertPolicyDoc) Init(
 	} else {
 		ks := *p.KeySpec
 		switch ks.Kty {
-		case key.JsonWebKeyTypeEC:
-			d.KeySpec.Kty = key.JsonWebKeyTypeEC
-			d.KeySpec.Crv = utils.ToPtr(key.JsonWebKeyCurveNameP384)
+		case cloudkey.KeyTypeEC:
+			d.KeySpec.Kty = cloudkey.KeyTypeEC
+			d.KeySpec.Crv = utils.ToPtr(cloudkey.CurveNameP384)
 			d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
 			if ks.Crv != nil {
 				switch *ks.Crv {
-				case key.JsonWebKeyCurveNameP256:
+				case cloudkey.CurveNameP256:
 					d.KeySpec.Crv = ks.Crv
 					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES256)
-				case key.JsonWebKeyCurveNameP384:
+				case cloudkey.CurveNameP384:
 					d.KeySpec.Crv = ks.Crv
 					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
-				case key.JsonWebKeyCurveNameP521:
+				case cloudkey.CurveNameP521:
 					d.KeySpec.Crv = ks.Crv
 					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES512)
 				}
 			}
-		case key.JsonWebKeyTypeRSA:
-			d.KeySpec.Kty = key.JsonWebKeyTypeRSA
+		case cloudkey.KeyTypeRSA:
+			d.KeySpec.Kty = cloudkey.KeyTypeRSA
 			d.KeySpec.KeySize = utils.ToPtr(int32(2048))
 			if ks.KeySize != nil {
 				switch *ks.KeySize {

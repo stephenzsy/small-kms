@@ -16,8 +16,14 @@ type server struct {
 }
 
 // GetAgentInstanceProxyAuthToken implements ServerInterface.
-func (*server) GetAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
-	panic("unimplemented")
+func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	return apiCreateAgentInstanceProxyAuthToken(c, resourceIdentifier)
 }
 
 // GetAgentInstance implements ServerInterface.

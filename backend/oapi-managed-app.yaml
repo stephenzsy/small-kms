@@ -222,7 +222,7 @@ paths:
     post:
       tags:
         - admin
-      operationId: GetAgentInstanceProxyAuthToken
+      operationId: CreateAgentInstanceProxyAuthToken
       responses:
         200:
           description: OK
@@ -391,6 +391,8 @@ components:
       properties:
         accessToken:
           type: string
+      required:
+        - accessToken
   parameters:
     ManagedAppIdParameter:
       in: path

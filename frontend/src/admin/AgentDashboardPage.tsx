@@ -27,13 +27,28 @@ export default function AgentDashboardPage() {
     }
   );
 
+  const {run: acquireToken} = useRequest(
+    async () => {
+      if (instanceId) {
+        await api.createAgentInstanceProxyAuthToken({
+          namespaceIdentifier,
+          namespaceKind,
+          resourceIdentifier: instanceId,
+        });
+      }
+    },
+    {
+      manual: true,
+    }
+  );
+
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
       <Card title="Agent proxy information">
         <JsonDataDisplay data={data} />
         <div className="mt-6">
-          <Button type="primary">Authorize</Button>
+          <Button type="primary" onClick={acquireToken}>Authorize</Button>
         </div>
       </Card>
     </>

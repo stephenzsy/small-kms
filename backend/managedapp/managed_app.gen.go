@@ -67,7 +67,7 @@ type AgentInstanceFields struct {
 
 // AuthResult defines model for AuthResult.
 type AuthResult struct {
-	AccessToken *string `json:"accessToken,omitempty"`
+	AccessToken string `json:"accessToken"`
 }
 
 // ManagedApp defines model for ManagedApp.
@@ -155,7 +155,7 @@ type ServerInterface interface {
 	GetAgentInstanceDiagnostics(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params GetAgentInstanceDiagnosticsParams) error
 
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token)
-	GetAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	CreateAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -485,8 +485,8 @@ func (w *ServerInterfaceWrapper) GetAgentInstanceDiagnostics(ctx echo.Context) e
 	return err
 }
 
-// GetAgentInstanceProxyAuthToken converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentInstanceProxyAuthToken(ctx echo.Context) error {
+// CreateAgentInstanceProxyAuthToken converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
 	var namespaceKind externalRef0.NamespaceKindParameter
@@ -515,7 +515,7 @@ func (w *ServerInterfaceWrapper) GetAgentInstanceProxyAuthToken(ctx echo.Context
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentInstanceProxyAuthToken(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.CreateAgentInstanceProxyAuthToken(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
 	return err
 }
 
@@ -560,6 +560,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier", wrapper.GetAgentInstance)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier", wrapper.PutAgentInstance)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/diagnostics", wrapper.GetAgentInstanceDiagnostics)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/proxy-auth/token", wrapper.GetAgentInstanceProxyAuthToken)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/proxy-auth/token", wrapper.CreateAgentInstanceProxyAuthToken)
 
 }

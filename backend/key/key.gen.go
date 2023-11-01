@@ -10,17 +10,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
-// Defines values for JsonWebKeyCurveName.
-const (
-	JsonWebKeyCurveNameP256 JsonWebKeyCurveName = "P-256"
-	JsonWebKeyCurveNameP384 JsonWebKeyCurveName = "P-384"
-	JsonWebKeyCurveNameP521 JsonWebKeyCurveName = "P-521"
 )
 
 // Defines values for JsonWebKeyOperation.
@@ -46,13 +40,6 @@ const (
 	JsonWebKeySignatureAlgorithmRS512 JsonWebKeySignatureAlgorithm = "RS512"
 )
 
-// Defines values for JsonWebKeyType.
-const (
-	JsonWebKeyTypeEC  JsonWebKeyType = "EC"
-	JsonWebKeyTypeOct JsonWebKeyType = "oct"
-	JsonWebKeyTypeRSA JsonWebKeyType = "RSA"
-)
-
 // JsonWebKey defines model for JsonWebKey.
 type JsonWebKey struct {
 	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
@@ -72,7 +59,7 @@ type JsonWebKey struct {
 }
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
-type JsonWebKeyCurveName string
+type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
 
 // JsonWebKeyOperation defines model for JsonWebKeyOperation.
 type JsonWebKeyOperation string
@@ -81,7 +68,7 @@ type JsonWebKeyOperation string
 type JsonWebKeySignatureAlgorithm string
 
 // JsonWebKeyType defines model for JsonWebKeyType.
-type JsonWebKeyType string
+type JsonWebKeyType = cloudkey.JsonWebKeyType
 
 // JsonWeyKeySize defines model for JsonWeyKeySize.
 type JsonWeyKeySize = int32

@@ -65,6 +65,10 @@ components:
         - JsonWebKeyCurveNameP256
         - JsonWebKeyCurveNameP384
         - JsonWebKeyCurveNameP521
+      x-go-type: cloudkey.JsonWebKeyCurveName
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"        
     JsonWebKeyOperation:
       type: string
       enum:
@@ -91,6 +95,10 @@ components:
         - JsonWebKeyTypeEC
         - JsonWebKeyTypeRSA
         - JsonWebKeyTypeOct
+      x-go-type: cloudkey.JsonWebKeyType
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     JsonWeyKeySize:
       type: integer
       format: int32
@@ -233,7 +241,7 @@ components:
         x5t#S256:
           description: SHA-256 fingerprint of the certificate
           $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-name: ThumbprintSHA256          
+          x-go-name: ThumbprintSHA256
       required:
         - kty
     Key:

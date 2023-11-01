@@ -17,6 +17,7 @@ models/AgentInstance.ts
 models/AgentInstanceFields.ts
 models/AgentProxyEndpoint.ts
 models/AgentProxyInfo.ts
+models/AuthResult.ts
 models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts
 models/CertPolicy.ts

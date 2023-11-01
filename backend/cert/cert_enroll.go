@@ -8,15 +8,15 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
-	"github.com/stephenzsy/small-kms/backend/key"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier, params *EnrollCertificateRequest) error {
 
 	// verify jwt is 2048
-	if params.PublicKey.Kty != key.JsonWebKeyTypeRSA {
+	if params.PublicKey.Kty != cloudkey.KeyTypeRSA {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid public key type"})
 	}
 

@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -127,20 +128,20 @@ func (lt *LifetimeTrigger) WriteToDigest(w io.Writer) (s int, err error) {
 func (ks *SigningKeySpec) SetPublicKey(pubKey crypto.PublicKey) error {
 	switch pubKey := pubKey.(type) {
 	case *rsa.PublicKey:
-		ks.Kty = JsonWebKeyTypeRSA
+		ks.Kty = cloudkey.KeyTypeRSA
 		ks.N = base.Base64RawURLEncodedBytes(pubKey.N.Bytes())
 		ks.E = base.Base64RawURLEncodedBytes(big.NewInt(int64(pubKey.E)).Bytes())
 	case *ecdsa.PublicKey:
-		ks.Kty = JsonWebKeyTypeEC
+		ks.Kty = cloudkey.KeyTypeEC
 		ks.X = base.Base64RawURLEncodedBytes(pubKey.X.Bytes())
 		ks.Y = base.Base64RawURLEncodedBytes(pubKey.Y.Bytes())
 		switch pubKey.Curve.Params().Name {
 		case elliptic.P256().Params().Name:
-			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP256)
+			ks.Crv = utils.ToPtr(cloudkey.CurveNameP256)
 		case elliptic.P384().Params().Name:
-			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP384)
+			ks.Crv = utils.ToPtr(cloudkey.CurveNameP384)
 		case elliptic.P521().Params().Name:
-			ks.Crv = utils.ToPtr(JsonWebKeyCurveNameP521)
+			ks.Crv = utils.ToPtr(cloudkey.CurveNameP521)
 		default:
 			return fmt.Errorf("unsupported EC curve: %s", pubKey.Curve.Params().Name)
 		}

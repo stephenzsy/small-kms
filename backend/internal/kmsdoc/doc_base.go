@@ -69,14 +69,6 @@ const QueryColumnNameOwner = "c[\"@owner\"]"
 const PatchPathOwns = "/@owns"
 const PatchPathDeleted = "/deleted"
 
-var queryDefaultColumns = []string{
-	"c.namespaceId",
-	"c.id",
-	"c.updated",
-	"c.deleted",
-	"c.updatedBy",
-}
-
 // GetID implements KmsDocument.
 func (doc *BaseDoc) GetID() shared.ResourceIdentifier {
 	return doc.ID
@@ -229,15 +221,4 @@ func (d *BaseDoc) PopulateResourceRef(r *shared.ResourceRef) {
 	r.Updated = &d.Updated
 	r.UpdatedBy = &d.UpdatedBy
 	r.Deleted = d.Deleted
-}
-
-func UpsertAliasWithSnapshot[D KmsDocumentSnapshotable[D]](c context.Context, doc D, aliasLocator shared.ResourceLocator) (docClone D, err error) {
-	etag := doc.GetETag()
-	if etag == "" {
-		return docClone, fmt.Errorf("missing etag, target document must be saved to cosmosdb first")
-	}
-	docClone = doc.SnapshotWithNewLocator(aliasLocator)
-	docClone.setAliasToWithETag(doc.GetLocator(), etag)
-	err = Upsert(c, docClone)
-	return
 }

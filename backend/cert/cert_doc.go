@@ -15,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -156,17 +157,17 @@ func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
 		KeyProperties: azcertificates.KeyProperties{},
 	}
 	switch d.KeySpec.Kty {
-	case key.JsonWebKeyTypeRSA:
+	case cloudkey.KeyTypeRSA:
 		params.KeyProperties.KeyType = to.Ptr(azcertificates.KeyTypeRSA)
 		params.KeyProperties.KeySize = d.KeySpec.KeySize
-	case key.JsonWebKeyTypeEC:
+	case cloudkey.KeyTypeEC:
 		params.KeyProperties.KeyType = to.Ptr(azcertificates.KeyTypeEC)
 		switch *d.KeySpec.Crv {
-		case key.JsonWebKeyCurveNameP256:
+		case cloudkey.CurveNameP256:
 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP256)
-		case key.JsonWebKeyCurveNameP384:
+		case cloudkey.CurveNameP384:
 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP384)
-		case key.JsonWebKeyCurveNameP521:
+		case cloudkey.CurveNameP521:
 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP521)
 		}
 	}
@@ -201,7 +202,7 @@ func (d *CertDoc) getX509CertTemplate() *x509.Certificate {
 		if slices.Contains(d.Flags, CertificateFlagClientAuth) {
 			cert.ExtKeyUsage = append(cert.ExtKeyUsage, x509.ExtKeyUsageClientAuth)
 		}
-		if d.KeySpec.Kty == key.JsonWebKeyTypeRSA {
+		if d.KeySpec.Kty == cloudkey.KeyTypeRSA {
 			cert.KeyUsage |= x509.KeyUsageKeyEncipherment
 		}
 	}

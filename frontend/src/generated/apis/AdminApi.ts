@@ -22,6 +22,7 @@ import type {
   AgentConfigurationParameters,
   AgentInstance,
   AgentInstanceFields,
+  AuthResult,
   AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   CertPolicy,
@@ -56,6 +57,8 @@ import {
     AgentInstanceToJSON,
     AgentInstanceFieldsFromJSON,
     AgentInstanceFieldsToJSON,
+    AuthResultFromJSON,
+    AuthResultToJSON,
     AzureKeyvaultResourceCategoryFromJSON,
     AzureKeyvaultResourceCategoryToJSON,
     AzureRoleAssignmentFromJSON,
@@ -100,6 +103,12 @@ export interface AddKeyVaultRoleAssignmentRequest {
     resourceIdentifier: string;
     resourceCategory: AzureKeyvaultResourceCategory;
     roleDefinitionId: string;
+}
+
+export interface CreateAgentInstanceProxyAuthTokenRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
 }
 
 export interface CreateCertificateRequest {
@@ -326,6 +335,50 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
         const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async createAgentInstanceProxyAuthTokenRaw(requestParameters: CreateAgentInstanceProxyAuthTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthResult>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createAgentInstanceProxyAuthToken.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling createAgentInstanceProxyAuthToken.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling createAgentInstanceProxyAuthToken.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuthResultFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async createAgentInstanceProxyAuthToken(requestParameters: CreateAgentInstanceProxyAuthTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthResult> {
+        const response = await this.createAgentInstanceProxyAuthTokenRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

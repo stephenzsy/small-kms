@@ -16,6 +16,7 @@ export * from './AgentInstance';
 export * from './AgentInstanceFields';
 export * from './AgentProxyEndpoint';
 export * from './AgentProxyInfo';
+export * from './AuthResult';
 export * from './AzureKeyvaultResourceCategory';
 export * from './AzureRoleAssignment';
 export * from './CertPolicy';
