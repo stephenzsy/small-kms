@@ -121,7 +121,7 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 		}
 		return nil
 	case TaskNameConfirm:
-		params := shared.AgentConfigurationParameters{}
+		// params := shared.AgentConfigurationParameters{}
 		// params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
 		// 	Name: shared.AgentConfigNameActiveServer,
 		// 	Reply: &shared.AgentConfigurationAgentActiveServerReply{
@@ -130,15 +130,15 @@ func (p *activeServerProcessor) Process(ctx context.Context, task string) error 
 		// 		State:    shared.AgentConfigurationAgentActiveServerReplyStateUp,
 		// 	},
 		// })
-		_, err := p.AgentClient().AgentCallbackWithResponse(ctx,
-			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-			shared.AgentConfigNameActiveServer,
-			shared.AgentConfiguration{
-				Config:  params,
-				Version: p.configCtx.activeSlot.version,
-			})
-		logger.Info().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:up", p.listener, p.slotID)
-		return err
+		// _, err := p.AgentClient().AgentCallbackWithResponse(ctx,
+		// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+		// 	shared.AgentConfigNameActiveServer,
+		// 	shared.AgentConfiguration{
+		// 		Config:  params,
+		// 		Version: p.configCtx.activeSlot.version,
+		// 	})
+		// logger.Info().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:up", p.listener, p.slotID)
+		return nil
 	default:
 		return fmt.Errorf("unknown task: %s", task)
 	}
@@ -279,7 +279,7 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 		p.configCtx.persistConfig(p.configDir, p.configName, true)
 		p.configCtx.persistSymlinks(p.configDir, p.configName)
 
-		params := shared.AgentConfigurationParameters{}
+		// params := shared.AgentConfigurationParameters{}
 		// params.FromAgentConfigurationAgentActiveServer(shared.AgentConfigurationAgentActiveServer{
 		// 	Name: shared.AgentConfigNameActiveServer,
 		// 	Reply: &shared.AgentConfigurationAgentActiveServerReply{
@@ -288,18 +288,18 @@ func (p *activeServerProcessor) Start(c context.Context, scheduleToUpdate chan<-
 		// 		State:    shared.AgentConfigurationAgentActiveServerReplyStateDown,
 		// 	},
 		// })
-		_, err := p.AgentClient().AgentCallbackWithResponse(c,
-			shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-			shared.AgentConfigNameActiveServer,
-			shared.AgentConfiguration{
-				Config:  params,
-				Version: p.configCtx.activeSlot.version,
-			})
-		if err != nil {
-			log.Ctx(c).Error().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
-		} else {
-			log.Ctx(c).Info().Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
-		}
+		// _, err := p.AgentClient().AgentCallbackWithResponse(c,
+		// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+		// 	shared.AgentConfigNameActiveServer,
+		// 	shared.AgentConfiguration{
+		// 		Config:  params,
+		// 		Version: p.configCtx.activeSlot.version,
+		// 	})
+		// if err != nil {
+		// 	log.Ctx(c).Error().Err(err).Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
+		// } else {
+		// 	log.Ctx(c).Info().Msgf("Agent server callback with listener:%s,slot:%d,state:down", p.listener, p.slotID)
+		// }
 	}, shutdownNotifier)
 }
 

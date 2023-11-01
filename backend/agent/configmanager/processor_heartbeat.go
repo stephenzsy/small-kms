@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/shared"
 )
@@ -19,14 +18,14 @@ func (*heartbeatConfigProcessor) Version() string {
 }
 
 func (p *heartbeatConfigProcessor) Process(ctx context.Context, _ string) error {
-	resp, err := p.AgentClient().AgentCallbackWithResponse(ctx,
-		shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
-		shared.AgentConfigNameHeartbeat,
-		shared.AgentConfiguration{})
-	if err != nil {
-		return err
-	}
-	log.Ctx(ctx).Info().Msgf("heartbeat response: %d", resp.StatusCode())
+	// resp, err := p.AgentClient().AgentCallbackWithResponse(ctx,
+	// 	shared.NamespaceKindServicePrincipal, meNamespaceIdIdentifier,
+	// 	shared.AgentConfigNameHeartbeat,
+	// 	shared.AgentConfiguration{})
+	// if err != nil {
+	// 	return err
+	// }
+	// log.Ctx(ctx).Info().Msgf("heartbeat response: %d", resp.StatusCode())
 	return nil
 }
 

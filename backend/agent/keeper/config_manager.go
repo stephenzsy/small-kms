@@ -26,20 +26,19 @@ func (m *ConfigManager) LoadConfig(c context.Context) (AgentServerConfiguration,
 	return m.configProcessor.InitialLoad(c)
 }
 
-func (m *ConfigManager) PullConfig(c context.Context) error {
+func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration, error) {
 	logger := log.Ctx(c).With().Str("step", "pull config").Logger()
 	logger.Debug().Msg("enter")
 	defer logger.Debug().Msg("exit")
 	client, err := m.envConfig.AgentClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"))
-	if err != nil {
-		return err
+	if err != nil || resp.StatusCode() != 200 {
+		return nil, err
 	}
-	_, err = m.configProcessor.ProcessUpdate(c, resp.JSON200)
-	return err
+	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
 }
 
 func NewConfigManager(configDir string) (*ConfigManager, error) {

@@ -16,6 +16,8 @@ import (
 	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
 const DefaultEnvVarTenantID = "AZURE_TENANT_ID"
@@ -77,6 +79,8 @@ func main() {
 				e := echo.New()
 				e.Use(middleware.Logger())
 				e.Use(middleware.Recover())
+				e.Use(ctx.InjectServiceContextMiddleware(context.Background()))
+				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWTKeys()))
 				e.Use(base.HandleResponseError)
 				base.RegisterHandlers(e, base.NewBaseServer(BuildID))
 

@@ -13,15 +13,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Provision agent
-	// (GET /v3/application/{namespaceId}/agent)
-	GetAgentProfile(ctx echo.Context, namespaceId NamespaceIdParameter) error
 
 	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info)
 	GetDockerInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
-
-	// (POST /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName})
-	AgentCallback(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
 	// Get agent autoconfig
 	// (GET /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
 	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params GetAgentConfigurationParams) error
@@ -33,24 +27,6 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
-}
-
-// GetAgentProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentProfile(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentProfile(ctx, namespaceId)
-	return err
 }
 
 // GetDockerInfo converts echo context to params.
@@ -68,40 +44,6 @@ func (w *ServerInterfaceWrapper) GetDockerInfo(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetDockerInfo(ctx, namespaceId)
-	return err
-}
-
-// AgentCallback converts echo context to params.
-func (w *ServerInterfaceWrapper) AgentCallback(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigNameParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentCallback(ctx, namespaceKind, namespaceId, configName)
 	return err
 }
 
@@ -227,9 +169,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v3/application/:namespaceId/agent", wrapper.GetAgentProfile)
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
-	router.POST(baseURL+"/v3/:namespaceKind/:namespaceId/agent-callback/:configName", wrapper.AgentCallback)
 	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
 	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
 

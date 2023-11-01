@@ -14,6 +14,7 @@ type contextKey int
 const (
 	authIdentityContextKey contextKey = iota
 	AppConfidentialIdentityContextKey
+	jwtClaimsContextKey
 )
 
 const (

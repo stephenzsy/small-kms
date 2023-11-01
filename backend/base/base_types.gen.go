@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
 const (
@@ -44,7 +45,7 @@ type AzureRoleAssignment struct {
 }
 
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.
-type Base64RawURLEncodedBytes = base64RawURLEncodedBytesImpl
+type Base64RawURLEncodedBytes = cloudkey.Base64RawURLEncodableBytes
 
 // Identifier defines model for Identifier.
 type Identifier = identifier

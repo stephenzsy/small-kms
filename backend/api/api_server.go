@@ -108,8 +108,6 @@ func (s *apiServer) Value(key any) any {
 	return nil
 }
 
-var _ context.Context = (*apiServer)(nil)
-
 func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiServer, error) {
 	var err error
 	s := &apiServer{
@@ -138,17 +136,9 @@ func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiSer
 	return s, nil
 }
 
-func (s *apiServer) InjectServiceContextMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c = ctx.NewInjectedRequestContext(c, s)
-			return next(c)
-		}
-	}
-}
-
 var _ kv.AzKeyVaultService = (*apiServer)(nil)
 var _ APIServer = (*apiServer)(nil)
+var _ context.Context = (*apiServer)(nil)
 
 func (s *apiServer) GetAzSubscriptionID() string {
 	return s.azSubscriptionID

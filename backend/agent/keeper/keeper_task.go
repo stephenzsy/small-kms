@@ -13,8 +13,9 @@ type keeperTaskExecutor struct {
 }
 
 // BeforeShutdown implements taskmanager.IntervalExecutor.
-func (e *keeperTaskExecutor) Close(context.Context) error {
+func (e *keeperTaskExecutor) Close(c context.Context) error {
 	close(e.configUpdate)
+	e.cm.configProcessor.Shutdown(c)
 	return nil
 }
 
@@ -31,7 +32,11 @@ func (t *keeperTaskExecutor) Execute(c context.Context) (time.Duration, error) {
 		t.configUpdate <- config
 		return config.NextWaitInterval(), nil
 	}
-	return time.Minute * 5, nil
+	config, err := t.cm.PullConfig(c)
+	if err != nil {
+		return bad(err)
+	}
+	return config.NextWaitInterval(), nil
 }
 
 func (*keeperTaskExecutor) Name() string {

@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/hex"
 	"math/big"
 )
 
@@ -19,10 +20,14 @@ func (b Base64RawURLEncodableBytes) MarshalText() (text []byte, err error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (b Base64RawURLEncodableBytes) UnmarshalText(text []byte) error {
-	b = make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
-	_, err := base64.RawURLEncoding.Decode(b, text)
+func (b *Base64RawURLEncodableBytes) UnmarshalText(text []byte) error {
+	*b = make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
+	_, err := base64.RawURLEncoding.Decode(*b, text)
 	return err
+}
+
+func (b Base64RawURLEncodableBytes) HexString() string {
+	return hex.EncodeToString(b)
 }
 
 // RFC7518 6.1.1.  "alg" (Algorithm) Parameter Values for JWS
@@ -55,6 +60,8 @@ type JsonWebKey[TAlg JsonWebSignatureAlgorithm] struct {
 	cachedPublicKey crypto.PublicKey
 }
 
+type JsonWebSignagtureKey = JsonWebKey[JsonWebSignatureAlgorithm]
+
 func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 	if jwk.cachedPublicKey != nil {
 		return jwk.cachedPublicKey
@@ -62,7 +69,7 @@ func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 
 	switch jwk.KeyType {
 	case KeyTypeRSA:
-		jwk.cachedPublicKey = rsa.PublicKey{
+		jwk.cachedPublicKey = &rsa.PublicKey{
 			N: big.NewInt(0).SetBytes(jwk.N),
 			E: int(big.NewInt(0).SetBytes(jwk.E).Int64()),
 		}
@@ -79,7 +86,7 @@ func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 		default:
 			return nil
 		}
-		jwk.cachedPublicKey = ecdsa.PublicKey{
+		jwk.cachedPublicKey = &ecdsa.PublicKey{
 			Curve: crv,
 			X:     big.NewInt(0).SetBytes(jwk.X),
 			Y:     big.NewInt(0).SetBytes(jwk.Y),

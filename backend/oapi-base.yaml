@@ -43,7 +43,10 @@ components:
           type: string
     Base64RawURLEncodedBytes:
       type: string
-      x-go-type: base64RawURLEncodedBytesImpl
+      x-go-type: cloudkey.Base64RawURLEncodableBytes
+      x-go-type-import:
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+        name: cloudkey
       x-go-type-skip-optional-pointer: true
     Identifier:
       type: string

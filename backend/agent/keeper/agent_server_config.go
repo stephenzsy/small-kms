@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -23,6 +24,7 @@ type AgentServerConfiguration interface {
 	NextWaitInterval() time.Duration
 	TLSCertificateBundleFile() string
 	GetVersion() string
+	VerifyJWTKeys() []cloudkey.JsonWebSignagtureKey
 }
 
 type agentServerConfiguration struct {
@@ -30,6 +32,21 @@ type agentServerConfiguration struct {
 	JWTVerifyKeys      []key.JsonWebKey `json:"jwtVerifyKeys"`
 	Version            string           `json:"version"`
 	fetchedConfig      *managedapp.AgentConfigServer
+}
+
+// VerifyJWTKeys implements AgentServerConfiguration.
+func (asc *agentServerConfiguration) VerifyJWTKeys() []cloudkey.JsonWebSignagtureKey {
+	return utils.MapSlice(asc.JWTVerifyKeys, func(item key.JsonWebKey) cloudkey.JsonWebSignagtureKey {
+		return cloudkey.JsonWebSignagtureKey{
+			KeyType:   item.Kty,
+			KeyID:     item.KeyID,
+			CurveName: item.Crv,
+			X:         item.X,
+			Y:         item.Y,
+			N:         item.N,
+			E:         item.E,
+		}
+	})
 }
 
 // TLSCertificateBundleFile implements AgentServerConfiguration.
@@ -196,8 +213,7 @@ func (p *agentConfigServerProcessor) InitialLoad(c context.Context) (AgentServer
 func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (AgentServerConfiguration, error) {
 	logger := log.Ctx(c)
 	if p.readyConfig != nil && p.readyConfig.Version == nextConfig.Version {
-		// nothing to do, except update timestamp
-		p.configProvisioner.config = nextConfig
+		p.readyConfig.fetchedConfig = nextConfig
 		return p.readyConfig, nil
 	}
 	p.configProvisioner = configProvisioner{
@@ -226,7 +242,18 @@ func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig
 }
 
 func (p *agentConfigServerProcessor) Shutdown(c context.Context) error {
-	// TODO: persist config json
+	if p.readyConfig.fetchedConfig != nil {
+
+		toUpdate, err := json.Marshal(p.readyConfig.fetchedConfig)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(filepath.Join(p.activeDirLink(), "config.json"), toUpdate, 0600)
+		if err != nil {
+			return err
+		}
+		log.Ctx(c).Debug().Msg("persisted config.json upon shutdown")
+	}
 	return nil
 }
 

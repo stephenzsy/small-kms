@@ -8,40 +8,6 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v3/application/{namespaceId}/agent:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      summary: Provision agent
-      operationId: GetAgentProfile
-      responses:
-        200:
-          description: Agent Profile
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/AgentProfile"
-  /v3/{namespaceKind}/{namespaceId}/agent-callback/{configName}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/AgentConfigNameParameter"
-    post:
-      tags:
-        - admin
-        - agentclient
-      operationId: AgentCallback
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"
-        required: true
-      responses:
-        204:
-          description: No content
   /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
     parameters:
       - $ref: "#/components/parameters/NamespaceKindParameter"
@@ -106,26 +72,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    AgentProxyEndpoint:
-      type: object
-      properties:
-        url:
-          type: string
-        ipUrl:
-          type: string
-        state:
-          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
-      required:
-        - url
-        - ipUrl
-        - state
-    AgentProxyInfo:
-      type: object
-      properties:
-        primary:
-          $ref: "#/components/schemas/AgentProxyEndpoint"
-        secondary:
-          $ref: "#/components/schemas/AgentProxyEndpoint"
     AzureRoleAssignment:
       type: object
       properties:

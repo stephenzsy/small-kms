@@ -23,6 +23,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
+	requestcontext "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/profile"
@@ -66,7 +67,7 @@ func main() {
 			log.Fatal().Err(err).Msg("failed to initialize api server")
 		}
 		e.Use(base.HandleResponseError)
-		e.Use(apiServer.InjectServiceContextMiddleware())
+		e.Use(requestcontext.InjectServiceContextMiddleware(apiServer))
 		if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 			e.Use(auth.UnverifiedAADJwtAuth)
 		} else {
