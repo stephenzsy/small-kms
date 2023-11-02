@@ -11,41 +11,71 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
-	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	requestcontext "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/profile"
+	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
 var BuildID = "dev"
 
 func main() {
-	if len(os.Args) < 3 {
+
+	// Find .env file
+	envFilePathPtr := flag.String("env", "", "path to .env file")
+	envPrettyLog := flag.Bool("pretty-log", false, "pretty log")
+	flag.Parse()
+
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	logger := log.Logger
+	if *envPrettyLog {
+		output := zerolog.ConsoleWriter{Out: os.Stderr}
+		output.FormatLevel = func(i interface{}) string {
+			return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
+		}
+		output.FormatMessage = func(i interface{}) string {
+			return fmt.Sprintf("%s", i)
+		}
+		output.FormatFieldName = func(i interface{}) string {
+			return fmt.Sprintf("%s:", i)
+		}
+		logger = zerolog.New(output).With().Timestamp().Logger()
+
+	}
+
+	args := flag.Args()
+
+	if len(args) < 2 {
 		log.Info().Msg("Usage: smallkms <role> <listenerAddress>")
 		os.Exit(1)
 	}
 
 	// Find .env file
-	err := godotenv.Load("./.env")
-	if err != nil {
-		log.Printf("Error loading .env file: %s\n", err)
+	if *envFilePathPtr != "" {
+		err := godotenv.Load("./.env")
+		if err != nil {
+			log.Printf("Error loading .env file: %s\n", err)
+		}
 	}
 
-	log.Printf("Server started, version: %s\n", BuildID)
-	role := os.Args[1]
-	listenerAddress := os.Args[2]
+	logger.Info().Msgf("Server starting, version: %s", BuildID)
+	role := args[0]
+	listenerAddress := args[1]
 	if len(listenerAddress) == 0 {
 		log.Error().Msg("listernerAddress is required")
 		os.Exit(1)
@@ -54,17 +84,27 @@ func main() {
 	switch role {
 	case "admin":
 		e := echo.New()
-		e.Use(middleware.Logger())
+		e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+			LogURI:    true,
+			LogStatus: true,
+			LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+				logger.Info().
+					Str("URI", v.URI).
+					Int("status", v.Status).
+					Msg("request")
+				return nil
+			},
+		}))
 		e.Use(middleware.Recover())
 
 		if os.Getenv("ENABLE_CORS") == "true" {
 			e.Use(middleware.CORS())
 		}
-		ctx := context.Background()
+		ctx := logger.WithContext(context.Background())
 		server := api.NewServer()
 		apiServer, err := api.NewApiServer(ctx, BuildID, server)
 		if err != nil {
-			log.Fatal().Err(err).Msg("failed to initialize api server")
+			logger.Fatal().Err(err).Msg("failed to initialize api server")
 		}
 		e.Use(base.HandleResponseError)
 		e.Use(requestcontext.InjectServiceContextMiddleware(apiServer))
@@ -80,12 +120,14 @@ func main() {
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))
 		//key.RegisterHandlers(e, key.NewServer(apiServer))
-		common.StartEchoWithGracefulShutdown(ctx, e, func(ee *echo.Echo, shutdownNotifier common.LeafShutdownNotifier) {
-			defer func() {
-				shutdownNotifier.MarkShutdownComplete()
-			}()
-			log.Info().Err(ee.Start(listenerAddress)).Msg("echo server stopped")
-		}, time.Minute)
+
+		tm := taskmanager.NewChainedTaskManager().WithTask(
+			taskmanager.NewTask("echo", func(c context.Context, sigCh <-chan os.Signal) error {
+				go e.Start(listenerAddress)
+				<-sigCh
+				return e.Shutdown(c)
+			}))
+		logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(ctx, tm)).Msg("task manager exited")
 	}
 
 }

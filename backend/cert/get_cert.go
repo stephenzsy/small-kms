@@ -14,7 +14,7 @@ func ReadCertDocByFullIdentifier(c context.Context, fullIdentifier base.DocFullI
 	return doc, err
 }
 
-func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
+func ReadCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 	if !rID.IsUUID() {
 		return nil, fmt.Errorf("%w: invalid resource identifier: %s", base.ErrResponseStatusBadRequest, rID.String())
 	}
@@ -24,7 +24,7 @@ func getCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
 }
 
 func apiGetCertificate(c context.Context, rID base.Identifier, isAdminOrSelf bool) (*Certificate, error) {
-	doc, err := getCertDocByID(c, rID)
+	doc, err := ReadCertDocByID(c, rID)
 	m := new(Certificate)
 	doc.PopulateModel(m)
 

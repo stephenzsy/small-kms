@@ -11,23 +11,5 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// AgentConfigNameParameter defines model for AgentConfigNameParameter.
-type AgentConfigNameParameter = externalRef0.AgentConfigName
-
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
-
-// NamespaceKindParameter defines model for NamespaceKindParameter.
-type NamespaceKindParameter = externalRef0.NamespaceKind
-
-// AgentConfigurationResponse defines model for AgentConfigurationResponse.
-type AgentConfigurationResponse = externalRef0.AgentConfiguration
-
-// GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
-type GetAgentConfigurationParams struct {
-	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
-	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
-}
-
-// PutAgentConfigurationJSONRequestBody defines body for PutAgentConfiguration for application/json ContentType.
-type PutAgentConfigurationJSONRequestBody = externalRef0.AgentConfigurationParameters

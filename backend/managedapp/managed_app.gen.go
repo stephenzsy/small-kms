@@ -60,9 +60,9 @@ type AgentInstance = agentInstanceComposed
 
 // AgentInstanceFields defines model for AgentInstanceFields.
 type AgentInstanceFields struct {
-	BuildID  string  `json:"buildId"`
-	Endpoint *string `json:"endpoint,omitempty"`
-	Version  string  `json:"version"`
+	BuildID  string `json:"buildId"`
+	Endpoint string `json:"endpoint,omitempty"`
+	Version  string `json:"version"`
 }
 
 // AuthResult defines model for AuthResult.
@@ -89,7 +89,7 @@ type ManagedAppRefFields struct {
 	// ApplicationId Object ID
 	ApplicationID        openapi_types.UUID `json:"applicationId"`
 	ServicePrincipalID   openapi_types.UUID `json:"servicePrincipalId"`
-	ServicePrincipalType *string            `json:"servicePrincipalType,omitempty"`
+	ServicePrincipalType string             `json:"servicePrincipalType,omitempty"`
 }
 
 // SystemAppName defines model for SystemAppName.

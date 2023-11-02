@@ -27,10 +27,10 @@ export default function AgentDashboardPage() {
     }
   );
 
-  const {run: acquireToken} = useRequest(
+  const { data: tokenResult, run: acquireToken } = useRequest(
     async () => {
       if (instanceId) {
-        await api.createAgentInstanceProxyAuthToken({
+        return await api.createAgentInstanceProxyAuthToken({
           namespaceIdentifier,
           namespaceKind,
           resourceIdentifier: instanceId,
@@ -42,14 +42,36 @@ export default function AgentDashboardPage() {
     }
   );
 
+  const { data: proxiedDiagnostics, run: getProxiedDiagnostics } = useRequest(
+    async () => {
+      if (instanceId && tokenResult?.accessToken) {
+        return await api.getAgentInstanceDiagnostics({
+          namespaceIdentifier,
+          namespaceKind,
+          resourceIdentifier: instanceId,
+          xCryptocatProxyAuthorization: tokenResult?.accessToken,
+        });
+      }
+    },
+    { manual: true }
+  );
+
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
       <Card title="Agent proxy information">
         <JsonDataDisplay data={data} />
         <div className="mt-6">
-          <Button type="primary" onClick={acquireToken}>Authorize</Button>
+          <Button type="primary" onClick={acquireToken}>
+            Authorize
+          </Button>
         </div>
+      </Card>
+      <Card title="Diagnostics">
+        <Button type="primary" onClick={getProxiedDiagnostics} disabled={!tokenResult}>
+          Get Diagnostics
+        </Button>
+        <JsonDataDisplay data={proxiedDiagnostics} />
       </Card>
     </>
   );

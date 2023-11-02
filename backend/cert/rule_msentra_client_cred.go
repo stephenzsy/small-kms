@@ -98,7 +98,7 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUID, certIDs []base.Identifier) error {
 	provisioningCerts := make(map[string]*CertDoc, len(certIDs))
 	for _, certID := range certIDs {
-		certDoc, err := getCertDocByID(c, certID)
+		certDoc, err := ReadCertDocByID(c, certID)
 		if err != nil {
 			continue
 		}

@@ -8,10 +8,11 @@ import (
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
-func NewSignedAgentAuthJWT(signingMethod jwt.SigningMethod, subject string, key cloudkey.CloudSignatureKey) (string, error) {
+func NewSignedAgentAuthJWT(signingMethod jwt.SigningMethod, subject, endpoint string, key cloudkey.CloudSignatureKey) (string, error) {
 	nbf := time.Now()
 	token := jwt.NewWithClaims(signingMethod, jwt.RegisteredClaims{
 		Subject:   subject,
+		Audience:  jwt.ClaimStrings{endpoint},
 		IssuedAt:  jwt.NewNumericDate(nbf),
 		ExpiresAt: jwt.NewNumericDate(nbf.Add(time.Hour)),
 		ID:        uuid.New().String(),

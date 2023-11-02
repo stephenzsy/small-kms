@@ -11,7 +11,7 @@ import (
 )
 
 func deleteCertificate(c context.Context, rID base.Identifier) error {
-	doc, err := getCertDocByID(c, rID)
+	doc, err := ReadCertDocByID(c, rID)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return nil

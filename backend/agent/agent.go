@@ -13,11 +13,11 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
-	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
 const DefaultEnvVarTenantID = "AZURE_TENANT_ID"
@@ -80,7 +80,7 @@ func main() {
 				e.Use(middleware.Logger())
 				e.Use(middleware.Recover())
 				e.Use(ctx.InjectServiceContextMiddleware(context.Background()))
-				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWTKeys()))
+				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWTKeys(), agentPushEndpoint))
 				e.Use(base.HandleResponseError)
 				base.RegisterHandlers(e, base.NewBaseServer(BuildID))
 
@@ -98,24 +98,6 @@ func main() {
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
 				WithTask(echoTask)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
-			// e := echo.New()
-			// e.Use(middleware.Logger())
-			// e.Use(middleware.Recover())
-			// e.TLSServer.Addr = args[1]
-			// configManager, err := cm.NewConfigManager(BuildID, configDir, args[1], uint32(*slotPtr))
-			// if err != nil {
-			// 	log.Panicf("Failed to create config manager: %v\n", err)
-			// }
-			// s, err := agentserver.NewServer()
-			// if err != nil {
-			// 	log.Panicf("Failed to create server: %v\n", err)
-			// }
-			// agentserver.RegisterHandlers(e, s)
-
-			// configManager.Manage(e)
-
-			// cm.StartConfigManagerWithGracefulShutdown(context.Background(), configManager)
-			// //bootstrapServer(args[1], *skipTlsPtr)
 			return
 		}
 	}

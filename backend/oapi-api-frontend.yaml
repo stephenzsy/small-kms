@@ -26,6 +26,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1proxy-auth~1token"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1diagnostics"
   /v1/profile/{profileResourceKind}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
@@ -48,46 +50,6 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1keyvault-role-assignments~1{resourceCategory}"
-  /v3/{namespaceKindLegacy}/{namespaceId}/agent-config/{configName}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindLegacyParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/AgentConfigNameParameter"
-    get:
-      tags:
-        - admin
-        - agentclient
-      summary: Get agent autoconfig
-      operationId: GetAgentConfiguration
-      parameters:
-        - in: header
-          name: "X-Smallkms-If-Version-Not-Match"
-          schema:
-            type: string
-          required: false
-        - in: query
-          name: refreshToken
-          schema:
-            type: string
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigurationResponse"
-        204:
-          description: No content
-    put:
-      tags:
-        - admin
-      summary: Get agent autoconfig
-      operationId: PutAgentConfiguration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationParameters"
-        required: true
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigurationResponse"
   /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -112,26 +74,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    AgentProxyEndpoint:
-      type: object
-      properties:
-        url:
-          type: string
-        ipUrl:
-          type: string
-        state:
-          $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
-      required:
-        - url
-        - ipUrl
-        - state
-    AgentProxyInfo:
-      type: object
-      properties:
-        primary:
-          $ref: "#/components/schemas/AgentProxyEndpoint"
-        secondary:
-          $ref: "#/components/schemas/AgentProxyEndpoint"
     CertificateLifetimeTrigger:
       type: object
       properties:

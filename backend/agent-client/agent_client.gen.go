@@ -5,38 +5,15 @@ package agentclient
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
 
-const (
-	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
-// AgentConfigNameParameter defines model for AgentConfigNameParameter.
-type AgentConfigNameParameter = externalRef0.AgentConfigName
-
 // NamespaceIdParameter defines model for NamespaceIdParameter.
 type NamespaceIdParameter = externalRef0.Identifier
-
-// NamespaceKindParameter defines model for NamespaceKindParameter.
-type NamespaceKindParameter = externalRef0.NamespaceKind
-
-// AgentConfigurationResponse defines model for AgentConfigurationResponse.
-type AgentConfigurationResponse = externalRef0.AgentConfiguration
-
-// GetAgentConfigurationParams defines parameters for GetAgentConfiguration.
-type GetAgentConfigurationParams struct {
-	RefreshToken               *string `form:"refreshToken,omitempty" json:"refreshToken,omitempty"`
-	XSmallkmsIfVersionNotMatch *string `json:"X-Smallkms-If-Version-Not-Match,omitempty"`
-}
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -111,105 +88,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetAgentConfiguration request
-	GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) GetAgentConfiguration(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAgentConfigurationRequest(c.Server, namespaceKind, namespaceId, configName, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewGetAgentConfigurationRequest generates requests for GetAgentConfiguration
-func NewGetAgentConfigurationRequest(server string, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "configName", runtime.ParamLocationPath, configName)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v3/%s/%s/agent-config/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.RefreshToken != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "refreshToken", runtime.ParamLocationQuery, *params.RefreshToken); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-
-		if params.XSmallkmsIfVersionNotMatch != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Smallkms-If-Version-Not-Match", runtime.ParamLocationHeader, *params.XSmallkmsIfVersionNotMatch)
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("X-Smallkms-If-Version-Not-Match", headerParam0)
-		}
-
-	}
-
-	return req, nil
 }
 
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
@@ -255,63 +133,4 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetAgentConfigurationWithResponse request
-	GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error)
-}
-
-type GetAgentConfigurationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AgentConfigurationResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetAgentConfigurationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetAgentConfigurationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// GetAgentConfigurationWithResponse request returning *GetAgentConfigurationResponse
-func (c *ClientWithResponses) GetAgentConfigurationWithResponse(ctx context.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params *GetAgentConfigurationParams, reqEditors ...RequestEditorFn) (*GetAgentConfigurationResponse, error) {
-	rsp, err := c.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetAgentConfigurationResponse(rsp)
-}
-
-// ParseGetAgentConfigurationResponse parses an HTTP response from a GetAgentConfigurationWithResponse call
-func ParseGetAgentConfigurationResponse(rsp *http.Response) (*GetAgentConfigurationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetAgentConfigurationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AgentConfigurationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }

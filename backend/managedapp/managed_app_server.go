@@ -3,6 +3,7 @@ package managedapp
 import (
 	"github.com/google/uuid"
 	echo "github.com/labstack/echo/v4"
+	agentproxyclient "github.com/stephenzsy/small-kms/backend/agent/proxyclient"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
@@ -13,6 +14,7 @@ import (
 
 type server struct {
 	api.APIServer
+	proxyClientPool *agentproxyclient.ProxyClientPool
 }
 
 // GetAgentInstanceProxyAuthToken implements ServerInterface.
@@ -39,8 +41,23 @@ func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // GetAgentInstanceDiagnostics implements ServerInterface.
-func (*server) GetAgentInstanceDiagnostics(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params GetAgentInstanceDiagnosticsParams) error {
-	panic("unimplemented")
+func (s *server) GetAgentInstanceDiagnostics(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params GetAgentInstanceDiagnosticsParams) error {
+	c := ec.(ctx.RequestContext)
+
+	if !auth.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	// proxiedClient
+	client, err := s.getProxiedClient(c, resourceIdentifier, params.XCryptocatProxyAuthorization)
+	if err != nil {
+		return err
+	}
+	resp, err := client.GetDiagnosticsWithResponse(c)
+	if err != nil {
+		return err
+	}
+	return c.JSONBlob(resp.StatusCode(), resp.Body)
 }
 
 // ListAgentInstances implements ServerInterface.
@@ -50,6 +67,7 @@ func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.Namespac
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
+
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	return apiListAgentInstances(c)
 }
@@ -206,6 +224,7 @@ var _ ServerInterface = (*server)(nil)
 
 func NewServer(apiServer api.APIServer) *server {
 	return &server{
-		apiServer,
+		APIServer:       apiServer,
+		proxyClientPool: agentproxyclient.NewProxyClientPool(128),
 	}
 }

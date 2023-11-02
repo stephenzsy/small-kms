@@ -162,7 +162,9 @@ func apiSyncSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 	if doc.ServicePrincipalID, err = uuid.Parse(*sp.GetId()); err != nil {
 		return err
 	}
-	doc.ServicePrincipalType = sp.GetServicePrincipalType()
+	if sp.GetServicePrincipalType() != nil {
+		doc.ServicePrincipalType = *sp.GetServicePrincipalType()
+	}
 
 	if *sp.GetServicePrincipalType() == "Application" {
 		application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{

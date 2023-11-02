@@ -8,46 +8,6 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v3/{namespaceKind}/{namespaceId}/agent-config/{configName}:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceKindParameter"
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/AgentConfigNameParameter"
-    get:
-      tags:
-        - admin
-        - agentclient
-      summary: Get agent autoconfig
-      operationId: GetAgentConfiguration
-      parameters:
-        - in: header
-          name: "X-Smallkms-If-Version-Not-Match"
-          schema:
-            type: string
-          required: false
-        - in: query
-          name: refreshToken
-          schema:
-            type: string
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigurationResponse"
-        204:
-          description: No content
-    put:
-      tags:
-        - admin
-      summary: Get agent autoconfig
-      operationId: PutAgentConfiguration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "oapi-shared.yaml#/components/schemas/AgentConfigurationParameters"
-        required: true
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigurationResponse"
   /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -55,7 +15,6 @@ paths:
       tags:
         - agent
         - admin
-        - agentproxyclient
       description: Get docker info
       operationId: GetDockerInfo
       responses:
@@ -72,17 +31,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    AzureRoleAssignment:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        roleDefinitionId:
-          type: string
-        principalId:
-          type: string
     CertificateLifetimeTrigger:
       type: object
       properties:

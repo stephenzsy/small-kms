@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
+	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
 type keeperTaskExecutor struct {
@@ -28,6 +28,8 @@ func (t *keeperTaskExecutor) Execute(c context.Context) (time.Duration, error) {
 		config, err := t.cm.LoadConfig(c)
 		if err != nil {
 			return bad(err)
+		} else if config == nil {
+			return 5 * time.Second, nil
 		}
 		t.configUpdate <- config
 		return config.NextWaitInterval(), nil

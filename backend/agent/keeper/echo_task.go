@@ -8,10 +8,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/agent/taskmanager"
 	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
+	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
 type echoTask struct {
@@ -76,7 +76,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
 				base.StringIdentifier("me"), instanceIdenfier, managedapp.AgentInstanceFields{
 					Version:  config.GetVersion(),
-					Endpoint: &et.endpoint,
+					Endpoint: et.endpoint,
 					BuildID:  et.buildID,
 				})
 		}

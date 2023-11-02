@@ -16,12 +16,6 @@ type ServerInterface interface {
 
 	// (GET /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info)
 	GetDockerInfo(ctx echo.Context, namespaceId NamespaceIdParameter) error
-	// Get agent autoconfig
-	// (GET /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	GetAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter, params GetAgentConfigurationParams) error
-	// Get agent autoconfig
-	// (PUT /v3/{namespaceKind}/{namespaceId}/agent-config/{configName})
-	PutAgentConfiguration(ctx echo.Context, namespaceKind NamespaceKindParameter, namespaceId NamespaceIdParameter, configName AgentConfigNameParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -44,100 +38,6 @@ func (w *ServerInterfaceWrapper) GetDockerInfo(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetDockerInfo(ctx, namespaceId)
-	return err
-}
-
-// GetAgentConfiguration converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentConfiguration(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigNameParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetAgentConfigurationParams
-	// ------------- Optional query parameter "refreshToken" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "refreshToken", ctx.QueryParams(), &params.RefreshToken)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter refreshToken: %s", err))
-	}
-
-	headers := ctx.Request().Header
-	// ------------- Optional header parameter "X-Smallkms-If-Version-Not-Match" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Smallkms-If-Version-Not-Match")]; found {
-		var XSmallkmsIfVersionNotMatch string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Smallkms-If-Version-Not-Match, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Smallkms-If-Version-Not-Match", runtime.ParamLocationHeader, valueList[0], &XSmallkmsIfVersionNotMatch)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Smallkms-If-Version-Not-Match: %s", err))
-		}
-
-		params.XSmallkmsIfVersionNotMatch = &XSmallkmsIfVersionNotMatch
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentConfiguration(ctx, namespaceKind, namespaceId, configName, params)
-	return err
-}
-
-// PutAgentConfiguration converts echo context to params.
-func (w *ServerInterfaceWrapper) PutAgentConfiguration(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "configName" -------------
-	var configName AgentConfigNameParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutAgentConfiguration(ctx, namespaceKind, namespaceId, configName)
 	return err
 }
 
@@ -170,7 +70,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v3/servicePrincipal/:namespaceId/agent-proxy/docker/info", wrapper.GetDockerInfo)
-	router.GET(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.GetAgentConfiguration)
-	router.PUT(baseURL+"/v3/:namespaceKind/:namespaceId/agent-config/:configName", wrapper.PutAgentConfiguration)
 
 }

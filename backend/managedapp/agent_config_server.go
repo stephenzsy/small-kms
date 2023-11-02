@@ -55,7 +55,7 @@ func (d *AgentConfigServerDoc) populateModel(m *AgentConfigServer) {
 }
 
 // will wrap 404 if doc is not found
-func apiGetAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) {
+func apiReadAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentConfigServerDoc{}
 	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocFullIdentifier(nsCtx.Kind(),
@@ -69,7 +69,7 @@ func apiGetAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) {
 }
 
 func apiGetAgentConfigServer(c ctx.RequestContext) error {
-	doc, err := apiGetAgentConfigDoc(c)
+	doc, err := apiReadAgentConfigDoc(c)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 }
 
 func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) error {
-	doc, err := apiGetAgentConfigDoc(c)
+	doc, err := apiReadAgentConfigDoc(c)
 	if err != nil {
 		return err
 	}

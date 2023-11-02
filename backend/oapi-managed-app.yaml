@@ -276,6 +276,7 @@ components:
           x-go-name: ServicePrincipalID
         servicePrincipalType:
           type: string
+          x-go-type-skip-optional-pointer: true
       required:
         - appId
         - applicationId
@@ -301,6 +302,7 @@ components:
       properties:
         endpoint:
           type: string
+          x-go-type-skip-optional-pointer: true
         version:
           type: string
         buildId:

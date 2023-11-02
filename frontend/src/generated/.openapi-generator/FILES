@@ -10,13 +10,10 @@ models/AgentConfigServerFields.ts
 models/AgentConfiguration.ts
 models/AgentConfigurationActiveHostControllerContainer.ts
 models/AgentConfigurationAgentActiveHostBootstrap.ts
-models/AgentConfigurationAgentActiveServerReplyState.ts
 models/AgentConfigurationParameters.ts
 models/AgentHostRole.ts
 models/AgentInstance.ts
 models/AgentInstanceFields.ts
-models/AgentProxyEndpoint.ts
-models/AgentProxyInfo.ts
 models/AuthResult.ts
 models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts

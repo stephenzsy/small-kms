@@ -1,15 +1,12 @@
 package agentconfig
 
 import (
-	"encoding/base64"
 	"fmt"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/kmsdoc"
-	"github.com/stephenzsy/small-kms/backend/models"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/shared"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -18,52 +15,6 @@ import (
 var configDocs map[shared.AgentConfigName]*docConfigurator[AgentConfigDocument] = map[shared.AgentConfigName]*docConfigurator[AgentConfigDocument]{
 	shared.AgentConfigNameActiveHostBootstrap: newAgentActiveHostBootStrapConfigurator(),
 	shared.AgentConfigNameActiveServer:        newAgentActiveServerConfigurator(),
-}
-
-func GetAgentConfiguration(c RequestContext, configName shared.AgentConfigName, params *models.GetAgentConfigurationParams, isAdmin bool) (*shared.AgentConfiguration, error) {
-	nsID := ns.GetNamespaceContext(c).GetID()
-
-	if configurator, ok := configDocs[configName]; ok {
-		doc, err := configurator.readDoc(c, nsID)
-		if err != nil {
-			return nil, err
-		}
-		if params == nil {
-			// admin
-			return doc.toModel(true), nil
-		}
-
-		// parse token timestamp
-		shouldRefresh := false
-		if params.RefreshToken != nil {
-			if tokenBytes, err := base64.RawURLEncoding.DecodeString(*params.RefreshToken); err == nil {
-				if refreshAfter, err := time.Parse(time.RFC3339, string(tokenBytes)); err == nil {
-					shouldRefresh = time.Now().After(refreshAfter)
-				}
-			}
-		}
-
-		if shouldRefresh {
-			c := ctx.Elevate(c)
-			patchOps, err := configurator.eval(c, doc)
-			if err != nil {
-				return nil, err
-			}
-			if patchOps != nil {
-				// can be empty
-				err = kmsdoc.Patch(c, doc, *patchOps, &azcosmos.ItemOptions{
-					IfMatchEtag: utils.ToPtr(doc.GetETag()),
-				})
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-
-		return doc.toModel(isAdmin), nil
-	}
-
-	return nil, fmt.Errorf("%w: invalid step", common.ErrStatusBadRequest)
 }
 
 func PutAgentConfiguration(c RequestContext, configName shared.AgentConfigName, configParams shared.AgentConfigurationParameters) (*shared.AgentConfiguration, error) {

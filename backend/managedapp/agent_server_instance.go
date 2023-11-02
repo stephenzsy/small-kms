@@ -1,6 +1,7 @@
 package managedapp
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -66,21 +67,42 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 	return c.JSON(http.StatusOK, sPager)
 }
 
-func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error {
+// wraps not found with 404
+func apiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.Identifier) (*AgentInstanceDoc, error) {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
 	docSvc := base.GetAzCosmosCRUDService(c)
-	if err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance, instanceID), doc, nil); err != nil {
+	err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance, instanceID), doc, nil)
+	if err != nil {
+		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
+			return nil, fmt.Errorf("%w: agent instance with id %s not found", base.ErrResponseStatusNotFound, instanceID.String())
+		}
+		return nil, err
+	}
+	return doc, err
+}
+
+func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error {
+	doc, err := apiReadAgentInstanceDoc(c, instanceID)
+	if err != nil {
 		return err
 	}
-
 	m := &AgentInstance{}
 	doc.PopulateModel(m)
 	return c.JSON(http.StatusOK, m)
 }
 
 func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifier base.Identifier) error {
-	configDoc, err := apiGetAgentConfigDoc(c)
+
+	instanceDoc, err := apiReadAgentInstanceDoc(c, resourceIdentifier)
+	if err != nil {
+		return err
+	}
+	if instanceDoc.Endpoint == "" {
+		return fmt.Errorf("%w: no endpoint found", base.ErrResponseStatusBadRequest)
+	}
+
+	configDoc, err := apiReadAgentConfigDoc(c)
 	if err != nil {
 		return err
 	}
@@ -111,13 +133,12 @@ func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifi
 		case cloudkey.CurveNameP521:
 			jwtSigningMethod = cloudkeyx.NewJWTSigningMethod(cloudkey.SignatureAlgorithmES512)
 		}
-
 	}
 	if jwtSigningMethod == nil {
 		return fmt.Errorf("%w: unsupported key type", base.ErrResponseStatusBadRequest)
 	}
 	identity := auth.GetAuthIdentity(c)
-	accessToken, err := agentauth.NewSignedAgentAuthJWT(jwtSigningMethod, identity.ClientPrincipalID().String(), ck)
+	accessToken, err := agentauth.NewSignedAgentAuthJWT(jwtSigningMethod, identity.ClientPrincipalID().String(), instanceDoc.Endpoint, ck)
 	if err != nil {
 		return err
 	}

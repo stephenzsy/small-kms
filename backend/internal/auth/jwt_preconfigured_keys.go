@@ -10,7 +10,7 @@ import (
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
-func PreconfiguredKeysJWTAuthorization(keys []cloudkey.JsonWebSignagtureKey) echo.MiddlewareFunc {
+func PreconfiguredKeysJWTAuthorization(keys []cloudkey.JsonWebSignagtureKey, aud string) echo.MiddlewareFunc {
 
 	keyMapping := make(map[string]*cloudkey.JsonWebSignagtureKey, len(keys))
 	for _, key := range keys {
@@ -31,8 +31,8 @@ func PreconfiguredKeysJWTAuthorization(keys []cloudkey.JsonWebSignagtureKey) ech
 				return c.String(http.StatusUnauthorized, "missing authorization header")
 			}
 			authToken := strings.TrimPrefix(authHeader, "Bearer ")
-			token, err := jwt.ParseWithClaims(authToken, &jwt.RegisteredClaims{}, keyFunc)
-			if err != nil {
+			token, err := jwt.ParseWithClaims(authToken, &jwt.RegisteredClaims{}, keyFunc, jwt.WithAudience(aud))
+			if err != nil || !token.Valid {
 				return c.String(http.StatusUnauthorized, "invalid authorization token")
 			}
 

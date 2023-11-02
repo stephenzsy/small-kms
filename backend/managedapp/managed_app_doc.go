@@ -10,7 +10,7 @@ type ManagedAppDoc struct {
 	profile.ProfileDoc
 	ApplicationID        uuid.UUID `json:"applicationId"`
 	ServicePrincipalID   uuid.UUID `json:"servicePrincipalId"`
-	ServicePrincipalType *string   `json:"servicePrincipalType,omitempty"`
+	ServicePrincipalType string    `json:"servicePrincipalType,omitempty"`
 }
 
 const (

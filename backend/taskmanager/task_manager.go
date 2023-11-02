@@ -13,6 +13,26 @@ type Task interface {
 	Start(c context.Context, sigCh <-chan os.Signal) error
 }
 
+type taskImpl struct {
+	name  string
+	start func(c context.Context, sigCh <-chan os.Signal) error
+}
+
+func (t *taskImpl) Name() string {
+	return t.name
+}
+
+func (t *taskImpl) Start(c context.Context, sigCh <-chan os.Signal) error {
+	return t.start(c, sigCh)
+}
+
+func NewTask(name string, start func(c context.Context, sigCh <-chan os.Signal) error) Task {
+	return &taskImpl{
+		name:  name,
+		start: start,
+	}
+}
+
 type TaskManager interface {
 	Start(c context.Context, sigCh <-chan os.Signal) error
 	WithTask(Task) TaskManager
