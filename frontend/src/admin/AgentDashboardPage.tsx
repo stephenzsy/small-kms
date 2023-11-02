@@ -42,10 +42,10 @@ export default function AgentDashboardPage() {
     }
   );
 
-  const { data: proxiedDiagnostics, run: getProxiedDiagnostics } = useRequest(
+  const { data: agentDiag, run: getAgentDiagnostics } = useRequest(
     async () => {
       if (instanceId && tokenResult?.accessToken) {
-        return await api.getAgentInstanceDiagnostics({
+        return await api.getAgentDiagnostics({
           namespaceIdentifier,
           namespaceKind,
           resourceIdentifier: instanceId,
@@ -56,6 +56,21 @@ export default function AgentDashboardPage() {
     { manual: true }
   );
 
+  const { data: dockerInfo, run: getDockerInfo } = useRequest(
+    async () => {
+      if (instanceId && tokenResult?.accessToken) {
+        return await api.getAgentDockerInfo({
+          namespaceIdentifier,
+          namespaceKind,
+          resourceIdentifier: instanceId,
+          xCryptocatProxyAuthorization: tokenResult?.accessToken,
+        });
+      }
+    },
+    { manual: true }
+  );
+
+  console.log(agentDiag)
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
@@ -68,10 +83,20 @@ export default function AgentDashboardPage() {
         </div>
       </Card>
       <Card title="Diagnostics">
-        <Button type="primary" onClick={getProxiedDiagnostics} disabled={!tokenResult}>
+        <Button
+          type="primary"
+          onClick={getAgentDiagnostics}
+          disabled={!tokenResult}
+        >
           Get Diagnostics
         </Button>
-        <JsonDataDisplay data={proxiedDiagnostics} />
+        <JsonDataDisplay data={agentDiag} />
+      </Card>
+      <Card title="Docker info">
+        <Button type="primary" onClick={getDockerInfo} disabled={!tokenResult}>
+          Get Docker info
+        </Button>
+        <JsonDataDisplay data={dockerInfo} />
       </Card>
     </>
   );

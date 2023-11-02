@@ -8,12 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	externalRef0 "github.com/stephenzsy/small-kms/backend/shared"
 )
-
-// NamespaceIdParameter defines model for NamespaceIdParameter.
-type NamespaceIdParameter = externalRef0.Identifier
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error

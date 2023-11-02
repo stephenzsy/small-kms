@@ -26,17 +26,17 @@ func (m *ConfigManager) LoadConfig(c context.Context) (AgentServerConfiguration,
 	return m.configProcessor.InitialLoad(c)
 }
 
-func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration, error) {
+func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration, bool, error) {
 	logger := log.Ctx(c).With().Str("step", "pull config").Logger()
 	logger.Debug().Msg("enter")
 	defer logger.Debug().Msg("exit")
 	client, err := m.envConfig.AgentClient()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"))
 	if err != nil || resp.StatusCode() != 200 {
-		return nil, err
+		return nil, false, err
 	}
 	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
 }

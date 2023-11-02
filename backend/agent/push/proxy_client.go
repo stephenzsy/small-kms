@@ -1,17 +1,17 @@
-package managedapp
+package agentpush
 
 import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	agentproxyclient "github.com/stephenzsy/small-kms/backend/agent/proxyclient"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
-func (s *server) getProxiedClient(c ctx.RequestContext,
-	instanceID base.Identifier, accessToken string) (agentproxyclient.ClientWithResponsesInterface, error) {
+func (s *proxiedServer) getProxiedClient(c ctx.RequestContext,
+	instanceID base.Identifier, accessToken string) (ClientWithResponsesInterface, error) {
 	logger := log.Ctx(c).With().Str("proc", "getProxiedClient").Logger()
 	if client, tokenExpired, err := s.proxyClientPool.GetCachedClient(accessToken); err != nil {
 		logger.Debug().Err(err).Msg("failed to get cached client")
@@ -26,7 +26,7 @@ func (s *server) getProxiedClient(c ctx.RequestContext,
 	logger.Debug().Int("poolSize", s.proxyClientPool.Len()).Msg("cache miss: client pool")
 
 	// resolve instanceID to server endpoint
-	doc, err := apiReadAgentInstanceDoc(c, instanceID)
+	doc, err := managedapp.ApiReadAgentInstanceDoc(c, instanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,19 +34,19 @@ func (s *server) getProxiedClient(c ctx.RequestContext,
 		return nil, fmt.Errorf("%w: agent instance has no endpoint", base.ErrResponseStatusBadRequest)
 	}
 
-	configDoc, err := apiReadAgentConfigDoc(c)
+	configDoc, err := managedapp.ApiReadAgentConfigDoc(c)
 	if err != nil {
 		return nil, err
 	}
 
-	certDoc, err := cert.ReadCertDocByID(c, configDoc.TLSCertificateID)
+	certDoc, err := cert.ApiReadCertDocByID(c, configDoc.TLSCertificateID)
 	if err != nil {
 		return nil, err
 	}
 	certChain := certDoc.KeySpec.CertificateChain
 
 	// create new client
-	client, err := agentproxyclient.NewClientWithCreds(doc.Endpoint, certChain[len(certChain)-1], accessToken)
+	client, err := NewClientWithCreds(doc.Endpoint, certChain[len(certChain)-1], accessToken)
 	if err != nil {
 		return nil, err
 	}

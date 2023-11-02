@@ -10,7 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
-	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 type server struct {
@@ -101,7 +100,6 @@ func (i *appConfidentialIdentity) TokenCredential() azcore.TokenCredential {
 }
 
 var _ common.AzureAppConfidentialIdentity = (*appConfidentialIdentity)(nil)
-var _ models.ServerInterface = (*server)(nil)
 
 func NewServer() *server {
 

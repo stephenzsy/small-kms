@@ -13,6 +13,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
+	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
@@ -74,6 +75,10 @@ func main() {
 	if len(args) >= 2 {
 		switch args[0] {
 		case "server":
+			agentPushServer, err := agentpush.NewServer(BuildID)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("failed to create agent push server")
+			}
 			newEcho := func(config keeper.AgentServerConfiguration) (*echo.Echo, error) {
 				var err error
 				e := echo.New()
@@ -82,7 +87,7 @@ func main() {
 				e.Use(ctx.InjectServiceContextMiddleware(context.Background()))
 				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWTKeys(), agentPushEndpoint))
 				e.Use(base.HandleResponseError)
-				base.RegisterHandlers(e, base.NewBaseServer(BuildID))
+				agentpush.RegisterHandlers(e, agentPushServer)
 
 				e.TLSServer.Addr = args[1]
 				e.TLSServer.TLSConfig, err = keeper.GetTLSDefaultConfig(config)

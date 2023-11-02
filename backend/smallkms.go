@@ -21,13 +21,13 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	requestcontext "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
@@ -114,11 +114,11 @@ func main() {
 			e.Use(auth.ProxiedAADAuth)
 		}
 		e.Use(server.GetAfterAuthMiddleware())
-		models.RegisterHandlers(e, server)
 		base.RegisterHandlers(e, base.NewBaseServer(BuildID))
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))
+		agentpush.RegisterHandlers(e, agentpush.NewProxiedServer(apiServer))
 		//key.RegisterHandlers(e, key.NewServer(apiServer))
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(

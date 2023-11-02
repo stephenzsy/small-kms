@@ -12,7 +12,7 @@ paths:
     get:
       tags:
         - admin
-        - agentproxy
+        - agent
       summary: Get diagnostics
       operationId: GetDiagnostics
       responses:

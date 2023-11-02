@@ -34,9 +34,11 @@ func (t *keeperTaskExecutor) Execute(c context.Context) (time.Duration, error) {
 		t.configUpdate <- config
 		return config.NextWaitInterval(), nil
 	}
-	config, err := t.cm.PullConfig(c)
+	config, hasChange, err := t.cm.PullConfig(c)
 	if err != nil {
 		return bad(err)
+	} else if hasChange {
+		t.configUpdate <- config
 	}
 	return config.NextWaitInterval(), nil
 }

@@ -23,14 +23,13 @@ import (
 type AgentServerConfiguration interface {
 	NextWaitInterval() time.Duration
 	TLSCertificateBundleFile() string
-	GetVersion() string
+	Version() string
 	VerifyJWTKeys() []cloudkey.JsonWebSignagtureKey
 }
 
 type agentServerConfiguration struct {
 	TLSCertificateFile string           `json:"tlsCertificate"`
 	JWTVerifyKeys      []key.JsonWebKey `json:"jwtVerifyKeys"`
-	Version            string           `json:"version"`
 	fetchedConfig      *managedapp.AgentConfigServer
 }
 
@@ -54,8 +53,8 @@ func (asc *agentServerConfiguration) TLSCertificateBundleFile() string {
 	return asc.TLSCertificateFile
 }
 
-func (asc *agentServerConfiguration) GetVersion() string {
-	return asc.Version
+func (asc *agentServerConfiguration) Version() string {
+	return asc.fetchedConfig.Version
 }
 
 func (c *agentServerConfiguration) NextWaitInterval() time.Duration {
@@ -210,11 +209,11 @@ func (p *agentConfigServerProcessor) InitialLoad(c context.Context) (AgentServer
 	return &readyConfig, nil
 }
 
-func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (AgentServerConfiguration, error) {
+func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig *managedapp.AgentConfigServer) (AgentServerConfiguration, bool, error) {
 	logger := log.Ctx(c)
-	if p.readyConfig != nil && p.readyConfig.Version == nextConfig.Version {
+	if p.readyConfig != nil && p.readyConfig.Version() == nextConfig.Version {
 		p.readyConfig.fetchedConfig = nextConfig
-		return p.readyConfig, nil
+		return p.readyConfig, false, nil
 	}
 	p.configProvisioner = configProvisioner{
 		processor:    p,
@@ -223,22 +222,22 @@ func (p *agentConfigServerProcessor) ProcessUpdate(c context.Context, nextConfig
 	}
 	nextReadyConfig, err := p.configProvisioner.provision(c)
 	if err != nil {
-		return nil, err
+		return nil, true, err
 	}
 	// make link
 	linkName := p.activeDirLink()
 	if _, err := os.Lstat(linkName); err == nil {
 		if err := os.Remove(linkName); err != nil {
 			logger.Error().Err(err).Msg("failed to remove symlink")
-			return nil, err
+			return nil, true, err
 		}
 	}
 	if err := os.Symlink(filepath.Join(".", "versioned", fmt.Sprintf("agent-server.%s", nextConfig.Version)), linkName); err != nil {
 		logger.Error().Err(err).Msg("failed to create symlink")
-		return nil, err
+		return nil, true, err
 	}
 	p.readyConfig = nextReadyConfig
-	return nextReadyConfig, nil
+	return nextReadyConfig, true, nil
 }
 
 func (p *agentConfigServerProcessor) Shutdown(c context.Context) error {

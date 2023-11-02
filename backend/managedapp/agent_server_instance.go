@@ -68,7 +68,7 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 }
 
 // wraps not found with 404
-func apiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.Identifier) (*AgentInstanceDoc, error) {
+func ApiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.Identifier) (*AgentInstanceDoc, error) {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
 	docSvc := base.GetAzCosmosCRUDService(c)
@@ -83,7 +83,7 @@ func apiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.Identifier) (
 }
 
 func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error {
-	doc, err := apiReadAgentInstanceDoc(c, instanceID)
+	doc, err := ApiReadAgentInstanceDoc(c, instanceID)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error
 
 func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifier base.Identifier) error {
 
-	instanceDoc, err := apiReadAgentInstanceDoc(c, resourceIdentifier)
+	instanceDoc, err := ApiReadAgentInstanceDoc(c, resourceIdentifier)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifi
 		return fmt.Errorf("%w: no endpoint found", base.ErrResponseStatusBadRequest)
 	}
 
-	configDoc, err := apiReadAgentConfigDoc(c)
+	configDoc, err := ApiReadAgentConfigDoc(c)
 	if err != nil {
 		return err
 	}

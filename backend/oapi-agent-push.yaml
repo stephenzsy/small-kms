@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Agent APIs
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths:
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    get:
+      tags:
+        - admin
+        - agent
+      summary: Get agent diagnostics
+      operationId: GetAgentDiagnostics
+      responses:
+        "200":
+          description: Diagnostics response
+          content:
+            application/json:
+              schema:
+                $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: Get docker info
+      operationId: GetAgentDockerInfo
+      responses:
+        200:
+          description: DockerInfo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DockerInfo"
+security:
+  - BearerAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DelegatedAuthorizationHeaderParameter:
+      in: header
+      name: "X-Cryptocat-Proxy-Authorization"
+      schema:
+        type: string
+      required: false
+  schemas:
+    DockerInfo:
+      type: object
+      x-go-type: types.Info
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"

@@ -239,6 +239,11 @@ paths:
 security:
   - BearerAuth: []
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     AzureKeyvaultResourceCategory:
       type: string

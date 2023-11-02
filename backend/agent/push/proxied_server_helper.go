@@ -1,4 +1,4 @@
-package agentproxyclient
+package agentpush
 
 import (
 	"container/heap"
@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"net/http"
+	nethttp "net/http"
 	"sync"
 	"time"
 
@@ -20,14 +20,20 @@ func NewClientWithCreds(server string, caCertBytes []byte, accessToken string) (
 		return nil, err
 	}
 	caPool.AddCert(caCert)
-	return NewClientWithResponses(server, WithHTTPClient(&http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:    caPool,
-				MinVersion: tls.VersionTLS13,
-			},
+	clientTransport := nethttp.DefaultTransport.(*nethttp.Transport).Clone()
+	clientTransport.ForceAttemptHTTP2 = true
+	clientTransport.DisableCompression = false
+	clientTransport.TLSClientConfig = &tls.Config{
+		RootCAs:    caPool,
+		MinVersion: tls.VersionTLS13,
+	}
+	return NewClientWithResponses(server, WithHTTPClient(&nethttp.Client{
+		Transport: clientTransport,
+		CheckRedirect: func(req *nethttp.Request, via []*nethttp.Request) error {
+			return nethttp.ErrUseLastResponse
 		},
-	}), WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+		Timeout: time.Second * 100,
+	}), WithRequestEditorFn(func(ctx context.Context, req *nethttp.Request) error {
 		if req.Header.Get("Authorization") == "" {
 			req.Header.Set("Authorization", "Bearer "+accessToken)
 		}

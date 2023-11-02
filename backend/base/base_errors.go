@@ -27,9 +27,10 @@ var (
 
 	ErrMsGraphResourceNotFound = errors.New("Request_ResourceNotFound")
 
-	ErrResponseStatusBadRequest = httpResposneError(http.StatusBadRequest, "bad request")
-	ErrResponseStatusForbidden  = httpResposneError(http.StatusForbidden, "forbidden")
-	ErrResponseStatusNotFound   = httpResposneError(http.StatusNotFound, "not found")
+	ErrResponseStatusBadRequest   = httpResposneError(http.StatusBadRequest, "bad request")
+	ErrResposneStatusUnauthorized = httpResposneError(http.StatusUnauthorized, "unauthorized")
+	ErrResponseStatusForbidden    = httpResposneError(http.StatusForbidden, "forbidden")
+	ErrResponseStatusNotFound     = httpResposneError(http.StatusNotFound, "not found")
 )
 
 func HandleAzCosmosError(err error) error {

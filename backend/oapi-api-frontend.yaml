@@ -27,7 +27,9 @@ paths:
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1proxy-auth~1token"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
-    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1diagnostics"
+    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1diagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info:
+    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1docker~1info"
   /v1/profile/{profileResourceKind}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}"
   /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
@@ -50,114 +52,9 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1keyvault-role-assignments~1{resourceCategory}"
-  /v3/servicePrincipal/{namespaceId}/agent-proxy/docker/info:
-    parameters:
-      - $ref: "#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - agent
-        - admin
-        - agentproxyclient
-      description: Get docker info
-      operationId: GetDockerInfo
-      responses:
-        200:
-          description: DockerInfo
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-shared.yaml#/components/schemas/DockerInfo"
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  schemas:
-    CertificateLifetimeTrigger:
-      type: object
-      properties:
-        days_before_expiry:
-          x-go-name: DaysBeforeExpiry
-          type: integer
-          format: int32
-        lifetime_percentage:
-          x-go-name: LifetimePercentage
-          type: integer
-          format: int32
-    CertificateTemplateRefFields:
-      type: object
-      properties:
-        subjectCommonName:
-          description: Common name
-          type: string
-        linkTo:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-      required:
-        - subjectCommonName
-    LinkedCertificateTemplateUsage:
-      type: string
-      enum:
-        - cliant-authorization
-      x-enum-varnames:
-        - LinkedCertificateTemplateUsageClientAuthorization
-    CreateLinkedCertificateTemplateParameters:
-      type: object
-      properties:
-        targetTemplate:
-          $ref: "oapi-shared.yaml#/components/schemas/ResourceLocator"
-        usage:
-          $ref: "#/components/schemas/LinkedCertificateTemplateUsage"
-      required:
-        - targetTemplate
-        - usage
-    AgentHostRole:
-      type: string
-      enum:
-        - radiusServer
-      x-enum-varnames:
-        - AgentHostRoleRadiusServer
-  parameters:
-    AgentConfigNameParameter:
-      in: path
-      name: configName
-      schema:
-        $ref: "oapi-shared.yaml#/components/schemas/AgentConfigName"
-      required: true
-    NamespaceKindLegacyParameter:
-      in: path
-      name: namespaceKindLegacy
-      schema:
-        $ref: "oapi-shared.yaml#/components/schemas/NamespaceKind"
-      required: true
-    NamespaceIdParameter:
-      in: path
-      name: namespaceId
-      schema:
-        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-      required: true
-    CertificateIdPathParameter:
-      in: path
-      name: certificateId
-      schema:
-        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-      required: true
-    CertificateTemplateIdentifierParameter:
-      in: path
-      name: templateId
-      schema:
-        $ref: "oapi-shared.yaml#/components/schemas/Identifier"
-      required: true
-    IncludeCertificateParameter:
-      in: query
-      name: "includeCertificate"
-      schema:
-        type: boolean
-      required: false
-  responses:
-    AgentConfigurationResponse:
-      description: Agent autoconfig response
-      content:
-        application/json:
-          schema:
-            $ref: "oapi-shared.yaml#/components/schemas/AgentConfiguration"

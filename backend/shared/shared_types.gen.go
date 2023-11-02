@@ -159,9 +159,6 @@ type AgentConfigurationParameters struct {
 	union json.RawMessage
 }
 
-// AgentProfile defines model for AgentProfile.
-type AgentProfile = agentProfileComposed
-
 // AgentProfileFields defines model for AgentProfileFields.
 type AgentProfileFields struct {
 	MsEntraClientCredentialInstalledCertificateIds []Identifier       `json:"msEntraClientCredentialInstalledCertificateIds"`

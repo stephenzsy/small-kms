@@ -193,27 +193,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentInstance"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
-      - in: header
-        name: "X-Cryptocat-Proxy-Authorization"
-        schema:
-          type: string
-        required: true
-    get:
-      tags:
-        - admin
-      operationId: GetAgentInstanceDiagnostics
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

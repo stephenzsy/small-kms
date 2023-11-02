@@ -75,7 +75,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 
 			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
 				base.StringIdentifier("me"), instanceIdenfier, managedapp.AgentInstanceFields{
-					Version:  config.GetVersion(),
+					Version:  config.Version(),
 					Endpoint: et.endpoint,
 					BuildID:  et.buildID,
 				})

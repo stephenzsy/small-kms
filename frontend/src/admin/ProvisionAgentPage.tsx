@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 
 import { useMemoizedFn, useRequest } from "ahooks";
 import {
@@ -13,19 +13,15 @@ import {
 } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { DefaultOptionType } from "antd/es/select";
+import { ColumnsType } from "antd/es/table";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
+import { Link } from "../components/Link";
 import {
   AdminApi,
-  AgentConfigName,
   AgentConfigServerFields,
   AgentConfigServerToJSON,
-  AgentConfigurationAgentActiveHostBootstrapToJSON,
-  AgentConfigurationParameters,
-  AgentConfigurationParametersFromJSON,
   AgentInstance,
-  AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
-  AzureRoleAssignmentFromJSON,
   CertPolicyRef,
   NamespaceKind,
 } from "../generated";
@@ -36,9 +32,6 @@ import {
   NamespaceContext,
   NamespaceContextValue,
 } from "./contexts/NamespaceContext";
-import { ColumnsType } from "antd/es/table";
-import { WellknownId } from "../constants";
-import { Link } from "../components/Link";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -50,40 +43,6 @@ import { Link } from "../components/Link";
 //     name: "Agent Active Host Server",
 //   },
 // ];
-
-function useConfigurationSkeleton(
-  configName: AgentConfigName,
-  nsId: string,
-  nsKind: NamespaceKind
-): string {
-  return useMemo(() => {
-    switch (configName) {
-      case AgentConfigName.AgentConfigNameActiveHostBootstrap:
-        return JSON.stringify(
-          AgentConfigurationAgentActiveHostBootstrapToJSON({
-            controllerContainer: {
-              imageRefStr: "dockerimage:latest",
-            },
-            name: configName,
-          }),
-          undefined,
-          2
-        );
-      case AgentConfigName.AgentConfigNameActiveServer:
-      // return JSON.stringify(
-      //   AgentConfigurationAgentActiveServerToJSON({
-      //     name: configName,
-      //     authorizedCertificateTemplateId:
-      //       "00000000-0000-0000-0000-000000000000",
-      //     serverCertificateTemplateId: `cert-template:default-mtls`,
-      //   }),
-      //   undefined,
-      //   2
-      // );
-    }
-    return "";
-  }, [configName, nsId]);
-}
 
 const wellKnownRoleDefinitionIds: Record<string, string> = {
   "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
