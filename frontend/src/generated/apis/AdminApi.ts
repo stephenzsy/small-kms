@@ -125,6 +125,13 @@ export interface AgentDockerInfoRequest {
     xCryptocatProxyAuthorization?: string;
 }
 
+export interface AgentDockerNetworkListRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
 export interface AgentPullImageRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -555,6 +562,56 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentDockerInfo(requestParameters: AgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
         const response = await this.agentDockerInfoRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get docker system info
+     */
+    async agentDockerNetworkListRaw(requestParameters: AgentDockerNetworkListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerNetworkList.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerNetworkList.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerNetworkList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get docker system info
+     */
+    async agentDockerNetworkList(requestParameters: AgentDockerNetworkListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
+        const response = await this.agentDockerNetworkListRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

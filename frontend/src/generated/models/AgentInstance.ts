@@ -61,6 +61,12 @@ export interface AgentInstance {
      * @memberof AgentInstance
      */
     buildId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentInstance
+     */
+    mode?: string;
 }
 
 /**
@@ -93,6 +99,7 @@ export function AgentInstanceFromJSONTyped(json: any, ignoreDiscriminator: boole
         'endpoint': !exists(json, 'endpoint') ? undefined : json['endpoint'],
         'version': json['version'],
         'buildId': json['buildId'],
+        'mode': !exists(json, 'mode') ? undefined : json['mode'],
     };
 }
 
@@ -112,6 +119,7 @@ export function AgentInstanceToJSON(value?: AgentInstance | null): any {
         'endpoint': value.endpoint,
         'version': value.version,
         'buildId': value.buildId,
+        'mode': value.mode,
     };
 }
 

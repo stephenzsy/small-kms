@@ -37,6 +37,12 @@ export interface AgentInstanceFields {
      * @memberof AgentInstanceFields
      */
     buildId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentInstanceFields
+     */
+    mode?: string;
 }
 
 /**
@@ -63,6 +69,7 @@ export function AgentInstanceFieldsFromJSONTyped(json: any, ignoreDiscriminator:
         'endpoint': !exists(json, 'endpoint') ? undefined : json['endpoint'],
         'version': json['version'],
         'buildId': json['buildId'],
+        'mode': !exists(json, 'mode') ? undefined : json['mode'],
     };
 }
 
@@ -78,6 +85,7 @@ export function AgentInstanceFieldsToJSON(value?: AgentInstanceFields | null): a
         'endpoint': value.endpoint,
         'version': value.version,
         'buildId': value.buildId,
+        'mode': value.mode,
     };
 }
 

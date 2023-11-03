@@ -6,6 +6,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type Parameters struct {
@@ -21,6 +22,7 @@ func (s *agentServer) LaunchSidecar(c context.Context, fromContainerID string,
 	if err != nil {
 		return err
 	}
+
 	s.dockerClient.ContainerCreate(c,
 		&container.Config{
 			ExposedPorts: params.ExposedPorts,
@@ -28,7 +30,7 @@ func (s *agentServer) LaunchSidecar(c context.Context, fromContainerID string,
 			Cmd:          []string{"/agent-server", "server", params.ListenerAddress},
 			Image:        params.Image,
 			StopSignal:   "SIGINT",
-			StopTimeout:  fromContainer.Config.StopTimeout,
+			StopTimeout:  utils.ToPtr(10),
 		},
 		&container.HostConfig{
 			Binds:        fromContainer.HostConfig.Binds,
@@ -36,7 +38,9 @@ func (s *agentServer) LaunchSidecar(c context.Context, fromContainerID string,
 			AutoRemove:   true,
 			Mounts:       fromContainer.HostConfig.Mounts,
 		},
-		&network.NetworkingConfig{},
+		&network.NetworkingConfig{
+			EndpointsConfig: fromContainer.NetworkSettings.Networks,
+		},
 		nil, fromContainer.Name+"-sidecar")
 
 	return nil

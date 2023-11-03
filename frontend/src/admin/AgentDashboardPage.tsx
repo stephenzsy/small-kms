@@ -302,6 +302,15 @@ function AgentDashboard({ api }: { api: AdminApi }) {
     });
   });
 
+  const listDockerNetworks = useMemoizedFn(async () => {
+    return await api.agentDockerNetworkList({
+      namespaceIdentifier,
+      namespaceKind,
+      resourceIdentifier: instanceId,
+      xCryptocatProxyAuthorization: getAccessToken(),
+    });
+  });
+
   return (
     <>
       <Card title="Agent proxy information">
@@ -327,7 +336,18 @@ function AgentDashboard({ api }: { api: AdminApi }) {
           >
             List Docker images
           </Button>
-
+          <Button
+            type="link"
+            onClick={() => {
+              openDrawer({
+                title: "Docker networks",
+                onGetData: listDockerNetworks,
+              });
+            }}
+            disabled={!hasToken}
+          >
+            List Docker networks
+          </Button>
           <Button
             type="link"
             onClick={() => {
@@ -340,7 +360,6 @@ function AgentDashboard({ api }: { api: AdminApi }) {
           >
             Docker system info
           </Button>
-
           <Button
             type="link"
             onClick={() => {
