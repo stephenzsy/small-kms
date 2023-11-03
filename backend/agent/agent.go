@@ -72,10 +72,13 @@ func main() {
 	agentPushEndpoint := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "PUSH_ENDPOINT", "https://localhost:8443")
 
 	args := flag.Args()
+
+	mode := args[0]
 	if len(args) >= 2 {
-		switch args[0] {
-		case "server":
-			agentPushServer, err := agentpush.NewServer(BuildID)
+		switch mode {
+		case "server",
+			"sidecar":
+			agentPushServer, err := agentpush.NewServer(BuildID, mode)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
@@ -97,7 +100,7 @@ func main() {
 				return e, nil
 			}
 			keeperTask := keeper.NewKeeper(configManager)
-			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint)
+			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, mode)
 
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).

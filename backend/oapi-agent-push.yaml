@@ -111,6 +111,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DockerInfo"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: Get docker system info
+      operationId: AgentDockerNetworkList
+      responses:
+        200:
+          description: List of networks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DockerNetworkResource"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -166,6 +187,11 @@ components:
     DockerImageSummary:
       type: object
       x-go-type: types.ImageSummary
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"
+    DockerNetworkResource:
+      type: object
+      x-go-type: types.NetworkResource
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
     PullImageRequest:

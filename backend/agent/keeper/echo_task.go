@@ -20,6 +20,7 @@ type echoTask struct {
 	newEcho      func(config AgentServerConfiguration) (*echo.Echo, error)
 	agentEnv     *agentutils.AgentEnv
 	endpoint     string
+	mode         string
 }
 
 // Name implements taskmanager.Task.
@@ -78,6 +79,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 					Version:  config.Version(),
 					Endpoint: et.endpoint,
 					BuildID:  et.buildID,
+					Mode:     et.mode,
 				})
 		}
 	}
@@ -86,12 +88,13 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 
 var _ taskmanager.Task = (*echoTask)(nil)
 
-func NewEchoTask(buildID string, newEcho func(config AgentServerConfiguration) (*echo.Echo, error), keeper *keeperTaskExecutor, endpoint string) *echoTask {
+func NewEchoTask(buildID string, newEcho func(config AgentServerConfiguration) (*echo.Echo, error), keeper *keeperTaskExecutor, endpoint, mode string) *echoTask {
 	return &echoTask{
 		buildID:      buildID,
 		newEcho:      newEcho,
 		configUpdate: keeper.ConfigUpdate(),
 		agentEnv:     keeper.cm.envConfig,
 		endpoint:     endpoint,
+		mode:         mode,
 	}
 }

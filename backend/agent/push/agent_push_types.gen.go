@@ -23,6 +23,9 @@ type DockerImageSummary = types.ImageSummary
 // DockerInfo defines model for DockerInfo.
 type DockerInfo = types.Info
 
+// DockerNetworkResource defines model for DockerNetworkResource.
+type DockerNetworkResource = types.NetworkResource
+
 // PullImageRequest defines model for PullImageRequest.
 type PullImageRequest struct {
 	ImageTag         string `json:"imageTag"`
@@ -54,6 +57,11 @@ type AgentDockerImageListParams struct {
 
 // AgentDockerInfoParams defines parameters for AgentDockerInfo.
 type AgentDockerInfoParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
+// AgentDockerNetworkListParams defines parameters for AgentDockerNetworkList.
+type AgentDockerNetworkListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

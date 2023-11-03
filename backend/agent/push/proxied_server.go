@@ -16,6 +16,13 @@ type proxiedServer struct {
 	proxyClientPool *ProxyClientPool
 }
 
+// AgentDockerNetworkList implements ServerInterface.
+func (s *proxiedServer) AgentDockerNetworkList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier, resourceIdentifier base.Identifier, params AgentDockerNetworkListParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerNetworkListWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+	})
+}
+
 func (s *proxiedServer) delegateRequest(ec echo.Context,
 	namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier,
 	resourceIdentifier base.Identifier, delegatedAuthToken *string,

@@ -287,6 +287,9 @@ components:
         buildId:
           type: string
           x-go-name: BuildID
+        mode:
+          type: string
+          x-go-type-skip-optional-pointer: true
       required:
         - version
         - buildId

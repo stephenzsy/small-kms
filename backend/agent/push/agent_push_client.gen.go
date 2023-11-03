@@ -105,6 +105,9 @@ type ClientInterface interface {
 	// AgentDockerInfo request
 	AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AgentDockerNetworkList request
+	AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AgentPullImageWithBody request with any body
 	AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -161,6 +164,18 @@ func (c *Client) AgentDockerImageList(ctx context.Context, namespaceKind externa
 
 func (c *Client) AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAgentDockerInfoRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerNetworkListRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
 	if err != nil {
 		return nil, err
 	}
@@ -517,6 +532,69 @@ func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.Namespa
 	return req, nil
 }
 
+// NewAgentDockerNetworkListRequest generates requests for AgentDockerNetworkList
+func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/docker/networks", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.XCryptocatProxyAuthorization != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewAgentPullImageRequest calls the generic AgentPullImage builder with application/json body
 func NewAgentPullImageRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -651,6 +729,9 @@ type ClientWithResponsesInterface interface {
 	// AgentDockerInfoWithResponse request
 	AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error)
 
+	// AgentDockerNetworkListWithResponse request
+	AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error)
+
 	// AgentPullImageWithBodyWithResponse request with any body
 	AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
 
@@ -767,6 +848,28 @@ func (r AgentDockerInfoResponse) StatusCode() int {
 	return 0
 }
 
+type AgentDockerNetworkListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DockerNetworkResource
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentDockerNetworkListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentDockerNetworkListResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AgentPullImageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -831,6 +934,15 @@ func (c *ClientWithResponses) AgentDockerInfoWithResponse(ctx context.Context, n
 		return nil, err
 	}
 	return ParseAgentDockerInfoResponse(rsp)
+}
+
+// AgentDockerNetworkListWithResponse request returning *AgentDockerNetworkListResponse
+func (c *ClientWithResponses) AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error) {
+	rsp, err := c.AgentDockerNetworkList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerNetworkListResponse(rsp)
 }
 
 // AgentPullImageWithBodyWithResponse request with arbitrary body returning *AgentPullImageResponse
@@ -970,6 +1082,32 @@ func ParseAgentDockerInfoResponse(rsp *http.Response) (*AgentDockerInfoResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest DockerInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAgentDockerNetworkListResponse parses an HTTP response from a AgentDockerNetworkListWithResponse call
+func ParseAgentDockerNetworkListResponse(rsp *http.Response) (*AgentDockerNetworkListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentDockerNetworkListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DockerNetworkResource
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

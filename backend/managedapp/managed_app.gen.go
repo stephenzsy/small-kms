@@ -62,6 +62,7 @@ type AgentInstance = agentInstanceComposed
 type AgentInstanceFields struct {
 	BuildID  string `json:"buildId"`
 	Endpoint string `json:"endpoint,omitempty"`
+	Mode     string `json:"mode,omitempty"`
 	Version  string `json:"version"`
 }
 

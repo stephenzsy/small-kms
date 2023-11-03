@@ -21,6 +21,7 @@ type agentServer struct {
 	dockerClient    *dockerclient.Client
 	acrAuthProvider *acr.DockerRegistryAuthProvider
 	acrImageRepo    string
+	mode            string
 }
 
 // AgentDockerContainerInspect implements ServerInterface.
@@ -86,6 +87,16 @@ func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerNetworkListParams) error {
+	c := ec.(ctx.RequestContext)
+
+	result, err := s.dockerClient.NetworkList(c, types.NetworkListOptions{})
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, result)
+}
+
 // GetDiagnostics implements ServerInterface.
 func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ GetAgentDiagnosticsParams) error {
 	c := ec.(ctx.RequestContext)
@@ -109,7 +120,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string) (*agentServer, error) {
+func NewServer(buildID string, mode string) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string
@@ -138,6 +149,7 @@ func NewServer(buildID string) (*agentServer, error) {
 		dockerClient:    cli,
 		acrAuthProvider: acr.NewDockerRegistryAuthProvider(acrLoginServer, config.ServiceIdentity().TokenCredential(), tenantID),
 		acrImageRepo:    acrImageRepo,
+		mode:            mode,
 	}
 
 	return s, err
