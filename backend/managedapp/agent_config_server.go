@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
+	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/cloudutils"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -175,7 +176,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 	nsCtx := ns.GetNSContext(c)
 	// AcrPull
 	{
-		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
+		acrName, err := acr.ExtractACRName(doc.GlobalACRImageRef)
 		if err != nil {
 			return err
 		}
@@ -251,7 +252,7 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 	pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 2)
 	// ACR Pull
 	{
-		acrName, err := cloudutils.ExtractACRName(doc.GlobalACRImageRef)
+		acrName, err := acr.ExtractACRName(doc.GlobalACRImageRef)
 		if err != nil {
 			return err
 		}

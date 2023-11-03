@@ -112,7 +112,7 @@ func (p *configProvisioner) provision(c context.Context) (*agentServerConfigurat
 			if err != nil {
 				return nil, err
 			}
-			sid := azsecrets.ID(*cert.KeyVaultSecretID)
+			sid := azsecrets.ID(cert.KeyVaultSecretID)
 			getSecretResposne, err := azSecretsClient.GetSecret(c, sid.Name(), sid.Version(), nil)
 			if err != nil {
 				return nil, err

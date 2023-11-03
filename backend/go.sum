@@ -6,8 +6,8 @@ github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0 h1:BMAjVKJM0U/CYF27gA0ZM
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0/go.mod h1:1fXstnBMas5kzG+S3q8UoJcmyU6nUeunJcMDHcRYHhs=
 github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos v0.3.6 h1:oBqQLSI1pZwGOdXJAoJJSzmff9tlfD4KroVfjQQmd0g=
 github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos v0.3.6/go.mod h1:Beh5cHIXJ0oWEDWk9lNFtuklCojLLQ5hl+LqSNTTs0I=
-github.com/Azure/azure-sdk-for-go/sdk/internal v1.4.0 h1:TuEMD+E+1aTjjLICGQOW6vLe8UWES7kopac9mUXL56Y=
-github.com/Azure/azure-sdk-for-go/sdk/internal v1.4.0/go.mod h1:s4kgfzA0covAXNicZHDMN58jExvcng2mC/DepXiF1EI=
+github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.0 h1:d81/ng9rET2YqdVkVwkb6EXeRrLJIwyGnJcAlAWKwhs=
+github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.0/go.mod h1:s4kgfzA0covAXNicZHDMN58jExvcng2mC/DepXiF1EI=
 github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2 v2.1.1 h1:6A4M8smF+y8nM/DYsLNQz9n7n2ZGaEVqfz8ZWQirQkI=
 github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2 v2.1.1/go.mod h1:WqyxV5S0VtXD2+2d6oPqOvyhGubCvzLCKSAKgQ004Uk=
 github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage v1.2.0 h1:Ma67P/GGprNwsslzEH6+Kb8nybI8jpDTm4Wmzu2ReK8=

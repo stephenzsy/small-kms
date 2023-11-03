@@ -55,7 +55,7 @@ type CertPolicyFields struct {
 
 // CertPolicyParameters defines model for CertPolicyParameters.
 type CertPolicyParameters struct {
-	DisplayName               *string                      `json:"displayName,omitempty"`
+	DisplayName               string                       `json:"displayName,omitempty"`
 	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
 	Flags                     []CertificateFlag            `json:"flags,omitempty"`
 	IssuerNamespaceIdentifier *externalRef0.Identifier     `json:"issuerNamespaceIdentifier,omitempty"`
@@ -91,7 +91,7 @@ type CertificateFields struct {
 	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
 	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
 	Jwk                     externalRef1.JsonWebKey                   `json:"jwk"`
-	KeyVaultSecretID        *string                                   `json:"sid,omitempty"`
+	KeyVaultSecretID        string                                    `json:"sid,omitempty"`
 	Subject                 CertificateSubject                        `json:"subject"`
 	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
 }

@@ -41,6 +41,7 @@ models/NamespaceKind.ts
 models/ProfileParameters.ts
 models/ProfileRef.ts
 models/ProfileRefFields.ts
+models/PullImageRequest.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts

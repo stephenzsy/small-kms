@@ -2,19 +2,14 @@ package bootstrap
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/google/uuid"
 	log "github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/cloudutils"
-	"github.com/stephenzsy/small-kms/backend/internal/tokenutils/acr"
+	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 )
 
 type dockerRegistryAuth struct {
@@ -31,34 +26,22 @@ func getDockerClient() *dockerclient.Client {
 }
 
 func dockerPullImage(ctx context.Context, imageRef string, creds azcore.TokenCredential, tenantID string) error {
-	registryLoginUrl, err := cloudutils.ExtractACRLoginServer(imageRef)
+	registryLoginUrl, err := acr.ExtractACRLoginServer(imageRef)
 	if err != nil {
 		return err
 	}
-	log.Debug().Msgf("Registry login url: %s", registryLoginUrl)
 
-	registryEndpoint := "https://" + registryLoginUrl
-
-	acrAuthCli := acr.NewAuthenticationClient(registryEndpoint, creds, &acr.AuthenticationClientOptions{
-		TenantID: tenantID,
-	})
-	token, err := acrAuthCli.ExchagneAADTokenForACRRefreshToken(ctx, registryLoginUrl)
-	if err != nil {
-		return fmt.Errorf("failed to exchange token: %w", err)
-	}
-
+	log.Ctx(ctx).Debug().Msgf("Registry login url: %s", registryLoginUrl)
 	dcli := getDockerClient()
-	dra := dockerRegistryAuth{
-		Username: uuid.Nil.String(),
-		Password: *token.RefreshToken,
-	}
-	dockerRegistryAuthJson, err := json.Marshal(dra)
+
+	authProvider := acr.NewDockerRegistryAuthProvider(registryLoginUrl, creds, tenantID)
+	registryAuth, err := authProvider.GetRegistryAuth(ctx)
 	if err != nil {
 		return err
 	}
 
 	out, err := dcli.ImagePull(context.Background(), imageRef, types.ImagePullOptions{
-		RegistryAuth: base64.RawURLEncoding.EncodeToString(dockerRegistryAuthJson),
+		RegistryAuth: registryAuth,
 	})
 	if err != nil {
 		return err

@@ -36,8 +36,8 @@ func apiGetCertificate(c context.Context, rID base.Identifier, isAdminOrSelf boo
 	m := new(Certificate)
 	doc.PopulateModel(m)
 
-	if isAdminOrSelf && doc.KeyVaultStore.SID != "" {
-		m.KeyVaultSecretID = &doc.KeyVaultStore.SID
+	if isAdminOrSelf {
+		m.KeyVaultSecretID = doc.KeyVaultStore.SID
 	}
 	return m, err
 }

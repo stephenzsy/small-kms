@@ -5,38 +5,6 @@ info:
 paths: {}
 components:
   schemas:
-    AgentProfileFields:
-      type: object
-      properties:
-        status:
-          $ref: "#/components/schemas/AgentProfileStatus"
-        msEntraClientCredentialInstalledCertificateIds:
-          type: array
-          items:
-            $ref: "#/components/schemas/Identifier"
-            x-go-name: MsEntraClientCredentialInstalledCertificateIDs
-      required:
-        - status
-        - msEntraClientCredentialInstalledCertificateIds
-        - appRoles
-    AgentProfileParameters:
-      type: object
-      properties:
-        msEntraClientCredentialCertificateTemplateId:
-          $ref: "#/components/schemas/Identifier"
-          x-go-name: MsEntraClientCredentialCertificateTemplateID
-      required:
-        - msEntraClientCredentialCertificateTemplateId
-    AgentProfileStatus:
-      type: string
-      enum:
-        - pending
-        - provisioned
-        - error
-      x-enum-varnames:
-        - AgentProfileStatusPending
-        - AgentProfileStatusProvisioned
-        - AgentProfileStatusError
     AgentConfigName:
       type: string
       enum:
@@ -231,22 +199,6 @@ components:
       x-enum-varnames:
         - KeyTypeRSA
         - KeyTypeEC
-    JwkKeyOperation:
-      type: string
-      enum:
-        - sign
-        - verify
-        - encrypt
-        - decrypt
-        - wrapKey
-        - unwrapKey
-      x-enum-varnames:
-        - KeyOpSign
-        - KeyOpVerify
-        - KeyOpEncrypt
-        - KeyOpDecrypt
-        - KeyOpWrapKey
-        - KeyOpUnwrapKey
     JwkProperties:
       type: object
       description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
@@ -259,8 +211,6 @@ components:
           description: RSA key size
           type: integer
           format: int32
-        key_ops:
-          $ref: "#/components/schemas/JwkKeyOperation"
         n:
           description: RSA modulus
           type: string

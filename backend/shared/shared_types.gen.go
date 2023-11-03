@@ -26,13 +26,6 @@ const (
 	AgentConfigurationAgentActiveServerReplyStateUp   AgentConfigurationAgentActiveServerReplyState = "up"
 )
 
-// Defines values for AgentProfileStatus.
-const (
-	AgentProfileStatusError       AgentProfileStatus = "error"
-	AgentProfileStatusPending     AgentProfileStatus = "pending"
-	AgentProfileStatusProvisioned AgentProfileStatus = "provisioned"
-)
-
 // Defines values for CertificateUsage.
 const (
 	CertUsageCA         CertificateUsage = "ca"
@@ -54,16 +47,6 @@ const (
 const (
 	CurveNameP256 JwkCrv = "P-256"
 	CurveNameP384 JwkCrv = "P-384"
-)
-
-// Defines values for JwkKeyOperation.
-const (
-	KeyOpDecrypt   JwkKeyOperation = "decrypt"
-	KeyOpEncrypt   JwkKeyOperation = "encrypt"
-	KeyOpSign      JwkKeyOperation = "sign"
-	KeyOpUnwrapKey JwkKeyOperation = "unwrapKey"
-	KeyOpVerify    JwkKeyOperation = "verify"
-	KeyOpWrapKey   JwkKeyOperation = "wrapKey"
 )
 
 // Defines values for JwtKty.
@@ -159,20 +142,6 @@ type AgentConfigurationParameters struct {
 	union json.RawMessage
 }
 
-// AgentProfileFields defines model for AgentProfileFields.
-type AgentProfileFields struct {
-	MsEntraClientCredentialInstalledCertificateIds []Identifier       `json:"msEntraClientCredentialInstalledCertificateIds"`
-	Status                                         AgentProfileStatus `json:"status"`
-}
-
-// AgentProfileParameters defines model for AgentProfileParameters.
-type AgentProfileParameters struct {
-	MsEntraClientCredentialCertificateTemplateId Identifier `json:"msEntraClientCredentialCertificateTemplateId"`
-}
-
-// AgentProfileStatus defines model for AgentProfileStatus.
-type AgentProfileStatus string
-
 // CertificateFingerprint defines model for CertificateFingerprint.
 type CertificateFingerprint = certificateFingerprintImpl
 
@@ -225,17 +194,13 @@ type JwkAlg string
 // JwkCrv defines model for JwkCrv.
 type JwkCrv string
 
-// JwkKeyOperation defines model for JwkKeyOperation.
-type JwkKeyOperation string
-
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
 	Alg *JwkAlg `json:"alg,omitempty"`
 	Crv *JwkCrv `json:"crv,omitempty"`
 
 	// E RSA exponent
-	E      Base64RawURLEncodableBytes `json:"e,omitempty"`
-	KeyOps *JwkKeyOperation           `json:"key_ops,omitempty"`
+	E Base64RawURLEncodableBytes `json:"e,omitempty"`
 
 	// KeySize RSA key size
 	KeySize *int32 `json:"key_size,omitempty"`

@@ -25,6 +25,27 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: Get docker images
+      operationId: AgentDockerImageList
+      responses:
+        200:
+          description: ImageList
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DockerImageSummary"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -44,6 +65,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DockerInfo"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    post:
+      tags:
+        - agent
+        - admin
+      description: Agent pull image
+      operationId: AgentPullImage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PullImageRequest"
+      responses:
+        204:
+          description: agent pull image resposne
+          content: {}
 security:
   - BearerAuth: []
 components:
@@ -65,3 +107,17 @@ components:
       x-go-type: types.Info
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
+    DockerImageSummary:
+      type: object
+      x-go-type: types.ImageSummary
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"
+    PullImageRequest:
+      type: object
+      properties:
+        imageTag:
+          type: string
+        includeLatestTag:
+          type: boolean
+      required:
+        - imageTag

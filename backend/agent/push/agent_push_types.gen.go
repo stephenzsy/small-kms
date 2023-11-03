@@ -11,8 +11,17 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// DockerImageSummary defines model for DockerImageSummary.
+type DockerImageSummary = types.ImageSummary
+
 // DockerInfo defines model for DockerInfo.
 type DockerInfo = types.Info
+
+// PullImageRequest defines model for PullImageRequest.
+type PullImageRequest struct {
+	ImageTag         string `json:"imageTag"`
+	IncludeLatestTag *bool  `json:"includeLatestTag,omitempty"`
+}
 
 // DelegatedAuthorizationHeaderParameter defines model for DelegatedAuthorizationHeaderParameter.
 type DelegatedAuthorizationHeaderParameter = string
@@ -22,7 +31,20 @@ type GetAgentDiagnosticsParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 
+// AgentDockerImageListParams defines parameters for AgentDockerImageList.
+type AgentDockerImageListParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
 // GetAgentDockerInfoParams defines parameters for GetAgentDockerInfo.
 type GetAgentDockerInfoParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
+
+// AgentPullImageParams defines parameters for AgentPullImage.
+type AgentPullImageParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
+// AgentPullImageJSONRequestBody defines body for AgentPullImage for application/json ContentType.
+type AgentPullImageJSONRequestBody = PullImageRequest

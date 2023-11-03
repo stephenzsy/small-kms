@@ -323,6 +323,7 @@ components:
       properties:
         displayName:
           type: string
+          x-go-type-skip-optional-pointer: true
         keySpec:
           $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
@@ -421,6 +422,7 @@ components:
         sid:
           type: string
           x-go-name: KeyVaultSecretID
+          x-go-type-skip-optional-pointer: true
       required:
         - subject
         - jwk

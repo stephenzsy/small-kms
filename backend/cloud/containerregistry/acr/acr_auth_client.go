@@ -88,21 +88,6 @@ func (client *authenticationClient) ExchagneAADTokenForACRRefreshToken(ctx conte
 		return acrAccessToken{}, err
 	}
 
-	// // first find chanllenge
-	// chanllengeReq, err := client.getChallengeRequest(ctx, accessToken.Token)
-	// if err != nil {
-	// 	return acrAccessToken{}, err
-	// }
-	// chanllengResp, err := client.pl.Do(chanllengeReq)
-	// var service, scope string
-	// if chanllengResp.StatusCode == http.StatusUnauthorized {
-	// 	if service, scope, err = findServiceAndScope(chanllengResp); err != nil {
-	// 		return acrAccessToken{}, err
-	// 	}
-	// } else {
-	// 	return acrAccessToken{}, err
-	// }
-
 	req, err := client.exchangeAADAccessTokenForACRRefreshTokenCreateRequest(ctx, service, accessToken.Token)
 	if err != nil {
 		return acrAccessToken{}, err
@@ -124,41 +109,3 @@ func (client *authenticationClient) exchangeAADAccessTokenForACRRefreshTokenHand
 	}
 	return result, nil
 }
-
-// func (client *authenticationClient) getChallengeRequest(ctx context.Context, accessToken string) (*policy.Request, error) {
-// 	urlPath := "/v2/"
-// 	req, err := runtime.NewRequest(ctx, http.MethodPost, runtime.JoinPaths(client.endpoint, urlPath))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	//req.Raw().Header["Authorization"] = []string{"Bearer " + accessToken}
-// 	return req, err
-// }
-
-// func findServiceAndScope(resp *http.Response) (string, string, error) {
-// 	authHeader := resp.Header.Get("WWW-Authenticate")
-// 	if authHeader == "" {
-// 		return "", "", errors.New("response has no WWW-Authenticate header for challenge authentication")
-// 	}
-// 	log.Println("Www-Authenticate: ", authHeader)
-
-// 	authHeader = strings.ReplaceAll(authHeader, "Bearer ", "")
-// 	parts := strings.Split(authHeader, "\",")
-// 	valuesMap := map[string]string{}
-// 	for _, part := range parts {
-// 		subParts := strings.Split(part, "=")
-// 		if len(subParts) == 2 {
-// 			valuesMap[subParts[0]] = strings.ReplaceAll(subParts[1], "\"", "")
-// 		}
-// 	}
-
-// 	if _, ok := valuesMap["service"]; !ok {
-// 		return "", "", errors.New("could not find a valid service in the WWW-Authenticate header")
-// 	}
-
-// 	if _, ok := valuesMap["scope"]; !ok {
-// 		return "", "", errors.New("could not find a valid scope in the WWW-Authenticate header")
-// 	}
-
-// 	return valuesMap["service"], valuesMap["scope"], nil
-// }

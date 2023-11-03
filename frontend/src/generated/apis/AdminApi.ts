@@ -34,6 +34,7 @@ import type {
   NamespaceKind,
   ProfileParameters,
   ProfileRef,
+  PullImageRequest,
   RequestDiagnostics,
   ResourceKind,
   SystemAppName,
@@ -77,6 +78,8 @@ import {
     ProfileParametersToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
+    PullImageRequestFromJSON,
+    PullImageRequestToJSON,
     RequestDiagnosticsFromJSON,
     RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
@@ -91,6 +94,21 @@ export interface AddKeyVaultRoleAssignmentRequest {
     resourceIdentifier: string;
     resourceCategory: AzureKeyvaultResourceCategory;
     roleDefinitionId: string;
+}
+
+export interface AgentDockerImageListRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
+export interface AgentPullImageRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+    pullImageRequest?: PullImageRequest;
 }
 
 export interface CreateAgentInstanceProxyAuthTokenRequest {
@@ -319,6 +337,108 @@ export class AdminApi extends runtime.BaseAPI {
     async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
         const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Get docker images
+     */
+    async agentDockerImageListRaw(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerImageList.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerImageList.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerImageList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get docker images
+     */
+    async agentDockerImageList(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
+        const response = await this.agentDockerImageListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Agent pull image
+     */
+    async agentPullImageRaw(requestParameters: AgentPullImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentPullImage.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentPullImage.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentPullImage.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: PullImageRequestToJSON(requestParameters.pullImageRequest),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Agent pull image
+     */
+    async agentPullImage(requestParameters: AgentPullImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.agentPullImageRaw(requestParameters, initOverrides);
     }
 
     /**

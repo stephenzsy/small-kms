@@ -40,6 +40,7 @@ export * from './NamespaceKind';
 export * from './ProfileParameters';
 export * from './ProfileRef';
 export * from './ProfileRefFields';
+export * from './PullImageRequest';
 export * from './RequestDiagnostics';
 export * from './RequestHeaderEntry';
 export * from './ResourceKind';

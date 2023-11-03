@@ -45,8 +45,8 @@ func (d *CertPolicyDoc) Init(
 	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCertPolicy, policyID)
 
 	d.DisplayName = policyID.String()
-	if p.DisplayName != nil && *p.DisplayName != "" {
-		d.DisplayName = *p.DisplayName
+	if p.DisplayName != "" {
+		d.DisplayName = p.DisplayName
 	}
 
 	digest := md5.New()
