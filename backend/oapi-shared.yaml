@@ -5,121 +5,6 @@ info:
 paths: {}
 components:
   schemas:
-    AgentConfigName:
-      type: string
-      enum:
-        - heartbeat
-        - agent-active-host-bootstrap
-        - agent-active-server
-      x-enum-varnames:
-        - AgentConfigNameHeartbeat
-        - AgentConfigNameActiveHostBootstrap
-        - AgentConfigNameActiveServer
-    AgentConfiguration:
-      type: object
-      properties:
-        config:
-          $ref: "#/components/schemas/AgentConfigurationParameters"
-        version:
-          type: string
-          description: >
-            Version of the agent configuration
-        nextRefreshToken:
-          type: string
-        nextRefreshAfter:
-          type: string
-          format: date-time
-      required:
-        - config
-        - version
-        - lastEvaluated
-    AgentConfigurationAgentActiveHostBootstrap:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/AgentConfigName"
-        controllerContainer:
-          $ref: "#/components/schemas/AgentConfigurationActiveHostControllerContainer"
-      required:
-        - name
-        - controllerContainer
-    AgentConfigurationActiveHostControllerContainer:
-      type: object
-      properties:
-        imageRefStr:
-          type: string
-      required:
-        - imageRefStr
-    AgentConfigurationAgentActiveServerEndpointUrls:
-      type: object
-      properties:
-        primary:
-          type: string
-        secondary:
-          type: string
-    AgentConfigurationAgentActiveServerReply:
-      type: object
-      properties:
-        state:
-          $ref: "#/components/schemas/AgentConfigurationAgentActiveServerReplyState"
-        listener:
-          type: string
-        slotId:
-          type: integer
-          format: int32
-          x-go-type: uint32
-      required:
-        - state
-        - listener
-        - slotId
-    AgentConfigurationAgentActiveServerReplyState:
-      type: string
-      enum:
-        - up
-        - down
-      x-enum-varnames:
-        - AgentConfigurationAgentActiveServerReplyStateUp
-        - AgentConfigurationAgentActiveServerReplyStateDown
-    AgentConfigurationParameters:
-      oneOf:
-        - $ref: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-      discriminator:
-        propertyName: name
-        mapping:
-          agent-active-host-bootstrap: "#/components/schemas/AgentConfigurationAgentActiveHostBootstrap"
-    CertificateFingerprint:
-      type: string
-      x-go-type: certificateFingerprintImpl
-    CertificateInfo:
-      allOf:
-        - $ref: "#/components/schemas/CertificateRef"
-        - $ref: "#/components/schemas/CertificateInfoFields"
-        - x-go-type: certificateInfoComposed
-    CertificateInfoFields:
-      type: object
-      properties:
-        notBefore:
-          description: Expiration date of the certificate
-          type: string
-          format: date-time
-        subjectAlternativeNames:
-          $ref: "#/components/schemas/SubjectAlternativeNames"
-        usages:
-          type: array
-          items:
-            $ref: "#/components/schemas/CertificateUsage"
-        issuer:
-          description: locator for issuer certificate
-          $ref: "#/components/schemas/ResourceLocator"
-        jwk:
-          $ref: "#/components/schemas/JwkProperties"
-        pem:
-          type: string
-      required:
-        - notBefore
-        - jwk
-        - usages
-        - issuer
     CertificateRef:
       allOf:
         - $ref: "#/components/schemas/ResourceRef"
@@ -128,9 +13,6 @@ components:
     CertificateRefFields:
       type: object
       properties:
-        thumbprint:
-          description: X.509 certificate SHA-1 thumbprint
-          $ref: "#/components/schemas/CertificateFingerprint"
         subjectCommonName:
           description: Common name
           type: string
@@ -149,23 +31,6 @@ components:
         - notAfter
         - template
         - isIssued
-    CertificateUsage:
-      type: string
-      enum:
-        - ca
-        - caRoot
-        - serverAuth
-        - clientAuth
-      x-enum-varnames:
-        - CertUsageCA
-        - CertUsageCARoot
-        - CertUsageServerAuth
-        - CertUsageClientAuth
-    DockerInfo:
-      type: object
-      x-go-type: types.Info
-      x-go-type-import:
-        path: "github.com/docker/docker/api/types"
     Identifier:
       type: string
       x-go-type: identifierImpl

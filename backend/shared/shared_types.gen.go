@@ -4,34 +4,8 @@
 package shared
 
 import (
-	"encoding/json"
-	"errors"
 	"net"
 	"time"
-
-	"github.com/docker/docker/api/types"
-	"github.com/oapi-codegen/runtime"
-)
-
-// Defines values for AgentConfigName.
-const (
-	AgentConfigNameActiveHostBootstrap AgentConfigName = "agent-active-host-bootstrap"
-	AgentConfigNameActiveServer        AgentConfigName = "agent-active-server"
-	AgentConfigNameHeartbeat           AgentConfigName = "heartbeat"
-)
-
-// Defines values for AgentConfigurationAgentActiveServerReplyState.
-const (
-	AgentConfigurationAgentActiveServerReplyStateDown AgentConfigurationAgentActiveServerReplyState = "down"
-	AgentConfigurationAgentActiveServerReplyStateUp   AgentConfigurationAgentActiveServerReplyState = "up"
-)
-
-// Defines values for CertificateUsage.
-const (
-	CertUsageCA         CertificateUsage = "ca"
-	CertUsageCARoot     CertificateUsage = "caRoot"
-	CertUsageClientAuth CertificateUsage = "clientAuth"
-	CertUsageServerAuth CertificateUsage = "serverAuth"
 )
 
 // Defines values for JwkAlg.
@@ -91,71 +65,6 @@ const (
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
 
-// AgentConfigName defines model for AgentConfigName.
-type AgentConfigName string
-
-// AgentConfiguration defines model for AgentConfiguration.
-type AgentConfiguration struct {
-	Config           AgentConfigurationParameters `json:"config"`
-	NextRefreshAfter *time.Time                   `json:"nextRefreshAfter,omitempty"`
-	NextRefreshToken *string                      `json:"nextRefreshToken,omitempty"`
-
-	// Version Version of the agent configuration
-	Version string `json:"version"`
-}
-
-// AgentConfigurationActiveHostControllerContainer defines model for AgentConfigurationActiveHostControllerContainer.
-type AgentConfigurationActiveHostControllerContainer struct {
-	ImageRefStr string `json:"imageRefStr"`
-}
-
-// AgentConfigurationAgentActiveHostBootstrap defines model for AgentConfigurationAgentActiveHostBootstrap.
-type AgentConfigurationAgentActiveHostBootstrap struct {
-	ControllerContainer AgentConfigurationActiveHostControllerContainer `json:"controllerContainer"`
-	Name                AgentConfigName                                 `json:"name"`
-}
-
-// AgentConfigurationAgentActiveServerEndpointUrls defines model for AgentConfigurationAgentActiveServerEndpointUrls.
-type AgentConfigurationAgentActiveServerEndpointUrls struct {
-	Primary   *string `json:"primary,omitempty"`
-	Secondary *string `json:"secondary,omitempty"`
-}
-
-// AgentConfigurationAgentActiveServerReply defines model for AgentConfigurationAgentActiveServerReply.
-type AgentConfigurationAgentActiveServerReply struct {
-	Listener string                                        `json:"listener"`
-	SlotId   uint32                                        `json:"slotId"`
-	State    AgentConfigurationAgentActiveServerReplyState `json:"state"`
-}
-
-// AgentConfigurationAgentActiveServerReplyState defines model for AgentConfigurationAgentActiveServerReplyState.
-type AgentConfigurationAgentActiveServerReplyState string
-
-// AgentConfigurationParameters defines model for AgentConfigurationParameters.
-type AgentConfigurationParameters struct {
-	union json.RawMessage
-}
-
-// CertificateFingerprint defines model for CertificateFingerprint.
-type CertificateFingerprint = certificateFingerprintImpl
-
-// CertificateInfo defines model for CertificateInfo.
-type CertificateInfo = certificateInfoComposed
-
-// CertificateInfoFields defines model for CertificateInfoFields.
-type CertificateInfoFields struct {
-	Issuer ResourceLocator `json:"issuer"`
-
-	// Jwk Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
-	Jwk JwkProperties `json:"jwk"`
-
-	// NotBefore Expiration date of the certificate
-	NotBefore               time.Time                `json:"notBefore"`
-	Pem                     *string                  `json:"pem,omitempty"`
-	SubjectAlternativeNames *SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
-	Usages                  []CertificateUsage       `json:"usages"`
-}
-
 // CertificateRef defines model for CertificateRef.
 type CertificateRef = certificateRefComposed
 
@@ -168,16 +77,9 @@ type CertificateRefFields struct {
 	NotAfter time.Time `json:"notAfter"`
 
 	// SubjectCommonName Common name
-	SubjectCommonName string                 `json:"subjectCommonName"`
-	Template          ResourceLocator        `json:"template"`
-	Thumbprint        CertificateFingerprint `json:"thumbprint"`
+	SubjectCommonName string          `json:"subjectCommonName"`
+	Template          ResourceLocator `json:"template"`
 }
-
-// CertificateUsage defines model for CertificateUsage.
-type CertificateUsage string
-
-// DockerInfo defines model for DockerInfo.
-type DockerInfo = types.Info
 
 // Identifier defines model for Identifier.
 type Identifier = identifierImpl
@@ -264,62 +166,3 @@ type TemplatedCertificateTag string
 
 // WellknownCertificateTemplateName defines model for WellknownCertificateTemplateName.
 type WellknownCertificateTemplateName string
-
-// AsAgentConfigurationAgentActiveHostBootstrap returns the union data inside the AgentConfigurationParameters as a AgentConfigurationAgentActiveHostBootstrap
-func (t AgentConfigurationParameters) AsAgentConfigurationAgentActiveHostBootstrap() (AgentConfigurationAgentActiveHostBootstrap, error) {
-	var body AgentConfigurationAgentActiveHostBootstrap
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAgentConfigurationAgentActiveHostBootstrap overwrites any union data inside the AgentConfigurationParameters as the provided AgentConfigurationAgentActiveHostBootstrap
-func (t *AgentConfigurationParameters) FromAgentConfigurationAgentActiveHostBootstrap(v AgentConfigurationAgentActiveHostBootstrap) error {
-	v.Name = "agent-active-host-bootstrap"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAgentConfigurationAgentActiveHostBootstrap performs a merge with any union data inside the AgentConfigurationParameters, using the provided AgentConfigurationAgentActiveHostBootstrap
-func (t *AgentConfigurationParameters) MergeAgentConfigurationAgentActiveHostBootstrap(v AgentConfigurationAgentActiveHostBootstrap) error {
-	v.Name = "agent-active-host-bootstrap"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t AgentConfigurationParameters) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"name"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t AgentConfigurationParameters) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "agent-active-host-bootstrap":
-		return t.AsAgentConfigurationAgentActiveHostBootstrap()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t AgentConfigurationParameters) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *AgentConfigurationParameters) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
