@@ -25,6 +25,27 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: List docker containers
+      operationId: AgentDockerContainerList
+      responses:
+        200:
+          description: ContainerList
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DockerContainer"                
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -35,7 +56,7 @@ paths:
       tags:
         - agent
         - admin
-      description: Get docker images
+      description: List docker images
       operationId: AgentDockerImageList
       responses:
         200:
@@ -102,6 +123,11 @@ components:
         type: string
       required: false
   schemas:
+    DockerContainer:
+      type: object
+      x-go-type: types.Container
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"
     DockerInfo:
       type: object
       x-go-type: types.Info

@@ -311,6 +311,7 @@ components:
       properties:
         displayName:
           type: string
+          x-go-type-skip-optional-pointer: true
         keySpec:
           $ref: "#/components/schemas/KeySpec"
         exportable:

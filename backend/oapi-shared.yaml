@@ -183,14 +183,6 @@ components:
         - AlgRS512
         - AlgES256
         - AlgES384
-    JwkCrv:
-      type: string
-      enum:
-        - P-256
-        - P-384
-      x-enum-varnames:
-        - CurveNameP256
-        - CurveNameP384
     JwtKty:
       type: string
       enum:
@@ -221,8 +213,6 @@ components:
           type: string
           x-go-type: Base64RawURLEncodableBytes
           x-go-type-skip-optional-pointer: true
-        crv:
-          $ref: "#/components/schemas/JwkCrv"
         x:
           description: EC x coordinate
           type: string

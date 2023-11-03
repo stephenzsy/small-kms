@@ -101,7 +101,7 @@ type KeyPolicyFields struct {
 
 // KeyPolicyParameters defines model for KeyPolicyParameters.
 type KeyPolicyParameters struct {
-	DisplayName *string              `json:"displayName,omitempty"`
+	DisplayName string               `json:"displayName,omitempty"`
 	ExpiryTime  *externalRef0.Period `json:"expiryTime,omitempty"`
 	Exportable  *bool                `json:"exportable,omitempty"`
 

@@ -96,6 +96,13 @@ export interface AddKeyVaultRoleAssignmentRequest {
     roleDefinitionId: string;
 }
 
+export interface AgentDockerContainerListRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
 export interface AgentDockerImageListRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -340,7 +347,57 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get docker images
+     * List docker containers
+     */
+    async agentDockerContainerListRaw(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerList.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerList.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * List docker containers
+     */
+    async agentDockerContainerList(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
+        const response = await this.agentDockerContainerListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List docker images
      */
     async agentDockerImageListRaw(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
@@ -382,7 +439,7 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get docker images
+     * List docker images
      */
     async agentDockerImageList(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.agentDockerImageListRaw(requestParameters, initOverrides);

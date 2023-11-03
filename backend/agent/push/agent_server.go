@@ -2,6 +2,7 @@ package agentpush
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"runtime"
 
@@ -20,6 +21,19 @@ type agentServer struct {
 	dockerClient    *dockerclient.Client
 	acrAuthProvider *acr.DockerRegistryAuthProvider
 	acrImageRepo    string
+}
+
+// AgentDockerImageList implements ServerInterface.
+func (s *agentServer) AgentDockerContainerList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerContainerListParams) error {
+	c := ec.(ctx.RequestContext)
+
+	containers, err := s.dockerClient.ContainerList(c, types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, containers)
 }
 
 // AgentDockerImageList implements ServerInterface.
@@ -57,10 +71,7 @@ func (s *agentServer) AgentPullImage(ec echo.Context, namespaceKind base.Namespa
 		return err
 	}
 	defer out.Close()
-
-	if err != nil {
-		return err
-	}
+	io.Copy(io.Discard, out)
 	return c.NoContent(http.StatusNoContent)
 }
 

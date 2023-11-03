@@ -135,6 +135,20 @@ export default function AgentDashboardPage() {
     { manual: true }
   );
 
+  const { data: dockerContainers, run: listDockerContainers } = useRequest(
+    async () => {
+      if (instanceId && tokenResult?.accessToken) {
+        return await api.agentDockerContainerList({
+          namespaceIdentifier,
+          namespaceKind,
+          resourceIdentifier: instanceId,
+          xCryptocatProxyAuthorization: tokenResult?.accessToken,
+        });
+      }
+    },
+    { manual: true }
+  );
+
   return (
     <>
       <Typography.Title>Agent Dashboard</Typography.Title>
@@ -181,6 +195,17 @@ export default function AgentDashboardPage() {
           />
         </Card>
       )}
+
+      <Card title="Docker conatiners">
+        <Button
+          type="primary"
+          onClick={listDockerContainers}
+          disabled={!tokenResult}
+        >
+          List Docker containers
+        </Button>
+        <JsonDataDisplay data={dockerContainers} />
+      </Card>
     </>
   );
 }

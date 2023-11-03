@@ -11,6 +11,9 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// DockerContainer defines model for DockerContainer.
+type DockerContainer = types.Container
+
 // DockerImageSummary defines model for DockerImageSummary.
 type DockerImageSummary = types.ImageSummary
 
@@ -28,6 +31,11 @@ type DelegatedAuthorizationHeaderParameter = string
 
 // GetAgentDiagnosticsParams defines parameters for GetAgentDiagnostics.
 type GetAgentDiagnosticsParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
+// AgentDockerContainerListParams defines parameters for AgentDockerContainerList.
+type AgentDockerContainerListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

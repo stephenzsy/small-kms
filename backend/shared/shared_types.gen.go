@@ -43,12 +43,6 @@ const (
 	AlgRS512 JwkAlg = "RS512"
 )
 
-// Defines values for JwkCrv.
-const (
-	CurveNameP256 JwkCrv = "P-256"
-	CurveNameP384 JwkCrv = "P-384"
-)
-
 // Defines values for JwtKty.
 const (
 	KeyTypeEC  JwtKty = "EC"
@@ -191,13 +185,9 @@ type Identifier = identifierImpl
 // JwkAlg defines model for JwkAlg.
 type JwkAlg string
 
-// JwkCrv defines model for JwkCrv.
-type JwkCrv string
-
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
 	Alg *JwkAlg `json:"alg,omitempty"`
-	Crv *JwkCrv `json:"crv,omitempty"`
 
 	// E RSA exponent
 	E Base64RawURLEncodableBytes `json:"e,omitempty"`

@@ -28,6 +28,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1proxy-auth~1token"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1diagnostics"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers:
+    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1docker~1containers"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1agent~1instance~1{resourceIdentifier}~1docker~1images"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info:
