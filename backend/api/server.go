@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -26,50 +25,8 @@ func (s *server) ConfidentialAppIdentity() common.AzureAppConfidentialIdentity {
 type H = map[string]string
 type RequestContext = ctx.RequestContext
 
-func wrapResponse[T interface{}](c echo.Context, defaultStatus int, data T, err error) error {
-	switch {
-	case err == nil:
-		return c.JSON(defaultStatus, data)
-	case errors.Is(err, common.ErrStatus2xxCreated):
-		return c.JSON(http.StatusCreated, data)
-	case errors.Is(err, common.ErrStatusBadRequest):
-		return c.JSON(http.StatusBadRequest, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusUnauthorized):
-		return c.JSON(http.StatusUnauthorized, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusForbidden):
-		return c.JSON(http.StatusForbidden, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusNotFound):
-		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusConflict):
-		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
-	default:
-		c.Logger().Error("internal error", err)
-		return c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
-	}
-}
-
 func respondRequireAdmin(c echo.Context) error {
 	return c.JSON(http.StatusForbidden, map[string]string{"message": "admin access required"})
-}
-
-func wrapEchoResponse(c echo.Context, err error) error {
-	if err == nil {
-		return err
-	}
-	switch {
-	case errors.Is(err, common.ErrStatusBadRequest):
-		return c.JSON(http.StatusBadRequest, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusUnauthorized):
-		return c.JSON(http.StatusUnauthorized, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusForbidden):
-		return c.JSON(http.StatusForbidden, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusNotFound):
-		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
-	case errors.Is(err, common.ErrStatusConflict):
-		return c.JSON(http.StatusNotFound, H{"error": err.Error()})
-	}
-	log.Error().Err(err).Msg("internal error")
-	return c.JSON(http.StatusInternalServerError, H{"error": "internal error"})
 }
 
 type appConfidentialIdentity struct {

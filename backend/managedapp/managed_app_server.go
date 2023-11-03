@@ -166,14 +166,7 @@ func (s *server) ListManagedApps(ec echo.Context) error {
 		return s.RespondRequireAdmin(c)
 	}
 
-	result, err := listManagedApps(c)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		result = []*ManagedApp{}
-	}
-	return c.JSON(200, result)
+	return apiListManagedApps(c)
 }
 
 // CreateManagedApp implements ServerInterface.

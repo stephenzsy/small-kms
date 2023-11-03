@@ -28,7 +28,7 @@ type ServerInterface interface {
 	AgentDockerImageList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerImageListParams) error
 
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info)
-	GetAgentDockerInfo(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params GetAgentDockerInfoParams) error
+	AgentDockerInfo(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerInfoParams) error
 
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image)
 	AgentPullImage(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentPullImageParams) error
@@ -263,8 +263,8 @@ func (w *ServerInterfaceWrapper) AgentDockerImageList(ctx echo.Context) error {
 	return err
 }
 
-// GetAgentDockerInfo converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentDockerInfo(ctx echo.Context) error {
+// AgentDockerInfo converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentDockerInfo(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
 	var namespaceKind externalRef0.NamespaceKindParameter
@@ -293,7 +293,7 @@ func (w *ServerInterfaceWrapper) GetAgentDockerInfo(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetAgentDockerInfoParams
+	var params AgentDockerInfoParams
 
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Cryptocat-Proxy-Authorization" -------------
@@ -313,7 +313,7 @@ func (w *ServerInterfaceWrapper) GetAgentDockerInfo(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentDockerInfo(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentDockerInfo(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
 	return err
 }
 
@@ -403,7 +403,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers", wrapper.AgentDockerContainerList)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers/:containerId", wrapper.AgentDockerContainerInspect)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/images", wrapper.AgentDockerImageList)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/info", wrapper.GetAgentDockerInfo)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/info", wrapper.AgentDockerInfo)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/pull-image", wrapper.AgentPullImage)
 
 }

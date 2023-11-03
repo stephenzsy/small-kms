@@ -26,19 +26,16 @@ func (d *CertPolicyQueryDoc) PopulateModelRef(r *CertPolicyRef) {
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyQueryDoc)(nil)
 
 func apiListCertPolicies(c ctx.RequestContext) error {
-	docService := base.GetAzCosmosCRUDService(c)
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(queryColumnDisplayName)
 	nsCtx := ns.GetNSContext(c)
 	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy)
-	pager := base.NewQueryDocPager[*CertPolicyQueryDoc](docService, qb, storageNsID)
+	pager := base.NewQueryDocPager[*CertPolicyQueryDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertPolicyQueryDoc) *CertPolicyRef {
 		r := &CertPolicyRef{}
 		d.PopulateModelRef(r)
 		return r
 	})
-	sPager := utils.NewSerializableItemsPager(c, modelPager)
-	return c.JSON(http.StatusOK, sPager)
-
+	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
 }

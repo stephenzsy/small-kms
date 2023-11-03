@@ -7,14 +7,37 @@ import (
 
 type Pager[T any] interface {
 	More() bool
-	NextPage(c context.Context) (page T, err error)
+	NextPage() (page T, err error)
+}
+
+type PagerRequireContext[T any] interface {
+	More() bool
+	NextPage(context.Context) (page T, err error)
+}
+
+type PagerWithContext[T any] struct {
+	pager PagerRequireContext[T]
+	ctx   context.Context
+}
+
+func (p *PagerWithContext[T]) More() bool {
+	return p.pager.More()
+}
+
+func (p *PagerWithContext[T]) NextPage() (page T, err error) {
+	return p.pager.NextPage(p.ctx)
+}
+
+func NewPagerWithContext[T any](pager PagerRequireContext[T], ctx context.Context) Pager[T] {
+	return &PagerWithContext[T]{pager: pager, ctx: ctx}
 }
 
 type ItemsPager[T any] interface {
 	Pager[[]T]
 }
 
-type mappedPager[T any, U any] struct {
+// map a pager to another
+type mappedPager[T, U any] struct {
 	from    Pager[U]
 	mapFunc MapFunc[T, U]
 }
@@ -27,8 +50,8 @@ func (p *mappedPager[T, U]) More() bool {
 	return p.from.More()
 }
 
-func (p *mappedPager[T, U]) NextPage(c context.Context) (items T, err error) {
-	r, err := p.from.NextPage(c)
+func (p *mappedPager[T, U]) NextPage() (items T, err error) {
+	r, err := p.from.NextPage()
 	return p.mapFunc(r), err
 }
 
@@ -43,9 +66,9 @@ func (p *mappedItemsPager[T, U]) More() bool {
 }
 
 // NextPage implements Pager.
-func (p *mappedItemsPager[T, U]) NextPage(c context.Context) (items []T, err error) {
+func (p *mappedItemsPager[T, U]) NextPage() (items []T, err error) {
 	var fromSlice []U
-	if fromSlice, err = p.from.NextPage(c); err != nil {
+	if fromSlice, err = p.from.NextPage(); err != nil {
 		return
 	}
 	items = MapSlice(fromSlice, p.mapFunc)
@@ -54,17 +77,13 @@ func (p *mappedItemsPager[T, U]) NextPage(c context.Context) (items []T, err err
 
 var _ ItemsPager[string] = (*mappedItemsPager[string, any])(nil)
 
-func NewMappedItemsPager[T any, U any](from ItemsPager[U], f MapFunc[T, U]) ItemsPager[T] {
+func NewMappedItemsPager[T, U any](from ItemsPager[U], f MapFunc[T, U]) ItemsPager[T] {
 	return &mappedItemsPager[T, U]{from: from, mapFunc: f}
 }
 
-func PagerAllItems[T any](pager ItemsPager[T], ctx context.Context) (items []T, err error) {
-	return PagerToSlice(ctx, pager)
-}
-
-func PagerToSlice[T any](ctx context.Context, pager ItemsPager[T]) (items []T, err error) {
+func PagerToSlice[T any](pager ItemsPager[T]) (items []T, err error) {
 	for pager.More() {
-		t, scanErr := pager.NextPage(ctx)
+		t, scanErr := pager.NextPage()
 		if scanErr != nil {
 			return nil, scanErr
 		}
@@ -73,58 +92,40 @@ func PagerToSlice[T any](ctx context.Context, pager ItemsPager[T]) (items []T, e
 	return
 }
 
-func ReservedFirst[T any](
-	allItems []T,
-	reservedDefaults []T,
-	mapReservedIndex func(T) int) (items []T) {
-	items = make([]T, len(reservedDefaults), len(allItems)+len(reservedDefaults))
-	copy(items, reservedDefaults)
-	for _, item := range allItems {
-		if mappedIndex := mapReservedIndex(item); mappedIndex >= 0 && mappedIndex < len(items) {
-			items[mappedIndex] = item
-			continue
-		} else {
-			items = append(items, item)
-		}
-	}
-	return
-}
-
 type chainedItemPagers[T any] struct {
-	pagers []ItemsPager[T]
-	index  int
+	chainedPagers []ItemsPager[T]
+	currentIndex  int
 }
 
 // More implements ItemsPager.
 func (p *chainedItemPagers[T]) More() bool {
-	return p.index < len(p.pagers)
+	return p.currentIndex < len(p.chainedPagers)
 }
 
 // NextPage implements ItemsPager.
-func (p *chainedItemPagers[T]) NextPage(c context.Context) (page []T, err error) {
-	for p.index < len(p.pagers) && !p.pagers[p.index].More() {
-		p.index++
+func (p *chainedItemPagers[T]) NextPage() (page []T, err error) {
+	for p.currentIndex < len(p.chainedPagers) && !p.chainedPagers[p.currentIndex].More() {
+		p.currentIndex++
 	}
-	if p.index >= len(p.pagers) {
+	if p.currentIndex >= len(p.chainedPagers) {
 		return nil, nil
 	}
-	return p.pagers[p.index].NextPage(c)
+	return p.chainedPagers[p.currentIndex].NextPage()
 }
 
 func NewChainedItemPagers[T any](pagers ...ItemsPager[T]) ItemsPager[T] {
-	return &chainedItemPagers[T]{pagers: pagers}
+	return &chainedItemPagers[T]{chainedPagers: pagers}
 }
 
 type SerializableItemsPager[T any] struct {
 	ItemsPager[T]
-	ctx context.Context
 }
 
 // MarshalJSON implements json.Marshaler.
 func (p *SerializableItemsPager[T]) MarshalJSON() ([]byte, error) {
 	b := append([]byte(nil), '[')
 	for p.More() {
-		items, err := p.NextPage(p.ctx)
+		items, err := p.NextPage()
 		if err != nil {
 			return nil, err
 		}
@@ -145,6 +146,6 @@ func (p *SerializableItemsPager[T]) MarshalJSON() ([]byte, error) {
 
 var _ json.Marshaler = (*SerializableItemsPager[any])(nil)
 
-func NewSerializableItemsPager[T any](ctx context.Context, pager ItemsPager[T]) *SerializableItemsPager[T] {
-	return &SerializableItemsPager[T]{ctx: ctx, ItemsPager: pager}
+func NewSerializableItemsPager[T any](pager ItemsPager[T]) *SerializableItemsPager[T] {
+	return &SerializableItemsPager[T]{ItemsPager: pager}
 }

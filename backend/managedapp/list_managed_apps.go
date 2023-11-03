@@ -1,10 +1,11 @@
 package managedapp
 
 import (
-	"context"
+	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -24,20 +25,19 @@ func (d *ManagedAppQueryDoc) PopulateModelRef(r *ManagedAppRef) {
 	r.ServicePrincipalID = d.ServicePrincipalID
 }
 
-func listManagedApps(c context.Context) ([]*ManagedAppRef, error) {
-	docService := base.GetAzCosmosCRUDService(c)
+func apiListManagedApps(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(profile.QueryColumnDisplayName, queryColumnApplicationID, queryColumnServicePrincipalID)
 	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile,
 		base.StringIdentifier(namespaceIDNameManagedApp),
 		base.ProfileResourceKindManagedApp)
-	pager := base.NewQueryDocPager[*ManagedAppQueryDoc](docService, qb, storageNsID)
+	pager := base.NewQueryDocPager[*ManagedAppQueryDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ManagedAppQueryDoc) *ManagedAppRef {
 		r := &ManagedAppRef{}
 		d.PopulateModelRef(r)
 		return r
 	})
-	return utils.PagerToSlice(c, modelPager)
+	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
 
 }

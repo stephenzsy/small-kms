@@ -12,7 +12,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func ListRoleAssignments(client *armauthorization.RoleAssignmentsClient, scope string, assignedTo uuid.UUID) utils.ItemsPager[*armauthorization.RoleAssignment] {
+func ListRoleAssignments(c context.Context, client *armauthorization.RoleAssignmentsClient, scope string, assignedTo uuid.UUID) utils.ItemsPager[*armauthorization.RoleAssignment] {
 
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", assignedTo.String())
 	log.Debug().Msgf("Lookup role assignments for scope: %s", scope)
@@ -24,7 +24,7 @@ func ListRoleAssignments(client *armauthorization.RoleAssignmentsClient, scope s
 	)
 
 	return utils.NewMappedPager[[]*armauthorization.RoleAssignment, armauthorization.RoleAssignmentsClientListForScopeResponse](
-		pager,
+		utils.NewPagerWithContext(pager, c),
 		func(resp armauthorization.RoleAssignmentsClientListForScopeResponse) []*armauthorization.RoleAssignment {
 			return resp.Value
 		})
@@ -36,7 +36,7 @@ type RoleAssignmentProvisioner struct {
 	RoleDefinitionID uuid.UUID
 }
 
-func (p *RoleAssignmentProvisioner) IsRoleAssigned(ctx context.Context, client *armauthorization.RoleAssignmentsClient, roleDefinitionResourceID string) (bool, error) {
+func (p *RoleAssignmentProvisioner) IsRoleAssigned(c context.Context, client *armauthorization.RoleAssignmentsClient, roleDefinitionResourceID string) (bool, error) {
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", p.AssignedTo.String())
 	log.Debug().Msgf("Lookup role assignments: ID: %s, scope: %s", p.AssignedTo.String(), p.Scope)
 	pager := client.NewListForScopePager(
@@ -46,8 +46,8 @@ func (p *RoleAssignmentProvisioner) IsRoleAssigned(ctx context.Context, client *
 		},
 	)
 
-	allItems, err := utils.PagerToSlice(ctx, utils.NewMappedPager[[]*armauthorization.RoleAssignment, armauthorization.RoleAssignmentsClientListForScopeResponse](
-		pager,
+	allItems, err := utils.PagerToSlice(utils.NewMappedPager[[]*armauthorization.RoleAssignment, armauthorization.RoleAssignmentsClientListForScopeResponse](
+		utils.NewPagerWithContext(pager, c),
 		func(resp armauthorization.RoleAssignmentsClientListForScopeResponse) []*armauthorization.RoleAssignment {
 			return resp.Value
 		}))

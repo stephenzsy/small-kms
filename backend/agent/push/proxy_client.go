@@ -31,7 +31,7 @@ func (s *proxiedServer) getProxiedClient(c ctx.RequestContext,
 		return nil, err
 	}
 	if doc.Endpoint == "" {
-		return nil, fmt.Errorf("%w: agent instance has no endpoint", base.ErrResponseStatusBadRequest)
+		return nil, fmt.Errorf("%w: agent instance has no endpoint", base.ErrResposneStatusUnauthorized)
 	}
 
 	configDoc, err := managedapp.ApiReadAgentConfigDoc(c)
@@ -51,7 +51,7 @@ func (s *proxiedServer) getProxiedClient(c ctx.RequestContext,
 		return nil, err
 	}
 	if err := s.proxyClientPool.AddClient(client, accessToken); err != nil {
-		log.Error().Err(err).Msg("failed to add client to pool")
+		logger.Error().Err(err).Msg("failed to add client to pool")
 	} else {
 		logger.Debug().Int("poolSize", s.proxyClientPool.Len()).Msg("cache add: new client")
 	}

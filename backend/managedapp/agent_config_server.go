@@ -258,17 +258,17 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 		}
 		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
 			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
-			pagers = append(pagers, cloudutils.ListRoleAssignments(armRAClient, scope, assignedTo))
+			pagers = append(pagers, cloudutils.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 		}
 	}
 	// Key Vault Secrets User
 	{
 		scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
 			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), doc.TLSCertificatePolicyID)).Build()
-		pagers = append(pagers, cloudutils.ListRoleAssignments(armRAClient, scope, assignedTo))
+		pagers = append(pagers, cloudutils.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 	}
 
-	allItems, err := utils.PagerToSlice[*base.AzureRoleAssignment](c,
+	resultPager := utils.NewSerializableItemsPager(
 		utils.NewMappedItemsPager[*base.AzureRoleAssignment, *armauthorization.RoleAssignment](utils.NewChainedItemPagers(pagers...), func(ra *armauthorization.RoleAssignment) *base.AzureRoleAssignment {
 			if ra == nil {
 				return nil
@@ -280,12 +280,6 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 				PrincipalId:      ra.Properties.PrincipalID,
 			}
 		}))
-	if err != nil {
-		return err
-	}
 
-	if allItems == nil {
-		allItems = make([]*base.AzureRoleAssignment, 0)
-	}
-	return c.JSON(http.StatusOK, allItems)
+	return c.JSON(http.StatusOK, resultPager)
 }

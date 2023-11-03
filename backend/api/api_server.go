@@ -29,7 +29,7 @@ type APIServer interface {
 }
 
 type apiServer struct {
-	chCtx                   context.Context
+	parentCtx               context.Context
 	serviceIdentity         auth.AzureIdentity
 	siteURL                 string
 	docService              base.AzCosmosCRUDDocService
@@ -72,17 +72,17 @@ func (*apiServer) RespondRequireAdmin(c echo.Context) error {
 
 // Deadline implements context.Context.
 func (s *apiServer) Deadline() (deadline time.Time, ok bool) {
-	return s.chCtx.Deadline()
+	return s.parentCtx.Deadline()
 }
 
 // Done implements context.Context.
 func (s *apiServer) Done() <-chan struct{} {
-	return s.chCtx.Done()
+	return s.parentCtx.Done()
 }
 
 // Err implements context.Context.
 func (s *apiServer) Err() error {
-	return s.chCtx.Err()
+	return s.parentCtx.Err()
 }
 
 // Value implements context.Context.
@@ -105,13 +105,13 @@ func (s *apiServer) Value(key any) any {
 	case common.AdminServerClientProviderContextKey:
 		return s.legacyClientProvider
 	}
-	return nil
+	return s.parentCtx.Value(key)
 }
 
 func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiServer, error) {
 	var err error
 	s := &apiServer{
-		chCtx:                   c,
+		parentCtx:               c,
 		serviceIdentity:         serverOld.ServiceIdentity(),
 		siteURL:                 common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
 		docService:              base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),

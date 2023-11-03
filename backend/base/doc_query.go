@@ -16,14 +16,15 @@ import (
 
 type DocPager[D QueryDocument] struct {
 	innerPager *azruntime.Pager[azcosmos.QueryItemsResponse]
+	queryCtx   context.Context
 }
 
 func (p *DocPager[D]) More() bool {
 	return p.innerPager.More()
 }
 
-func (p *DocPager[D]) NextPage(c context.Context) (items []D, err error) {
-	t, err := p.innerPager.NextPage(c)
+func (p *DocPager[D]) NextPage() (items []D, err error) {
+	t, err := p.innerPager.NextPage(p.queryCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -137,13 +138,14 @@ func (b *CosmosQueryBuilder) WithOffsetLimit(offset uint, limit uint) *CosmosQue
 	return b
 }
 
-func NewQueryDocPager[D QueryDocument](docService AzCosmosCRUDDocService, queryBuilder *CosmosQueryBuilder, storageNamespaceID DocNamespacePartitionKey) *DocPager[D] {
+func NewQueryDocPager[D QueryDocument](c context.Context, queryBuilder *CosmosQueryBuilder, storageNamespaceID DocNamespacePartitionKey) *DocPager[D] {
 	query, parameters := queryBuilder.BuildQuery()
-	log.Debug().Str("query", query).Interface("parameters", parameters).Msg("NewQueryDocPager")
-	pager := docService.NewQueryItemsPager(query, storageNamespaceID, &azcosmos.QueryOptions{
+	log.Ctx(c).Debug().Str("query", query).Interface("parameters", parameters).Msg("NewQueryDocPager")
+	pager := GetAzCosmosCRUDService(c).NewQueryItemsPager(query, storageNamespaceID, &azcosmos.QueryOptions{
 		QueryParameters: parameters,
 	})
-	return &DocPager[D]{innerPager: pager}
+	return &DocPager[D]{innerPager: pager,
+		queryCtx: c}
 }
 
 var _ ModelRefPopulater[ResourceReference] = (*QueryBaseDoc)(nil)

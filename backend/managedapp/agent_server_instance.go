@@ -61,9 +61,8 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns("c.endpoint", "c.version", "c.buildId").
 		WithOrderBy("c.ts DESC")
-	docSvc := base.GetAzCosmosCRUDService(c)
-	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](docSvc, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance))
-	sPager := utils.NewSerializableItemsPager(c, pager)
+	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](c, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance))
+	sPager := utils.NewSerializableItemsPager(pager)
 	return c.JSON(http.StatusOK, sPager)
 }
 

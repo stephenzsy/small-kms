@@ -1,5 +1,3 @@
-oapi-codegen.exe --package shared -generate "types,skip-prune"  ./oapi-shared.yaml > shared/shared_types.gen.go
-
 oapi-codegen.exe --package base -generate "types,skip-prune" ./oapi-base.yaml > base/base_types.gen.go
 oapi-codegen.exe --package base -generate "echo-server" ./oapi-base.yaml > base/base_server.gen.go
 oapi-codegen.exe --package profile -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-profile.yaml > profile/profile.gen.go

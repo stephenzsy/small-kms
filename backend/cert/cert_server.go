@@ -153,14 +153,7 @@ func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceK
 		return err
 	}
 
-	l, err := listCertificates(c, params)
-	if err != nil {
-		return err
-	}
-	if l == nil {
-		l = make([]*CertificateRef, 0)
-	}
-	return c.JSON(http.StatusOK, l)
+	return apiListCertificates(c, params)
 }
 
 // CreateCertificate implements ServerInterface.

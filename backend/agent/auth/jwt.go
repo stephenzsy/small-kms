@@ -9,14 +9,15 @@ import (
 )
 
 func NewSignedAgentAuthJWT(signingMethod jwt.SigningMethod, subject, endpoint string, key cloudkey.CloudSignatureKey) (string, error) {
-	nbf := time.Now()
-	token := jwt.NewWithClaims(signingMethod, jwt.RegisteredClaims{
+	iat := time.Now()
+	claims := jwt.RegisteredClaims{
 		Subject:   subject,
 		Audience:  jwt.ClaimStrings{endpoint},
-		IssuedAt:  jwt.NewNumericDate(nbf),
-		ExpiresAt: jwt.NewNumericDate(nbf.Add(time.Hour)),
+		IssuedAt:  jwt.NewNumericDate(iat),
+		ExpiresAt: jwt.NewNumericDate(iat.Add(time.Hour)),
 		ID:        uuid.New().String(),
-	})
+	}
+	token := jwt.NewWithClaims(signingMethod, &claims)
 	token.Header["kid"] = key.KeyID()
 	return token.SignedString(key)
 }

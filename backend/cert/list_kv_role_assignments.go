@@ -59,11 +59,11 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	)
 
 	itemsPager := utils.NewMappedPager[[]*armauthorization.RoleAssignment, armauthorization.RoleAssignmentsClientListForScopeResponse](
-		pager,
+		utils.NewPagerWithContext(pager, c),
 		func(resp armauthorization.RoleAssignmentsClientListForScopeResponse) []*armauthorization.RoleAssignment {
 			return resp.Value
 		})
-	allItems, err := utils.PagerAllItems[*base.AzureRoleAssignment](
+	resultPager := utils.NewSerializableItemsPager(
 		utils.NewMappedItemsPager[*base.AzureRoleAssignment, *armauthorization.RoleAssignment](
 			itemsPager, func(item *armauthorization.RoleAssignment) *base.AzureRoleAssignment {
 				if item == nil {
@@ -75,12 +75,7 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 					PrincipalId:      item.Properties.PrincipalID,
 					RoleDefinitionId: item.Properties.RoleDefinitionID,
 				}
-			}), c)
-	if err != nil {
-		return err
-	}
-	if allItems == nil {
-		allItems = make([]*base.AzureRoleAssignment, 0)
-	}
-	return c.JSON(http.StatusOK, allItems)
+			}))
+
+	return c.JSON(http.StatusOK, resultPager)
 }

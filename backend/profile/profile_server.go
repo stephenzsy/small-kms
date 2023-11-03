@@ -50,14 +50,7 @@ func (s *server) ListProfiles(ec echo.Context, profileResourceKind base.Resource
 		return err
 	}
 	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
-	result, err := listProfiles(c, profileResourceKind)
-	if err != nil {
-		return err
-	}
-	if result == nil {
-		result = []*ProfileRef{}
-	}
-	return c.JSON(http.StatusOK, result)
+	return apiListProfiles(c, profileResourceKind)
 }
 
 // GetRootCA implements ServerInterface.

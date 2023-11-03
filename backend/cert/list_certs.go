@@ -2,6 +2,7 @@ package cert
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -29,8 +30,7 @@ func (d *CertQueryDoc) PopulateModelRef(m *CertificateRef) {
 var _ base.ModelRefPopulater[CertificateRef] = (*CertQueryDoc)(nil)
 
 // ListCertificates implements ServerInterface.
-func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*CertificateRef, error) {
-	docService := base.GetAzCosmosCRUDService(c)
+func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter).
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated))
@@ -46,14 +46,15 @@ func listCertificates(c ctx.RequestContext, params ListCertificatesParams) ([]*C
 		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
 	}
 
-	pager := base.NewQueryDocPager[*CertQueryDoc](docService, qb, storageNsID)
+	pager := base.NewQueryDocPager[*CertQueryDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) *CertificateRef {
 		r := &CertificateRef{}
 		d.PopulateModelRef(r)
 		return r
 	})
-	return utils.PagerToSlice(c, modelPager)
+
+	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
 }
 
 func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {
@@ -62,10 +63,11 @@ func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIde
 		WithOffsetLimit(0, limit)
 	qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy", "NOT IS_DEFINED(c.deleted)", "c.status = 'issued'")
 	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyFullIdentifier.String()})
-	docService := base.GetAzCosmosCRUDService(c)
-	pager := base.NewQueryDocPager[*CertQueryDoc](docService, qb, base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
+	pager := base.NewQueryDocPager[*CertQueryDoc](c,
+		qb,
+		base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
 
-	return utils.PagerAllItems(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
+	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
 		return d.ID
-	}), c)
+	}))
 }

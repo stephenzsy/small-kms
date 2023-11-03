@@ -96,6 +96,14 @@ export interface AddKeyVaultRoleAssignmentRequest {
     roleDefinitionId: string;
 }
 
+export interface AgentDockerContainerInspectRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    containerId: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
 export interface AgentDockerContainerListRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -104,6 +112,13 @@ export interface AgentDockerContainerListRequest {
 }
 
 export interface AgentDockerImageListRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
+export interface AgentDockerInfoRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
@@ -146,13 +161,6 @@ export interface GetAgentConfigServerRequest {
 }
 
 export interface GetAgentDiagnosticsRequest {
-    namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
-    xCryptocatProxyAuthorization?: string;
-}
-
-export interface GetAgentDockerInfoRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
     resourceIdentifier: string;
@@ -347,6 +355,60 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Inspect docker container
+     */
+    async agentDockerContainerInspectRaw(requestParameters: AgentDockerContainerInspectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerInspect.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerInspect.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerInspect.');
+        }
+
+        if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
+            throw new runtime.RequiredError('containerId','Required parameter requestParameters.containerId was null or undefined when calling agentDockerContainerInspect.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Inspect docker container
+     */
+    async agentDockerContainerInspect(requestParameters: AgentDockerContainerInspectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.agentDockerContainerInspectRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * List docker containers
      */
     async agentDockerContainerListRaw(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
@@ -443,6 +505,56 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentDockerImageList(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.agentDockerImageListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get docker system info
+     */
+    async agentDockerInfoRaw(requestParameters: AgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerInfo.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerInfo.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerInfo.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get docker system info
+     */
+    async agentDockerInfo(requestParameters: AgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.agentDockerInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -763,56 +875,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentDiagnostics(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
         const response = await this.getAgentDiagnosticsRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get docker info
-     */
-    async getAgentDockerInfoRaw(requestParameters: GetAgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentDockerInfo.');
-        }
-
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentDockerInfo.');
-        }
-
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getAgentDockerInfo.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
-            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse<any>(response);
-    }
-
-    /**
-     * Get docker info
-     */
-    async getAgentDockerInfo(requestParameters: GetAgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
-        const response = await this.getAgentDockerInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

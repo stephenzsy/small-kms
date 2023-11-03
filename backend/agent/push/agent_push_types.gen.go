@@ -52,8 +52,8 @@ type AgentDockerImageListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 
-// GetAgentDockerInfoParams defines parameters for GetAgentDockerInfo.
-type GetAgentDockerInfoParams struct {
+// AgentDockerInfoParams defines parameters for AgentDockerInfo.
+type AgentDockerInfoParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

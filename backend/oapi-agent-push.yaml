@@ -70,9 +70,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DockerContainerJSON"                  
+                $ref: "#/components/schemas/DockerContainerJSON"
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -104,8 +102,8 @@ paths:
       tags:
         - agent
         - admin
-      description: Get docker info
-      operationId: GetAgentDockerInfo
+      description: Get docker system info
+      operationId: AgentDockerInfo
       responses:
         200:
           description: DockerInfo
@@ -159,7 +157,7 @@ components:
       type: object
       x-go-type: types.ContainerJSON
       x-go-type-import:
-        path: "github.com/docker/docker/api/types"        
+        path: "github.com/docker/docker/api/types"
     DockerInfo:
       type: object
       x-go-type: types.Info

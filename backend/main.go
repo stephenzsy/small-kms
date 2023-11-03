@@ -39,9 +39,12 @@ func main() {
 	// Find .env file
 	envFilePathPtr := flag.String("env", "", "path to .env file")
 	envPrettyLog := flag.Bool("pretty-log", false, "pretty log")
+	envDebug := flag.Bool("debug", false, "log")
 	flag.Parse()
 
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	if *envDebug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 	logger := log.Logger
 	if *envPrettyLog {
 		output := zerolog.ConsoleWriter{Out: os.Stderr}
@@ -87,16 +90,17 @@ func main() {
 		e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 			LogURI:    true,
 			LogStatus: true,
+			LogMethod: true,
 			LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 				logger.Info().
 					Str("URI", v.URI).
+					Str("method", v.Method).
 					Int("status", v.Status).
 					Msg("request")
 				return nil
 			},
 		}))
 		e.Use(middleware.Recover())
-
 		if os.Getenv("ENABLE_CORS") == "true" {
 			e.Use(middleware.CORS())
 		}

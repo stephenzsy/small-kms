@@ -1,17 +1,19 @@
 import classNames from "classnames";
 import { useMemo } from "react";
 
+export type JsonDataDisplayProps<T> = {
+  data: T | undefined;
+  loading?: boolean;
+  toJson?: (data?: T) => any;
+  className?: string;
+};
+
 export function JsonDataDisplay<T>({
   loading,
   data,
   toJson,
   className,
-}: {
-  data: T | undefined;
-  loading?: boolean;
-  toJson?: (data?: T) => any;
-  className?: string;
-}) {
+}: JsonDataDisplayProps<T>) {
   const jsonText = useMemo(() => {
     if (!data) {
       return undefined;
@@ -24,7 +26,7 @@ export function JsonDataDisplay<T>({
   return (
     <div
       className={classNames(
-        "bg-neutral-100 ring-1 ring-neutral-500 px-4 overflow-auto",
+        "bg-neutral-100 ring-1 ring-neutral-500 px-4 overflow-auto max-h-full",
         className
       )}
     >
