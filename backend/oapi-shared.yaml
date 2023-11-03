@@ -5,49 +5,6 @@ info:
 paths: {}
 components:
   schemas:
-    CertificateRef:
-      allOf:
-        - $ref: "#/components/schemas/ResourceRef"
-        - $ref: "#/components/schemas/CertificateRefFields"
-        - x-go-type: certificateRefComposed
-    CertificateRefFields:
-      type: object
-      properties:
-        subjectCommonName:
-          description: Common name
-          type: string
-        notAfter:
-          description: Expiration date of the certificate
-          type: string
-          format: date-time
-        template:
-          $ref: "#/components/schemas/ResourceLocator"
-        isIssued:
-          description: Whether the certificate has been issued
-          type: boolean
-      required:
-        - thumbprint
-        - subjectCommonName
-        - notAfter
-        - template
-        - isIssued
-    Identifier:
-      type: string
-      x-go-type: identifierImpl
-    JwkAlg:
-      type: string
-      enum:
-        - RS256
-        - RS384
-        - RS512
-        - ES256
-        - ES384
-      x-enum-varnames:
-        - AlgRS256
-        - AlgRS384
-        - AlgRS512
-        - AlgES256
-        - AlgES384
     JwtKty:
       type: string
       enum:
@@ -60,8 +17,6 @@ components:
       type: object
       description: Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
       properties:
-        alg:
-          $ref: "#/components/schemas/JwkAlg"
         kty:
           $ref: "#/components/schemas/JwtKty"
         key_size:
@@ -175,9 +130,6 @@ components:
     ResourceRef:
       type: object
       properties:
-        id:
-          x-go-name: ID
-          $ref: "#/components/schemas/Identifier"
         locator:
           $ref: "#/components/schemas/ResourceLocator"
         updated:

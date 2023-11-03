@@ -216,7 +216,6 @@ func (d *BaseDoc) PopulateResourceRef(r *shared.ResourceRef) {
 	if d == nil || r == nil {
 		return
 	}
-	r.Id = d.ID.Identifier()
 	r.Locator = shared.NewResourceLocator(d.NamespaceID, d.ID)
 	r.Updated = &d.Updated
 	r.UpdatedBy = &d.UpdatedBy

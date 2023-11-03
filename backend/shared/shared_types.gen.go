@@ -8,15 +8,6 @@ import (
 	"time"
 )
 
-// Defines values for JwkAlg.
-const (
-	AlgES256 JwkAlg = "ES256"
-	AlgES384 JwkAlg = "ES384"
-	AlgRS256 JwkAlg = "RS256"
-	AlgRS384 JwkAlg = "RS384"
-	AlgRS512 JwkAlg = "RS512"
-)
-
 // Defines values for JwtKty.
 const (
 	KeyTypeEC  JwtKty = "EC"
@@ -65,32 +56,8 @@ const (
 	CertTemplateNameDefaultMtls               WellknownCertificateTemplateName = "default-mtls"
 )
 
-// CertificateRef defines model for CertificateRef.
-type CertificateRef = certificateRefComposed
-
-// CertificateRefFields defines model for CertificateRefFields.
-type CertificateRefFields struct {
-	// IsIssued Whether the certificate has been issued
-	IsIssued bool `json:"isIssued"`
-
-	// NotAfter Expiration date of the certificate
-	NotAfter time.Time `json:"notAfter"`
-
-	// SubjectCommonName Common name
-	SubjectCommonName string          `json:"subjectCommonName"`
-	Template          ResourceLocator `json:"template"`
-}
-
-// Identifier defines model for Identifier.
-type Identifier = identifierImpl
-
-// JwkAlg defines model for JwkAlg.
-type JwkAlg string
-
 // JwkProperties Property bag of JSON Web Key (RFC 7517) with additional fields, all bytes are base64url encoded
 type JwkProperties struct {
-	Alg *JwkAlg `json:"alg,omitempty"`
-
 	// E RSA exponent
 	E Base64RawURLEncodableBytes `json:"e,omitempty"`
 
@@ -145,7 +112,6 @@ type ResourceLocator = locator[NamespaceKind, ResourceKind]
 type ResourceRef struct {
 	// Deleted Time when the deleted was deleted
 	Deleted  *time.Time             `json:"deleted,omitempty"`
-	Id       Identifier             `json:"id"`
 	Locator  ResourceLocator        `json:"locator"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 

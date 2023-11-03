@@ -23,8 +23,19 @@ type agentServer struct {
 	acrImageRepo    string
 }
 
+// AgentDockerContainerInspect implements ServerInterface.
+func (s *agentServer) AgentDockerContainerInspect(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, containerId string, _ AgentDockerContainerInspectParams) error {
+	c := ec.(ctx.RequestContext)
+
+	result, err := s.dockerClient.ContainerInspect(c, containerId)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, result)
+}
+
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerContainerList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerContainerListParams) error {
+func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerContainerListParams) error {
 	c := ec.(ctx.RequestContext)
 
 	containers, err := s.dockerClient.ContainerList(c, types.ContainerListOptions{
@@ -37,7 +48,7 @@ func (s *agentServer) AgentDockerContainerList(ec echo.Context, namespaceKind ba
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerImageList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerImageListParams) error {
+func (s *agentServer) AgentDockerImageList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerImageListParams) error {
 	c := ec.(ctx.RequestContext)
 
 	images, err := s.dockerClient.ImageList(c, types.ImageListOptions{
@@ -50,7 +61,7 @@ func (s *agentServer) AgentDockerImageList(ec echo.Context, namespaceKind base.N
 }
 
 // AgentPullImage implements ServerInterface.
-func (s *agentServer) AgentPullImage(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentPullImageParams) error {
+func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentPullImageParams) error {
 	c := ec.(ctx.RequestContext)
 	req := PullImageRequest{}
 	if err := c.Bind(&req); err != nil {

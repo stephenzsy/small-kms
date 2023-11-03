@@ -14,6 +14,9 @@ const (
 // DockerContainer defines model for DockerContainer.
 type DockerContainer = types.Container
 
+// DockerContainerJSON defines model for DockerContainerJSON.
+type DockerContainerJSON = types.ContainerJSON
+
 // DockerImageSummary defines model for DockerImageSummary.
 type DockerImageSummary = types.ImageSummary
 
@@ -36,6 +39,11 @@ type GetAgentDiagnosticsParams struct {
 
 // AgentDockerContainerListParams defines parameters for AgentDockerContainerList.
 type AgentDockerContainerListParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
+// AgentDockerContainerInspectParams defines parameters for AgentDockerContainerInspect.
+type AgentDockerContainerInspectParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

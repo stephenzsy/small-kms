@@ -3,20 +3,16 @@ package tasks
 import (
 	"bytes"
 	"context"
-	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/big"
 
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/client"
 	"github.com/stephenzsy/small-kms/backend/endpoint-enroll/secret"
-	"github.com/stephenzsy/small-kms/backend/shared"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type JWTHeader struct {
@@ -78,16 +74,4 @@ func InstallComplete(receiptIn io.Reader, installToUser bool) error {
 	serviceClient.CompleteCertificateEnrollmentV2(context.Background(), receipt.Ref.NamespaceID, receipt.Ref.ID, nil, body)
 
 	return nil
-}
-
-func rsaPublicKeyPopulateJwk(pubkey *rsa.PublicKey, p *shared.JwkProperties) {
-	if pubkey == nil {
-		return
-	}
-
-	p.Alg = utils.ToPtr(shared.AlgRS256)
-	p.Kty = "RSA"
-	p.E = big.NewInt(int64(pubkey.E)).Bytes()
-	p.N = pubkey.N.Bytes()
-	p.KeySize = utils.ToPtr(int32(pubkey.Size()) * 8)
 }

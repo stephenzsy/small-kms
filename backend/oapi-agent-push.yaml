@@ -39,13 +39,40 @@ paths:
       operationId: AgentDockerContainerList
       responses:
         200:
-          description: ContainerList
+          description: Container list result
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/DockerContainer"                
+                  $ref: "#/components/schemas/DockerContainer"
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+      - name: containerId
+        in: path
+        description: Container ID
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - agent
+        - admin
+      description: Inspect docker container
+      operationId: AgentDockerContainerInspect
+      responses:
+        200:
+          description: Container inspect result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DockerContainerJSON"                  
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -128,6 +155,11 @@ components:
       x-go-type: types.Container
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
+    DockerContainerJSON:
+      type: object
+      x-go-type: types.ContainerJSON
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"        
     DockerInfo:
       type: object
       x-go-type: types.Info
