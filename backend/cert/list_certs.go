@@ -2,9 +2,9 @@ package cert
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -54,7 +54,7 @@ func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) er
 		return r
 	})
 
-	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
+	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }
 
 func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {

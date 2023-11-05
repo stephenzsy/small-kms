@@ -99,15 +99,15 @@ type chainedItemPagers[T any] struct {
 
 // More implements ItemsPager.
 func (p *chainedItemPagers[T]) More() bool {
+	for p.currentIndex < len(p.chainedPagers) && !p.chainedPagers[p.currentIndex].More() {
+		p.currentIndex++
+	}
 	return p.currentIndex < len(p.chainedPagers)
 }
 
 // NextPage implements ItemsPager.
 func (p *chainedItemPagers[T]) NextPage() (page []T, err error) {
-	for p.currentIndex < len(p.chainedPagers) && !p.chainedPagers[p.currentIndex].More() {
-		p.currentIndex++
-	}
-	if p.currentIndex >= len(p.chainedPagers) {
+	if !p.More() {
 		return nil, nil
 	}
 	return p.chainedPagers[p.currentIndex].NextPage()
@@ -124,18 +124,21 @@ type SerializableItemsPager[T any] struct {
 // MarshalJSON implements json.Marshaler.
 func (p *SerializableItemsPager[T]) MarshalJSON() ([]byte, error) {
 	b := append([]byte(nil), '[')
+	hasItems := false
 	for p.More() {
 		items, err := p.NextPage()
 		if err != nil {
 			return nil, err
 		}
-		for i, item := range items {
+		for _, item := range items {
 			itemBytes, err := json.Marshal(item)
 			if err != nil {
 				return nil, err
 			}
-			if i > 0 {
+			if hasItems {
 				b = append(b, ',')
+			} else {
+				hasItems = true
 			}
 			b = append(b, itemBytes...)
 		}

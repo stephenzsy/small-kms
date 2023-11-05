@@ -5,14 +5,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
+	cloudauthzaz "github.com/stephenzsy/small-kms/backend/cloud/authz/az"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/cloudutils"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -180,7 +181,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 			return err
 		}
 		if acrResourceGroupName := s.EnvService().Default("AZURE_RESOURCE_GROUP_NAME", "", "ACR_"); acrResourceGroupName != "" {
-			p := cloudutils.RoleAssignmentProvisioner{
+			p := cloudauthzaz.RoleAssignmentProvisioner{
 				RoleDefinitionID: roleDefIDAcrPull,
 				Scope:            subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build(),
 				AssignedTo:       assignedTo,
@@ -204,7 +205,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 			return err
 		}
 
-		p := cloudutils.RoleAssignmentProvisioner{
+		p := cloudauthzaz.RoleAssignmentProvisioner{
 			RoleDefinitionID: roleDefIDKeyVaultSecretsUser,
 			Scope: subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
 				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), certPolicyDoc.ID)).Build(),
@@ -257,14 +258,14 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 		}
 		if acrResourceGroupName := s.EnvService().Default("AZURE_RESOURCE_GROUP_NAME", "", "ACR_"); acrResourceGroupName != "" {
 			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
-			pagers = append(pagers, cloudutils.ListRoleAssignments(c, armRAClient, scope, assignedTo))
+			pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 		}
 	}
 	// Key Vault Secrets User
 	{
 		scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
 			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), doc.TLSCertificatePolicyID)).Build()
-		pagers = append(pagers, cloudutils.ListRoleAssignments(c, armRAClient, scope, assignedTo))
+		pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 	}
 
 	resultPager := utils.NewSerializableItemsPager(
@@ -280,5 +281,5 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 			}
 		}))
 
-	return c.JSON(http.StatusOK, resultPager)
+	return api.RespondPagerList(c, resultPager)
 }

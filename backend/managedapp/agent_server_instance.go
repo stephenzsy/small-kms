@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	agentauth "github.com/stephenzsy/small-kms/backend/agent/auth"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
@@ -62,8 +63,7 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 		WithExtraColumns("c.endpoint", "c.version", "c.buildId").
 		WithOrderBy("c.ts DESC")
 	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](c, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance))
-	sPager := utils.NewSerializableItemsPager(pager)
-	return c.JSON(http.StatusOK, sPager)
+	return api.RespondPagerList(c, utils.NewSerializableItemsPager(pager))
 }
 
 // wraps not found with 404

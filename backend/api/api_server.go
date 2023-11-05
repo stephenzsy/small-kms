@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkeyaz "github.com/stephenzsy/small-kms/backend/cloud/key/az"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -18,6 +20,7 @@ import (
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type APIServer interface {
@@ -76,6 +79,15 @@ func (s *apiServer) AzKeysClient() *azkeys.Client {
 // respondRequireAdmin implements APIServer.
 func (*apiServer) RespondRequireAdmin(c echo.Context) error {
 	return c.JSON(http.StatusForbidden, map[string]string{"message": "admin access required"})
+}
+
+func RespondPagerList[T any](c ctx.RequestContext, pager *utils.SerializableItemsPager[T]) error {
+	jsonBlob, err := json.Marshal(pager)
+	if err != nil {
+		log.Ctx(c).Error().Err(err).Send()
+		return c.String(http.StatusInternalServerError, "internal error")
+	}
+	return c.JSONBlob(http.StatusOK, jsonBlob)
 }
 
 // Deadline implements context.Context.

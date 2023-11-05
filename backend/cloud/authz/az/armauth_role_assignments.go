@@ -1,4 +1,4 @@
-package cloudutils
+package cloudauthzaz
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 func ListRoleAssignments(c context.Context, client *armauthorization.RoleAssignmentsClient, scope string, assignedTo uuid.UUID) utils.ItemsPager[*armauthorization.RoleAssignment] {
 
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", assignedTo.String())
-	log.Debug().Msgf("Lookup role assignments for scope: %s", scope)
+	log.Ctx(c).Debug().Msgf("Lookup role assignments for scope: %s", scope)
 	pager := client.NewListForScopePager(
 		scope,
 		&armauthorization.RoleAssignmentsClientListForScopeOptions{

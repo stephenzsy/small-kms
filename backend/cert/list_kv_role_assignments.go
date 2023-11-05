@@ -3,10 +3,10 @@ package cert
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cloudutils"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -77,5 +77,5 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 				}
 			}))
 
-	return c.JSON(http.StatusOK, resultPager)
+	return api.RespondPagerList(c, resultPager)
 }

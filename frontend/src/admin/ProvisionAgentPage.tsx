@@ -274,6 +274,7 @@ export function AgentInstancesList() {
     },
     {
       refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready: !!namespaceIdentifier && !!namespaceKind,
     }
   );
   const columns = useAgentInstanceColumns(namespaceKind, namespaceIdentifier);

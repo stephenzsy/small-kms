@@ -1,8 +1,7 @@
 package profile
 
 import (
-	"net/http"
-
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -37,5 +36,5 @@ func apiListProfiles(c ctx.RequestContext, resourceKind base.ResourceKind) error
 		d.PopulateModelRef(r)
 		return r
 	})
-	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
+	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }

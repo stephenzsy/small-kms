@@ -1,9 +1,8 @@
 package managedapp
 
 import (
-	"net/http"
-
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/profile"
@@ -38,6 +37,5 @@ func apiListManagedApps(c ctx.RequestContext) error {
 		d.PopulateModelRef(r)
 		return r
 	})
-	return c.JSON(http.StatusOK, utils.NewSerializableItemsPager(modelPager))
-
+	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }
