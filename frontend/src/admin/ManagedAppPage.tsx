@@ -4,11 +4,13 @@ import { Link } from "../components/Link";
 import {
   CertPolicyRef,
   ManagedAppRef,
-  NamespaceKind
+  NamespaceKind,
+  SecretPolicyRef,
 } from "../generated";
 import {
   useCertPolicies,
-  usePolicyRefTableColumns
+  usePolicyRefTableColumns,
+  useSecretPolicies,
 } from "./CertPolicyRefTable";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import { NamespaceConfigContextProvider } from "./contexts/NamespaceConfigContextProvider";
@@ -20,8 +22,15 @@ function ServicePrincipalSection({
   managedApp: ManagedAppRef | undefined;
 }) {
   const certPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/cert-policy/`;
+
   const columns = usePolicyRefTableColumns(certPolicyRoutePrefix);
+  const secretPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/secret-policy/`;
+  const secretPoliciesTableColumns = usePolicyRefTableColumns(
+    secretPolicyRoutePrefix
+  );
+
   const certPolicies = useCertPolicies();
+  const secretPolicies = useSecretPolicies();
   return (
     <NamespaceConfigContextProvider ruleEntraClientCred>
       <section className="space-y-4">
@@ -30,7 +39,7 @@ function ServicePrincipalSection({
           <pre>{managedApp?.servicePrincipalId}</pre>
         </div>
         <Card
-          title="Certificate Policies"
+          title="Certificate policies"
           extra={
             <Link to={`${certPolicyRoutePrefix}_create`}>
               Create certificate policy
@@ -40,6 +49,20 @@ function ServicePrincipalSection({
           <Table<CertPolicyRef>
             columns={columns}
             dataSource={certPolicies}
+            rowKey={(r) => r.id}
+          />
+        </Card>
+        <Card
+          title="Secret policies"
+          extra={
+            <Link to={`${secretPolicyRoutePrefix}_create`}>
+              Create certificate policy
+            </Link>
+          }
+        >
+          <Table<SecretPolicyRef>
+            columns={secretPoliciesTableColumns}
+            dataSource={secretPolicies}
             rowKey={(r) => r.id}
           />
         </Card>

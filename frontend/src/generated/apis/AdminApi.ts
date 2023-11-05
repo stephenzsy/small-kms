@@ -38,6 +38,9 @@ import type {
   PullImageRequest,
   RequestDiagnostics,
   ResourceKind,
+  SecretPolicy,
+  SecretPolicyParameters,
+  SecretPolicyRef,
   SystemAppName,
 } from '../models/index';
 import {
@@ -87,6 +90,12 @@ import {
     RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
+    SecretPolicyFromJSON,
+    SecretPolicyToJSON,
+    SecretPolicyParametersFromJSON,
+    SecretPolicyParametersToJSON,
+    SecretPolicyRefFromJSON,
+    SecretPolicyRefToJSON,
     SystemAppNameFromJSON,
     SystemAppNameToJSON,
 } from '../models/index';
@@ -238,6 +247,12 @@ export interface GetProfileRequest {
     namespaceIdentifier: string;
 }
 
+export interface GetSecretPolicyRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+}
+
 export interface GetSystemAppRequest {
     systemAppName: SystemAppName;
 }
@@ -279,6 +294,11 @@ export interface ListProfilesRequest {
     profileResourceKind: ResourceKind;
 }
 
+export interface ListSecretPoliciesRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+}
+
 export interface PutAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -315,6 +335,13 @@ export interface PutProfileRequest {
     profileResourceKind: ResourceKind;
     namespaceIdentifier: string;
     profileParameters: ProfileParameters;
+}
+
+export interface PutSecretPolicyRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    secretPolicyParameters: SecretPolicyParameters;
 }
 
 export interface SyncManagedAppRequest {
@@ -1458,6 +1485,52 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get key spec
+     */
+    async getSecretPolicyRaw(requestParameters: GetSecretPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SecretPolicy>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getSecretPolicy.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getSecretPolicy.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getSecretPolicy.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SecretPolicyFromJSON(jsonValue));
+    }
+
+    /**
+     * Get key spec
+     */
+    async getSecretPolicy(requestParameters: GetSecretPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SecretPolicy> {
+        const response = await this.getSecretPolicyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get system app
      */
     async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ManagedAppRef>> {
@@ -1832,6 +1905,48 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * List secret policies
+     */
+    async listSecretPoliciesRaw(requestParameters: ListSecretPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SecretPolicyRef>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listSecretPolicies.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listSecretPolicies.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SecretPolicyRefFromJSON));
+    }
+
+    /**
+     * List secret policies
+     */
+    async listSecretPolicies(requestParameters: ListSecretPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SecretPolicyRef>> {
+        const response = await this.listSecretPoliciesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Put agent config server
      */
     async putAgentConfigServerRaw(requestParameters: PutAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigServer>> {
@@ -2129,6 +2244,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
         const response = await this.putProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put key spec
+     */
+    async putSecretPolicyRaw(requestParameters: PutSecretPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SecretPolicy>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putSecretPolicy.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putSecretPolicy.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putSecretPolicy.');
+        }
+
+        if (requestParameters.secretPolicyParameters === null || requestParameters.secretPolicyParameters === undefined) {
+            throw new runtime.RequiredError('secretPolicyParameters','Required parameter requestParameters.secretPolicyParameters was null or undefined when calling putSecretPolicy.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SecretPolicyParametersToJSON(requestParameters.secretPolicyParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SecretPolicyFromJSON(jsonValue));
+    }
+
+    /**
+     * Put key spec
+     */
+    async putSecretPolicy(requestParameters: PutSecretPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SecretPolicy> {
+        const response = await this.putSecretPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

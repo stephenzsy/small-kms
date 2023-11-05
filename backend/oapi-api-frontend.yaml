@@ -66,6 +66,10 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-rule~1ms-entra-client-credential"
   /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1cert-policy~1{resourceIdentifier}~1keyvault-role-assignments~1{resourceCategory}"
+  /v1/{namespaceKind}/{namespaceIdentifier}/secret-policies:
+    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1secret-policies"
+  /v1/{namespaceKind}/{namespaceIdentifier}/secret-policies/{resourceIdentifier}:
+    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceIdentifier}~1secret-policies~1{resourceIdentifier}"
 components:
   securitySchemes:
     BearerAuth:

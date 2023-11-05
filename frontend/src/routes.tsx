@@ -7,8 +7,8 @@ import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 
+const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
-
 const MainPage = React.lazy(() => import("./MainPage"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
@@ -88,6 +88,10 @@ export const router = createBrowserRouter([
                   {
                     path: "cert-policy/:certPolicyId",
                     element: <CertPolicyPage />,
+                  },
+                  {
+                    path: "secret-policy/:policyId",
+                    element: <SecretPolicyPage />,
                   },
                   {
                     path: "cert/:certId",

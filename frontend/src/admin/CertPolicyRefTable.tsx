@@ -80,6 +80,26 @@ export function useCertPolicies() {
   return certPolicies;
 }
 
+export function useSecretPolicies() {
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+
+  const adminApi = useAuthedClient(AdminApi);
+  const { data } = useRequest(
+    () => {
+      return adminApi.listSecretPolicies({
+        namespaceIdentifier,
+        namespaceKind: namespaceKind,
+      });
+    },
+    {
+      refreshDeps: [namespaceIdentifier, namespaceKind],
+      ready: !!namespaceIdentifier,
+    }
+  );
+
+  return data;
+}
+
 export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 

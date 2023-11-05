@@ -3,6 +3,7 @@ oapi-codegen.exe --package base -generate "echo-server" ./oapi-base.yaml > base/
 oapi-codegen.exe --package profile -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-profile.yaml > profile/profile.gen.go
 oapi-codegen.exe --package managedapp -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-profile.yaml:github.com/stephenzsy/small-kms/backend/profile" ./oapi-managed-app.yaml > managedapp/managed_app.gen.go
 oapi-codegen.exe --package key -generate "types,echo-server,skip-prune" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-key.yaml > key/key.gen.go
+oapi-codegen.exe --package secret -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-secret.yaml > secret/secret.gen.go
 oapi-codegen.exe --package cert -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-key.yaml:github.com/stephenzsy/small-kms/backend/key" ./oapi-cert.yaml > cert/cert.gen.go
 
 oapi-codegen.exe --package agentclient -generate "types,client" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-key.yaml:github.com/stephenzsy/small-kms/backend/key,oapi-cert.yaml:github.com/stephenzsy/small-kms/backend/cert,oapi-managed-app.yaml:github.com/stephenzsy/small-kms/backend/managedapp" -include-tags agentclient ./oapi-client-agent.yaml > agent/client/agent_client.gen.go

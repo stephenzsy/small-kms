@@ -34,6 +34,7 @@ const (
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"
 	ResourceKindKeyPolicy               ResourceKind = "key-policy"
 	ResourceKindNamespaceConfig         ResourceKind = "ns-config"
+	ResourceKindSecretPolicy            ResourceKind = "secret-policy"
 )
 
 // AzureRoleAssignment defines model for AzureRoleAssignment.

@@ -29,6 +29,7 @@ import (
 	requestcontext "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/profile"
+	"github.com/stephenzsy/small-kms/backend/secret"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
@@ -121,6 +122,7 @@ func main() {
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))
 		agentpush.RegisterHandlers(e, agentpush.NewProxiedServer(apiServer))
+		secret.RegisterHandlers(e, secret.NewServer(apiServer))
 		//key.RegisterHandlers(e, key.NewServer(apiServer))
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(

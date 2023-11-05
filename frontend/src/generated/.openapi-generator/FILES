@@ -48,7 +48,14 @@ models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts
 models/ResourceReference.ts
+models/SecretGenerateMode.ts
 models/SecretMount.ts
+models/SecretPolicy.ts
+models/SecretPolicyFields.ts
+models/SecretPolicyParameters.ts
+models/SecretPolicyRef.ts
+models/SecretPolicyRefFields.ts
+models/SecretRandomCharacterClass.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts
