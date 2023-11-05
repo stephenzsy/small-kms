@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
@@ -62,4 +63,19 @@ func (s *agentServer) apiLaunchAgentContainer(c ctx.RequestContext, req LaunchAg
 		}
 		return c.JSON(http.StatusCreated, result)
 	}
+}
+
+func (s *agentServer) apiStopContainer(c ctx.RequestContext, containerID string) error {
+	currentContainer, err := s.dockerClient.ContainerInspect(c, containerID)
+	if err != nil {
+		return err
+	}
+	if len(currentContainer.Config.Cmd) > 2 && currentContainer.Config.Cmd[1] == string(s.mode) {
+		return fmt.Errorf("%w: cannot stop container of the same type: %s", base.ErrResponseStatusBadRequest, s.mode)
+	}
+
+	if err := s.dockerClient.ContainerStop(c, containerID, container.StopOptions{}); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

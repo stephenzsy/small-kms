@@ -96,8 +96,14 @@ type ClientInterface interface {
 	// AgentDockerContainerList request
 	AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AgentDockerContainerRemove request
+	AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AgentDockerContainerInspect request
 	AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AgentDockerContainerStop request
+	AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerImageList request
 	AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -143,8 +149,32 @@ func (c *Client) AgentDockerContainerList(ctx context.Context, namespaceKind ext
 	return c.Client.Do(req)
 }
 
+func (c *Client) AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerRemoveRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAgentDockerContainerInspectRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerStopRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -365,6 +395,76 @@ func NewAgentDockerContainerListRequest(server string, namespaceKind externalRef
 	return req, nil
 }
 
+// NewAgentDockerContainerRemoveRequest generates requests for AgentDockerContainerRemove
+func NewAgentDockerContainerRemoveRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "containerId", runtime.ParamLocationPath, containerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/docker/containers/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.XCryptocatProxyAuthorization != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewAgentDockerContainerInspectRequest generates requests for AgentDockerContainerInspect
 func NewAgentDockerContainerInspectRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams) (*http.Request, error) {
 	var err error
@@ -413,6 +513,76 @@ func NewAgentDockerContainerInspectRequest(server string, namespaceKind external
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.XCryptocatProxyAuthorization != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewAgentDockerContainerStopRequest generates requests for AgentDockerContainerStop
+func NewAgentDockerContainerStopRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "containerId", runtime.ParamLocationPath, containerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/docker/containers/%s/stop", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -825,8 +995,14 @@ type ClientWithResponsesInterface interface {
 	// AgentDockerContainerListWithResponse request
 	AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error)
 
+	// AgentDockerContainerRemoveWithResponse request
+	AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error)
+
 	// AgentDockerContainerInspectWithResponse request
 	AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error)
+
+	// AgentDockerContainerStopWithResponse request
+	AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error)
 
 	// AgentDockerImageListWithResponse request
 	AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error)
@@ -892,6 +1068,27 @@ func (r AgentDockerContainerListResponse) StatusCode() int {
 	return 0
 }
 
+type AgentDockerContainerRemoveResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentDockerContainerRemoveResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentDockerContainerRemoveResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AgentDockerContainerInspectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -908,6 +1105,27 @@ func (r AgentDockerContainerInspectResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AgentDockerContainerInspectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AgentDockerContainerStopResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentDockerContainerStopResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentDockerContainerStopResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1041,6 +1259,15 @@ func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.C
 	return ParseAgentDockerContainerListResponse(rsp)
 }
 
+// AgentDockerContainerRemoveWithResponse request returning *AgentDockerContainerRemoveResponse
+func (c *ClientWithResponses) AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error) {
+	rsp, err := c.AgentDockerContainerRemove(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerContainerRemoveResponse(rsp)
+}
+
 // AgentDockerContainerInspectWithResponse request returning *AgentDockerContainerInspectResponse
 func (c *ClientWithResponses) AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error) {
 	rsp, err := c.AgentDockerContainerInspect(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
@@ -1048,6 +1275,15 @@ func (c *ClientWithResponses) AgentDockerContainerInspectWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseAgentDockerContainerInspectResponse(rsp)
+}
+
+// AgentDockerContainerStopWithResponse request returning *AgentDockerContainerStopResponse
+func (c *ClientWithResponses) AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error) {
+	rsp, err := c.AgentDockerContainerStop(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerContainerStopResponse(rsp)
 }
 
 // AgentDockerImageListWithResponse request returning *AgentDockerImageListResponse
@@ -1163,6 +1399,22 @@ func ParseAgentDockerContainerListResponse(rsp *http.Response) (*AgentDockerCont
 	return response, nil
 }
 
+// ParseAgentDockerContainerRemoveResponse parses an HTTP response from a AgentDockerContainerRemoveWithResponse call
+func ParseAgentDockerContainerRemoveResponse(rsp *http.Response) (*AgentDockerContainerRemoveResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentDockerContainerRemoveResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseAgentDockerContainerInspectResponse parses an HTTP response from a AgentDockerContainerInspectWithResponse call
 func ParseAgentDockerContainerInspectResponse(rsp *http.Response) (*AgentDockerContainerInspectResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1184,6 +1436,22 @@ func ParseAgentDockerContainerInspectResponse(rsp *http.Response) (*AgentDockerC
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseAgentDockerContainerStopResponse parses an HTTP response from a AgentDockerContainerStopWithResponse call
+func ParseAgentDockerContainerStopResponse(rsp *http.Response) (*AgentDockerContainerStopResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentDockerContainerStopResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil

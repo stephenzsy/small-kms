@@ -114,6 +114,22 @@ export interface AgentDockerContainerListRequest {
     xCryptocatProxyAuthorization?: string;
 }
 
+export interface AgentDockerContainerRemoveRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    containerId: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
+export interface AgentDockerContainerStopRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    containerId: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
 export interface AgentDockerImageListRequest {
     namespaceKind: NamespaceKind;
     namespaceIdentifier: string;
@@ -474,6 +490,112 @@ export class AdminApi extends runtime.BaseAPI {
     async agentDockerContainerList(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.agentDockerContainerListRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Remove docker container
+     */
+    async agentDockerContainerRemoveRaw(requestParameters: AgentDockerContainerRemoveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerRemove.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerRemove.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerRemove.');
+        }
+
+        if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
+            throw new runtime.RequiredError('containerId','Required parameter requestParameters.containerId was null or undefined when calling agentDockerContainerRemove.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Remove docker container
+     */
+    async agentDockerContainerRemove(requestParameters: AgentDockerContainerRemoveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.agentDockerContainerRemoveRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Stop docker container
+     */
+    async agentDockerContainerStopRaw(requestParameters: AgentDockerContainerStopRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerStop.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerStop.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerStop.');
+        }
+
+        if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
+            throw new runtime.RequiredError('containerId','Required parameter requestParameters.containerId was null or undefined when calling agentDockerContainerStop.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}/stop`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Stop docker container
+     */
+    async agentDockerContainerStop(requestParameters: AgentDockerContainerStopRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.agentDockerContainerStopRaw(requestParameters, initOverrides);
     }
 
     /**

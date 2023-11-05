@@ -26,6 +26,24 @@ type agentServer struct {
 	mode            managedapp.AgentMode
 }
 
+// AgentContainerRemove implements ServerInterface.
+func (s *agentServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerRemoveParams) error {
+	c := ec.(ctx.RequestContext)
+
+	err := s.dockerClient.ContainerRemove(c, containerId, types.ContainerRemoveOptions{})
+	if err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// AgentDockerContainerStop implements ServerInterface.
+func (s *agentServer) AgentDockerContainerStop(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier,
+	containerId string, params AgentDockerContainerStopParams) error {
+	c := ec.(ctx.RequestContext)
+	return s.apiStopContainer(c, containerId)
+}
+
 // AgentLaunchContainer implements ServerInterface.
 func (s *agentServer) AgentLaunchAgent(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentLaunchAgentParams) error {
 	c := ec.(ctx.RequestContext)

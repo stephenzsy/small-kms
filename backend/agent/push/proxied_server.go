@@ -16,6 +16,20 @@ type proxiedServer struct {
 	proxyClientPool *ProxyClientPool
 }
 
+// AgentContainerRemove implements ServerInterface.
+func (s *proxiedServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerRemoveParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerRemoveWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, nil)
+	})
+}
+
+// AgentDockerContainerStop implements ServerInterface.
+func (s *proxiedServer) AgentDockerContainerStop(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerStopParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerStopWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, nil)
+	})
+}
+
 // AgentLaunchAgent implements ServerInterface.
 func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentLaunchAgentParams) error {
 	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization,

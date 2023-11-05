@@ -71,6 +71,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DockerContainerJSON"
+    delete:
+      tags:
+        - agent
+        - admin
+      description: Remove docker container
+      operationId: AgentDockerContainerRemove
+      responses:
+        204:
+          description: Container remove result
+          content: {}
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}/stop:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+      - name: containerId
+        in: path
+        description: Container ID
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - agent
+        - admin
+      description: Stop docker container
+      operationId: AgentDockerContainerStop
+      responses:
+        204:
+          description: Container stop result
+          content: {}
   /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

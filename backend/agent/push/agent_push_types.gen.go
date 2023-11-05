@@ -70,8 +70,18 @@ type AgentDockerContainerListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 
+// AgentDockerContainerRemoveParams defines parameters for AgentDockerContainerRemove.
+type AgentDockerContainerRemoveParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
 // AgentDockerContainerInspectParams defines parameters for AgentDockerContainerInspect.
 type AgentDockerContainerInspectParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
+// AgentDockerContainerStopParams defines parameters for AgentDockerContainerStop.
+type AgentDockerContainerStopParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

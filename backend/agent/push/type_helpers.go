@@ -13,6 +13,14 @@ func (r *AgentDockerContainerInspectResponse) GetBody() []byte {
 	return r.Body
 }
 
+func (r *AgentDockerContainerStopResponse) GetBody() []byte {
+	return r.Body
+}
+
+func (r *AgentDockerContainerRemoveResponse) GetBody() []byte {
+	return r.Body
+}
+
 func (r *AgentDockerImageListResponse) GetBody() []byte {
 	return r.Body
 }
