@@ -19,6 +19,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
@@ -66,20 +67,20 @@ func main() {
 
 	envSvc := common.NewEnvService()
 
-	configManager, err := keeper.NewConfigManager(envSvc)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("Failed to create config manager")
-	}
-
 	agentPushEndpoint := envSvc.Default(agentcommon.EnvKeyAgentPushEndpoint, "https://localhost:8443", common.IdentityEnvVarPrefixAgent)
 
 	args := flag.Args()
 
-	mode := args[0]
+	mode := managedapp.AgentMode(args[0])
 	if len(args) >= 2 {
 		switch mode {
-		case "server",
-			"sidecar":
+		case managedapp.AgentModeServer,
+			managedapp.AgentModeLauncher:
+			configManager, err := keeper.NewConfigManager(envSvc, mode)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("Failed to create config manager")
+			}
+
 			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")

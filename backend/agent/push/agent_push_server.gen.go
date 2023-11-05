@@ -33,6 +33,9 @@ type ServerInterface interface {
 	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks)
 	AgentDockerNetworkList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerNetworkListParams) error
 
+	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent)
+	AgentLaunchAgent(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentLaunchAgentParams) error
+
 	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image)
 	AgentPullImage(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentPullImageParams) error
 }
@@ -374,6 +377,60 @@ func (w *ServerInterfaceWrapper) AgentDockerNetworkList(ctx echo.Context) error 
 	return err
 }
 
+// AgentLaunchAgent converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentLaunchAgent(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceIdentifier" -------------
+	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+	}
+
+	// ------------- Path parameter "resourceIdentifier" -------------
+	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AgentLaunchAgentParams
+
+	headers := ctx.Request().Header
+	// ------------- Optional header parameter "X-Cryptocat-Proxy-Authorization" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cryptocat-Proxy-Authorization")]; found {
+		var XCryptocatProxyAuthorization DelegatedAuthorizationHeaderParameter
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Cryptocat-Proxy-Authorization, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, valueList[0], &XCryptocatProxyAuthorization)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Cryptocat-Proxy-Authorization: %s", err))
+		}
+
+		params.XCryptocatProxyAuthorization = &XCryptocatProxyAuthorization
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AgentLaunchAgent(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	return err
+}
+
 // AgentPullImage converts echo context to params.
 func (w *ServerInterfaceWrapper) AgentPullImage(ctx echo.Context) error {
 	var err error
@@ -462,6 +519,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/images", wrapper.AgentDockerImageList)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/info", wrapper.AgentDockerInfo)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/networks", wrapper.AgentDockerNetworkList)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/launch-agent", wrapper.AgentLaunchAgent)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/pull-image", wrapper.AgentPullImage)
 
 }

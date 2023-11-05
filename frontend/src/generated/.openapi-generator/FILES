@@ -8,6 +8,7 @@ models/AgentConfigServerEnv.ts
 models/AgentConfigServerFields.ts
 models/AgentInstance.ts
 models/AgentInstanceFields.ts
+models/AgentMode.ts
 models/AuthResult.ts
 models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts
@@ -32,6 +33,7 @@ models/JsonWebKeySignatureAlgorithm.ts
 models/JsonWebKeyType.ts
 models/KeyAttributes.ts
 models/KeySpec.ts
+models/LaunchAgentRequest.ts
 models/LifetimeAction.ts
 models/LifetimeTrigger.ts
 models/ManagedAppParameters.ts
@@ -46,6 +48,7 @@ models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts
 models/ResourceReference.ts
+models/SecretMount.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts

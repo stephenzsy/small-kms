@@ -29,6 +29,7 @@ import type {
   CertificateRef,
   CertificateRuleIssuer,
   CertificateRuleMsEntraClientCredential,
+  LaunchAgentRequest,
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind,
@@ -68,6 +69,8 @@ import {
     CertificateRuleIssuerToJSON,
     CertificateRuleMsEntraClientCredentialFromJSON,
     CertificateRuleMsEntraClientCredentialToJSON,
+    LaunchAgentRequestFromJSON,
+    LaunchAgentRequestToJSON,
     ManagedAppParametersFromJSON,
     ManagedAppParametersToJSON,
     ManagedAppRefFromJSON,
@@ -130,6 +133,14 @@ export interface AgentDockerNetworkListRequest {
     namespaceIdentifier: string;
     resourceIdentifier: string;
     xCryptocatProxyAuthorization?: string;
+}
+
+export interface AgentLaunchAgentRequest {
+    namespaceKind: NamespaceKind;
+    namespaceIdentifier: string;
+    resourceIdentifier: string;
+    xCryptocatProxyAuthorization?: string;
+    launchAgentRequest?: LaunchAgentRequest;
 }
 
 export interface AgentPullImageRequest {
@@ -612,6 +623,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentDockerNetworkList(requestParameters: AgentDockerNetworkListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.agentDockerNetworkListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Launch agent
+     */
+    async agentLaunchAgentRaw(requestParameters: AgentLaunchAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentLaunchAgent.');
+        }
+
+        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
+            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentLaunchAgent.');
+        }
+
+        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
+            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentLaunchAgent.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: LaunchAgentRequestToJSON(requestParameters.launchAgentRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Launch agent
+     */
+    async agentLaunchAgent(requestParameters: AgentLaunchAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.agentLaunchAgentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

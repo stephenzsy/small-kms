@@ -276,6 +276,14 @@ components:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
         - $ref: "#/components/schemas/AgentInstanceFields"
         - x-go-type: agentInstanceComposed
+    AgentMode:
+      type: string
+      enum:
+        - server
+        - launcher
+      x-enum-varnames:
+        - AgentModeServer
+        - AgentModeLauncher
     AgentInstanceFields:
       type: object
       properties:
@@ -288,11 +296,11 @@ components:
           type: string
           x-go-name: BuildID
         mode:
-          type: string
-          x-go-type-skip-optional-pointer: true
+          $ref: "#/components/schemas/AgentMode"
       required:
         - version
         - buildId
+        - mode
     AgentConfig:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"

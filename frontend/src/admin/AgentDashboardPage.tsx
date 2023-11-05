@@ -7,7 +7,14 @@ import {
 } from "ahooks";
 import { Button, Card, Drawer, Form, Input, Table, Typography } from "antd";
 import { useParams } from "react-router-dom";
-import { AdminApi, NamespaceKind, PullImageRequest } from "../generated";
+import {
+  AdminApi,
+  AgentMode,
+  LaunchAgentRequest,
+  NamespaceKind,
+  PullImageRequest,
+  SecretMount,
+} from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 import {
@@ -63,7 +70,11 @@ function DockerPullImageForm() {
         });
       }}
     >
-      <Form.Item<DockerPullImageFormState> name="imageTag" label="Image tag">
+      <Form.Item<DockerPullImageFormState>
+        name="imageTag"
+        label="Image tag"
+        required
+      >
         <Input placeholder="latest" />
       </Form.Item>
       <Form.Item>
@@ -72,6 +83,223 @@ function DockerPullImageForm() {
         </Button>
       </Form.Item>
     </Form>
+  );
+}
+
+type LaunchContainerFormState = {
+  containerName: string;
+  exposedPortSpecs: string[];
+  hostBinds: string[];
+  imageTag: string;
+  listenerAddress: string;
+  networkName?: string;
+  secrets: SecretMount[];
+};
+
+function LaunchContainerForm({ mode }: { mode: AgentMode }) {
+  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const [form] = useForm<LaunchContainerFormState>();
+  const api = useAuthedClient(AdminApi);
+  const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
+  const { run } = useRequest(
+    async (req: LaunchAgentRequest) => {
+      await api.agentLaunchAgent({
+        namespaceIdentifier,
+        namespaceKind,
+        resourceIdentifier: instanceId,
+        launchAgentRequest: req,
+        xCryptocatProxyAuthorization: getAccessToken(),
+      });
+    },
+    { manual: true }
+  );
+
+  const onFinish = useMemoizedFn((values: LaunchContainerFormState) => {
+    if (!values.imageTag || !values.containerName || !values.listenerAddress) {
+      return;
+    }
+    run({
+      containerName: values.containerName,
+      mode,
+      exposedPortSpecs: values.exposedPortSpecs,
+      hostBinds: values.hostBinds,
+      imageTag: values.imageTag,
+      listenerAddress: values.listenerAddress,
+      networkName: values.networkName,
+      secrets: values.secrets,
+    });
+  });
+
+  return (
+    <>
+      <div className="mb-4">Mode: {mode}</div>
+      <Form<LaunchContainerFormState>
+        form={form}
+        layout="vertical"
+        initialValues={{
+          containerName:
+            mode === AgentMode.AgentModeLauncher
+              ? "cryptocat-agent-launcher"
+              : "cryptocat-agent",
+          exposedPortSpecs: ["11443:11443"],
+          hostBinds: [
+            "/opt/smallkms/config:/opt/smallkms/config:rw",
+            "/var/run/docker.sock:/var/run/docker.sock:rw",
+          ],
+          imageTag: "",
+          listenerAddress: ":10443",
+          networkName: "",
+          secrets: [
+            {
+              source: "/opt/smallkms/sp-client-cert.pem",
+              targetName: "aad-client-creds.pem",
+            },
+          ],
+        }}
+        onFinish={onFinish}
+      >
+        <Form.Item<LaunchContainerFormState>
+          name="containerName"
+          label="Container name"
+          required
+        >
+          <Input placeholder="cryptocat-agent" />
+        </Form.Item>
+        <Form.Item<LaunchContainerFormState>
+          name="imageTag"
+          label="Image tag"
+          required
+        >
+          <Input placeholder="latest" />
+        </Form.Item>
+        <Form.Item<LaunchContainerFormState>
+          name="listenerAddress"
+          label="Listener address"
+          required
+        >
+          <Input placeholder=":10443" />
+        </Form.Item>
+        <Form.Item<LaunchContainerFormState>
+          name="networkName"
+          label="Network name"
+        >
+          <Input placeholder="" />
+        </Form.Item>
+        <Form.List name={"exposedPortSpecs"}>
+          {(subFields, subOpt) => {
+            return (
+              <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md">
+                <div className="text-lg font-semibold">Port bindings</div>
+                {subFields.map((subField) => (
+                  <div key={subField.key} className="flex items-center gap-4">
+                    <Form.Item
+                      noStyle
+                      name={subField.name}
+                      className="flex-auto"
+                    >
+                      <Input placeholder={"11443:11443"} />
+                    </Form.Item>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        subOpt.remove(subField.name);
+                      }}
+                    >
+                      <XMarkIcon className="h-em w-em" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="dashed" onClick={() => subOpt.add()} block>
+                  Add exposed port
+                </Button>
+              </div>
+            );
+          }}
+        </Form.List>
+        <Form.List name={"hostBinds"}>
+          {(subFields, subOpt) => {
+            return (
+              <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
+                <div className="text-lg font-semibold">Host bindings</div>
+                {subFields.map((subField) => (
+                  <div key={subField.key} className="flex items-center gap-4">
+                    <Form.Item
+                      noStyle
+                      name={subField.name}
+                      className="flex-auto"
+                    >
+                      <Input placeholder={"source:target"} />
+                    </Form.Item>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        subOpt.remove(subField.name);
+                      }}
+                    >
+                      <XMarkIcon className="h-em w-em" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="dashed" onClick={() => subOpt.add()} block>
+                  Add hsot binding
+                </Button>
+              </div>
+            );
+          }}
+        </Form.List>
+        <Form.List name={"secrets"}>
+          {(subFields, subOpt) => {
+            return (
+              <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
+                <div className="text-lg font-semibold">Secret bindings</div>
+                {subFields.map((subField) => (
+                  <div key={subField.key} className="flex items-center gap-4">
+                    <Form.Item
+                      noStyle
+                      name={[subField.name, "targetName"]}
+                      className="flex-auto"
+                      label="Name"
+                    >
+                      <Input
+                        placeholder={"source:target"}
+                        addonBefore={"Name"}
+                      />
+                    </Form.Item>
+                    <Form.Item
+                      noStyle
+                      name={[subField.name, "source"]}
+                      className="flex-auto"
+                      label="Source"
+                    >
+                      <Input
+                        placeholder={"source:target"}
+                        addonBefore={"Source"}
+                      />
+                    </Form.Item>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        subOpt.remove(subField.name);
+                      }}
+                    >
+                      <XMarkIcon className="h-em w-em" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="dashed" onClick={() => subOpt.add()} block>
+                  Add secret binding
+                </Button>
+              </div>
+            );
+          }}
+        </Form.List>
+        <Form.Item className="mt-4">
+          <Button type="primary" htmlType="submit">
+            Launch
+          </Button>
+        </Form.Item>
+      </Form>
+    </>
   );
 }
 
@@ -376,9 +604,18 @@ function AgentDashboard({ api }: { api: AdminApi }) {
       </Card>
 
       {hasToken && (
-        <Card title="Docker pull image">
-          <DockerPullImageForm />
-        </Card>
+        <>
+          <Card title="Docker pull image">
+            <DockerPullImageForm />
+          </Card>
+          {data && (
+            <Card title="Launch container">
+              <LaunchContainerForm
+                mode={data?.mode === "server" ? "launcher" : "server"}
+              />
+            </Card>
+          )}
+        </>
       )}
     </>
   );

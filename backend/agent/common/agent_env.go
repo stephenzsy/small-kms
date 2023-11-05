@@ -12,18 +12,22 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type AgentEnv struct {
 	common.EnvService
+	mode managedapp.AgentMode
+
 	certCred        *azidentity.ClientCertificateCredential
 	agentClient     *agentclient.ClientWithResponses
 	azSecretsClient *azsecrets.Client
 }
 
-func NewAgentEnv(envService common.EnvService) (env *AgentEnv, err error) {
+func NewAgentEnv(envService common.EnvService, mode managedapp.AgentMode) (env *AgentEnv, err error) {
 	env = &AgentEnv{
 		EnvService: envService,
+		mode:       mode,
 	}
 	return env, nil
 }

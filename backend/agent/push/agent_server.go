@@ -14,6 +14,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type agentServer struct {
@@ -22,7 +23,18 @@ type agentServer struct {
 	dockerClient    *dockerclient.Client
 	acrAuthProvider *acr.DockerRegistryAuthProvider
 	acrImageRepo    string
-	mode            string
+	mode            managedapp.AgentMode
+}
+
+// AgentLaunchContainer implements ServerInterface.
+func (s *agentServer) AgentLaunchAgent(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentLaunchAgentParams) error {
+	c := ec.(ctx.RequestContext)
+	req := LaunchAgentRequest{}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	return s.apiLaunchAgentContainer(c, req)
 }
 
 // AgentDockerContainerInspect implements ServerInterface.
@@ -122,7 +134,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode string, envSvc common.EnvService) (*agentServer, error) {
+func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string

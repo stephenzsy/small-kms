@@ -16,6 +16,20 @@ type proxiedServer struct {
 	proxyClientPool *ProxyClientPool
 }
 
+// AgentLaunchAgent implements ServerInterface.
+func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentLaunchAgentParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization,
+		func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+			return client.AgentLaunchAgentWithBodyWithResponse(
+				c, namespaceKind,
+				namespaceIdentifier,
+				resourceIdentifier,
+				nil,
+				c.Request().Header.Get(echo.HeaderContentType),
+				c.Request().Body)
+		})
+}
+
 // AgentDockerNetworkList implements ServerInterface.
 func (s *proxiedServer) AgentDockerNetworkList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier, resourceIdentifier base.Identifier, params AgentDockerNetworkListParams) error {
 	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {

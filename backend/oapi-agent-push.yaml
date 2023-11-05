@@ -153,6 +153,26 @@ paths:
         204:
           description: agent pull image resposne
           content: {}
+  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    post:
+      tags:
+        - agent
+        - admin
+      description: Launch agent
+      operationId: AgentLaunchAgent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LaunchAgentRequest"
+      responses:
+        201:
+          $ref: "#/components/responses/DockerContianerCreateResponse"
 security:
   - BearerAuth: []
 components:
@@ -194,6 +214,53 @@ components:
       x-go-type: types.NetworkResource
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
+    SecretMount:
+      type: object
+      properties:
+        source:
+          type: string
+        targetName:
+          type: string
+      required:
+        - source
+        - targetName
+    LaunchAgentRequest:
+      type: object
+      properties:
+        mode:
+          $ref: "oapi-managed-app.yaml#/components/schemas/AgentMode"
+        containerName:
+          type: string
+        imageTag:
+          type: string
+        listenerAddress:
+          example: ":10443"
+          type: string
+        exposedPortSpecs:
+          type: array
+          items:
+            type: string
+            example: "10443/tcp"
+        hostBinds:
+          type: array
+          items:
+            type: string
+            example: "/var/run/docker.sock:/var/run/docker.sock:rw"
+        secrets:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecretMount"
+        networkName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - mode
+        - containerName
+        - imageTag
+        - listenerAddress
+        - exposedPortSpecs
+        - hostBinds
+        - secrets
     PullImageRequest:
       type: object
       properties:
@@ -203,3 +270,13 @@ components:
           type: boolean
       required:
         - imageTag
+  responses:
+    DockerContianerCreateResponse:
+      description: Docker container create response
+      content:
+        application/json:
+          schema:
+            type: object
+            x-go-type: container.CreateResponse
+            x-go-type-import:
+              path: "github.com/docker/docker/api/types/container"

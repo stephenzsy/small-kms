@@ -24,3 +24,7 @@ func (r *AgentDockerInfoResponse) GetBody() []byte {
 func (r *AgentDockerNetworkListResponse) GetBody() []byte {
 	return r.Body
 }
+
+func (r *AgentLaunchAgentResponse) GetBody() []byte {
+	return r.Body
+}

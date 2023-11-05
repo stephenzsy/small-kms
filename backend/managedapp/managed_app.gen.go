@@ -18,6 +18,12 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for AgentMode.
+const (
+	AgentModeLauncher AgentMode = "launcher"
+	AgentModeServer   AgentMode = "server"
+)
+
 // Defines values for SystemAppName.
 const (
 	SystemAppNameAPI     SystemAppName = "api"
@@ -60,11 +66,14 @@ type AgentInstance = agentInstanceComposed
 
 // AgentInstanceFields defines model for AgentInstanceFields.
 type AgentInstanceFields struct {
-	BuildID  string `json:"buildId"`
-	Endpoint string `json:"endpoint,omitempty"`
-	Mode     string `json:"mode,omitempty"`
-	Version  string `json:"version"`
+	BuildID  string    `json:"buildId"`
+	Endpoint string    `json:"endpoint,omitempty"`
+	Mode     AgentMode `json:"mode"`
+	Version  string    `json:"version"`
 }
+
+// AgentMode defines model for AgentMode.
+type AgentMode string
 
 // AuthResult defines model for AuthResult.
 type AuthResult struct {

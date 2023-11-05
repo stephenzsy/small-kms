@@ -99,7 +99,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		digest.Write([]byte(doc.GlobalKeyVaultEndpoint))
 
 		doc.GlobalACRImageRef = param.AzureACRImageRef
-		digest.Write([]byte(doc.GlobalACRImageRef))
+		// do not write digest for image ref
 	case base.NamespaceKindServicePrincipal:
 
 		globalDoc := &AgentConfigServerDoc{}

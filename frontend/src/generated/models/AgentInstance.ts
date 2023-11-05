@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentMode } from './AgentMode';
+import {
+    AgentModeFromJSON,
+    AgentModeFromJSONTyped,
+    AgentModeToJSON,
+} from './AgentMode';
+
 /**
  * 
  * @export
@@ -63,10 +70,10 @@ export interface AgentInstance {
     buildId: string;
     /**
      * 
-     * @type {string}
+     * @type {AgentMode}
      * @memberof AgentInstance
      */
-    mode?: string;
+    mode: AgentMode;
 }
 
 /**
@@ -78,6 +85,7 @@ export function instanceOfAgentInstance(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
     isInstance = isInstance && "buildId" in value;
+    isInstance = isInstance && "mode" in value;
 
     return isInstance;
 }
@@ -99,7 +107,7 @@ export function AgentInstanceFromJSONTyped(json: any, ignoreDiscriminator: boole
         'endpoint': !exists(json, 'endpoint') ? undefined : json['endpoint'],
         'version': json['version'],
         'buildId': json['buildId'],
-        'mode': !exists(json, 'mode') ? undefined : json['mode'],
+        'mode': AgentModeFromJSON(json['mode']),
     };
 }
 
@@ -119,7 +127,7 @@ export function AgentInstanceToJSON(value?: AgentInstance | null): any {
         'endpoint': value.endpoint,
         'version': value.version,
         'buildId': value.buildId,
-        'mode': value.mode,
+        'mode': AgentModeToJSON(value.mode),
     };
 }
 

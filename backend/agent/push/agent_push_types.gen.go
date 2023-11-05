@@ -5,6 +5,8 @@ package agentpush
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 const (
@@ -26,14 +28,35 @@ type DockerInfo = types.Info
 // DockerNetworkResource defines model for DockerNetworkResource.
 type DockerNetworkResource = types.NetworkResource
 
+// LaunchAgentRequest defines model for LaunchAgentRequest.
+type LaunchAgentRequest struct {
+	ContainerName    string                 `json:"containerName"`
+	ExposedPortSpecs []string               `json:"exposedPortSpecs"`
+	HostBinds        []string               `json:"hostBinds"`
+	ImageTag         string                 `json:"imageTag"`
+	ListenerAddress  string                 `json:"listenerAddress"`
+	Mode             externalRef1.AgentMode `json:"mode"`
+	NetworkName      string                 `json:"networkName,omitempty"`
+	Secrets          []SecretMount          `json:"secrets"`
+}
+
 // PullImageRequest defines model for PullImageRequest.
 type PullImageRequest struct {
 	ImageTag         string `json:"imageTag"`
 	IncludeLatestTag *bool  `json:"includeLatestTag,omitempty"`
 }
 
+// SecretMount defines model for SecretMount.
+type SecretMount struct {
+	Source     string `json:"source"`
+	TargetName string `json:"targetName"`
+}
+
 // DelegatedAuthorizationHeaderParameter defines model for DelegatedAuthorizationHeaderParameter.
 type DelegatedAuthorizationHeaderParameter = string
+
+// DockerContianerCreateResponse defines model for DockerContianerCreateResponse.
+type DockerContianerCreateResponse = container.CreateResponse
 
 // GetAgentDiagnosticsParams defines parameters for GetAgentDiagnostics.
 type GetAgentDiagnosticsParams struct {
@@ -65,10 +88,18 @@ type AgentDockerNetworkListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 
+// AgentLaunchAgentParams defines parameters for AgentLaunchAgent.
+type AgentLaunchAgentParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
 // AgentPullImageParams defines parameters for AgentPullImage.
 type AgentPullImageParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
+
+// AgentLaunchAgentJSONRequestBody defines body for AgentLaunchAgent for application/json ContentType.
+type AgentLaunchAgentJSONRequestBody = LaunchAgentRequest
 
 // AgentPullImageJSONRequestBody defines body for AgentPullImage for application/json ContentType.
 type AgentPullImageJSONRequestBody = PullImageRequest
