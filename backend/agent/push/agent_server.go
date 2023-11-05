@@ -103,8 +103,9 @@ func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind,
 	c := ec.(ctx.RequestContext)
 
 	return base.RespondDiagnostics(c, base.ServiceRuntimeInfo{
-		BuildID:   s.buildID,
-		GoVersion: runtime.Version(),
+		BuildID:     s.buildID,
+		GoVersion:   runtime.Version(),
+		Environment: s.EnvService().Export(),
 	})
 }
 
@@ -140,7 +141,7 @@ func NewServer(buildID string, mode string, envSvc common.EnvService) (*agentSer
 		return nil, err
 	}
 
-	config, err := common.NewCommonConfig(envSvc)
+	config, err := common.NewCommonConfig(envSvc, buildID)
 	if err != nil {
 		return nil, err
 	}

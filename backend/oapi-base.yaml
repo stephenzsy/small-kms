@@ -137,6 +137,11 @@ components:
         buildId:
           type: string
           x-go-name: BuildID
+        environment:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
       required:
         - goVersion
         - buildId

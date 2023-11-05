@@ -125,7 +125,7 @@ func (s *apiServer) Value(key any) any {
 }
 
 func NewApiServer(c context.Context, buildID string) (*apiServer, error) {
-	commonConfig, err := common.NewCommonConfig(common.NewEnvService())
+	commonConfig, err := common.NewCommonConfig(common.NewEnvService(), buildID)
 	if err != nil {
 		return nil, err
 	}

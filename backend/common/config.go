@@ -3,21 +3,28 @@ package common
 type commonConfig struct {
 	serviceIdentity AzureIdentity
 	envService      EnvService
+	buildID         string
 }
 
-func NewCommonConfig(envSvc EnvService) (c commonConfig, err error) {
+// BuildID implements CommonServer.
+func (c commonConfig) BuildID() string {
+	return c.buildID
+}
+
+func NewCommonConfig(envSvc EnvService, buildID string) (c commonConfig, err error) {
 	c.envService = envSvc
+	c.buildID = buildID
 	c.serviceIdentity, err = NewAzureIdentityFromEnv(envSvc, IdentityEnvVarPrefixService)
 	if err != nil {
-		return
+		return c, err
 	}
-
 	return
 }
 
 type CommonServer interface {
 	ServiceIdentityProvider
 	EnvService() EnvService
+	BuildID() string
 }
 
 // ServiceIdentity implements CommonServer.

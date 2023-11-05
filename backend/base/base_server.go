@@ -5,15 +5,18 @@ import (
 	"runtime"
 
 	echo "github.com/labstack/echo/v4"
+	"github.com/stephenzsy/small-kms/backend/common"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
 type baseServer struct {
-	buildID string
+	common.CommonServer
 }
 
 // GetDiagnostics implements ServerInterface.
-func (s *baseServer) GetDiagnostics(ctx echo.Context) error {
-	return RespondDiagnostics(ctx, s.getRuntimeInfo())
+func (s *baseServer) GetDiagnostics(ec echo.Context) error {
+	c := ec.(ctx.RequestContext)
+	return RespondDiagnostics(c, s.getRuntimeInfo())
 }
 
 // GetHealth implements ServerInterface.
@@ -23,14 +26,15 @@ func (*baseServer) GetHealth(ctx echo.Context) error {
 
 func (s *baseServer) getRuntimeInfo() ServiceRuntimeInfo {
 	return ServiceRuntimeInfo{
-		BuildID:   s.buildID,
-		GoVersion: runtime.Version(),
+		BuildID:     s.BuildID(),
+		GoVersion:   runtime.Version(),
+		Environment: s.EnvService().Export(),
 	}
 }
 
 // NewBaseServer creates a new base server.
-func NewBaseServer(buildID string) ServerInterface {
+func NewBaseServer(server common.CommonServer) ServerInterface {
 	return &baseServer{
-		buildID: buildID,
+		CommonServer: server,
 	}
 }

@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
-func RespondDiagnostics(c echo.Context, info ServiceRuntimeInfo) error {
+func RespondDiagnostics(c ctx.RequestContext, info ServiceRuntimeInfo) error {
 	r := RequestDiagnostics{
 		ServiceRuntime: info,
 	}

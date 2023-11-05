@@ -87,8 +87,9 @@ type ResourceUniqueIdentifier = DocFullIdentifier
 
 // ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
 type ServiceRuntimeInfo struct {
-	BuildID   string `json:"buildId"`
-	GoVersion string `json:"goVersion"`
+	BuildID     string   `json:"buildId"`
+	Environment []string `json:"environment,omitempty"`
+	GoVersion   string   `json:"goVersion"`
 }
 
 // NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.

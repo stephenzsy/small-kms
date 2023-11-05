@@ -31,6 +31,12 @@ export interface ServiceRuntimeInfo {
      * @memberof ServiceRuntimeInfo
      */
     buildId: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ServiceRuntimeInfo
+     */
+    environment?: Array<string>;
 }
 
 /**
@@ -56,6 +62,7 @@ export function ServiceRuntimeInfoFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'goVersion': json['goVersion'],
         'buildId': json['buildId'],
+        'environment': !exists(json, 'environment') ? undefined : json['environment'],
     };
 }
 
@@ -70,6 +77,7 @@ export function ServiceRuntimeInfoToJSON(value?: ServiceRuntimeInfo | null): any
         
         'goVersion': value.goVersion,
         'buildId': value.buildId,
+        'environment': value.environment,
     };
 }
 
