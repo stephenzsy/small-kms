@@ -58,6 +58,18 @@ export interface LaunchAgentRequest {
     listenerAddress: string;
     /**
      * 
+     * @type {string}
+     * @memberof LaunchAgentRequest
+     */
+    pushEndpoint: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LaunchAgentRequest
+     */
+    msEntraIdClientCertSecretName?: string;
+    /**
+     * 
      * @type {Array<string>}
      * @memberof LaunchAgentRequest
      */
@@ -91,6 +103,7 @@ export function instanceOfLaunchAgentRequest(value: object): boolean {
     isInstance = isInstance && "containerName" in value;
     isInstance = isInstance && "imageTag" in value;
     isInstance = isInstance && "listenerAddress" in value;
+    isInstance = isInstance && "pushEndpoint" in value;
     isInstance = isInstance && "exposedPortSpecs" in value;
     isInstance = isInstance && "hostBinds" in value;
     isInstance = isInstance && "secrets" in value;
@@ -112,6 +125,8 @@ export function LaunchAgentRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         'containerName': json['containerName'],
         'imageTag': json['imageTag'],
         'listenerAddress': json['listenerAddress'],
+        'pushEndpoint': json['pushEndpoint'],
+        'msEntraIdClientCertSecretName': !exists(json, 'msEntraIdClientCertSecretName') ? undefined : json['msEntraIdClientCertSecretName'],
         'exposedPortSpecs': json['exposedPortSpecs'],
         'hostBinds': json['hostBinds'],
         'secrets': ((json['secrets'] as Array<any>).map(SecretMountFromJSON)),
@@ -132,6 +147,8 @@ export function LaunchAgentRequestToJSON(value?: LaunchAgentRequest | null): any
         'containerName': value.containerName,
         'imageTag': value.imageTag,
         'listenerAddress': value.listenerAddress,
+        'pushEndpoint': value.pushEndpoint,
+        'msEntraIdClientCertSecretName': value.msEntraIdClientCertSecretName,
         'exposedPortSpecs': value.exposedPortSpecs,
         'hostBinds': value.hostBinds,
         'secrets': ((value.secrets as Array<any>).map(SecretMountToJSON)),

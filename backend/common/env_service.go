@@ -26,6 +26,8 @@ type EnvService interface {
 	RequireNonWhitespace(key string, prefixes ...string) (string, bool)
 	RequireAbsPath(key string, prefixes ...string) (string, bool)
 	Default(key string, value string, prefixes ...string) string
+	Clone() EnvService
+	SetValue(key string, value string)
 
 	// convience method to create a error with key missing
 	ErrMissing(key string) error
@@ -35,12 +37,41 @@ type envServiceImpl struct {
 	values map[string]*envServiceEntry
 }
 
+// SetValue implements EnvService.
+func (impl *envServiceImpl) SetValue(key string, value string) {
+	impl.values[key] = &envServiceEntry{
+		raw:   value,
+		flags: envEntryFlagHasManuallySetValue,
+	}
+}
+
+// Clone implements EnvService.
+func (impl *envServiceImpl) Clone() EnvService {
+	if impl == nil {
+		return nil
+	}
+	cloned := &envServiceImpl{
+		values: make(map[string]*envServiceEntry, len(impl.values)),
+	}
+	for k, v := range impl.values {
+		if v == nil {
+			cloned.values[k] = nil
+		} else {
+			cloned.values[k] = &envServiceEntry{
+				raw:   v.raw,
+				flags: v.flags,
+			}
+		}
+	}
+	return cloned
+}
+
 // RequireAbsPath implements EnvService.
 func (impl *envServiceImpl) RequireAbsPath(key string, prefixes ...string) (string, bool) {
 	_, entry := impl.resolvePrefixed(key, prefixes)
 	p, err := filepath.Abs(entry.raw)
 	if err != nil {
-		entry.flags &= ^envEntryFlagHasSetValue
+		entry.flags &= ^envEntryFlagHasEnvValue
 		return entry.String(), false
 	}
 	entry.raw = p
@@ -54,7 +85,7 @@ func (impl *envServiceImpl) Default(key string, value string, prefixes ...string
 		entry = &envServiceEntry{
 			raw: value,
 		}
-	} else if entry.flags&envEntryFlagHasSetValue == 0 {
+	} else if entry.flags&envEntryFlagHasEnvValue == 0 {
 		entry.raw = value
 	}
 	return entry.String()
@@ -75,7 +106,7 @@ func (impl *envServiceImpl) RequireNonWhitespace(key string, prefixes ...string)
 	if entry != nil {
 		entry.raw = strings.TrimSpace(entry.raw)
 		if entry.raw == "" {
-			entry.flags &= ^envEntryFlagHasSetValue
+			entry.flags &= ^envEntryFlagHasEnvValue
 		}
 	}
 	return entry.String(), entry.HasRequiredValue()
@@ -100,7 +131,7 @@ func (impl *envServiceImpl) lookupEntry(key string, isLeaf bool) (entry *envServ
 	if ok {
 		impl.values[key] = &envServiceEntry{
 			raw:   val,
-			flags: envEntryFlagHasSetValue,
+			flags: envEntryFlagHasEnvValue,
 		}
 		return impl.values[key], true
 	} else if isLeaf {
@@ -126,7 +157,8 @@ func (s *envServiceImpl) Export() []string {
 type envServiceEntryFlag uint
 
 const (
-	envEntryFlagHasSetValue envServiceEntryFlag = 1 << iota
+	envEntryFlagHasEnvValue envServiceEntryFlag = 1 << iota
+	envEntryFlagHasManuallySetValue
 )
 
 type envServiceEntry struct {
@@ -139,7 +171,7 @@ func (entry *envServiceEntry) HasRequiredValue() bool {
 	if entry == nil {
 		return false
 	}
-	return entry.flags&envEntryFlagHasSetValue != 0
+	return entry.flags&envEntryFlagHasEnvValue != 0
 }
 
 // String implements EnvServiceEntry.

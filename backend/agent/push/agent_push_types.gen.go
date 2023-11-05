@@ -30,14 +30,16 @@ type DockerNetworkResource = types.NetworkResource
 
 // LaunchAgentRequest defines model for LaunchAgentRequest.
 type LaunchAgentRequest struct {
-	ContainerName    string                 `json:"containerName"`
-	ExposedPortSpecs []string               `json:"exposedPortSpecs"`
-	HostBinds        []string               `json:"hostBinds"`
-	ImageTag         string                 `json:"imageTag"`
-	ListenerAddress  string                 `json:"listenerAddress"`
-	Mode             externalRef1.AgentMode `json:"mode"`
-	NetworkName      string                 `json:"networkName,omitempty"`
-	Secrets          []SecretMount          `json:"secrets"`
+	ContainerName                 string                 `json:"containerName"`
+	ExposedPortSpecs              []string               `json:"exposedPortSpecs"`
+	HostBinds                     []string               `json:"hostBinds"`
+	ImageTag                      string                 `json:"imageTag"`
+	ListenerAddress               string                 `json:"listenerAddress"`
+	Mode                          externalRef1.AgentMode `json:"mode"`
+	MsEntraIdClientCertSecretName string                 `json:"msEntraIdClientCertSecretName,omitempty"`
+	NetworkName                   string                 `json:"networkName,omitempty"`
+	PushEndpoint                  string                 `json:"pushEndpoint"`
+	Secrets                       []SecretMount          `json:"secrets"`
 }
 
 // PullImageRequest defines model for PullImageRequest.

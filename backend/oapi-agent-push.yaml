@@ -236,6 +236,11 @@ components:
         listenerAddress:
           example: ":10443"
           type: string
+        pushEndpoint:
+          type: string
+        msEntraIdClientCertSecretName:
+          type: string
+          x-go-type-skip-optional-pointer: true
         exposedPortSpecs:
           type: array
           items:
@@ -258,6 +263,7 @@ components:
         - containerName
         - imageTag
         - listenerAddress
+        - pushEndpoint
         - exposedPortSpecs
         - hostBinds
         - secrets

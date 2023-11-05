@@ -1,41 +1,33 @@
-import {
-  useBoolean,
-  useLatest,
-  useMemoizedFn,
-  useRequest,
-  useUpdate,
-} from "ahooks";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useBoolean, useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Drawer, Form, Input, Table, Typography } from "antd";
-import { useParams } from "react-router-dom";
+import { useForm } from "antd/es/form/Form";
+import { ColumnType } from "antd/es/table";
 import {
-  AdminApi,
-  AgentMode,
-  LaunchAgentRequest,
-  NamespaceKind,
-  PullImageRequest,
-  SecretMount,
-} from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { NamespaceContext } from "./contexts/NamespaceContext";
-import {
-  MutableRefObject,
   PropsWithChildren,
   createContext,
   useContext,
   useRef,
   useState,
 } from "react";
+import { useParams } from "react-router-dom";
 import {
   JsonDataDisplay,
   JsonDataDisplayProps,
 } from "../components/JsonDataDisplay";
-import { useForm } from "antd/es/form/Form";
-import { ColumnType } from "antd/es/table";
+import {
+  AdminApi,
+  AgentMode,
+  LaunchAgentRequest,
+  PullImageRequest,
+  SecretMount,
+} from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import {
   ProxyAuthTokenContext,
   ProxyAuthTokenContextProvider,
 } from "./ProxyAuthTokenContext";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { NamespaceContext } from "./contexts/NamespaceContext";
 
 type DockerPullImageFormState = {
   imageTag: string;
@@ -47,7 +39,7 @@ function DockerPullImageForm() {
   const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const api = useAuthedClient(AdminApi);
 
-  const { run: pullImage } = useRequest(
+  const { run: pullImage, loading } = useRequest(
     async (req: PullImageRequest) => {
       await api.agentPullImage({
         namespaceIdentifier,
@@ -78,7 +70,7 @@ function DockerPullImageForm() {
         <Input placeholder="latest" />
       </Form.Item>
       <Form.Item>
-        <Button type="primary" htmlType="submit">
+        <Button type="primary" htmlType="submit" loading={loading}>
           Submit
         </Button>
       </Form.Item>
@@ -92,8 +84,10 @@ type LaunchContainerFormState = {
   hostBinds: string[];
   imageTag: string;
   listenerAddress: string;
+  pushEndpoint: string;
   networkName?: string;
   secrets: SecretMount[];
+  msEntraIdClientCertSecretName?: string;
 };
 
 function LaunchContainerForm({ mode }: { mode: AgentMode }) {
@@ -101,7 +95,7 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
   const [form] = useForm<LaunchContainerFormState>();
   const api = useAuthedClient(AdminApi);
   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
-  const { run } = useRequest(
+  const { run, loading } = useRequest(
     async (req: LaunchAgentRequest) => {
       await api.agentLaunchAgent({
         namespaceIdentifier,
@@ -115,7 +109,12 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
   );
 
   const onFinish = useMemoizedFn((values: LaunchContainerFormState) => {
-    if (!values.imageTag || !values.containerName || !values.listenerAddress) {
+    if (
+      !values.imageTag ||
+      !values.containerName ||
+      !values.listenerAddress ||
+      !values.pushEndpoint
+    ) {
       return;
     }
     run({
@@ -123,10 +122,12 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
       mode,
       exposedPortSpecs: values.exposedPortSpecs,
       hostBinds: values.hostBinds,
+      pushEndpoint: values.pushEndpoint,
       imageTag: values.imageTag,
       listenerAddress: values.listenerAddress,
       networkName: values.networkName,
       secrets: values.secrets,
+      msEntraIdClientCertSecretName: values.msEntraIdClientCertSecretName,
     });
   });
 
@@ -177,7 +178,20 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
           label="Listener address"
           required
         >
-          <Input placeholder=":10443" />
+          <Input placeholder=":11443" />
+        </Form.Item>
+        <Form.Item<LaunchContainerFormState>
+          name="pushEndpoint"
+          label="Push endpoint"
+          required
+        >
+          <Input placeholder="https://localhost:11443" />
+        </Form.Item>
+        <Form.Item<LaunchContainerFormState>
+          name="msEntraIdClientCertSecretName"
+          label="Microsoft Entra ID client certificate secret name"
+        >
+          <Input />
         </Form.Item>
         <Form.Item<LaunchContainerFormState>
           name="networkName"
@@ -294,7 +308,7 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
           }}
         </Form.List>
         <Form.Item className="mt-4">
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={loading}>
             Launch
           </Button>
         </Form.Item>
@@ -323,23 +337,11 @@ function useDockerContainerColumns(
 ): ColumnType<DockerContainer>[] {
   return [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "Id",
       key: "Id",
       render: (id: DockerContainer["Id"]) => {
-        return (
-          <span className="font-mono">
-            {id.substring(0, 12)}{" "}
-            <Button
-              type="link"
-              onClick={() => {
-                onInspect(id);
-              }}
-            >
-              Inspect
-            </Button>
-          </span>
-        );
+        return <span className="font-mono">{id.substring(0, 12)}</span>;
       },
     },
     {
@@ -392,6 +394,25 @@ function useDockerContainerColumns(
       key: "Names",
       render: (names: DockerContainer["Names"]) => {
         return names.map((name) => <div key={name}>{name}</div>);
+      },
+    },
+    {
+      title: "Actions",
+      dataIndex: "Id",
+      key: "Id",
+      render: (id: DockerContainer["Id"]) => {
+        return (
+          <div>
+            <Button
+              size="small"
+              onClick={() => {
+                onInspect(id);
+              }}
+            >
+              Inspect
+            </Button>
+          </div>
+        );
       },
     },
   ];

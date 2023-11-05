@@ -34,10 +34,15 @@ func (s *agentServer) apiLaunchAgentContainer(c ctx.RequestContext, req LaunchAg
 				},
 			}
 		}
+		envService := s.EnvService().Clone()
+		envService.SetValue("AGENT_PUSH_ENDPOINT", req.PushEndpoint)
+		if req.MsEntraIdClientCertSecretName != "" {
+			envService.SetValue("AZURE_CLIENT_CERTIFICATE_PATH", "/run/secrets/"+req.MsEntraIdClientCertSecretName)
+		}
 		result, err := s.dockerClient.ContainerCreate(c,
 			&container.Config{
 				ExposedPorts: exposedPorts,
-				Env:          s.EnvService().Export(),
+				Env:          envService.Export(),
 				Cmd:          []string{"/agent-server", string(req.Mode), req.ListenerAddress},
 				Image:        fmt.Sprintf("%s:%s", s.acrImageRepo, req.ImageTag),
 				StopSignal:   "SIGINT",
