@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
 	echo "github.com/labstack/echo/v4"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -120,15 +121,16 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode string) (*agentServer, error) {
+func NewServer(buildID string, mode string, envSvc common.EnvService) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string
 	var err error
-	if tenantID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "AZURE_TENANT_ID", ""); tenantID == "" {
-		return nil, fmt.Errorf("%w:%s", common.ErrInvalidEnvVar, "AZURE_TENANT_ID")
-	} else if acrImageRepo = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "AZURE_ACR_IMAGE_REPOSITORY", ""); acrImageRepo == "" {
-		return nil, fmt.Errorf("%w:%s", common.ErrInvalidEnvVar, "AZURE_ACR_IMAGE_REPOSITORY")
+	var ok bool
+	if tenantID, ok = envSvc.RequireNonWhitespace(common.EnvKeyAzTenantID, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, envSvc.ErrMissing(common.EnvKeyAzTenantID)
+	} else if acrImageRepo, ok = envSvc.RequireNonWhitespace(agentcommon.EnvKeyAcrImageRepository, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, envSvc.ErrMissing(agentcommon.EnvKeyAcrImageRepository)
 	} else if acrLoginServer, err = acr.ExtractACRLoginServer(acrImageRepo); err != nil {
 		return nil, err
 	}
@@ -138,7 +140,7 @@ func NewServer(buildID string, mode string) (*agentServer, error) {
 		return nil, err
 	}
 
-	config, err := common.NewCommonConfig()
+	config, err := common.NewCommonConfig(envSvc)
 	if err != nil {
 		return nil, err
 	}

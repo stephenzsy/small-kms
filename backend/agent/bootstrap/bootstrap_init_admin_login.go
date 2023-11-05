@@ -9,6 +9,7 @@ import (
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/cache"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/public"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
 
@@ -48,12 +49,14 @@ func getAppWithSharedTokenCache(c context.Context, appTokenCache *tokenCache, si
 	bad := func(err error) (*public.Client, *public.AuthResult, error) {
 		return nil, nil, err
 	}
-	if clientID := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientID, ""); clientID == "" {
-		return bad(errors.New("missing APP_AZURE_CLIENT_ID"))
-	} else if tenantID := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzTenantID, ""); tenantID == "" {
-		return bad(errors.New("missing APP_AZURE_TENANT_ID"))
-	} else if apiAuthScope := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "APP_API_AUTH_SCOPE", ""); apiAuthScope == "" {
-		return bad(errors.New("missing APP_API_AUTH_SCOPE"))
+
+	envSvc := common.NewEnvService()
+	if clientID, ok := envSvc.RequireNonWhitespace(common.EnvKeyAzClientID, common.IdentityEnvVarPrefixApp); !ok {
+		return bad(envSvc.ErrMissing(common.EnvKeyAzClientID))
+	} else if tenantID, ok := envSvc.RequireNonWhitespace(common.EnvKeyAzTenantID, common.IdentityEnvVarPrefixApp); !ok {
+		return bad(envSvc.ErrMissing(common.EnvKeyAzTenantID))
+	} else if apiAuthScope, ok := envSvc.RequireNonWhitespace(agentcommon.EnvKeyAPIAuthScope, common.IdentityEnvVarPrefixApp); !ok {
+		return bad(envSvc.ErrMissing(agentcommon.EnvKeyAPIAuthScope))
 	} else {
 		appClient, err := public.New(clientID,
 			public.WithAuthority(fmt.Sprintf("https://login.microsoftonline.com/%s", tenantID)),

@@ -15,7 +15,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/cloudutils"
-	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -180,7 +179,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 		if err != nil {
 			return err
 		}
-		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
+		if acrResourceGroupName := s.EnvService().Default("AZURE_RESOURCE_GROUP_NAME", "", "ACR_"); acrResourceGroupName != "" {
 			p := cloudutils.RoleAssignmentProvisioner{
 				RoleDefinitionID: roleDefIDAcrPull,
 				Scope:            subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build(),
@@ -256,7 +255,7 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 		if err != nil {
 			return err
 		}
-		if acrResourceGroupName := common.LookupPrefixedEnvWithDefault("ACR_", "AZURE_RESOURCE_GROUP_NAME", ""); acrResourceGroupName != "" {
+		if acrResourceGroupName := s.EnvService().Default("AZURE_RESOURCE_GROUP_NAME", "", "ACR_"); acrResourceGroupName != "" {
 			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
 			pagers = append(pagers, cloudutils.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 		}

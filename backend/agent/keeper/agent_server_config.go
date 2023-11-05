@@ -12,7 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/key"
@@ -66,7 +66,7 @@ func (c *agentServerConfiguration) NextWaitInterval() time.Duration {
 }
 
 type agentConfigServerProcessor struct {
-	envConfig         *agentutils.AgentEnv
+	envConfig         *agentcommon.AgentEnv
 	configDir         string
 	readyConfig       *agentServerConfiguration
 	configProvisioner configProvisioner

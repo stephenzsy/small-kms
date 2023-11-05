@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -51,10 +52,12 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 	}
 
 	var baseUrl, apiAuthScope string
-	if baseUrl = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_BASE_URL", ""); baseUrl == "" {
-		return errors.New("missing API_URL_BASE")
-	} else if apiAuthScope = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_AUTH_SCOPE", ""); apiAuthScope == "" {
-		return errors.New("missing APP_API_AUTH_SCOPE")
+	var ok bool
+	envSvc := common.NewEnvService()
+	if baseUrl, ok = envSvc.Require(agentcommon.EnvKeyAPIBaseURL, common.IdentityEnvVarPrefixApp); !ok {
+		return envSvc.ErrMissing(agentcommon.EnvKeyAPIBaseURL)
+	} else if apiAuthScope, ok = envSvc.Require(agentcommon.EnvKeyAPIAuthScope, common.IdentityEnvVarPrefixApp); !ok {
+		return envSvc.ErrMissing(agentcommon.EnvKeyAPIAuthScope)
 	}
 
 	appTokenCache := newAppTokenCache(tokenCacheFile)

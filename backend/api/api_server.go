@@ -2,15 +2,17 @@ package api
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkeyaz "github.com/stephenzsy/small-kms/backend/cloud/key/az"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -19,6 +21,7 @@ import (
 )
 
 type APIServer interface {
+	EnvService() common.EnvService
 	RespondRequireAdmin(c echo.Context) error
 	GetAzKeyVaultEndpoint() string
 	GetBuildID() string
@@ -29,20 +32,25 @@ type APIServer interface {
 }
 
 type apiServer struct {
+	common.CommonServer
 	parentCtx               context.Context
-	serviceIdentity         auth.AzureIdentity
-	siteURL                 string
 	docService              base.AzCosmosCRUDDocService
 	serviceMsGraphClient    *msgraphsdkgo.GraphServiceClient
 	azKeyVaultEndpoint      string
 	azCertificatesClient    *azcertificates.Client
 	azKeysClient            *azkeys.Client
-	legacyClientProvider    common.AdminServerClientProvider
 	appConfidentialIdentity auth.AzureAppConfidentialIdentity
 	buildID                 string
 	azSubscriptionID        string
 	resourceGroupName       string
 	extractedKeyVaultName   string
+
+	azCosmosEndpoint        string
+	azCosmosClient          *azcosmos.Client
+	azCosmosDatabaseID      string
+	azCosmosDatabaseClient  *azcosmos.DatabaseClient
+	azCosmosContainerID     string
+	azCosmosContainerClient *azcosmos.ContainerClient
 }
 
 // GetBuildID implements APIServer.
@@ -67,7 +75,7 @@ func (s *apiServer) AzKeysClient() *azkeys.Client {
 
 // respondRequireAdmin implements APIServer.
 func (*apiServer) RespondRequireAdmin(c echo.Context) error {
-	return respondRequireAdmin(c)
+	return c.JSON(http.StatusForbidden, map[string]string{"message": "admin access required"})
 }
 
 // Deadline implements context.Context.
@@ -88,50 +96,75 @@ func (s *apiServer) Err() error {
 // Value implements context.Context.
 func (s *apiServer) Value(key any) any {
 	switch key {
-	case base.SiteUrlContextKey:
-		return s.siteURL
 	case base.AzCosmosCRUDDocServiceContextKey:
 		return s.docService
 	case kv.AzKeyVaultServiceContextKey:
 		return s
 	case graph.ServiceClientIDContextKey:
-		return s.serviceIdentity.ClientID()
+		return s.ServiceIdentity().ClientID()
 	case graph.ServiceMsGraphClientContextKey:
 		return s.serviceMsGraphClient
 	case graph.ServiceMsGraphClientClientIDContextKey:
 		return s.appConfidentialIdentity.ClientID()
 	case auth.AppConfidentialIdentityContextKey:
 		return s.appConfidentialIdentity
-	case common.AdminServerClientProviderContextKey:
-		return s.legacyClientProvider
 	}
 	return s.parentCtx.Value(key)
 }
 
-func NewApiServer(c context.Context, buildID string, serverOld *server) (*apiServer, error) {
-	var err error
+func NewApiServer(c context.Context, buildID string) (*apiServer, error) {
+	commonConfig, err := common.NewCommonConfig(common.NewEnvService())
+	if err != nil {
+		return nil, err
+	}
 	s := &apiServer{
-		parentCtx:               c,
-		serviceIdentity:         serverOld.ServiceIdentity(),
-		siteURL:                 common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "SITE_URL", "https://example.com"),
-		docService:              base.NewAzCosmosCRUDDocService(serverOld.clients.azCosmosContainerClientCerts),
-		serviceMsGraphClient:    serverOld.clients.msGraphClient,
-		appConfidentialIdentity: serverOld.appIdentity,
-		legacyClientProvider:    &serverOld.clients,
-		buildID:                 buildID,
+		CommonServer: commonConfig,
+		parentCtx:    c,
+		buildID:      buildID,
 	}
-	if s.azKeyVaultEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, DefualtEnvVarAzKeyvaultResourceEndpoint, ""); s.azKeyVaultEndpoint == "" {
-		return s, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, DefualtEnvVarAzKeyvaultResourceEndpoint)
+	var ok bool
+
+	s.appConfidentialIdentity, err = getAppConfidentialIdentity(s.EnvService())
+	if err != nil {
+		return nil, err
 	}
-	s.extractedKeyVaultName = extractKeyVaultName(s.azKeyVaultEndpoint)
-	if s.azKeysClient, err = azkeys.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
+
+	// cosmos
+	if cosmosConnStr := s.EnvService().Default(envKeyAzCosmosConnectionString, "", common.IdentityEnvVarPrefixService); cosmosConnStr != "" {
+		s.azCosmosClient, err = azcosmos.NewClientFromConnectionString(cosmosConnStr, nil)
+		if err != nil {
+			return nil, err
+		}
+	} else if s.azCosmosEndpoint, ok = s.EnvService().RequireNonWhitespace(envKeyAzCosmosResourceEndpoint, common.IdentityEnvVarPrefixService); !ok {
+		return nil, s.EnvService().ErrMissing(envKeyAzCosmosResourceEndpoint)
+	} else if s.azCosmosClient, err = azcosmos.NewClient(s.azCosmosEndpoint, s.ServiceIdentity().TokenCredential(), nil); err != nil {
+		return nil, err
+	}
+
+	s.azCosmosDatabaseID = s.EnvService().Default(envKeyAzCosmosDatabaseID, "kms", common.IdentityEnvVarPrefixService)
+	if s.azCosmosDatabaseClient, err = s.azCosmosClient.NewDatabase(s.azCosmosDatabaseID); err != nil {
+		return nil, err
+	}
+	s.azCosmosContainerID = s.EnvService().Default(envKeyAzCosmosContainerName, "Certs", common.IdentityEnvVarPrefixService)
+	if s.azCosmosContainerClient, err = s.azCosmosDatabaseClient.NewContainer(s.azCosmosContainerID); err != nil {
+		return nil, err
+	}
+	s.docService = base.NewAzCosmosCRUDDocService(s.azCosmosContainerClient)
+
+	// keyvault
+	if s.azKeyVaultEndpoint, ok = s.EnvService().RequireNonWhitespace(common.EnvKeyAzKeyvaultResourceEndpoint, common.IdentityEnvVarPrefixService); !ok {
+		return s, s.EnvService().ErrMissing(common.EnvKeyAzKeyvaultResourceEndpoint)
+	}
+	s.extractedKeyVaultName = cloudkeyaz.ExtractKeyVaultName(s.azKeyVaultEndpoint)
+	if s.azKeysClient, err = azkeys.NewClient(s.azKeyVaultEndpoint, s.ServiceIdentity().TokenCredential(), nil); err != nil {
 		return s, err
 	}
-	if s.azCertificatesClient, err = azcertificates.NewClient(s.azKeyVaultEndpoint, s.serviceIdentity.TokenCredential(), nil); err != nil {
+	if s.azCertificatesClient, err = azcertificates.NewClient(s.azKeyVaultEndpoint, s.ServiceIdentity().TokenCredential(), nil); err != nil {
 		return s, err
 	}
-	s.azSubscriptionID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzSubscriptionID, "")
-	s.resourceGroupName = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixService, common.IdentityEnvVarNameAzResourceGroupName, "")
+
+	s.azSubscriptionID = s.EnvService().Default(common.EnvKeyAzSubscriptionID, "", common.IdentityEnvVarPrefixService)
+	s.resourceGroupName = s.EnvService().Default(common.EnvKeyAzResourceGroupName, "", common.IdentityEnvVarPrefixService)
 
 	return s, nil
 }

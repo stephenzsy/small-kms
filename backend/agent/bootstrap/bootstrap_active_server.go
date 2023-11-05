@@ -5,13 +5,13 @@ import (
 	"crypto"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 )
@@ -44,20 +44,21 @@ func (*ServicePrincipalBootstraper) BootstarpActiveServer(c context.Context) err
 	var client *agentclient.ClientWithResponses
 	var cred azcore.TokenCredential
 	var tenantID string
-	if baseUrl := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_BASE_URL", ""); baseUrl == "" {
-		return errors.New("missing API_URL_BASE")
-	} else if clientID := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientID, ""); clientID == "" {
-		return errors.New("missing APP_AZURE_CLIENT_ID")
-	} else if tenantID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzTenantID, ""); tenantID == "" {
-		return errors.New("missing APP_AZURE_TENANT_ID")
-	} else if certPath := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, common.IdentityEnvVarNameAzClientCertPath, ""); certPath == "" {
-		return errors.New("missing APP_AZURE_CLIENT_CERTIFICATE_PATH")
+	envSvc := common.NewEnvService()
+	if baseUrl, ok := envSvc.RequireNonWhitespace(agentcommon.EnvKeyAPIBaseURL, common.IdentityEnvVarPrefixApp); !ok {
+		return envSvc.ErrMissing(agentcommon.EnvKeyAPIBaseURL)
+	} else if clientID, ok := envSvc.RequireNonWhitespace(common.EnvKeyAzClientID, common.IdentityEnvVarPrefixAgent); !ok {
+		return envSvc.ErrMissing(common.EnvKeyAzClientID)
+	} else if tenantID, ok = envSvc.RequireNonWhitespace(common.EnvKeyAzTenantID, common.IdentityEnvVarPrefixAgent); !ok {
+		return envSvc.ErrMissing(common.EnvKeyAzTenantID)
+	} else if certPath, ok := envSvc.RequireAbsPath(common.EnvKeyAzClientCertPath, common.IdentityEnvVarPrefixAgent); !ok {
+		return envSvc.ErrMissing(common.EnvKeyAzClientCertPath)
 	} else if cert, key, err := parseCertificateKeyPair(certPath); err != nil {
 		return err
 	} else if cred, err = azidentity.NewClientCertificateCredential(tenantID, clientID, []*x509.Certificate{cert}, key, nil); err != nil {
 		return err
-	} else if apiAuthScope := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixApp, "API_AUTH_SCOPE", ""); apiAuthScope == "" {
-		return errors.New("missing APP_API_AUTH_SCOPE")
+	} else if apiAuthScope, ok := envSvc.RequireNonWhitespace(agentcommon.EnvKeyAPIAuthScope, common.IdentityEnvVarPrefixApp); !ok {
+		return envSvc.ErrMissing(agentcommon.EnvKeyAPIAuthScope)
 	} else if client, err = agentclient.NewClientWithResponses(baseUrl,
 		agentclient.WithRequestEditorFn(common.ToAzTokenCredentialRequestEditorFn(cred, policy.TokenRequestOptions{
 			Scopes: []string{apiAuthScope},

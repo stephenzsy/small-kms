@@ -2,6 +2,7 @@ package agentpush
 
 import (
 	"context"
+	"os"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -22,7 +23,7 @@ func (s *agentServer) LaunchSidecar(c context.Context, fromContainerID string,
 	if err != nil {
 		return err
 	}
-
+	os.Environ()
 	s.dockerClient.ContainerCreate(c,
 		&container.Config{
 			ExposedPorts: params.ExposedPorts,

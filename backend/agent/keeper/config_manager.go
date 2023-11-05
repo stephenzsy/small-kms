@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/common"
 )
 
 type ConfigiManagerState int
 
 type ConfigManager struct {
-	envConfig        *agentutils.AgentEnv
+	envConfig        *agentcommon.AgentEnv
 	configDir        string
 	configProcessor  agentConfigServerProcessor
 	hasAttemptedLoad bool
@@ -41,8 +42,12 @@ func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration,
 	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
 }
 
-func NewConfigManager(configDir string) (*ConfigManager, error) {
-	envConfig, err := agentutils.NewAgentEnv()
+func NewConfigManager(envSvc common.EnvService) (*ConfigManager, error) {
+	configDir, ok := envSvc.Require(agentcommon.EnvKeyAgentConfigDir, common.IdentityEnvVarPrefixAgent)
+	if !ok {
+		return nil, envSvc.ErrMissing(agentcommon.EnvKeyAgentConfigDir)
+	}
+	envConfig, err := agentcommon.NewAgentEnv(envSvc)
 	return &ConfigManager{
 		envConfig: envConfig,
 		configDir: configDir,

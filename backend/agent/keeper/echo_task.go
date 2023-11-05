@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
@@ -18,7 +18,7 @@ type echoTask struct {
 	buildID      string
 	configUpdate <-chan AgentServerConfiguration
 	newEcho      func(config AgentServerConfiguration) (*echo.Echo, error)
-	agentEnv     *agentutils.AgentEnv
+	agentEnv     *agentcommon.AgentEnv
 	endpoint     string
 	mode         string
 }

@@ -37,7 +37,7 @@ var BuildID = "dev"
 func main() {
 
 	// Find .env file
-	envFilePathPtr := flag.String("env", "", "path to .env file")
+	envFilePathPtr := flag.String("env-file", "", "path to .env file")
 	envPrettyLog := flag.Bool("pretty-log", false, "pretty log")
 	envDebug := flag.Bool("debug", false, "log")
 	flag.Parse()
@@ -70,7 +70,7 @@ func main() {
 
 	// Find .env file
 	if *envFilePathPtr != "" {
-		err := godotenv.Load("./.env")
+		err := godotenv.Load(*envFilePathPtr)
 		if err != nil {
 			log.Printf("Error loading .env file: %s\n", err)
 		}
@@ -105,8 +105,7 @@ func main() {
 			e.Use(middleware.CORS())
 		}
 		ctx := logger.WithContext(context.Background())
-		server := api.NewServer()
-		apiServer, err := api.NewApiServer(ctx, BuildID, server)
+		apiServer, err := api.NewApiServer(ctx, BuildID)
 		if err != nil {
 			logger.Fatal().Err(err).Msg("failed to initialize api server")
 		}
@@ -117,7 +116,6 @@ func main() {
 		} else {
 			e.Use(auth.ProxiedAADAuth)
 		}
-		e.Use(server.GetAfterAuthMiddleware())
 		base.RegisterHandlers(e, base.NewBaseServer(BuildID))
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))

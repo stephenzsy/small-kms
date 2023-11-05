@@ -1,4 +1,4 @@
-package agentutils
+package agentcommon
 
 import (
 	"crypto"
@@ -15,26 +15,16 @@ import (
 )
 
 type AgentEnv struct {
-	tenantID                   string
-	clientID                   string
-	clientCertPath             string
-	apiBaseURL                 string
-	apiAuthScope               string
-	azKeyVaultResourceEndpoint string
-
+	common.EnvService
 	certCred        *azidentity.ClientCertificateCredential
 	agentClient     *agentclient.ClientWithResponses
 	azSecretsClient *azsecrets.Client
 }
 
-func NewAgentEnv() (env *AgentEnv, err error) {
-	env = &AgentEnv{}
-	env.tenantID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzTenantID, "")
-	env.clientID = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzClientID, "")
-	env.clientCertPath = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, common.IdentityEnvVarNameAzClientCertPath, "")
-	env.apiBaseURL = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "API_BASE_URL", "")
-	env.apiAuthScope = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "API_AUTH_SCOPE", "")
-	env.azKeyVaultResourceEndpoint = common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "AZURE_KEYVAULT_RESOURCEENDPOINT", "")
+func NewAgentEnv(envService common.EnvService) (env *AgentEnv, err error) {
+	env = &AgentEnv{
+		EnvService: envService,
+	}
 	return env, nil
 }
 
@@ -66,20 +56,17 @@ func (ae *AgentEnv) CertCred() (*azidentity.ClientCertificateCredential, error) 
 	if ae.certCred != nil {
 		return ae.certCred, nil
 	}
-	if ae.tenantID == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "AZURE_TENANT_ID")
-	}
-	if ae.clientID == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "AZURE_CLIENT_ID")
-	}
-	if ae.clientCertPath == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "AZURE_CLIENT_CERTIFICATE_PATH")
-	}
-	if cert, key, err := parseCertificateKeyPair(ae.clientCertPath); err != nil {
+	if tenantID, ok := ae.RequireNonWhitespace(common.EnvKeyAzTenantID, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, ae.ErrMissing(common.EnvKeyAzTenantID)
+	} else if clientID, ok := ae.RequireNonWhitespace(common.EnvKeyAzClientID, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, ae.ErrMissing(common.EnvKeyAzClientID)
+	} else if clientCertPath, ok := ae.RequireAbsPath(common.EnvKeyAzClientCertPath, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, ae.ErrMissing(common.EnvKeyAzClientCertPath)
+	} else if cert, key, err := parseCertificateKeyPair(clientCertPath); err != nil {
 		return nil, err
 	} else if cred, err := azidentity.NewClientCertificateCredential(
-		ae.tenantID,
-		ae.clientID,
+		tenantID,
+		clientID,
 		[]*x509.Certificate{cert}, key, nil); err != nil {
 		return nil, err
 	} else {
@@ -96,17 +83,15 @@ func (ae *AgentEnv) AgentClient() (*agentclient.ClientWithResponses, error) {
 	if err != nil {
 		return nil, err
 	}
-	if ae.apiBaseURL == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "API_BASE_URL")
-	}
-	if ae.apiAuthScope == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "API_AUTH_SCOPE")
-	}
-	if agentClient, err := agentclient.NewClientWithResponses(
-		ae.apiBaseURL,
+	if apiBaseURL, ok := ae.RequireNonWhitespace(EnvKeyAPIBaseURL, common.IdentityEnvVarPrefixApp); !ok {
+		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, EnvKeyAPIBaseURL)
+	} else if apiAuthScope, ok := ae.RequireNonWhitespace(EnvKeyAPIAuthScope, common.IdentityEnvVarPrefixApp); !ok {
+		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, EnvKeyAPIAuthScope)
+	} else if agentClient, err := agentclient.NewClientWithResponses(
+		apiBaseURL,
 		agentclient.WithRequestEditorFn(common.ToAzTokenCredentialRequestEditorFn(
 			certCred, policy.TokenRequestOptions{
-				Scopes: []string{ae.apiAuthScope},
+				Scopes: []string{apiAuthScope},
 			}))); err != nil {
 		return nil, err
 	} else {
@@ -123,10 +108,9 @@ func (ae *AgentEnv) AzSecretsClient() (*azsecrets.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	if ae.azKeyVaultResourceEndpoint == "" {
-		return nil, fmt.Errorf("%w: %s", common.ErrMissingEnvVar, "AZURE_KEYVAULT_RESOURCE_ENDPOINT")
-	}
-	if azSecretsClient, err := azsecrets.NewClient(ae.azKeyVaultResourceEndpoint, creds, nil); err != nil {
+	if endpoint, ok := ae.RequireNonWhitespace(common.EnvKeyAzKeyvaultResourceEndpoint, common.IdentityEnvVarPrefixAgent); !ok {
+		return nil, ae.ErrMissing(common.EnvKeyAzKeyvaultResourceEndpoint)
+	} else if azSecretsClient, err := azsecrets.NewClient(endpoint, creds, nil); err != nil {
 		return nil, err
 	} else {
 		ae.azSecretsClient = azSecretsClient

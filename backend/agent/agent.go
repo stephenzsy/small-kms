@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -63,13 +64,14 @@ func main() {
 		}
 	}
 
-	configDir := common.MustGetenv("AGENT_CONFIG_DIR")
-	configManager, err := keeper.NewConfigManager(configDir)
+	envSvc := common.NewEnvService()
+
+	configManager, err := keeper.NewConfigManager(envSvc)
 	if err != nil {
-		log.Panic().Err(err).Msg("Failed to create config manager")
+		logger.Fatal().Err(err).Msg("Failed to create config manager")
 	}
 
-	agentPushEndpoint := common.LookupPrefixedEnvWithDefault(common.IdentityEnvVarPrefixAgent, "PUSH_ENDPOINT", "https://localhost:8443")
+	agentPushEndpoint := envSvc.Default(agentcommon.EnvKeyAgentPushEndpoint, "https://localhost:8443", common.IdentityEnvVarPrefixAgent)
 
 	args := flag.Args()
 
@@ -78,7 +80,7 @@ func main() {
 		switch mode {
 		case "server",
 			"sidecar":
-			agentPushServer, err := agentpush.NewServer(BuildID, mode)
+			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
