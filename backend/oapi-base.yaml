@@ -59,12 +59,16 @@ components:
         - root-ca
         - int-ca
         - service-principal
+        - group
+        - user
       x-enum-varnames:
         - NamespaceKindSystem
         - NamespaceKindProfile
         - NamespaceKindRootCA
         - NamespaceKindIntermediateCA
         - NamespaceKindServicePrincipal
+        - NamespaceKindGroup
+        - NamespaceKindUser
     ResourceKind:
       type: string
       enum:
@@ -72,6 +76,8 @@ components:
         - root-ca
         - int-ca
         - service-principal
+        - group
+        - user
         - cert-policy
         - cert
         - key-policy
@@ -83,6 +89,8 @@ components:
         - ProfileResourceKindRootCA
         - ProfileResourceKindIntermediateCA
         - ProfileResourceKindServicePrincipal
+        - ProfileResourceKindGroup
+        - ProfileResourceKindUser
         - ResourceKindCertPolicy
         - ResourceKindCert
         - ResourceKindKeyPolicy

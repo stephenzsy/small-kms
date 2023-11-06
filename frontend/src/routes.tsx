@@ -7,6 +7,7 @@ import { AuthProvider } from "./auth/AuthProvider";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 
+const EntraProfilesPage = React.lazy(() => import("./admin/EntraProfilesPage"));
 const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./MainPage"));
@@ -128,6 +129,15 @@ export const router = createBrowserRouter([
                     element: <CertificatePage />,
                   },
                 ],
+              },
+            ],
+          },
+          {
+            path: "entra/:nsKind",
+            children: [
+              {
+                index: true,
+                element: <EntraProfilesPage />,
               },
             ],
           },

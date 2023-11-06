@@ -22,6 +22,8 @@ export const ResourceKind = {
     ProfileResourceKindRootCA: 'root-ca',
     ProfileResourceKindIntermediateCA: 'int-ca',
     ProfileResourceKindServicePrincipal: 'service-principal',
+    ProfileResourceKindGroup: 'group',
+    ProfileResourceKindUser: 'user',
     ResourceKindCertPolicy: 'cert-policy',
     ResourceKindCert: 'cert',
     ResourceKindKeyPolicy: 'key-policy',

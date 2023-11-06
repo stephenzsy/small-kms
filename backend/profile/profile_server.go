@@ -31,7 +31,9 @@ func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identif
 	case base.ProfileResourceKindRootCA,
 		base.ProfileResourceKindIntermediateCA:
 		return namespaceIdentifierCA, nil
-	case base.ProfileResourceKindServicePrincipal:
+	case base.ProfileResourceKindServicePrincipal,
+		base.ProfileResourceKindUser,
+		base.ProfileResourceKindGroup:
 		return namespaceIdentifierDirectoryObject, nil
 	}
 	return base.Identifier{}, fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)

@@ -13,3 +13,12 @@ type ServicePrincipalProfileDoc struct {
 
 	AppID uuid.UUID `json:"appId"`
 }
+
+type UserProfileDoc struct {
+	GraphProfileDoc
+	UserPrincipalName string `json:"userPrincipalName"`
+}
+
+type GroupProfileDoc struct {
+	GraphProfileDoc
+}

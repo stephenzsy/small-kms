@@ -16,19 +16,23 @@ const (
 
 // Defines values for NamespaceKind.
 const (
+	NamespaceKindGroup            NamespaceKind = "group"
 	NamespaceKindIntermediateCA   NamespaceKind = "int-ca"
 	NamespaceKindProfile          NamespaceKind = "profile"
 	NamespaceKindRootCA           NamespaceKind = "root-ca"
 	NamespaceKindServicePrincipal NamespaceKind = "service-principal"
 	NamespaceKindSystem           NamespaceKind = "sys"
+	NamespaceKindUser             NamespaceKind = "user"
 )
 
 // Defines values for ResourceKind.
 const (
+	ProfileResourceKindGroup            ResourceKind = "group"
 	ProfileResourceKindIntermediateCA   ResourceKind = "int-ca"
 	ProfileResourceKindManagedApp       ResourceKind = "managed-app"
 	ProfileResourceKindRootCA           ResourceKind = "root-ca"
 	ProfileResourceKindServicePrincipal ResourceKind = "service-principal"
+	ProfileResourceKindUser             ResourceKind = "user"
 	ResourceKindAgentInstance           ResourceKind = "agent-instance"
 	ResourceKindCert                    ResourceKind = "cert"
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"

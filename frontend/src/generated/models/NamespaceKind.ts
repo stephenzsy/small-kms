@@ -22,7 +22,9 @@ export const NamespaceKind = {
     NamespaceKindProfile: 'profile',
     NamespaceKindRootCA: 'root-ca',
     NamespaceKindIntermediateCA: 'int-ca',
-    NamespaceKindServicePrincipal: 'service-principal'
+    NamespaceKindServicePrincipal: 'service-principal',
+    NamespaceKindGroup: 'group',
+    NamespaceKindUser: 'user'
 } as const;
 export type NamespaceKind = typeof NamespaceKind[keyof typeof NamespaceKind];
 

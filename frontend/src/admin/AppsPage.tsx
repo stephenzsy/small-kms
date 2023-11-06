@@ -2,7 +2,6 @@ import Title from "antd/es/typography/Title";
 import {
   AdminApi,
   CreateManagedAppRequest,
-  ImportProfileRequest,
   ManagedAppRef,
   ProfileRef,
   ResourceKind,
@@ -14,6 +13,7 @@ import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { useMemo } from "react";
 import { Link } from "../components/Link";
+import { ImportProfileForm } from "./ImportProfileForm";
 
 type CreateManagedAppFormState = {
   displayName?: string;
@@ -99,59 +99,6 @@ function useProfileRefColumns(profileKind: ResourceKind) {
       },
     ],
     [profileKind]
-  );
-}
-
-type ImportProfileFormState = {
-  objectId?: string;
-};
-
-function ImportProfileForm({
-  onCreated,
-  profileKind,
-}: {
-  onCreated: () => void;
-  profileKind: ResourceKind;
-}) {
-  const [form] = useForm<ImportProfileFormState>();
-
-  const adminApi = useAuthedClient(AdminApi);
-
-  const { run } = useRequest(
-    async (req: ImportProfileRequest) => {
-      await adminApi.importProfile(req);
-      onCreated();
-      form.resetFields();
-    },
-    { manual: true }
-  );
-
-  return (
-    <Form
-      form={form}
-      onFinish={(values) => {
-        const objectId = values.objectId?.trim();
-        if (objectId) {
-          return run({
-            profileResourceKind: profileKind,
-            namespaceIdentifier: objectId,
-          });
-        }
-      }}
-    >
-      <Form.Item<ImportProfileFormState>
-        name="objectId"
-        label="Microsoft Entra object ID"
-        required
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Import
-        </Button>
-      </Form.Item>
-    </Form>
   );
 }
 

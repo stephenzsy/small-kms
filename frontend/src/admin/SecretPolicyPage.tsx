@@ -1,5 +1,13 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Form, Input, Radio, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  InputNumber,
+  Radio,
+  Typography,
+} from "antd";
 import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -17,6 +25,7 @@ type SecretPolicyFormState = {
   identifier: string;
   displayName: string;
   mode: SecretGenerateMode;
+  byteLength: number;
 };
 
 function SecretPolicyForm({ policyId }: { policyId: string }) {
@@ -43,7 +52,7 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
       mode: values.mode,
       displayName: values.displayName,
       expiryTime: undefined,
-      randomLength: 16,
+      randomLength: values.byteLength,
     });
   });
 
@@ -53,6 +62,7 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
       layout="vertical"
       initialValues={{
         mode: SecretGenerateMode.SecretGenerateModeServerGeneratedRandom,
+        byteLength: 32,
       }}
       onFinish={onFinish}
     >
@@ -81,6 +91,13 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
             },
           ]}
         />
+      </Form.Item>
+      <Form.Item<SecretPolicyFormState>
+        name="byteLength"
+        label="Byte length"
+        required
+      >
+        <InputNumber />
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit">
