@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
+	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
@@ -60,4 +63,25 @@ func VerifyKeyVaultIdentifier(id base.ID) error {
 	}
 
 	return nil
+}
+
+func WithResovingMeNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id base.ID) (ctx.RequestContext, *nsContext) {
+	if strings.EqualFold("me", string(id)) {
+		id = base.IDFromUUID(auth.GetAuthIdentity(parent).ClientPrincipalID())
+	}
+	nsCtx := &nsContext{
+		kind: kind,
+		id:   id,
+	}
+	return parent.WithValue(nsContextKey, nsCtx), nsCtx
+}
+
+func (nsCtx *nsContext) AllowSelf() authz.AuthZFunc {
+	return func(c ctx.RequestContext) (ctx.RequestContext, authz.AuthzResult) {
+		identity := auth.GetAuthIdentity(c)
+		if base.IDFromUUID(identity.ClientPrincipalID()) == nsCtx.id {
+			return c, authz.AuthzResultAllow
+		}
+		return c, authz.AuthzResultNone
+	}
 }

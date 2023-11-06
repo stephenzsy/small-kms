@@ -221,7 +221,9 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
           )}
         </Disclosure>
       </Layout.Header>
-      <Layout.Content>{props.children}</Layout.Content>
+      <Layout.Content className="p-6 max-w-7xl mx-auto w-full space-y-6">
+        {props.children}
+      </Layout.Content>
     </Layout>
   );
 }

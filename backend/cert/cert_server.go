@@ -151,16 +151,6 @@ func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, n
 	return c.JSON(http.StatusCreated, m)
 }
 
-// ListCertPolicies implements ServerInterface.
-func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return apiListCertPolicies(c)
-}
-
 // GetCertPolicy implements ServerInterface.
 func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)

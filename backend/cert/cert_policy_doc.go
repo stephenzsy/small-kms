@@ -67,7 +67,8 @@ func (d *CertPolicyDoc) init(
 		} else {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, *p.IssuerNamespaceIdentifier)
 		}
-	case base.NamespaceKindServicePrincipal:
+	case base.NamespaceKindServicePrincipal,
+		base.NamespaceKindGroup:
 		if isSelfSigning {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
 		} else if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {

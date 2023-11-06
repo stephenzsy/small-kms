@@ -56,6 +56,34 @@ export const router = createBrowserRouter([
         ),
         id: RouteIds.home,
       },
+      {
+        path: "entra/:nsKind",
+        children: [
+          {
+            index: true,
+            element: <EntraProfilesPage />,
+          },
+          {
+            path: ":nsId",
+            element: (
+              <NamespaceContextRouteProvider>
+                <Outlet />
+              </NamespaceContextRouteProvider>
+            ),
+            children: [
+              { index: true, element: <NamespacePage /> },
+              {
+                path: "cert-policy/:certPolicyId",
+                element: <CertPolicyPage />,
+              },
+              {
+                path: "cert/:certId",
+                element: <CertificatePage />,
+              },
+            ],
+          },
+        ],
+      },
       { path: "diagnostics", element: <DiagnosticsPage /> },
       {
         element: (
@@ -130,34 +158,6 @@ export const router = createBrowserRouter([
               { index: true, element: <CAsPage /> },
               {
                 path: ":nsKind/:nsId",
-                element: (
-                  <NamespaceContextRouteProvider>
-                    <Outlet />
-                  </NamespaceContextRouteProvider>
-                ),
-                children: [
-                  { index: true, element: <NamespacePage /> },
-                  {
-                    path: "cert-policy/:certPolicyId",
-                    element: <CertPolicyPage />,
-                  },
-                  {
-                    path: "cert/:certId",
-                    element: <CertificatePage />,
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            path: "entra/:nsKind",
-            children: [
-              {
-                index: true,
-                element: <EntraProfilesPage />,
-              },
-              {
-                path: ":nsId",
                 element: (
                   <NamespaceContextRouteProvider>
                     <Outlet />
