@@ -7,13 +7,105 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
+	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/directoryobjects"
+	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.ID, params *EnrollCertificateRequest) error {
+// EnrollMsEntraClientCredential implements ServerInterface.
+func (s *server) EnrollCertificate(ec echo.Context, nsKind base.NamespaceKind, nsID ID, policyID ID, params EnrollCertificateParams) error {
+	c := ec.(ctx.RequestContext)
+
+	certNsKind, certNsID, err := authEnrollCertificate(c, nsKind, nsID)
+	if err != nil {
+		return err
+	}
+
+	req := new(EnrollCertificateRequest)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	c = ns.WithDefaultNSContext(c, certNsKind, certNsID)
+
+	return enrollMsEntraClientCredCert(c, base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindCertPolicy, policyID), req)
+}
+
+func authEnrollCertificate(c ctx.RequestContext, policyNsKind base.NamespaceKind, policyNsID ID) (base.NamespaceKind, ID, error) {
+	bad := func(e error) (base.NamespaceKind, ID, error) {
+		return policyNsKind, policyNsID, e
+	}
+
+	identity := auth.GetAuthIdentity(c)
+	requesterID := base.IDFromUUID(identity.ClientPrincipalID())
+	if requesterID == policyNsID {
+		return policyNsKind, policyNsID, nil
+	}
+	var err error
+	var gclient *msgraphsdkgo.GraphServiceClient
+	if c, gclient, err = graph.WithDelegatedMsGraphClient(c); err != nil {
+		return bad(err)
+	}
+
+	// authorize for admin role
+	if identity.HasAdminRole() {
+		requestAppID := identity.AppID()
+		if requestAppID == "" {
+			if sp, err := gclient.ServicePrincipalsWithAppId(&requestAppID).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+				QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+					Select: []string{"id"},
+				},
+			}); err != nil {
+				return bad(err)
+			} else if *sp.GetId() == string(policyNsID) {
+				return policyNsKind, policyNsID, nil
+			}
+		}
+	}
+
+	// authorize for requester
+	dirObjBuilder := gclient.DirectoryObjects().ByDirectoryObjectId(string(requesterID))
+	if dirObj, err := dirObjBuilder.Get(c, &directoryobjects.DirectoryObjectItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &directoryobjects.DirectoryObjectItemRequestBuilderGetQueryParameters{
+			Select: []string{"id"},
+		},
+	}); err != nil {
+		return bad(err)
+	} else if policyNsKind != base.NamespaceKindGroup {
+		return bad(fmt.Errorf("%w: only group policies can be enrolled by member", base.ErrResponseStatusBadRequest))
+	} else {
+		requestBody := directoryobjects.NewItemCheckMemberGroupsPostRequestBody()
+		requestBody.SetGroupIds([]string{string(policyNsID)})
+		resp, err := dirObjBuilder.CheckMemberGroups().Post(c, requestBody, nil)
+		if err != nil {
+			return bad(err)
+		}
+		if !slices.Contains(resp.GetValue(), string(policyNsID)) {
+			return bad(fmt.Errorf("%w: requester %s is not a member of the group %s", base.ErrResponseStatusBadRequest, requesterID, policyNsID))
+		}
+		switch dirObj.(type) {
+		case gmodels.Userable:
+			return base.NamespaceKindUser, requesterID, nil
+		case gmodels.ServicePrincipalable:
+			return base.NamespaceKindServicePrincipal, requesterID, nil
+		default:
+			return bad(fmt.Errorf("%w: unsupported requester type: %s", base.ErrResponseStatusBadRequest, *dirObj.GetOdataType()))
+		}
+	}
+
+}
+
+const graphAudVerify = "00000003-0000-0000-c000-000000000000"
+
+func enrollMsEntraClientCredCert(c ctx.RequestContext, policyLocator base.DocFullIdentifier, params *EnrollCertificateRequest) error {
 
 	// verify jwt is 2048
 	if params.PublicKey.Kty != cloudkey.KeyTypeRSA {
@@ -27,12 +119,17 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.ID, params
 
 	nsCtx := ns.GetNSContext(c)
 
+	matchAud := string(policyLocator.NamespaceID())
+	if params.EnrollmentType == EnrollmentTypeMsEntraClientCredential {
+		matchAud = graphAudVerify
+	}
+
 	// verify proof of jwt, so make sure client has possession of the private key
 	if token, err := jwt.Parse(params.Proof, func(token *jwt.Token) (interface{}, error) {
 		return pKey, nil
 	}); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof"})
-	} else if aud, err := token.Claims.GetAudience(); err != nil || !slices.Contains(aud, "00000003-0000-0000-c000-000000000000") {
+	} else if aud, err := token.Claims.GetAudience(); err != nil || !slices.Contains(aud, matchAud) {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof, must has audience of '00000003-0000-0000-c000-000000000000'"})
 	} else if iss, err := token.Claims.GetIssuer(); err != nil || base.ParseID(iss) != nsCtx.ID() {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("invalid proof, must has issuer of '%s'", nsCtx.ID())})
@@ -43,7 +140,7 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.ID, params
 	}
 
 	// issue certificate
-	certDoc, err := createCertFromPolicy(c, policyRID, pKey)
+	certDoc, err := createCertFromPolicy(c, policyLocator, pKey)
 	if err != nil {
 		return err
 	}

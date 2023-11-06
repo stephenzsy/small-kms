@@ -50,6 +50,8 @@ paths:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceId}"
   /v1/profile/{profileResourceKind}/{namespaceId}/import:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceId}~1import"
+  /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId}:
+    $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf~1{groupId}"
   /v1/{namespaceKind}/{namespaceId}/cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert"
   /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
@@ -60,6 +62,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1create-cert"
+  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1enroll-cert"
   /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-rule~1issuer"
   /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential:

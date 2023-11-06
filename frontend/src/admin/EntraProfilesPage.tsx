@@ -12,7 +12,7 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { ImportProfileForm } from "./ImportProfileForm";
 
-function useColumns(nsKind: NamespaceKind) {
+function useColumns(nsKind: NamespaceKind | undefined) {
   return useMemo<TableColumnType<ProfileRef>[]>(
     () => [
       {
@@ -25,7 +25,9 @@ function useColumns(nsKind: NamespaceKind) {
       },
       {
         title: "Actions",
-        render: (r: ProfileRef) => <Link to={`/entra/${nsKind}/${r.id}`}>View</Link>,
+        render: (r: ProfileRef) => (
+          <Link to={`/entra/${nsKind}/${r.id}`}>View</Link>
+        ),
       },
     ],
     [nsKind]
@@ -51,7 +53,7 @@ export default function EntraProfilesPage() {
     }
   );
 
-  const rootColumns = useColumns(NamespaceKind.NamespaceKindGroup);
+  const rootColumns = useColumns(nsKind);
   //   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
   //     return {
   //       [ResourceKind.ProfileResourceKindRootCA]: listRootCAs,

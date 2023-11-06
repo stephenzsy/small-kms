@@ -60,7 +60,27 @@ paths:
       summary: Import profile
       responses:
         200:
-          $ref: "#/components/responses/ProfileResponse"          
+          $ref: "#/components/responses/ProfileResponse"
+  /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - name: groupId
+        in: path
+        description: Group ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - admin
+      operationId: SyncGroupMemberOf
+      summary: Sync group memberOf
+      responses:
+        204:
+          description: No response
+          content: {}
 security:
   - BearerAuth: []
 components:

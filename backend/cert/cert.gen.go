@@ -33,6 +33,12 @@ const (
 	CertificateFlagServerAuth CertificateFlag = "serverAuth"
 )
 
+// Defines values for EnrollmentType.
+const (
+	EnrollmentTypeGroupMember             EnrollmentType = "group-memeber"
+	EnrollmentTypeMsEntraClientCredential EnrollmentType = "ms-entra-client-credential"
+)
+
 // AzureKeyvaultResourceCategory defines model for AzureKeyvaultResourceCategory.
 type AzureKeyvaultResourceCategory string
 
@@ -127,6 +133,8 @@ type CertificateSubject struct {
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
+	EnrollmentType EnrollmentType `json:"enrollmentType"`
+
 	// Force Force enrollment, will clear existing credential on graph, initial enrollment must be forced
 	Force *bool `json:"force,omitempty"`
 
@@ -134,6 +142,9 @@ type EnrollCertificateRequest struct {
 	Proof     string                  `json:"proof"`
 	PublicKey externalRef1.JsonWebKey `json:"publicKey"`
 }
+
+// EnrollmentType defines model for EnrollmentType.
+type EnrollmentType string
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
@@ -152,6 +163,11 @@ type CertificateResponse = Certificate
 type ListCertificatesParams struct {
 	// PolicyId Policy ID
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
+}
+
+// EnrollCertificateParams defines parameters for EnrollCertificate.
+type EnrollCertificateParams struct {
+	DryRun *bool `form:"dryRun,omitempty" json:"dryRun,omitempty"`
 }
 
 // AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
@@ -190,7 +206,7 @@ type ServerInterface interface {
 	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Enroll certificate
 	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert)
-	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params EnrollCertificateParams) error
 	// List Key Vault role assignments
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory})
 	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, resourceCategory AzureKeyvaultResourceCategory) error
@@ -414,8 +430,17 @@ func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 
 	ctx.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EnrollCertificateParams
+	// ------------- Optional query parameter "dryRun" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "dryRun", ctx.QueryParams(), &params.DryRun)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter dryRun: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceId, resourceId)
+	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 

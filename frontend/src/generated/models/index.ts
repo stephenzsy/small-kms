@@ -25,6 +25,8 @@ export * from './CertificateRefFields';
 export * from './CertificateRuleIssuer';
 export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
+export * from './EnrollCertificateRequest';
+export * from './EnrollmentType';
 export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';

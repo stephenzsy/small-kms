@@ -226,7 +226,7 @@ func (i DocFullIdentifier) NamespaceKind() NamespaceKind {
 	return i.pKey.nsIdentifier.kind
 }
 
-func (i DocFullIdentifier) NamespaceIdentifier() ID {
+func (i DocFullIdentifier) NamespaceID() ID {
 	return i.pKey.nsIdentifier.id
 }
 

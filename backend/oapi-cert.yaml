@@ -189,6 +189,12 @@ paths:
       tags:
         - admin
         - agentclient
+      parameters:
+        - in: query
+          name: dryRun
+          required: false
+          schema:
+            type: boolean
       operationId: EnrollCertificate
       summary: Enroll certificate
       requestBody:
@@ -427,9 +433,19 @@ components:
         - subject
         - jwk
         - alg
+    EnrollmentType:
+      type: string
+      enum:
+        - ms-entra-client-credential
+        - group-memeber
+      x-enum-varnames:
+        - EnrollmentTypeMsEntraClientCredential
+        - EnrollmentTypeGroupMember
     EnrollCertificateRequest:
       type: object
       properties:
+        enrollmentType:
+          $ref: "#/components/schemas/EnrollmentType"
         publicKey:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKey"
         proof:
@@ -439,6 +455,7 @@ components:
           description: Force enrollment, will clear existing credential on graph, initial enrollment must be forced
           type: boolean
       required:
+        - enrollmentType
         - publicKey
         - proof
     PolicyIssuerCertRequest:

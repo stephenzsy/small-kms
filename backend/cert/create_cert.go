@@ -89,8 +89,8 @@ func signCertificate(
 	return patch, nil
 }
 
-func createCertFromPolicy(c context.Context, policyRID ID, publicKey crypto.PublicKey) (*CertDoc, error) {
-	policyDoc, err := ReadCertPolicyDoc(c, policyRID)
+func createCertFromPolicy(c context.Context, policyLocator base.DocFullIdentifier, publicKey crypto.PublicKey) (*CertDoc, error) {
+	policyDoc, err := readCertPolicyDocByLocator(c, policyLocator)
 	if err != nil {
 		return nil, err
 	}

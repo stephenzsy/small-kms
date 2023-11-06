@@ -11,6 +11,12 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
+func readCertPolicyDocByLocator(c context.Context, locator base.DocFullIdentifier) (*CertPolicyDoc, error) {
+	doc := new(CertPolicyDoc)
+	err := base.GetAzCosmosCRUDService(c).Read(c, locator, doc, nil)
+	return doc, err
+}
+
 func ReadCertPolicyDoc(c context.Context, rID base.ID) (*CertPolicyDoc, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
@@ -18,12 +24,8 @@ func ReadCertPolicyDoc(c context.Context, rID base.ID) (*CertPolicyDoc, error) {
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	doc := new(CertPolicyDoc)
 
-	slocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, rID)
-
-	err := base.GetAzCosmosCRUDService(c).Read(c, slocator, doc, nil)
-	return doc, err
+	return readCertPolicyDocByLocator(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, rID))
 }
 
 func apiGetCertPolicy(c ctx.RequestContext, rID base.ID) error {

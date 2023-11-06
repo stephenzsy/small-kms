@@ -16,6 +16,7 @@ import (
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/cert"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
@@ -93,9 +94,11 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 	resp, err := client.EnrollCertificateWithResponse(c, base.NamespaceKindServicePrincipal,
 		namespaceIdentifier,
 		certPolicyIdentifer,
+		nil,
 		agentclient.EnrollCertificateRequest{
-			PublicKey: toJwk(privateKey.Public()),
-			Proof:     signedToken,
+			EnrollmentType: cert.EnrollmentTypeMsEntraClientCredential,
+			PublicKey:      toJwk(privateKey.Public()),
+			Proof:          signedToken,
 		})
 	if err != nil {
 		return err

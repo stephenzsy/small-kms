@@ -91,26 +91,6 @@ func (s *server) GetCertificateRuleIssuer(ec echo.Context, namespaceKind base.Na
 	return apiGetCertRuleIssuer(c)
 }
 
-// EnrollMsEntraClientCredential implements ServerInterface.
-func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID) error {
-	c := ec.(ctx.RequestContext)
-
-	if namespaceUUID, ok := namespaceIdentifier.AsUUID(); !ok || utils.IsUUIDNil(namespaceUUID) {
-		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusForbidden)
-	} else if !auth.AuthorizeSelfOrAdmin(c, namespaceUUID) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	params := new(EnrollCertificateRequest)
-	if err := c.Bind(params); err != nil {
-		return err
-	}
-
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-
-	return enrollMsEntraClientCredCert(c, resourceIdentifier, params)
-}
-
 // GetCertificate implements ServerInterface.
 func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
@@ -156,13 +136,13 @@ func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // CreateCertificate implements ServerInterface.
-func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
+func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID, policyID base.ID) error {
+	c, err := s.withAdminAccessAndNamespaceCtx(ec, nsKind, nsID)
 	if err != nil {
 		return err
 	}
 
-	r, err := createCertFromPolicy(c, resourceIdentifier, nil)
+	r, err := createCertFromPolicy(c, base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindCertPolicy, policyID), nil)
 	if err != nil {
 		return err
 	}

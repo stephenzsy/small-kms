@@ -65,7 +65,7 @@ func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIde
 	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyFullIdentifier.String()})
 	pager := base.NewQueryDocPager[*CertQueryDoc](c,
 		qb,
-		base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
+		base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceID(), base.ResourceKindCert))
 
 	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) ID {
 		return d.ID

@@ -139,7 +139,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 			return err
 		}
 		doc.JWTKeyCertIDs = utils.MapSlice(jwtKeyCertIdentifiers, func(id base.ID) base.DocFullIdentifier {
-			fullIdentifier := base.NewDocFullIdentifier(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceIdentifier(), base.ResourceKindCert, id)
+			fullIdentifier := base.NewDocFullIdentifier(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceID(), base.ResourceKindCert, id)
 			digest.Write([]byte(fullIdentifier.String()))
 			return fullIdentifier
 		})
