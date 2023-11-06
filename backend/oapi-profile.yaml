@@ -81,6 +81,18 @@ paths:
         204:
           description: No response
           content: {}
+  /v1/{namespaceKind}/{namespaceId}/groupMemberOf:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListGroupMemberOf
+      summary: List group memberOf
+      responses:
+        200:
+          $ref: "oapi-base.yaml#/components/responses/ResourceReferenceListResponse"
 security:
   - BearerAuth: []
 components:

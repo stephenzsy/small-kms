@@ -95,7 +95,7 @@ export default function ManagedAppPage({
       <NamespaceContext.Provider
         value={{
           namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
-          namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
+          namespaceId: managedApp?.servicePrincipalId ?? "",
         }}
       >
         <ServicePrincipalSection managedApp={managedApp} />

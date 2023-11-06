@@ -14,7 +14,7 @@ import (
 
 type BaseDocument interface {
 	GetStorageNamespaceID() DocNamespacePartitionKey
-	GetStorageID() ID
+	GetID() ID
 	GetStorageFullIdentifier() DocFullIdentifier
 	GetUpdatedBy() string
 	getETag() *azcore.ETag
@@ -38,7 +38,7 @@ func (d *BaseDoc) GetStorageNamespaceID() DocNamespacePartitionKey {
 }
 
 // GetID implements BaseDocument.
-func (d *BaseDoc) GetStorageID() ID {
+func (d *BaseDoc) GetID() ID {
 	return d.ID
 }
 
@@ -179,7 +179,7 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc BaseDocum
 	if doc.GetUpdatedBy() != nextUpdatedBy {
 		ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
 	}
-	resp, err := s.client.PatchItem(c, partitionKey, string(doc.GetStorageID()), ops, o)
+	resp, err := s.client.PatchItem(c, partitionKey, string(doc.GetID()), ops, o)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc BaseDocum
 
 func (s *azcosmosContainerCRUDDocService) Delete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
-	_, err := s.client.DeleteItem(c, partitionKey, string(doc.GetStorageID()), opts)
+	_, err := s.client.DeleteItem(c, partitionKey, string(doc.GetID()), opts)
 	return err
 }
 

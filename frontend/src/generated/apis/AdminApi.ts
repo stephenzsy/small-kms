@@ -39,6 +39,7 @@ import type {
   PullImageRequest,
   RequestDiagnostics,
   ResourceKind,
+  ResourceReference,
   SecretPolicy,
   SecretPolicyParameters,
   SecretPolicyRef,
@@ -93,6 +94,8 @@ import {
     RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
+    ResourceReferenceFromJSON,
+    ResourceReferenceToJSON,
     SecretPolicyFromJSON,
     SecretPolicyToJSON,
     SecretPolicyParametersFromJSON,
@@ -292,6 +295,11 @@ export interface ListCertificatesRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     policyId?: string;
+}
+
+export interface ListGroupMemberOfRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
@@ -1853,6 +1861,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listCertificates(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
         const response = await this.listCertificatesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List group memberOf
+     */
+    async listGroupMemberOfRaw(requestParameters: ListGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ResourceReference>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listGroupMemberOf.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listGroupMemberOf.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/groupMemberOf`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ResourceReferenceFromJSON));
+    }
+
+    /**
+     * List group memberOf
+     */
+    async listGroupMemberOf(requestParameters: ListGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ResourceReference>> {
+        const response = await this.listGroupMemberOfRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -37,7 +37,7 @@ type DockerPullImageFormState = {
 function DockerPullImageForm() {
   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
   const [form] = useForm<DockerPullImageFormState>();
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const api = useAuthedClient(AdminApi);
 
   const { run: pullImage, loading } = useRequest(
@@ -92,7 +92,7 @@ type LaunchContainerFormState = {
 };
 
 function LaunchContainerForm({ mode }: { mode: AgentMode }) {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const [form] = useForm<LaunchContainerFormState>();
   const api = useAuthedClient(AdminApi);
   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
@@ -450,7 +450,7 @@ function useDockerContainerColumns(
 }
 
 function ContainersTableCard({ api }: { api: AdminApi }) {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const { instanceId, hasToken, getAccessToken } = useContext(
     ProxyAuthTokenContext
   );
@@ -542,7 +542,7 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
 }
 
 function AgentDashboard({ api }: { api: AdminApi }) {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const { instanceId, hasToken, getAccessToken, setAccessToken } = useContext(
     ProxyAuthTokenContext
   );
@@ -767,7 +767,7 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
 }
 
 export default function AgentDashboardPage() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const { instanceId } = useParams<{ instanceId: string }>();
 
   const api = useAuthedClient(AdminApi);

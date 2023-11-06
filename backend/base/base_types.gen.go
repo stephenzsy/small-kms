@@ -111,3 +111,6 @@ type AzureRoleAssignmentResponse = AzureRoleAssignment
 
 // ListAzureRoleAssignmentsResponse defines model for ListAzureRoleAssignmentsResponse.
 type ListAzureRoleAssignmentsResponse = []AzureRoleAssignment
+
+// ResourceReferenceListResponse defines model for ResourceReferenceListResponse.
+type ResourceReferenceListResponse = []ResourceReference

@@ -14,7 +14,7 @@ export function NamespaceConfigContextProvider(
     ruleEntraClientCred?: boolean;
   }>
 ) {
-  const { namespaceKind, namespaceIdentifier } = useContext(NamespaceContext);
+  const { namespaceKind, namespaceId: namespaceIdentifier } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: issuer, run: setIssuer } = useRequest(

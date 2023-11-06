@@ -96,7 +96,7 @@ function AgentConfigServerFormCard({
   const [form] = useForm<AgentServerConfigFormState>();
   const certPolicies = useCertPolicies();
   const certPolicyOptions = useCertPolicyOptions(certPolicies);
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { data: agentServerConfig, run } = useRequest(
@@ -265,7 +265,7 @@ function useAgentInstanceColumns(
 }
 
 export function AgentInstancesList() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { data } = useRequest(

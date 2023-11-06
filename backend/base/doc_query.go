@@ -133,6 +133,11 @@ func (b *CosmosQueryBuilder) WithOrderBy(clause string) *CosmosQueryBuilder {
 	return b
 }
 
+func (b *CosmosQueryBuilder) WithWhereClauses(clauses ...string) *CosmosQueryBuilder {
+	b.WhereClauses = append(b.WhereClauses, clauses...)
+	return b
+}
+
 func (b *CosmosQueryBuilder) WithOffsetLimit(offset uint, limit uint) *CosmosQueryBuilder {
 	b.OffsetLimitClause = fmt.Sprintf(" OFFSET %d LIMIT %d", offset, limit)
 	return b

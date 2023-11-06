@@ -202,3 +202,11 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/AzureRoleAssignment"
+    ResourceReferenceListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResourceReference"

@@ -14,7 +14,7 @@ export function NamespaceContextRouteProvider(
 
   return (
     <NamespaceContext.Provider
-      value={{ namespaceIdentifier: nsId, namespaceKind: nsKind }}
+      value={{ namespaceId: nsId, namespaceKind: nsKind }}
     >
       <NamespaceConfigContextProvider
         ruleIssuer={

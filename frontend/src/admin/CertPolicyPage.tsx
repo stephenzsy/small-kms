@@ -45,7 +45,7 @@ function RequestCertificateControl({
   certPolicyId: string;
   onComplete?: () => void;
 }) {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const [force, setForce] = useState(false);
   const { run: issueCert, loading } = useRequest(
@@ -106,7 +106,7 @@ function CertPolicyForm({
   onChange?: (value: CertPolicy | undefined) => void;
 }) {
   const [form] = useForm<CertPolicyFormState>();
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
 
@@ -483,7 +483,7 @@ export default function CertPolicyPage() {
   };
   const navigate = useNavigate();
   const certPolicyId = _certPolicyId === "_create" ? "" : _certPolicyId;
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const { data, mutate } = useRequest(
     async () => {

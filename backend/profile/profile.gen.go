@@ -56,6 +56,9 @@ type ServerInterface interface {
 	// Import profile
 	// (POST /v1/profile/{profileResourceKind}/{namespaceId}/import)
 	ImportProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	// List group memberOf
+	// (GET /v1/{namespaceKind}/{namespaceId}/groupMemberOf)
+	ListGroupMemberOf(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Sync group memberOf
 	// (POST /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId})
 	SyncGroupMemberOf(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, groupId openapi_types.UUID) error
@@ -162,6 +165,32 @@ func (w *ServerInterfaceWrapper) ImportProfile(ctx echo.Context) error {
 	return err
 }
 
+// ListGroupMemberOf converts echo context to params.
+func (w *ServerInterfaceWrapper) ListGroupMemberOf(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListGroupMemberOf(ctx, namespaceKind, namespaceId)
+	return err
+}
+
 // SyncGroupMemberOf converts echo context to params.
 func (w *ServerInterfaceWrapper) SyncGroupMemberOf(ctx echo.Context) error {
 	var err error
@@ -228,6 +257,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.GetProfile)
 	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.PutProfile)
 	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceId/import", wrapper.ImportProfile)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/groupMemberOf", wrapper.ListGroupMemberOf)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/groupMemberOf/:groupId", wrapper.SyncGroupMemberOf)
 
 }

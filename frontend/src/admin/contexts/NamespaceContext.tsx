@@ -7,12 +7,12 @@ import {
 
 export type NamespaceContextValue = {
   namespaceKind: NamespaceKind;
-  namespaceIdentifier: string;
+  namespaceId: string;
 };
 
 export const NamespaceContext = React.createContext<NamespaceContextValue>({
   namespaceKind: "" as never,
-  namespaceIdentifier: "" as never,
+  namespaceId: "" as never,
 });
 
 type NamespaceConfigContextValue = {

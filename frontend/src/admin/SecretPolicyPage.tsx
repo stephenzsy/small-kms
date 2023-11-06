@@ -32,7 +32,7 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
   const [form] = useForm<SecretPolicyFormState>();
   const newPolicyId = useWatch("identifier", form);
   const generateMode = useWatch("mode", form);
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { run } = useRequest(
@@ -109,7 +109,7 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
 }
 
 export default function SecretPolicyPage() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
   const _policyId = useParams().policyId;
   const policyId = _policyId === "_create" ? "" : _policyId;
 

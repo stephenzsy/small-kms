@@ -8,7 +8,7 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 
 export default function CertificatePage() {
-  const { namespaceKind, namespaceIdentifier } = useContext(NamespaceContext);
+  const { namespaceKind, namespaceId: namespaceIdentifier } = useContext(NamespaceContext);
 
   const { certId } = useParams() as { certId: string };
 

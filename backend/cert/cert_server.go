@@ -75,7 +75,7 @@ func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind b
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
-		return c, s.RespondRequireAdmin(c)
+		return c, base.ErrResponseStatusForbidden
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	return c, nil

@@ -61,7 +61,7 @@ function useColumns(
 }
 
 export function useCertPolicies() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: certPolicies } = useRequest(
@@ -81,7 +81,7 @@ export function useCertPolicies() {
 }
 
 export function useSecretPolicies() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data } = useRequest(
@@ -101,7 +101,7 @@ export function useSecretPolicies() {
 }
 
 export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: certPolicies } = useRequest(

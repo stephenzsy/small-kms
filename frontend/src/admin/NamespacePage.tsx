@@ -1,11 +1,12 @@
-import { Button, Card, Form, Input } from "antd";
-import { useContext } from "react";
+import { useRequest } from "ahooks";
+import { Button, Card, Form, Input, Table } from "antd";
+import { ColumnsType } from "antd/es/table";
+import { useContext, useMemo } from "react";
 import { Link } from "../components/Link";
+import { AdminApi, NamespaceKind, ResourceReference } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
 import { CertPolicyRefTable } from "./CertPolicyRefTable";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { AdminApi, NamespaceKind } from "../generated";
-import { useRequest } from "ahooks";
-import { useAuthedClient } from "../utils/useCertsApi";
 
 type MemberOfGroupFormState = {
   groupId: string;
@@ -14,7 +15,8 @@ type MemberOfGroupFormState = {
 function MemberOfGroupForm() {
   const [form] = Form.useForm<MemberOfGroupFormState>();
   const api = useAuthedClient(AdminApi);
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const { run: addMember } = useRequest(
     (groupId: string) => {
       return api.syncGroupMemberOf({
@@ -55,14 +57,47 @@ function MemberOfGroupForm() {
   );
 }
 
-export default function NamespacePage() {
-  const { namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+function useGroupMemberOfColumns() {
+  return useMemo((): ColumnsType<ResourceReference> => {
+    return [
+      {
+        title: "ID",
+        render: (r: ResourceReference) => (
+          <span className="font-mono">{r.id}</span>
+        ),
+      },
+      {
+        title: "Actions",
+        render: (r: ResourceReference) => (
+          <Link to={`/entra/group/${r.id}`}>View</Link>
+        ),
+      },
+    ];
+  }, []);
+}
 
-  //  const adminApi = useAuthedClient(AdminApi);
+export default function NamespacePage() {
+  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+
+  const adminApi = useAuthedClient(AdminApi);
+  const { data: groupMemberOf } = useRequest(
+    async () => {
+      return await adminApi.listGroupMemberOf({
+        namespaceId,
+        namespaceKind,
+      });
+    },
+    {
+      refreshDeps: [namespaceId, namespaceKind],
+      ready: namespaceKind === NamespaceKind.NamespaceKindUser,
+    }
+  );
+
+  const groupMemberOfColumns = useGroupMemberOfColumns();
 
   return (
     <>
-      <h1>{namespaceIdentifier}</h1>
+      <h1>{namespaceId}</h1>
       <div>{namespaceKind}</div>
       <Card
         title="Certificate Policies"
@@ -73,9 +108,17 @@ export default function NamespacePage() {
         <CertPolicyRefTable routePrefix="./cert-policy/" />
       </Card>
       {namespaceKind === NamespaceKind.NamespaceKindUser && (
-        <Card title="Sync group membership">
-          <MemberOfGroupForm />
-        </Card>
+        <>
+          <Card title="Listed group memberships">
+            <Table<ResourceReference>
+              dataSource={groupMemberOf}
+              columns={groupMemberOfColumns}
+            />
+          </Card>
+          <Card title="Sync group membership">
+            <MemberOfGroupForm />
+          </Card>
+        </>
       )}
     </>
   );
