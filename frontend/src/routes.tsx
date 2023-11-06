@@ -139,6 +139,25 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <EntraProfilesPage />,
               },
+              {
+                path: ":nsId",
+                element: (
+                  <NamespaceContextRouteProvider>
+                    <Outlet />
+                  </NamespaceContextRouteProvider>
+                ),
+                children: [
+                  { index: true, element: <NamespacePage /> },
+                  {
+                    path: "cert-policy/:certPolicyId",
+                    element: <CertPolicyPage />,
+                  },
+                  {
+                    path: "cert/:certId",
+                    element: <CertificatePage />,
+                  },
+                ],
+              },
             ],
           },
         ],
