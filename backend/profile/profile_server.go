@@ -16,17 +16,12 @@ type server struct {
 	api.APIServer
 }
 
-const (
-	namespaceIDCA              = "ca"
-	namespaceIDDirectoryObject = "directoryObject"
-)
-
 var (
-	namespaceIdentifierCA              = base.StringIdentifier(namespaceIDCA)
-	namespaceIdentifierDirectoryObject = base.StringIdentifier(namespaceIDDirectoryObject)
+	namespaceIdentifierCA              = base.ID("ca")
+	namespaceIdentifierDirectoryObject = base.ID("directoryObject")
 )
 
-func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identifier, error) {
+func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.ID, error) {
 	switch profileResourceKind {
 	case base.ProfileResourceKindRootCA,
 		base.ProfileResourceKindIntermediateCA:
@@ -36,7 +31,7 @@ func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.Identif
 		base.ProfileResourceKindGroup:
 		return namespaceIdentifierDirectoryObject, nil
 	}
-	return base.Identifier{}, fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)
+	return base.ID(""), fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)
 }
 
 // ListRootCAs implements ServerInterface.
@@ -56,7 +51,7 @@ func (s *server) ListProfiles(ec echo.Context, profileResourceKind base.Resource
 }
 
 // GetRootCA implements ServerInterface.
-func (s *server) GetProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) GetProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -72,7 +67,7 @@ func (s *server) GetProfile(ec echo.Context, profileResourceKind base.ResourceKi
 }
 
 // PutRootCA implements ServerInterface.
-func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -103,7 +98,7 @@ func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKi
 
 // ImportProfile implements ServerInterface.
 func (s *server) ImportProfile(ec echo.Context,
-	profileResourceKind base.ResourceKind, namespaceIdentifier base.Identifier) error {
+	profileResourceKind base.ResourceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {

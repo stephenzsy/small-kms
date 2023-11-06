@@ -35,12 +35,12 @@ func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) er
 		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter).
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated))
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCert)
+	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert)
 
 	if params.PolicyId != nil {
-		policyIdentifier := base.ParseIdentifier(*params.PolicyId)
+		policyIdentifier := base.ParseID(*params.PolicyId)
 
-		policyLocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, policyIdentifier)
+		policyLocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, policyIdentifier)
 
 		qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy")
 		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
@@ -57,7 +57,7 @@ func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) er
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }
 
-func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]base.Identifier, error) {
+func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]ID, error) {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated)).
 		WithOffsetLimit(0, limit)
@@ -67,7 +67,7 @@ func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIde
 		qb,
 		base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceIdentifier(), base.ResourceKindCert))
 
-	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) Identifier {
+	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) ID {
 		return d.ID
 	}))
 }

@@ -29,8 +29,14 @@ func HasRole(c context.Context, roleValue string) bool {
 	return false
 }
 
-func ResolveSelfNamespace(c context.Context, nsUUID uuid.UUID, nsName string) uuid.UUID {
-	if !utils.IsUUIDNil(nsUUID) || (!strings.EqualFold(nsName, "me") && !strings.EqualFold(nsName, "self")) {
+func ResolveSelfNamespace(c context.Context, nsID string) uuid.UUID {
+	isUUID := false
+	var nsUUID uuid.UUID
+	var err error
+	if nsUUID, err = uuid.Parse(nsID); err == nil {
+		isUUID = true
+	}
+	if (isUUID && nsUUID != uuid.UUID{}) || (!strings.EqualFold(nsID, "me") && !strings.EqualFold(nsID, "self")) {
 		return nsUUID
 	}
 	if identity, ok := c.Value(authIdentityContextKey).(AuthIdentity); ok {

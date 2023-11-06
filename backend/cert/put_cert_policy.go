@@ -8,7 +8,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func putCertPolicy(c context.Context, rID base.Identifier, params *CertPolicyParameters) (*CertPolicy, error) {
+func putCertPolicy(c context.Context, rID base.ID, params *CertPolicyParameters) (*CertPolicy, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -17,7 +17,7 @@ func putCertPolicy(c context.Context, rID base.Identifier, params *CertPolicyPar
 	nsCtx := ns.GetNSContext(c)
 	doc := new(CertPolicyDoc)
 
-	err := doc.Init(c, nsCtx.Kind(), nsCtx.Identifier(), rID, params)
+	err := doc.init(c, nsCtx.Kind(), nsCtx.ID(), rID, params)
 	if err != nil {
 		return nil, err
 	}

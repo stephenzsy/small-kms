@@ -52,8 +52,8 @@ type AzureRoleAssignment struct {
 // Base64RawURLEncodedBytes defines model for Base64RawURLEncodedBytes.
 type Base64RawURLEncodedBytes = cloudkey.Base64RawURLEncodableBytes
 
-// Identifier defines model for Identifier.
-type Identifier = identifier
+// Id defines model for Id.
+type Id = ID
 
 // NamespaceKind defines model for NamespaceKind.
 type NamespaceKind string
@@ -82,7 +82,7 @@ type ResourceKind string
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
 	Deleted   *time.Time `json:"deleted,omitempty"`
-	Id        Identifier `json:"id"`
+	ID        ID         `json:"id"`
 	Updated   time.Time  `json:"updated"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
@@ -97,14 +97,14 @@ type ServiceRuntimeInfo struct {
 	GoVersion   string   `json:"goVersion"`
 }
 
-// NamespaceIdentifierParameter defines model for NamespaceIdentifierParameter.
-type NamespaceIdentifierParameter = Identifier
+// NamespaceIdParameter defines model for NamespaceIdParameter.
+type NamespaceIdParameter = Id
 
 // NamespaceKindParameter defines model for NamespaceKindParameter.
 type NamespaceKindParameter = NamespaceKind
 
-// ResourceIdentifierParameter defines model for ResourceIdentifierParameter.
-type ResourceIdentifierParameter = Identifier
+// ResourceIdParameter defines model for ResourceIdParameter.
+type ResourceIdParameter = Id
 
 // AzureRoleAssignmentResponse defines model for AzureRoleAssignmentResponse.
 type AzureRoleAssignmentResponse = AzureRoleAssignment

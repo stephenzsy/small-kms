@@ -13,7 +13,7 @@ type server struct {
 	api.APIServer
 }
 
-func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) (ctx.RequestContext, error) {
+func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) (ctx.RequestContext, error) {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -24,7 +24,7 @@ func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind b
 }
 
 // ListSecretPolicies implements ServerInterface.
-func (s *server) ListSecretPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) ListSecretPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 	c, err := s.withAdminAccessAndNamespaceCtx(c, namespaceKind, namespaceIdentifier)
 	if err != nil {
@@ -35,7 +35,7 @@ func (s *server) ListSecretPolicies(ec echo.Context, namespaceKind base.Namespac
 }
 
 // ListSecretPolicy implements ServerInterface.
-func (s *server) GetSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) GetSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 	c, err := s.withAdminAccessAndNamespaceCtx(c, namespaceKind, namespaceIdentifier)
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *server) GetSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKi
 }
 
 // PutSecretPolicy implements ServerInterface.
-func (s *server) PutSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) PutSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 	c, err := s.withAdminAccessAndNamespaceCtx(c, namespaceKind, namespaceIdentifier)
 	if err != nil {

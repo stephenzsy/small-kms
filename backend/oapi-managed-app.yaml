@@ -97,10 +97,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ManagedApp"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server:
+  /v1/{namespaceKind}/{namespaceId}/agent-config/server:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -132,10 +132,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -150,11 +150,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AgentInstance"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     put:
       tags:
         - admin
@@ -193,11 +193,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentInstance"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     post:
       tags:
         - admin
@@ -209,10 +209,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResult"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments:
+  /v1/{namespaceKind}/{namespaceId}/agent-config/server/role-assignments:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -344,10 +344,10 @@ components:
         env:
           $ref: "#/components/schemas/AgentConfigServerEnv"
         tlsCertificatePolicyId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
           x-go-name: TLSCertificatePolicyID
         tlsCertificateId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
           x-go-name: TLSCertificateID
         jwtKeyCertPolicyId:
           $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"

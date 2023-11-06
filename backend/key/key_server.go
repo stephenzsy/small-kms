@@ -11,17 +11,17 @@ type server struct {
 }
 
 // GetKeyPolicy implements ServerInterface.
-func (*server) GetKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (*server) GetKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	panic("unimplemented")
 }
 
 // ListKeyPolicies implements ServerInterface.
-func (*server) ListKeyPolicies(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (*server) ListKeyPolicies(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	panic("unimplemented")
 }
 
 // PutKeyPolicy implements ServerInterface.
-func (*server) PutKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (*server) PutKeyPolicy(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	panic("unimplemented")
 }
 

@@ -171,14 +171,14 @@ type PutKeyPolicyJSONRequestBody = KeyPolicyParameters
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List key policies
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/key-policy)
-	ListKeyPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/key-policy)
+	ListKeyPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Get key spec
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/key-policy/{resourceIdentifier})
-	GetKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId})
+	GetKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Put key spec
-	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/key-policy/{resourceIdentifier})
-	PutKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (PUT /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId})
+	PutKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -197,18 +197,18 @@ func (w *ServerInterfaceWrapper) ListKeyPolicies(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListKeyPolicies(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.ListKeyPolicies(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -223,26 +223,26 @@ func (w *ServerInterfaceWrapper) GetKeyPolicy(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetKeyPolicy(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.GetKeyPolicy(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -257,26 +257,26 @@ func (w *ServerInterfaceWrapper) PutKeyPolicy(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutKeyPolicy(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.PutKeyPolicy(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -308,8 +308,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/key-policy", wrapper.ListKeyPolicies)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/key-policy/:resourceIdentifier", wrapper.GetKeyPolicy)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/key-policy/:resourceIdentifier", wrapper.PutKeyPolicy)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy", wrapper.ListKeyPolicies)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy/:resourceId", wrapper.GetKeyPolicy)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy/:resourceId", wrapper.PutKeyPolicy)
 
 }

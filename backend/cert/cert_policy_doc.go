@@ -33,18 +33,18 @@ const (
 	queryColumnDisplayName = "c.displayName"
 )
 
-func (d *CertPolicyDoc) Init(
+func (d *CertPolicyDoc) init(
 	c context.Context,
 	nsKind base.NamespaceKind,
-	nsID base.Identifier,
-	policyID base.Identifier,
+	nsID ID,
+	policyID ID,
 	p *CertPolicyParameters) error {
 	if d == nil {
 		return nil
 	}
 	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCertPolicy, policyID)
 
-	d.DisplayName = policyID.String()
+	d.DisplayName = string(policyID)
 	if p.DisplayName != "" {
 		d.DisplayName = p.DisplayName
 	}
@@ -61,7 +61,7 @@ func (d *CertPolicyDoc) Init(
 		d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
 	case base.NamespaceKindIntermediateCA:
 		if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
-			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindRootCA, base.StringIdentifier("default"))
+			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindRootCA, base.ID("default"))
 		} else if *p.IssuerNamespaceKind != base.NamespaceKindRootCA {
 			return fmt.Errorf("%w: issuer namespace must be root ca", base.ErrResponseStatusBadRequest)
 		} else {
@@ -71,7 +71,7 @@ func (d *CertPolicyDoc) Init(
 		if isSelfSigning {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
 		} else if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
-			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindIntermediateCA, base.StringIdentifier("default"))
+			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindIntermediateCA, base.ID("default"))
 		} else if *p.IssuerNamespaceKind != base.NamespaceKindIntermediateCA {
 			return fmt.Errorf("%w: issuer namespace must be intermediate ca", base.ErrResponseStatusBadRequest)
 		} else {
@@ -274,7 +274,7 @@ func (d *CertPolicyDoc) PopulateModel(m *CertPolicy) {
 	m.Flags = d.Flags
 	m.Version = d.Version
 	m.IssuerNamespaceKind = d.IssuerNamespace.Kind()
-	m.IssuerNamespaceIdentifier = d.IssuerNamespace.Identifier()
+	m.IssuerNamespaceIdentifier = d.IssuerNamespace.ID()
 }
 
 var _ base.ModelRefPopulater[CertPolicyRef] = (*CertPolicyDoc)(nil)

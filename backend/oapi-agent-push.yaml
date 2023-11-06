@@ -6,11 +6,11 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     get:
       tags:
@@ -25,11 +25,11 @@ paths:
             application/json:
               schema:
                 $ref: "oapi-base.yaml#/components/schemas/RequestDiagnostics"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     get:
       tags:
@@ -46,11 +46,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DockerContainer"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
       - name: containerId
         in: path
@@ -81,11 +81,11 @@ paths:
         204:
           description: Container remove result
           content: {}
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}/stop:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}/stop:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
       - name: containerId
         in: path
@@ -103,11 +103,11 @@ paths:
         204:
           description: Container stop result
           content: {}
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     get:
       tags:
@@ -124,11 +124,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DockerImageSummary"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     get:
       tags:
@@ -143,11 +143,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DockerInfo"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     get:
       tags:
@@ -164,11 +164,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DockerNetworkResource"
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     post:
       tags:
@@ -185,11 +185,11 @@ paths:
         204:
           description: agent pull image resposne
           content: {}
-  /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent:
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
     post:
       tags:

@@ -16,7 +16,7 @@ type server struct {
 }
 
 // GetAgentInstanceProxyAuthToken implements ServerInterface.
-func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -27,7 +27,7 @@ func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKin
 }
 
 // GetAgentInstance implements ServerInterface.
-func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -39,7 +39,7 @@ func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // ListAgentInstances implements ServerInterface.
-func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -51,15 +51,15 @@ func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.Namespac
 }
 
 // PutAgentConfigServerInstance implements ServerInterface.
-func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, instanceId base.Identifier) error {
+func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, nsID base.ID, instanceId base.ID) error {
 	c := ec.(ctx.RequestContext)
-	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
-	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
+	nsUUID := auth.ResolveSelfNamespace(c, string(nsID))
+	if !auth.AuthorizeSelfOrAdmin(c, nsUUID) {
 		s.RespondRequireAdmin(c)
-	} else if !utils.IsUUIDNil(namespaceID) {
-		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
+	} else if !utils.IsUUIDNil(nsUUID) {
+		nsID = base.IDFromUUID(nsUUID)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithDefaultNSContext(c, namespaceKind, nsID)
 	fields := AgentInstanceFields{}
 	if err := c.Bind(&fields); err != nil {
 		return err
@@ -68,7 +68,7 @@ func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // ListAgentServerAzureRoleAssignments implements ServerInterface.
-func (s *server) ListAgentServerAzureRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) ListAgentServerAzureRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -100,21 +100,21 @@ func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) erro
 }
 
 // GetAgentConfigServer implements ServerInterface.
-func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, nsID base.ID) error {
 	c := ec.(ctx.RequestContext)
 
-	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
-	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) {
+	nsUUID := auth.ResolveSelfNamespace(c, string(nsID))
+	if !auth.AuthorizeSelfOrAdmin(c, nsUUID) {
 		s.RespondRequireAdmin(c)
-	} else if !utils.IsUUIDNil(namespaceID) {
-		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
+	} else if !utils.IsUUIDNil(nsUUID) {
+		nsID = base.IDFromUUID(nsUUID)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithDefaultNSContext(c, namespaceKind, nsID)
 
 	return apiGetAgentConfigServer(c)
 }
 
-func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {

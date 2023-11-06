@@ -17,27 +17,34 @@ type proxiedServer struct {
 }
 
 // AgentContainerRemove implements ServerInterface.
-func (s *proxiedServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerRemoveParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerContainerRemoveWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, nil)
+func (s *proxiedServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind,
+	nsID base.ID,
+	rID base.ID,
+	containerId string, params AgentDockerContainerRemoveParams) error {
+	return s.delegateRequest(ec, namespaceKind, nsID, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerRemoveWithResponse(c, namespaceKind, nsID, rID, containerId, nil)
 	})
 }
 
 // AgentDockerContainerStop implements ServerInterface.
-func (s *proxiedServer) AgentDockerContainerStop(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerStopParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerContainerStopWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, nil)
+func (s *proxiedServer) AgentDockerContainerStop(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	containerId string, params AgentDockerContainerStopParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerStopWithResponse(c, namespaceKind, namespaceIdentifier, rID, containerId, nil)
 	})
 }
 
 // AgentLaunchAgent implements ServerInterface.
-func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentLaunchAgentParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization,
+func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentLaunchAgentParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization,
 		func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
 			return client.AgentLaunchAgentWithBodyWithResponse(
 				c, namespaceKind,
 				namespaceIdentifier,
-				resourceIdentifier,
+				rID,
 				nil,
 				c.Request().Header.Get(echo.HeaderContentType),
 				c.Request().Body)
@@ -45,15 +52,18 @@ func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.Nam
 }
 
 // AgentDockerNetworkList implements ServerInterface.
-func (s *proxiedServer) AgentDockerNetworkList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier, resourceIdentifier base.Identifier, params AgentDockerNetworkListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerNetworkListWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+func (s *proxiedServer) AgentDockerNetworkList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentDockerNetworkListParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerNetworkListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
 	})
 }
 
 func (s *proxiedServer) delegateRequest(ec echo.Context,
-	namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier,
-	resourceIdentifier base.Identifier, delegatedAuthToken *string,
+	namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	delegatedAuthToken *string,
 	getResult func(ctx.RequestContext, ClientWithResponsesInterface) (ProxiedResponse, error)) error {
 	c := ec.(ctx.RequestContext)
 
@@ -65,7 +75,7 @@ func (s *proxiedServer) delegateRequest(ec echo.Context,
 		return s.RespondRequireAdmin(c)
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
-	client, err := s.getProxiedClient(c, resourceIdentifier, *delegatedAuthToken)
+	client, err := s.getProxiedClient(c, rID, *delegatedAuthToken)
 	if err != nil {
 		return err
 	}
@@ -80,28 +90,36 @@ func (s *proxiedServer) delegateRequest(ec echo.Context,
 }
 
 // AgentDockerContainerInspect implements ServerInterface.
-func (s *proxiedServer) AgentDockerContainerInspect(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerInspectParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerContainerInspectWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, nil)
+func (s *proxiedServer) AgentDockerContainerInspect(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	containerId string, params AgentDockerContainerInspectParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerInspectWithResponse(c, namespaceKind, namespaceIdentifier, rID, containerId, nil)
 	})
 }
 
 // AgentDockerContainerList implements ServerInterface.
-func (s *proxiedServer) AgentDockerContainerList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerContainerListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerContainerListWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+func (s *proxiedServer) AgentDockerContainerList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentDockerContainerListParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerContainerListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
 	})
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *proxiedServer) AgentDockerImageList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerImageListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerImageListWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+func (s *proxiedServer) AgentDockerImageList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentDockerImageListParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerImageListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
 	})
 }
 
 // AgentPullImage implements ServerInterface.
-func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentPullImageParams) error {
+func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentPullImageParams) error {
 	c := ec.(ctx.RequestContext)
 
 	if params.XCryptocatProxyAuthorization == nil || *params.XCryptocatProxyAuthorization == "" {
@@ -117,11 +135,11 @@ func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.Names
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	// proxiedClient
-	client, err := s.getProxiedClient(c, resourceIdentifier, *params.XCryptocatProxyAuthorization)
+	client, err := s.getProxiedClient(c, rID, *params.XCryptocatProxyAuthorization)
 	if err != nil {
 		return err
 	}
-	resp, err := client.AgentPullImageWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil, req)
+	resp, err := client.AgentPullImageWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil, req)
 	if err != nil {
 		return err
 	}
@@ -129,7 +147,9 @@ func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.Names
 }
 
 // GetDiagnostics implements ServerInterface.
-func (s *proxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params GetAgentDiagnosticsParams) error {
+func (s *proxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params GetAgentDiagnosticsParams) error {
 	c := ec.(ctx.RequestContext)
 
 	if params.XCryptocatProxyAuthorization == nil || *params.XCryptocatProxyAuthorization == "" {
@@ -141,11 +161,11 @@ func (s *proxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceKind base.
 	}
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 	// proxiedClient
-	client, err := s.getProxiedClient(c, resourceIdentifier, *params.XCryptocatProxyAuthorization)
+	client, err := s.getProxiedClient(c, rID, *params.XCryptocatProxyAuthorization)
 	if err != nil {
 		return err
 	}
-	resp, err := client.GetAgentDiagnosticsWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+	resp, err := client.GetAgentDiagnosticsWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
 	if err != nil {
 		return err
 	}
@@ -153,9 +173,11 @@ func (s *proxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceKind base.
 }
 
 // GetDockerInfo implements ServerInterface.
-func (s *proxiedServer) AgentDockerInfo(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, params AgentDockerInfoParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, resourceIdentifier, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerInfoWithResponse(c, namespaceKind, namespaceIdentifier, resourceIdentifier, nil)
+func (s *proxiedServer) AgentDockerInfo(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
+	rID base.ID,
+	params AgentDockerInfoParams) error {
+	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.AgentDockerInfoWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
 	})
 }
 

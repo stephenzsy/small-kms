@@ -18,6 +18,7 @@ import {
   NamespaceKind,
   ProfileParameters,
   ProfileRef,
+  PutProfileRequest,
   ResourceKind
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
@@ -65,8 +66,8 @@ function CreateProfileForm({
       name: string,
       params: ProfileParameters
     ) => {
-      const req = {
-        namespaceIdentifier: name,
+      const req: PutProfileRequest = {
+        namespaceId: name,
         profileParameters: params,
         profileResourceKind: profileType,
       };

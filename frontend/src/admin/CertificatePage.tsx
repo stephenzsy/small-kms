@@ -15,8 +15,8 @@ export default function CertificatePage() {
   const adminApi = useAuthedClient(AdminApi);
   const { data: cert } = useRequest(() => {
     return adminApi.getCertificate({
-      resourceIdentifier: certId,
-      namespaceIdentifier,
+      resourceId: certId,
+      namespaceId: namespaceIdentifier,
       namespaceKind: namespaceKind,
     });
   }, {});
@@ -28,8 +28,8 @@ export default function CertificatePage() {
   } = useRequest(
     async () => {
       await adminApi.deleteCertificate({
-        resourceIdentifier: certId,
-        namespaceIdentifier,
+        resourceId: certId,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
       });
       return true;

@@ -36,7 +36,7 @@ func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration,
 	if err != nil {
 		return nil, false, err
 	}
-	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"))
+	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.ID("me"))
 	if err != nil || resp.StatusCode() != 200 {
 		return nil, false, err
 	}

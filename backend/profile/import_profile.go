@@ -14,10 +14,10 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID base.Identifier) (*Profile, error) {
+func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID base.ID) (*Profile, error) {
 	nsCtx := ns.GetNSContext(c)
 
-	if !rID.IsUUID() || rID.UUID().Version() != 4 {
+	if rUUID, ok := rID.AsUUID(); !ok || rUUID.Version() != 4 {
 		return nil, fmt.Errorf("%w: resource ID of imported profile must be a valid GUID", base.ErrResponseStatusBadRequest)
 	}
 
@@ -29,7 +29,7 @@ func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID bas
 	var doc ProfileCRUDDoc
 	switch resourceKind {
 	case base.ProfileResourceKindServicePrincipal:
-		sp, err := gclient.ServicePrincipals().ByServicePrincipalId(rID.String()).Get(c, &serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
+		sp, err := gclient.ServicePrincipals().ByServicePrincipalId(string(rID)).Get(c, &serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{
 				Select: []string{"id", "displayName", "appId"},
 			},
@@ -37,19 +37,19 @@ func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID bas
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return nil, fmt.Errorf("%w: service principal not found: %s", base.ErrResponseStatusNotFound, rID.String())
+				return nil, fmt.Errorf("%w: service principal not found: %s", base.ErrResponseStatusNotFound, rID)
 			}
 			return nil, err
 		}
 		d := new(ServicePrincipalProfileDoc)
-		d.Init(nsCtx.Identifier(), resourceKind, rID, *sp.GetDisplayName())
+		d.Init(nsCtx.ID(), resourceKind, rID, *sp.GetDisplayName())
 		d.AppID, err = uuid.Parse(*sp.GetAppId())
 		if err != nil {
 			return nil, err
 		}
 		doc = d
 	case base.ProfileResourceKindGroup:
-		group, err := gclient.Groups().ByGroupId(rID.String()).Get(c, &groups.GroupItemRequestBuilderGetRequestConfiguration{
+		group, err := gclient.Groups().ByGroupId(string(rID)).Get(c, &groups.GroupItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
 				Select: []string{"id", "displayName"},
 			},
@@ -57,18 +57,18 @@ func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID bas
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return nil, fmt.Errorf("%w: group not found: %s", base.ErrResponseStatusNotFound, rID.String())
+				return nil, fmt.Errorf("%w: group not found: %s", base.ErrResponseStatusNotFound, rID)
 			}
 			return nil, err
 		}
 		d := new(GroupProfileDoc)
-		d.Init(nsCtx.Identifier(), resourceKind, rID, *group.GetDisplayName())
+		d.Init(nsCtx.ID(), resourceKind, rID, *group.GetDisplayName())
 		if err != nil {
 			return nil, err
 		}
 		doc = d
 	case base.ProfileResourceKindUser:
-		user, err := gclient.Users().ByUserId(rID.String()).Get(c, &users.UserItemRequestBuilderGetRequestConfiguration{
+		user, err := gclient.Users().ByUserId(string(rID)).Get(c, &users.UserItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
 				Select: []string{"id", "displayName", "userPrincipalName"},
 			},
@@ -76,12 +76,12 @@ func importProfile(c ctx.RequestContext, resourceKind base.ResourceKind, rID bas
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return nil, fmt.Errorf("%w: user not found: %s", base.ErrResponseStatusNotFound, rID.String())
+				return nil, fmt.Errorf("%w: user not found: %s", base.ErrResponseStatusNotFound, rID)
 			}
 			return nil, err
 		}
 		d := new(UserProfileDoc)
-		d.Init(nsCtx.Identifier(), resourceKind, rID, *user.GetDisplayName())
+		d.Init(nsCtx.ID(), resourceKind, rID, *user.GetDisplayName())
 		d.UserPrincipalName = *user.GetUserPrincipalName()
 		if err != nil {
 			return nil, err

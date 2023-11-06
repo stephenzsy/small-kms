@@ -27,7 +27,7 @@ type agentServer struct {
 }
 
 // AgentContainerRemove implements ServerInterface.
-func (s *agentServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, containerId string, params AgentDockerContainerRemoveParams) error {
+func (s *agentServer) AgentDockerContainerRemove(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, containerId string, params AgentDockerContainerRemoveParams) error {
 	c := ec.(ctx.RequestContext)
 
 	err := s.dockerClient.ContainerRemove(c, containerId, types.ContainerRemoveOptions{})
@@ -38,14 +38,14 @@ func (s *agentServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind 
 }
 
 // AgentDockerContainerStop implements ServerInterface.
-func (s *agentServer) AgentDockerContainerStop(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier,
+func (s *agentServer) AgentDockerContainerStop(ec echo.Context, _ base.NamespaceKind, _, _ base.ID,
 	containerId string, params AgentDockerContainerStopParams) error {
 	c := ec.(ctx.RequestContext)
 	return s.apiStopContainer(c, containerId)
 }
 
 // AgentLaunchContainer implements ServerInterface.
-func (s *agentServer) AgentLaunchAgent(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentLaunchAgentParams) error {
+func (s *agentServer) AgentLaunchAgent(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentLaunchAgentParams) error {
 	c := ec.(ctx.RequestContext)
 	req := LaunchAgentRequest{}
 	if err := c.Bind(&req); err != nil {
@@ -56,7 +56,7 @@ func (s *agentServer) AgentLaunchAgent(ec echo.Context, _ base.NamespaceKind, _,
 }
 
 // AgentDockerContainerInspect implements ServerInterface.
-func (s *agentServer) AgentDockerContainerInspect(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, containerId string, _ AgentDockerContainerInspectParams) error {
+func (s *agentServer) AgentDockerContainerInspect(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, containerId string, _ AgentDockerContainerInspectParams) error {
 	c := ec.(ctx.RequestContext)
 
 	result, err := s.dockerClient.ContainerInspect(c, containerId)
@@ -67,7 +67,7 @@ func (s *agentServer) AgentDockerContainerInspect(ec echo.Context, _ base.Namesp
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerContainerListParams) error {
+func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerContainerListParams) error {
 	c := ec.(ctx.RequestContext)
 
 	containers, err := s.dockerClient.ContainerList(c, types.ContainerListOptions{
@@ -80,7 +80,7 @@ func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.Namespace
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerImageList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerImageListParams) error {
+func (s *agentServer) AgentDockerImageList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerImageListParams) error {
 	c := ec.(ctx.RequestContext)
 
 	images, err := s.dockerClient.ImageList(c, types.ImageListOptions{
@@ -93,7 +93,7 @@ func (s *agentServer) AgentDockerImageList(ec echo.Context, _ base.NamespaceKind
 }
 
 // AgentPullImage implements ServerInterface.
-func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentPullImageParams) error {
+func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentPullImageParams) error {
 	c := ec.(ctx.RequestContext)
 	req := PullImageRequest{}
 	if err := c.Bind(&req); err != nil {
@@ -118,7 +118,7 @@ func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerNetworkListParams) error {
+func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerNetworkListParams) error {
 	c := ec.(ctx.RequestContext)
 
 	result, err := s.dockerClient.NetworkList(c, types.NetworkListOptions{})
@@ -129,7 +129,7 @@ func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKi
 }
 
 // GetDiagnostics implements ServerInterface.
-func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ GetAgentDiagnosticsParams) error {
+func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ GetAgentDiagnosticsParams) error {
 	c := ec.(ctx.RequestContext)
 
 	return base.RespondDiagnostics(c, base.ServiceRuntimeInfo{
@@ -140,7 +140,7 @@ func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind,
 }
 
 // GetDockerInfo implements ServerInterface.
-func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, _ base.Identifier, _ AgentDockerInfoParams) error {
+func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerInfoParams) error {
 	c := ec.(ctx.RequestContext)
 
 	info, err := s.dockerClient.Info(c)

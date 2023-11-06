@@ -6,10 +6,10 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert:
+  /v1/{namespaceKind}/{namespaceId}/cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -31,11 +31,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateRef"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}:
+  /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     get:
       tags:
         - admin
@@ -54,10 +54,10 @@ paths:
         204:
           description: Certificate deleted
           content: {}
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer:
+  /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -88,10 +88,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRuleIssuer"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential:
+  /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -122,10 +122,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy:
+  /v1/{namespaceKind}/{namespaceId}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -140,11 +140,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertPolicyRef"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}:
+  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     get:
       tags:
         - admin
@@ -167,11 +167,11 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertPolicyResponse"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert:
+  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     post:
       tags:
         - admin
@@ -180,11 +180,11 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/CertificateResponse"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert:
+  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     post:
       tags:
         - admin
@@ -204,11 +204,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Certificate"
-  /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}:
+  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
       - in: path
         name: resourceCategory
         required: true
@@ -288,7 +288,7 @@ components:
         issuerNamespaceKind:
           $ref: "oapi-base.yaml#/components/schemas/NamespaceKind"
         issuerNamespaceIdentifier:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
         keySpec:
           $ref: "oapi-key.yaml#/components/schemas/SigningKeySpec"
         keyExportable:
@@ -344,7 +344,7 @@ components:
         issuerNamespaceKind:
           $ref: "oapi-base.yaml#/components/schemas/NamespaceKind"
         issuerNamespaceIdentifier:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
       required:
         - expiryTime
         - subject
@@ -445,27 +445,27 @@ components:
       type: object
       properties:
         issuerId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
       required:
         - issuerId
     CertificateRuleIssuer:
       type: object
       properties:
         policyId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
         certificateId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
       required:
         - policyId
     CertificateRuleMsEntraClientCredential:
       type: object
       properties:
         policyId:
-          $ref: "oapi-base.yaml#/components/schemas/Identifier"
+          $ref: "oapi-base.yaml#/components/schemas/Id"
         certificateIds:
           type: array
           items:
-            $ref: "oapi-base.yaml#/components/schemas/Identifier"
+            $ref: "oapi-base.yaml#/components/schemas/Id"
           x-go-type-skip-optional-pointer: true
       required:
         - policyId

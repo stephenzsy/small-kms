@@ -51,7 +51,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 	}
 
 	instanceID := uuid.NewSHA1(uuid.NameSpaceURL, []byte(et.endpoint))
-	instanceIdenfier := base.UUIDIdentifier(instanceID)
+	instanceIdenfier := base.IDFromUUID(instanceID)
 	for active {
 		select {
 		case <-c.Done():
@@ -75,7 +75,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 			go e.StartServer(e.TLSServer)
 
 			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
-				base.StringIdentifier("me"), instanceIdenfier, managedapp.AgentInstanceFields{
+				base.ID("me"), instanceIdenfier, managedapp.AgentInstanceFields{
 					Version:  config.Version(),
 					Endpoint: et.endpoint,
 					BuildID:  et.buildID,

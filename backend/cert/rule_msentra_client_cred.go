@@ -35,7 +35,7 @@ func readCertRuleMsEntraClientDoc(c context.Context, nsIdentifier base.Namespace
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerLastNCertificateDoc)
-	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), base.CertRuleNameMsEntraClientCredential), ruleDoc, nil)
+	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.ID(), base.CertRuleNameMsEntraClientCredential), ruleDoc, nil)
 	return ruleDoc, err
 }
 
@@ -54,7 +54,7 @@ func readCertRuleMsEntraClientDoc(c context.Context, nsIdentifier base.Namespace
 
 func apiGetCertRuleMsEntraClientCredential(c ctx.RequestContext) error {
 	nsCtx := ns.GetNSContext(c)
-	ruleDoc, err := readCertRuleMsEntraClientDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.Identifier()))
+	ruleDoc, err := readCertRuleMsEntraClientDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.ID()))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w, ms entra credential configuration not found: %s", base.ErrResponseStatusNotFound, base.CertRuleNameMsEntraClientCredential)
@@ -71,10 +71,10 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleMsEntraClientCredDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), base.CertRuleNameMsEntraClientCredential)
+	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameMsEntraClientCredential)
 	ruleDoc.PolicyID = p.PolicyId
 	if len(p.CertificateIds) == 0 {
-		certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 2)
+		certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 2)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 		if err != nil {
 			return err
 		}
-		if err := applyMsEntraClientCredential(c, nsCtx.Identifier().UUID(), ruleDoc.CertificateIDs); err != nil {
+		if err := applyMsEntraClientCredential(c, nsCtx.ID().UUID(), ruleDoc.CertificateIDs); err != nil {
 			return err
 		}
 	}
@@ -95,7 +95,7 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 	return c.JSON(200, m)
 }
 
-func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUID, certIDs []base.Identifier) error {
+func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUID, certIDs []base.ID) error {
 	provisioningCerts := make(map[string]*CertDoc, len(certIDs))
 	for _, certID := range certIDs {
 		certDoc, err := ApiReadCertDocByID(c, certID)

@@ -28,7 +28,7 @@ func apiListCertPolicies(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(queryColumnDisplayName)
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy)
+	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy)
 	pager := base.NewQueryDocPager[*CertPolicyQueryDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertPolicyQueryDoc) *CertPolicyRef {

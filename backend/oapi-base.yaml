@@ -29,6 +29,9 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Id:
+      type: string
+      x-go-type: ID
     AzureRoleAssignment:
       type: object
       properties:
@@ -48,9 +51,6 @@ components:
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
         name: cloudkey
       x-go-type-skip-optional-pointer: true
-    Identifier:
-      type: string
-      x-go-type: identifier
     NamespaceKind:
       type: string
       enum:
@@ -113,7 +113,8 @@ components:
       type: object
       properties:
         id:
-          $ref: "#/components/schemas/Identifier"
+          type: string
+          x-go-type: ID
           x-go-name: ID
         updated:
           type: string
@@ -174,18 +175,18 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/NamespaceKind"
-    NamespaceIdentifierParameter:
+    NamespaceIdParameter:
       in: path
-      name: namespaceIdentifier
+      name: namespaceId
       required: true
       schema:
-        $ref: "#/components/schemas/Identifier"
-    ResourceIdentifierParameter:
+        $ref: "#/components/schemas/Id"
+    ResourceIdParameter:
       in: path
-      name: resourceIdentifier
+      name: resourceId
       required: true
       schema:
-        $ref: "#/components/schemas/Identifier"
+        $ref: "#/components/schemas/Id"
   responses:
     AzureRoleAssignmentResponse:
       description: Role Assignment response

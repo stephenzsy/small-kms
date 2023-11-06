@@ -43,9 +43,9 @@ function DockerPullImageForm() {
   const { run: pullImage, loading } = useRequest(
     async (req: PullImageRequest) => {
       await api.agentPullImage({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: instanceId,
+        resourceId: instanceId,
         pullImageRequest: req,
         xCryptocatProxyAuthorization: getAccessToken(),
       });
@@ -99,9 +99,9 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
   const { run, loading } = useRequest(
     async (req: LaunchAgentRequest) => {
       await api.agentLaunchAgent({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: instanceId,
+        resourceId: instanceId,
         launchAgentRequest: req,
         xCryptocatProxyAuthorization: getAccessToken(),
       });
@@ -458,9 +458,9 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
   const { data: containers, run: listContainers } = useRequest(
     async (): Promise<DockerContainer[] | undefined> => {
       return (await api.agentDockerContainerList({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: instanceId,
+        resourceId: instanceId,
         xCryptocatProxyAuthorization: getAccessToken(),
       })) as DockerContainer[];
     },
@@ -472,9 +472,9 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
       title: `Inspect ${id}`,
       onGetData: async () => {
         return await api.agentDockerContainerInspect({
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
           namespaceKind,
-          resourceIdentifier: instanceId,
+          resourceId: instanceId,
           xCryptocatProxyAuthorization: getAccessToken(),
           containerId: id,
         });
@@ -485,9 +485,9 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
   const { run: onStop } = useRequest(
     async (containerId: string): Promise<void> => {
       return await api.agentDockerContainerStop({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: instanceId,
+        resourceId: instanceId,
         containerId,
         xCryptocatProxyAuthorization: getAccessToken(),
       });
@@ -498,9 +498,9 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
   const { run: onRemove } = useRequest(
     async (containerId: string): Promise<void> => {
       return await api.agentDockerContainerRemove({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: instanceId,
+        resourceId: instanceId,
         containerId,
         xCryptocatProxyAuthorization: getAccessToken(),
       });
@@ -553,8 +553,8 @@ function AgentDashboard({ api }: { api: AdminApi }) {
       if (instanceId) {
         const result = await api.getAgentInstance({
           namespaceKind,
-          namespaceIdentifier,
-          resourceIdentifier: instanceId,
+          namespaceId: namespaceIdentifier,
+          resourceId: instanceId,
         });
 
         return result;
@@ -569,9 +569,9 @@ function AgentDashboard({ api }: { api: AdminApi }) {
     async () => {
       if (instanceId) {
         const result = await api.createAgentInstanceProxyAuthToken({
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
           namespaceKind,
-          resourceIdentifier: instanceId,
+          resourceId: instanceId,
         });
         setAccessToken(result.accessToken);
         return result;
@@ -584,35 +584,35 @@ function AgentDashboard({ api }: { api: AdminApi }) {
 
   const getAgentDiagnostics = useMemoizedFn(async () => {
     return await api.getAgentDiagnostics({
-      namespaceIdentifier,
+      namespaceId: namespaceIdentifier,
       namespaceKind,
-      resourceIdentifier: instanceId,
+      resourceId: instanceId,
       xCryptocatProxyAuthorization: getAccessToken(),
     });
   });
   const getDockerInfo = useMemoizedFn(async () => {
     return await api.agentDockerInfo({
-      namespaceIdentifier,
+      namespaceId: namespaceIdentifier,
       namespaceKind,
-      resourceIdentifier: instanceId,
+      resourceId: instanceId,
       xCryptocatProxyAuthorization: getAccessToken(),
     });
   });
 
   const getDockerImages = useMemoizedFn(async () => {
     return await api.agentDockerImageList({
-      namespaceIdentifier,
+      namespaceId: namespaceIdentifier,
       namespaceKind,
-      resourceIdentifier: instanceId,
+      resourceId: instanceId,
       xCryptocatProxyAuthorization: getAccessToken(),
     });
   });
 
   const listDockerNetworks = useMemoizedFn(async () => {
     return await api.agentDockerNetworkList({
-      namespaceIdentifier,
+      namespaceId: namespaceIdentifier,
       namespaceKind,
-      resourceIdentifier: instanceId,
+      resourceId: instanceId,
       xCryptocatProxyAuthorization: getAccessToken(),
     });
   });

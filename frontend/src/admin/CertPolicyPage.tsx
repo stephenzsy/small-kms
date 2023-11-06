@@ -51,9 +51,9 @@ function RequestCertificateControl({
   const { run: issueCert, loading } = useRequest(
     async (force: boolean) => {
       await adminApi.createCertificate({
-        namespaceIdentifier,
+        resourceId: certPolicyId,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
-        resourceIdentifier: certPolicyId,
       });
       onComplete?.();
     },
@@ -133,8 +133,8 @@ function CertPolicyForm({
     async (name: string, params: CertPolicyParameters) => {
       const result = await adminApi.putCertPolicy({
         namespaceKind: namespaceKind,
-        namespaceIdentifier: namespaceIdentifier,
-        resourceIdentifier: name,
+        resourceId: name,
+        namespaceId: namespaceIdentifier,
         certPolicyParameters: params,
       });
       onChange?.(result);
@@ -490,8 +490,8 @@ export default function CertPolicyPage() {
       if (certPolicyId) {
         return await adminApi.getCertPolicy({
           namespaceKind,
-          namespaceIdentifier,
-          resourceIdentifier: certPolicyId,
+          resourceId: certPolicyId,
+          namespaceId: namespaceIdentifier,
         });
       }
       return undefined;
@@ -505,7 +505,7 @@ export default function CertPolicyPage() {
     async () => {
       if (certPolicyId) {
         return await adminApi.listCertificates({
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
           namespaceKind,
           policyId: certPolicyId,
         });

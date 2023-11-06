@@ -105,11 +105,11 @@ function AgentConfigServerFormCard({
         return api.putAgentConfigServer({
           agentConfigServerFields: params as AgentConfigServerFields,
           namespaceKind,
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
         });
       }
       return api.getAgentConfigServer({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
       });
     },
@@ -123,7 +123,7 @@ function AgentConfigServerFormCard({
   const { data: keysData } = useRequest(
     () => {
       return api.listAgentServerAzureRoleAssignments({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
       });
     },
@@ -270,7 +270,10 @@ export function AgentInstancesList() {
   const api = useAuthedClient(AdminApi);
   const { data } = useRequest(
     () => {
-      return api.listAgentInstances({ namespaceIdentifier, namespaceKind });
+      return api.listAgentInstances({
+        namespaceId: namespaceIdentifier,
+        namespaceKind,
+      });
     },
     {
       refreshDeps: [namespaceIdentifier, namespaceKind],

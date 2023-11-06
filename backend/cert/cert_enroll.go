@@ -13,7 +13,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier, params *EnrollCertificateRequest) error {
+func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.ID, params *EnrollCertificateRequest) error {
 
 	// verify jwt is 2048
 	if params.PublicKey.Kty != cloudkey.KeyTypeRSA {
@@ -34,8 +34,8 @@ func enrollMsEntraClientCredCert(c ctx.RequestContext, policyRID base.Identifier
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof"})
 	} else if aud, err := token.Claims.GetAudience(); err != nil || !slices.Contains(aud, "00000003-0000-0000-c000-000000000000") {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof, must has audience of '00000003-0000-0000-c000-000000000000'"})
-	} else if iss, err := token.Claims.GetIssuer(); err != nil || base.ParseIdentifier(iss) != nsCtx.Identifier() {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("invalid proof, must has issuer of '%s'", nsCtx.Identifier().String())})
+	} else if iss, err := token.Claims.GetIssuer(); err != nil || base.ParseID(iss) != nsCtx.ID() {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("invalid proof, must has issuer of '%s'", nsCtx.ID())})
 	} else if nbf, err := token.Claims.GetNotBefore(); err != nil || time.Until(nbf.Time) > 5*time.Minute || time.Until(nbf.Time) < -5*time.Minute {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid proof, must has not before within 5 minutes"})
 	} else if exp, err := token.Claims.GetExpirationTime(); err != nil || exp.Time != nbf.Time.Add(10*time.Minute) {

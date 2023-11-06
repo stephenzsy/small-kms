@@ -102,90 +102,90 @@ import {
 
 export interface AddKeyVaultRoleAssignmentRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     resourceCategory: AzureKeyvaultResourceCategory;
     roleDefinitionId: string;
 }
 
 export interface AgentDockerContainerInspectRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     containerId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerContainerListRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerContainerRemoveRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     containerId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerContainerStopRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     containerId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerImageListRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerInfoRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentDockerNetworkListRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface AgentLaunchAgentRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
     launchAgentRequest?: LaunchAgentRequest;
 }
 
 export interface AgentPullImageRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
     pullImageRequest?: PullImageRequest;
 }
 
 export interface CreateAgentInstanceProxyAuthTokenRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface CreateCertificateRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface CreateManagedAppRequest {
@@ -194,48 +194,48 @@ export interface CreateManagedAppRequest {
 
 export interface DeleteCertificateRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface GetAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface GetAgentDiagnosticsRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     xCryptocatProxyAuthorization?: string;
 }
 
 export interface GetAgentInstanceRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface GetCertPolicyRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface GetCertificateRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface GetCertificateRuleIssuerRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface GetCertificateRuleMsEntraClientCredentialRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface GetManagedAppRequest {
@@ -244,13 +244,13 @@ export interface GetManagedAppRequest {
 
 export interface GetProfileRequest {
     profileResourceKind: ResourceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface GetSecretPolicyRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
 }
 
 export interface GetSystemAppRequest {
@@ -259,34 +259,34 @@ export interface GetSystemAppRequest {
 
 export interface ImportProfileRequest {
     profileResourceKind: ResourceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface ListAgentInstancesRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface ListAgentServerAzureRoleAssignmentsRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface ListCertPoliciesRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface ListCertificatesRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
     policyId?: string;
 }
 
 export interface ListKeyVaultRoleAssignmentsRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     resourceCategory: AzureKeyvaultResourceCategory;
 }
 
@@ -296,51 +296,51 @@ export interface ListProfilesRequest {
 
 export interface ListSecretPoliciesRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
 }
 
 export interface PutAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
     agentConfigServerFields: AgentConfigServerFields;
 }
 
 export interface PutAgentInstanceRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     agentInstanceFields: AgentInstanceFields;
 }
 
 export interface PutCertPolicyRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     certPolicyParameters: CertPolicyParameters;
 }
 
 export interface PutCertificateRuleIssuerRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
     certificateRuleIssuer: CertificateRuleIssuer;
 }
 
 export interface PutCertificateRuleMsEntraClientCredentialRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
     certificateRuleMsEntraClientCredential: CertificateRuleMsEntraClientCredential;
 }
 
 export interface PutProfileRequest {
     profileResourceKind: ResourceKind;
-    namespaceIdentifier: string;
+    namespaceId: string;
     profileParameters: ProfileParameters;
 }
 
 export interface PutSecretPolicyRequest {
     namespaceKind: NamespaceKind;
-    namespaceIdentifier: string;
-    resourceIdentifier: string;
+    namespaceId: string;
+    resourceId: string;
     secretPolicyParameters: SecretPolicyParameters;
 }
 
@@ -365,12 +365,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling addKeyVaultRoleAssignment.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling addKeyVaultRoleAssignment.');
         }
 
         if (requestParameters.resourceCategory === null || requestParameters.resourceCategory === undefined) {
@@ -398,7 +398,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -423,12 +423,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerInspect.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerInspect.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerContainerInspect.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerInspect.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerContainerInspect.');
         }
 
         if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
@@ -452,7 +452,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -477,12 +477,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerList.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerList.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerContainerList.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerList.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerContainerList.');
         }
 
         const queryParameters: any = {};
@@ -502,7 +502,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -527,12 +527,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerRemove.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerRemove.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerContainerRemove.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerRemove.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerContainerRemove.');
         }
 
         if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
@@ -556,7 +556,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -580,12 +580,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerContainerStop.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerContainerStop.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerContainerStop.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerContainerStop.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerContainerStop.');
         }
 
         if (requestParameters.containerId === null || requestParameters.containerId === undefined) {
@@ -609,7 +609,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}/stop`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}/stop`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"containerId"}}`, encodeURIComponent(String(requestParameters.containerId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -633,12 +633,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerImageList.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerImageList.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerImageList.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerImageList.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerImageList.');
         }
 
         const queryParameters: any = {};
@@ -658,7 +658,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -683,12 +683,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerInfo.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerInfo.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerInfo.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerInfo.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerInfo.');
         }
 
         const queryParameters: any = {};
@@ -708,7 +708,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -733,12 +733,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerNetworkList.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentDockerNetworkList.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerNetworkList.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentDockerNetworkList.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerNetworkList.');
         }
 
         const queryParameters: any = {};
@@ -758,7 +758,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -783,12 +783,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentLaunchAgent.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentLaunchAgent.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentLaunchAgent.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentLaunchAgent.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentLaunchAgent.');
         }
 
         const queryParameters: any = {};
@@ -810,7 +810,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -836,12 +836,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentPullImage.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling agentPullImage.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentPullImage.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling agentPullImage.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentPullImage.');
         }
 
         const queryParameters: any = {};
@@ -863,7 +863,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -887,12 +887,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createAgentInstanceProxyAuthToken.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling createAgentInstanceProxyAuthToken.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createAgentInstanceProxyAuthToken.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling createAgentInstanceProxyAuthToken.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling createAgentInstanceProxyAuthToken.');
         }
 
         const queryParameters: any = {};
@@ -908,7 +908,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/proxy-auth/token`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -932,12 +932,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling createCertificate.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling createCertificate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createCertificate.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling createCertificate.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling createCertificate.');
         }
 
         const queryParameters: any = {};
@@ -953,7 +953,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1019,12 +1019,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificate.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling deleteCertificate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteCertificate.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling deleteCertificate.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling deleteCertificate.');
         }
 
         const queryParameters: any = {};
@@ -1040,7 +1040,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -1064,8 +1064,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentConfigServer.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentConfigServer.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfigServer.');
         }
 
         const queryParameters: any = {};
@@ -1081,7 +1081,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1106,12 +1106,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentDiagnostics.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentDiagnostics.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentDiagnostics.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getAgentDiagnostics.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getAgentDiagnostics.');
         }
 
         const queryParameters: any = {};
@@ -1131,7 +1131,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1156,12 +1156,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentInstance.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getAgentInstance.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentInstance.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getAgentInstance.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getAgentInstance.');
         }
 
         const queryParameters: any = {};
@@ -1177,7 +1177,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1202,12 +1202,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertPolicy.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertPolicy.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertPolicy.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getCertPolicy.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getCertPolicy.');
         }
 
         const queryParameters: any = {};
@@ -1223,7 +1223,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1248,12 +1248,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificate.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertificate.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificate.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getCertificate.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getCertificate.');
         }
 
         const queryParameters: any = {};
@@ -1269,7 +1269,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1294,8 +1294,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificateRuleIssuer.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertificateRuleIssuer.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateRuleIssuer.');
         }
 
         const queryParameters: any = {};
@@ -1311,7 +1311,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/issuer`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1336,8 +1336,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificateRuleMsEntraClientCredential.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getCertificateRuleMsEntraClientCredential.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateRuleMsEntraClientCredential.');
         }
 
         const queryParameters: any = {};
@@ -1353,7 +1353,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1450,8 +1450,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling getProfile.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getProfile.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getProfile.');
         }
 
         const queryParameters: any = {};
@@ -1467,7 +1467,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/{profileResourceKind}/{namespaceId}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1492,12 +1492,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getSecretPolicy.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling getSecretPolicy.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getSecretPolicy.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling getSecretPolicy.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getSecretPolicy.');
         }
 
         const queryParameters: any = {};
@@ -1513,7 +1513,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1576,8 +1576,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling importProfile.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling importProfile.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling importProfile.');
         }
 
         const queryParameters: any = {};
@@ -1593,7 +1593,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}/import`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/{profileResourceKind}/{namespaceId}/import`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1618,8 +1618,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listAgentInstances.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listAgentInstances.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listAgentInstances.');
         }
 
         const queryParameters: any = {};
@@ -1635,7 +1635,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1660,8 +1660,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listAgentServerAzureRoleAssignments.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listAgentServerAzureRoleAssignments.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listAgentServerAzureRoleAssignments.');
         }
 
         const queryParameters: any = {};
@@ -1677,7 +1677,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server/role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/server/role-assignments`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1702,8 +1702,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertPolicies.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listCertPolicies.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertPolicies.');
         }
 
         const queryParameters: any = {};
@@ -1719,7 +1719,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1744,8 +1744,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listCertificates.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listCertificates.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listCertificates.');
         }
 
         const queryParameters: any = {};
@@ -1765,7 +1765,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1790,12 +1790,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling listKeyVaultRoleAssignments.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling listKeyVaultRoleAssignments.');
         }
 
         if (requestParameters.resourceCategory === null || requestParameters.resourceCategory === undefined) {
@@ -1815,7 +1815,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1912,8 +1912,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listSecretPolicies.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling listSecretPolicies.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listSecretPolicies.');
         }
 
         const queryParameters: any = {};
@@ -1929,7 +1929,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/secret-policies`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1954,8 +1954,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentConfigServer.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putAgentConfigServer.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentConfigServer.');
         }
 
         if (requestParameters.agentConfigServerFields === null || requestParameters.agentConfigServerFields === undefined) {
@@ -1977,7 +1977,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/server`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2003,12 +2003,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentInstance.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putAgentInstance.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentInstance.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putAgentInstance.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putAgentInstance.');
         }
 
         if (requestParameters.agentInstanceFields === null || requestParameters.agentInstanceFields === undefined) {
@@ -2030,7 +2030,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2055,12 +2055,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertPolicy.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putCertPolicy.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertPolicy.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putCertPolicy.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putCertPolicy.');
         }
 
         if (requestParameters.certPolicyParameters === null || requestParameters.certPolicyParameters === undefined) {
@@ -2082,7 +2082,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2108,8 +2108,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateRuleIssuer.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putCertificateRuleIssuer.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateRuleIssuer.');
         }
 
         if (requestParameters.certificateRuleIssuer === null || requestParameters.certificateRuleIssuer === undefined) {
@@ -2131,7 +2131,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/issuer`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2157,8 +2157,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
         }
 
         if (requestParameters.certificateRuleMsEntraClientCredential === null || requestParameters.certificateRuleMsEntraClientCredential === undefined) {
@@ -2180,7 +2180,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2206,8 +2206,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling putProfile.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putProfile.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putProfile.');
         }
 
         if (requestParameters.profileParameters === null || requestParameters.profileParameters === undefined) {
@@ -2229,7 +2229,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceIdentifier}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))),
+            path: `/v1/profile/{profileResourceKind}/{namespaceId}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -2255,12 +2255,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putSecretPolicy.');
         }
 
-        if (requestParameters.namespaceIdentifier === null || requestParameters.namespaceIdentifier === undefined) {
-            throw new runtime.RequiredError('namespaceIdentifier','Required parameter requestParameters.namespaceIdentifier was null or undefined when calling putSecretPolicy.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putSecretPolicy.');
         }
 
-        if (requestParameters.resourceIdentifier === null || requestParameters.resourceIdentifier === undefined) {
-            throw new runtime.RequiredError('resourceIdentifier','Required parameter requestParameters.resourceIdentifier was null or undefined when calling putSecretPolicy.');
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putSecretPolicy.');
         }
 
         if (requestParameters.secretPolicyParameters === null || requestParameters.secretPolicyParameters === undefined) {
@@ -2282,7 +2282,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceIdentifier}/secret-policies/{resourceIdentifier}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceIdentifier"}}`, encodeURIComponent(String(requestParameters.namespaceIdentifier))).replace(`{${"resourceIdentifier"}}`, encodeURIComponent(String(requestParameters.resourceIdentifier))),
+            path: `/v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

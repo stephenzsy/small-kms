@@ -77,8 +77,8 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return bootstrap.NewServicePrincipalBootstraper().Bootstrap(c.Context,
-								base.ParseIdentifier(c.String("namespace-id")),
-								base.ParseIdentifier(c.String("cert-policy-id")),
+								base.ParseID(c.String("namespace-id")),
+								base.ParseID(c.String("cert-policy-id")),
 								c.String("cert-path"), c.String("token-cache-file"))
 						},
 					},

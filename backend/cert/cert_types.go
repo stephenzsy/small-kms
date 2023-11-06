@@ -9,6 +9,8 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 )
 
+type ID = base.ID
+
 type (
 	certPolicyRefComposed struct {
 		base.ResourceReference
@@ -30,8 +32,6 @@ type (
 		CertificateFields
 	}
 )
-
-type Identifier = base.Identifier
 
 func (s *CertificateSubject) ToPkixName() pkix.Name {
 	return pkix.Name{

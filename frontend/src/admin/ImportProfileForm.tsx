@@ -34,7 +34,7 @@ export function ImportProfileForm({
         if (objectId) {
           return run({
             profileResourceKind: profileKind,
-            namespaceIdentifier: objectId,
+            namespaceId: objectId,
           });
         }
       }}

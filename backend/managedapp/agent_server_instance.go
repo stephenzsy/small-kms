@@ -25,7 +25,7 @@ type AgentInstanceDoc struct {
 	AgentInstanceFields
 }
 
-func (d *AgentInstanceDoc) init(nsKind base.NamespaceKind, nsID base.Identifier, rID base.Identifier, req AgentInstanceFields) {
+func (d *AgentInstanceDoc) init(nsKind base.NamespaceKind, nsID base.ID, rID base.ID, req AgentInstanceFields) {
 	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindAgentInstance, rID)
 	d.AgentInstanceFields = req
 }
@@ -38,10 +38,10 @@ func (d *AgentInstanceDoc) PopulateModel(r *AgentInstance) {
 	r.AgentInstanceFields = d.AgentInstanceFields
 }
 
-func apiPutAgentInstance(c ctx.RequestContext, instanceID base.Identifier, req AgentInstanceFields) error {
+func apiPutAgentInstance(c ctx.RequestContext, instanceID base.ID, req AgentInstanceFields) error {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
-	doc.init(nsCtx.Kind(), nsCtx.Identifier(), instanceID, req)
+	doc.init(nsCtx.Kind(), nsCtx.ID(), instanceID, req)
 
 	docSvc := base.GetAzCosmosCRUDService(c)
 	if err := docSvc.Upsert(c, doc, nil); err != nil {
@@ -62,26 +62,26 @@ func apiListAgentInstances(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns("c.endpoint", "c.version", "c.buildId").
 		WithOrderBy("c.ts DESC")
-	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](c, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance))
+	pager := base.NewQueryDocPager[*AgentInstanceQueryDoc](c, qb, base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindAgentInstance))
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(pager))
 }
 
 // wraps not found with 404
-func ApiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.Identifier) (*AgentInstanceDoc, error) {
+func ApiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.ID) (*AgentInstanceDoc, error) {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
 	docSvc := base.GetAzCosmosCRUDService(c)
-	err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindAgentInstance, instanceID), doc, nil)
+	err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindAgentInstance, instanceID), doc, nil)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return nil, fmt.Errorf("%w: agent instance with id %s not found", base.ErrResponseStatusNotFound, instanceID.String())
+			return nil, fmt.Errorf("%w: agent instance with id %s not found", base.ErrResponseStatusNotFound, instanceID)
 		}
 		return nil, err
 	}
 	return doc, err
 }
 
-func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error {
+func apiGetAgentInstance(c ctx.RequestContext, instanceID base.ID) error {
 	doc, err := ApiReadAgentInstanceDoc(c, instanceID)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func apiGetAgentInstance(c ctx.RequestContext, instanceID base.Identifier) error
 	return c.JSON(http.StatusOK, m)
 }
 
-func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifier base.Identifier) error {
+func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifier base.ID) error {
 
 	instanceDoc, err := ApiReadAgentInstanceDoc(c, resourceIdentifier)
 	if err != nil {

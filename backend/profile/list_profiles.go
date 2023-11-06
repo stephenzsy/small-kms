@@ -28,7 +28,7 @@ func apiListProfiles(c ctx.RequestContext, resourceKind base.ResourceKind) error
 	ns := ns.GetNSContext(c)
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(QueryColumnDisplayName)
-	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile, ns.Identifier(), resourceKind)
+	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile, ns.ID(), resourceKind)
 	pager := base.NewQueryDocPager[*ProfileQueryDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *ProfileQueryDoc) *ProfileRef {

@@ -29,7 +29,7 @@ func NewServicePrincipalBootstraper() *ServicePrincipalBootstraper {
 	return &ServicePrincipalBootstraper{}
 }
 
-func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdentifier base.Identifier, certPolicyIdentifer base.Identifier, certPath string, tokenCacheFile string) error {
+func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdentifier base.ID, certPolicyIdentifer base.ID, certPath string, tokenCacheFile string) error {
 	if certPath == "" {
 		return errors.New("missing client cert path")
 	}
@@ -77,7 +77,7 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		Audience:  jwt.ClaimStrings{"00000003-0000-0000-c000-000000000000"},
 		NotBefore: nbf,
 		ExpiresAt: jwt.NewNumericDate(nbf.Time.Add(10 * time.Minute)),
-		Issuer:    namespaceIdentifier.String(),
+		Issuer:    string(namespaceIdentifier),
 	})
 	signedToken, err := t.SignedString(privateKey)
 	if err != nil {

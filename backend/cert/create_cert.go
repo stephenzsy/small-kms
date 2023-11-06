@@ -89,7 +89,7 @@ func signCertificate(
 	return patch, nil
 }
 
-func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey crypto.PublicKey) (*CertDoc, error) {
+func createCertFromPolicy(c context.Context, policyRID ID, publicKey crypto.PublicKey) (*CertDoc, error) {
 	policyDoc, err := ReadCertPolicyDoc(c, policyRID)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey cry
 
 	doc := new(CertDoc)
 	nsCtx := ns.GetNSContext(c)
-	doc.Init(nsCtx.Kind(), nsCtx.Identifier(), policyDoc)
+	doc.init(nsCtx.Kind(), nsCtx.ID(), policyDoc)
 	docService := base.GetAzCosmosCRUDService(c)
 
 	switch nsCtx.Kind() {
@@ -125,7 +125,7 @@ func createCertFromPolicy(c context.Context, policyRID Identifier, publicKey cry
 		c = ctx.Elevate(c)
 		// load certDoc of signer
 		issuerNamespace := policyDoc.IssuerNamespace
-		if issuerNamespace.Kind() == nsCtx.Kind() && issuerNamespace.Identifier() == nsCtx.Identifier() {
+		if issuerNamespace.Kind() == nsCtx.Kind() && issuerNamespace.ID() == nsCtx.ID() {
 			return nil, fmt.Errorf("%w: this operation does not support creating self-signed certificate", base.ErrResponseStatusBadRequest)
 		}
 

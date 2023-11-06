@@ -14,7 +14,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory) error {
+func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIdentifier ID, kvCategory AzureKeyvaultResourceCategory) error {
 	switch kvCategory {
 	case AzureKeyvaultResourceCategoryCertificates,
 		AzureKeyvaultResourceCategoryKeys,
@@ -28,20 +28,20 @@ func (s *server) apiListKeyVaultRoleAssignments(c ctx.RequestContext, policyIden
 	policyDoc, err := ReadCertPolicyDoc(c, policyIdentifier)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier.String())
+			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier)
 		}
 		return err
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	keyStoreName := GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), policyDoc.ID)
+	keyStoreName := GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), policyDoc.ID)
 
 	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
 	if err != nil {
 		return err
 	}
 
-	assignee := nsCtx.Identifier().UUID()
+	assignee := nsCtx.ID().UUID()
 	// if params.PrincipalID != nil {
 	// 	assignee = *params.PrincipalID
 	// }

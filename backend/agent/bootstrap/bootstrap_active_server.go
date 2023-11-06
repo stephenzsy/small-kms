@@ -66,7 +66,7 @@ func (*ServicePrincipalBootstraper) BootstarpActiveServer(c context.Context) err
 		return err
 	}
 
-	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"))
+	resp, err := client.GetAgentConfigServerWithResponse(c, base.NamespaceKindServicePrincipal, base.ID("me"))
 	if err != nil {
 		return err
 	}

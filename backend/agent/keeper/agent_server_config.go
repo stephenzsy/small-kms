@@ -103,7 +103,7 @@ func (p *configProvisioner) provision(c context.Context) (*agentServerConfigurat
 	if _, err := os.Stat(tlsCertFilePath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// pull certificate
-			resp, err := agentClient.GetCertificateWithResponse(c, base.NamespaceKindServicePrincipal, base.StringIdentifier("me"), p.config.TlsCertificateId)
+			resp, err := agentClient.GetCertificateWithResponse(c, base.NamespaceKindServicePrincipal, base.ID("me"), p.config.TlsCertificateId)
 			if err != nil {
 				return nil, err
 			}

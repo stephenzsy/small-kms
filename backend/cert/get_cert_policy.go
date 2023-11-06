@@ -11,7 +11,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func ReadCertPolicyDoc(c context.Context, rID base.Identifier) (*CertPolicyDoc, error) {
+func ReadCertPolicyDoc(c context.Context, rID base.ID) (*CertPolicyDoc, error) {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return nil, fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -20,13 +20,13 @@ func ReadCertPolicyDoc(c context.Context, rID base.Identifier) (*CertPolicyDoc, 
 	nsCtx := ns.GetNSContext(c)
 	doc := new(CertPolicyDoc)
 
-	slocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, rID)
+	slocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, rID)
 
 	err := base.GetAzCosmosCRUDService(c).Read(c, slocator, doc, nil)
 	return doc, err
 }
 
-func apiGetCertPolicy(c ctx.RequestContext, rID base.Identifier) error {
+func apiGetCertPolicy(c ctx.RequestContext, rID base.ID) error {
 
 	if ns.VerifyKeyVaultIdentifier(rID) != nil {
 		return fmt.Errorf("%w: invalid resource identifier", base.ErrResponseStatusBadRequest)
@@ -34,7 +34,7 @@ func apiGetCertPolicy(c ctx.RequestContext, rID base.Identifier) error {
 	doc, err := ReadCertPolicyDoc(c, rID)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, rID.String())
+			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, rID)
 		} else {
 			return err
 		}

@@ -6,10 +6,10 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceIdentifier}/key-policy:
+  /v1/{namespaceKind}/{namespaceId}/key-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -24,11 +24,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyPolicyRef"
-  /v1/{namespaceKind}/{namespaceIdentifier}/key-policy/{resourceIdentifier}:
+  /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
     get:
       tags:
         - admin

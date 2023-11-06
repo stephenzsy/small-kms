@@ -13,8 +13,8 @@ type AgentConfigDoc struct {
 	RefreshAfter time.Time `json:"refreshAfter"`
 }
 
-func (d *AgentConfigDoc) init(nsKind base.NamespaceKind, nsIdentifier base.Identifier, configName base.NamespaceConfigName) {
-	d.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindNamespaceConfig, base.StringIdentifier(string(configName)))
+func (d *AgentConfigDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID, configName base.NamespaceConfigName) {
+	d.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindNamespaceConfig, base.ID(configName))
 }
 
 func (d *AgentConfigDoc) PopulateModel(m *AgentConfig) {

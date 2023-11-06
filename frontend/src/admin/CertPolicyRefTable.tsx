@@ -67,7 +67,7 @@ export function useCertPolicies() {
   const { data: certPolicies } = useRequest(
     () => {
       return adminApi.listCertPolicies({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
       });
     },
@@ -87,7 +87,7 @@ export function useSecretPolicies() {
   const { data } = useRequest(
     () => {
       return adminApi.listSecretPolicies({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
       });
     },
@@ -107,7 +107,7 @@ export function CertPolicyRefTable({ routePrefix }: { routePrefix: string }) {
   const { data: certPolicies } = useRequest(
     () => {
       return adminApi.listCertPolicies({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
       });
     },

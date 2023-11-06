@@ -47,14 +47,14 @@ type ServerInterface interface {
 	// (GET /v1/profile/{profileResourceKind})
 	ListProfiles(ctx echo.Context, profileResourceKind ProfileResourceKindParameter) error
 	// Get profile
-	// (GET /v1/profile/{profileResourceKind}/{namespaceIdentifier})
-	GetProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/profile/{profileResourceKind}/{namespaceId})
+	GetProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Put profile
-	// (PUT /v1/profile/{profileResourceKind}/{namespaceIdentifier})
-	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (PUT /v1/profile/{profileResourceKind}/{namespaceId})
+	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Import profile
-	// (POST /v1/profile/{profileResourceKind}/{namespaceIdentifier}/import)
-	ImportProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (POST /v1/profile/{profileResourceKind}/{namespaceId}/import)
+	ImportProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -91,18 +91,18 @@ func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetProfile(ctx, profileResourceKind, namespaceIdentifier)
+	err = w.Handler.GetProfile(ctx, profileResourceKind, namespaceId)
 	return err
 }
 
@@ -117,18 +117,18 @@ func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutProfile(ctx, profileResourceKind, namespaceIdentifier)
+	err = w.Handler.PutProfile(ctx, profileResourceKind, namespaceId)
 	return err
 }
 
@@ -143,18 +143,18 @@ func (w *ServerInterfaceWrapper) ImportProfile(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ImportProfile(ctx, profileResourceKind, namespaceIdentifier)
+	err = w.Handler.ImportProfile(ctx, profileResourceKind, namespaceId)
 	return err
 }
 
@@ -187,8 +187,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v1/profile/:profileResourceKind", wrapper.ListProfiles)
-	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.GetProfile)
-	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier", wrapper.PutProfile)
-	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceIdentifier/import", wrapper.ImportProfile)
+	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.GetProfile)
+	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.PutProfile)
+	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceId/import", wrapper.ImportProfile)
 
 }

@@ -16,22 +16,22 @@ func ReadCertDocByFullIdentifier(c context.Context, fullIdentifier base.DocFullI
 }
 
 // wraps 404
-func ApiReadCertDocByID(c context.Context, rID base.Identifier) (*CertDoc, error) {
-	if !rID.IsUUID() {
-		return nil, fmt.Errorf("%w: invalid resource identifier: %s", base.ErrResponseStatusBadRequest, rID.String())
+func ApiReadCertDocByID(c context.Context, rID base.ID) (*CertDoc, error) {
+	if _, ok := rID.AsUUID(); !ok {
+		return nil, fmt.Errorf("%w: invalid resource identifier: %s", base.ErrResponseStatusBadRequest, rID)
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	doc, err := ReadCertDocByFullIdentifier(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCert, rID))
+	doc, err := ReadCertDocByFullIdentifier(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert, rID))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return nil, fmt.Errorf("%w: cert with id %s not found", base.ErrResponseStatusNotFound, rID.String())
+			return nil, fmt.Errorf("%w: cert with id %s not found", base.ErrResponseStatusNotFound, rID)
 		}
 	}
 	return doc, err
 }
 
-func apiGetCertificate(c context.Context, rID base.Identifier, isAdminOrSelf bool) (*Certificate, error) {
+func apiGetCertificate(c context.Context, rID base.ID, isAdminOrSelf bool) (*Certificate, error) {
 	doc, err := ApiReadCertDocByID(c, rID)
 	m := new(Certificate)
 	doc.PopulateModel(m)

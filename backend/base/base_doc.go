@@ -14,7 +14,7 @@ import (
 
 type BaseDocument interface {
 	GetStorageNamespaceID() DocNamespacePartitionKey
-	GetStorageID() Identifier
+	GetStorageID() ID
 	GetStorageFullIdentifier() DocFullIdentifier
 	GetUpdatedBy() string
 	getETag() *azcore.ETag
@@ -26,7 +26,7 @@ type BaseDocument interface {
 
 type BaseDoc struct {
 	PartitionKey DocNamespacePartitionKey `json:"namespaceId"`
-	ID           Identifier               `json:"id"`
+	ID           ID                       `json:"id"`
 	Timestamp    *jwt.NumericDate         `json:"_ts,omitempty"`
 	ETag         *azcore.ETag             `json:"_etag,omitempty"`
 	Deleted      *time.Time               `json:"deleted,omitempty"`
@@ -38,7 +38,7 @@ func (d *BaseDoc) GetStorageNamespaceID() DocNamespacePartitionKey {
 }
 
 // GetID implements BaseDocument.
-func (d *BaseDoc) GetStorageID() Identifier {
+func (d *BaseDoc) GetStorageID() ID {
 	return d.ID
 }
 
@@ -50,7 +50,7 @@ func (d *BaseDoc) GetStorageFullIdentifier() DocFullIdentifier {
 	}
 }
 
-func (d *BaseDoc) Init(nsKind NamespaceKind, nsID Identifier, rKind ResourceKind, rID identifier) {
+func (d *BaseDoc) Init(nsKind NamespaceKind, nsID ID, rKind ResourceKind, rID ID) {
 	d.PartitionKey = NewDocNamespacePartitionKey(nsKind, nsID, rKind)
 	d.ID = rID
 }
@@ -140,7 +140,7 @@ func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc BaseDocu
 // Read implements CRUDDocService.
 func (s *azcosmosContainerCRUDDocService) Read(c context.Context, docFullID DocFullIdentifier, dst BaseDocument, o *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(docFullID.pKey.String())
-	resp, err := s.client.ReadItem(c, partitionKey, docFullID.docID.String(), nil)
+	resp, err := s.client.ReadItem(c, partitionKey, string(docFullID.docID), nil)
 	if err != nil {
 		return HandleAzCosmosError(err)
 	}
@@ -179,7 +179,7 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc BaseDocum
 	if doc.GetUpdatedBy() != nextUpdatedBy {
 		ops.AppendSet(baseDocPatchColumnUpdatedBy, nextUpdatedBy)
 	}
-	resp, err := s.client.PatchItem(c, partitionKey, doc.GetStorageID().String(), ops, o)
+	resp, err := s.client.PatchItem(c, partitionKey, string(doc.GetStorageID()), ops, o)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (s *azcosmosContainerCRUDDocService) Patch(c context.Context, doc BaseDocum
 
 func (s *azcosmosContainerCRUDDocService) Delete(c context.Context, doc BaseDocument, opts *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(doc.GetStorageNamespaceID().String())
-	_, err := s.client.DeleteItem(c, partitionKey, doc.GetStorageID().String(), opts)
+	_, err := s.client.DeleteItem(c, partitionKey, string(doc.GetStorageID()), opts)
 	return err
 }
 
@@ -214,7 +214,7 @@ func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
 	if d == nil || m == nil {
 		return
 	}
-	m.Id = d.ID
+	m.ID = d.ID
 	m.Updated = d.Timestamp.Time
 	m.Deleted = d.Deleted
 	m.UpdatedBy = &d.UpdatedBy

@@ -65,13 +65,13 @@ type CertDocSigningPatch struct {
 	Issuer        base.DocFullIdentifier `json:"issuer"`
 }
 
-func GetKeyStoreName(nsKind base.NamespaceKind, nsID Identifier, policyIdentifier Identifier) string {
-	return fmt.Sprintf("%s-%s-%s", nsKind, nsID.String(), policyIdentifier.String())
+func GetKeyStoreName(nsKind base.NamespaceKind, nsID ID, policyIdentifier ID) string {
+	return fmt.Sprintf("%s-%s-%s", nsKind, nsID, policyIdentifier)
 }
 
-func (d *CertDoc) Init(
+func (d *CertDoc) init(
 	nsKind base.NamespaceKind,
-	nsID Identifier,
+	nsID ID,
 	pDoc *CertPolicyDoc) error {
 	if d == nil {
 		return nil
@@ -80,7 +80,7 @@ func (d *CertDoc) Init(
 	if err != nil {
 		return err
 	}
-	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCert, base.UUIDIdentifier(certID))
+	d.BaseDoc.Init(nsKind, nsID, base.ResourceKindCert, base.IDFromUUID(certID))
 
 	d.Status = CertificateStatusPending
 	d.KeySpec = pDoc.KeySpec

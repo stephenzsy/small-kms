@@ -11,7 +11,8 @@ import (
 )
 
 func (s *proxiedServer) getProxiedClient(c ctx.RequestContext,
-	instanceID base.Identifier, accessToken string) (ClientWithResponsesInterface, error) {
+	instanceID base.ID,
+	accessToken string) (ClientWithResponsesInterface, error) {
 	logger := log.Ctx(c).With().Str("proc", "getProxiedClient").Logger()
 	if client, tokenExpired, err := s.proxyClientPool.GetCachedClient(accessToken); err != nil {
 		logger.Debug().Err(err).Msg("failed to get cached client")

@@ -43,7 +43,7 @@ type CertPolicy = certPolicyComposed
 type CertPolicyFields struct {
 	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
 	Flags                     []CertificateFlag            `json:"flags"`
-	IssuerNamespaceIdentifier externalRef0.Identifier      `json:"issuerNamespaceIdentifier"`
+	IssuerNamespaceIdentifier externalRef0.Id              `json:"issuerNamespaceIdentifier"`
 	IssuerNamespaceKind       externalRef0.NamespaceKind   `json:"issuerNamespaceKind"`
 	KeyExportable             bool                         `json:"keyExportable"`
 	KeySpec                   externalRef1.SigningKeySpec  `json:"keySpec"`
@@ -58,7 +58,7 @@ type CertPolicyParameters struct {
 	DisplayName               string                       `json:"displayName,omitempty"`
 	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
 	Flags                     []CertificateFlag            `json:"flags,omitempty"`
-	IssuerNamespaceIdentifier *externalRef0.Identifier     `json:"issuerNamespaceIdentifier,omitempty"`
+	IssuerNamespaceIdentifier *externalRef0.Id             `json:"issuerNamespaceIdentifier,omitempty"`
 	IssuerNamespaceKind       *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
 	KeyExportable             *bool                        `json:"keyExportable,omitempty"`
 	KeySpec                   *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
@@ -110,14 +110,14 @@ type CertificateRefFields struct {
 
 // CertificateRuleIssuer defines model for CertificateRuleIssuer.
 type CertificateRuleIssuer struct {
-	CertificateId *externalRef0.Identifier `json:"certificateId,omitempty"`
-	PolicyId      externalRef0.Identifier  `json:"policyId"`
+	CertificateId *externalRef0.Id `json:"certificateId,omitempty"`
+	PolicyId      externalRef0.Id  `json:"policyId"`
 }
 
 // CertificateRuleMsEntraClientCredential defines model for CertificateRuleMsEntraClientCredential.
 type CertificateRuleMsEntraClientCredential struct {
-	CertificateIds []externalRef0.Identifier `json:"certificateIds,omitempty"`
-	PolicyId       externalRef0.Identifier   `json:"policyId"`
+	CertificateIds []externalRef0.Id `json:"certificateIds,omitempty"`
+	PolicyId       externalRef0.Id   `json:"policyId"`
 }
 
 // CertificateSubject defines model for CertificateSubject.
@@ -174,47 +174,47 @@ type PutCertificateRuleMsEntraClientCredentialJSONRequestBody = CertificateRuleM
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List certificates
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert)
-	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, params ListCertificatesParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert)
+	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListCertificatesParams) error
 	// List cert policies
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy)
-	ListCertPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy)
+	ListCertPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Get cert policy
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier})
-	GetCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
+	GetCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Put cert policy
-	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier})
-	PutCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
+	PutCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Create certificate
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/create-cert)
-	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert)
+	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Enroll certificate
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/enroll-cert)
-	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert)
+	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// List Key Vault role assignments
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
-	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory})
+	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, resourceCategory AzureKeyvaultResourceCategory) error
 	// Add Key Vault role assignment
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/cert-policy/{resourceIdentifier}/keyvault-role-assignments/{resourceCategory})
-	AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, resourceCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory})
+	AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, resourceCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error
 	// Get certificate rules for namespace
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
-	GetCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer)
+	GetCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Update certificate rules for namespace
-	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/issuer)
-	PutCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer)
+	PutCertificateRuleIssuer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Get certificate rules for namespace
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential)
-	GetCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential)
+	GetCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Update certificate rules for namespace
-	// (PUT /v1/{namespaceKind}/{namespaceIdentifier}/cert-rule/ms-entra-client-credential)
-	PutCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter) error
+	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential)
+	PutCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Delete certificate
-	// (DELETE /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier})
-	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (DELETE /v1/{namespaceKind}/{namespaceId}/cert/{resourceId})
+	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Get certificate
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/cert/{resourceIdentifier})
-	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/cert/{resourceId})
+	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -233,12 +233,12 @@ func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -253,7 +253,7 @@ func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceIdentifier, params)
+	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceId, params)
 	return err
 }
 
@@ -268,18 +268,18 @@ func (w *ServerInterfaceWrapper) ListCertPolicies(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertPolicies(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.ListCertPolicies(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -294,26 +294,26 @@ func (w *ServerInterfaceWrapper) GetCertPolicy(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetCertPolicy(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.GetCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -328,26 +328,26 @@ func (w *ServerInterfaceWrapper) PutCertPolicy(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutCertPolicy(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.PutCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -362,26 +362,26 @@ func (w *ServerInterfaceWrapper) CreateCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.CreateCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.CreateCertificate(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -396,26 +396,26 @@ func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -430,20 +430,20 @@ func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) e
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	// ------------- Path parameter "resourceCategory" -------------
@@ -457,7 +457,7 @@ func (w *ServerInterfaceWrapper) ListKeyVaultRoleAssignments(ctx echo.Context) e
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListKeyVaultRoleAssignments(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory)
+	err = w.Handler.ListKeyVaultRoleAssignments(ctx, namespaceKind, namespaceId, resourceId, resourceCategory)
 	return err
 }
 
@@ -472,20 +472,20 @@ func (w *ServerInterfaceWrapper) AddKeyVaultRoleAssignment(ctx echo.Context) err
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	// ------------- Path parameter "resourceCategory" -------------
@@ -508,7 +508,7 @@ func (w *ServerInterfaceWrapper) AddKeyVaultRoleAssignment(ctx echo.Context) err
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AddKeyVaultRoleAssignment(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, resourceCategory, params)
+	err = w.Handler.AddKeyVaultRoleAssignment(ctx, namespaceKind, namespaceId, resourceId, resourceCategory, params)
 	return err
 }
 
@@ -523,18 +523,18 @@ func (w *ServerInterfaceWrapper) GetCertificateRuleIssuer(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetCertificateRuleIssuer(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.GetCertificateRuleIssuer(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -549,18 +549,18 @@ func (w *ServerInterfaceWrapper) PutCertificateRuleIssuer(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutCertificateRuleIssuer(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.PutCertificateRuleIssuer(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -575,18 +575,18 @@ func (w *ServerInterfaceWrapper) GetCertificateRuleMsEntraClientCredential(ctx e
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.GetCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -601,18 +601,18 @@ func (w *ServerInterfaceWrapper) PutCertificateRuleMsEntraClientCredential(ctx e
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceIdentifier)
+	err = w.Handler.PutCertificateRuleMsEntraClientCredential(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -627,26 +627,26 @@ func (w *ServerInterfaceWrapper) DeleteCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.DeleteCertificate(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -661,26 +661,26 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier)
+	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -712,19 +712,19 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert", wrapper.ListCertificates)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy", wrapper.ListCertPolicies)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.GetCertPolicy)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier", wrapper.PutCertPolicy)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/create-cert", wrapper.CreateCertificate)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/enroll-cert", wrapper.EnrollCertificate)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-policy/:resourceIdentifier/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/ms-entra-client-credential", wrapper.GetCertificateRuleMsEntraClientCredential)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert-rule/ms-entra-client-credential", wrapper.PutCertificateRuleMsEntraClientCredential)
-	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.DeleteCertificate)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/cert/:resourceIdentifier", wrapper.GetCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert", wrapper.ListCertificates)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy", wrapper.ListCertPolicies)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.GetCertPolicy)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.PutCertPolicy)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/create-cert", wrapper.CreateCertificate)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/enroll-cert", wrapper.EnrollCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/ms-entra-client-credential", wrapper.GetCertificateRuleMsEntraClientCredential)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/ms-entra-client-credential", wrapper.PutCertificateRuleMsEntraClientCredential)
+	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.DeleteCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.GetCertificate)
 
 }

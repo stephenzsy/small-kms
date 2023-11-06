@@ -18,12 +18,12 @@ type server struct {
 }
 
 // AddKeyVaultRoleAssignment implements ServerInterface.
-func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error {
+func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID, kvCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error {
 	return fmt.Errorf("%w: unimplemented", base.ErrResponseStatusBadRequest)
 }
 
 // ListKeyVaultRoleAssignments implements ServerInterface.
-func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier, kvCategory AzureKeyvaultResourceCategory) error {
+func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID, kvCategory AzureKeyvaultResourceCategory) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base
 }
 
 // GetCertificateRuleMsEntraClientCredential implements ServerInterface.
-func (s *server) GetCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) GetCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (s *server) GetCertificateRuleMsEntraClientCredential(ec echo.Context, name
 }
 
 // PutCertificateRuleMsEntraClientCredential implements ServerInterface.
-func (s *server) PutCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) PutCertificateRuleMsEntraClientCredential(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	params := new(CertificateRuleMsEntraClientCredential)
 	if err := ec.Bind(params); err != nil {
 		return err
@@ -57,7 +57,7 @@ func (s *server) PutCertificateRuleMsEntraClientCredential(ec echo.Context, name
 }
 
 // PutCertificateRuleIssuer implements ServerInterface.
-func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	params := new(CertificateRuleIssuer)
 	if err := ec.Bind(params); err != nil {
 		return err
@@ -71,7 +71,7 @@ func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.Na
 	return apiPutCertRuleIssuer(c, params)
 }
 
-func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) (ctx.RequestContext, error) {
+func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) (ctx.RequestContext, error) {
 	c := ec.(ctx.RequestContext)
 
 	if !auth.AuthorizeAdminOnly(c) {
@@ -82,7 +82,7 @@ func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind b
 }
 
 // GetCertificateRuleIssuer implements ServerInterface.
-func (s *server) GetCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) GetCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -92,14 +92,12 @@ func (s *server) GetCertificateRuleIssuer(ec echo.Context, namespaceKind base.Na
 }
 
 // EnrollMsEntraClientCredential implements ServerInterface.
-func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID) error {
 	c := ec.(ctx.RequestContext)
 
-	if !namespaceIdentifier.IsUUID() {
+	if namespaceUUID, ok := namespaceIdentifier.AsUUID(); !ok || utils.IsUUIDNil(namespaceUUID) {
 		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusForbidden)
-	}
-
-	if !auth.AuthorizeSelfOrAdmin(c, namespaceIdentifier.UUID()) {
+	} else if !auth.AuthorizeSelfOrAdmin(c, namespaceUUID) {
 		return s.RespondRequireAdmin(c)
 	}
 
@@ -114,14 +112,15 @@ func (s *server) EnrollCertificate(ec echo.Context, namespaceKind base.Namespace
 }
 
 // GetCertificate implements ServerInterface.
-func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)
-	namespaceID := auth.ResolveSelfNamespace(c, namespaceIdentifier.UUID(), namespaceIdentifier.String())
-	if !auth.AuthorizeSelfOrAdmin(c, namespaceID) && !auth.HasRole(c, auth.RoleValueAgentActiveHost) {
+	namespaceUUID := auth.ResolveSelfNamespace(c, string(namespaceIdentifier))
+	if !auth.AuthorizeSelfOrAdmin(c, namespaceUUID) && !auth.HasRole(c, auth.RoleValueAgentActiveHost) {
 		s.RespondRequireAdmin(c)
-	} else if !utils.IsUUIDNil(namespaceID) {
-		namespaceIdentifier = base.UUIDIdentifier(namespaceID)
+	} else if !utils.IsUUIDNil(namespaceUUID) {
+		namespaceIdentifier = base.IDFromUUID(namespaceUUID)
 	}
+
 	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
 
 	r, err := apiGetCertificate(c, resourceIdentifier, true)
@@ -132,7 +131,7 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKin
 }
 
 // DeleteCertificate implements ServerInterface.
-func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -147,7 +146,7 @@ func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.Namespace
 
 // ListCertificates implements ServerInterface.
 func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceKind,
-	namespaceIdentifier base.Identifier, params ListCertificatesParams) error {
+	namespaceIdentifier base.ID, params ListCertificatesParams) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -157,7 +156,7 @@ func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // CreateCertificate implements ServerInterface.
-func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -173,7 +172,7 @@ func (s *server) CreateCertificate(ec echo.Context, namespaceKind base.Namespace
 }
 
 // ListCertPolicies implements ServerInterface.
-func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier) error {
+func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -183,7 +182,7 @@ func (s *server) ListCertPolicies(ec echo.Context, namespaceKind base.NamespaceK
 }
 
 // GetCertPolicy implements ServerInterface.
-func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.Identifier, resourceIdentifier base.Identifier) error {
+func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err
@@ -195,8 +194,8 @@ func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind
 // PutCertPolicy implements ServerInterface.
 func (s *server) PutCertPolicy(ec echo.Context,
 	namespaceKind base.NamespaceKind,
-	namespaceIdentifier base.Identifier,
-	resourceIdentifier base.Identifier) error {
+	namespaceIdentifier base.ID,
+	resourceIdentifier base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
 	if err != nil {
 		return err

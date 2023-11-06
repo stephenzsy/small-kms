@@ -11,17 +11,17 @@ import (
 
 type NSContext interface {
 	Kind() base.NamespaceKind
-	Identifier() base.Identifier
+	ID() base.ID
 }
 
 type nsContext struct {
-	kind       base.NamespaceKind
-	identifier base.Identifier
+	kind base.NamespaceKind
+	id   base.ID
 }
 
 // Identifier implements NSContext.
-func (c *nsContext) Identifier() base.Identifier {
-	return c.identifier
+func (c *nsContext) ID() base.ID {
+	return c.id
 }
 
 // Kind implements NSContext.
@@ -41,23 +41,22 @@ func GetNSContext(c context.Context) NSContext {
 	return c.Value(nsContextKey).(NSContext)
 }
 
-func WithDefaultNSContext(parent ctx.RequestContext, kind base.NamespaceKind, identifier base.Identifier) ctx.RequestContext {
+func WithDefaultNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id base.ID) ctx.RequestContext {
 	nsCtx := &nsContext{
-		kind:       kind,
-		identifier: identifier,
+		kind: kind,
+		id:   id,
 	}
 	return parent.WithValue(nsContextKey, nsCtx)
 }
 
 var keyVaultNameIdentiferPattern = regexp.MustCompile(`^[0-9A-Za-z\-]+$`)
 
-func VerifyKeyVaultIdentifier(identifier base.Identifier) error {
-	if identifier.IsUUID() {
+func VerifyKeyVaultIdentifier(id base.ID) error {
+	if _, ok := id.AsUUID(); ok {
 		return nil
 	}
-	str := identifier.String()
-	if len(str) < 1 || len(str) > 48 || !keyVaultNameIdentiferPattern.MatchString(str) {
-		return fmt.Errorf("%w: invalid identifier, %s", base.ErrResponseStatusBadRequest, str)
+	if len(id) < 1 || len(id) > 48 || !keyVaultNameIdentiferPattern.MatchString(string(id)) {
+		return fmt.Errorf("%w: invalid identifier, %s", base.ErrResponseStatusBadRequest, id)
 	}
 
 	return nil

@@ -38,9 +38,9 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
   const { run } = useRequest(
     async (req: SecretPolicyParameters) => {
       await api.putSecretPolicy({
-        namespaceIdentifier: namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
-        resourceIdentifier: policyId || newPolicyId,
+        resourceId: policyId || newPolicyId,
         secretPolicyParameters: req,
       });
     },
@@ -121,9 +121,9 @@ export default function SecretPolicyPage() {
   } = useRequest(
     async () =>
       await api.getSecretPolicy({
-        namespaceIdentifier: namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
-        resourceIdentifier: policyId!,
+        resourceId: policyId!,
       }),
     {
       refreshDeps: [policyId, namespaceIdentifier, namespaceKind],

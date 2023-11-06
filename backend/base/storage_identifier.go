@@ -9,8 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type UUID = uuid.UUID
-
 type identifier struct {
 	isUUID  bool
 	uuidVal UUID
@@ -54,7 +52,7 @@ func (k identifier) MarshalText() (text []byte, err error) {
 	return []byte(k.strVal), nil
 }
 
-func (i Identifier) String() string {
+func (i identifier) String() string {
 	if i.isUUID {
 		return i.uuidVal.String()
 	}
@@ -89,35 +87,35 @@ func (k *identifier) IsNilOrEmpty() bool {
 var _ encoding.TextMarshaler = identifier{}
 var _ encoding.TextUnmarshaler = (*identifier)(nil)
 
-func UUIDIdentifier(id UUID) Identifier {
-	return Identifier{
+func UUIDIdentifier(id UUID) identifier {
+	return identifier{
 		isUUID:  true,
 		uuidVal: id,
 	}
 }
 
-func StringIdentifier(id string) Identifier {
-	return Identifier{
+func StringIdentifier(id string) identifier {
+	return identifier{
 		isUUID: false,
 		strVal: id,
 	}
 }
 
-func ParseIdentifier(s string) (i Identifier) {
+func ParseIdentifier(s string) (i identifier) {
 	(&i).UnmarshalText([]byte(s))
 	return
 }
 
 type NamespaceIdentifier struct {
 	kind NamespaceKind
-	id   Identifier
+	id   ID
 }
 
 func (i NamespaceIdentifier) Kind() NamespaceKind {
 	return i.kind
 }
 
-func (i NamespaceIdentifier) Identifier() Identifier {
+func (i NamespaceIdentifier) ID() ID {
 	return i.id
 }
 
@@ -157,7 +155,7 @@ func (i NamespaceIdentifier) MarshalText() (text []byte, err error) {
 var _ encoding.TextMarshaler = NamespaceIdentifier{}
 var _ encoding.TextUnmarshaler = (*NamespaceIdentifier)(nil)
 
-func NewNamespaceIdentifier(nsKind NamespaceKind, nsID identifier) NamespaceIdentifier {
+func NewNamespaceIdentifier(nsKind NamespaceKind, nsID ID) NamespaceIdentifier {
 	return NamespaceIdentifier{
 		kind: nsKind,
 		id:   nsID,
@@ -208,7 +206,7 @@ func (i DocNamespacePartitionKey) String() string {
 var _ encoding.TextMarshaler = DocNamespacePartitionKey{}
 var _ encoding.TextUnmarshaler = (*DocNamespacePartitionKey)(nil)
 
-func NewDocNamespacePartitionKey(nsKind NamespaceKind, nsID Identifier, rKind ResourceKind) DocNamespacePartitionKey {
+func NewDocNamespacePartitionKey(nsKind NamespaceKind, nsID ID, rKind ResourceKind) DocNamespacePartitionKey {
 	return DocNamespacePartitionKey{
 		nsIdentifier: NewNamespaceIdentifier(nsKind, nsID),
 		rKind:        rKind,
@@ -217,7 +215,7 @@ func NewDocNamespacePartitionKey(nsKind NamespaceKind, nsID Identifier, rKind Re
 
 type DocFullIdentifier struct {
 	pKey  DocNamespacePartitionKey
-	docID identifier
+	docID ID
 }
 
 func (i DocFullIdentifier) PartitionKey() DocNamespacePartitionKey {
@@ -228,11 +226,11 @@ func (i DocFullIdentifier) NamespaceKind() NamespaceKind {
 	return i.pKey.nsIdentifier.kind
 }
 
-func (i DocFullIdentifier) NamespaceIdentifier() Identifier {
+func (i DocFullIdentifier) NamespaceIdentifier() ID {
 	return i.pKey.nsIdentifier.id
 }
 
-func (i DocFullIdentifier) ResourceIdentifier() Identifier {
+func (i DocFullIdentifier) ResourceIdentifier() ID {
 	return i.docID
 }
 
@@ -275,7 +273,7 @@ func (i DocFullIdentifier) String() string {
 	}
 }
 
-func NewDocFullIdentifier(nsKind NamespaceKind, nsID Identifier, rKind ResourceKind, rID Identifier) DocFullIdentifier {
+func NewDocFullIdentifier(nsKind NamespaceKind, nsID ID, rKind ResourceKind, rID ID) DocFullIdentifier {
 	return DocFullIdentifier{
 		pKey:  NewDocNamespacePartitionKey(nsKind, nsID, rKind),
 		docID: rID,

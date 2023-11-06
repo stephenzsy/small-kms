@@ -91,42 +91,42 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 	// GetAgentDiagnostics request
-	GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerContainerList request
-	AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerContainerRemove request
-	AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerContainerInspect request
-	AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerContainerStop request
-	AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerImageList request
-	AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerInfo request
-	AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentDockerNetworkList request
-	AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentLaunchAgentWithBody request with any body
-	AgentLaunchAgentWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentLaunchAgentWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentPullImageWithBody request with any body
-	AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +137,8 @@ func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceKind external
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerContainerListRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+func (c *Client) AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerListRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +149,8 @@ func (c *Client) AgentDockerContainerList(ctx context.Context, namespaceKind ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerContainerRemoveRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+func (c *Client) AgentDockerContainerRemove(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerRemoveRequest(c.Server, namespaceKind, namespaceId, resourceId, containerId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -161,8 +161,8 @@ func (c *Client) AgentDockerContainerRemove(ctx context.Context, namespaceKind e
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerContainerInspectRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+func (c *Client) AgentDockerContainerInspect(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerInspectRequest(c.Server, namespaceKind, namespaceId, resourceId, containerId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,8 @@ func (c *Client) AgentDockerContainerInspect(ctx context.Context, namespaceKind 
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerContainerStopRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+func (c *Client) AgentDockerContainerStop(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerStopRequest(c.Server, namespaceKind, namespaceId, resourceId, containerId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -185,8 +185,8 @@ func (c *Client) AgentDockerContainerStop(ctx context.Context, namespaceKind ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerImageListRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+func (c *Client) AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerImageListRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -197,8 +197,8 @@ func (c *Client) AgentDockerImageList(ctx context.Context, namespaceKind externa
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerInfoRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+func (c *Client) AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerInfoRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +209,8 @@ func (c *Client) AgentDockerInfo(ctx context.Context, namespaceKind externalRef0
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerNetworkListRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+func (c *Client) AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerNetworkListRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -221,8 +221,8 @@ func (c *Client) AgentDockerNetworkList(ctx context.Context, namespaceKind exter
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentLaunchAgentWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentLaunchAgentRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, contentType, body)
+func (c *Client) AgentLaunchAgentWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentLaunchAgentRequestWithBody(c.Server, namespaceKind, namespaceId, resourceId, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -233,8 +233,8 @@ func (c *Client) AgentLaunchAgentWithBody(ctx context.Context, namespaceKind ext
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentLaunchAgentRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, body)
+func (c *Client) AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentLaunchAgentRequest(c.Server, namespaceKind, namespaceId, resourceId, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -245,8 +245,8 @@ func (c *Client) AgentLaunchAgent(ctx context.Context, namespaceKind externalRef
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentPullImageRequestWithBody(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, contentType, body)
+func (c *Client) AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentPullImageRequestWithBody(c.Server, namespaceKind, namespaceId, resourceId, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -257,8 +257,8 @@ func (c *Client) AgentPullImageWithBody(ctx context.Context, namespaceKind exter
 	return c.Client.Do(req)
 }
 
-func (c *Client) AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentPullImageRequest(c.Server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, body)
+func (c *Client) AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentPullImageRequest(c.Server, namespaceKind, namespaceId, resourceId, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (c *Client) AgentPullImage(ctx context.Context, namespaceKind externalRef0.
 }
 
 // NewGetAgentDiagnosticsRequest generates requests for GetAgentDiagnostics
-func NewGetAgentDiagnosticsRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *GetAgentDiagnosticsParams) (*http.Request, error) {
+func NewGetAgentDiagnosticsRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -282,14 +282,14 @@ func NewGetAgentDiagnosticsRequest(server string, namespaceKind externalRef0.Nam
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func NewGetAgentDiagnosticsRequest(server string, namespaceKind externalRef0.Nam
 }
 
 // NewAgentDockerContainerListRequest generates requests for AgentDockerContainerList
-func NewAgentDockerContainerListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams) (*http.Request, error) {
+func NewAgentDockerContainerListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -345,14 +345,14 @@ func NewAgentDockerContainerListRequest(server string, namespaceKind externalRef
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +396,7 @@ func NewAgentDockerContainerListRequest(server string, namespaceKind externalRef
 }
 
 // NewAgentDockerContainerRemoveRequest generates requests for AgentDockerContainerRemove
-func NewAgentDockerContainerRemoveRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams) (*http.Request, error) {
+func NewAgentDockerContainerRemoveRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerRemoveParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -408,14 +408,14 @@ func NewAgentDockerContainerRemoveRequest(server string, namespaceKind externalR
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -466,7 +466,7 @@ func NewAgentDockerContainerRemoveRequest(server string, namespaceKind externalR
 }
 
 // NewAgentDockerContainerInspectRequest generates requests for AgentDockerContainerInspect
-func NewAgentDockerContainerInspectRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams) (*http.Request, error) {
+func NewAgentDockerContainerInspectRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerInspectParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -478,14 +478,14 @@ func NewAgentDockerContainerInspectRequest(server string, namespaceKind external
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -536,7 +536,7 @@ func NewAgentDockerContainerInspectRequest(server string, namespaceKind external
 }
 
 // NewAgentDockerContainerStopRequest generates requests for AgentDockerContainerStop
-func NewAgentDockerContainerStopRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams) (*http.Request, error) {
+func NewAgentDockerContainerStopRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerStopParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -548,14 +548,14 @@ func NewAgentDockerContainerStopRequest(server string, namespaceKind externalRef
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -606,7 +606,7 @@ func NewAgentDockerContainerStopRequest(server string, namespaceKind externalRef
 }
 
 // NewAgentDockerImageListRequest generates requests for AgentDockerImageList
-func NewAgentDockerImageListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams) (*http.Request, error) {
+func NewAgentDockerImageListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -618,14 +618,14 @@ func NewAgentDockerImageListRequest(server string, namespaceKind externalRef0.Na
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -669,7 +669,7 @@ func NewAgentDockerImageListRequest(server string, namespaceKind externalRef0.Na
 }
 
 // NewAgentDockerInfoRequest generates requests for AgentDockerInfo
-func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams) (*http.Request, error) {
+func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -681,14 +681,14 @@ func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.Namespa
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -732,7 +732,7 @@ func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.Namespa
 }
 
 // NewAgentDockerNetworkListRequest generates requests for AgentDockerNetworkList
-func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams) (*http.Request, error) {
+func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -744,14 +744,14 @@ func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -795,18 +795,18 @@ func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.
 }
 
 // NewAgentLaunchAgentRequest calls the generic AgentLaunchAgent builder with application/json body
-func NewAgentLaunchAgentRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody) (*http.Request, error) {
+func NewAgentLaunchAgentRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewAgentLaunchAgentRequestWithBody(server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, "application/json", bodyReader)
+	return NewAgentLaunchAgentRequestWithBody(server, namespaceKind, namespaceId, resourceId, params, "application/json", bodyReader)
 }
 
 // NewAgentLaunchAgentRequestWithBody generates requests for AgentLaunchAgent with any type of body
-func NewAgentLaunchAgentRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader) (*http.Request, error) {
+func NewAgentLaunchAgentRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -818,14 +818,14 @@ func NewAgentLaunchAgentRequestWithBody(server string, namespaceKind externalRef
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -871,18 +871,18 @@ func NewAgentLaunchAgentRequestWithBody(server string, namespaceKind externalRef
 }
 
 // NewAgentPullImageRequest calls the generic AgentPullImage builder with application/json body
-func NewAgentPullImageRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody) (*http.Request, error) {
+func NewAgentPullImageRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewAgentPullImageRequestWithBody(server, namespaceKind, namespaceIdentifier, resourceIdentifier, params, "application/json", bodyReader)
+	return NewAgentPullImageRequestWithBody(server, namespaceKind, namespaceId, resourceId, params, "application/json", bodyReader)
 }
 
 // NewAgentPullImageRequestWithBody generates requests for AgentPullImage with any type of body
-func NewAgentPullImageRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader) (*http.Request, error) {
+func NewAgentPullImageRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -894,14 +894,14 @@ func NewAgentPullImageRequestWithBody(server string, namespaceKind externalRef0.
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, namespaceIdentifier)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam2 string
 
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, resourceIdentifier)
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -990,38 +990,38 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// GetAgentDiagnosticsWithResponse request
-	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
+	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
 
 	// AgentDockerContainerListWithResponse request
-	AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error)
+	AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error)
 
 	// AgentDockerContainerRemoveWithResponse request
-	AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error)
+	AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error)
 
 	// AgentDockerContainerInspectWithResponse request
-	AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error)
+	AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error)
 
 	// AgentDockerContainerStopWithResponse request
-	AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error)
+	AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error)
 
 	// AgentDockerImageListWithResponse request
-	AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error)
+	AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error)
 
 	// AgentDockerInfoWithResponse request
-	AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error)
+	AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error)
 
 	// AgentDockerNetworkListWithResponse request
-	AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error)
+	AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error)
 
 	// AgentLaunchAgentWithBodyWithResponse request with any body
-	AgentLaunchAgentWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
+	AgentLaunchAgentWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
 
-	AgentLaunchAgentWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
+	AgentLaunchAgentWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
 
 	// AgentPullImageWithBodyWithResponse request with any body
-	AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
+	AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
 
-	AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
+	AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
 }
 
 type GetAgentDiagnosticsResponse struct {
@@ -1242,8 +1242,8 @@ func (r AgentPullImageResponse) StatusCode() int {
 }
 
 // GetAgentDiagnosticsWithResponse request returning *GetAgentDiagnosticsResponse
-func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error) {
-	rsp, err := c.GetAgentDiagnostics(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error) {
+	rsp, err := c.GetAgentDiagnostics(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1251,8 +1251,8 @@ func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Contex
 }
 
 // AgentDockerContainerListWithResponse request returning *AgentDockerContainerListResponse
-func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error) {
-	rsp, err := c.AgentDockerContainerList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error) {
+	rsp, err := c.AgentDockerContainerList(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1260,8 +1260,8 @@ func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.C
 }
 
 // AgentDockerContainerRemoveWithResponse request returning *AgentDockerContainerRemoveResponse
-func (c *ClientWithResponses) AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error) {
-	rsp, err := c.AgentDockerContainerRemove(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerContainerRemoveWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerRemoveParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerRemoveResponse, error) {
+	rsp, err := c.AgentDockerContainerRemove(ctx, namespaceKind, namespaceId, resourceId, containerId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1269,8 +1269,8 @@ func (c *ClientWithResponses) AgentDockerContainerRemoveWithResponse(ctx context
 }
 
 // AgentDockerContainerInspectWithResponse request returning *AgentDockerContainerInspectResponse
-func (c *ClientWithResponses) AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error) {
-	rsp, err := c.AgentDockerContainerInspect(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerContainerInspectWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerInspectParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerInspectResponse, error) {
+	rsp, err := c.AgentDockerContainerInspect(ctx, namespaceKind, namespaceId, resourceId, containerId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1278,8 +1278,8 @@ func (c *ClientWithResponses) AgentDockerContainerInspectWithResponse(ctx contex
 }
 
 // AgentDockerContainerStopWithResponse request returning *AgentDockerContainerStopResponse
-func (c *ClientWithResponses) AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error) {
-	rsp, err := c.AgentDockerContainerStop(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerContainerStopWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params *AgentDockerContainerStopParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerStopResponse, error) {
+	rsp, err := c.AgentDockerContainerStop(ctx, namespaceKind, namespaceId, resourceId, containerId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1287,8 +1287,8 @@ func (c *ClientWithResponses) AgentDockerContainerStopWithResponse(ctx context.C
 }
 
 // AgentDockerImageListWithResponse request returning *AgentDockerImageListResponse
-func (c *ClientWithResponses) AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error) {
-	rsp, err := c.AgentDockerImageList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error) {
+	rsp, err := c.AgentDockerImageList(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1296,8 +1296,8 @@ func (c *ClientWithResponses) AgentDockerImageListWithResponse(ctx context.Conte
 }
 
 // AgentDockerInfoWithResponse request returning *AgentDockerInfoResponse
-func (c *ClientWithResponses) AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error) {
-	rsp, err := c.AgentDockerInfo(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error) {
+	rsp, err := c.AgentDockerInfo(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1305,8 +1305,8 @@ func (c *ClientWithResponses) AgentDockerInfoWithResponse(ctx context.Context, n
 }
 
 // AgentDockerNetworkListWithResponse request returning *AgentDockerNetworkListResponse
-func (c *ClientWithResponses) AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error) {
-	rsp, err := c.AgentDockerNetworkList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, reqEditors...)
+func (c *ClientWithResponses) AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error) {
+	rsp, err := c.AgentDockerNetworkList(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1314,16 +1314,16 @@ func (c *ClientWithResponses) AgentDockerNetworkListWithResponse(ctx context.Con
 }
 
 // AgentLaunchAgentWithBodyWithResponse request with arbitrary body returning *AgentLaunchAgentResponse
-func (c *ClientWithResponses) AgentLaunchAgentWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error) {
-	rsp, err := c.AgentLaunchAgentWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) AgentLaunchAgentWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error) {
+	rsp, err := c.AgentLaunchAgentWithBody(ctx, namespaceKind, namespaceId, resourceId, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseAgentLaunchAgentResponse(rsp)
 }
 
-func (c *ClientWithResponses) AgentLaunchAgentWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error) {
-	rsp, err := c.AgentLaunchAgent(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, body, reqEditors...)
+func (c *ClientWithResponses) AgentLaunchAgentWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error) {
+	rsp, err := c.AgentLaunchAgent(ctx, namespaceKind, namespaceId, resourceId, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1331,16 +1331,16 @@ func (c *ClientWithResponses) AgentLaunchAgentWithResponse(ctx context.Context, 
 }
 
 // AgentPullImageWithBodyWithResponse request with arbitrary body returning *AgentPullImageResponse
-func (c *ClientWithResponses) AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
-	rsp, err := c.AgentPullImageWithBody(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
+	rsp, err := c.AgentPullImageWithBody(ctx, namespaceKind, namespaceId, resourceId, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseAgentPullImageResponse(rsp)
 }
 
-func (c *ClientWithResponses) AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
-	rsp, err := c.AgentPullImage(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params, body, reqEditors...)
+func (c *ClientWithResponses) AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
+	rsp, err := c.AgentPullImage(ctx, namespaceKind, namespaceId, resourceId, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

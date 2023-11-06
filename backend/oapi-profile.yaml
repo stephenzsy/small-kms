@@ -23,10 +23,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProfileRef"
-  /v1/profile/{profileResourceKind}/{namespaceIdentifier}:
+  /v1/profile/{profileResourceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/ProfileResourceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     get:
       tags:
         - admin
@@ -49,10 +49,10 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/ProfileResponse"
-  /v1/profile/{profileResourceKind}/{namespaceIdentifier}/import:
+  /v1/profile/{profileResourceKind}/{namespaceId}/import:
     parameters:
       - $ref: "#/components/parameters/ProfileResourceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdentifierParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
     post:
       tags:
         - admin

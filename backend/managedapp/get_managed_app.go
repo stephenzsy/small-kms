@@ -16,9 +16,9 @@ func getManagedApp(c context.Context, appID uuid.UUID) (*ManagedAppDoc, error) {
 	doc := &ManagedAppDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
 	err := docService.Read(c, base.NewDocFullIdentifier(base.NamespaceKindProfile,
-		base.StringIdentifier(namespaceIDNameManagedApp),
+		base.IDFromString(namespaceIDNameManagedApp),
 		base.ProfileResourceKindManagedApp,
-		base.UUIDIdentifier(appID)), doc, nil)
+		base.IDFromUUID(appID)), doc, nil)
 	return doc, err
 }
 
@@ -30,9 +30,9 @@ func apiGetSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 	doc := &ManagedAppDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
 	err = docService.Read(c, base.NewDocFullIdentifier(base.NamespaceKindProfile,
-		base.StringIdentifier(namespaceIDNameSystemApp),
+		base.IDFromString(namespaceIDNameSystemApp),
 		base.ProfileResourceKindManagedApp,
-		base.UUIDIdentifier(appID)), doc, nil)
+		base.IDFromUUID(appID)), doc, nil)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)

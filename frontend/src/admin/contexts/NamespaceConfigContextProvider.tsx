@@ -21,13 +21,13 @@ export function NamespaceConfigContextProvider(
     (params?: CertificateRuleIssuer) => {
       if (params) {
         return adminApi.putCertificateRuleIssuer({
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
           namespaceKind,
           certificateRuleIssuer: params,
         });
       }
       return adminApi.getCertificateRuleIssuer({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
       });
     },
@@ -41,13 +41,13 @@ export function NamespaceConfigContextProvider(
     (params?: CertificateRuleMsEntraClientCredential) => {
       if (params) {
         return adminApi.putCertificateRuleMsEntraClientCredential({
-          namespaceIdentifier,
+          namespaceId: namespaceIdentifier,
           namespaceKind,
           certificateRuleMsEntraClientCredential: params,
         });
       }
       return adminApi.getCertificateRuleMsEntraClientCredential({
-        namespaceIdentifier,
+        namespaceId: namespaceIdentifier,
         namespaceKind,
       });
     },

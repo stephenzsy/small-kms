@@ -91,7 +91,7 @@ var queryDefaultColumns = []string{
 }
 
 type QueryBaseDoc struct {
-	ID        Identifier      `json:"id"`
+	ID        ID              `json:"id"`
 	Timestamp jwt.NumericDate `json:"_ts"`
 	Deleted   *time.Time      `json:"deleted"`
 }
@@ -101,18 +101,18 @@ func (d *QueryBaseDoc) PopulateModelRef(r *ResourceReference) {
 	if d == nil || r == nil {
 		return
 	}
-	r.Id = d.ID
+	r.ID = d.ID
 	r.Deleted = d.Deleted
 	r.Updated = d.Timestamp.Time
 }
 
 // GetID implements QueryDocument.
-func (d *QueryBaseDoc) GetID() identifier {
+func (d *QueryBaseDoc) GetID() ID {
 	return d.ID
 }
 
 type QueryDocument interface {
-	GetID() Identifier
+	GetID() ID
 }
 
 var _ QueryDocument = (*QueryBaseDoc)(nil)

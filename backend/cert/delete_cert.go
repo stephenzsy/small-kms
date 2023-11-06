@@ -10,7 +10,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 )
 
-func deleteCertificate(c context.Context, rID base.Identifier) error {
+func deleteCertificate(c context.Context, rID base.ID) error {
 	doc, err := ApiReadCertDocByID(c, rID)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {

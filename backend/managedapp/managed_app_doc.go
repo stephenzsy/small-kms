@@ -30,9 +30,9 @@ func (d *ManagedAppDoc) Init(appID uuid.UUID, displayName string, name string) {
 		return
 	}
 	d.ProfileDoc.Init(
-		base.StringIdentifier(name),
+		base.IDFromString(name),
 		base.ProfileResourceKindManagedApp,
-		base.UUIDIdentifier(appID),
+		base.IDFromUUID(appID),
 		displayName,
 	)
 }

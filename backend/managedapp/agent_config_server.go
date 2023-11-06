@@ -25,13 +25,13 @@ type AgentConfigServerDoc struct {
 	AgentConfigDoc
 	GlobalKeyVaultEndpoint string                   `json:"globalKeyVaultEndpoint"`
 	GlobalACRImageRef      string                   `json:"globalAcrImageRef"`
-	TLSCertificatePolicyID base.Identifier          `json:"tlsCertificatePolicyId"`
-	TLSCertificateID       base.Identifier          `json:"tlsCertificateId"`
+	TLSCertificatePolicyID base.ID                  `json:"tlsCertificatePolicyId"`
+	TLSCertificateID       base.ID                  `json:"tlsCertificateId"`
 	JWTKeyCertPolicyID     base.DocFullIdentifier   `json:"jwtKeyCertPolicyId"`
 	JWTKeyCertIDs          []base.DocFullIdentifier `json:"jwtKeyCertIds"`
 }
 
-func (d *AgentConfigServerDoc) init(nsKind base.NamespaceKind, nsIdentifier base.Identifier) {
+func (d *AgentConfigServerDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID) {
 	d.AgentConfigDoc.init(nsKind, nsIdentifier, base.AgentConfigNameServer)
 }
 
@@ -60,7 +60,7 @@ func ApiReadAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) 
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentConfigServerDoc{}
 	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocFullIdentifier(nsCtx.Kind(),
-		nsCtx.Identifier(), base.ResourceKindNamespaceConfig, base.StringIdentifier(string(base.AgentConfigNameServer))), doc, nil); err != nil {
+		nsCtx.ID(), base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameServer)), doc, nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return nil, fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
 		}
@@ -85,14 +85,14 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 	nsCtx := ns.GetNSContext(c)
 
 	doc := &AgentConfigServerDoc{}
-	doc.init(nsCtx.Kind(), nsCtx.Identifier())
+	doc.init(nsCtx.Kind(), nsCtx.ID())
 
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	digest := md5.New()
 	switch nsCtx.Kind() {
 	case base.NamespaceKindSystem:
-		if nsCtx.Identifier() != base.StringIdentifier("default") {
+		if nsCtx.ID() != base.ID("default") {
 			return fmt.Errorf("%w: only default system namespace is supported", base.ErrResponseStatusBadRequest)
 		}
 		doc.GlobalKeyVaultEndpoint = s.GetAzKeyVaultEndpoint()
@@ -105,7 +105,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		globalDoc := &AgentConfigServerDoc{}
 		if err := docSvc.Read(c,
 			base.NewDocFullIdentifier(base.NamespaceKindSystem,
-				base.StringIdentifier("default"), base.ResourceKindNamespaceConfig, base.StringIdentifier(string(base.AgentConfigNameServer))), globalDoc, nil); err != nil {
+				base.ID("default"), base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameServer)), globalDoc, nil); err != nil {
 			if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 				return fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
 			}
@@ -122,15 +122,15 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 
 		doc.TLSCertificatePolicyID = param.TlsCertificatePolicyId
 		certIds, err := cert.QueryLatestCertificateIdsIssuedByPolicy(c,
-			base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, param.TlsCertificatePolicyId), 1)
+			base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, param.TlsCertificatePolicyId), 1)
 		if err != nil {
 			return err
 		}
 		if len(certIds) == 0 {
-			return fmt.Errorf("%w: no certificate issued by policy %s", base.ErrResponseStatusBadRequest, param.TlsCertificatePolicyId.String())
+			return fmt.Errorf("%w: no certificate issued by policy %s", base.ErrResponseStatusBadRequest, param.TlsCertificatePolicyId)
 		}
 		doc.TLSCertificateID = certIds[0]
-		digest.Write([]byte(doc.TLSCertificateID.String()))
+		digest.Write([]byte(doc.TLSCertificateID))
 
 		doc.JWTKeyCertPolicyID = param.JwtKeyCertPolicyId
 		jwtKeyCertIdentifiers, err := cert.QueryLatestCertificateIdsIssuedByPolicy(c,
@@ -138,7 +138,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		if err != nil {
 			return err
 		}
-		doc.JWTKeyCertIDs = utils.MapSlice(jwtKeyCertIdentifiers, func(id base.Identifier) base.DocFullIdentifier {
+		doc.JWTKeyCertIDs = utils.MapSlice(jwtKeyCertIdentifiers, func(id base.ID) base.DocFullIdentifier {
 			fullIdentifier := base.NewDocFullIdentifier(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceIdentifier(), base.ResourceKindCert, id)
 			digest.Write([]byte(fullIdentifier.String()))
 			return fullIdentifier
@@ -153,7 +153,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		return err
 	}
 
-	s.assignAgentServerRoles(c, nsCtx.Identifier().UUID(), doc)
+	s.assignAgentServerRoles(c, nsCtx.ID().UUID(), doc)
 
 	m := &AgentConfigServer{}
 	doc.populateModel(m)
@@ -208,7 +208,7 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 		p := cloudauthzaz.RoleAssignmentProvisioner{
 			RoleDefinitionID: roleDefIDKeyVaultSecretsUser,
 			Scope: subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
-				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), certPolicyDoc.ID)).Build(),
+				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), certPolicyDoc.ID)).Build(),
 			AssignedTo: assignedTo,
 		}
 
@@ -237,10 +237,10 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	if !nsCtx.Identifier().IsUUID() {
+	if _, ok := nsCtx.ID().AsUUID(); !ok {
 		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusBadRequest)
 	}
-	assignedTo := nsCtx.Identifier().UUID()
+	assignedTo := nsCtx.ID().UUID()
 	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
 	if err != nil {
 		return err
@@ -264,7 +264,7 @@ func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) e
 	// Key Vault Secrets User
 	{
 		scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
-			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.Identifier(), doc.TLSCertificatePolicyID)).Build()
+			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), doc.TLSCertificatePolicyID)).Build()
 		pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 	}
 

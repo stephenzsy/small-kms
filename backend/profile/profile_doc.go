@@ -20,9 +20,9 @@ const (
 )
 
 func (d *ProfileDoc) Init(
-	nsID base.Identifier,
+	nsID base.ID,
 	rKind base.ResourceKind,
-	rID base.Identifier,
+	rID base.ID,
 	displayName string) {
 	if d == nil {
 		return

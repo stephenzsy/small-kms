@@ -15,35 +15,35 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Get agent diagnostics
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/diagnostics)
-	GetAgentDiagnostics(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params GetAgentDiagnosticsParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics)
+	GetAgentDiagnostics(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params GetAgentDiagnosticsParams) error
 
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers)
-	AgentDockerContainerList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerContainerListParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers)
+	AgentDockerContainerList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentDockerContainerListParams) error
 
-	// (DELETE /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId})
-	AgentDockerContainerRemove(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params AgentDockerContainerRemoveParams) error
+	// (DELETE /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId})
+	AgentDockerContainerRemove(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params AgentDockerContainerRemoveParams) error
 
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId})
-	AgentDockerContainerInspect(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params AgentDockerContainerInspectParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId})
+	AgentDockerContainerInspect(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params AgentDockerContainerInspectParams) error
 
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/containers/{containerId}/stop)
-	AgentDockerContainerStop(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, containerId string, params AgentDockerContainerStopParams) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}/stop)
+	AgentDockerContainerStop(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, containerId string, params AgentDockerContainerStopParams) error
 
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/images)
-	AgentDockerImageList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerImageListParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images)
+	AgentDockerImageList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentDockerImageListParams) error
 
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/info)
-	AgentDockerInfo(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerInfoParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info)
+	AgentDockerInfo(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentDockerInfoParams) error
 
-	// (GET /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/docker/networks)
-	AgentDockerNetworkList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentDockerNetworkListParams) error
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks)
+	AgentDockerNetworkList(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentDockerNetworkListParams) error
 
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/launch-agent)
-	AgentLaunchAgent(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentLaunchAgentParams) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent)
+	AgentLaunchAgent(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentLaunchAgentParams) error
 
-	// (POST /v1/{namespaceKind}/{namespaceIdentifier}/agent/instance/{resourceIdentifier}/pull-image)
-	AgentPullImage(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceIdentifier externalRef0.NamespaceIdentifierParameter, resourceIdentifier externalRef0.ResourceIdentifierParameter, params AgentPullImageParams) error
+	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image)
+	AgentPullImage(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentPullImageParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -62,20 +62,20 @@ func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -101,7 +101,7 @@ func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentDiagnostics(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.GetAgentDiagnostics(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -116,20 +116,20 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerList(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -155,7 +155,7 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerList(ctx echo.Context) erro
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerContainerList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentDockerContainerList(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -170,20 +170,20 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerRemove(ctx echo.Context) er
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	// ------------- Path parameter "containerId" -------------
@@ -217,7 +217,7 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerRemove(ctx echo.Context) er
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerContainerRemove(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+	err = w.Handler.AgentDockerContainerRemove(ctx, namespaceKind, namespaceId, resourceId, containerId, params)
 	return err
 }
 
@@ -232,20 +232,20 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerInspect(ctx echo.Context) e
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	// ------------- Path parameter "containerId" -------------
@@ -279,7 +279,7 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerInspect(ctx echo.Context) e
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerContainerInspect(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+	err = w.Handler.AgentDockerContainerInspect(ctx, namespaceKind, namespaceId, resourceId, containerId, params)
 	return err
 }
 
@@ -294,20 +294,20 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerStop(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	// ------------- Path parameter "containerId" -------------
@@ -341,7 +341,7 @@ func (w *ServerInterfaceWrapper) AgentDockerContainerStop(ctx echo.Context) erro
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerContainerStop(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, containerId, params)
+	err = w.Handler.AgentDockerContainerStop(ctx, namespaceKind, namespaceId, resourceId, containerId, params)
 	return err
 }
 
@@ -356,20 +356,20 @@ func (w *ServerInterfaceWrapper) AgentDockerImageList(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -395,7 +395,7 @@ func (w *ServerInterfaceWrapper) AgentDockerImageList(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerImageList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentDockerImageList(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -410,20 +410,20 @@ func (w *ServerInterfaceWrapper) AgentDockerInfo(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -449,7 +449,7 @@ func (w *ServerInterfaceWrapper) AgentDockerInfo(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerInfo(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentDockerInfo(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -464,20 +464,20 @@ func (w *ServerInterfaceWrapper) AgentDockerNetworkList(ctx echo.Context) error 
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -503,7 +503,7 @@ func (w *ServerInterfaceWrapper) AgentDockerNetworkList(ctx echo.Context) error 
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentDockerNetworkList(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentDockerNetworkList(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -518,20 +518,20 @@ func (w *ServerInterfaceWrapper) AgentLaunchAgent(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -557,7 +557,7 @@ func (w *ServerInterfaceWrapper) AgentLaunchAgent(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentLaunchAgent(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentLaunchAgent(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -572,20 +572,20 @@ func (w *ServerInterfaceWrapper) AgentPullImage(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
 	}
 
-	// ------------- Path parameter "namespaceIdentifier" -------------
-	var namespaceIdentifier externalRef0.NamespaceIdentifierParameter
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceIdentifier", runtime.ParamLocationPath, ctx.Param("namespaceIdentifier"), &namespaceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
-	// ------------- Path parameter "resourceIdentifier" -------------
-	var resourceIdentifier externalRef0.ResourceIdentifierParameter
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceIdentifier", runtime.ParamLocationPath, ctx.Param("resourceIdentifier"), &resourceIdentifier)
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceIdentifier: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
 	}
 
 	ctx.Set(BearerAuthScopes, []string{})
@@ -611,7 +611,7 @@ func (w *ServerInterfaceWrapper) AgentPullImage(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentPullImage(ctx, namespaceKind, namespaceIdentifier, resourceIdentifier, params)
+	err = w.Handler.AgentPullImage(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -643,15 +643,15 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/diagnostics", wrapper.GetAgentDiagnostics)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers", wrapper.AgentDockerContainerList)
-	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers/:containerId", wrapper.AgentDockerContainerRemove)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers/:containerId", wrapper.AgentDockerContainerInspect)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/containers/:containerId/stop", wrapper.AgentDockerContainerStop)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/images", wrapper.AgentDockerImageList)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/info", wrapper.AgentDockerInfo)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/docker/networks", wrapper.AgentDockerNetworkList)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/launch-agent", wrapper.AgentLaunchAgent)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceIdentifier/agent/instance/:resourceIdentifier/pull-image", wrapper.AgentPullImage)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/diagnostics", wrapper.GetAgentDiagnostics)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers", wrapper.AgentDockerContainerList)
+	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId", wrapper.AgentDockerContainerRemove)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId", wrapper.AgentDockerContainerInspect)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId/stop", wrapper.AgentDockerContainerStop)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/images", wrapper.AgentDockerImageList)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/info", wrapper.AgentDockerInfo)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/networks", wrapper.AgentDockerNetworkList)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/launch-agent", wrapper.AgentLaunchAgent)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/pull-image", wrapper.AgentPullImage)
 
 }

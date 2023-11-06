@@ -27,11 +27,11 @@ const (
 	queryColumnDisplayName = "c.displayName"
 )
 
-func (d *SecretPolicyDoc) init(nsKind base.NamespaceKind, nsIdentifier base.Identifier, identifier base.Identifier) {
+func (d *SecretPolicyDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID, identifier base.ID) {
 	d.BaseDoc.Init(nsKind, nsIdentifier, base.ResourceKindSecretPolicy, identifier)
 }
 
-func (d *SecretPolicyDoc) GetID() base.Identifier {
+func (d *SecretPolicyDoc) GetID() base.ID {
 	return d.ID
 }
 
@@ -59,7 +59,7 @@ func (d *SecretPolicyDoc) populateByRequestParams(p SecretPolicyParameters) erro
 	if p.DisplayName != "" {
 		d.DisplayName = p.DisplayName
 	} else {
-		d.DisplayName = d.ID.String()
+		d.DisplayName = string(d.ID)
 	}
 
 	switch p.Mode {
@@ -101,10 +101,10 @@ func (d *SecretPolicyDoc) populateByRequestParams(p SecretPolicyParameters) erro
 	return nil
 }
 
-func apiPutSecretPolicy(c ctx.RequestContext, policyIdentifier base.Identifier, p SecretPolicyParameters) error {
+func apiPutSecretPolicy(c ctx.RequestContext, policyIdentifier base.ID, p SecretPolicyParameters) error {
 	nsCtx := ns.GetNSContext(c)
 	doc := &SecretPolicyDoc{}
-	doc.init(nsCtx.Kind(), nsCtx.Identifier(), policyIdentifier)
+	doc.init(nsCtx.Kind(), nsCtx.ID(), policyIdentifier)
 	if err := doc.populateByRequestParams(p); err != nil {
 		return err
 	}
@@ -116,15 +116,15 @@ func apiPutSecretPolicy(c ctx.RequestContext, policyIdentifier base.Identifier, 
 	return c.JSON(http.StatusOK, model)
 }
 
-func apiGetSecretPolicy(c ctx.RequestContext, policyIdentifier base.Identifier) error {
+func apiGetSecretPolicy(c ctx.RequestContext, policyIdentifier base.ID) error {
 	nsCtx := ns.GetNSContext(c)
 	doc := &SecretPolicyDoc{}
 	if err := base.GetAzCosmosCRUDService(c).Read(c,
-		base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindSecretPolicy, policyIdentifier),
+		base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecretPolicy, policyIdentifier),
 		doc,
 		nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w, secret policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier.String())
+			return fmt.Errorf("%w, secret policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier)
 		}
 		return err
 	}
@@ -137,7 +137,7 @@ func apiListSecretPolicies(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(queryColumnDisplayName)
 	nsCtx := ns.GetNSContext(c)
-	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindSecretPolicy)
+	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecretPolicy)
 	pager := base.NewQueryDocPager[*SecretPolicyDoc](c, qb, storageNsID)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *SecretPolicyDoc) *SecretPolicyRef {

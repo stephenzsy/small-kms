@@ -28,7 +28,7 @@ func apiListManagedApps(c ctx.RequestContext) error {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithExtraColumns(profile.QueryColumnDisplayName, queryColumnApplicationID, queryColumnServicePrincipalID)
 	storageNsID := base.NewDocNamespacePartitionKey(base.NamespaceKindProfile,
-		base.StringIdentifier(namespaceIDNameManagedApp),
+		base.IDFromString(namespaceIDNameManagedApp),
 		base.ProfileResourceKindManagedApp)
 	pager := base.NewQueryDocPager[*ManagedAppQueryDoc](c, qb, storageNsID)
 

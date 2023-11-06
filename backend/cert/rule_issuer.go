@@ -27,7 +27,7 @@ func readCertRuleIssuerDoc(c context.Context, nsIdentifier base.NamespaceIdentif
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerDoc)
-	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), base.CertRuleNameIssuer), ruleDoc, nil)
+	err := docSvc.Read(c, getNamespaceCertificateRuleDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.ID(), base.CertRuleNameIssuer), ruleDoc, nil)
 	return ruleDoc, err
 }
 
@@ -40,13 +40,13 @@ func getNamespaceIssuerCert(c context.Context, nsIdentifier base.NamespaceIdenti
 
 	docSvc := base.GetAzCosmosCRUDService(c)
 	certDoc := new(CertDoc)
-	err = docSvc.Read(c, base.NewDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.Identifier(), base.ResourceKindCert, ruleDoc.CertificateID), certDoc, nil)
+	err = docSvc.Read(c, base.NewDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.ID(), base.ResourceKindCert, ruleDoc.CertificateID), certDoc, nil)
 	return certDoc, err
 }
 
 func apiGetCertRuleIssuer(c ctx.RequestContext) error {
 	nsCtx := ns.GetNSContext(c)
-	ruleDoc, err := readCertRuleIssuerDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.Identifier()))
+	ruleDoc, err := readCertRuleIssuerDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.ID()))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w, issuer configuration not found: %s", base.ErrResponseStatusNotFound, base.CertRuleNameIssuer)
@@ -63,15 +63,15 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 	docSvc := base.GetAzCosmosCRUDService(c)
 
 	ruleDoc := new(CertRuleIssuerDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.Identifier(), base.CertRuleNameIssuer)
+	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameIssuer)
 	ruleDoc.PolicyID = p.PolicyId
-	if p.CertificateId.IsNilOrEmpty() {
-		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.Identifier(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
+	if p.CertificateId == nil || *p.CertificateId == "" {
+		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
 			return err
 		} else if len(certIds) > 0 {
 			ruleDoc.CertificateID = certIds[0]
 		} else {
-			return fmt.Errorf("%w, no certificate issued by policy: %s", base.ErrResponseStatusNotFound, p.PolicyId.String())
+			return fmt.Errorf("%w, no certificate issued by policy: %s", base.ErrResponseStatusNotFound, p.PolicyId)
 		}
 	} else {
 		ruleDoc.CertificateID = *p.CertificateId

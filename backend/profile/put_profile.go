@@ -7,17 +7,17 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func putProfile(c context.Context, resourceKind base.ResourceKind, rID base.Identifier, params *ProfileParameters) (*Profile, error) {
+func putProfile(c context.Context, resourceKind base.ResourceKind, rID base.ID, params *ProfileParameters) (*Profile, error) {
 	nsCtx := ns.GetNSContext(c)
 
 	doc := new(ProfileDoc)
 
-	displayName := rID.String()
+	displayName := string(rID)
 	if params.DisplayName != nil && *params.DisplayName != "" {
 		displayName = *params.DisplayName
 	}
 
-	doc.Init(nsCtx.Identifier(), resourceKind, rID, displayName)
+	doc.Init(nsCtx.ID(), resourceKind, rID, displayName)
 	err := base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil)
 	if err != nil {
 		return nil, err
