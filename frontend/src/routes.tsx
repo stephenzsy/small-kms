@@ -9,6 +9,7 @@ import { RouteIds } from "./route-constants";
 import { NamespaceContext } from "./admin/contexts/NamespaceContext";
 import { NamespaceKind } from "./generated";
 
+const SecretPage = React.lazy(() => import("./admin/SecretPage"));
 const EntraProfilesPage = React.lazy(() => import("./admin/EntraProfilesPage"));
 const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
@@ -22,7 +23,6 @@ const ManagedAppPage = React.lazy(() => import("./admin/ManagedAppPage"));
 const ProvisionAgentPage = React.lazy(
   () => import("./admin/ProvisionAgentPage")
 );
-
 const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
@@ -138,6 +138,10 @@ export const router = createBrowserRouter([
                   {
                     path: "secret-policy/:policyId",
                     element: <SecretPolicyPage />,
+                  },
+                  {
+                    path: "secrets/:id",
+                    element: <SecretPage />,
                   },
                   {
                     path: "cert/:certId",

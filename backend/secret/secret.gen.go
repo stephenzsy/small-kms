@@ -91,6 +91,11 @@ type ListSecretsParams struct {
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
+// GetSecretParams defines parameters for GetSecret.
+type GetSecretParams struct {
+	WithValue *bool `form:"withValue,omitempty" json:"withValue,omitempty"`
+}
+
 // PutSecretPolicyJSONRequestBody defines body for PutSecretPolicy for application/json ContentType.
 type PutSecretPolicyJSONRequestBody = SecretPolicyParameters
 
@@ -111,6 +116,9 @@ type ServerInterface interface {
 	// List secrets
 	// (GET /v1/{namespaceKind}/{namespaceId}/secrets)
 	ListSecrets(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListSecretsParams) error
+	// GetSecret
+	// (GET /v1/{namespaceKind}/{namespaceId}/secrets/{resourceId})
+	GetSecret(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params GetSecretParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -281,6 +289,49 @@ func (w *ServerInterfaceWrapper) ListSecrets(ctx echo.Context) error {
 	return err
 }
 
+// GetSecret converts echo context to params.
+func (w *ServerInterfaceWrapper) GetSecret(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSecretParams
+	// ------------- Optional query parameter "withValue" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "withValue", ctx.QueryParams(), &params.WithValue)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter withValue: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetSecret(ctx, namespaceKind, namespaceId, resourceId, params)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -314,5 +365,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies/:resourceId", wrapper.PutSecretPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies/:resourceId/generate", wrapper.GenerateSecret)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/secrets", wrapper.ListSecrets)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/secrets/:resourceId", wrapper.GetSecret)
 
 }

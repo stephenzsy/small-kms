@@ -23,6 +23,7 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
+import { Link } from "../components/Link";
 
 type SecretPolicyFormState = {
   identifier: string;
@@ -187,10 +188,10 @@ function useSecretsTableColumns(activeIssuerCertificateId: string | undefined) {
       //     return <Tag color="green">Issued</Tag>;
       //   },
       // },
-      // {
-      //   title: "Actions",
-      //   render: (r) => <CertificateActions certRef={r} />,
-      // },
+      {
+        title: "Actions",
+        render: (r: SecretRef) => <Link to={`../secrets/${r.id}`}>View</Link>,
+      },
     ],
     [activeIssuerCertificateId]
   );

@@ -18,6 +18,7 @@ type internalContextKey int
 
 const (
 	AzKeyVaultServiceContextKey internalContextKey = iota
+	delegatedAzSecretsClientContextKey
 )
 
 func GetAzKeyVaultService(c context.Context) AzKeyVaultService {
