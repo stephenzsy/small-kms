@@ -139,8 +139,8 @@ type EnrollCertificateRequest struct {
 	Force *bool `json:"force,omitempty"`
 
 	// Proof Signed JWT to show proof of possession of the private key
-	Proof     string                  `json:"proof"`
-	PublicKey externalRef1.JsonWebKey `json:"publicKey"`
+	Proof     string                           `json:"proof"`
+	PublicKey externalRef1.JsonWebSignatureKey `json:"publicKey"`
 }
 
 // EnrollmentType defines model for EnrollmentType.

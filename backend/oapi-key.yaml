@@ -73,7 +73,7 @@ components:
       x-go-type: cloudkey.JsonWebKeyCurveName
       x-go-type-import:
         name: cloudkey
-        path: "github.com/stephenzsy/small-kms/backend/cloud/key"        
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     JsonWebKeyOperation:
       type: string
       enum:
@@ -90,6 +90,10 @@ components:
         - JsonWebKeyOperationDecrypt
         - JsonWebKeyOperationWrapKey
         - JsonWebKeyOperationUnwrapKey
+      x-go-type: cloudkey.JsonWebKeyOperation
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     JsonWebKeyType:
       type: string
       enum:
@@ -194,6 +198,49 @@ components:
             x5t#S256:
               $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
               x-go-name: ThumbprintSHA256
+    JsonWebSignatureKey:
+      type: object
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+          x-go-name: KeyType
+        key_ops:
+          type: array
+          items:
+            $ref: "#/components/schemas/JsonWebKeyOperation"
+          x-go-name: KeyOperations
+          x-go-type-skip-optional-pointer: true
+        kid:
+          default: (RFC7517 4.5.) Key ID
+          type: string
+          x-go-name: KeyID
+          x-go-type-skip-optional-pointer: true
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+          x-go-name: CurveName
+          x-go-type-skip-optional-pointer: true
+        x:
+          description: X component of an EC public key.
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-type-skip-optional-pointer: true
+        y:
+          description: Y component of an EC public key
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-type-skip-optional-pointer: true
+        n:
+          description: RSA modulus
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-type-skip-optional-pointer: true
+        e:
+          description: RSA public exponent
+          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
+          x-go-type-skip-optional-pointer: true
+      required:
+        - kty
+      x-go-type: cloudkey.JsonWebSignatureKey
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     JsonWebKey:
       type: object
       properties:
@@ -208,6 +255,7 @@ components:
           items:
             $ref: "#/components/schemas/JsonWebKeyOperation"
           x-go-name: KeyOperations
+          x-go-type-skip-optional-pointer: true
         crv:
           $ref: "#/components/schemas/JsonWebKeyCurveName"
           x-go-name: CurveName

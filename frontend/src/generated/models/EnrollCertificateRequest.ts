@@ -19,12 +19,12 @@ import {
     EnrollmentTypeFromJSONTyped,
     EnrollmentTypeToJSON,
 } from './EnrollmentType';
-import type { JsonWebKey } from './JsonWebKey';
+import type { JsonWebSignatureKey } from './JsonWebSignatureKey';
 import {
-    JsonWebKeyFromJSON,
-    JsonWebKeyFromJSONTyped,
-    JsonWebKeyToJSON,
-} from './JsonWebKey';
+    JsonWebSignatureKeyFromJSON,
+    JsonWebSignatureKeyFromJSONTyped,
+    JsonWebSignatureKeyToJSON,
+} from './JsonWebSignatureKey';
 
 /**
  * 
@@ -40,10 +40,10 @@ export interface EnrollCertificateRequest {
     enrollmentType: EnrollmentType;
     /**
      * 
-     * @type {JsonWebKey}
+     * @type {JsonWebSignatureKey}
      * @memberof EnrollCertificateRequest
      */
-    publicKey: JsonWebKey;
+    publicKey: JsonWebSignatureKey;
     /**
      * Signed JWT to show proof of possession of the private key
      * @type {string}
@@ -81,7 +81,7 @@ export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'enrollmentType': EnrollmentTypeFromJSON(json['enrollmentType']),
-        'publicKey': JsonWebKeyFromJSON(json['publicKey']),
+        'publicKey': JsonWebSignatureKeyFromJSON(json['publicKey']),
         'proof': json['proof'],
         'force': !exists(json, 'force') ? undefined : json['force'],
     };
@@ -97,7 +97,7 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     return {
         
         'enrollmentType': EnrollmentTypeToJSON(value.enrollmentType),
-        'publicKey': JsonWebKeyToJSON(value.publicKey),
+        'publicKey': JsonWebSignatureKeyToJSON(value.publicKey),
         'proof': value.proof,
         'force': value.force,
     };

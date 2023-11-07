@@ -215,7 +215,9 @@ func (d *BaseDoc) PopulateModelRef(m *ResourceReference) {
 		return
 	}
 	m.ID = d.ID
-	m.Updated = d.Timestamp.Time
+	if d.Timestamp != nil {
+		m.Updated = d.Timestamp.Time
+	}
 	m.Deleted = d.Deleted
 	m.UpdatedBy = &d.UpdatedBy
 }

@@ -37,6 +37,8 @@ import {
   NamespaceContext,
 } from "./contexts/NamespaceContext";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useAppAuthContext } from "../auth/AuthProvider";
+import { CertWebEnroll } from "./CertWebEnroll";
 
 function RequestCertificateControl({
   certPolicyId,
@@ -45,7 +47,8 @@ function RequestCertificateControl({
   certPolicyId: string;
   onComplete?: () => void;
 }) {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const [force, setForce] = useState(false);
   const { run: issueCert, loading } = useRequest(
@@ -106,7 +109,8 @@ function CertPolicyForm({
   onChange?: (value: CertPolicy | undefined) => void;
 }) {
   const [form] = useForm<CertPolicyFormState>();
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
 
@@ -483,7 +487,7 @@ export default function CertPolicyPage() {
   };
   const navigate = useNavigate();
   const certPolicyId = _certPolicyId === "_create" ? "" : _certPolicyId;
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
   const { data, mutate } = useRequest(
     async () => {
@@ -491,13 +495,13 @@ export default function CertPolicyPage() {
         return await adminApi.getCertPolicy({
           namespaceKind,
           resourceId: certPolicyId,
-          namespaceId: namespaceIdentifier,
+          namespaceId,
         });
       }
       return undefined;
     },
     {
-      refreshDeps: [certPolicyId, namespaceIdentifier, namespaceKind],
+      refreshDeps: [certPolicyId, namespaceId, namespaceKind],
     }
   );
 
@@ -505,14 +509,14 @@ export default function CertPolicyPage() {
     async () => {
       if (certPolicyId) {
         return await adminApi.listCertificates({
-          namespaceId: namespaceIdentifier,
+          namespaceId,
           namespaceKind,
           policyId: certPolicyId,
         });
       }
       return undefined;
     },
-    { refreshDeps: [namespaceIdentifier, certPolicyId] }
+    { refreshDeps: [namespaceId, certPolicyId] }
   );
 
   const onMutate = useMemoizedFn((value: CertPolicy | undefined) => {
@@ -532,14 +536,16 @@ export default function CertPolicyPage() {
   } = useContext(NamespaceConfigContext);
 
   const certListColumns = useCertTableColumns(issuerRule?.certificateId);
+  const { isAdmin } = useAppAuthContext();
+
   return (
     <>
       <Typography.Title>
         Certificate Policy: {certPolicyId || "new policy"}
       </Typography.Title>
       <div className="font-mono">
-        {namespaceKind}:{namespaceIdentifier}:
-        {ResourceKind.ResourceKindCertPolicy}/{certPolicyId}
+        {namespaceKind}:{namespaceId}:{ResourceKind.ResourceKindCertPolicy}/
+        {certPolicyId}
       </div>
       <Card title="Certificate list">
         <Table<CertificateRef>
@@ -548,52 +554,59 @@ export default function CertPolicyPage() {
           rowKey={(r) => r.id}
         />
       </Card>
-      <Card title="Manage certificates">
-        <div className="space-y-4">
-          <RequestCertificateControl
-            certPolicyId={certPolicyId}
-            onComplete={refreshCertificates}
-          />
-          {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
-            namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
-            (certPolicyId !== issuerRule?.policyId ? (
-              <Button
-                onClick={() => {
-                  setIssuerRule({ policyId: certPolicyId });
-                }}
-              >
-                Set as issuer policy
-              </Button>
-            ) : (
-              <Tag color="blue">Current issuer policy</Tag>
-            ))}
-          {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
-            <div className="flex gap-4 items-center">
-              <Button
-                onClick={() => {
-                  setEntraClientCred({ policyId: certPolicyId });
-                }}
-              >
-                Set as Microsoft Entra ID client credential policy
-              </Button>
-              {certPolicyId === entraClientCred?.policyId && (
-                <Tag color="blue">
-                  Current Microsoft Entra ID client credential policy
-                </Tag>
-              )}
-            </div>
-          )}
-        </div>
-      </Card>
+      {isAdmin && (
+        <Card title="Manage certificates">
+          <div className="space-y-4">
+            <RequestCertificateControl
+              certPolicyId={certPolicyId}
+              onComplete={refreshCertificates}
+            />
+            {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
+              namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
+              (certPolicyId !== issuerRule?.policyId ? (
+                <Button
+                  onClick={() => {
+                    setIssuerRule({ policyId: certPolicyId });
+                  }}
+                >
+                  Set as issuer policy
+                </Button>
+              ) : (
+                <Tag color="blue">Current issuer policy</Tag>
+              ))}
+            {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
+              <div className="flex gap-4 items-center">
+                <Button
+                  onClick={() => {
+                    setEntraClientCred({ policyId: certPolicyId });
+                  }}
+                >
+                  Set as Microsoft Entra ID client credential policy
+                </Button>
+                {certPolicyId === entraClientCred?.policyId && (
+                  <Tag color="blue">
+                    Current Microsoft Entra ID client credential policy
+                  </Tag>
+                )}
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />
       </Card>
-      <Card title="Create or update certificate policy">
-        <CertPolicyForm
-          certPolicyId={certPolicyId}
-          value={data}
-          onChange={onMutate}
-        />
+      {isAdmin && (
+        <Card title="Create or update certificate policy">
+          <CertPolicyForm
+            certPolicyId={certPolicyId}
+            value={data}
+            onChange={onMutate}
+          />
+        </Card>
+      )}
+      <Card title="Certificate web enrollment">
+        <CertWebEnroll certPolicy={data} />
       </Card>
     </>
   );

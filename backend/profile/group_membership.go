@@ -43,7 +43,7 @@ func (s *server) SyncGroupMemberOf(ec echo.Context, namespaceKind base.Namespace
 	}
 	nsID := base.IDFromUUID(nsUUID)
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, nsID)
+	c = ns.WithNSContext(c, namespaceKind, nsID)
 	var gclient *msgraphsdkgo.GraphServiceClient
 	var err error
 	c, gclient, err = graph.WithDelegatedMsGraphClient(c)
@@ -82,7 +82,7 @@ func (s *server) ListGroupMemberOf(ec echo.Context, nsKind base.NamespaceKind, n
 		return s.RespondRequireAdmin(c)
 	}
 	nsID := base.IDFromUUID(nsUUID)
-	c = ns.WithDefaultNSContext(c, nsKind, nsID)
+	c = ns.WithNSContext(c, nsKind, nsID)
 	qb := base.NewDefaultCosmoQueryBuilder().WithExtraColumns(QueryColumnDisplayName).
 		WithWhereClauses("c.relType = '" + RelTypeGroupMemberOf + "'")
 	pager := base.NewQueryDocPager[*GroupMembershipDoc](c, qb, base.NewDocNamespacePartitionKey(nsKind, nsID, base.ResourceKindNamespaceConfig))

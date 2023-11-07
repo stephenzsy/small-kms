@@ -44,7 +44,7 @@ func GetNSContext(c context.Context) NSContext {
 	return c.Value(nsContextKey).(NSContext)
 }
 
-func WithDefaultNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id base.ID) ctx.RequestContext {
+func WithNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id base.ID) ctx.RequestContext {
 	nsCtx := &nsContext{
 		kind: kind,
 		id:   id,

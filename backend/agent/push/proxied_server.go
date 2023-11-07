@@ -74,7 +74,7 @@ func (s *proxiedServer) delegateRequest(ec echo.Context,
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	client, err := s.getProxiedClient(c, rID, *delegatedAuthToken)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.Names
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	// proxiedClient
 	client, err := s.getProxiedClient(c, rID, *params.XCryptocatProxyAuthorization)
 	if err != nil {
@@ -159,7 +159,7 @@ func (s *proxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceKind base.
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	// proxiedClient
 	client, err := s.getProxiedClient(c, rID, *params.XCryptocatProxyAuthorization)
 	if err != nil {

@@ -89,8 +89,8 @@ func (d *CertPolicyDoc) init(
 			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(int32(2048)),
 			KeyOperations: []key.JsonWebKeyOperation{
-				key.JsonWebKeyOperationSign,
-				key.JsonWebKeyOperationVerify,
+				cloudkey.JsonWebKeyOperationSign,
+				cloudkey.JsonWebKeyOperationVerify,
 			},
 		}
 	} else {
@@ -147,8 +147,8 @@ func (d *CertPolicyDoc) init(
 		}
 		if len(ks.KeyOperations) == 0 {
 			d.KeySpec.KeyOperations = []key.JsonWebKeyOperation{
-				key.JsonWebKeyOperationSign,
-				key.JsonWebKeyOperationVerify,
+				cloudkey.JsonWebKeyOperationSign,
+				cloudkey.JsonWebKeyOperationVerify,
 			}
 		} else {
 			d.KeySpec.KeyOperations = ks.KeyOperations

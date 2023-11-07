@@ -121,7 +121,8 @@ func createCertFromPolicy(c context.Context, policyLocator base.DocFullIdentifie
 			return nil, err
 		}
 	case base.NamespaceKindIntermediateCA,
-		base.NamespaceKindServicePrincipal:
+		base.NamespaceKindServicePrincipal,
+		base.NamespaceKindUser:
 		c = ctx.Elevate(c)
 		// load certDoc of signer
 		issuerNamespace := policyDoc.IssuerNamespace

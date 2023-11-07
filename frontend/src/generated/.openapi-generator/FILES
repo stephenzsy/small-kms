@@ -33,6 +33,7 @@ models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeySignatureAlgorithm.ts
 models/JsonWebKeyType.ts
+models/JsonWebSignatureKey.ts
 models/KeyAttributes.ts
 models/KeySpec.ts
 models/LaunchAgentRequest.ts

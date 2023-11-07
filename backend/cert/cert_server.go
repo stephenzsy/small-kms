@@ -77,7 +77,7 @@ func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind b
 	if !auth.AuthorizeAdminOnly(c) {
 		return c, base.ErrResponseStatusForbidden
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	return c, nil
 }
 
@@ -101,7 +101,7 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKin
 		namespaceIdentifier = base.IDFromUUID(namespaceUUID)
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 
 	r, err := apiGetCertificate(c, resourceIdentifier, true)
 	if err != nil {
@@ -149,16 +149,6 @@ func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, n
 	m := new(Certificate)
 	r.PopulateModel(m)
 	return c.JSON(http.StatusCreated, m)
-}
-
-// GetCertPolicy implements ServerInterface.
-func (s *server) GetCertPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return apiGetCertPolicy(c, resourceIdentifier)
 }
 
 // PutCertPolicy implements ServerInterface.

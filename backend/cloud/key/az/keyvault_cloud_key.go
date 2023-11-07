@@ -54,7 +54,7 @@ func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.Json
 	keyID := string(*kvKey.KID)
 	r := &i.JsonWebKey[i.JsonWebSignatureAlgorithm]{
 		KeyType: ktyReverseMapping[*kvKey.Kty],
-		KeyID:   &keyID,
+		KeyID:   keyID,
 		X:       kvKey.X,
 		Y:       kvKey.Y,
 		N:       kvKey.N,
@@ -62,7 +62,7 @@ func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.Json
 	}
 	if kvKey.Crv != nil {
 		crv := crvReverseMapping[*kvKey.Crv]
-		r.CurveName = &crv
+		r.CurveName = crv
 	}
 	return r
 }

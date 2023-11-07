@@ -96,7 +96,8 @@ function AgentConfigServerFormCard({
   const [form] = useForm<AgentServerConfigFormState>();
   const certPolicies = useCertPolicies();
   const certPolicyOptions = useCertPolicyOptions(certPolicies);
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { data: agentServerConfig, run } = useRequest(
@@ -265,7 +266,8 @@ function useAgentInstanceColumns(
 }
 
 export function AgentInstancesList() {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { data } = useRequest(
@@ -301,11 +303,11 @@ export default function ProvisionAgentPage({
       isGlobalConfig
         ? {
             namespaceKind: NamespaceKind.NamespaceKindSystem,
-            namespaceIdentifier: "default",
+            namespaceId: "default",
           }
         : {
             namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
-            namespaceIdentifier: managedApp?.servicePrincipalId ?? "",
+            namespaceId: managedApp?.servicePrincipalId ?? "",
           },
     [isGlobalConfig, managedApp]
   );

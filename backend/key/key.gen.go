@@ -17,16 +17,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for JsonWebKeyOperation.
-const (
-	JsonWebKeyOperationDecrypt   JsonWebKeyOperation = "decrypt"
-	JsonWebKeyOperationEncrypt   JsonWebKeyOperation = "encrypt"
-	JsonWebKeyOperationSign      JsonWebKeyOperation = "sign"
-	JsonWebKeyOperationUnwrapKey JsonWebKeyOperation = "unwrapKey"
-	JsonWebKeyOperationVerify    JsonWebKeyOperation = "verify"
-	JsonWebKeyOperationWrapKey   JsonWebKeyOperation = "wrapKey"
-)
-
 // Defines values for JsonWebKeySignatureAlgorithm.
 const (
 	JsonWebKeySignatureAlgorithmES256 JsonWebKeySignatureAlgorithm = "ES256"
@@ -44,7 +34,7 @@ const (
 type JsonWebKey struct {
 	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
 	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
-	KeyOperations *[]JsonWebKeyOperation                `json:"key_ops,omitempty"`
+	KeyOperations []JsonWebKeyOperation                 `json:"key_ops,omitempty"`
 	KeyID         *string                               `json:"kid,omitempty"`
 	Kty           JsonWebKeyType                        `json:"kty"`
 	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
@@ -62,13 +52,16 @@ type JsonWebKey struct {
 type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
 
 // JsonWebKeyOperation defines model for JsonWebKeyOperation.
-type JsonWebKeyOperation string
+type JsonWebKeyOperation = cloudkey.JsonWebKeyOperation
 
 // JsonWebKeySignatureAlgorithm defines model for JsonWebKeySignatureAlgorithm.
 type JsonWebKeySignatureAlgorithm string
 
 // JsonWebKeyType defines model for JsonWebKeyType.
 type JsonWebKeyType = cloudkey.JsonWebKeyType
+
+// JsonWebSignatureKey defines model for JsonWebSignatureKey.
+type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
 
 // JsonWeyKeySize defines model for JsonWeyKeySize.
 type JsonWeyKeySize = int32

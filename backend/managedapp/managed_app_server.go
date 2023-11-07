@@ -22,7 +22,7 @@ func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKin
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	return apiCreateAgentInstanceProxyAuthToken(c, resourceIdentifier)
 }
 
@@ -33,7 +33,7 @@ func (s *server) GetAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 
 	return apiGetAgentInstance(c, resourceIdentifier)
 }
@@ -46,7 +46,7 @@ func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.Namespac
 		return s.RespondRequireAdmin(c)
 	}
 
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 	return apiListAgentInstances(c)
 }
 
@@ -59,7 +59,7 @@ func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 	} else if !utils.IsUUIDNil(nsUUID) {
 		nsID = base.IDFromUUID(nsUUID)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, nsID)
+	c = ns.WithNSContext(c, namespaceKind, nsID)
 	fields := AgentInstanceFields{}
 	if err := c.Bind(&fields); err != nil {
 		return err
@@ -74,7 +74,7 @@ func (s *server) ListAgentServerAzureRoleAssignments(ec echo.Context, namespaceK
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 
 	return s.apiListAgentConfigServerRoleAssignments(c)
 }
@@ -109,7 +109,7 @@ func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 	} else if !utils.IsUUIDNil(nsUUID) {
 		nsID = base.IDFromUUID(nsUUID)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, nsID)
+	c = ns.WithNSContext(c, namespaceKind, nsID)
 
 	return apiGetAgentConfigServer(c)
 }
@@ -120,7 +120,7 @@ func (s *server) PutAgentConfigServer(ec echo.Context, namespaceKind base.Namesp
 	if !auth.AuthorizeAdminOnly(c) {
 		return s.RespondRequireAdmin(c)
 	}
-	c = ns.WithDefaultNSContext(c, namespaceKind, namespaceIdentifier)
+	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 
 	param := &AgentConfigServerFields{}
 	if err := c.Bind(param); err != nil {

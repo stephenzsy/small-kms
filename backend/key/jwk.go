@@ -8,6 +8,7 @@ import (
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
+// Deprecated in favor of cloud/key
 func (jwk *JsonWebKey) AsRsaPubicKey() (*rsa.PublicKey, error) {
 	if jwk.Kty != cloudkey.KeyTypeRSA || jwk.E == nil || jwk.N == nil {
 		return nil, fmt.Errorf("invalid public key type")

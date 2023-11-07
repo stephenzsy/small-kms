@@ -125,7 +125,7 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 		Y:                d.KeySpec.Y,
 		X5t:              d.KeySpec.X5t,
 		X5tS256:          d.KeySpec.X5tS256,
-		KeyOperations:    &d.KeySpec.KeyOperations,
+		KeyOperations:    d.KeySpec.KeyOperations,
 		KeyID:            d.KeySpec.KeyID,
 		CertificateChain: d.KeySpec.CertificateChain,
 	}

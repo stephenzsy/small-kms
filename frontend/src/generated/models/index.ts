@@ -32,6 +32,7 @@ export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeySignatureAlgorithm';
 export * from './JsonWebKeyType';
+export * from './JsonWebSignatureKey';
 export * from './KeyAttributes';
 export * from './KeySpec';
 export * from './LaunchAgentRequest';

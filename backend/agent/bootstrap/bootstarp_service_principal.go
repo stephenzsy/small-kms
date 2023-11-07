@@ -20,7 +20,6 @@ import (
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
-	"github.com/stephenzsy/small-kms/backend/key"
 )
 
 type ServicePrincipalBootstraper struct {
@@ -130,9 +129,9 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 	return nil
 }
 
-func toJwk(k crypto.PublicKey) (jwk key.JsonWebKey) {
+func toJwk(k crypto.PublicKey) (jwk cloudkey.JsonWebSignatureKey) {
 	if rsaPubKey, ok := k.(*rsa.PublicKey); ok {
-		jwk.Kty = cloudkey.KeyTypeRSA
+		jwk.KeyType = cloudkey.KeyTypeRSA
 		jwk.N = base.Base64RawURLEncodedBytes(rsaPubKey.N.Bytes())
 		jwk.E = base.Base64RawURLEncodedBytes(big.NewInt(int64(rsaPubKey.E)).Bytes())
 	}

@@ -11,6 +11,7 @@ import {
   useContext,
   useEffect,
   type PropsWithChildren,
+  useMemo,
 } from "react";
 
 const pca = new PublicClientApplication({
@@ -30,11 +31,13 @@ export interface IAppAuthContext {
   account?: AccountInfo;
   logout: () => void;
   acquireToken: () => Promise<AuthenticationResult | void>;
+  readonly isAdmin: boolean;
 }
 
 export const AppAuthContext = createContext<IAppAuthContext>({
   logout: () => {},
   acquireToken: () => Promise.resolve(undefined),
+  isAdmin: false,
 });
 
 function AuthContextProvider({ children }: PropsWithChildren<{}>) {
@@ -67,12 +70,18 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       acquireToken();
     }
   }, [inProgress, account]);
+  const isAdmin = useMemo(
+    () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
+    [account]
+  );
+
   return (
     <AppAuthContext.Provider
       value={{
         account: account ?? undefined,
         logout,
         acquireToken,
+        isAdmin,
       }}
     >
       {children}

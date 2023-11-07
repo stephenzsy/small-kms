@@ -46,7 +46,7 @@ func (s *server) ListProfiles(ec echo.Context, profileResourceKind base.Resource
 	if err != nil {
 		return err
 	}
-	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+	c = ns.WithNSContext(c, base.NamespaceKindProfile, nsId)
 	return apiListProfiles(c, profileResourceKind)
 }
 
@@ -87,7 +87,7 @@ func (s *server) PutProfile(ec echo.Context, profileResourceKind base.ResourceKi
 	if err != nil {
 		return err
 	}
-	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+	c = ns.WithNSContext(c, base.NamespaceKindProfile, nsId)
 
 	r, err := putProfile(c, profileResourceKind, namespaceIdentifier, params)
 	if err != nil {
@@ -113,7 +113,7 @@ func (s *server) ImportProfile(ec echo.Context,
 	if err != nil {
 		return err
 	}
-	c = ns.WithDefaultNSContext(c, base.NamespaceKindProfile, nsId)
+	c = ns.WithNSContext(c, base.NamespaceKindProfile, nsId)
 
 	r, err := importProfile(c, profileResourceKind, namespaceIdentifier)
 	if err != nil {

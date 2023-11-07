@@ -447,7 +447,7 @@ components:
         enrollmentType:
           $ref: "#/components/schemas/EnrollmentType"
         publicKey:
-          $ref: "oapi-key.yaml#/components/schemas/JsonWebKey"
+          $ref: "oapi-key.yaml#/components/schemas/JsonWebSignatureKey"
         proof:
           description: Signed JWT to show proof of possession of the private key
           type: string
