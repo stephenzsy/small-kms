@@ -70,6 +70,7 @@ func GetKeyStoreName(nsKind base.NamespaceKind, nsID ID, policyIdentifier ID) st
 }
 
 func (d *CertDoc) init(
+	c context.Context,
 	nsKind base.NamespaceKind,
 	nsID ID,
 	pDoc *CertPolicyDoc) error {
@@ -85,7 +86,9 @@ func (d *CertDoc) init(
 	d.Status = CertificateStatusPending
 	d.KeySpec = pDoc.KeySpec
 	d.KeyExportable = pDoc.KeyExportable
-	d.Subject = pDoc.Subject
+	if d.Subject, err = pDoc.Subject.processTemplate(c); err != nil {
+		return err
+	}
 	d.SANs = pDoc.SANs
 	d.Flags = pDoc.Flags
 	d.Policy = pDoc.GetStorageFullIdentifier()

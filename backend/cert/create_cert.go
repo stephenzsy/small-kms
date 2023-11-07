@@ -97,7 +97,7 @@ func createCertFromPolicy(c context.Context, policyLocator base.DocLocator, publ
 
 	doc := new(CertDoc)
 	nsCtx := ns.GetNSContext(c)
-	doc.init(nsCtx.Kind(), nsCtx.ID(), policyDoc)
+	doc.init(c, nsCtx.Kind(), nsCtx.ID(), policyDoc)
 	docService := base.GetAzCosmosCRUDService(c)
 
 	switch nsCtx.Kind() {
