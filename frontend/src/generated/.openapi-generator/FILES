@@ -28,6 +28,7 @@ models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
 models/EnrollCertificateRequest.ts
 models/EnrollmentType.ts
+models/GenerateSecret201Response.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
@@ -51,6 +52,8 @@ models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts
 models/ResourceReference.ts
+models/Secret.ts
+models/SecretFields.ts
 models/SecretGenerateMode.ts
 models/SecretMount.ts
 models/SecretPolicy.ts
@@ -59,6 +62,8 @@ models/SecretPolicyParameters.ts
 models/SecretPolicyRef.ts
 models/SecretPolicyRefFields.ts
 models/SecretRandomCharacterClass.ts
+models/SecretRef.ts
+models/SecretRefFields.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts

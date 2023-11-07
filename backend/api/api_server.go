@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/rs/zerolog/log"
@@ -42,6 +43,7 @@ type apiServer struct {
 	azKeyVaultEndpoint      string
 	azCertificatesClient    *azcertificates.Client
 	azKeysClient            *azkeys.Client
+	azSecretsClient         *azsecrets.Client
 	appConfidentialIdentity auth.AzureAppConfidentialIdentity
 	buildID                 string
 	azSubscriptionID        string
@@ -54,6 +56,11 @@ type apiServer struct {
 	azCosmosDatabaseClient  *azcosmos.DatabaseClient
 	azCosmosContainerID     string
 	azCosmosContainerClient *azcosmos.ContainerClient
+}
+
+// AzSecretsClient implements kv.AzKeyVaultService.
+func (s *apiServer) AzSecretsClient() *azsecrets.Client {
+	return s.azSecretsClient
 }
 
 // GetBuildID implements APIServer.
@@ -172,6 +179,9 @@ func NewApiServer(c context.Context, buildID string) (*apiServer, error) {
 		return s, err
 	}
 	if s.azCertificatesClient, err = azcertificates.NewClient(s.azKeyVaultEndpoint, s.ServiceIdentity().TokenCredential(), nil); err != nil {
+		return s, err
+	}
+	if s.azSecretsClient, err = azsecrets.NewClient(s.azKeyVaultEndpoint, s.ServiceIdentity().TokenCredential(), nil); err != nil {
 		return s, err
 	}
 

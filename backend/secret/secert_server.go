@@ -34,17 +34,6 @@ func (s *server) ListSecretPolicies(ec echo.Context, namespaceKind base.Namespac
 	return apiListSecretPolicies(c)
 }
 
-// ListSecretPolicy implements ServerInterface.
-func (s *server) GetSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
-	c := ec.(ctx.RequestContext)
-	c, err := s.withAdminAccessAndNamespaceCtx(c, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return apiGetSecretPolicy(c, resourceIdentifier)
-}
-
 // PutSecretPolicy implements ServerInterface.
 func (s *server) PutSecretPolicy(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)

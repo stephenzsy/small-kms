@@ -32,7 +32,8 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
   const [form] = useForm<SecretPolicyFormState>();
   const newPolicyId = useWatch("identifier", form);
   const generateMode = useWatch("mode", form);
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
 
   const api = useAuthedClient(AdminApi);
   const { run } = useRequest(
@@ -108,8 +109,45 @@ function SecretPolicyForm({ policyId }: { policyId: string }) {
   );
 }
 
+function GenerateSecretControl({
+  policyId,
+  onComplete,
+}: {
+  policyId: string;
+  onComplete?: () => void;
+}) {
+  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
+  const adminApi = useAuthedClient(AdminApi);
+  const { run: generateSecret, loading } = useRequest(
+    async () => {
+      await adminApi.generateSecret({
+        resourceId: policyId,
+        namespaceId: namespaceId,
+        namespaceKind,
+      });
+      onComplete?.();
+    },
+    { manual: true }
+  );
+
+  return (
+    <div className="flex gap-8 items-center">
+      <Button
+        loading={loading}
+        type="primary"
+        onClick={() => {
+          generateSecret();
+        }}
+      >
+        Request certificate
+      </Button>
+    </div>
+  );
+}
+
 export default function SecretPolicyPage() {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const _policyId = useParams().policyId;
   const policyId = _policyId === "_create" ? "" : _policyId;
 
@@ -134,7 +172,7 @@ export default function SecretPolicyPage() {
   return (
     <>
       <Typography.Title>
-        Certificate Policy: {policyId || "new policy"}
+        Secret Policy: {policyId || "new policy"}
       </Typography.Title>
       <div className="font-mono">
         {namespaceKind}:{namespaceIdentifier}:
@@ -148,41 +186,12 @@ export default function SecretPolicyPage() {
         />
       </Card>} */}
       <Card title="Manage secrets">
-        {/* <div className="space-y-4">
-          <RequestCertificateControl
-            certPolicyId={certPolicyId}
-            onComplete={refreshCertificates}
+        {policyId && (
+          <GenerateSecretControl
+            policyId={policyId}
+            //  onComplete={refreshCertificates}
           />
-          {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
-            namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
-            (certPolicyId !== issuerRule?.policyId ? (
-              <Button
-                onClick={() => {
-                  setIssuerRule({ policyId: certPolicyId });
-                }}
-              >
-                Set as issuer policy
-              </Button>
-            ) : (
-              <Tag color="blue">Current issuer policy</Tag>
-            ))}
-          {namespaceKind === NamespaceKind.NamespaceKindServicePrincipal && (
-            <div className="flex gap-4 items-center">
-              <Button
-                onClick={() => {
-                  setEntraClientCred({ policyId: certPolicyId });
-                }}
-              >
-                Set as Microsoft Entra ID client credential policy
-              </Button>
-              {certPolicyId === entraClientCred?.policyId && (
-                <Tag color="blue">
-                  Current Microsoft Entra ID client credential policy
-                </Tag>
-              )}
-            </div>
-          )}
-              </div> */}
+        )}
       </Card>
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />

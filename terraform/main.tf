@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.76.0"
+      version = "~> 3.79.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -11,7 +11,7 @@ terraform {
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "~> 2.43.0"
+      version = "~> 2.45.0"
     }
   }
 }
@@ -225,7 +225,7 @@ resource "azurerm_container_app" "backend" {
 
       env {
         name  = "APP_AZURE_CLIENT_ID"
-        value = data.azuread_application.authApp.application_id
+        value = data.azuread_application.authApp.client_id
       }
 
       env {
@@ -301,6 +301,12 @@ resource "azurerm_user_assigned_identity" "deployment" {
   }
 }
 
+resource "azurerm_role_assignment" appKeyVaultSecretsOfficer {
+  scope                = azurerm_key_vault.default.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = azurerm_user_assigned_identity.backendManagedIdentity.principal_id
+}
+
 resource "azurerm_role_assignment" "deploymentAcrPush" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
@@ -329,7 +335,7 @@ resource "azurerm_federated_identity_credential" "deploymentGHA" {
 }
 
 data "azuread_application" "authApp" {
-  application_id = var.aad_auth_app_id
+  client_id = var.aad_auth_app_id
 }
 
 resource "azurerm_servicebus_namespace" "default" {

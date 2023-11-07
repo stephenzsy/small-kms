@@ -27,6 +27,16 @@ const (
 	SecretRandomCharClassBase64RawURL SecretRandomCharacterClass = "base64-raw-url"
 )
 
+// Secret defines model for Secret.
+type Secret = secretComposed
+
+// SecretFields defines model for SecretFields.
+type SecretFields struct {
+	ContentType string `json:"contentType,omitempty"`
+	Sid         string `json:"sid,omitempty"`
+	Value       string `json:"value,omitempty"`
+}
+
 // SecretGenerateMode defines model for SecretGenerateMode.
 type SecretGenerateMode string
 
@@ -63,6 +73,14 @@ type SecretPolicyRefFields struct {
 // SecretRandomCharacterClass defines model for SecretRandomCharacterClass.
 type SecretRandomCharacterClass string
 
+// SecretRef defines model for SecretRef.
+type SecretRef = secretRefComposed
+
+// SecretRefFields defines model for SecretRefFields.
+type SecretRefFields struct {
+	Version string `json:"version"`
+}
+
 // SecretPolicyResponse defines model for SecretPolicyResponse.
 type SecretPolicyResponse = SecretPolicy
 
@@ -80,6 +98,9 @@ type ServerInterface interface {
 	// Put key spec
 	// (PUT /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId})
 	PutSecretPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	// Generate secret
+	// (POST /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}/generate)
+	GenerateSecret(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -181,6 +202,40 @@ func (w *ServerInterfaceWrapper) PutSecretPolicy(ctx echo.Context) error {
 	return err
 }
 
+// GenerateSecret converts echo context to params.
+func (w *ServerInterfaceWrapper) GenerateSecret(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GenerateSecret(ctx, namespaceKind, namespaceId, resourceId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -212,5 +267,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies", wrapper.ListSecretPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies/:resourceId", wrapper.GetSecretPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies/:resourceId", wrapper.PutSecretPolicy)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/secret-policies/:resourceId/generate", wrapper.GenerateSecret)
 
 }

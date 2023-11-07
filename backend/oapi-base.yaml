@@ -82,6 +82,7 @@ components:
         - cert
         - key-policy
         - secret-policy
+        - secret
         - ns-config
         - agent-instance
       x-enum-varnames:
@@ -95,6 +96,7 @@ components:
         - ResourceKindCert
         - ResourceKindKeyPolicy
         - ResourceKindSecretPolicy
+        - ResourceKindSecret
         - ResourceKindNamespaceConfig
         - ResourceKindAgentInstance
     NumericDate:

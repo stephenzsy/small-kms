@@ -271,7 +271,7 @@ export function CertWebEnroll({
 
   const [blobUrl, setBlobUrl] = useState<string>();
 
-  const [certBlob, cert] = data ?? [];
+  const [certBlob, enrolledCert] = data ?? [];
 
   useEffect(() => {
     if (certBlob) {
@@ -286,23 +286,23 @@ export function CertWebEnroll({
   return (
     <div className="space-y-4">
       <Alert type="info" message="Private key does not leave your browser" />
-      {!cert && (
+      {!enrolledCert && (
         <Button onClick={run} type="primary" loading={loading}>
           Begin enroll
         </Button>
       )}
-      {cert && (
+      {enrolledCert && (
         <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-4">
           <div className="text-lg font-semibold">Download certificate</div>
           <Alert
             type="warning"
-            message="This is the only time you can download the certificate. Please save it in a safe place."
+            message="This is the only time you zcan download the certificate. Please save it in a safe place."
           />
           {blobUrl && (
             <Button
               type="primary"
               href={blobUrl}
-              download={`${cert.id}.pem`}
+              download={`${enrolledCert.id}.pem`}
             >
               Download certificate
             </Button>

@@ -28,6 +28,7 @@ export const ResourceKind = {
     ResourceKindCert: 'cert',
     ResourceKindKeyPolicy: 'key-policy',
     ResourceKindSecretPolicy: 'secret-policy',
+    ResourceKindSecret: 'secret',
     ResourceKindNamespaceConfig: 'ns-config',
     ResourceKindAgentInstance: 'agent-instance'
 } as const;

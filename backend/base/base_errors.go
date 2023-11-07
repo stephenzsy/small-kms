@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/labstack/echo/v4"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
+	"github.com/rs/zerolog/log"
 )
 
 type HttpResponseError struct {
@@ -75,6 +76,7 @@ func HandleResponseError(next echo.HandlerFunc) echo.HandlerFunc {
 		if errors.As(err, &respErr) {
 			return c.JSON(respErr.StatusCode, map[string]string{"message": err.Error()})
 		}
+		log.Error().Err(err).Msg("internal error")
 		return err
 	}
 }

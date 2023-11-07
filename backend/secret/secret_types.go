@@ -12,4 +12,14 @@ type (
 		SecretPolicyRef
 		SecretPolicyFields
 	}
+
+	secretRefComposed struct {
+		base.ResourceReference
+		SecretRefFields
+	}
+
+	secretComposed struct {
+		SecretRef
+		SecretFields
+	}
 )

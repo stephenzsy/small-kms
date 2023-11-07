@@ -1,7 +1,6 @@
 package secret
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -109,23 +108,6 @@ func apiPutSecretPolicy(c ctx.RequestContext, policyIdentifier base.ID, p Secret
 		return err
 	}
 	if err := base.GetAzCosmosCRUDService(c).Upsert(c, doc, nil); err != nil {
-		return err
-	}
-	model := &SecretPolicy{}
-	doc.PopulateModel(model)
-	return c.JSON(http.StatusOK, model)
-}
-
-func apiGetSecretPolicy(c ctx.RequestContext, policyIdentifier base.ID) error {
-	nsCtx := ns.GetNSContext(c)
-	doc := &SecretPolicyDoc{}
-	if err := base.GetAzCosmosCRUDService(c).Read(c,
-		base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecretPolicy, policyIdentifier),
-		doc,
-		nil); err != nil {
-		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w, secret policy not found: %s", base.ErrResponseStatusNotFound, policyIdentifier)
-		}
 		return err
 	}
 	model := &SecretPolicy{}

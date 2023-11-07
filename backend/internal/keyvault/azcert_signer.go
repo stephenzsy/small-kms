@@ -51,7 +51,7 @@ type azcertKeyPair struct {
 // Cleanup implements AzCertCSRProvider.
 func (kp *azcertKeyPair) Cleanup(c context.Context) {
 	if !kp.skipCleanup {
-		client := getAzKeyVaultService(c).AzCertificatesClient()
+		client := GetAzKeyVaultService(c).AzCertificatesClient()
 
 		_, err := client.DeleteCertificateOperation(c, kp.csrParams.CertName, nil)
 		if err != nil {
@@ -62,7 +62,7 @@ func (kp *azcertKeyPair) Cleanup(c context.Context) {
 
 // CollectCerts implements AzCertCSRProvider.
 func (kp *azcertKeyPair) CollectCerts(c context.Context, certs [][]byte) (*azcertificates.MergeCertificateResponse, error) {
-	client := getAzKeyVaultService(c).AzCertificatesClient()
+	client := GetAzKeyVaultService(c).AzCertificatesClient()
 	resp, err := client.MergeCertificate(c, kp.csrParams.CertName, azcertificates.MergeCertificateParameters{
 		X509Certificates: certs,
 		CertificateAttributes: &azcertificates.CertificateAttributes{
@@ -95,7 +95,7 @@ func (kp *azcertKeyPair) GetCSRPublicKey(c context.Context) (crypto.PublicKey, e
 			return nil, err
 		}
 	}
-	client := getAzKeyVaultService(c).AzCertificatesClient()
+	client := GetAzKeyVaultService(c).AzCertificatesClient()
 	subject := pkix.Name{CommonName: "dummy cert"}.String()
 	params := azcertificates.CreateCertificateParameters{
 		CertificateAttributes: &azcertificates.CertificateAttributes{
@@ -130,7 +130,7 @@ func (kp *azcertKeyPair) Load(c context.Context) error {
 	if kp.isSelfSigning {
 		// elevate context to ignore cancellation
 
-		client := getAzKeyVaultService(c).AzCertificatesClient()
+		client := GetAzKeyVaultService(c).AzCertificatesClient()
 		subject := pkix.Name{CommonName: "dummy cert for key"}.String()
 		params := azcertificates.CreateCertificateParameters{
 			CertificateAttributes: &azcertificates.CertificateAttributes{
@@ -191,7 +191,7 @@ func (p *azcertKeyPair) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts)
 	if p.signingCtx == nil {
 		return nil, errors.New("signer not loaded")
 	}
-	resp, err := getAzKeyVaultService(*p.signingCtx).AzKeysClient().
+	resp, err := GetAzKeyVaultService(*p.signingCtx).AzKeysClient().
 		Sign(*p.signingCtx, p.signingParams.CertID.Name(), p.signingParams.CertID.Version(), azkeys.SignParameters{
 			Value:     digest,
 			Algorithm: &p.signingParams.SigAlg,

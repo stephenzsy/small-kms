@@ -113,6 +113,7 @@ export default function NamespacePage() {
             <Table<ResourceReference>
               dataSource={groupMemberOf}
               columns={groupMemberOfColumns}
+              rowKey="id"
             />
           </Card>
           <Card title="Sync group membership">
