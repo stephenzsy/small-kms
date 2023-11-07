@@ -12,6 +12,7 @@ import (
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/freeradius/config"
 )
 
 const (
@@ -37,6 +38,21 @@ type AgentConfig = agentConfigComposed
 type AgentConfigFields struct {
 	RefreshAfter time.Time `json:"refreshAfter"`
 	Version      string    `json:"version"`
+}
+
+// AgentConfigRadius defines model for AgentConfigRadius.
+type AgentConfigRadius = agentConfigRadiusComposed
+
+// AgentConfigRadiusClientConfig defines model for AgentConfigRadiusClientConfig.
+type AgentConfigRadiusClientConfig struct {
+	Config    externalRef1.ClientConfig    `json:"config"`
+	SecretRef externalRef0.ResourceLocator `json:"secretRef"`
+}
+
+// AgentConfigRadiusFields defines model for AgentConfigRadiusFields.
+type AgentConfigRadiusFields struct {
+	AzureACRImageRef string                          `json:"azureAcrImageRef"`
+	Clients          []AgentConfigRadiusClientConfig `json:"clients"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.
@@ -111,6 +127,9 @@ type ManagedAppIdParameter = openapi_types.UUID
 // CreateManagedAppJSONRequestBody defines body for CreateManagedApp for application/json ContentType.
 type CreateManagedAppJSONRequestBody = ManagedAppParameters
 
+// PutAgentConfigRadiusJSONRequestBody defines body for PutAgentConfigRadius for application/json ContentType.
+type PutAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
+
 // PutAgentConfigServerJSONRequestBody defines body for PutAgentConfigServer for application/json ContentType.
 type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
 
@@ -137,6 +156,12 @@ type ServerInterface interface {
 	// Sync managed app
 	// (POST /v1/system-app/{systemAppName})
 	SyncSystemApp(ctx echo.Context, systemAppName SystemAppName) error
+	// Get agent config radius
+	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
+	GetAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	// Put agent config radius
+	// (PUT /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
+	PutAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Get agent config server
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/server)
 	GetAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
@@ -256,6 +281,58 @@ func (w *ServerInterfaceWrapper) SyncSystemApp(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.SyncSystemApp(ctx, systemAppName)
+	return err
+}
+
+// GetAgentConfigRadius converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentConfigRadius(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentConfigRadius(ctx, namespaceKind, namespaceId)
+	return err
+}
+
+// PutAgentConfigRadius converts echo context to params.
+func (w *ServerInterfaceWrapper) PutAgentConfigRadius(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutAgentConfigRadius(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -499,6 +576,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/managed-app/:managedAppId", wrapper.SyncManagedApp)
 	router.GET(baseURL+"/v1/system-app/:systemAppName", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.GetAgentConfigRadius)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PutAgentConfigRadius)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.PutAgentConfigServer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server/role-assignments", wrapper.ListAgentServerAzureRoleAssignments)

@@ -27,7 +27,6 @@ export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
 export * from './EnrollCertificateRequest';
 export * from './EnrollmentType';
-export * from './GenerateSecret201Response';
 export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';

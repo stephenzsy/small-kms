@@ -27,4 +27,9 @@ type (
 		base.ResourceReference
 		AgentInstanceFields
 	}
+
+	agentConfigRadiusComposed struct {
+		AgentConfig
+		AgentConfigRadiusFields
+	}
 )

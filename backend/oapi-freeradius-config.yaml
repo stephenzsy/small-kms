@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: Small KMS Freeradius config models
+  version: 0.1.2
+servers:
+  - url: https://example.com
+    description: Local server
+paths: {}
+components:
+  schemas:
+    ClientConfig:
+      type: object
+      properties:
+        name:
+          type: string
+        ipaddr:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        # ipv4addr:
+        #   type: string
+        # ipv6addr:
+        #   type: string
+        # proto:
+        #   type: string
+        secret:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        # require_message_authenticator:
+        #   type: boolean
+        # limt:
+        #   title: ClientConfigLimit
+        #   type: object
+        #   properties:
+        #     max_connections:
+        #       type: integer
+        #     lifetime:
+        #       type: integer
+        #     idle_timeout:
+        #       type: integer
+      required:
+        - name

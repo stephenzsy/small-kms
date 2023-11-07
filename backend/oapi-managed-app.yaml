@@ -132,6 +132,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigServer"
+  /v1/{namespaceKind}/{namespaceId}/agent-config/radius:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+        - agentclient
+      operationId: GetAgentConfigRadius
+      summary: Get agent config radius
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConfigRadius"
+    put:
+      tags:
+        - admin
+      operationId: PutAgentConfigRadius
+      summary: Put agent config radius
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentConfigRadiusFields"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConfigRadius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -367,6 +402,34 @@ components:
         - jwtKeyCertPolicyId
         - jwtKeyCertIds
         - azureAcrImageRef
+    AgentConfigRadius:
+      allOf:
+        - $ref: "#/components/schemas/AgentConfig"
+        - $ref: "#/components/schemas/AgentConfigRadiusFields"
+        - x-go-type: agentConfigRadiusComposed
+    AgentConfigRadiusFields:
+      type: object
+      properties:
+        azureAcrImageRef:
+          type: string
+          x-go-name: AzureACRImageRef
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentConfigRadiusClientConfig"
+      required:
+        - azureAcrImageRef
+        - clients            
+    AgentConfigRadiusClientConfig:
+      type: object
+      properties:
+        config:
+          $ref: "oapi-freeradius-config.yaml#/components/schemas/ClientConfig"
+        secretRef:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+      required:
+        - config
+        - secretRef
     AzureRoleAssignment:
       type: object
       properties:

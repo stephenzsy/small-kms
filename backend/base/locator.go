@@ -23,7 +23,7 @@ func (i DocLocator) NamespaceID() ID {
 	return i.pKey.nsIdentifier.id
 }
 
-func (i DocLocator) ResourceIdentifier() ID {
+func (i DocLocator) ID() ID {
 	return i.docID
 }
 

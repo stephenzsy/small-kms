@@ -6,15 +6,18 @@ import {
   Input,
   InputNumber,
   Radio,
+  Table,
+  TableColumnType,
   Typography,
 } from "antd";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   AdminApi,
   ResourceKind,
   SecretGenerateMode,
   SecretPolicyParameters,
+  SecretRef,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
@@ -145,6 +148,54 @@ function GenerateSecretControl({
   );
 }
 
+function useSecretsTableColumns(activeIssuerCertificateId: string | undefined) {
+  return useMemo<TableColumnType<SecretRef>[]>(
+    () => [
+      {
+        title: "ID",
+        render: (r: SecretRef) => (
+          <>
+            <span className="font-mono">{r.id}</span>
+          </>
+        ),
+      },
+      {
+        title: "Version",
+        render: (r: SecretRef) => {
+          return <span className="font-mono">{r.version}</span>;
+        },
+      },
+      // {
+      //   title: "Expires",
+      //   render: (r: CertificateRef) => {
+      //     return (
+      //       <span className="font-mono">
+      //         {r.attributes.exp &&
+      //           dateShortFormatter.format(new Date(r.attributes.exp * 1000))}
+      //       </span>
+      //     );
+      //   },
+      // },
+      // {
+      //   title: "Status",
+      //   render: (r: CertificateRef) => {
+      //     if (r.deleted) {
+      //       return <Tag color="red">Deleted</Tag>;
+      //     } else if (!r.thumbprint) {
+      //       return <Tag color="yellow">Pending</Tag>;
+      //     }
+      //     return <Tag color="green">Issued</Tag>;
+      //   },
+      // },
+      // {
+      //   title: "Actions",
+      //   render: (r) => <CertificateActions certRef={r} />,
+      // },
+    ],
+    [activeIssuerCertificateId]
+  );
+}
+
 export default function SecretPolicyPage() {
   const { namespaceId: namespaceIdentifier, namespaceKind } =
     useContext(NamespaceContext);
@@ -157,18 +208,34 @@ export default function SecretPolicyPage() {
     run: refresh,
     mutate,
   } = useRequest(
-    async () =>
-      await api.getSecretPolicy({
+    async () => {
+      return await api.getSecretPolicy({
         namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
         resourceId: policyId!,
-      }),
+      });
+    },
     {
       refreshDeps: [policyId, namespaceIdentifier, namespaceKind],
       ready: !!policyId,
     }
   );
 
+  const { data: issuedSecrets, run: refreshSecrets } = useRequest(
+    async () => {
+      return await api.listSecrets({
+        namespaceId: namespaceIdentifier,
+        namespaceKind: namespaceKind,
+        policyId: policyId!,
+      });
+    },
+    {
+      refreshDeps: [policyId, namespaceIdentifier, namespaceKind],
+      ready: !!policyId,
+    }
+  );
+
+  const secretsTableColumns = useSecretsTableColumns(undefined);
   return (
     <>
       <Typography.Title>
@@ -178,18 +245,18 @@ export default function SecretPolicyPage() {
         {namespaceKind}:{namespaceIdentifier}:
         {ResourceKind.ResourceKindCertPolicy}/{policyId}
       </div>
-      {/* { <Card title="Certificate list">
-        <Table<CertificateRef>
-          columns={certListColumns}
-          dataSource={issuedCertificates}
-          rowKey={(r) => r.id}
+      <Card title="Secret list">
+        <Table<SecretRef>
+          columns={secretsTableColumns}
+          dataSource={issuedSecrets}
+          rowKey="id"
         />
-      </Card>} */}
+      </Card>
       <Card title="Manage secrets">
         {policyId && (
           <GenerateSecretControl
             policyId={policyId}
-            //  onComplete={refreshCertificates}
+            onComplete={refreshSecrets}
           />
         )}
       </Card>

@@ -78,6 +78,8 @@ paths:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secret-policies~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}/generate:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secret-policies~1{resourceId}~1generate"
+  /v1/{namespaceKind}/{namespaceId}/secrets:
+    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secrets"    
 components:
   securitySchemes:
     BearerAuth:

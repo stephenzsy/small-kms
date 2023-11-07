@@ -23,12 +23,18 @@ type SecretDoc struct {
 	KeyVaultStore SecretKeyVaultStore `json:"keyVaultStore"`
 }
 
+const (
+	secretDocQueryColumnVersion = "c.version"
+	secretDocQueryColumnCreated = "c.created"
+)
+
 func (d *SecretDoc) PopulateModelRef(r *SecretRef) {
 	if d == nil || r == nil {
 		return
 	}
 	d.BaseDoc.PopulateModelRef(&r.ResourceReference)
 	r.Version = d.Version
+	r.PolicyId = d.Policy.ID()
 }
 
 // PopulateModel implements base.ModelPopulater.

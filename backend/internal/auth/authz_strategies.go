@@ -8,6 +8,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
+// Deprecated use authz.AuthorizeAdminOnly instead.
 func AuthorizeAdminOnly(c context.Context) bool {
 	if identity, ok := c.Value(authIdentityContextKey).(AuthIdentity); ok {
 		return identity.HasAdminRole()

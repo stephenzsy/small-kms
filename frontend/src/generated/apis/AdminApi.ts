@@ -30,7 +30,6 @@ import type {
   CertificateRuleIssuer,
   CertificateRuleMsEntraClientCredential,
   EnrollCertificateRequest,
-  GenerateSecret201Response,
   LaunchAgentRequest,
   ManagedAppParameters,
   ManagedAppRef,
@@ -41,9 +40,11 @@ import type {
   RequestDiagnostics,
   ResourceKind,
   ResourceReference,
+  Secret,
   SecretPolicy,
   SecretPolicyParameters,
   SecretPolicyRef,
+  SecretRef,
   SystemAppName,
 } from '../models/index';
 import {
@@ -77,8 +78,6 @@ import {
     CertificateRuleMsEntraClientCredentialToJSON,
     EnrollCertificateRequestFromJSON,
     EnrollCertificateRequestToJSON,
-    GenerateSecret201ResponseFromJSON,
-    GenerateSecret201ResponseToJSON,
     LaunchAgentRequestFromJSON,
     LaunchAgentRequestToJSON,
     ManagedAppParametersFromJSON,
@@ -99,12 +98,16 @@ import {
     ResourceKindToJSON,
     ResourceReferenceFromJSON,
     ResourceReferenceToJSON,
+    SecretFromJSON,
+    SecretToJSON,
     SecretPolicyFromJSON,
     SecretPolicyToJSON,
     SecretPolicyParametersFromJSON,
     SecretPolicyParametersToJSON,
     SecretPolicyRefFromJSON,
     SecretPolicyRefToJSON,
+    SecretRefFromJSON,
+    SecretRefToJSON,
     SystemAppNameFromJSON,
     SystemAppNameToJSON,
 } from '../models/index';
@@ -325,6 +328,12 @@ export interface ListProfilesRequest {
 export interface ListSecretPoliciesRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
+}
+
+export interface ListSecretsRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    policyId?: string;
 }
 
 export interface PutAgentConfigServerRequest {
@@ -1150,7 +1159,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Generate secret
      */
-    async generateSecretRaw(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GenerateSecret201Response>> {
+    async generateSecretRaw(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Secret>> {
         if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
             throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling generateSecret.');
         }
@@ -1182,13 +1191,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => GenerateSecret201ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => SecretFromJSON(jsonValue));
     }
 
     /**
      * Generate secret
      */
-    async generateSecret(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GenerateSecret201Response> {
+    async generateSecret(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Secret> {
         const response = await this.generateSecretRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -2122,6 +2131,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listSecretPolicies(requestParameters: ListSecretPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SecretPolicyRef>> {
         const response = await this.listSecretPoliciesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List secrets
+     */
+    async listSecretsRaw(requestParameters: ListSecretsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SecretRef>>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listSecrets.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listSecrets.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.policyId !== undefined) {
+            queryParameters['policyId'] = requestParameters.policyId;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/secrets`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SecretRefFromJSON));
+    }
+
+    /**
+     * List secrets
+     */
+    async listSecrets(requestParameters: ListSecretsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SecretRef>> {
+        const response = await this.listSecretsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

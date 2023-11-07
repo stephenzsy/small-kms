@@ -28,7 +28,6 @@ models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
 models/EnrollCertificateRequest.ts
 models/EnrollmentType.ts
-models/GenerateSecret201Response.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts

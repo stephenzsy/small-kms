@@ -131,11 +131,11 @@ func (p *configProvisioner) provision(c context.Context) (*agentServerConfigurat
 	// pull jwk verification keys
 	verifyJwks := make([]key.JsonWebKey, 0, len(p.config.JWTKeyCertIDs))
 	for _, jwtCertID := range p.config.JWTKeyCertIDs {
-		jwkFilePath := filepath.Join(p.versionedDir, fmt.Sprintf("jwk-%s.json", jwtCertID.ResourceIdentifier()))
+		jwkFilePath := filepath.Join(p.versionedDir, fmt.Sprintf("jwk-%s.json", jwtCertID.ID()))
 		if fileBytes, err := os.ReadFile(jwkFilePath); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				// pull key from key vault
-				resp, err := agentClient.GetCertificateWithResponse(c, jwtCertID.NamespaceKind(), jwtCertID.NamespaceID(), jwtCertID.ResourceIdentifier())
+				resp, err := agentClient.GetCertificateWithResponse(c, jwtCertID.NamespaceKind(), jwtCertID.NamespaceID(), jwtCertID.ID())
 				if err != nil {
 					return nil, err
 				}

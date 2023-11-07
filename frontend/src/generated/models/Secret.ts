@@ -54,6 +54,12 @@ export interface Secret {
      * @type {string}
      * @memberof Secret
      */
+    policyId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Secret
+     */
     contentType?: string;
     /**
      * 
@@ -77,6 +83,7 @@ export function instanceOfSecret(value: object): boolean {
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
+    isInstance = isInstance && "policyId" in value;
 
     return isInstance;
 }
@@ -96,6 +103,7 @@ export function SecretFromJSONTyped(json: any, ignoreDiscriminator: boolean): Se
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'version': json['version'],
+        'policyId': json['policyId'],
         'contentType': !exists(json, 'contentType') ? undefined : json['contentType'],
         'value': !exists(json, 'value') ? undefined : json['value'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
@@ -116,6 +124,7 @@ export function SecretToJSON(value?: Secret | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'version': value.version,
+        'policyId': value.policyId,
         'contentType': value.contentType,
         'value': value.value,
         'sid': value.sid,

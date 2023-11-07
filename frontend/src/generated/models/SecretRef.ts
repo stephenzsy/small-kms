@@ -49,6 +49,12 @@ export interface SecretRef {
      * @memberof SecretRef
      */
     version: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SecretRef
+     */
+    policyId: string;
 }
 
 /**
@@ -59,6 +65,7 @@ export function instanceOfSecretRef(value: object): boolean {
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
+    isInstance = isInstance && "policyId" in value;
 
     return isInstance;
 }
@@ -78,6 +85,7 @@ export function SecretRefFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'version': json['version'],
+        'policyId': json['policyId'],
     };
 }
 
@@ -95,6 +103,7 @@ export function SecretRefToJSON(value?: SecretRef | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
         'version': value.version,
+        'policyId': value.policyId,
     };
 }
 

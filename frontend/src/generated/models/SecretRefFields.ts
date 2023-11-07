@@ -25,6 +25,12 @@ export interface SecretRefFields {
      * @memberof SecretRefFields
      */
     version: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SecretRefFields
+     */
+    policyId: string;
 }
 
 /**
@@ -33,6 +39,7 @@ export interface SecretRefFields {
 export function instanceOfSecretRefFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "version" in value;
+    isInstance = isInstance && "policyId" in value;
 
     return isInstance;
 }
@@ -48,6 +55,7 @@ export function SecretRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: boo
     return {
         
         'version': json['version'],
+        'policyId': json['policyId'],
     };
 }
 
@@ -61,6 +69,7 @@ export function SecretRefFieldsToJSON(value?: SecretRefFields | null): any {
     return {
         
         'version': value.version,
+        'policyId': value.policyId,
     };
 }
 
