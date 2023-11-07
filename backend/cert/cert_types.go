@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"crypto/x509/pkix"
 	"encoding"
 	"encoding/hex"
@@ -88,4 +89,20 @@ func (sans *SubjectAlternativeNames) WriteToDigest(w io.Writer) (s int, err erro
 		}
 	}
 	return s, nil
+}
+
+type internalContextKey int
+
+const (
+	groupMemberOfContextKey internalContextKey = iota
+	groupMemberGraphObjectContextKey
+)
+
+func (s *CertificateSubject) processTemplate(c context.Context) (processed CertificateSubject, err error) {
+	if cn, err := processTemplate(c, "subjectCN", s.CommonName); err != nil {
+		return processed, err
+	} else {
+		processed.CommonName = cn
+	}
+	return
 }

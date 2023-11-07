@@ -67,22 +67,22 @@
     resize-observer-polyfill "^1.5.1"
     throttle-debounce "^5.0.0"
 
-"@azure/msal-browser@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-3.4.0.tgz#a9c49b568ded3b7878d0a448de0b1774e8b45f3e"
-  integrity sha512-qJASyrSNEi5VdHZHg6z/VuPIegWkDvP2JLVXSnWIuTvuQP412kXFUUBI7OQBoDqE+jP3gnYLFN/4VFoI1glIyg==
+"@azure/msal-browser@^3.5.0":
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-3.5.0.tgz#eb64c931c78c2b75c70807f618e1284bbb183380"
+  integrity sha512-2NtMuel4CI3UEelCPKkNRXgKzpWEX48fvxIvPz7s0/sTcCaI08r05IOkH2GkXW+czUOtuY6+oGafJCpumnjRLg==
   dependencies:
-    "@azure/msal-common" "14.3.0"
+    "@azure/msal-common" "14.4.0"
 
-"@azure/msal-common@14.3.0":
-  version "14.3.0"
-  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.3.0.tgz#c6f04ed0bfc804a2e79226f9383c74f040c657c2"
-  integrity sha512-nKwhWW7QbiziXG8lcebCqbyxiuJAdBik7SBu3vPdJJ+rUr8M2uigAIi5OY7FwddRahlYzLMGG8U1oMeEOulNqQ==
+"@azure/msal-common@14.4.0":
+  version "14.4.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-14.4.0.tgz#f938c1d96bb73d65baab985c96faaa273c97cfd5"
+  integrity sha512-ffCymScQuMKVj+YVfwNI52A5Tu+uiZO2eTf+c+3TXxdAssks4nokJhtr+uOOMxH0zDi6d1OjFKFKeXODK0YLSg==
 
-"@azure/msal-react@^2.0.6":
-  version "2.0.6"
-  resolved "https://registry.yarnpkg.com/@azure/msal-react/-/msal-react-2.0.6.tgz#023ed642df753cf70addf7433d7802b7afb5c227"
-  integrity sha512-ayXn3ihzqFyjthXpnxeYQjIdirOCrXLSma65ANabkLnEIhN+TOABL7F5qPjqsORwwIPWdEDAMd1vACI8IN4Nhw==
+"@azure/msal-react@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@azure/msal-react/-/msal-react-2.0.7.tgz#1e9b9dbbbe8ccaa85f8d884ad55d4e476b449b6d"
+  integrity sha512-WLHxiOiZfkmDhxw0DREBhSCrnB2pr1iAfgKFJUn7Sr6R0aVbXkU2d+5DNfBlx7LtknsWpOvbC57u3OJaw/7kyA==
   dependencies:
     "@rollup/plugin-typescript" "^11.1.0"
     rollup "^3.20.2"

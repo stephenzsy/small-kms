@@ -74,7 +74,7 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameMsEntraClientCredential)
 	ruleDoc.PolicyID = p.PolicyId
 	if len(p.CertificateIds) == 0 {
-		certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 2)
+		certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 2)
 		if err != nil {
 			return err
 		}

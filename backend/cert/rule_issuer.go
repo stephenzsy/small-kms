@@ -40,7 +40,7 @@ func getNamespaceIssuerCert(c context.Context, nsIdentifier base.NamespaceIdenti
 
 	docSvc := base.GetAzCosmosCRUDService(c)
 	certDoc := new(CertDoc)
-	err = docSvc.Read(c, base.NewDocFullIdentifier(nsIdentifier.Kind(), nsIdentifier.ID(), base.ResourceKindCert, ruleDoc.CertificateID), certDoc, nil)
+	err = docSvc.Read(c, base.NewDocLocator(nsIdentifier.Kind(), nsIdentifier.ID(), base.ResourceKindCert, ruleDoc.CertificateID), certDoc, nil)
 	return certDoc, err
 }
 
@@ -66,7 +66,7 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameIssuer)
 	ruleDoc.PolicyID = p.PolicyId
 	if p.CertificateId == nil || *p.CertificateId == "" {
-		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
+		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
 			return err
 		} else if len(certIds) > 0 {
 			ruleDoc.CertificateID = certIds[0]

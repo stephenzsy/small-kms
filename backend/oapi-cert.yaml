@@ -393,7 +393,7 @@ components:
         - type: object
           properties:
             issuer:
-              $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+              $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
     CertificateRefFields:
       type: object
       properties:

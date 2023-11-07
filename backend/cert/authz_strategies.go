@@ -27,12 +27,6 @@ func (s *server) allowGeneralNonAdminAuth(c ctx.RequestContext,
 	return c, nsCtx, nil
 }
 
-type internalContextKey int
-
-const (
-	groupMemberOfContextKey internalContextKey = iota
-)
-
 func (s *server) allowGroupMember(nsKind base.NamespaceKind, groupID base.ID) authz.AuthZFunc {
 	if nsKind != base.NamespaceKindGroup {
 		return nil
@@ -44,7 +38,7 @@ func (s *server) allowGroupMember(nsKind base.NamespaceKind, groupID base.ID) au
 			identity := auth.GetAuthIdentity(c)
 			docSvc := base.GetAzCosmosCRUDService(c)
 			relDoc := new(profile.GroupMembershipDoc)
-			if err := docSvc.Read(c, base.NewDocFullIdentifier(base.NamespaceKindGroup, groupID,
+			if err := docSvc.Read(c, base.NewDocLocator(base.NamespaceKindGroup, groupID,
 				base.ResourceKindNamespaceConfig, base.IDFromUUID(identity.ClientPrincipalID())), relDoc, nil); err != nil || relDoc.RelType != profile.RelTypeGroupMember {
 				// no membership
 				return c, authz.AuthzResultNone
@@ -129,6 +123,6 @@ func (s *server) allowGraphGroupMemberOf(nsKind base.NamespaceKind, policyNsID b
 			logger.Error().Msgf("unsupported requester type: %s", *dirObj.GetOdataType())
 			return c, authz.AuthzResultNone
 		}
-		return c, authz.AuthzResultAllow
+		return c.WithValue(groupMemberGraphObjectContextKey, dirObj), authz.AuthzResultAllow
 	}
 }

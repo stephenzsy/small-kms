@@ -79,6 +79,9 @@ type RequestHeaderEntry struct {
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
+// ResourceLocator defines model for ResourceLocator.
+type ResourceLocator = DocLocator
+
 // ResourceReference defines model for ResourceReference.
 type ResourceReference struct {
 	Deleted   *time.Time `json:"deleted,omitempty"`
@@ -86,9 +89,6 @@ type ResourceReference struct {
 	Updated   time.Time  `json:"updated"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
 }
-
-// ResourceUniqueIdentifier defines model for ResourceUniqueIdentifier.
-type ResourceUniqueIdentifier = DocFullIdentifier
 
 // ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
 type ServiceRuntimeInfo struct {

@@ -15,7 +15,7 @@ import (
 type BaseDocument interface {
 	GetStorageNamespaceID() DocNamespacePartitionKey
 	GetID() ID
-	GetStorageFullIdentifier() DocFullIdentifier
+	GetStorageFullIdentifier() DocLocator
 	GetUpdatedBy() string
 	getETag() *azcore.ETag
 	setETag(etag azcore.ETag)
@@ -43,8 +43,8 @@ func (d *BaseDoc) GetID() ID {
 }
 
 // GetPersistedSLocator implements CRUDDoc.
-func (d *BaseDoc) GetStorageFullIdentifier() DocFullIdentifier {
-	return DocFullIdentifier{
+func (d *BaseDoc) GetStorageFullIdentifier() DocLocator {
+	return DocLocator{
 		d.PartitionKey,
 		d.ID,
 	}
@@ -96,7 +96,7 @@ var _ BaseDocument = (*BaseDoc)(nil)
 type AzCosmosCRUDDocService interface {
 	Create(context.Context, BaseDocument, *azcosmos.ItemOptions) error
 	Upsert(context.Context, BaseDocument, *azcosmos.ItemOptions) error
-	Read(c context.Context, docFullIdentifier DocFullIdentifier, dst BaseDocument, opts *azcosmos.ItemOptions) error
+	Read(c context.Context, docFullIdentifier DocLocator, dst BaseDocument, opts *azcosmos.ItemOptions) error
 	Patch(context.Context, BaseDocument, azcosmos.PatchOperations, *azcosmos.ItemOptions) error
 	NewQueryItemsPager(query string, storageNamespaceID DocNamespacePartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
 	getClient() *azcosmos.ContainerClient
@@ -138,7 +138,7 @@ func (s *azcosmosContainerCRUDDocService) Create(c context.Context, doc BaseDocu
 }
 
 // Read implements CRUDDocService.
-func (s *azcosmosContainerCRUDDocService) Read(c context.Context, docFullID DocFullIdentifier, dst BaseDocument, o *azcosmos.ItemOptions) error {
+func (s *azcosmosContainerCRUDDocService) Read(c context.Context, docFullID DocLocator, dst BaseDocument, o *azcosmos.ItemOptions) error {
 	partitionKey := azcosmos.NewPartitionKeyString(docFullID.pKey.String())
 	resp, err := s.client.ReadItem(c, partitionKey, string(docFullID.docID), nil)
 	if err != nil {

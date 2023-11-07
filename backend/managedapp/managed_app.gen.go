@@ -54,11 +54,11 @@ type AgentConfigServerFields struct {
 	AzureACRImageRef string `json:"azureAcrImageRef"`
 
 	// Env Environment variables for the agent config server, must be set manually
-	Env                    AgentConfigServerEnv                    `json:"env"`
-	JWTKeyCertIDs          []externalRef0.ResourceUniqueIdentifier `json:"jwtKeyCertIds"`
-	JwtKeyCertPolicyId     externalRef0.ResourceUniqueIdentifier   `json:"jwtKeyCertPolicyId"`
-	TlsCertificateId       externalRef0.Id                         `json:"tlsCertificateId"`
-	TlsCertificatePolicyId externalRef0.Id                         `json:"tlsCertificatePolicyId"`
+	Env                    AgentConfigServerEnv           `json:"env"`
+	JWTKeyCertIDs          []externalRef0.ResourceLocator `json:"jwtKeyCertIds"`
+	JwtKeyCertPolicyId     externalRef0.ResourceLocator   `json:"jwtKeyCertPolicyId"`
+	TlsCertificateId       externalRef0.Id                `json:"tlsCertificateId"`
+	TlsCertificatePolicyId externalRef0.Id                `json:"tlsCertificatePolicyId"`
 }
 
 // AgentInstance defines model for AgentInstance.

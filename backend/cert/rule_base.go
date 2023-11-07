@@ -3,8 +3,8 @@ package cert
 import "github.com/stephenzsy/small-kms/backend/base"
 
 func getNamespaceCertificateRuleDocFullIdentifier(
-	nsKind base.NamespaceKind, nsID base.ID, ruleName base.NamespaceConfigName) base.DocFullIdentifier {
-	return base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindNamespaceConfig, base.ID(ruleName))
+	nsKind base.NamespaceKind, nsID base.ID, ruleName base.NamespaceConfigName) base.DocLocator {
+	return base.NewDocLocator(nsKind, nsID, base.ResourceKindNamespaceConfig, base.ID(ruleName))
 }
 
 type CertRulePolicyDoc struct {

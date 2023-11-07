@@ -71,7 +71,7 @@ func ApiReadAgentInstanceDoc(c ctx.RequestContext, instanceID base.ID) (*AgentIn
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentInstanceDoc{}
 	docSvc := base.GetAzCosmosCRUDService(c)
-	err := docSvc.Read(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindAgentInstance, instanceID), doc, nil)
+	err := docSvc.Read(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindAgentInstance, instanceID), doc, nil)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return nil, fmt.Errorf("%w: agent instance with id %s not found", base.ErrResponseStatusNotFound, instanceID)

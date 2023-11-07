@@ -33,12 +33,12 @@ func (s *server) EnrollCertificate(ec echo.Context, nsKind base.NamespaceKind, n
 		return err
 	}
 
-	return enrollMsEntraClientCredCert(c, base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindCertPolicy, policyID), req)
+	return enrollMsEntraClientCredCert(c, base.NewDocLocator(nsKind, nsID, base.ResourceKindCertPolicy, policyID), req)
 }
 
 const graphAudVerify = "00000003-0000-0000-c000-000000000000"
 
-func enrollMsEntraClientCredCert(c ctx.RequestContext, policyLocator base.DocFullIdentifier, params *EnrollCertificateRequest) error {
+func enrollMsEntraClientCredCert(c ctx.RequestContext, policyLocator base.DocLocator, params *EnrollCertificateRequest) error {
 	matchAud := string(policyLocator.NamespaceID())
 
 	if params.EnrollmentType == EnrollmentTypeMsEntraClientCredential {

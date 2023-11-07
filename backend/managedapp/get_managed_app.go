@@ -15,7 +15,7 @@ func getManagedApp(c context.Context, appID uuid.UUID) (*ManagedAppDoc, error) {
 
 	doc := &ManagedAppDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
-	err := docService.Read(c, base.NewDocFullIdentifier(base.NamespaceKindProfile,
+	err := docService.Read(c, base.NewDocLocator(base.NamespaceKindProfile,
 		base.IDFromString(namespaceIDNameManagedApp),
 		base.ProfileResourceKindManagedApp,
 		base.IDFromUUID(appID)), doc, nil)
@@ -29,7 +29,7 @@ func apiGetSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 	}
 	doc := &ManagedAppDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
-	err = docService.Read(c, base.NewDocFullIdentifier(base.NamespaceKindProfile,
+	err = docService.Read(c, base.NewDocLocator(base.NamespaceKindProfile,
 		base.IDFromString(namespaceIDNameSystemApp),
 		base.ProfileResourceKindManagedApp,
 		base.IDFromUUID(appID)), doc, nil)
