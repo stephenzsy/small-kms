@@ -120,7 +120,7 @@ func apiGetSecretPolicy(c ctx.RequestContext, policyIdentifier base.ID) error {
 	nsCtx := ns.GetNSContext(c)
 	doc := &SecretPolicyDoc{}
 	if err := base.GetAzCosmosCRUDService(c).Read(c,
-		base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecretPolicy, policyIdentifier),
+		base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecretPolicy, policyIdentifier),
 		doc,
 		nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {

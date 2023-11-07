@@ -142,7 +142,7 @@ func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, n
 		return err
 	}
 
-	r, err := createCertFromPolicy(c, base.NewDocFullIdentifier(nsKind, nsID, base.ResourceKindCertPolicy, policyID), nil)
+	r, err := createCertFromPolicy(c, base.NewDocLocator(nsKind, nsID, base.ResourceKindCertPolicy, policyID), nil)
 	if err != nil {
 		return err
 	}

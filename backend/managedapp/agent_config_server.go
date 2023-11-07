@@ -23,12 +23,12 @@ import (
 
 type AgentConfigServerDoc struct {
 	AgentConfigDoc
-	GlobalKeyVaultEndpoint string                   `json:"globalKeyVaultEndpoint"`
-	GlobalACRImageRef      string                   `json:"globalAcrImageRef"`
-	TLSCertificatePolicyID base.ID                  `json:"tlsCertificatePolicyId"`
-	TLSCertificateID       base.ID                  `json:"tlsCertificateId"`
-	JWTKeyCertPolicyID     base.DocFullIdentifier   `json:"jwtKeyCertPolicyId"`
-	JWTKeyCertIDs          []base.DocFullIdentifier `json:"jwtKeyCertIds"`
+	GlobalKeyVaultEndpoint string            `json:"globalKeyVaultEndpoint"`
+	GlobalACRImageRef      string            `json:"globalAcrImageRef"`
+	TLSCertificatePolicyID base.ID           `json:"tlsCertificatePolicyId"`
+	TLSCertificateID       base.ID           `json:"tlsCertificateId"`
+	JWTKeyCertPolicyID     base.DocLocator   `json:"jwtKeyCertPolicyId"`
+	JWTKeyCertIDs          []base.DocLocator `json:"jwtKeyCertIds"`
 }
 
 func (d *AgentConfigServerDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID) {
@@ -59,7 +59,7 @@ func (d *AgentConfigServerDoc) populateModel(m *AgentConfigServer) {
 func ApiReadAgentConfigDoc(c ctx.RequestContext) (*AgentConfigServerDoc, error) {
 	nsCtx := ns.GetNSContext(c)
 	doc := &AgentConfigServerDoc{}
-	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocFullIdentifier(nsCtx.Kind(),
+	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocLocator(nsCtx.Kind(),
 		nsCtx.ID(), base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameServer)), doc, nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return nil, fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
@@ -104,7 +104,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 
 		globalDoc := &AgentConfigServerDoc{}
 		if err := docSvc.Read(c,
-			base.NewDocFullIdentifier(base.NamespaceKindSystem,
+			base.NewDocLocator(base.NamespaceKindSystem,
 				base.ID("default"), base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameServer)), globalDoc, nil); err != nil {
 			if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 				return fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameServer)
@@ -122,7 +122,7 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 
 		doc.TLSCertificatePolicyID = param.TlsCertificatePolicyId
 		certIds, err := cert.QueryLatestCertificateIdsIssuedByPolicy(c,
-			base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, param.TlsCertificatePolicyId), 1)
+			base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, param.TlsCertificatePolicyId), 1)
 		if err != nil {
 			return err
 		}
@@ -138,8 +138,8 @@ func (s *server) apiPutAgentConfigServer(c ctx.RequestContext, param *AgentConfi
 		if err != nil {
 			return err
 		}
-		doc.JWTKeyCertIDs = utils.MapSlice(jwtKeyCertIdentifiers, func(id base.ID) base.DocFullIdentifier {
-			fullIdentifier := base.NewDocFullIdentifier(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceID(), base.ResourceKindCert, id)
+		doc.JWTKeyCertIDs = utils.MapSlice(jwtKeyCertIdentifiers, func(id base.ID) base.DocLocator {
+			fullIdentifier := base.NewDocLocator(doc.JWTKeyCertPolicyID.NamespaceKind(), doc.JWTKeyCertPolicyID.NamespaceID(), base.ResourceKindCert, id)
 			digest.Write([]byte(fullIdentifier.String()))
 			return fullIdentifier
 		})

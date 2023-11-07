@@ -36,7 +36,7 @@ func (s *server) GetCertPolicy(ec echo.Context, nsKind base.NamespaceKind, nsID 
 	return c.JSON(http.StatusOK, m)
 }
 
-func readCertPolicyDocByLocator(c context.Context, locator base.DocFullIdentifier) (*CertPolicyDoc, error) {
+func readCertPolicyDocByLocator(c context.Context, locator base.DocLocator) (*CertPolicyDoc, error) {
 	doc := new(CertPolicyDoc)
 	err := base.GetAzCosmosCRUDService(c).Read(c, locator, doc, nil)
 	return doc, err
@@ -50,5 +50,5 @@ func ReadCertPolicyDoc(c context.Context, rID base.ID) (*CertPolicyDoc, error) {
 
 	nsCtx := ns.GetNSContext(c)
 
-	return readCertPolicyDocByLocator(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, rID))
+	return readCertPolicyDocByLocator(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, rID))
 }

@@ -41,7 +41,7 @@ func signCertificate(
 	c context.Context,
 	template, parent *x509.Certificate,
 	csrProvider kv.AzCertCSRProvider, signer kv.AzCertSigner,
-	signerLocator base.DocFullIdentifier, signingCertChain [][]byte) (*CertDocSigningPatch, error) {
+	signerLocator base.DocLocator, signingCertChain [][]byte) (*CertDocSigningPatch, error) {
 	err := signer.Load(c)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func signCertificate(
 	return patch, nil
 }
 
-func createCertFromPolicy(c context.Context, policyLocator base.DocFullIdentifier, publicKey crypto.PublicKey) (*CertDoc, error) {
+func createCertFromPolicy(c context.Context, policyLocator base.DocLocator, publicKey crypto.PublicKey) (*CertDoc, error) {
 	policyDoc, err := readCertPolicyDocByLocator(c, policyLocator)
 	if err != nil {
 		return nil, err

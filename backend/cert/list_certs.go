@@ -40,7 +40,7 @@ func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) er
 	if params.PolicyId != nil {
 		policyIdentifier := base.ParseID(*params.PolicyId)
 
-		policyLocator := base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, policyIdentifier)
+		policyLocator := base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, policyIdentifier)
 
 		qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy")
 		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
@@ -57,7 +57,7 @@ func apiListCertificates(c ctx.RequestContext, params ListCertificatesParams) er
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }
 
-func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocFullIdentifier, limit uint) ([]ID, error) {
+func QueryLatestCertificateIdsIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocLocator, limit uint) ([]ID, error) {
 	qb := base.NewDefaultCosmoQueryBuilder().
 		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated)).
 		WithOffsetLimit(0, limit)

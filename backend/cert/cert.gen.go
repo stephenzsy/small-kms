@@ -86,10 +86,10 @@ type Certificate = certificateComposed
 
 // CertificateAttributes defines model for CertificateAttributes.
 type CertificateAttributes struct {
-	Exp    *externalRef0.NumericDate              `json:"exp,omitempty"`
-	Iat    *externalRef0.NumericDate              `json:"iat,omitempty"`
-	Issuer *externalRef0.ResourceUniqueIdentifier `json:"issuer,omitempty"`
-	Nbf    *externalRef0.NumericDate              `json:"nbf,omitempty"`
+	Exp    *externalRef0.NumericDate     `json:"exp,omitempty"`
+	Iat    *externalRef0.NumericDate     `json:"iat,omitempty"`
+	Issuer *externalRef0.ResourceLocator `json:"issuer,omitempty"`
+	Nbf    *externalRef0.NumericDate     `json:"nbf,omitempty"`
 }
 
 // CertificateFields defines model for CertificateFields.

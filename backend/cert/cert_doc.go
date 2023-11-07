@@ -43,14 +43,14 @@ type CertDoc struct {
 	KeyExportable bool                     `json:"keyExportable"`
 	Subject       CertificateSubject       `json:"subject"`
 	SANs          *SubjectAlternativeNames `json:"sans,omitempty"`
-	Policy        base.DocFullIdentifier   `json:"policy"`
+	Policy        base.DocLocator          `json:"policy"`
 	PolicyVersion HexDigest                `json:"policyVersion"`
 	Created       base.NumericDate         `json:"iat"`
 	NotBefore     base.NumericDate         `json:"nbf"`
 	NotAfter      base.NumericDate         `json:"exp"`
 	Flags         []CertificateFlag        `json:"flags"`
 	KeyVaultStore CertDocKeyVaultStore     `json:"keyVaultStore"`
-	Issuer        base.DocFullIdentifier   `json:"issuer"`
+	Issuer        base.DocLocator          `json:"issuer"`
 }
 
 const (
@@ -60,9 +60,9 @@ const (
 )
 
 type CertDocSigningPatch struct {
-	KeySpec       key.SigningKeySpec     `json:"keySpec"`
-	KeyVaultStore CertDocKeyVaultStore   `json:"keyVaultStore"`
-	Issuer        base.DocFullIdentifier `json:"issuer"`
+	KeySpec       key.SigningKeySpec   `json:"keySpec"`
+	KeyVaultStore CertDocKeyVaultStore `json:"keyVaultStore"`
+	Issuer        base.DocLocator      `json:"issuer"`
 }
 
 func GetKeyStoreName(nsKind base.NamespaceKind, nsID ID, policyIdentifier ID) string {

@@ -350,12 +350,12 @@ components:
           $ref: "oapi-base.yaml#/components/schemas/Id"
           x-go-name: TLSCertificateID
         jwtKeyCertPolicyId:
-          $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
           x-go-name: JWKPolicyID
         jwtKeyCertIds:
           type: array
           items:
-            $ref: "oapi-base.yaml#/components/schemas/ResourceUniqueIdentifier"
+            $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
           x-go-name: JWTKeyCertIDs
         azureAcrImageRef:
           type: string

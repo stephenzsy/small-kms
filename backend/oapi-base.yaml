@@ -106,9 +106,9 @@ components:
     Period:
       type: string
       x-go-type: periodImpl
-    ResourceUniqueIdentifier:
+    ResourceLocator:
       type: string
-      x-go-type: DocFullIdentifier
+      x-go-type: DocLocator
     ResourceReference:
       type: object
       properties:

@@ -9,7 +9,7 @@ import (
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
-func ReadCertDocByFullIdentifier(c context.Context, fullIdentifier base.DocFullIdentifier) (*CertDoc, error) {
+func ReadCertDocByFullIdentifier(c context.Context, fullIdentifier base.DocLocator) (*CertDoc, error) {
 	doc := new(CertDoc)
 	err := base.GetAzCosmosCRUDService(c).Read(c, fullIdentifier, doc, nil)
 	return doc, err
@@ -22,7 +22,7 @@ func ApiReadCertDocByID(c context.Context, rID base.ID) (*CertDoc, error) {
 	}
 
 	nsCtx := ns.GetNSContext(c)
-	doc, err := ReadCertDocByFullIdentifier(c, base.NewDocFullIdentifier(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert, rID))
+	doc, err := ReadCertDocByFullIdentifier(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert, rID))
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return nil, fmt.Errorf("%w: cert with id %s not found", base.ErrResponseStatusNotFound, rID)
