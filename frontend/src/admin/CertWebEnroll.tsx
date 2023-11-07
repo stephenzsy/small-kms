@@ -1,16 +1,25 @@
 import { useRequest } from "ahooks";
-import { Button } from "antd";
-import { useContext, useMemo } from "react";
+import { Alert, Button, Steps, Typography } from "antd";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useAppAuthContext } from "../auth/AuthProvider";
 import {
   AdminApi,
   CertPolicy,
+  Certificate,
   JsonWebKey,
   JsonWebKeySignatureAlgorithm,
   JsonWebSignatureKey,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
+import AnchorLink from "antd/es/anchor/AnchorLink";
+import { Link } from "../components/Link";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
   return useMemo((): RsaHashedKeyGenParams | EcKeyGenParams | undefined => {
@@ -103,6 +112,18 @@ function encodeBase64Url(data: string) {
   return stdEncoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
+function base64UrlEncodedToStdEncoded(data: string) {
+  const r = data.replace(/-/g, "+").replace(/_/g, "/");
+  // decide pad length
+  const padLen = 4 - (r.length % 4);
+  if (padLen == 2) {
+    return r + "==";
+  } else if (padLen == 3) {
+    return r + "=";
+  }
+  return r;
+}
+
 function getSignatureCryptoAlg(
   alg: JsonWebKeySignatureAlgorithm
 ): AlgorithmIdentifier | RsaPssParams | EcdsaParams | undefined {
@@ -169,6 +190,11 @@ async function signProofJwt(
   return toBeSigned + "." + encodedSignature;
 }
 
+function toPEMBlock(encoded: string, type: string) {
+  const lines = encoded.match(/.{1,64}/g) ?? [];
+  return `-----BEGIN ${type}-----\n${lines.join("\n")}\n-----END ${type}-----`;
+}
+
 export function CertWebEnroll({
   certPolicy,
 }: {
@@ -180,8 +206,8 @@ export function CertWebEnroll({
 
   const api = useAuthedClient(AdminApi);
 
-  const { data, run } = useRequest(
-    async () => {
+  const { data, run, loading } = useRequest(
+    async (): Promise<[Blob, Certificate] | undefined> => {
       if (alg && account && certPolicy && certPolicy.keySpec.alg) {
         const keypair = await window.crypto.subtle.generateKey(alg, true, [
           "sign",
@@ -200,7 +226,7 @@ export function CertWebEnroll({
           keypair.privateKey
         );
 
-        await api.enrollCertificate({
+        const enrollResp = await api.enrollCertificate({
           enrollCertificateRequest: {
             enrollmentType: "group-memeber",
             proof: proofJwt,
@@ -214,30 +240,75 @@ export function CertWebEnroll({
           resourceId: certPolicy.id,
         });
 
-        console.log(
-          JSON.stringify(
-            await window.crypto.subtle.exportKey("jwk", keypair.publicKey)
-          )
+        const privateKeyDer = await window.crypto.subtle.exportKey(
+          "pkcs8",
+          keypair.privateKey
         );
 
-        console.log(
-          JSON.stringify(
-            await window.crypto.subtle.exportKey("jwk", keypair.privateKey)
-          )
-        );
-        console.log(proofJwt);
-        return undefined;
+        return [
+          new Blob(
+            [
+              [
+                toPEMBlock(
+                  btoa(String.fromCharCode(...new Uint8Array(privateKeyDer))),
+                  "PRIVATE KEY"
+                ),
+                ...(enrollResp.jwk.x5c ?? []).map((cert) =>
+                  toPEMBlock(base64UrlEncodedToStdEncoded(cert), "CERTIFICATE")
+                ),
+              ].join("\n"),
+            ],
+            {
+              type: "application/x-pem-file",
+            }
+          ),
+          enrollResp,
+        ];
       }
     },
     { manual: true }
   );
 
+  const [blobUrl, setBlobUrl] = useState<string>();
+
+  const [certBlob, cert] = data ?? [];
+
+  useEffect(() => {
+    if (certBlob) {
+      const url = URL.createObjectURL(certBlob);
+      setBlobUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [certBlob]);
+
   return (
-    <div>
-      <p>Private key will not be sent</p>
-      <Button onClick={run} type="primary">
-        Create key pair
-      </Button>
+    <div className="space-y-4">
+      <Alert type="info" message="Private key does not leave your browser" />
+      {!cert && (
+        <Button onClick={run} type="primary" loading={loading}>
+          Begin enroll
+        </Button>
+      )}
+      {cert && (
+        <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-4">
+          <div className="text-lg font-semibold">Download certificate</div>
+          <Alert
+            type="warning"
+            message="This is the only time you can download the certificate. Please save it in a safe place."
+          />
+          {blobUrl && (
+            <Button
+              type="primary"
+              href={blobUrl}
+              download={`${cert.id}.pem`}
+            >
+              Download certificate
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
