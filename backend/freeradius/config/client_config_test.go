@@ -7,13 +7,13 @@ import (
 )
 
 func TestClientConfig_MarshalText(t *testing.T) {
-	c := &frconfig.ClientConfig{
+	c := &frconfig.RadiusClientConfig{
 		Name:   "localhost",
 		Ipaddr: "127.0.0.1",
 		Secret: "testing123",
 	}
 
-	b, err := c.MarshalText()
+	b, err := c.MarshalFreeradiusConfig()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

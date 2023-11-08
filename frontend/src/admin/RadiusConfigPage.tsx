@@ -1,7 +1,16 @@
 import { useContext, useEffect, useMemo } from "react";
 
 import { useRequest } from "ahooks";
-import { Button, Card, Form, Input, Table, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Collapse,
+  CollapseProps,
+  Form,
+  Input,
+  Table,
+  Typography,
+} from "antd";
 import { useForm } from "antd/es/form/Form";
 import { DefaultOptionType } from "antd/es/select";
 import { ColumnsType } from "antd/es/table";
@@ -17,6 +26,7 @@ import {
   AzureRoleAssignment,
   CertPolicyRef,
   NamespaceKind,
+  RadiusClientConfig,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useCertPolicies } from "./CertPolicyRefTable";
@@ -25,6 +35,12 @@ import {
   NamespaceContext,
   NamespaceContextValue,
 } from "./contexts/NamespaceContext";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  RadiusConfigPatchContext,
+  RadiusConfigPatchProvider,
+  useRadiusConfigPatch,
+} from "./contexts/RadiusConfigPatchContext";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -210,6 +226,77 @@ function useAgentInstanceColumns(
   );
 }
 
+function RadiusClientsForm() {
+  const { run } = useRadiusConfigPatch();
+  const [form] = useForm<Pick<AgentConfigRadiusFields, "clients">>();
+  return (
+    <Form form={form} layout="vertical" onFinish={(v) => run(v)}>
+      <Form.List name={"clients"}>
+        {(subFields, subOpt) => {
+          return (
+            <div className="flex flex-col gap-4">
+              <div className="text-lg font-semibold">Secret bindings</div>
+              {subFields.map((subField) => (
+                <div
+                  key={subField.key}
+                  className=" ring-1 ring-neutral-400 p-4 rounded-md"
+                >
+                  <Form.Item<RadiusClientConfig[]>
+                    name={[subField.name, "name"]}
+                    label="Name"
+                    required
+                  >
+                    <Input placeholder={"localhost"} />
+                  </Form.Item>
+                  <Form.Item<RadiusClientConfig[]>
+                    name={[subField.name, "ipaddr"]}
+                    label="IP Address or CIDR"
+                    required
+                  >
+                    <Input placeholder={"192.168.0.1/24"} />
+                  </Form.Item>
+                  <Form.Item<RadiusClientConfig[]>
+                    name={[subField.name, "secretRef"]}
+                    className="flex-auto"
+                    label="Secret ID"
+                    required
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Button
+                    danger
+                    onClick={() => {
+                      subOpt.remove(subField.name);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button type="dashed" onClick={() => subOpt.add()} block>
+                Add client configuration
+              </Button>
+            </div>
+          );
+        }}
+      </Form.List>
+      <Form.Item className="mt-6">
+        <Button htmlType="submit" type="primary">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
+const collapseItems: CollapseProps["items"] = [
+  {
+    key: "clients",
+    label: "Clients",
+    children: <RadiusClientsForm />,
+  },
+];
+
 export function AgentInstancesList() {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
 
@@ -257,8 +344,15 @@ export default function RadiusConfigPage({
   );
   const api = useAuthedClient(AdminApi);
   const { namespaceId, namespaceKind } = nsCtxValue;
-  const { data: radiusConfig, mutate } = useRequest(
-    () => {
+  const patchSvc = useRequest(
+    (params?: AgentConfigRadiusFields) => {
+      if (params) {
+        return api.putAgentConfigRadius({
+          agentConfigRadiusFields: params,
+          namespaceKind,
+          namespaceId,
+        });
+      }
       return api.getAgentConfigRadius({
         namespaceId,
         namespaceKind,
@@ -269,7 +363,7 @@ export default function RadiusConfigPage({
       ready: !!namespaceId && !!namespaceKind,
     }
   );
-
+  const { data: radiusConfig, mutate } = patchSvc;
   return (
     <>
       <Typography.Title>
@@ -278,20 +372,30 @@ export default function RadiusConfigPage({
       </Typography.Title>
 
       <NamespaceContext.Provider value={nsCtxValue}>
-        <Card title="Current configuration">
-          <JsonDataDisplay
-            data={radiusConfig}
-            toJson={AgentConfigRadiusToJSON}
-          />
-        </Card>
-        {isGlobalConfig && (
-          <RadiusConfigGlobalFormCard value={radiusConfig} onUpdate={mutate} />
-        )}
-        {!isGlobalConfig && (
-          <Card title="Instances">
-            <AgentInstancesList />
+        <RadiusConfigPatchContext.Provider value={patchSvc}>
+          <Card title="Current configuration">
+            <JsonDataDisplay
+              data={radiusConfig}
+              toJson={AgentConfigRadiusToJSON}
+            />
           </Card>
-        )}
+          {isGlobalConfig ? (
+            <RadiusConfigGlobalFormCard
+              value={radiusConfig}
+              onUpdate={mutate}
+            />
+          ) : (
+            <Card title="RADIUS configuration">
+              <Collapse items={collapseItems} />
+            </Card>
+          )}
+
+          {!isGlobalConfig && (
+            <Card title="Instances">
+              <AgentInstancesList />
+            </Card>
+          )}
+        </RadiusConfigPatchContext.Provider>
       </NamespaceContext.Provider>
     </>
   );

@@ -1,17 +1,8 @@
 package frconfig
 
 import (
-	"encoding"
 	"strings"
 )
-
-func (*ClientConfig) GetType() string {
-	return "client"
-}
-
-func (c *ClientConfig) GetName() string {
-	return c.Name
-}
 
 func writeStringOmitEmpty(sb *strings.Builder, prefixTabs string, key string, value string) {
 	if value != "" {
@@ -23,16 +14,13 @@ func writeStringOmitEmpty(sb *strings.Builder, prefixTabs string, key string, va
 	}
 }
 
-func (c ClientConfig) MarshalText() ([]byte, error) {
+func (c RadiusClientConfig) MarshalFreeradiusConfig() ([]byte, error) {
 	sb := &strings.Builder{}
-	sb.WriteString(c.GetType())
-	sb.WriteString(" ")
-	sb.WriteString(c.GetName())
+	sb.WriteString("client ")
+	sb.WriteString(c.Name)
 	sb.WriteString(" {\n")
 	writeStringOmitEmpty(sb, "\t", "ipaddr", c.Ipaddr)
 	writeStringOmitEmpty(sb, "\t", "secret", c.Secret)
 	sb.WriteString("}\n")
 	return []byte(sb.String()), nil
 }
-
-var _ encoding.TextMarshaler = (*ClientConfig)(nil)

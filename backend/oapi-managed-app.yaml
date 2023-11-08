@@ -184,7 +184,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AgentConfigRadius"                
+                $ref: "#/components/schemas/AgentConfigRadius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -434,18 +434,8 @@ components:
         clients:
           type: array
           items:
-            $ref: "#/components/schemas/AgentConfigRadiusClientConfig"
+            $ref: "oapi-freeradius-config.yaml#/components/schemas/RadiusClientConfig"
           x-go-type-skip-optional-pointer: true
-    AgentConfigRadiusClientConfig:
-      type: object
-      properties:
-        config:
-          $ref: "oapi-freeradius-config.yaml#/components/schemas/ClientConfig"
-        secretRef:
-          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
-      required:
-        - config
-        - secretRef
     AzureRoleAssignment:
       type: object
       properties:

@@ -143,7 +143,7 @@ function GenerateSecretControl({
           generateSecret();
         }}
       >
-        Request certificate
+        Generate secret
       </Button>
     </div>
   );

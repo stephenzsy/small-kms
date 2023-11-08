@@ -4,7 +4,6 @@ index.ts
 models/AgentConfig.ts
 models/AgentConfigFields.ts
 models/AgentConfigRadius.ts
-models/AgentConfigRadiusClientConfig.ts
 models/AgentConfigRadiusFields.ts
 models/AgentConfigServer.ts
 models/AgentConfigServerEnv.ts
@@ -29,7 +28,6 @@ models/CertificateRefFields.ts
 models/CertificateRuleIssuer.ts
 models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
-models/ClientConfig.ts
 models/EnrollCertificateRequest.ts
 models/EnrollmentType.ts
 models/JsonWebKey.ts
@@ -51,6 +49,7 @@ models/ProfileParameters.ts
 models/ProfileRef.ts
 models/ProfileRefFields.ts
 models/PullImageRequest.ts
+models/RadiusClientConfig.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts

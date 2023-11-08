@@ -65,12 +65,20 @@ func (s *server) PutAgentConfigRadius(ec echo.Context, nsKind base.NamespaceKind
 			}
 			return err
 		}
+
 		doc.GlobalRadiusServerACRImageRef = globalDoc.GlobalRadiusServerACRImageRef
 		globalDocVersionBytes, err := hex.DecodeString(globalDoc.Version)
 		if err != nil {
 			return err
 		}
 		digest.Write(globalDocVersionBytes)
+
+		doc.Clients = param.Clients
+		for _, client := range doc.Clients {
+			digest.Write([]byte(client.Name))
+			digest.Write([]byte(client.Ipaddr))
+			digest.Write([]byte(client.Secret))
+		}
 	default:
 		return fmt.Errorf("%w: namespace kind %s is not supported", base.ErrResponseStatusBadRequest, nsKind)
 	}
@@ -94,5 +102,5 @@ func (s *server) PatchAgentConfigRadius(ec echo.Context, namespaceKind base.Name
 	if namespaceKind == base.NamespaceKindSystem {
 		return fmt.Errorf("%w: patch to system config is not supported", base.ErrResponseStatusBadRequest)
 	}
-	panic("unimplemented")
+	return fmt.Errorf("%w: patch to radius config is not supported", base.ErrResponseStatusBadRequest)
 }

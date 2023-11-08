@@ -8,7 +8,7 @@ servers:
 paths: {}
 components:
   schemas:
-    ClientConfig:
+    RadiusClientConfig:
       type: object
       properties:
         name:
@@ -23,6 +23,9 @@ components:
         # proto:
         #   type: string
         secret:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        secretRef:
           type: string
           x-go-type-skip-optional-pointer: true
         # require_message_authenticator:

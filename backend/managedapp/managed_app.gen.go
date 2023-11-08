@@ -43,16 +43,10 @@ type AgentConfigFields struct {
 // AgentConfigRadius defines model for AgentConfigRadius.
 type AgentConfigRadius = agentConfigRadiusComposed
 
-// AgentConfigRadiusClientConfig defines model for AgentConfigRadiusClientConfig.
-type AgentConfigRadiusClientConfig struct {
-	Config    externalRef1.ClientConfig    `json:"config"`
-	SecretRef externalRef0.ResourceLocator `json:"secretRef"`
-}
-
 // AgentConfigRadiusFields defines model for AgentConfigRadiusFields.
 type AgentConfigRadiusFields struct {
-	AzureACRImageRef *string                         `json:"azureAcrImageRef,omitempty"`
-	Clients          []AgentConfigRadiusClientConfig `json:"clients,omitempty"`
+	AzureACRImageRef *string                           `json:"azureAcrImageRef,omitempty"`
+	Clients          []externalRef1.RadiusClientConfig `json:"clients,omitempty"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.
