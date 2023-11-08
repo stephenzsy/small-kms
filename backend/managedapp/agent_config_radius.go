@@ -24,3 +24,12 @@ func (s *server) PutAgentConfigRadius(ec echo.Context, namespaceKind base.Namesp
 	}
 	panic("unimplemented")
 }
+
+// PatchAgentConfigRadius implements ServerInterface.
+func (s *server) PatchAgentConfigRadius(ec echo.Context, namespaceKind base.NamespaceKind, namespaceId base.ID) error {
+	c := ec.(ctx.RequestContext)
+	if !authz.AuthorizeAdminOnly(c) {
+		return s.RespondRequireAdmin(c)
+	}
+	panic("unimplemented")
+}

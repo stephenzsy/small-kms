@@ -167,6 +167,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentConfigRadius"
+    patch:
+      tags:
+        - admin
+      operationId: PatchAgentConfigRadius
+      summary: Patch agent config radius
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentConfigRadiusFields"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConfigRadius"                
   /v1/{namespaceKind}/{namespaceId}/agent/instance:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -417,9 +435,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AgentConfigRadiusClientConfig"
-      required:
-        - azureAcrImageRef
-        - clients            
+          x-go-type-skip-optional-pointer: true
     AgentConfigRadiusClientConfig:
       type: object
       properties:

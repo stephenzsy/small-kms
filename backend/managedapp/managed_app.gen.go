@@ -51,8 +51,8 @@ type AgentConfigRadiusClientConfig struct {
 
 // AgentConfigRadiusFields defines model for AgentConfigRadiusFields.
 type AgentConfigRadiusFields struct {
-	AzureACRImageRef string                          `json:"azureAcrImageRef"`
-	Clients          []AgentConfigRadiusClientConfig `json:"clients"`
+	AzureACRImageRef *string                         `json:"azureAcrImageRef,omitempty"`
+	Clients          []AgentConfigRadiusClientConfig `json:"clients,omitempty"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.
@@ -127,6 +127,9 @@ type ManagedAppIdParameter = openapi_types.UUID
 // CreateManagedAppJSONRequestBody defines body for CreateManagedApp for application/json ContentType.
 type CreateManagedAppJSONRequestBody = ManagedAppParameters
 
+// PatchAgentConfigRadiusJSONRequestBody defines body for PatchAgentConfigRadius for application/json ContentType.
+type PatchAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
+
 // PutAgentConfigRadiusJSONRequestBody defines body for PutAgentConfigRadius for application/json ContentType.
 type PutAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
 
@@ -159,6 +162,9 @@ type ServerInterface interface {
 	// Get agent config radius
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
 	GetAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	// Patch agent config radius
+	// (PATCH /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
+	PatchAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Put agent config radius
 	// (PUT /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
 	PutAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
@@ -307,6 +313,32 @@ func (w *ServerInterfaceWrapper) GetAgentConfigRadius(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentConfigRadius(ctx, namespaceKind, namespaceId)
+	return err
+}
+
+// PatchAgentConfigRadius converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchAgentConfigRadius(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchAgentConfigRadius(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -577,6 +609,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/system-app/:systemAppName", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.GetAgentConfigRadius)
+	router.PATCH(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PatchAgentConfigRadius)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PutAgentConfigRadius)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.PutAgentConfigServer)

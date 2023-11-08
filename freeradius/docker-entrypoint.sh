@@ -1,12 +1,6 @@
 #!/bin/sh
 set -e
 
-cp /run/secrets/radius-tls-key.pem /etc/raddb/certs/radius-tls-key.pem
-cp /run/secrets/radius-tls-server.pem /etc/raddb/certs/radius-tls-server.pem
-cp /run/secrets/radius-tls-ca.pem /etc/raddb/certs/radius-tls-ca.pem
-
-chmod 0400 /etc/raddb/certs/radius-tls-key.pem /etc/raddb/certs/radius-tls-server.pem /etc/raddb/certs/radius-tls-ca.pem
-
 PATH=/opt/sbin:/opt/bin:$PATH
 export PATH
 
@@ -31,4 +25,3 @@ fi
 
 # else default to run whatever the user wanted like "bash" or "sh"
 exec "$@"
-
