@@ -90,10 +90,6 @@ resource "azurerm_cosmosdb_sql_container" "kmsdbContainer" {
   database_name         = azurerm_cosmosdb_sql_database.db.name
   partition_key_path    = "/namespaceId"
   partition_key_version = 1
-
-  autoscale_settings {
-    max_throughput = 1000
-  }
 }
 
 resource "azurerm_user_assigned_identity" "backendManagedIdentity" {
