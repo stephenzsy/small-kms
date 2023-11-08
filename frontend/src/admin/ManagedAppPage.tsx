@@ -56,7 +56,7 @@ function ServicePrincipalSection({
           title="Secret policies"
           extra={
             <Link to={`${secretPolicyRoutePrefix}_create`}>
-              Create certificate policy
+              Create secret policy
             </Link>
           }
         >
@@ -67,7 +67,10 @@ function ServicePrincipalSection({
           />
         </Card>
         <Card title="Provisioning">
-          <Link to={`./provision-agent`}>Provision agent</Link>
+          <div className="space-y-4 flex flex-col items-start">
+            <Link to={`./provision-agent`}>Provision agent</Link>
+            <Link to={`./radius-config`}>Configure radius</Link>
+          </div>
         </Card>
       </section>
     </NamespaceConfigContextProvider>

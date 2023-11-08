@@ -7,4 +7,5 @@ const (
 	CertRuleNameMsEntraClientCredential NamespaceConfigName = "ms-entra-client-credential"
 
 	AgentConfigNameServer NamespaceConfigName = "agent-server"
+	AgentConfigNameRadius NamespaceConfigName = "radius"
 )

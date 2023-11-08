@@ -183,6 +183,9 @@ export default function ManagedAppsPage() {
           <Link className="block" to={`/app/system/default/provision-agent`}>
             Agent global configurations
           </Link>
+          <Link className="block" to={`/app/system/default/radius-config`}>
+            Radius global configurations
+          </Link>
         </div>
       </Card>
       <Card title="Managed applications">

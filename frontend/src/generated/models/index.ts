@@ -2,6 +2,9 @@
 /* eslint-disable */
 export * from './AgentConfig';
 export * from './AgentConfigFields';
+export * from './AgentConfigRadius';
+export * from './AgentConfigRadiusClientConfig';
+export * from './AgentConfigRadiusFields';
 export * from './AgentConfigServer';
 export * from './AgentConfigServerEnv';
 export * from './AgentConfigServerFields';
@@ -25,6 +28,7 @@ export * from './CertificateRefFields';
 export * from './CertificateRuleIssuer';
 export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
+export * from './ClientConfig';
 export * from './EnrollCertificateRequest';
 export * from './EnrollmentType';
 export * from './JsonWebKey';

@@ -1,16 +1,13 @@
 package managedapp
 
 import (
-	"time"
-
 	"github.com/stephenzsy/small-kms/backend/base"
 )
 
 type AgentConfigDoc struct {
 	base.BaseDoc
 
-	Version      string    `json:"version"`
-	RefreshAfter time.Time `json:"refreshAfter"`
+	Version string `json:"version"`
 }
 
 func (d *AgentConfigDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID, configName base.NamespaceConfigName) {
@@ -23,5 +20,4 @@ func (d *AgentConfigDoc) PopulateModel(m *AgentConfig) {
 	}
 	d.BaseDoc.PopulateModelRef(&m.ResourceReference)
 	m.Version = d.Version
-	m.RefreshAfter = d.RefreshAfter
 }

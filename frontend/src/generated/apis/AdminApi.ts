@@ -15,6 +15,8 @@
 
 import * as runtime from '../runtime';
 import type {
+  AgentConfigRadius,
+  AgentConfigRadiusFields,
   AgentConfigServer,
   AgentConfigServerFields,
   AgentInstance,
@@ -48,6 +50,10 @@ import type {
   SystemAppName,
 } from '../models/index';
 import {
+    AgentConfigRadiusFromJSON,
+    AgentConfigRadiusToJSON,
+    AgentConfigRadiusFieldsFromJSON,
+    AgentConfigRadiusFieldsToJSON,
     AgentConfigServerFromJSON,
     AgentConfigServerToJSON,
     AgentConfigServerFieldsFromJSON,
@@ -224,6 +230,11 @@ export interface GenerateSecretRequest {
     resourceId: string;
 }
 
+export interface GetAgentConfigRadiusRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+}
+
 export interface GetAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -341,6 +352,18 @@ export interface ListSecretsRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     policyId?: string;
+}
+
+export interface PatchAgentConfigRadiusRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    agentConfigRadiusFields: AgentConfigRadiusFields;
+}
+
+export interface PutAgentConfigRadiusRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    agentConfigRadiusFields: AgentConfigRadiusFields;
 }
 
 export interface PutAgentConfigServerRequest {
@@ -1206,6 +1229,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async generateSecret(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Secret> {
         const response = await this.generateSecretRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent config radius
+     */
+    async getAgentConfigRadiusRaw(requestParameters: GetAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigRadius>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentConfigRadius.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfigRadius.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/radius`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigRadiusFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent config radius
+     */
+    async getAgentConfigRadius(requestParameters: GetAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigRadius> {
+        const response = await this.getAgentConfigRadiusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2234,6 +2299,104 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listSecrets(requestParameters: ListSecretsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SecretRef>> {
         const response = await this.listSecretsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Patch agent config radius
+     */
+    async patchAgentConfigRadiusRaw(requestParameters: PatchAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigRadius>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling patchAgentConfigRadius.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling patchAgentConfigRadius.');
+        }
+
+        if (requestParameters.agentConfigRadiusFields === null || requestParameters.agentConfigRadiusFields === undefined) {
+            throw new runtime.RequiredError('agentConfigRadiusFields','Required parameter requestParameters.agentConfigRadiusFields was null or undefined when calling patchAgentConfigRadius.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/radius`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentConfigRadiusFieldsToJSON(requestParameters.agentConfigRadiusFields),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigRadiusFromJSON(jsonValue));
+    }
+
+    /**
+     * Patch agent config radius
+     */
+    async patchAgentConfigRadius(requestParameters: PatchAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigRadius> {
+        const response = await this.patchAgentConfigRadiusRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put agent config radius
+     */
+    async putAgentConfigRadiusRaw(requestParameters: PutAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigRadius>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentConfigRadius.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentConfigRadius.');
+        }
+
+        if (requestParameters.agentConfigRadiusFields === null || requestParameters.agentConfigRadiusFields === undefined) {
+            throw new runtime.RequiredError('agentConfigRadiusFields','Required parameter requestParameters.agentConfigRadiusFields was null or undefined when calling putAgentConfigRadius.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/agent-config/radius`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentConfigRadiusFieldsToJSON(requestParameters.agentConfigRadiusFields),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigRadiusFromJSON(jsonValue));
+    }
+
+    /**
+     * Put agent config radius
+     */
+    async putAgentConfigRadius(requestParameters: PutAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigRadius> {
+        const response = await this.putAgentConfigRadiusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

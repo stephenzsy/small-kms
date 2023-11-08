@@ -26,6 +26,7 @@ const ProvisionAgentPage = React.lazy(
 const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
+const RadiusConfigPage = React.lazy(() => import("./admin/RadiusConfigPage"))
 
 export const router = createBrowserRouter([
   {
@@ -111,6 +112,10 @@ export const router = createBrowserRouter([
                 element: <ProvisionAgentPage isGlobalConfig />,
               },
               {
+                path: "system/default/radius-config",
+                element: <RadiusConfigPage isGlobalConfig />,
+              },
+              {
                 path: "managed/:appId",
                 element: (
                   <ManagedAppContextProvider isSystemApp={false}>
@@ -120,6 +125,8 @@ export const router = createBrowserRouter([
                 children: [
                   { index: true, element: <ManagedAppPage /> },
                   { path: "provision-agent", element: <ProvisionAgentPage /> },
+                  { path: "radius-config", element: <RadiusConfigPage /> },
+
                 ],
               },
               {

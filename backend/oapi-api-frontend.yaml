@@ -20,6 +20,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1server"
   /v1/{namespaceKind}/{namespaceId}/agent-config/server/role-assignments:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1server~1role-assignments"
+  /v1/{namespaceKind}/{namespaceId}/agent-config/radius:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1radius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}:
