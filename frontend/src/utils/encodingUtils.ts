@@ -5,7 +5,7 @@ export function toPEMBlock(encoded: string, type: string) {
 }export function base64UrlEncodedToStdEncoded(data: string) {
   const r = data.replace(/-/g, "+").replace(/_/g, "/");
   // decide pad length
-  const padLen = 4 - (r.length % 4);
+  const padLen = r.length % 4;
   if (padLen == 2) {
     return r + "==";
   } else if (padLen == 3) {

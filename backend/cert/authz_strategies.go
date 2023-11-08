@@ -75,7 +75,7 @@ func (s *server) allowAdminDelegatedServicePrincipal(policyNsID base.ID) authz.A
 			return c, authz.AuthzResultNone
 		}
 		if *sp.GetId() == string(policyNsID) {
-			return c, authz.AuthzResultAllow
+			return c.WithValue(selfGraphObjectContextKey, sp), authz.AuthzResultAllow
 		}
 		return c, authz.AuthzResultNone
 	}

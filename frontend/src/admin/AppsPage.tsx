@@ -14,6 +14,7 @@ import { useForm } from "antd/es/form/Form";
 import { useMemo } from "react";
 import { Link } from "../components/Link";
 import { ImportProfileForm } from "./ImportProfileForm";
+import { SyncManagedApplicationForm } from "./forms/SyncManagedApplicationForm";
 
 type CreateManagedAppFormState = {
   displayName?: string;
@@ -191,8 +192,11 @@ export default function ManagedAppsPage() {
           rowKey={(r) => r.id}
         />
       </Card>
-      <Card title="Create managed application">
+      <Card title="Create new managed application">
         <CreateManagedAppForm onCreated={listManagedApps} />
+      </Card>
+      <Card title="Sync existing managed application">
+        <SyncManagedApplicationForm onSynced={listManagedApps} />
       </Card>
       <Card title="Service principals">
         <Table<ProfileRef>

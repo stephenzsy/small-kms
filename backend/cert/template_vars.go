@@ -49,6 +49,14 @@ func lookupContextForTemplateVars(c context.Context) (d TemplateVarData) {
 			ID: dirObj.GetId(),
 		}
 	}
+	if dirObj, ok := c.Value(selfGraphObjectContextKey).(graphmodels.DirectoryObjectable); ok && dirObj != nil {
+		if d.My == nil {
+			d.My = &ResourceTemplateVarData{}
+		}
+		d.My.Graph = &ResourceTemplateGraphVarData{
+			ID: dirObj.GetId(),
+		}
+	}
 	return d
 }
 
@@ -62,10 +70,12 @@ type ResourceTemplateVarData struct {
 
 type TemplateVarData struct {
 	Member *ResourceTemplateVarData `json:"member,omitempty"`
+	My     *ResourceTemplateVarData `json:"my,omitempty"`
 }
 
 var allowedTemplateVars = map[string]string{
 	"member.graph.id": ".Member.Graph.ID",
+	"my.graph.id":     ".My.Graph.ID",
 }
 
 var varRegex = regexp.MustCompile(`\{\{([a-zA-Z0-9\.\-_]+)\}\}`)

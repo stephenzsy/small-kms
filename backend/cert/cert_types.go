@@ -96,6 +96,7 @@ type internalContextKey int
 const (
 	groupMemberOfContextKey internalContextKey = iota
 	groupMemberGraphObjectContextKey
+	selfGraphObjectContextKey
 )
 
 func (s *CertificateSubject) processTemplate(c context.Context) (processed CertificateSubject, err error) {

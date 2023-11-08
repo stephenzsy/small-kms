@@ -85,45 +85,6 @@ func createManagedApp(c context.Context, params *ManagedAppParameters) (*Managed
 	}
 }
 
-func apiSyncManagedApp(c ctx.RequestContext, appID uuid.UUID) error {
-	gclient := graph.GetServiceMsGraphClient(c)
-	application, err := gclient.ApplicationsWithAppId(to.Ptr(appID.String())).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
-		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
-			Select: []string{"id", "api", "displayName", "appId"},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	var patchApplication *gmodels.Application
-
-	if application.GetApi().GetRequestedAccessTokenVersion() == nil || *application.GetApi().GetRequestedAccessTokenVersion() != 2 {
-		if patchApplication == nil {
-			patchApplication = gmodels.NewApplication()
-		}
-		if patchApplication.GetApi() == nil {
-			patchApplication.SetApi(gmodels.NewApiApplication())
-		}
-		patchApplication.GetApi().SetRequestedAccessTokenVersion(to.Ptr(int32(2)))
-	}
-
-	if patchApplication != nil {
-		_, err = gclient.Applications().ByApplicationId(*application.GetId()).Patch(c, patchApplication, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	doc, err := getManagedApp(c, appID)
-	if err != nil {
-		return err
-	}
-	m := new(ManagedApp)
-	doc.PopulateModel(m)
-	return c.JSON(200, m)
-}
-
 func resolveSystemAppID(c context.Context, systemAppName SystemAppName) (uuid.UUID, error) {
 	switch systemAppName {
 	case SystemAppNameBackend:

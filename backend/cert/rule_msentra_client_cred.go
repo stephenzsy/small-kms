@@ -80,22 +80,22 @@ func apiPutCertRuleMsEntraClientCredentrial(c ctx.RequestContext, p *Certificate
 		}
 		ruleDoc.CertificateIDs = certIds
 	}
-	{
-		c := ctx.Elevate(c)
-		err := docSvc.Upsert(c, ruleDoc, nil)
-		if err != nil {
-			return err
-		}
-		if err := applyMsEntraClientCredential(c, nsCtx.ID().UUID(), ruleDoc.CertificateIDs); err != nil {
-			return err
-		}
+
+	c = c.Elevate()
+	err := docSvc.Upsert(c, ruleDoc, nil)
+	if err != nil {
+		return err
 	}
+	if err := applyMsEntraClientCredential(c, nsCtx.ID().UUID(), ruleDoc.CertificateIDs); err != nil {
+		return err
+	}
+
 	m := new(CertificateRuleMsEntraClientCredential)
 	ruleDoc.PopulateModel(m)
 	return c.JSON(200, m)
 }
 
-func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUID, certIDs []base.ID) error {
+func applyMsEntraClientCredential(c ctx.RequestContext, servicePrincipalID uuid.UUID, certIDs []base.ID) error {
 	provisioningCerts := make(map[string]*CertDoc, len(certIDs))
 	for _, certID := range certIDs {
 		certDoc, err := ApiReadCertDocByID(c, certID)
@@ -105,7 +105,10 @@ func applyMsEntraClientCredential(c context.Context, servicePrincipalID uuid.UUI
 		provisioningCerts[certDoc.KeySpec.X5t.HexString()] = certDoc
 	}
 
-	gclient := graph.GetServiceMsGraphClient(c)
+	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	if err != nil {
+		return err
+	}
 	sp, err := gclient.ServicePrincipals().ByServicePrincipalId(servicePrincipalID.String()).Get(c,
 		&serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{

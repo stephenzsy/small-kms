@@ -18,6 +18,7 @@ type (
 		echo.Context
 		context.Context
 		WithValue(key any, val any) RequestContext
+		Elevate() RequestContext
 	}
 
 	wrappedCtx struct {
@@ -64,6 +65,19 @@ func (c *requestContext) Value(key any) any {
 		return val
 	}
 	return c.serviceCtx.Value(key)
+}
+
+func (c *requestContext) Elevate() RequestContext {
+	if c.elevated {
+		// already elevated
+		return c
+	}
+	return &requestContext{
+		Context:    c.Context,
+		elevated:   true,
+		reqCtx:     c.reqCtx,
+		serviceCtx: c.serviceCtx,
+	}
 }
 
 var _ RequestContext = (*requestContext)(nil)
