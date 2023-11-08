@@ -20,6 +20,8 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 import AnchorLink from "antd/es/anchor/AnchorLink";
 import { Link } from "../components/Link";
+import { toPEMBlock } from "../utils/encodingUtils";
+import { base64UrlEncodedToStdEncoded } from "../utils/encodingUtils";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
   return useMemo((): RsaHashedKeyGenParams | EcKeyGenParams | undefined => {
@@ -112,18 +114,6 @@ function encodeBase64Url(data: string) {
   return stdEncoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-function base64UrlEncodedToStdEncoded(data: string) {
-  const r = data.replace(/-/g, "+").replace(/_/g, "/");
-  // decide pad length
-  const padLen = 4 - (r.length % 4);
-  if (padLen == 2) {
-    return r + "==";
-  } else if (padLen == 3) {
-    return r + "=";
-  }
-  return r;
-}
-
 function getSignatureCryptoAlg(
   alg: JsonWebKeySignatureAlgorithm
 ): AlgorithmIdentifier | RsaPssParams | EcdsaParams | undefined {
@@ -188,11 +178,6 @@ async function signProofJwt(
     String.fromCharCode(...new Uint8Array(signatureBuf))
   );
   return toBeSigned + "." + encodedSignature;
-}
-
-function toPEMBlock(encoded: string, type: string) {
-  const lines = encoded.match(/.{1,64}/g) ?? [];
-  return `-----BEGIN ${type}-----\n${lines.join("\n")}\n-----END ${type}-----`;
 }
 
 export function CertWebEnroll({
