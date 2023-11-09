@@ -1,13 +1,13 @@
-package frconfig_test
+package radius_test
 
 import (
 	"testing"
 
-	frconfig "github.com/stephenzsy/small-kms/backend/freeradius/config"
+	"github.com/stephenzsy/small-kms/backend/agent/radius"
 )
 
 func TestClientConfig_MarshalText(t *testing.T) {
-	c := &frconfig.RadiusClientConfig{
+	c := &radius.RadiusClientConfig{
 		Name:   "localhost",
 		Ipaddr: "127.0.0.1",
 		Secret: "testing123",

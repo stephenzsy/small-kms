@@ -11,8 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
-	externalRef1 "github.com/stephenzsy/small-kms/backend/freeradius/config"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/agent/radius"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/base"
 )
 
 const (
@@ -46,7 +46,7 @@ type AgentConfigRadius = agentConfigRadiusComposed
 // AgentConfigRadiusFields defines model for AgentConfigRadiusFields.
 type AgentConfigRadiusFields struct {
 	AzureACRImageRef *string                           `json:"azureAcrImageRef,omitempty"`
-	Clients          []externalRef1.RadiusClientConfig `json:"clients,omitempty"`
+	Clients          []externalRef0.RadiusClientConfig `json:"clients,omitempty"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.
@@ -65,10 +65,10 @@ type AgentConfigServerFields struct {
 
 	// Env Environment variables for the agent config server, must be set manually
 	Env                    AgentConfigServerEnv           `json:"env"`
-	JWTKeyCertIDs          []externalRef0.ResourceLocator `json:"jwtKeyCertIds"`
-	JwtKeyCertPolicyId     externalRef0.ResourceLocator   `json:"jwtKeyCertPolicyId"`
-	TlsCertificateId       externalRef0.Id                `json:"tlsCertificateId"`
-	TlsCertificatePolicyId externalRef0.Id                `json:"tlsCertificatePolicyId"`
+	JWTKeyCertIDs          []externalRef1.ResourceLocator `json:"jwtKeyCertIds"`
+	JwtKeyCertPolicyId     externalRef1.ResourceLocator   `json:"jwtKeyCertPolicyId"`
+	TlsCertificateId       externalRef1.Id                `json:"tlsCertificateId"`
+	TlsCertificatePolicyId externalRef1.Id                `json:"tlsCertificatePolicyId"`
 }
 
 // AgentInstance defines model for AgentInstance.
@@ -155,34 +155,34 @@ type ServerInterface interface {
 	SyncSystemApp(ctx echo.Context, systemAppName SystemAppName) error
 	// Get agent config radius
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
-	GetAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	GetAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Patch agent config radius
 	// (PATCH /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
-	PatchAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	PatchAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Put agent config radius
 	// (PUT /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
-	PutAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	PutAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Get agent config server
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/server)
-	GetAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	GetAgentConfigServer(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Put agent config server
 	// (PUT /v1/{namespaceKind}/{namespaceId}/agent-config/server)
-	PutAgentConfigServer(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	PutAgentConfigServer(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// List Key Vault role assignments
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/server/role-assignments)
-	ListAgentServerAzureRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	ListAgentServerAzureRoleAssignments(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// List agent config server instances
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance)
-	ListAgentInstances(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
+	ListAgentInstances(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Get agent config server instance
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId})
-	GetAgentInstance(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	GetAgentInstance(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 	// Put agent config server instance
 	// (PUT /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId})
-	PutAgentInstance(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	PutAgentInstance(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 
 	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token)
-	CreateAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	CreateAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -288,7 +288,7 @@ func (w *ServerInterfaceWrapper) SyncSystemApp(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetAgentConfigRadius(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -296,7 +296,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfigRadius(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -314,7 +314,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfigRadius(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) PatchAgentConfigRadius(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -322,7 +322,7 @@ func (w *ServerInterfaceWrapper) PatchAgentConfigRadius(ctx echo.Context) error 
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -340,7 +340,7 @@ func (w *ServerInterfaceWrapper) PatchAgentConfigRadius(ctx echo.Context) error 
 func (w *ServerInterfaceWrapper) PutAgentConfigRadius(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -348,7 +348,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfigRadius(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -366,7 +366,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfigRadius(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetAgentConfigServer(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -374,7 +374,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfigServer(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -392,7 +392,7 @@ func (w *ServerInterfaceWrapper) GetAgentConfigServer(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) PutAgentConfigServer(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -400,7 +400,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfigServer(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -418,7 +418,7 @@ func (w *ServerInterfaceWrapper) PutAgentConfigServer(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) ListAgentServerAzureRoleAssignments(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -426,7 +426,7 @@ func (w *ServerInterfaceWrapper) ListAgentServerAzureRoleAssignments(ctx echo.Co
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -444,7 +444,7 @@ func (w *ServerInterfaceWrapper) ListAgentServerAzureRoleAssignments(ctx echo.Co
 func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -452,7 +452,7 @@ func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -470,7 +470,7 @@ func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -478,7 +478,7 @@ func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -486,7 +486,7 @@ func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
+	var resourceId externalRef1.ResourceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
@@ -504,7 +504,7 @@ func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -512,7 +512,7 @@ func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -520,7 +520,7 @@ func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 	}
 
 	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
+	var resourceId externalRef1.ResourceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {
@@ -538,7 +538,7 @@ func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
+	var namespaceKind externalRef1.NamespaceKindParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
 	if err != nil {
@@ -546,7 +546,7 @@ func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Cont
 	}
 
 	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
+	var namespaceId externalRef1.NamespaceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
 	if err != nil {
@@ -554,7 +554,7 @@ func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Cont
 	}
 
 	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
+	var resourceId externalRef1.ResourceIdParameter
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
 	if err != nil {

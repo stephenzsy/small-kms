@@ -1,4 +1,4 @@
-package frconfig
+package radius
 
 import (
 	"strings"

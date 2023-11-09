@@ -14,7 +14,7 @@ type ConfigiManagerState int
 
 type ConfigManager struct {
 	EnvConfig        *agentcommon.AgentEnv
-	configDir        string
+	ConfigDir        string
 	configProcessor  agentConfigServerProcessor
 	hasAttemptedLoad bool
 }
@@ -51,7 +51,7 @@ func NewConfigManager(envSvc common.EnvService, mode managedapp.AgentMode) (*Con
 	envConfig, err := agentcommon.NewAgentEnv(envSvc, mode)
 	return &ConfigManager{
 		EnvConfig: envConfig,
-		configDir: configDir,
+		ConfigDir: configDir,
 		configProcessor: agentConfigServerProcessor{
 			configDir: configDir,
 			envConfig: envConfig,
