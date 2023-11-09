@@ -23,6 +23,9 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// AgentConfigRadius defines model for AgentConfigRadius.
+type AgentConfigRadius = externalRef3.AgentConfigRadius
+
 // AgentConfigServer defines model for AgentConfigServer.
 type AgentConfigServer = externalRef3.AgentConfigServer
 
@@ -122,6 +125,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetAgentConfigRadius request
+	GetAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAgentConfigServer request
 	GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -137,6 +143,18 @@ type ClientInterface interface {
 
 	// GetCertificate request
 	GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConfigRadiusRequest(c.Server, namespaceKind, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetAgentConfigServer(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -209,6 +227,47 @@ func (c *Client) GetCertificate(ctx context.Context, namespaceKind externalRef0.
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetAgentConfigRadiusRequest generates requests for GetAgentConfigRadius
+func NewGetAgentConfigRadiusRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent-config/radius", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetAgentConfigServerRequest generates requests for GetAgentConfigServer
@@ -487,6 +546,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetAgentConfigRadiusWithResponse request
+	GetAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigRadiusResponse, error)
+
 	// GetAgentConfigServerWithResponse request
 	GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error)
 
@@ -502,6 +564,28 @@ type ClientWithResponsesInterface interface {
 
 	// GetCertificateWithResponse request
 	GetCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
+}
+
+type GetAgentConfigRadiusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AgentConfigRadius
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentConfigRadiusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentConfigRadiusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetAgentConfigServerResponse struct {
@@ -591,6 +675,15 @@ func (r GetCertificateResponse) StatusCode() int {
 	return 0
 }
 
+// GetAgentConfigRadiusWithResponse request returning *GetAgentConfigRadiusResponse
+func (c *ClientWithResponses) GetAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigRadiusResponse, error) {
+	rsp, err := c.GetAgentConfigRadius(ctx, namespaceKind, namespaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConfigRadiusResponse(rsp)
+}
+
 // GetAgentConfigServerWithResponse request returning *GetAgentConfigServerResponse
 func (c *ClientWithResponses) GetAgentConfigServerWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigServerResponse, error) {
 	rsp, err := c.GetAgentConfigServer(ctx, namespaceKind, namespaceId, reqEditors...)
@@ -641,6 +734,32 @@ func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseGetCertificateResponse(rsp)
+}
+
+// ParseGetAgentConfigRadiusResponse parses an HTTP response from a GetAgentConfigRadiusWithResponse call
+func ParseGetAgentConfigRadiusResponse(rsp *http.Response) (*GetAgentConfigRadiusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentConfigRadiusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AgentConfigRadius
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetAgentConfigServerResponse parses an HTTP response from a GetAgentConfigServerWithResponse call

@@ -13,7 +13,7 @@ import (
 type ConfigiManagerState int
 
 type ConfigManager struct {
-	envConfig        *agentcommon.AgentEnv
+	EnvConfig        *agentcommon.AgentEnv
 	configDir        string
 	configProcessor  agentConfigServerProcessor
 	hasAttemptedLoad bool
@@ -32,7 +32,7 @@ func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration,
 	logger := log.Ctx(c).With().Str("step", "pull config").Logger()
 	logger.Debug().Msg("enter")
 	defer logger.Debug().Msg("exit")
-	client, err := m.envConfig.AgentClient()
+	client, err := m.EnvConfig.AgentClient()
 	if err != nil {
 		return nil, false, err
 	}
@@ -50,7 +50,7 @@ func NewConfigManager(envSvc common.EnvService, mode managedapp.AgentMode) (*Con
 	}
 	envConfig, err := agentcommon.NewAgentEnv(envSvc, mode)
 	return &ConfigManager{
-		envConfig: envConfig,
+		EnvConfig: envConfig,
 		configDir: configDir,
 		configProcessor: agentConfigServerProcessor{
 			configDir: configDir,

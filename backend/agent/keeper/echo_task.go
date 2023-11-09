@@ -96,7 +96,7 @@ func NewEchoTask(buildID string,
 		buildID:      buildID,
 		newEcho:      newEcho,
 		configUpdate: keeper.ConfigUpdate(),
-		agentEnv:     keeper.cm.envConfig,
+		agentEnv:     keeper.cm.EnvConfig,
 		endpoint:     endpoint,
 		mode:         mode,
 	}

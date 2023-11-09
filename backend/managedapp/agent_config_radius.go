@@ -11,17 +11,23 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 // GetAgentConfigRadius implements ServerInterface.
 func (s *server) GetAgentConfigRadius(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID) error {
 	c := ec.(ctx.RequestContext)
-	if !authz.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
+	c, nsCtx := ns.WithResovingMeNSContext(c, nsKind, nsID)
+	c, authOk := authz.Authorize(c, authz.AllowAdmin, nsCtx.AllowSelf())
+	if !authOk {
+		return base.ErrResponseStatusForbidden
 	}
+
 	doc := &AgentConfigRadiusDoc{}
-	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocLocator(nsKind,
-		nsID, base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameRadius)), doc, nil); err != nil {
+	if err := base.GetAzCosmosCRUDService(c).Read(c, base.NewDocLocator(
+		nsCtx.Kind(),
+		nsCtx.ID(),
+		base.ResourceKindNamespaceConfig, base.ID(base.AgentConfigNameRadius)), doc, nil); err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w: %s", base.ErrResponseStatusNotFound, base.AgentConfigNameRadius)
 		}

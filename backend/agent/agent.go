@@ -105,9 +105,12 @@ func main() {
 			keeperTask := keeper.NewKeeper(configManager)
 			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, mode)
 
+			radiusConfigPoller := keeper.NewRadiusConfigPoller(configManager.EnvConfig)
+
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
-				WithTask(echoTask)
+				WithTask(echoTask).
+				WithTask(radiusConfigPoller)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
 			return
 		}
