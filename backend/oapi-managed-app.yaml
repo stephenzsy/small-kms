@@ -144,11 +144,7 @@ paths:
       summary: Get agent config radius
       responses:
         200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentConfigRadius"
+          $ref: "#/components/responses/AgentConfigRadiusResponse"
     put:
       tags:
         - admin
@@ -162,11 +158,7 @@ paths:
               $ref: "#/components/schemas/AgentConfigRadiusFields"
       responses:
         200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentConfigRadius"
+          $ref: "#/components/responses/AgentConfigRadiusResponse"
     patch:
       tags:
         - admin
@@ -180,11 +172,7 @@ paths:
               $ref: "#/components/schemas/AgentConfigRadiusFields"
       responses:
         200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AgentConfigRadius"
+          $ref: "#/components/responses/AgentConfigRadiusResponse"
   /v1/{namespaceKind}/{namespaceId}/agent/instance:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -490,3 +478,9 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/AzureRoleAssignment"
+    AgentConfigRadiusResponse:
+      description: Agent radius config response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentConfigRadius"

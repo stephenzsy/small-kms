@@ -127,6 +127,9 @@ type SystemAppName string
 // ManagedAppIdParameter defines model for ManagedAppIdParameter.
 type ManagedAppIdParameter = openapi_types.UUID
 
+// AgentConfigRadiusResponse defines model for AgentConfigRadiusResponse.
+type AgentConfigRadiusResponse = AgentConfigRadius
+
 // CreateManagedAppJSONRequestBody defines body for CreateManagedApp for application/json ContentType.
 type CreateManagedAppJSONRequestBody = ManagedAppParameters
 

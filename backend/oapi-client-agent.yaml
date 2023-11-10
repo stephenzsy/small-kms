@@ -42,3 +42,10 @@ components:
         application/json:
           schema:
             $ref: "oapi-cert.yaml#/components/schemas/Certificate"
+    AgentConfigRadiusResponse:
+      description: Agent radius config response
+      content:
+        application/json:
+          schema:
+            $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigRadius"
+

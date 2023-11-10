@@ -364,6 +364,13 @@ export interface PatchAgentConfigRadiusRequest {
     agentConfigRadiusFields: AgentConfigRadiusFields;
 }
 
+export interface PushAgentConfigRadiusRequest {
+    namespaceKind: NamespaceKind;
+    namespaceId: string;
+    resourceId: string;
+    xCryptocatProxyAuthorization?: string;
+}
+
 export interface PutAgentConfigRadiusRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -2357,6 +2364,55 @@ export class AdminApi extends runtime.BaseAPI {
     async patchAgentConfigRadius(requestParameters: PatchAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigRadius> {
         const response = await this.patchAgentConfigRadiusRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Push agent radius configuration
+     */
+    async pushAgentConfigRadiusRaw(requestParameters: PushAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
+            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling pushAgentConfigRadius.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling pushAgentConfigRadius.');
+        }
+
+        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
+            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling pushAgentConfigRadius.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
+            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Push agent radius configuration
+     */
+    async pushAgentConfigRadius(requestParameters: PushAgentConfigRadiusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.pushAgentConfigRadiusRaw(requestParameters, initOverrides);
     }
 
     /**

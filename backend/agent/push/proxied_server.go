@@ -16,6 +16,13 @@ type proxiedServer struct {
 	proxyClientPool *ProxyClientPool
 }
 
+// PushAgentConfigRadius implements ServerInterface.
+func (s *proxiedServer) PushAgentConfigRadius(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID, rID base.ID, params PushAgentConfigRadiusParams) error {
+	return s.delegateRequest(ec, nsKind, nsID, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
+		return client.PushAgentConfigRadiusWithResponse(c, nsKind, nsID, rID, nil)
+	})
+}
+
 // AgentContainerRemove implements ServerInterface.
 func (s *proxiedServer) AgentDockerContainerRemove(ec echo.Context, namespaceKind base.NamespaceKind,
 	nsID base.ID,

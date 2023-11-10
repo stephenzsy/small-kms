@@ -90,6 +90,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// PushAgentConfigRadius request
+	PushAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAgentDiagnostics request
 	GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -123,6 +126,18 @@ type ClientInterface interface {
 	AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) PushAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPushAgentConfigRadiusRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -267,6 +282,69 @@ func (c *Client) AgentPullImage(ctx context.Context, namespaceKind externalRef0.
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewPushAgentConfigRadiusRequest generates requests for PushAgentConfigRadius
+func NewPushAgentConfigRadiusRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/config/radius", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.XCryptocatProxyAuthorization != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
+		}
+
+	}
+
+	return req, nil
 }
 
 // NewGetAgentDiagnosticsRequest generates requests for GetAgentDiagnostics
@@ -989,6 +1067,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// PushAgentConfigRadiusWithResponse request
+	PushAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*PushAgentConfigRadiusResponse, error)
+
 	// GetAgentDiagnosticsWithResponse request
 	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
 
@@ -1022,6 +1103,27 @@ type ClientWithResponsesInterface interface {
 	AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
 
 	AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
+}
+
+type PushAgentConfigRadiusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PushAgentConfigRadiusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PushAgentConfigRadiusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetAgentDiagnosticsResponse struct {
@@ -1241,6 +1343,15 @@ func (r AgentPullImageResponse) StatusCode() int {
 	return 0
 }
 
+// PushAgentConfigRadiusWithResponse request returning *PushAgentConfigRadiusResponse
+func (c *ClientWithResponses) PushAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*PushAgentConfigRadiusResponse, error) {
+	rsp, err := c.PushAgentConfigRadius(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePushAgentConfigRadiusResponse(rsp)
+}
+
 // GetAgentDiagnosticsWithResponse request returning *GetAgentDiagnosticsResponse
 func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error) {
 	rsp, err := c.GetAgentDiagnostics(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
@@ -1345,6 +1456,22 @@ func (c *ClientWithResponses) AgentPullImageWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseAgentPullImageResponse(rsp)
+}
+
+// ParsePushAgentConfigRadiusResponse parses an HTTP response from a PushAgentConfigRadiusWithResponse call
+func ParsePushAgentConfigRadiusResponse(rsp *http.Response) (*PushAgentConfigRadiusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PushAgentConfigRadiusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
 }
 
 // ParseGetAgentDiagnosticsResponse parses an HTTP response from a GetAgentDiagnosticsWithResponse call

@@ -14,6 +14,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius)
+	PushAgentConfigRadius(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params PushAgentConfigRadiusParams) error
 	// Get agent diagnostics
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics)
 	GetAgentDiagnostics(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params GetAgentDiagnosticsParams) error
@@ -49,6 +52,60 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// PushAgentConfigRadius converts echo context to params.
+func (w *ServerInterfaceWrapper) PushAgentConfigRadius(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PushAgentConfigRadiusParams
+
+	headers := ctx.Request().Header
+	// ------------- Optional header parameter "X-Cryptocat-Proxy-Authorization" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cryptocat-Proxy-Authorization")]; found {
+		var XCryptocatProxyAuthorization DelegatedAuthorizationHeaderParameter
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Cryptocat-Proxy-Authorization, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, valueList[0], &XCryptocatProxyAuthorization)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Cryptocat-Proxy-Authorization: %s", err))
+		}
+
+		params.XCryptocatProxyAuthorization = &XCryptocatProxyAuthorization
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PushAgentConfigRadius(ctx, namespaceKind, namespaceId, resourceId, params)
+	return err
 }
 
 // GetAgentDiagnostics converts echo context to params.
@@ -643,6 +700,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/config/radius", wrapper.PushAgentConfigRadius)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/diagnostics", wrapper.GetAgentDiagnostics)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers", wrapper.AgentDockerContainerList)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId", wrapper.AgentDockerContainerRemove)

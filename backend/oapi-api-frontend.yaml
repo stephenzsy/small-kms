@@ -26,6 +26,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}"
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius:
+    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1config~1radius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1proxy-auth~1token"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics:

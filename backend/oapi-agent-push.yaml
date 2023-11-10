@@ -205,6 +205,22 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/DockerContianerCreateResponse"
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
+      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
+    post:
+      tags:
+        - agent
+        - admin
+      description: Push agent radius configuration
+      operationId: PushAgentConfigRadius
+      responses:
+        204:
+          description: Radius config push result
+          content: {}
 security:
   - BearerAuth: []
 components:

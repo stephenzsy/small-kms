@@ -60,6 +60,11 @@ type DelegatedAuthorizationHeaderParameter = string
 // DockerContianerCreateResponse defines model for DockerContianerCreateResponse.
 type DockerContianerCreateResponse = container.CreateResponse
 
+// PushAgentConfigRadiusParams defines parameters for PushAgentConfigRadius.
+type PushAgentConfigRadiusParams struct {
+	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
+}
+
 // GetAgentDiagnosticsParams defines parameters for GetAgentDiagnostics.
 type GetAgentDiagnosticsParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`

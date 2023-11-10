@@ -80,8 +80,8 @@ func main() {
 			if err != nil {
 				logger.Fatal().Err(err).Msg("Failed to create config manager")
 			}
-
-			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc)
+			radiusConfigManager := keeper.NewRadiusConfigManager(configManager.EnvConfig, configManager.ConfigDir)
+			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc, radiusConfigManager)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
@@ -105,12 +105,10 @@ func main() {
 			keeperTask := keeper.NewKeeper(configManager)
 			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, mode)
 
-			radiusConfigPoller := keeper.NewRadiusConfigManager(configManager.EnvConfig, configManager.ConfigDir)
-
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
 				WithTask(echoTask).
-				WithTask(radiusConfigPoller)
+				WithTask(radiusConfigManager)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
 			return
 		}

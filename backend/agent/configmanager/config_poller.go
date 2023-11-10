@@ -17,10 +17,11 @@ type VersionedConfig interface {
 
 type ConfigPoller[CK comparable, T VersionedConfig] struct {
 	ChainedContextConfigHandler
-	name             string
-	contextKey       CK
-	pullRemoteConfig func(context.Context) (T, error)
-	cache            *ConfigCache[T]
+	name               string
+	contextKey         CK
+	pullRemoteConfig   func(context.Context) (T, error)
+	cache              *ConfigCache[T]
+	updateNotification chan bool
 }
 
 func jitter(d time.Duration) time.Duration {
@@ -57,6 +58,7 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 		logger.Debug().Dur("nextPoolInMillis", firstDuration).Msg("next config poll after cache load")
 	}
 	timer := time.NewTimer(firstDuration)
+	defer timer.Stop()
 	active := true
 	for active {
 		select {
@@ -65,7 +67,10 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 		case <-exit:
 			active = false
 		case <-timer.C:
+		case <-p.updateNotification:
 			timer.Stop()
+		}
+		if active {
 			pulled, err := p.pullRemoteConfig(c)
 			if err != nil {
 				logger.Error().Err(err).Msg("error while polling config")
@@ -73,18 +78,16 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 			if err := p.cache.SetPulledConfig(pulled); err != nil {
 				logger.Error().Err(err).Msg("error while setting pulled config")
 			}
-			if active {
-				if _, err := p.Handle(context.WithValue(c, p.contextKey, pulled)); err != nil {
-					logger.Error().Err(err).Msg("error while handling config")
-				}
-				nextDuration := time.Until(pulled.NextPullAfter())
-				if nextDuration < 5*time.Minute {
-					nextDuration = 5 * time.Minute
-				}
-				nextDuration = jitter(nextDuration)
-				logger.Debug().Dur("nextPoolInMillis", nextDuration).Msg("next config poll")
-				timer.Reset(nextDuration)
+			if _, err := p.Handle(context.WithValue(c, p.contextKey, pulled)); err != nil {
+				logger.Error().Err(err).Msg("error while handling config")
 			}
+			nextDuration := time.Until(pulled.NextPullAfter())
+			if nextDuration < 5*time.Minute {
+				nextDuration = 5 * time.Minute
+			}
+			nextDuration = jitter(nextDuration)
+			logger.Debug().Dur("nextPoolInMillis", nextDuration).Msg("next config poll")
+			timer.Reset(nextDuration)
 		}
 	}
 	if err := p.cache.Persist(false); err != nil {
@@ -93,8 +96,9 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 	return nil
 }
 
-func (p *ConfigPoller[CK, T]) ReceivePushedConfig(c context.Context, config T) (context.Context, error) {
-	return p.Handle(context.WithValue(c, p.contextKey, config))
+// instruct to pull config immediately, usually upon receiving a update notificate
+func (p *ConfigPoller[CK, T]) PullConfig() {
+	p.updateNotification <- true
 }
 
 func (p *ConfigPoller[CK, T]) Name() string {
@@ -106,10 +110,11 @@ func NewConfigPoller[CK comparable, T VersionedConfig](
 	pullRemoteConfig func(context.Context) (T, error),
 	cache *ConfigCache[T]) *ConfigPoller[CK, T] {
 	return &ConfigPoller[CK, T]{
-		name:             name,
-		contextKey:       contextKey,
-		pullRemoteConfig: pullRemoteConfig,
-		cache:            cache,
+		name:               name,
+		contextKey:         contextKey,
+		pullRemoteConfig:   pullRemoteConfig,
+		cache:              cache,
+		updateNotification: make(chan bool, 1),
 	}
 }
 

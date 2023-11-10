@@ -37,7 +37,8 @@ type DockerPullImageFormState = {
 function DockerPullImageForm() {
   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
   const [form] = useForm<DockerPullImageFormState>();
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const api = useAuthedClient(AdminApi);
 
   const { run: pullImage, loading } = useRequest(
@@ -92,7 +93,8 @@ type LaunchContainerFormState = {
 };
 
 function LaunchContainerForm({ mode }: { mode: AgentMode }) {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const [form] = useForm<LaunchContainerFormState>();
   const api = useAuthedClient(AdminApi);
   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
@@ -450,7 +452,8 @@ function useDockerContainerColumns(
 }
 
 function ContainersTableCard({ api }: { api: AdminApi }) {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const { instanceId, hasToken, getAccessToken } = useContext(
     ProxyAuthTokenContext
   );
@@ -541,8 +544,41 @@ function ContainersTableCard({ api }: { api: AdminApi }) {
   );
 }
 
+function RadiusConfigurationCard({ api }: { api: AdminApi }) {
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
+  const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
+  const { run: pushAgentConfigRadius } = useRequest(
+    async () => {
+      if (instanceId) {
+        const result = await api.pushAgentConfigRadius({
+          namespaceKind,
+          namespaceId: namespaceIdentifier,
+          resourceId: instanceId,
+          xCryptocatProxyAuthorization: getAccessToken(),
+        });
+
+        return result;
+      }
+    },
+    {
+      manual: true,
+    }
+  );
+  return (
+    <Card title="RADIUS configuration">
+      <div>
+        <Button type="primary" onClick={pushAgentConfigRadius}>
+          Push configuration
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 function AgentDashboard({ api }: { api: AdminApi }) {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const { instanceId, hasToken, getAccessToken, setAccessToken } = useContext(
     ProxyAuthTokenContext
   );
@@ -686,6 +722,7 @@ function AgentDashboard({ api }: { api: AdminApi }) {
           <Card title="Docker pull image">
             <DockerPullImageForm />
           </Card>
+          <RadiusConfigurationCard api={api} />
           {data && (
             <Card title="Launch container">
               <LaunchContainerForm
@@ -767,7 +804,8 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
 }
 
 export default function AgentDashboardPage() {
-  const { namespaceId: namespaceIdentifier, namespaceKind } = useContext(NamespaceContext);
+  const { namespaceId: namespaceIdentifier, namespaceKind } =
+    useContext(NamespaceContext);
   const { instanceId } = useParams<{ instanceId: string }>();
 
   const api = useAuthedClient(AdminApi);

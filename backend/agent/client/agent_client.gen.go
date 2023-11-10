@@ -23,9 +23,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// AgentConfigRadius defines model for AgentConfigRadius.
-type AgentConfigRadius = externalRef3.AgentConfigRadius
-
 // AgentConfigServer defines model for AgentConfigServer.
 type AgentConfigServer = externalRef3.AgentConfigServer
 
@@ -37,6 +34,9 @@ type Certificate = externalRef1.Certificate
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest = externalRef1.EnrollCertificateRequest
+
+// AgentConfigRadiusResponse defines model for AgentConfigRadiusResponse.
+type AgentConfigRadiusResponse = externalRef3.AgentConfigRadius
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = externalRef1.Certificate
@@ -569,7 +569,7 @@ type ClientWithResponsesInterface interface {
 type GetAgentConfigRadiusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AgentConfigRadius
+	JSON200      *AgentConfigRadiusResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -751,7 +751,7 @@ func ParseGetAgentConfigRadiusResponse(rsp *http.Response) (*GetAgentConfigRadiu
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AgentConfigRadius
+		var dest AgentConfigRadiusResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

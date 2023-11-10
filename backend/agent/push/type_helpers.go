@@ -36,3 +36,7 @@ func (r *AgentDockerNetworkListResponse) GetBody() []byte {
 func (r *AgentLaunchAgentResponse) GetBody() []byte {
 	return r.Body
 }
+
+func (r *PushAgentConfigRadiusResponse) GetBody() []byte {
+	return r.Body
+}
