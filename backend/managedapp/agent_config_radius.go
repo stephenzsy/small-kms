@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/labstack/echo/v4"
-	"github.com/stephenzsy/small-kms/backend/agent/radius"
+	frconfig "github.com/stephenzsy/small-kms/backend/agent/freeradiusconfig"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -116,9 +116,9 @@ func (s *server) patchAgentConfigRadius(c ctx.RequestContext, namespaceKind base
 	digest.Write(globalDocVersionBytes)
 
 	if p.Clients != nil {
-		doc.Clients = make([]radius.RadiusClientConfig, len(p.Clients))
+		doc.Clients = make([]frconfig.RadiusClientConfig, len(p.Clients))
 		for i, pClient := range p.Clients {
-			docClient := radius.RadiusClientConfig{
+			docClient := frconfig.RadiusClientConfig{
 				Ipaddr:         pClient.Ipaddr,
 				Name:           pClient.Name,
 				SecretPolicyId: pClient.SecretPolicyId,

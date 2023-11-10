@@ -3,14 +3,14 @@ package managedapp
 import (
 	"time"
 
-	"github.com/stephenzsy/small-kms/backend/agent/radius"
+	frconfig "github.com/stephenzsy/small-kms/backend/agent/freeradiusconfig"
 	"github.com/stephenzsy/small-kms/backend/base"
 )
 
 type AgentConfigRadiusDoc struct {
 	AgentConfigDoc
-	GlobalRadiusServerACRImageRef string                      `json:"acrImageRef,omitempty"`
-	Clients                       []radius.RadiusClientConfig `json:"clients,omitempty"`
+	GlobalRadiusServerACRImageRef string                        `json:"acrImageRef,omitempty"`
+	Clients                       []frconfig.RadiusClientConfig `json:"clients,omitempty"`
 }
 
 func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {

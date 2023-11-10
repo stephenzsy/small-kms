@@ -13,8 +13,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
+	"github.com/stephenzsy/small-kms/backend/agent/configmanager"
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
+	"github.com/stephenzsy/small-kms/backend/agent/radius"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
@@ -80,7 +82,12 @@ func main() {
 			if err != nil {
 				logger.Fatal().Err(err).Msg("Failed to create config manager")
 			}
-			radiusConfigManager := keeper.NewRadiusConfigManager(configManager.EnvConfig, configManager.ConfigDir)
+			radiusConfigProcessor := radius.NewRadiusConfigProcessHandler(configManager.EnvConfig, configmanager.NewConfigDir(string(managedapp.AgentConfigNameRadius), configManager.ConfigDir))
+			configHandlerChain := &configmanager.ChainedContextConfigHandler{
+				ContextConfigHandler: radiusConfigProcessor,
+			}
+			radiusConfigManager := radius.NewRadiusConfigManager(configHandlerChain, configManager.EnvConfig, configManager.ConfigDir)
+
 			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc, radiusConfigManager)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")

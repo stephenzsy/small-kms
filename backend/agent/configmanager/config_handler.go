@@ -2,42 +2,34 @@ package configmanager
 
 import "context"
 
+type HandleContextConfigFunc func(context.Context) (context.Context, error)
+
 type ContextConfigHandler interface {
-	Before(context.Context) (context.Context, error)
+	Before(c context.Context) (context.Context, error)
 	After(context.Context) (context.Context, error)
-	Handle(context.Context) (context.Context, error)
 }
 
 type ChainedContextConfigHandler struct {
+	ContextConfigHandler
 	next *ChainedContextConfigHandler
 }
 
-// After implements ContextConfigHandler.
-func (*ChainedContextConfigHandler) After(c context.Context) (context.Context, error) {
-	return c, nil
-}
-
-// Before implements ContextConfigHandler.
-func (*ChainedContextConfigHandler) Before(c context.Context) (context.Context, error) {
-	return c, nil
-}
-
-// Before implements ContextConfigHandler.
 func (h *ChainedContextConfigHandler) Handle(c context.Context) (context.Context, error) {
-	if h == nil {
-		return c, nil
-	}
-	c, err := h.Before(c)
-	if err != nil {
+	var err error
+	if c, err = h.Before(c); err != nil {
 		return c, err
 	}
 	if h.next != nil {
-		c, err := h.next.Handle(c)
-		if err != nil {
+		if c, err = h.next.Handle(c); err != nil {
 			return c, err
 		}
 	}
 	return h.After(c)
+}
+
+func (h *ChainedContextConfigHandler) SetNext(nh *ChainedContextConfigHandler) {
+	nh.next = h.next
+	h.next = nh
 }
 
 var _ ContextConfigHandler = (*ChainedContextConfigHandler)(nil)

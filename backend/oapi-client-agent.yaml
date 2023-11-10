@@ -12,6 +12,8 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1enroll-cert"
+  /v1/{namespaceKind}/{namespaceId}/secrets/{resourceId}:
+    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secrets~1{resourceId}"    
   /v1/{namespaceKind}/{namespaceId}/agent-config/server:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1server"
   /v1/{namespaceKind}/{namespaceId}/agent-config/radius:
@@ -34,7 +36,9 @@ components:
     AgentConfigRadius:
       $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigRadius"        
     AgentInstanceFields:
-      $ref: "oapi-managed-app.yaml#/components/schemas/AgentInstanceFields"    
+      $ref: "oapi-managed-app.yaml#/components/schemas/AgentInstanceFields"
+    Secret:
+      $ref: "oapi-secret.yaml#/components/schemas/Secret"
   responses:
     CertificateResponse:
       description: Key spec reponse

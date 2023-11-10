@@ -1,4 +1,4 @@
-package radius
+package frconfig
 
 import (
 	"strings"
@@ -24,3 +24,5 @@ func (c RadiusClientConfig) MarshalFreeradiusConfig() ([]byte, error) {
 	sb.WriteString("}\n")
 	return []byte(sb.String()), nil
 }
+
+var _ FreeRadiusConfigMarshaler = RadiusClientConfig{}

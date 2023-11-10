@@ -17,6 +17,7 @@ import (
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/cert"
 	externalRef3 "github.com/stephenzsy/small-kms/backend/managedapp"
+	externalRef4 "github.com/stephenzsy/small-kms/backend/secret"
 )
 
 const (
@@ -35,6 +36,9 @@ type Certificate = externalRef1.Certificate
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest = externalRef1.EnrollCertificateRequest
 
+// Secret defines model for Secret.
+type Secret = externalRef4.Secret
+
 // AgentConfigRadiusResponse defines model for AgentConfigRadiusResponse.
 type AgentConfigRadiusResponse = externalRef3.AgentConfigRadius
 
@@ -44,6 +48,11 @@ type CertificateResponse = externalRef1.Certificate
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
 	DryRun *bool `form:"dryRun,omitempty" json:"dryRun,omitempty"`
+}
+
+// GetSecretParams defines parameters for GetSecret.
+type GetSecretParams struct {
+	WithValue *bool `form:"withValue,omitempty" json:"withValue,omitempty"`
 }
 
 // PutAgentInstanceJSONRequestBody defines body for PutAgentInstance for application/json ContentType.
@@ -143,6 +152,9 @@ type ClientInterface interface {
 
 	// GetCertificate request
 	GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSecret request
+	GetSecret(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -219,6 +231,18 @@ func (c *Client) EnrollCertificate(ctx context.Context, namespaceKind externalRe
 
 func (c *Client) GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCertificateRequest(c.Server, namespaceKind, namespaceId, resourceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSecret(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSecretRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -503,6 +527,76 @@ func NewGetCertificateRequest(server string, namespaceKind externalRef0.Namespac
 	return req, nil
 }
 
+// NewGetSecretRequest generates requests for GetSecret
+func NewGetSecretRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/secrets/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.WithValue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "withValue", runtime.ParamLocationQuery, *params.WithValue); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -564,6 +658,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCertificateWithResponse request
 	GetCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
+
+	// GetSecretWithResponse request
+	GetSecretWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*GetSecretResponse, error)
 }
 
 type GetAgentConfigRadiusResponse struct {
@@ -675,6 +772,28 @@ func (r GetCertificateResponse) StatusCode() int {
 	return 0
 }
 
+type GetSecretResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Secret
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSecretResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSecretResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetAgentConfigRadiusWithResponse request returning *GetAgentConfigRadiusResponse
 func (c *ClientWithResponses) GetAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigRadiusResponse, error) {
 	rsp, err := c.GetAgentConfigRadius(ctx, namespaceKind, namespaceId, reqEditors...)
@@ -734,6 +853,15 @@ func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseGetCertificateResponse(rsp)
+}
+
+// GetSecretWithResponse request returning *GetSecretResponse
+func (c *ClientWithResponses) GetSecretWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*GetSecretResponse, error) {
+	rsp, err := c.GetSecret(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSecretResponse(rsp)
 }
 
 // ParseGetAgentConfigRadiusResponse parses an HTTP response from a GetAgentConfigRadiusWithResponse call
@@ -846,6 +974,32 @@ func ParseGetCertificateResponse(rsp *http.Response) (*GetCertificateResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest CertificateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSecretResponse parses an HTTP response from a GetSecretWithResponse call
+func ParseGetSecretResponse(rsp *http.Response) (*GetSecretResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSecretResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Secret
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

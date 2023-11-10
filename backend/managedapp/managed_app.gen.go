@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	externalRef0 "github.com/stephenzsy/small-kms/backend/agent/radius"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/agent/freeradiusconfig"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/base"
 )
 

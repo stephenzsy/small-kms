@@ -11,19 +11,22 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 // GetSecret implements ServerInterface.
 func (s *server) GetSecret(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID, secretID base.ID, params GetSecretParams) error {
 	c := ec.(ctx.RequestContext)
 
-	if !authz.AuthorizeAdminOnly(c) {
+	c, nsCtx := ns.WithResovingMeNSContext(c, nsKind, nsID)
+	c, authOk := authz.Authorize(c, authz.AllowAdmin, nsCtx.AllowSelf())
+	if !authOk {
 		return base.ErrResponseStatusForbidden
 	}
 
 	doc := &SecretDoc{}
 	docSvc := base.GetAzCosmosCRUDService(c)
-	if err := docSvc.Read(c, base.NewDocLocator(nsKind, nsID, base.ResourceKindSecret, secretID), doc, nil); err != nil {
+	if err := docSvc.Read(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindSecret, secretID), doc, nil); err != nil {
 		return wrapSecretNotFoundError(err, secretID)
 	}
 

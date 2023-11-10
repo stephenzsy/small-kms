@@ -10,7 +10,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	echo "github.com/labstack/echo/v4"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
-	"github.com/stephenzsy/small-kms/backend/agent/keeper"
+	"github.com/stephenzsy/small-kms/backend/agent/radius"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/common"
@@ -25,7 +25,7 @@ type agentServer struct {
 	acrAuthProvider     *acr.DockerRegistryAuthProvider
 	acrImageRepo        string
 	mode                managedapp.AgentMode
-	radiusConfigManager *keeper.RadiusConfigManager
+	radiusConfigManager *radius.RadiusConfigManager
 }
 
 // AgentContainerRemove implements ServerInterface.
@@ -154,7 +154,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService, radiusConfigManager *keeper.RadiusConfigManager) (*agentServer, error) {
+func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string

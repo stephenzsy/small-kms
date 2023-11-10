@@ -16,7 +16,7 @@ type VersionedConfig interface {
 }
 
 type ConfigPoller[CK comparable, T VersionedConfig] struct {
-	ChainedContextConfigHandler
+	handlerChain       *ChainedContextConfigHandler
 	name               string
 	contextKey         CK
 	pullRemoteConfig   func(context.Context) (T, error)
@@ -49,7 +49,7 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 	}
 	firstDuration := time.Duration(0)
 	if cacheOK {
-		p.Handle(context.WithValue(c, p.contextKey, cachedConfig))
+		p.handlerChain.Handle(context.WithValue(c, p.contextKey, cachedConfig))
 		firstDuration = time.Until(cachedConfig.NextPullAfter())
 		if firstDuration < 5*time.Minute {
 			firstDuration = 5 * time.Minute
@@ -78,7 +78,7 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 			if err := p.cache.SetPulledConfig(pulled); err != nil {
 				logger.Error().Err(err).Msg("error while setting pulled config")
 			}
-			if _, err := p.Handle(context.WithValue(c, p.contextKey, pulled)); err != nil {
+			if _, err := p.handlerChain.Handle(context.WithValue(c, p.contextKey, pulled)); err != nil {
 				logger.Error().Err(err).Msg("error while handling config")
 			}
 			nextDuration := time.Until(pulled.NextPullAfter())
@@ -106,10 +106,12 @@ func (p *ConfigPoller[CK, T]) Name() string {
 }
 
 func NewConfigPoller[CK comparable, T VersionedConfig](
+	handlerChain *ChainedContextConfigHandler,
 	name string, contextKey CK,
 	pullRemoteConfig func(context.Context) (T, error),
 	cache *ConfigCache[T]) *ConfigPoller[CK, T] {
 	return &ConfigPoller[CK, T]{
+		handlerChain:       handlerChain,
 		name:               name,
 		contextKey:         contextKey,
 		pullRemoteConfig:   pullRemoteConfig,
