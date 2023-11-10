@@ -11,4 +11,4 @@ oapi-codegen --package agentpush -generate "types" -import-mapping="oapi-base.ya
 oapi-codegen --package agentpush -generate "client" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-managed-app.yaml:github.com/stephenzsy/small-kms/backend/managedapp" -include-tags agent ./oapi-agent-push.yaml > agent/push/agent_push_client.gen.go
 oapi-codegen --package agentpush -generate "echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-managed-app.yaml:github.com/stephenzsy/small-kms/backend/managedapp" -include-tags agent ./oapi-agent-push.yaml > agent/push/agent_push_server.gen.go
 
-oapi-codegen --package radius -generate "types,skip-prune" ./oapi-freeradius-config.yaml > agent/radius/freeradius_config_types.gen.go
+oapi-codegen --package radius -generate "types,skip-prune"  -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-freeradius-config.yaml > agent/radius/freeradius_config_types.gen.go

@@ -69,18 +69,6 @@ func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 	return apiPutAgentInstance(c, instanceId, fields)
 }
 
-// ListAgentServerAzureRoleAssignments implements ServerInterface.
-func (s *server) ListAgentServerAzureRoleAssignments(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
-
-	return s.apiListAgentConfigServerRoleAssignments(c)
-}
-
 // SyncSystemApp implements ServerInterface.
 func (s *server) SyncSystemApp(ec echo.Context, systemAppName SystemAppName) error {
 	c := ec.(ctx.RequestContext)

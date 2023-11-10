@@ -8,9 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization/v2"
 	"github.com/google/uuid"
-	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	cloudauthzaz "github.com/stephenzsy/small-kms/backend/cloud/authz/az"
@@ -18,6 +16,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cloudutils"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
+	"github.com/stephenzsy/small-kms/backend/secret"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -226,60 +225,64 @@ func (s *server) assignAgentServerRoles(c ctx.RequestContext, assignedTo uuid.UU
 
 }
 
-func (s *server) apiListAgentConfigServerRoleAssignments(c ctx.RequestContext) error {
-	doc, err := ApiReadAgentConfigDoc(c)
-	if err != nil {
-		return err
-	}
-
-	if doc.GlobalACRImageRef == "" {
-		return fmt.Errorf("%w: image ref is not specified", base.ErrResponseStatusBadRequest)
-	}
-
-	nsCtx := ns.GetNSContext(c)
-	if _, ok := nsCtx.ID().AsUUID(); !ok {
-		return fmt.Errorf("%w: invalid namespace identifier", base.ErrResponseStatusBadRequest)
-	}
-	assignedTo := nsCtx.ID().UUID()
+func (s *server) assignAgentRadiusRoles(c ctx.RequestContext, assignedTo uuid.UUID, doc *AgentConfigRadiusDoc) error {
 	c, armRAClient, err := s.WithDelegatedARMAuthRoleAssignmentsClient(c)
 	if err != nil {
 		return err
 	}
-
 	subscriptionIDBuilder := &cloudutils.AzureSubscriptionResourceIDBuilder{
 		SubscriptionID: s.GetAzSubscriptionID(),
 	}
-	pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 2)
-	// ACR Pull
+	nsCtx := ns.GetNSContext(c)
+	// AcrPull
 	{
-		acrName, err := acr.ExtractACRName(doc.GlobalACRImageRef)
+		acrName, err := acr.ExtractACRName(doc.GlobalRadiusServerACRImageRef)
 		if err != nil {
 			return err
 		}
 		if acrResourceGroupName := s.EnvService().Default("AZURE_RESOURCE_GROUP_NAME", "", "ACR_"); acrResourceGroupName != "" {
-			scope := subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build()
-			pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
+			p := cloudauthzaz.RoleAssignmentProvisioner{
+				RoleDefinitionID: roleDefIDAcrPull,
+				Scope:            subscriptionIDBuilder.WithResourceGroup(acrResourceGroupName).WithContainerRegistry(acrName).Build(),
+				AssignedTo:       assignedTo,
+			}
+
+			roleDefID := subscriptionIDBuilder.WithRoleDefinitionID(roleDefIDAcrPull).Build()
+			if isAssigned, err := p.IsRoleAssigned(c, armRAClient, roleDefID); err != nil {
+				return err
+			} else if !isAssigned {
+				if err := p.AssignRole(c, armRAClient, roleDefID); err != nil {
+					return err
+				}
+			}
+		}
+
+	}
+	// client secret
+	{
+
+		for _, client := range doc.Clients {
+			if client.SecretPolicyId == "" {
+				continue
+			}
+			p := cloudauthzaz.RoleAssignmentProvisioner{
+				RoleDefinitionID: roleDefIDKeyVaultSecretsUser,
+				Scope: subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
+					secret.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), client.SecretPolicyId)).Build(),
+				AssignedTo: assignedTo,
+			}
+
+			roleDefID := subscriptionIDBuilder.WithRoleDefinitionID(roleDefIDKeyVaultSecretsUser).Build()
+
+			if isAssigned, err := p.IsRoleAssigned(c, armRAClient, roleDefID); err != nil {
+				return err
+			} else if !isAssigned {
+				if err := p.AssignRole(c, armRAClient, roleDefID); err != nil {
+					return err
+				}
+			}
 		}
 	}
-	// Key Vault Secrets User
-	{
-		scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
-			cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), doc.TLSCertificatePolicyID)).Build()
-		pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
-	}
+	return nil
 
-	resultPager := utils.NewSerializableItemsPager(
-		utils.NewMappedItemsPager[*base.AzureRoleAssignment, *armauthorization.RoleAssignment](utils.NewChainedItemPagers(pagers...), func(ra *armauthorization.RoleAssignment) *base.AzureRoleAssignment {
-			if ra == nil {
-				return nil
-			}
-			return &base.AzureRoleAssignment{
-				ID:               ra.ID,
-				Name:             ra.Name,
-				RoleDefinitionId: ra.Properties.RoleDefinitionID,
-				PrincipalId:      ra.Properties.PrincipalID,
-			}
-		}))
-
-	return api.RespondPagerList(c, resultPager)
 }

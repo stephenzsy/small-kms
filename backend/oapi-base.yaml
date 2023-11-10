@@ -32,6 +32,7 @@ components:
     Id:
       type: string
       x-go-type: ID
+      x-go-type-skip-optional-pointer: true
     AzureRoleAssignment:
       type: object
       properties:

@@ -42,7 +42,13 @@ export interface RadiusClientConfig {
      * @type {string}
      * @memberof RadiusClientConfig
      */
-    secretRef?: string;
+    secretId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RadiusClientConfig
+     */
+    secretPolicyId?: string;
 }
 
 /**
@@ -68,7 +74,8 @@ export function RadiusClientConfigFromJSONTyped(json: any, ignoreDiscriminator: 
         'name': json['name'],
         'ipaddr': !exists(json, 'ipaddr') ? undefined : json['ipaddr'],
         'secret': !exists(json, 'secret') ? undefined : json['secret'],
-        'secretRef': !exists(json, 'secretRef') ? undefined : json['secretRef'],
+        'secretId': !exists(json, 'secretId') ? undefined : json['secretId'],
+        'secretPolicyId': !exists(json, 'secretPolicyId') ? undefined : json['secretPolicyId'],
     };
 }
 
@@ -84,7 +91,8 @@ export function RadiusClientConfigToJSON(value?: RadiusClientConfig | null): any
         'name': value.name,
         'ipaddr': value.ipaddr,
         'secret': value.secret,
-        'secretRef': value.secretRef,
+        'secretId': value.secretId,
+        'secretPolicyId': value.secretPolicyId,
     };
 }
 

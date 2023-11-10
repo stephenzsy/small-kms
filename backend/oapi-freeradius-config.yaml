@@ -25,8 +25,11 @@ components:
         secret:
           type: string
           x-go-type-skip-optional-pointer: true
-        secretRef:
-          type: string
+        secretId:
+          $ref: "oapi-base.yaml#/components/schemas/Id"
+          x-go-type-skip-optional-pointer: true
+        secretPolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/Id"
           x-go-type-skip-optional-pointer: true
         # require_message_authenticator:
         #   type: boolean

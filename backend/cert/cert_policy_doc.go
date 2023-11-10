@@ -60,23 +60,23 @@ func (d *CertPolicyDoc) init(
 		}
 		d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
 	case base.NamespaceKindIntermediateCA:
-		if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
+		if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == "" {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindRootCA, base.ID("default"))
 		} else if *p.IssuerNamespaceKind != base.NamespaceKindRootCA {
 			return fmt.Errorf("%w: issuer namespace must be root ca", base.ErrResponseStatusBadRequest)
 		} else {
-			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, *p.IssuerNamespaceIdentifier)
+			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, p.IssuerNamespaceIdentifier)
 		}
 	case base.NamespaceKindServicePrincipal,
 		base.NamespaceKindGroup:
 		if isSelfSigning {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(nsKind, nsID)
-		} else if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == nil {
+		} else if p.IssuerNamespaceKind == nil || p.IssuerNamespaceIdentifier == "" {
 			d.IssuerNamespace = base.NewNamespaceIdentifier(base.NamespaceKindIntermediateCA, base.ID("default"))
 		} else if *p.IssuerNamespaceKind != base.NamespaceKindIntermediateCA {
 			return fmt.Errorf("%w: issuer namespace must be intermediate ca", base.ErrResponseStatusBadRequest)
 		} else {
-			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, *p.IssuerNamespaceIdentifier)
+			d.IssuerNamespace = base.NewNamespaceIdentifier(*p.IssuerNamespaceKind, p.IssuerNamespaceIdentifier)
 		}
 	default:
 		return fmt.Errorf("%w: unsupported namespace kind: %s", base.ErrResponseStatusBadRequest, nsKind)

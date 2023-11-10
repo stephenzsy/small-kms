@@ -3,6 +3,7 @@ apis/index.ts
 index.ts
 models/AgentConfig.ts
 models/AgentConfigFields.ts
+models/AgentConfigName.ts
 models/AgentConfigRadius.ts
 models/AgentConfigRadiusFields.ts
 models/AgentConfigServer.ts

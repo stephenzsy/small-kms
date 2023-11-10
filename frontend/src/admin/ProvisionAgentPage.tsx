@@ -18,6 +18,7 @@ import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
   AdminApi,
+  AgentConfigName,
   AgentConfigServerFields,
   AgentConfigServerToJSON,
   AgentInstance,
@@ -50,7 +51,7 @@ const wellKnownRoleDefinitionIds: Record<string, string> = {
   "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
 };
 
-function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
+export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
   return useMemo(() => {
     return [
       {
@@ -123,9 +124,10 @@ function AgentConfigServerFormCard({
 
   const { data: keysData } = useRequest(
     () => {
-      return api.listAgentServerAzureRoleAssignments({
+      return api.listAgentAzureRoleAssignments({
         namespaceId: namespaceIdentifier,
         namespaceKind,
+        configName: AgentConfigName.AgentConfigNameServer
       });
     },
     {

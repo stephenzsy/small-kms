@@ -2,6 +2,7 @@
 /* eslint-disable */
 export * from './AgentConfig';
 export * from './AgentConfigFields';
+export * from './AgentConfigName';
 export * from './AgentConfigRadius';
 export * from './AgentConfigRadiusFields';
 export * from './AgentConfigServer';

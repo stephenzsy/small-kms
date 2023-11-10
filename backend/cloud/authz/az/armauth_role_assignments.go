@@ -38,7 +38,7 @@ type RoleAssignmentProvisioner struct {
 
 func (p *RoleAssignmentProvisioner) IsRoleAssigned(c context.Context, client *armauthorization.RoleAssignmentsClient, roleDefinitionResourceID string) (bool, error) {
 	filterParam := fmt.Sprintf("assignedTo('{%s}')", p.AssignedTo.String())
-	log.Debug().Msgf("Lookup role assignments: ID: %s, scope: %s", p.AssignedTo.String(), p.Scope)
+	log.Ctx(c).Debug().Msgf("Lookup role assignments: ID: %s, scope: %s", p.AssignedTo.String(), p.Scope)
 	pager := client.NewListForScopePager(
 		p.Scope,
 		&armauthorization.RoleAssignmentsClientListForScopeOptions{
@@ -59,11 +59,11 @@ func (p *RoleAssignmentProvisioner) IsRoleAssigned(c context.Context, client *ar
 	}), nil
 }
 
-func (p *RoleAssignmentProvisioner) AssignRole(ctx context.Context, client *armauthorization.RoleAssignmentsClient, roleDefinitionResourceID string) error {
+func (p *RoleAssignmentProvisioner) AssignRole(c context.Context, client *armauthorization.RoleAssignmentsClient, roleDefinitionResourceID string) error {
 
-	log.Debug().Msgf("Create role assignments: ID: %s, scope: %s, definition: %s", p.AssignedTo.String(), p.Scope, roleDefinitionResourceID)
+	log.Ctx(c).Debug().Msgf("Create role assignments: ID: %s, scope: %s, definition: %s", p.AssignedTo.String(), p.Scope, roleDefinitionResourceID)
 	_, err := client.Create(
-		ctx,
+		c,
 		p.Scope,
 		uuid.NewString(),
 		armauthorization.RoleAssignmentCreateParameters{

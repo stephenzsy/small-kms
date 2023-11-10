@@ -18,6 +18,7 @@ import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
   AdminApi,
+  AgentConfigName,
   AgentConfigRadius,
   AgentConfigRadiusFields,
   AgentConfigRadiusToJSON,
@@ -227,15 +228,22 @@ function useAgentInstanceColumns(
 }
 
 function RadiusClientsForm() {
-  const { run } = useRadiusConfigPatch();
+  const { run, data } = useRadiusConfigPatch();
   const [form] = useForm<Pick<AgentConfigRadiusFields, "clients">>();
+
+  useEffect(() => {
+    if (data && data.clients) {
+      form.setFieldsValue({
+        clients: data.clients,
+      });
+    }
+  }, [data]);
   return (
     <Form form={form} layout="vertical" onFinish={(v) => run(v)}>
       <Form.List name={"clients"}>
         {(subFields, subOpt) => {
           return (
             <div className="flex flex-col gap-4">
-              <div className="text-lg font-semibold">Secret bindings</div>
               {subFields.map((subField) => (
                 <div
                   key={subField.key}
@@ -256,9 +264,9 @@ function RadiusClientsForm() {
                     <Input placeholder={"192.168.0.1/24"} />
                   </Form.Item>
                   <Form.Item<RadiusClientConfig[]>
-                    name={[subField.name, "secretRef"]}
+                    name={[subField.name, "secretPolicyId"]}
                     className="flex-auto"
-                    label="Secret ID"
+                    label="Secret Policy ID"
                     required
                   >
                     <Input />
@@ -364,6 +372,23 @@ export default function RadiusConfigPage({
     }
   );
   const { data: radiusConfig, mutate } = patchSvc;
+
+  const { data: keysData } = useRequest(
+    () => {
+      return api.listAgentAzureRoleAssignments({
+        namespaceId,
+        namespaceKind,
+        configName: AgentConfigName.AgentConfigNameRadius,
+      });
+    },
+    {
+      ready: !!namespaceId && !!namespaceKind,
+      refreshDeps: [namespaceId, namespaceKind],
+    }
+  );
+
+  const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();
+
   return (
     <>
       <Typography.Title>
@@ -385,9 +410,19 @@ export default function RadiusConfigPage({
               onUpdate={mutate}
             />
           ) : (
-            <Card title="RADIUS configuration">
-              <Collapse items={collapseItems} />
-            </Card>
+            <>
+              <Card title="RADIUS configuration">
+                <Collapse items={collapseItems} />
+              </Card>
+              <Card title="Azure role assignments">
+                <JsonDataDisplay data={keysData} />
+                <Table<AzureRoleAssignment>
+                  columns={roleAssignmentTableColumns}
+                  dataSource={keysData}
+                  rowKey={(r) => r.id ?? ""}
+                />
+              </Card>
+            </>
           )}
 
           {!isGlobalConfig && (

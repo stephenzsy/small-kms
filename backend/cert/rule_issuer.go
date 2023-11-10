@@ -17,7 +17,7 @@ func (d *CertRuleIssuerDoc) PopulateModel(r *CertificateRuleIssuer) {
 	if d == nil || r == nil {
 		return
 	}
-	r.CertificateId = &d.CertificateID
+	r.CertificateId = d.CertificateID
 	r.PolicyId = d.PolicyID
 }
 
@@ -65,7 +65,7 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 	ruleDoc := new(CertRuleIssuerDoc)
 	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameIssuer)
 	ruleDoc.PolicyID = p.PolicyId
-	if p.CertificateId == nil || *p.CertificateId == "" {
+	if p.CertificateId == "" {
 		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
 			return err
 		} else if len(certIds) > 0 {
@@ -74,7 +74,7 @@ func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error 
 			return fmt.Errorf("%w, no certificate issued by policy: %s", base.ErrResponseStatusNotFound, p.PolicyId)
 		}
 	} else {
-		ruleDoc.CertificateID = *p.CertificateId
+		ruleDoc.CertificateID = p.CertificateId
 	}
 	docSvc.Upsert(c, ruleDoc, nil)
 	m := new(CertificateRuleIssuer)

@@ -45,3 +45,18 @@ func (*server) ListSecrets(ec echo.Context, nsKind base.NamespaceKind, nsID base
 
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
 }
+
+func QueryLatestSecretIDIssuedByPolicy(c ctx.RequestContext, policyFullIdentifier base.DocLocator, limit uint) ([]base.ID, error) {
+	qb := base.NewDefaultCosmoQueryBuilder().
+		WithOrderBy(fmt.Sprintf("%s DESC", secretDocQueryColumnCreated)).
+		WithOffsetLimit(0, limit)
+	qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy", "NOT IS_DEFINED(c.deleted)")
+	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyFullIdentifier.String()})
+	pager := base.NewQueryDocPager[*SecretDoc](c,
+		qb,
+		base.NewDocNamespacePartitionKey(policyFullIdentifier.NamespaceKind(), policyFullIdentifier.NamespaceID(), base.ResourceKindSecret))
+
+	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(d *SecretDoc) base.ID {
+		return d.ID
+	}))
+}

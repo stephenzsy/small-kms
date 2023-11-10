@@ -64,7 +64,7 @@ type CertPolicyParameters struct {
 	DisplayName               string                       `json:"displayName,omitempty"`
 	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
 	Flags                     []CertificateFlag            `json:"flags,omitempty"`
-	IssuerNamespaceIdentifier *externalRef0.Id             `json:"issuerNamespaceIdentifier,omitempty"`
+	IssuerNamespaceIdentifier externalRef0.Id              `json:"issuerNamespaceIdentifier,omitempty"`
 	IssuerNamespaceKind       *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
 	KeyExportable             *bool                        `json:"keyExportable,omitempty"`
 	KeySpec                   *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
@@ -116,8 +116,8 @@ type CertificateRefFields struct {
 
 // CertificateRuleIssuer defines model for CertificateRuleIssuer.
 type CertificateRuleIssuer struct {
-	CertificateId *externalRef0.Id `json:"certificateId,omitempty"`
-	PolicyId      externalRef0.Id  `json:"policyId"`
+	CertificateId externalRef0.Id `json:"certificateId,omitempty"`
+	PolicyId      externalRef0.Id `json:"policyId"`
 }
 
 // CertificateRuleMsEntraClientCredential defines model for CertificateRuleMsEntraClientCredential.
