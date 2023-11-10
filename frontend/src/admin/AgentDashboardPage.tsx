@@ -132,6 +132,7 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
       networkName: values.networkName,
       secrets: values.secrets,
       msEntraIdClientCertSecretName: values.msEntraIdClientCertSecretName,
+      env: values.env,
     });
   });
 
@@ -265,7 +266,7 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
             );
           }}
         </Form.List>
-        <Form.List name={"secret"}>
+        <Form.List name={"secrets"}>
           {(subFields, subOpt) => {
             return (
               <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
