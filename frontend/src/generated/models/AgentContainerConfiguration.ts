@@ -49,12 +49,6 @@ export interface AgentContainerConfiguration {
      * @type {Array<string>}
      * @memberof AgentContainerConfiguration
      */
-    listenerAddresses: Array<string>;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof AgentContainerConfiguration
-     */
     exposedPortSpecs: Array<string>;
     /**
      * 
@@ -89,7 +83,6 @@ export function instanceOfAgentContainerConfiguration(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "imageRepo" in value;
     isInstance = isInstance && "imageTag" in value;
-    isInstance = isInstance && "listenerAddresses" in value;
     isInstance = isInstance && "exposedPortSpecs" in value;
     isInstance = isInstance && "hostBinds" in value;
 
@@ -109,7 +102,6 @@ export function AgentContainerConfigurationFromJSONTyped(json: any, ignoreDiscri
         'conatinerName': !exists(json, 'conatinerName') ? undefined : json['conatinerName'],
         'imageRepo': json['imageRepo'],
         'imageTag': json['imageTag'],
-        'listenerAddresses': json['listenerAddresses'],
         'exposedPortSpecs': json['exposedPortSpecs'],
         'hostBinds': json['hostBinds'],
         'secrets': !exists(json, 'secrets') ? undefined : ((json['secrets'] as Array<any>).map(SecretMountFromJSON)),
@@ -130,7 +122,6 @@ export function AgentContainerConfigurationToJSON(value?: AgentContainerConfigur
         'conatinerName': value.conatinerName,
         'imageRepo': value.imageRepo,
         'imageTag': value.imageTag,
-        'listenerAddresses': value.listenerAddresses,
         'exposedPortSpecs': value.exposedPortSpecs,
         'hostBinds': value.hostBinds,
         'secrets': value.secrets === undefined ? undefined : ((value.secrets as Array<any>).map(SecretMountToJSON)),

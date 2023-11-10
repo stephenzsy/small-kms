@@ -108,7 +108,23 @@ func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _
 	if req.ImageTag == "" {
 		return fmt.Errorf("%w: missing image tag", base.ErrResponseStatusBadRequest)
 	}
-	imageRef := fmt.Sprintf("%s:%s", s.acrImageRepo, req.ImageTag)
+	imageRepo := s.acrImageRepo
+	if req.ImageRepo != "" {
+		loginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
+		if err != nil {
+			return err
+		}
+		reqLoginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
+		if err != nil {
+			return err
+		}
+		if loginServer != reqLoginServer {
+			return fmt.Errorf("%w: image repo must be in the same as configured", base.ErrResponseStatusBadRequest)
+		}
+		imageRepo = req.ImageRepo
+	}
+
+	imageRef := fmt.Sprintf("%s:%s", imageRepo, req.ImageTag)
 	out, err := s.dockerClient.ImagePull(c, imageRef, types.ImagePullOptions{
 		RegistryAuth: regAuth,
 	})

@@ -45,6 +45,7 @@ type LaunchAgentRequest struct {
 
 // PullImageRequest defines model for PullImageRequest.
 type PullImageRequest struct {
+	ImageRepo        string `json:"imageRepo,omitempty"`
 	ImageTag         string `json:"imageTag"`
 	IncludeLatestTag *bool  `json:"includeLatestTag,omitempty"`
 }

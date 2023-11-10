@@ -24,6 +24,12 @@ export interface PullImageRequest {
      * @type {string}
      * @memberof PullImageRequest
      */
+    imageRepo?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PullImageRequest
+     */
     imageTag: string;
     /**
      * 
@@ -53,6 +59,7 @@ export function PullImageRequestFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'imageRepo': !exists(json, 'imageRepo') ? undefined : json['imageRepo'],
         'imageTag': json['imageTag'],
         'includeLatestTag': !exists(json, 'includeLatestTag') ? undefined : json['includeLatestTag'],
     };
@@ -67,6 +74,7 @@ export function PullImageRequestToJSON(value?: PullImageRequest | null): any {
     }
     return {
         
+        'imageRepo': value.imageRepo,
         'imageTag': value.imageTag,
         'includeLatestTag': value.includeLatestTag,
     };

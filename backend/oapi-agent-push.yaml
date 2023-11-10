@@ -314,6 +314,9 @@ components:
     PullImageRequest:
       type: object
       properties:
+        imageRepo:
+          type: string
+          x-go-type-skip-optional-pointer: true
         imageTag:
           type: string
         includeLatestTag:

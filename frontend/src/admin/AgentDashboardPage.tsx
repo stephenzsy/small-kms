@@ -32,6 +32,7 @@ import { NamespaceContext } from "./contexts/NamespaceContext";
 
 type DockerPullImageFormState = {
   imageTag: string;
+  imageRepo?: string;
 };
 
 function DockerPullImageForm() {
@@ -60,10 +61,17 @@ function DockerPullImageForm() {
       layout="vertical"
       onFinish={(s) => {
         pullImage({
+          imageRepo: s.imageRepo,
           imageTag: s.imageTag,
         });
       }}
     >
+      <Form.Item<DockerPullImageFormState>
+        name="imageRepo"
+        label="Image repository"
+      >
+        <Input />
+      </Form.Item>
       <Form.Item<DockerPullImageFormState>
         name="imageTag"
         label="Image tag"
@@ -316,7 +324,9 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
           {(subFields, subOpt) => {
             return (
               <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
-                <div className="text-lg font-semibold">Enviornment variables</div>
+                <div className="text-lg font-semibold">
+                  Enviornment variables
+                </div>
                 {subFields.map((subField) => (
                   <div key={subField.key} className="flex items-center gap-4">
                     <Form.Item
