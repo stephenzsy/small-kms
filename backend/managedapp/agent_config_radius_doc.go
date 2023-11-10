@@ -9,8 +9,8 @@ import (
 
 type AgentConfigRadiusDoc struct {
 	AgentConfigDoc
-	GlobalRadiusServerACRImageRef string                        `json:"acrImageRef,omitempty"`
-	Clients                       []frconfig.RadiusClientConfig `json:"clients,omitempty"`
+	Container AgentContainerConfiguration   `json:"container,omitempty"`
+	Clients   []frconfig.RadiusClientConfig `json:"clients,omitempty"`
 }
 
 func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
@@ -18,9 +18,9 @@ func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
 		return
 	}
 	d.AgentConfigDoc.PopulateModel(&m.AgentConfig)
-	m.AzureACRImageRef = &d.GlobalRadiusServerACRImageRef
-	m.RefreshAfter = time.Now().Add(time.Hour * 24)
+	m.Container = &d.Container
 	m.Clients = d.Clients
+	m.RefreshAfter = time.Now().Add(time.Hour * 24)
 }
 
 func (d *AgentConfigRadiusDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID) {

@@ -49,7 +49,7 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 	}
 	firstDuration := time.Duration(0)
 	if cacheOK {
-		cachedConfig := p.cache.config.Value()
+		cachedConfig := p.cache.config.Value
 		p.handlerChain.Handle(context.WithValue(c, p.contextKey, cachedConfig))
 		firstDuration = time.Until(cachedConfig.NextPullAfter())
 		if firstDuration < 5*time.Minute {

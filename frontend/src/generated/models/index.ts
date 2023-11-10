@@ -8,6 +8,7 @@ export * from './AgentConfigRadiusFields';
 export * from './AgentConfigServer';
 export * from './AgentConfigServerEnv';
 export * from './AgentConfigServerFields';
+export * from './AgentContainerConfiguration';
 export * from './AgentInstance';
 export * from './AgentInstanceFields';
 export * from './AgentMode';

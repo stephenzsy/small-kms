@@ -30,29 +30,23 @@ type DockerNetworkResource = types.NetworkResource
 
 // LaunchAgentRequest defines model for LaunchAgentRequest.
 type LaunchAgentRequest struct {
-	ContainerName                 string                 `json:"containerName"`
-	Env                           []string               `json:"env,omitempty"`
-	ExposedPortSpecs              []string               `json:"exposedPortSpecs"`
-	HostBinds                     []string               `json:"hostBinds"`
-	ImageTag                      string                 `json:"imageTag"`
-	ListenerAddress               string                 `json:"listenerAddress"`
-	Mode                          externalRef1.AgentMode `json:"mode"`
-	MsEntraIdClientCertSecretName string                 `json:"msEntraIdClientCertSecretName,omitempty"`
-	NetworkName                   string                 `json:"networkName,omitempty"`
-	PushEndpoint                  string                 `json:"pushEndpoint"`
-	Secrets                       []SecretMount          `json:"secrets"`
+	ContainerName                 string                     `json:"containerName"`
+	Env                           []string                   `json:"env,omitempty"`
+	ExposedPortSpecs              []string                   `json:"exposedPortSpecs"`
+	HostBinds                     []string                   `json:"hostBinds"`
+	ImageTag                      string                     `json:"imageTag"`
+	ListenerAddress               string                     `json:"listenerAddress"`
+	Mode                          externalRef1.AgentMode     `json:"mode"`
+	MsEntraIdClientCertSecretName string                     `json:"msEntraIdClientCertSecretName,omitempty"`
+	NetworkName                   string                     `json:"networkName,omitempty"`
+	PushEndpoint                  string                     `json:"pushEndpoint"`
+	Secrets                       []externalRef1.SecretMount `json:"secrets"`
 }
 
 // PullImageRequest defines model for PullImageRequest.
 type PullImageRequest struct {
 	ImageTag         string `json:"imageTag"`
 	IncludeLatestTag *bool  `json:"includeLatestTag,omitempty"`
-}
-
-// SecretMount defines model for SecretMount.
-type SecretMount struct {
-	Source     string `json:"source"`
-	TargetName string `json:"targetName"`
 }
 
 // DelegatedAuthorizationHeaderParameter defines model for DelegatedAuthorizationHeaderParameter.

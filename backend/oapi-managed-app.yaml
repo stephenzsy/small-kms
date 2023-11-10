@@ -145,20 +145,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/AgentConfigRadiusResponse"
-    put:
-      tags:
-        - admin
-      operationId: PutAgentConfigRadius
-      summary: Put agent config radius
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AgentConfigRadiusFields"
-      responses:
-        200:
-          $ref: "#/components/responses/AgentConfigRadiusResponse"
     patch:
       tags:
         - admin
@@ -426,12 +412,61 @@ components:
         - $ref: "#/components/schemas/AgentConfig"
         - $ref: "#/components/schemas/AgentConfigRadiusFields"
         - x-go-type: agentConfigRadiusComposed
+    SecretMount:
+      type: object
+      properties:
+        source:
+          type: string
+        targetName:
+          type: string
+      required:
+        - source
+        - targetName
+    AgentContainerConfiguration:
+      type: object
+      properties:
+        conatinerName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        imageRepo:
+          type: string
+        imageTag:
+          type: string
+        exposedPortSpecs:
+          type: array
+          items:
+            type: string
+            example: "10443/tcp"
+        hostBinds:
+          type: array
+          items:
+            type: string
+            example: "/var/run/docker.sock:/var/run/docker.sock:rw"
+        secrets:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecretMount"
+          x-go-type-skip-optional-pointer: true
+        env:
+          type: array
+          items:
+            type: string
+            example: "FOO=BAR"
+          x-go-type-skip-optional-pointer: true
+        networkName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - imageRepo
+        - imageTag
+        - listenerAddresses
+        - exposedPortSpecs
+        - hostBinds
     AgentConfigRadiusFields:
       type: object
       properties:
-        azureAcrImageRef:
-          type: string
-          x-go-name: AzureACRImageRef
+        container:
+          $ref: "#/components/schemas/AgentContainerConfiguration"
         clients:
           type: array
           items:

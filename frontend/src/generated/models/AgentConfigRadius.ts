@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AgentContainerConfiguration } from './AgentContainerConfiguration';
+import {
+    AgentContainerConfigurationFromJSON,
+    AgentContainerConfigurationFromJSONTyped,
+    AgentContainerConfigurationToJSON,
+} from './AgentContainerConfiguration';
 import type { RadiusClientConfig } from './RadiusClientConfig';
 import {
     RadiusClientConfigFromJSON,
@@ -64,10 +70,10 @@ export interface AgentConfigRadius {
     refreshAfter: Date;
     /**
      * 
-     * @type {string}
+     * @type {AgentContainerConfiguration}
      * @memberof AgentConfigRadius
      */
-    azureAcrImageRef?: string;
+    container?: AgentContainerConfiguration;
     /**
      * 
      * @type {Array<RadiusClientConfig>}
@@ -105,7 +111,7 @@ export function AgentConfigRadiusFromJSONTyped(json: any, ignoreDiscriminator: b
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
         'version': json['version'],
         'refreshAfter': (new Date(json['refreshAfter'])),
-        'azureAcrImageRef': !exists(json, 'azureAcrImageRef') ? undefined : json['azureAcrImageRef'],
+        'container': !exists(json, 'container') ? undefined : AgentContainerConfigurationFromJSON(json['container']),
         'clients': !exists(json, 'clients') ? undefined : ((json['clients'] as Array<any>).map(RadiusClientConfigFromJSON)),
     };
 }
@@ -125,7 +131,7 @@ export function AgentConfigRadiusToJSON(value?: AgentConfigRadius | null): any {
         'updatedBy': value.updatedBy,
         'version': value.version,
         'refreshAfter': (value.refreshAfter.toISOString()),
-        'azureAcrImageRef': value.azureAcrImageRef,
+        'container': AgentContainerConfigurationToJSON(value.container),
         'clients': value.clients === undefined ? undefined : ((value.clients as Array<any>).map(RadiusClientConfigToJSON)),
     };
 }

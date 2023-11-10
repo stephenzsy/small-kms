@@ -235,8 +235,8 @@ func (s *server) assignAgentRadiusRoles(c ctx.RequestContext, assignedTo uuid.UU
 	}
 	nsCtx := ns.GetNSContext(c)
 	// AcrPull
-	{
-		acrName, err := acr.ExtractACRName(doc.GlobalRadiusServerACRImageRef)
+	if doc.Container.ImageRepo != "" {
+		acrName, err := acr.ExtractACRName(doc.Container.ImageRepo)
 		if err != nil {
 			return err
 		}

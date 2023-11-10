@@ -316,7 +316,7 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
           {(subFields, subOpt) => {
             return (
               <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
-                <div className="text-lg font-semibold">Add enviornment variable</div>
+                <div className="text-lg font-semibold">Enviornment variables</div>
                 {subFields.map((subField) => (
                   <div key={subField.key} className="flex items-center gap-4">
                     <Form.Item

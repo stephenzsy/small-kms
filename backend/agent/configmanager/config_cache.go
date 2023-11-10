@@ -25,26 +25,28 @@ func (cache *ConfigCache[T]) Load() (bool, error) {
 		return false, err
 	}
 	configFilename := filepath.Join(activeLink, "config.json")
-	if err := readJsonFile(configFilename, &cache.config); err != nil {
+	if err := readJsonFile(configFilename, &cache.config.Value); err != nil {
 		return false, err
 	}
+	cache.config.HasValue = true
 	return true, nil
 }
 
 func (cache *ConfigCache[T]) SetPulledConfig(pulled *T) error {
-	oldVersion := cache.config.Value().GetVersion()
-	cache.config.SetValue(*pulled)
-	if oldVersion != cache.config.Value().GetVersion() {
+	oldVersion := cache.config.Value.GetVersion()
+	cache.config.Value = *pulled
+	cache.config.HasValue = true
+	if oldVersion != cache.config.Value.GetVersion() {
 		return cache.Persist(true)
 	}
 	return nil
 }
 
 func (cache *ConfigCache[T]) Persist(asActive bool) error {
-	if !cache.config.HasValue() {
+	if !cache.config.HasValue {
 		return nil
 	}
-	versionedDir := filepath.Join(cache.configBaseDir, "versioned", fmt.Sprintf("%s.%s", cache.configName, cache.config.Value().GetVersion()))
+	versionedDir := filepath.Join(cache.configBaseDir, "versioned", fmt.Sprintf("%s.%s", cache.configName, cache.config.Value.GetVersion()))
 	if _, err := os.Stat(versionedDir); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -54,20 +56,22 @@ func (cache *ConfigCache[T]) Persist(asActive bool) error {
 		}
 	}
 	configFilename := filepath.Join(versionedDir, "config.json")
-	if err := writeJsonFile(configFilename, cache.config); err != nil {
-		return err
-	}
-	if asActive {
-		activeLink := filepath.Join(cache.configBaseDir, fmt.Sprintf("%s.active", cache.configName))
-		if _, err := os.Lstat(activeLink); err == nil {
-			if err := os.Remove(activeLink); err != nil {
+	if cache.config.HasValue {
+		if err := writeJsonFile(configFilename, cache.config.Value); err != nil {
+			return err
+		}
+		if asActive {
+			activeLink := filepath.Join(cache.configBaseDir, fmt.Sprintf("%s.active", cache.configName))
+			if _, err := os.Lstat(activeLink); err == nil {
+				if err := os.Remove(activeLink); err != nil {
+					return err
+				}
+			}
+			if versionedRelPath, err := filepath.Rel(cache.configBaseDir, versionedDir); err != nil {
+				return err
+			} else if err := os.Symlink(versionedRelPath, activeLink); err != nil {
 				return err
 			}
-		}
-		if versionedRelPath, err := filepath.Rel(cache.configBaseDir, versionedDir); err != nil {
-			return err
-		} else if err := os.Symlink(versionedRelPath, activeLink); err != nil {
-			return err
 		}
 	}
 	return nil

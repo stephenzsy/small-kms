@@ -9,6 +9,7 @@ models/AgentConfigRadiusFields.ts
 models/AgentConfigServer.ts
 models/AgentConfigServerEnv.ts
 models/AgentConfigServerFields.ts
+models/AgentContainerConfiguration.ts
 models/AgentInstance.ts
 models/AgentInstanceFields.ts
 models/AgentMode.ts

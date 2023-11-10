@@ -23,6 +23,7 @@ import {
   AgentConfigRadiusFields,
   AgentConfigRadiusToJSON,
   AgentConfigServerFields,
+  AgentContainerConfiguration,
   AgentInstance,
   AzureRoleAssignment,
   CertPolicyRef,
@@ -42,6 +43,7 @@ import {
   RadiusConfigPatchProvider,
   useRadiusConfigPatch,
 } from "./contexts/RadiusConfigPatchContext";
+import { RadiusConfigContainerForm } from "./forms/RadiusConfigContainerForm";
 
 // const selectOptions: Array<SelectItem<AgentConfigName>> = [
 //   {
@@ -60,7 +62,7 @@ const wellKnownRoleDefinitionIds: Record<string, string> = {
   "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
 };
 
-function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
+export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
   return useMemo(() => {
     return [
       {
@@ -87,10 +89,7 @@ function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
   }, []);
 }
 
-type AgentServerConfigFormState = Pick<
-  AgentConfigServerFields,
-  "azureAcrImageRef"
->;
+export type AgentServerConfigFormState = AgentContainerConfiguration;
 
 function useCertPolicyOptions(
   certPolicies: CertPolicyRef[] | undefined
@@ -99,84 +98,6 @@ function useCertPolicyOptions(
     label: p.displayName,
     value: p.id,
   }));
-}
-
-function RadiusConfigGlobalFormCard({
-  value,
-  onUpdate,
-}: {
-  value: AgentConfigRadius | undefined;
-  onUpdate?: (config: AgentConfigRadius) => void;
-}) {
-  const [form] = useForm<AgentServerConfigFormState>();
-  // const certPolicies = useCertPolicies();
-  // const certPolicyOptions = useCertPolicyOptions(certPolicies);
-  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
-
-  const api = useAuthedClient(AdminApi);
-  const { run } = useRequest(
-    async (params: AgentConfigRadiusFields) => {
-      const result = await api.putAgentConfigRadius({
-        agentConfigRadiusFields: params,
-        namespaceKind,
-        namespaceId,
-      });
-      onUpdate?.(result);
-    },
-    {
-      manual: true,
-    }
-  );
-
-  // const { data: keysData } = useRequest(
-  //   () => {
-  //     return api.listAgentServerAzureRoleAssignments({
-  //       namespaceId: namespaceIdentifier,
-  //       namespaceKind,
-  //     });
-  //   },
-  //   {
-  //     ready: !!namespaceIdentifier && !!jwtKeyCertPolicyId,
-  //     refreshDeps: [namespaceIdentifier, jwtKeyCertPolicyId],
-  //   }
-  // );
-
-  useEffect(() => {
-    if (value) {
-      form.setFieldsValue({
-        azureAcrImageRef: value.azureAcrImageRef,
-      });
-    }
-  }, [value]);
-
-  const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();
-  return (
-    <Card title="Global configuration">
-      <Form form={form} layout="vertical" onFinish={run}>
-        <Form.Item<AgentServerConfigFormState>
-          name="azureAcrImageRef"
-          label="Azure Container Registry image Reference"
-          required
-        >
-          <Input placeholder="example.com/image:latest" />
-        </Form.Item>
-
-        {/* <Form.Item<AgentServerConfigFormState>
-          name="tlsCertificatePolicyId"
-          label="Select server TLS certificate policy"
-          required
-        >
-          <Select options={certPolicyOptions} />
-        </Form.Item> */}
-
-        <Form.Item>
-          <Button htmlType="submit" type="primary">
-            Submit
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
-  );
 }
 
 function useAgentInstanceColumns(
@@ -299,6 +220,11 @@ function RadiusClientsForm() {
 
 const collapseItems: CollapseProps["items"] = [
   {
+    key: "container",
+    label: "Container",
+    children: <RadiusConfigContainerForm />,
+  },
+  {
     key: "clients",
     label: "Clients",
     children: <RadiusClientsForm />,
@@ -355,7 +281,7 @@ export default function RadiusConfigPage({
   const patchSvc = useRequest(
     (params?: AgentConfigRadiusFields) => {
       if (params) {
-        return api.putAgentConfigRadius({
+        return api.patchAgentConfigRadius({
           agentConfigRadiusFields: params,
           namespaceKind,
           namespaceId,
@@ -404,25 +330,18 @@ export default function RadiusConfigPage({
               toJson={AgentConfigRadiusToJSON}
             />
           </Card>
-          {isGlobalConfig ? (
-            <RadiusConfigGlobalFormCard
-              value={radiusConfig}
-              onUpdate={mutate}
-            />
-          ) : (
-            <>
-              <Card title="RADIUS configuration">
-                <Collapse items={collapseItems} />
-              </Card>
-              <Card title="Azure role assignments">
-                <JsonDataDisplay data={keysData} />
-                <Table<AzureRoleAssignment>
-                  columns={roleAssignmentTableColumns}
-                  dataSource={keysData}
-                  rowKey={(r) => r.id ?? ""}
-                />
-              </Card>
-            </>
+          <Card title="RADIUS configuration">
+            <Collapse items={collapseItems} />
+          </Card>
+          {!isGlobalConfig && (
+            <Card title="Azure role assignments">
+              <JsonDataDisplay data={keysData} />
+              <Table<AzureRoleAssignment>
+                columns={roleAssignmentTableColumns}
+                dataSource={keysData}
+                rowKey={(r) => r.id ?? ""}
+              />
+            </Card>
           )}
 
           {!isGlobalConfig && (

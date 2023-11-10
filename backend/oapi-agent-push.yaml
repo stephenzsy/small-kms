@@ -262,16 +262,6 @@ components:
       x-go-type: types.NetworkResource
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
-    SecretMount:
-      type: object
-      properties:
-        source:
-          type: string
-        targetName:
-          type: string
-      required:
-        - source
-        - targetName
     LaunchAgentRequest:
       type: object
       properties:
@@ -302,7 +292,7 @@ components:
         secrets:
           type: array
           items:
-            $ref: "#/components/schemas/SecretMount"
+            $ref: "oapi-managed-app.yaml#/components/schemas/SecretMount"
         networkName:
           type: string
           x-go-type-skip-optional-pointer: true

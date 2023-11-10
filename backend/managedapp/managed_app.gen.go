@@ -54,8 +54,8 @@ type AgentConfigRadius = agentConfigRadiusComposed
 
 // AgentConfigRadiusFields defines model for AgentConfigRadiusFields.
 type AgentConfigRadiusFields struct {
-	AzureACRImageRef *string                           `json:"azureAcrImageRef,omitempty"`
-	Clients          []externalRef0.RadiusClientConfig `json:"clients,omitempty"`
+	Clients   []externalRef0.RadiusClientConfig `json:"clients,omitempty"`
+	Container *AgentContainerConfiguration      `json:"container,omitempty"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.
@@ -78,6 +78,18 @@ type AgentConfigServerFields struct {
 	JwtKeyCertPolicyId     externalRef1.ResourceLocator   `json:"jwtKeyCertPolicyId"`
 	TlsCertificateId       externalRef1.Id                `json:"tlsCertificateId"`
 	TlsCertificatePolicyId externalRef1.Id                `json:"tlsCertificatePolicyId"`
+}
+
+// AgentContainerConfiguration defines model for AgentContainerConfiguration.
+type AgentContainerConfiguration struct {
+	ConatinerName    string        `json:"conatinerName,omitempty"`
+	Env              []string      `json:"env,omitempty"`
+	ExposedPortSpecs []string      `json:"exposedPortSpecs"`
+	HostBinds        []string      `json:"hostBinds"`
+	ImageRepo        string        `json:"imageRepo"`
+	ImageTag         string        `json:"imageTag"`
+	NetworkName      string        `json:"networkName,omitempty"`
+	Secrets          []SecretMount `json:"secrets,omitempty"`
 }
 
 // AgentInstance defines model for AgentInstance.
@@ -121,6 +133,12 @@ type ManagedAppRefFields struct {
 	ServicePrincipalType string             `json:"servicePrincipalType,omitempty"`
 }
 
+// SecretMount defines model for SecretMount.
+type SecretMount struct {
+	Source     string `json:"source"`
+	TargetName string `json:"targetName"`
+}
+
 // SystemAppName defines model for SystemAppName.
 type SystemAppName string
 
@@ -135,9 +153,6 @@ type CreateManagedAppJSONRequestBody = ManagedAppParameters
 
 // PatchAgentConfigRadiusJSONRequestBody defines body for PatchAgentConfigRadius for application/json ContentType.
 type PatchAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
-
-// PutAgentConfigRadiusJSONRequestBody defines body for PutAgentConfigRadius for application/json ContentType.
-type PutAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
 
 // PutAgentConfigServerJSONRequestBody defines body for PutAgentConfigServer for application/json ContentType.
 type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
@@ -171,9 +186,6 @@ type ServerInterface interface {
 	// Patch agent config radius
 	// (PATCH /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
 	PatchAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
-	// Put agent config radius
-	// (PUT /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
-	PutAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
 	// Get agent config server
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/server)
 	GetAgentConfigServer(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
@@ -345,32 +357,6 @@ func (w *ServerInterfaceWrapper) PatchAgentConfigRadius(ctx echo.Context) error 
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PatchAgentConfigRadius(ctx, namespaceKind, namespaceId)
-	return err
-}
-
-// PutAgentConfigRadius converts echo context to params.
-func (w *ServerInterfaceWrapper) PutAgentConfigRadius(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef1.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef1.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutAgentConfigRadius(ctx, namespaceKind, namespaceId)
 	return err
 }
 
@@ -624,7 +610,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.GetAgentConfigRadius)
 	router.PATCH(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PatchAgentConfigRadius)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PutAgentConfigRadius)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.GetAgentConfigServer)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.PutAgentConfigServer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/:configName/role-assignments", wrapper.ListAgentAzureRoleAssignments)

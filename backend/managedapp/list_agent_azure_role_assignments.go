@@ -104,14 +104,11 @@ func (s *server) getAzureRoleAssignmentPagers(c ctx.RequestContext, configName A
 		if err != nil {
 			return nil, err
 		}
-		if doc.GlobalRadiusServerACRImageRef == "" {
-			return nil, fmt.Errorf("%w: image ref is not specified", base.ErrResponseStatusBadRequest)
-		}
 
 		pagers := make([]utils.ItemsPager[*armauthorization.RoleAssignment], 0, 2)
 		// ACR Pull
-		{
-			acrName, err := acr.ExtractACRName(doc.GlobalRadiusServerACRImageRef)
+		if doc.Container.ImageRepo != "" {
+			acrName, err := acr.ExtractACRName(doc.Container.ImageRepo)
 			if err != nil {
 				return nil, err
 			}
