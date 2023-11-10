@@ -92,6 +92,12 @@ export interface LaunchAgentRequest {
      * @memberof LaunchAgentRequest
      */
     networkName?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof LaunchAgentRequest
+     */
+    env?: Array<string>;
 }
 
 /**
@@ -131,6 +137,7 @@ export function LaunchAgentRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         'hostBinds': json['hostBinds'],
         'secrets': ((json['secrets'] as Array<any>).map(SecretMountFromJSON)),
         'networkName': !exists(json, 'networkName') ? undefined : json['networkName'],
+        'env': !exists(json, 'env') ? undefined : json['env'],
     };
 }
 
@@ -153,6 +160,7 @@ export function LaunchAgentRequestToJSON(value?: LaunchAgentRequest | null): any
         'hostBinds': value.hostBinds,
         'secrets': ((value.secrets as Array<any>).map(SecretMountToJSON)),
         'networkName': value.networkName,
+        'env': value.env,
     };
 }
 

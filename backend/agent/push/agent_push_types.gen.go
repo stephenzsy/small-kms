@@ -31,6 +31,7 @@ type DockerNetworkResource = types.NetworkResource
 // LaunchAgentRequest defines model for LaunchAgentRequest.
 type LaunchAgentRequest struct {
 	ContainerName                 string                 `json:"containerName"`
+	Env                           []string               `json:"env,omitempty"`
 	ExposedPortSpecs              []string               `json:"exposedPortSpecs"`
 	HostBinds                     []string               `json:"hostBinds"`
 	ImageTag                      string                 `json:"imageTag"`

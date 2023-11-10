@@ -306,6 +306,12 @@ components:
         networkName:
           type: string
           x-go-type-skip-optional-pointer: true
+        env:
+          type: array
+          items:
+            type: string
+            example: "FOO=BAR"
+          x-go-type-skip-optional-pointer: true
       required:
         - mode
         - containerName

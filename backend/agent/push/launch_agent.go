@@ -3,6 +3,7 @@ package agentpush
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -35,15 +36,21 @@ func (s *agentServer) apiLaunchAgentContainer(c ctx.RequestContext, req LaunchAg
 				},
 			}
 		}
-		envService := s.EnvService().Clone()
-		envService.SetValue("AGENT_PUSH_ENDPOINT", req.PushEndpoint)
+		clonedEnv := s.EnvService().Clone()
+		clonedEnv.SetValue("AGENT_PUSH_ENDPOINT", req.PushEndpoint)
 		if req.MsEntraIdClientCertSecretName != "" {
-			envService.SetValue("AZURE_CLIENT_CERTIFICATE_PATH", "/run/secrets/"+req.MsEntraIdClientCertSecretName)
+			clonedEnv.SetValue("AZURE_CLIENT_CERTIFICATE_PATH", "/run/secrets/"+req.MsEntraIdClientCertSecretName)
+		}
+		for _, reqValue := range req.Env {
+			splitted := strings.SplitN(reqValue, "=", 2)
+			if len(splitted) == 2 {
+				clonedEnv.SetValue(splitted[0], splitted[1])
+			}
 		}
 		result, err := s.dockerClient.ContainerCreate(c,
 			&container.Config{
 				ExposedPorts: exposedPorts,
-				Env:          envService.Export(),
+				Env:          clonedEnv.Export(),
 				Cmd:          []string{"/agent-server", string(req.Mode), req.ListenerAddress},
 				Image:        fmt.Sprintf("%s:%s", s.acrImageRepo, req.ImageTag),
 				StopSignal:   "SIGINT",
@@ -53,6 +60,9 @@ func (s *agentServer) apiLaunchAgentContainer(c ctx.RequestContext, req LaunchAg
 				Binds:        req.HostBinds,
 				PortBindings: portBindings,
 				Mounts:       secretMounts,
+				RestartPolicy: container.RestartPolicy{
+					Name: "unless-stopped",
+				},
 			},
 			networkConfig, nil, req.ContainerName)
 		if err != nil {

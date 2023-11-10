@@ -90,6 +90,7 @@ type LaunchContainerFormState = {
   networkName?: string;
   secrets: SecretMount[];
   msEntraIdClientCertSecretName?: string;
+  env?: string[];
 };
 
 function LaunchContainerForm({ mode }: { mode: AgentMode }) {
@@ -258,13 +259,13 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
                   </div>
                 ))}
                 <Button type="dashed" onClick={() => subOpt.add()} block>
-                  Add hsot binding
+                  Add host binding
                 </Button>
               </div>
             );
           }}
         </Form.List>
-        <Form.List name={"secrets"}>
+        <Form.List name={"secret"}>
           {(subFields, subOpt) => {
             return (
               <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
@@ -305,6 +306,37 @@ function LaunchContainerForm({ mode }: { mode: AgentMode }) {
                 ))}
                 <Button type="dashed" onClick={() => subOpt.add()} block>
                   Add secret binding
+                </Button>
+              </div>
+            );
+          }}
+        </Form.List>
+        <Form.List name={"env"}>
+          {(subFields, subOpt) => {
+            return (
+              <div className="flex flex-col gap-4 ring-1 ring-neutral-400 p-4 rounded-md mt-6">
+                <div className="text-lg font-semibold">Add enviornment variable</div>
+                {subFields.map((subField) => (
+                  <div key={subField.key} className="flex items-center gap-4">
+                    <Form.Item
+                      noStyle
+                      name={[subField.name]}
+                      className="flex-auto"
+                    >
+                      <Input placeholder={"FOO=BAR"} />
+                    </Form.Item>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        subOpt.remove(subField.name);
+                      }}
+                    >
+                      <XMarkIcon className="h-em w-em" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="dashed" onClick={() => subOpt.add()} block>
+                  Add environment variable
                 </Button>
               </div>
             );
