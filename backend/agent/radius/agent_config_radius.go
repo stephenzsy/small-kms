@@ -11,14 +11,14 @@ import (
 )
 
 type RadiusConfigManager struct {
-	configmanager.ConfigPoller[contextKey, *managedapp.AgentConfigRadius]
+	configmanager.ConfigPoller[contextKey, managedapp.AgentConfigRadius]
 
 	envConfig *agentcommon.AgentEnv
 }
 
 func NewRadiusConfigManager(handlerChain *configmanager.ChainedContextConfigHandler, envConfig *agentcommon.AgentEnv, configDir string) *RadiusConfigManager {
 	return &RadiusConfigManager{
-		ConfigPoller: *configmanager.NewConfigPoller[contextKey, *managedapp.AgentConfigRadius](
+		ConfigPoller: *configmanager.NewConfigPoller[contextKey, managedapp.AgentConfigRadius](
 			handlerChain,
 			"radius-config-poller",
 			contextKeyRadiusConfig, func(c context.Context) (*managedapp.AgentConfigRadius, error) {
@@ -38,7 +38,7 @@ func NewRadiusConfigManager(handlerChain *configmanager.ChainedContextConfigHand
 				}
 				return resp.JSON200, nil
 			},
-			configmanager.NewConfigCache[*managedapp.AgentConfigRadius]("radius", configDir)),
+			configmanager.NewConfigCache[managedapp.AgentConfigRadius]("radius", configDir)),
 		envConfig: envConfig,
 	}
 }

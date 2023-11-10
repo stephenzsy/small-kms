@@ -19,7 +19,7 @@ type ConfigPoller[CK comparable, T VersionedConfig] struct {
 	handlerChain       *ChainedContextConfigHandler
 	name               string
 	contextKey         CK
-	pullRemoteConfig   func(context.Context) (T, error)
+	pullRemoteConfig   func(context.Context) (*T, error)
 	cache              *ConfigCache[T]
 	updateNotification chan bool
 }
@@ -43,12 +43,13 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 	defer logger.Debug().Msg("config poller stopped")
 
 	// try load config from cache
-	cachedConfig, cacheOK, err := p.cache.Load()
+	cacheOK, err := p.cache.Load()
 	if err != nil {
 		logger.Error().Err(err).Msg("error while loading cached config")
 	}
 	firstDuration := time.Duration(0)
 	if cacheOK {
+		cachedConfig := p.cache.config.Value()
 		p.handlerChain.Handle(context.WithValue(c, p.contextKey, cachedConfig))
 		firstDuration = time.Until(cachedConfig.NextPullAfter())
 		if firstDuration < 5*time.Minute {
@@ -81,7 +82,7 @@ func (p *ConfigPoller[CK, T]) Start(c context.Context, exit <-chan os.Signal) er
 			if _, err := p.handlerChain.Handle(context.WithValue(c, p.contextKey, pulled)); err != nil {
 				logger.Error().Err(err).Msg("error while handling config")
 			}
-			nextDuration := time.Until(pulled.NextPullAfter())
+			nextDuration := time.Until((*pulled).NextPullAfter())
 			if nextDuration < 5*time.Minute {
 				nextDuration = 5 * time.Minute
 			}
@@ -108,7 +109,7 @@ func (p *ConfigPoller[CK, T]) Name() string {
 func NewConfigPoller[CK comparable, T VersionedConfig](
 	handlerChain *ChainedContextConfigHandler,
 	name string, contextKey CK,
-	pullRemoteConfig func(context.Context) (T, error),
+	pullRemoteConfig func(context.Context) (*T, error),
 	cache *ConfigCache[T]) *ConfigPoller[CK, T] {
 	return &ConfigPoller[CK, T]{
 		handlerChain:       handlerChain,

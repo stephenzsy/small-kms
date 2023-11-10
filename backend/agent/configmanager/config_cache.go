@@ -6,44 +6,45 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ConfigCache[T VersionedConfig] struct {
 	configName    string
 	configBaseDir string
-	config        *T
+	config        utils.Nullable[T]
 }
 
-func (cache *ConfigCache[T]) Load() (r T, ok bool, err error) {
+func (cache *ConfigCache[T]) Load() (bool, error) {
 	activeLink := filepath.Join(cache.configBaseDir, fmt.Sprintf("%s.active", cache.configName))
-	if _, err = os.Stat(activeLink); err != nil {
+	if _, err := os.Stat(activeLink); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return r, false, nil
+			return false, nil
 		}
-		return r, false, err
+		return false, err
 	}
 	configFilename := filepath.Join(activeLink, "config.json")
-	if err = readJsonFile(configFilename, &r); err != nil {
-		return r, false, err
+	if err := readJsonFile(configFilename, &cache.config); err != nil {
+		return false, err
 	}
-	cache.config = &r
-	return r, true, nil
+	return true, nil
 }
 
-func (cache *ConfigCache[T]) SetPulledConfig(pulled T) error {
-	old := cache.config
-	cache.config = &pulled
-	if old == nil || (*old).GetVersion() != pulled.GetVersion() {
+func (cache *ConfigCache[T]) SetPulledConfig(pulled *T) error {
+	oldVersion := cache.config.Value().GetVersion()
+	cache.config.SetValue(*pulled)
+	if oldVersion != cache.config.Value().GetVersion() {
 		return cache.Persist(true)
 	}
 	return nil
 }
 
 func (cache *ConfigCache[T]) Persist(asActive bool) error {
-	if cache.config == nil {
+	if !cache.config.HasValue() {
 		return nil
 	}
-	versionedDir := filepath.Join(cache.configBaseDir, "versioned", fmt.Sprintf("%s.%s", cache.configName, (*cache.config).GetVersion()))
+	versionedDir := filepath.Join(cache.configBaseDir, "versioned", fmt.Sprintf("%s.%s", cache.configName, cache.config.Value().GetVersion()))
 	if _, err := os.Stat(versionedDir); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
