@@ -32,7 +32,7 @@ func (*radiusConfigProcessHandler) After(c context.Context) (context.Context, er
 func (h *radiusConfigProcessHandler) Before(c context.Context) (context.Context, error) {
 
 	config, ok := c.Value(contextKeyRadiusConfig).(*AgentConfigRadius)
-	if !ok {
+	if !ok || config == nil {
 		return c, nil
 	}
 	logger := log.Ctx(c)
