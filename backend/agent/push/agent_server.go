@@ -21,7 +21,7 @@ import (
 type agentServer struct {
 	common.CommonServer
 	buildID             string
-	dockerClient        *dockerclient.Client
+	dockerClient        dockerclient.APIClient
 	acrAuthProvider     *acr.DockerRegistryAuthProvider
 	acrImageRepo        string
 	mode                managedapp.AgentMode
@@ -171,7 +171,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager) (*agentServer, error) {
+func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager, dockerClient dockerclient.APIClient) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string
@@ -185,11 +185,6 @@ func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvServi
 		return nil, err
 	}
 
-	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithVersion("1.43"))
-	if err != nil {
-		return nil, err
-	}
-
 	config, err := common.NewCommonConfig(envSvc, buildID)
 	if err != nil {
 		return nil, err
@@ -198,7 +193,7 @@ func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvServi
 	s := &agentServer{
 		CommonServer:        config,
 		buildID:             buildID,
-		dockerClient:        cli,
+		dockerClient:        dockerClient,
 		acrAuthProvider:     acr.NewDockerRegistryAuthProvider(acrLoginServer, config.ServiceIdentity().TokenCredential(), tenantID),
 		acrImageRepo:        acrImageRepo,
 		mode:                mode,

@@ -4,6 +4,7 @@ import { useRequest } from "ahooks";
 import {
   Button,
   Card,
+  Checkbox,
   Collapse,
   CollapseProps,
   Form,
@@ -44,17 +45,6 @@ import {
   useRadiusConfigPatch,
 } from "./contexts/RadiusConfigPatchContext";
 import { RadiusConfigContainerForm } from "./forms/RadiusConfigContainerForm";
-
-// const selectOptions: Array<SelectItem<AgentConfigName>> = [
-//   {
-//     id: AgentConfigName.AgentConfigNameActiveHostBootstrap,
-//     name: "Agent Active Host Bootstrap",
-//   },
-//   {
-//     id: AgentConfigName.AgentConfigNameActiveServer,
-//     name: "Agent Active Host Server",
-//   },
-// ];
 
 const wellKnownRoleDefinitionIds: Record<string, string> = {
   "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
@@ -148,6 +138,35 @@ function useAgentInstanceColumns(
   );
 }
 
+type RadiusMiscFormState = Pick<AgentConfigRadiusFields, "debugMode">;
+function RadiusMiscForm() {
+  const { run, data } = useRadiusConfigPatch();
+  const [form] = useForm<RadiusMiscFormState>();
+  useEffect(() => {
+    if (data && data.debugMode != undefined) {
+      form.setFieldsValue({
+        debugMode: data.debugMode,
+      });
+    }
+  }, [data]);
+  return (
+    <Form form={form} layout="vertical" onFinish={(v) => run(v)}>
+      <Form.Item<RadiusMiscFormState>
+        valuePropName="checked"
+        getValueFromEvent={(e) => e.target.checked}
+        name="debugMode"
+      >
+        <Checkbox>Debug mode</Checkbox>
+      </Form.Item>
+      <Form.Item className="mt-6">
+        <Button htmlType="submit" type="primary">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
 function RadiusClientsForm() {
   const { run, data } = useRadiusConfigPatch();
   const [form] = useForm<Pick<AgentConfigRadiusFields, "clients">>();
@@ -228,6 +247,11 @@ const collapseItems: CollapseProps["items"] = [
     key: "clients",
     label: "Clients",
     children: <RadiusClientsForm />,
+  },
+  {
+    key: "misceallaneous",
+    label: "Miscellaneous",
+    children: <RadiusMiscForm />,
   },
 ];
 

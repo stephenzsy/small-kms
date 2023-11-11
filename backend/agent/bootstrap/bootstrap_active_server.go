@@ -74,7 +74,7 @@ func (*ServicePrincipalBootstraper) BootstarpActiveServer(c context.Context) err
 	agentConfigServer := resp.JSON200
 	//	log.Debug().Any("value", agentConfigServer).Msgf("GetAgentConfigServer: %d", resp.StatusCode())
 
-	if err := dockerPullImage(c, agentConfigServer.AzureACRImageRef, cred, tenantID); err != nil {
+	if err := agentcommon.DockerPullImage(c, agentConfigServer.AzureACRImageRef, cred, tenantID); err != nil {
 		return err
 	}
 

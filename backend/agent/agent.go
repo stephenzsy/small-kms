@@ -82,13 +82,25 @@ func main() {
 			if err != nil {
 				logger.Fatal().Err(err).Msg("Failed to create config manager")
 			}
+			dockerClient, err := agentcommon.GetDockerClient()
+			if err != nil {
+				logger.Fatal().Err(err).Msg("failed to create docker client")
+			}
+
 			radiusConfigProcessor := radius.NewRadiusConfigProcessHandler(configManager.EnvConfig, configmanager.NewConfigDir(string(managedapp.AgentConfigNameRadius), configManager.ConfigDir))
 			configHandlerChain := &configmanager.ChainedContextConfigHandler{
 				ContextConfigHandler: radiusConfigProcessor,
 			}
+			radiusLauncher, err := radius.NewRadiusContainerLauncher(dockerClient, envSvc)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("failed to create radius container launcher")
+			}
+			configHandlerChain.SetNext(&configmanager.ChainedContextConfigHandler{
+				ContextConfigHandler: radiusLauncher,
+			})
 			radiusConfigManager := radius.NewRadiusConfigManager(configHandlerChain, configManager.EnvConfig, configManager.ConfigDir)
 
-			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc, radiusConfigManager)
+			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc, radiusConfigManager, dockerClient)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}

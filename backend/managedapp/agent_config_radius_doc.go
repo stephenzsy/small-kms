@@ -11,6 +11,7 @@ type AgentConfigRadiusDoc struct {
 	AgentConfigDoc
 	Container AgentContainerConfiguration   `json:"container,omitempty"`
 	Clients   []frconfig.RadiusClientConfig `json:"clients,omitempty"`
+	DebugMode *bool                         `json:"debugMode,omitempty"`
 }
 
 func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
@@ -21,6 +22,7 @@ func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
 	m.Container = &d.Container
 	m.Clients = d.Clients
 	m.RefreshAfter = time.Now().Add(time.Hour * 24)
+	m.DebugMode = d.DebugMode
 }
 
 func (d *AgentConfigRadiusDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID) {

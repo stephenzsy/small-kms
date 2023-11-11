@@ -425,7 +425,7 @@ components:
     AgentContainerConfiguration:
       type: object
       properties:
-        conatinerName:
+        containerName:
           type: string
           x-go-type-skip-optional-pointer: true
         imageRepo:

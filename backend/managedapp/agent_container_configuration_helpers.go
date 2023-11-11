@@ -4,7 +4,7 @@ import "io"
 
 func (c *AgentContainerConfiguration) digest(writer io.Writer) {
 
-	writer.Write([]byte(c.ConatinerName))
+	writer.Write([]byte(c.ContainerName))
 	writer.Write([]byte(c.ImageRepo))
 	writer.Write([]byte(c.ImageTag))
 	for _, s := range c.ExposedPortSpecs {

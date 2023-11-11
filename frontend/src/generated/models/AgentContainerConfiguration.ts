@@ -31,7 +31,7 @@ export interface AgentContainerConfiguration {
      * @type {string}
      * @memberof AgentContainerConfiguration
      */
-    conatinerName?: string;
+    containerName?: string;
     /**
      * 
      * @type {string}
@@ -99,7 +99,7 @@ export function AgentContainerConfigurationFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'conatinerName': !exists(json, 'conatinerName') ? undefined : json['conatinerName'],
+        'containerName': !exists(json, 'containerName') ? undefined : json['containerName'],
         'imageRepo': json['imageRepo'],
         'imageTag': json['imageTag'],
         'exposedPortSpecs': json['exposedPortSpecs'],
@@ -119,7 +119,7 @@ export function AgentContainerConfigurationToJSON(value?: AgentContainerConfigur
     }
     return {
         
-        'conatinerName': value.conatinerName,
+        'containerName': value.containerName,
         'imageRepo': value.imageRepo,
         'imageTag': value.imageTag,
         'exposedPortSpecs': value.exposedPortSpecs,

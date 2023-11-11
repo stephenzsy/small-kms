@@ -26,7 +26,7 @@ export function RadiusConfigContainerForm() {
       }}
     >
       <Form.Item<AgentServerConfigFormState>
-        name="conatinerName"
+        name="containerName"
         label="Azure Container container name"
         required
       >

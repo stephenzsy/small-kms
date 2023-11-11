@@ -40,6 +40,12 @@ export interface AgentConfigRadiusFields {
     container?: AgentContainerConfiguration;
     /**
      * 
+     * @type {boolean}
+     * @memberof AgentConfigRadiusFields
+     */
+    debugMode?: boolean;
+    /**
+     * 
      * @type {Array<RadiusClientConfig>}
      * @memberof AgentConfigRadiusFields
      */
@@ -66,6 +72,7 @@ export function AgentConfigRadiusFieldsFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'container': !exists(json, 'container') ? undefined : AgentContainerConfigurationFromJSON(json['container']),
+        'debugMode': !exists(json, 'debugMode') ? undefined : json['debugMode'],
         'clients': !exists(json, 'clients') ? undefined : ((json['clients'] as Array<any>).map(RadiusClientConfigFromJSON)),
     };
 }
@@ -80,6 +87,7 @@ export function AgentConfigRadiusFieldsToJSON(value?: AgentConfigRadiusFields | 
     return {
         
         'container': AgentContainerConfigurationToJSON(value.container),
+        'debugMode': value.debugMode,
         'clients': value.clients === undefined ? undefined : ((value.clients as Array<any>).map(RadiusClientConfigToJSON)),
     };
 }

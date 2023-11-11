@@ -79,6 +79,14 @@ func (s *server) patchAgentConfigRadius(c ctx.RequestContext, namespaceKind base
 		digest.Write([]byte(client.Ipaddr))
 		digest.Write([]byte(client.SecretId))
 	}
+
+	if p.DebugMode != nil {
+		doc.DebugMode = p.DebugMode
+		if *p.DebugMode {
+			digest.Write([]byte("debug"))
+		}
+	}
+
 	doc.Version = hex.EncodeToString(digest.Sum(nil))
 
 	err = docSvc.Upsert(c, doc, &azcosmos.ItemOptions{IfMatchEtag: doc.ETag})

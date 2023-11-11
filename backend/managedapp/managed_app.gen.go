@@ -83,7 +83,7 @@ type AgentConfigServerFields struct {
 
 // AgentContainerConfiguration defines model for AgentContainerConfiguration.
 type AgentContainerConfiguration struct {
-	ConatinerName    string        `json:"conatinerName,omitempty"`
+	ContainerName    string        `json:"containerName,omitempty"`
 	Env              []string      `json:"env,omitempty"`
 	ExposedPortSpecs []string      `json:"exposedPortSpecs"`
 	HostBinds        []string      `json:"hostBinds"`
