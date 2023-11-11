@@ -14,15 +14,14 @@ func writeStringOmitEmpty(sb *strings.Builder, prefixTabs string, key string, va
 	}
 }
 
-func (c RadiusClientConfig) MarshalFreeradiusConfig() ([]byte, error) {
-	sb := &strings.Builder{}
+func (c RadiusClientConfig) MarshalFreeradiusConfig(sb *strings.Builder, linePrefix string) error {
 	sb.WriteString("client ")
 	sb.WriteString(c.Name)
 	sb.WriteString(" {\n")
 	writeStringOmitEmpty(sb, "\t", "ipaddr", c.Ipaddr)
 	writeStringOmitEmpty(sb, "\t", "secret", c.Secret)
 	sb.WriteString("}\n")
-	return []byte(sb.String()), nil
+	return nil
 }
 
 var _ FreeRadiusConfigMarshaler = RadiusClientConfig{}

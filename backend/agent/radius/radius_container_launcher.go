@@ -34,6 +34,10 @@ func (s *radiusContainerLauncher) Before(c context.Context) (context.Context, er
 		return c, nil
 	}
 	logger := log.Ctx(c)
+	fetchedConfig := config.fetchedConfig
+	if fetchedConfig == nil {
+		return c, fmt.Errorf("fetchedConfig is nil")
+	}
 	exposedPorts, portBindings, err := nat.ParsePortSpecs(config.fetchedConfig.Container.ExposedPortSpecs)
 	if err != nil {
 		return c, err

@@ -3,21 +3,19 @@ package frconfig
 import "strings"
 
 type FreeRadiusConfigMarshaler interface {
-	MarshalFreeradiusConfig() ([]byte, error)
+	MarshalFreeradiusConfig(sb *strings.Builder, linePrefix string) error
 }
 
 type FreeRadiusConfigList[T FreeRadiusConfigMarshaler] []T
 
-func (l FreeRadiusConfigList[T]) MarshalFreeradiusConfig() ([]byte, error) {
-	sb := &strings.Builder{}
+func (l FreeRadiusConfigList[T]) MarshalFreeradiusConfig(sb *strings.Builder, linePrefix string) error {
 	for _, c := range l {
-		b, err := c.MarshalFreeradiusConfig()
+		err := c.MarshalFreeradiusConfig(sb, linePrefix)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		sb.Write(b)
 	}
-	return []byte(sb.String()), nil
+	return nil
 }
 
 var _ FreeRadiusConfigMarshaler = FreeRadiusConfigList[FreeRadiusConfigMarshaler](nil)

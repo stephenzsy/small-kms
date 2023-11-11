@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/rs/zerolog/log"
@@ -68,6 +69,7 @@ func (h *radiusConfigProcessHandler) Before(c context.Context) (context.Context,
 	}
 	h.processed = *processed
 	h.processed.ConfigVersion = config.Version
+	h.processed.fetchedConfig = config
 	processedJson, err := json.Marshal(&h.processed)
 	if err != nil {
 		return c, err
@@ -118,10 +120,31 @@ func (p *radiusConfigProcessor) process(c context.Context) (*ProcessedRadiusConf
 	} else {
 		pc.HostBinds = append(pc.HostBinds, configPath+":/opt/etc/raddb/clients.conf:ro")
 	}
+	if hostBindings, err := p.processEAP(c); err != nil {
+		return nil, err
+	} else {
+		pc.HostBinds = append(pc.HostBinds, hostBindings...)
+	}
 	return pc, nil
 }
 
+func (p *radiusConfigProcessor) processEAP(c context.Context) ([]string, error) {
+	configPath := p.configDir.Versioned(p.config.Version).File("raddb", "mods-enabled", "eap")
+	if err := configPath.EnsureDirExist(); err != nil {
+		return nil, err
+	}
+	sb := &strings.Builder{}
+	if err := frconfig.MarshalModEAP(sb, ""); err != nil {
+		return nil, err
+	}
+	if err := configPath.WriteFile([]byte(sb.String())); err != nil {
+		return nil, err
+	}
+	return []string{configPath.Path() + ":/opt/etc/raddb/mods-enabled/eap:ro"}, nil
+}
+
 func (p *radiusConfigProcessor) processClients(c context.Context) (string, error) {
+	logger := log.Ctx(c)
 	configPath := p.configDir.Versioned(p.config.Version).File("raddb", "clients.conf")
 	if err := configPath.EnsureDirExist(); err != nil {
 		return "", err
@@ -145,16 +168,17 @@ func (p *radiusConfigProcessor) processClients(c context.Context) (string, error
 		}
 		secretRef := azsecrets.ID(resp.JSON200.Sid)
 		kvResp, err := kvSClient.GetSecret(c, secretRef.Name(), secretRef.Version(), nil)
+		logger.Debug().Msgf("retrieved secret %s", secretRef)
 		if err != nil {
 			return "", err
 		}
 		clients[i].Secret = *kvResp.Value
 	}
-	marshalled, err := frconfig.FreeRadiusConfigList[frconfig.RadiusClientConfig](clients).MarshalFreeradiusConfig()
-	if err != nil {
+	sb := &strings.Builder{}
+	if err := frconfig.FreeRadiusConfigList[frconfig.RadiusClientConfig](clients).MarshalFreeradiusConfig(sb, ""); err != nil {
 		return "", err
 	}
-	if err := configPath.WriteFile(marshalled); err != nil {
+	if err := configPath.WriteFile([]byte(sb.String())); err != nil {
 		return "", err
 	}
 	return configPath.Path(), nil
