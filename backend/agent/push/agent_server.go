@@ -26,6 +26,7 @@ type agentServer struct {
 	acrImageRepo        string
 	mode                managedapp.AgentMode
 	radiusConfigManager *radius.RadiusConfigManager
+	launchedBy          string
 }
 
 // AgentContainerRemove implements ServerInterface.
@@ -202,6 +203,7 @@ func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvServi
 		acrImageRepo:        acrImageRepo,
 		mode:                mode,
 		radiusConfigManager: radiusConfigManager,
+		launchedBy:          envSvc.Default("AGENT_LAUNCHED_BY", ""),
 	}
 
 	return s, err

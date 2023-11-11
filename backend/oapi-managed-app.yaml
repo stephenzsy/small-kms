@@ -467,6 +467,8 @@ components:
       properties:
         container:
           $ref: "#/components/schemas/AgentContainerConfiguration"
+        debugMode:
+          type: boolean
         clients:
           type: array
           items:

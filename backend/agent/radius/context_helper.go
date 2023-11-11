@@ -7,5 +7,6 @@ type AgentConfigRadius = managedapp.AgentConfigRadius
 type contextKey string
 
 const (
-	contextKeyRadiusConfig contextKey = "radiusConfig"
+	contextKeyRadiusConfig          contextKey = "radiusConfig"
+	contextKeyRadiusConfigProcessed contextKey = "radiusConfigProcessed"
 )

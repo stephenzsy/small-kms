@@ -3,6 +3,7 @@ package agentpush
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -12,6 +13,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/stephenzsy/small-kms/backend/base"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -46,6 +48,9 @@ func (s *agentServer) apiLaunchAgentContainer(c ctx.RequestContext, req LaunchAg
 			if len(splitted) == 2 {
 				clonedEnv.SetValue(splitted[0], splitted[1])
 			}
+		}
+		if req.Mode == managedapp.AgentModeLauncher {
+			clonedEnv.SetValue("AGENT_LAUNCHED_BY", os.Getenv("HOSTNAME"))
 		}
 		result, err := s.dockerClient.ContainerCreate(c,
 			&container.Config{

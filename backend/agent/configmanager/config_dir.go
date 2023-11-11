@@ -11,10 +11,12 @@ type ConfigPath interface {
 	Path() string
 	EnsureDirExist() error
 	WriteFile(data []byte) error
+	ReadFile() ([]byte, error)
 }
 
 type ConfigDir interface {
 	ConfigPath
+	Active() ConfigDir
 	Versioned(string) ConfigDir
 	Dir(paths ...string) ConfigDir
 	File(paths ...string) ConfigPath
@@ -27,12 +29,32 @@ type configPathImpl struct {
 	isLeaf      bool
 }
 
+// Active implements ConfigDir.
+func (impl *configPathImpl) Active() ConfigDir {
+	if impl.isVersioned {
+		return impl
+	}
+	return &configPathImpl{
+		configName:  impl.configName,
+		path:        filepath.Join(impl.path, fmt.Sprint(impl.configName, ".active")),
+		isVersioned: true,
+	}
+}
+
 // WriteFile implements ConfigPath.
 func (impl *configPathImpl) WriteFile(data []byte) error {
 	if !impl.isLeaf {
 		return errors.New("not a leaf path")
 	}
 	return os.WriteFile(impl.path, data, 0640)
+}
+
+// WriteFile implements ConfigPath.
+func (impl *configPathImpl) ReadFile() ([]byte, error) {
+	if !impl.isLeaf {
+		return nil, errors.New("not a leaf path")
+	}
+	return os.ReadFile(impl.path)
 }
 
 // EnsureDirExist implements ConfigDir.

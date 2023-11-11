@@ -10,13 +10,10 @@ type FreeRadiusConfigList[T FreeRadiusConfigMarshaler] []T
 
 func (l FreeRadiusConfigList[T]) MarshalFreeradiusConfig() ([]byte, error) {
 	sb := &strings.Builder{}
-	for i, c := range l {
+	for _, c := range l {
 		b, err := c.MarshalFreeradiusConfig()
 		if err != nil {
 			return nil, err
-		}
-		if i > 0 {
-			sb.WriteString("\n")
 		}
 		sb.Write(b)
 	}
