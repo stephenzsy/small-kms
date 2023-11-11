@@ -24,6 +24,7 @@ components:
         #   type: string
         secret:
           type: string
+          x-go-json-ignore: true
           x-go-type-skip-optional-pointer: true
         secretId:
           $ref: "oapi-base.yaml#/components/schemas/Id"
@@ -45,3 +46,14 @@ components:
         #       type: integer
       required:
         - name
+    RadiusEapTls:
+      type: object
+      properties:
+        certId:
+          $ref: "oapi-base.yaml#/components/schemas/Id"
+          x-go-type-skip-optional-pointer: true
+        certPolicyId:
+          $ref: "oapi-base.yaml#/components/schemas/Id"
+          x-go-type-skip-optional-pointer: true
+      required:
+        - certPolicyId

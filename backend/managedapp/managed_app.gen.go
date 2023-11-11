@@ -57,6 +57,7 @@ type AgentConfigRadiusFields struct {
 	Clients   []externalRef0.RadiusClientConfig `json:"clients,omitempty"`
 	Container *AgentContainerConfiguration      `json:"container,omitempty"`
 	DebugMode *bool                             `json:"debugMode,omitempty"`
+	EapTls    *externalRef0.RadiusEapTls        `json:"eapTls,omitempty"`
 }
 
 // AgentConfigServer defines model for AgentConfigServer.

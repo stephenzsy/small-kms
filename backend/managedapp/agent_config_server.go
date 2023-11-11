@@ -283,6 +283,27 @@ func (s *server) assignAgentRadiusRoles(c ctx.RequestContext, assignedTo uuid.UU
 			}
 		}
 	}
+
+	// eap server tls cert
+	if doc.EapTls.CertPolicyId != "" {
+		p := cloudauthzaz.RoleAssignmentProvisioner{
+			RoleDefinitionID: roleDefIDKeyVaultSecretsUser,
+			Scope: subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
+				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), doc.EapTls.CertPolicyId)).Build(),
+			AssignedTo: assignedTo,
+		}
+
+		roleDefID := subscriptionIDBuilder.WithRoleDefinitionID(roleDefIDKeyVaultSecretsUser).Build()
+
+		if isAssigned, err := p.IsRoleAssigned(c, armRAClient, roleDefID); err != nil {
+			return err
+		} else if !isAssigned {
+			if err := p.AssignRole(c, armRAClient, roleDefID); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 
 }

@@ -11,7 +11,13 @@ import (
 type RadiusClientConfig struct {
 	Ipaddr         string          `json:"ipaddr,omitempty"`
 	Name           string          `json:"name"`
-	Secret         string          `json:"secret,omitempty"`
+	Secret         string          `json:"-"`
 	SecretId       externalRef0.Id `json:"secretId,omitempty"`
 	SecretPolicyId externalRef0.Id `json:"secretPolicyId,omitempty"`
+}
+
+// RadiusEapTls defines model for RadiusEapTls.
+type RadiusEapTls struct {
+	CertId       externalRef0.Id `json:"certId,omitempty"`
+	CertPolicyId externalRef0.Id `json:"certPolicyId"`
 }

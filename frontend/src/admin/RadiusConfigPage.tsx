@@ -30,6 +30,7 @@ import {
   CertPolicyRef,
   NamespaceKind,
   RadiusClientConfig,
+  RadiusEapTls,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { useCertPolicies } from "./CertPolicyRefTable";
@@ -167,6 +168,37 @@ function RadiusMiscForm() {
   );
 }
 
+type RadiusEapTlsFormState = Pick<RadiusEapTls, "certPolicyId">;
+function RadiusEapTlsForm() {
+  const { run, data } = useRadiusConfigPatch();
+  const [form] = useForm<RadiusEapTlsFormState>();
+  useEffect(() => {
+    if (data?.eapTls) {
+      form.setFieldsValue(data.eapTls);
+    }
+  }, [data]);
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={(v) =>
+        run({
+          eapTls: v,
+        })
+      }
+    >
+      <Form.Item<RadiusEapTlsFormState> name="certPolicyId" label="Server TLS certificate policy ID">
+        <Input />
+      </Form.Item>
+      <Form.Item className="mt-6">
+        <Button htmlType="submit" type="primary">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
 function RadiusClientsForm() {
   const { run, data } = useRadiusConfigPatch();
   const [form] = useForm<Pick<AgentConfigRadiusFields, "clients">>();
@@ -247,6 +279,11 @@ const collapseItems: CollapseProps["items"] = [
     key: "clients",
     label: "Clients",
     children: <RadiusClientsForm />,
+  },
+  {
+    key: "eap-tls",
+    label: "EAP-TLS",
+    children: <RadiusEapTlsForm />,
   },
   {
     key: "misceallaneous",

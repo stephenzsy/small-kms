@@ -125,6 +125,11 @@ func (s *server) getAzureRoleAssignmentPagers(c ctx.RequestContext, configName A
 				pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
 			}
 		}
+		{
+			scope := subscriptionIDBuilder.WithResourceGroup(s.GetResourceGroupName()).WithKeyVault(s.GetKeyVaultName(), "secrets",
+				cert.GetKeyStoreName(nsCtx.Kind(), nsCtx.ID(), doc.EapTls.CertPolicyId)).Build()
+			pagers = append(pagers, cloudauthzaz.ListRoleAssignments(c, armRAClient, scope, assignedTo))
+		}
 		return pagers, nil
 	}
 	return nil, nil

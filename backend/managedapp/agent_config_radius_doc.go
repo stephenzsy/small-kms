@@ -9,9 +9,10 @@ import (
 
 type AgentConfigRadiusDoc struct {
 	AgentConfigDoc
-	Container AgentContainerConfiguration   `json:"container,omitempty"`
+	Container AgentContainerConfiguration   `json:"container"`
 	Clients   []frconfig.RadiusClientConfig `json:"clients,omitempty"`
 	DebugMode *bool                         `json:"debugMode,omitempty"`
+	EapTls    frconfig.RadiusEapTls         `json:"eapTls"`
 }
 
 func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
@@ -21,8 +22,9 @@ func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
 	d.AgentConfigDoc.PopulateModel(&m.AgentConfig)
 	m.Container = &d.Container
 	m.Clients = d.Clients
-	m.RefreshAfter = time.Now().Add(time.Hour * 24)
+	m.EapTls = &d.EapTls
 	m.DebugMode = d.DebugMode
+	m.RefreshAfter = time.Now().Add(time.Hour * 24)
 }
 
 func (d *AgentConfigRadiusDoc) init(nsKind base.NamespaceKind, nsIdentifier base.ID) {

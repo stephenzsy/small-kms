@@ -51,6 +51,7 @@ export * from './ProfileRef';
 export * from './ProfileRefFields';
 export * from './PullImageRequest';
 export * from './RadiusClientConfig';
+export * from './RadiusEapTls';
 export * from './RequestDiagnostics';
 export * from './RequestHeaderEntry';
 export * from './ResourceKind';

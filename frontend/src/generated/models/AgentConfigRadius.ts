@@ -25,6 +25,12 @@ import {
     RadiusClientConfigFromJSONTyped,
     RadiusClientConfigToJSON,
 } from './RadiusClientConfig';
+import type { RadiusEapTls } from './RadiusEapTls';
+import {
+    RadiusEapTlsFromJSON,
+    RadiusEapTlsFromJSONTyped,
+    RadiusEapTlsToJSON,
+} from './RadiusEapTls';
 
 /**
  * 
@@ -86,6 +92,12 @@ export interface AgentConfigRadius {
      * @memberof AgentConfigRadius
      */
     clients?: Array<RadiusClientConfig>;
+    /**
+     * 
+     * @type {RadiusEapTls}
+     * @memberof AgentConfigRadius
+     */
+    eapTls?: RadiusEapTls;
 }
 
 /**
@@ -120,6 +132,7 @@ export function AgentConfigRadiusFromJSONTyped(json: any, ignoreDiscriminator: b
         'container': !exists(json, 'container') ? undefined : AgentContainerConfigurationFromJSON(json['container']),
         'debugMode': !exists(json, 'debugMode') ? undefined : json['debugMode'],
         'clients': !exists(json, 'clients') ? undefined : ((json['clients'] as Array<any>).map(RadiusClientConfigFromJSON)),
+        'eapTls': !exists(json, 'eapTls') ? undefined : RadiusEapTlsFromJSON(json['eapTls']),
     };
 }
 
@@ -141,6 +154,7 @@ export function AgentConfigRadiusToJSON(value?: AgentConfigRadius | null): any {
         'container': AgentContainerConfigurationToJSON(value.container),
         'debugMode': value.debugMode,
         'clients': value.clients === undefined ? undefined : ((value.clients as Array<any>).map(RadiusClientConfigToJSON)),
+        'eapTls': RadiusEapTlsToJSON(value.eapTls),
     };
 }
 

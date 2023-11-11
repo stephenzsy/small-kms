@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	frconfig "github.com/stephenzsy/small-kms/backend/agent/freeradiusconfig"
 	"github.com/stephenzsy/small-kms/backend/base"
+	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
@@ -79,6 +80,21 @@ func (s *server) patchAgentConfigRadius(c ctx.RequestContext, namespaceKind base
 		digest.Write([]byte(client.Ipaddr))
 		digest.Write([]byte(client.SecretId))
 	}
+
+	if p.EapTls != nil {
+		doc.EapTls = *p.EapTls
+		queried, err := cert.QueryLatestCertificateIdsIssuedByPolicy(
+			c,
+			base.NewDocLocator(namespaceKind, namespaceId, base.ResourceKindCertPolicy, doc.EapTls.CertPolicyId), 1)
+		if err != nil {
+			return nil, err
+		}
+		if len(queried) <= 0 {
+			return nil, errors.New("no certificate issued by policy")
+		}
+		doc.EapTls.CertId = queried[0]
+	}
+	digest.Write([]byte(doc.EapTls.CertId))
 
 	if p.DebugMode != nil {
 		doc.DebugMode = p.DebugMode
