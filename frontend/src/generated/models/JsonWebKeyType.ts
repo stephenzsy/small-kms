@@ -18,9 +18,9 @@
  * @export
  */
 export const JsonWebKeyType = {
-    JsonWebKeyTypeEC: 'EC',
-    JsonWebKeyTypeRSA: 'RSA',
-    JsonWebKeyTypeOct: 'oct'
+    Ec: 'EC',
+    Rsa: 'RSA',
+    Oct: 'oct'
 } as const;
 export type JsonWebKeyType = typeof JsonWebKeyType[keyof typeof JsonWebKeyType];
 

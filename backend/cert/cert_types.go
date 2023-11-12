@@ -3,8 +3,6 @@ package cert
 import (
 	"context"
 	"crypto/x509/pkix"
-	"encoding"
-	"encoding/hex"
 	"io"
 
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -40,28 +38,7 @@ func (s *CertificateSubject) ToPkixName() pkix.Name {
 	}
 }
 
-type HexDigest []byte
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *HexDigest) UnmarshalText(text []byte) error {
-	sl := make([]byte, hex.DecodedLen(len(text)))
-	_, err := hex.Decode(sl, text)
-	if err != nil {
-		return err
-	}
-	*s = sl
-	return nil
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s HexDigest) MarshalText() (text []byte, err error) {
-	text = make([]byte, hex.EncodedLen(len(s)))
-	hex.Encode(text, s)
-	return
-}
-
-var _ encoding.TextMarshaler = HexDigest{}
-var _ encoding.TextUnmarshaler = (*HexDigest)(nil)
+type HexDigest = base.HexDigest
 
 func (sans *SubjectAlternativeNames) WriteToDigest(w io.Writer) (s int, err error) {
 	if sans == nil {

@@ -85,7 +85,7 @@ func (d *CertPolicyDoc) init(
 
 	if p.KeySpec == nil {
 		d.KeySpec = key.SigningKeySpec{
-			Alg:     to.Ptr(key.JsonWebKeySignatureAlgorithmRS256),
+			Alg:     to.Ptr(cloudkey.SignatureAlgorithmRS256),
 			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(int32(2048)),
 			KeyOperations: []key.JsonWebKeyOperation{
@@ -98,20 +98,19 @@ func (d *CertPolicyDoc) init(
 		switch ks.Kty {
 		case cloudkey.KeyTypeEC:
 			d.KeySpec.Kty = cloudkey.KeyTypeEC
-			d.KeySpec.Crv = utils.ToPtr(cloudkey.CurveNameP384)
-			d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
-			if ks.Crv != nil {
-				switch *ks.Crv {
-				case cloudkey.CurveNameP256:
-					d.KeySpec.Crv = ks.Crv
-					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES256)
-				case cloudkey.CurveNameP384:
-					d.KeySpec.Crv = ks.Crv
-					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES384)
-				case cloudkey.CurveNameP521:
-					d.KeySpec.Crv = ks.Crv
-					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmES512)
-				}
+			switch ks.Crv {
+			case cloudkey.CurveNameP256:
+				d.KeySpec.Crv = ks.Crv
+				d.KeySpec.Alg = to.Ptr(cloudkey.SignatureAlgorithmES256)
+
+			case cloudkey.CurveNameP521:
+				d.KeySpec.Crv = ks.Crv
+				d.KeySpec.Alg = to.Ptr(cloudkey.SignatureAlgorithmES512)
+			case cloudkey.CurveNameP384:
+				fallthrough
+			default:
+				d.KeySpec.Crv = ks.Crv
+				d.KeySpec.Alg = to.Ptr(cloudkey.SignatureAlgorithmES384)
 			}
 		case cloudkey.KeyTypeRSA:
 			d.KeySpec.Kty = cloudkey.KeyTypeRSA
@@ -124,18 +123,18 @@ func (d *CertPolicyDoc) init(
 				// any other value will be using default
 			}
 			if d.KeySpec.Alg == nil {
-				d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmRS256)
+				d.KeySpec.Alg = to.Ptr(cloudkey.SignatureAlgorithmRS256)
 				if *ks.KeySize >= 3072 {
-					d.KeySpec.Alg = to.Ptr(key.JsonWebKeySignatureAlgorithmRS384)
+					d.KeySpec.Alg = to.Ptr(cloudkey.SignatureAlgorithmRS384)
 				}
 			} else {
 				switch *d.KeySpec.Alg {
-				case key.JsonWebKeySignatureAlgorithmRS256,
-					key.JsonWebKeySignatureAlgorithmRS384,
-					key.JsonWebKeySignatureAlgorithmRS512,
-					key.JsonWebKeySignatureAlgorithmPS256,
-					key.JsonWebKeySignatureAlgorithmPS384,
-					key.JsonWebKeySignatureAlgorithmPS512:
+				case cloudkey.SignatureAlgorithmRS256,
+					cloudkey.SignatureAlgorithmRS384,
+					cloudkey.SignatureAlgorithmRS512,
+					cloudkey.SignatureAlgorithmPS256,
+					cloudkey.SignatureAlgorithmPS384,
+					cloudkey.SignatureAlgorithmPS512:
 					// ok
 				default:
 					return fmt.Errorf("%w: unsupported key signature algorithm: %s", base.ErrResponseStatusBadRequest, *d.KeySpec.Alg)

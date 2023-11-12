@@ -94,12 +94,12 @@ type CertificateAttributes struct {
 
 // CertificateFields defines model for CertificateFields.
 type CertificateFields struct {
-	Alg                     externalRef1.JsonWebKeySignatureAlgorithm `json:"alg"`
-	Flags                   []CertificateFlag                         `json:"flags,omitempty"`
-	Jwk                     externalRef1.JsonWebKey                   `json:"jwk"`
-	KeyVaultSecretID        string                                    `json:"sid,omitempty"`
-	Subject                 CertificateSubject                        `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames                  `json:"subjectAlternativeNames,omitempty"`
+	Alg                     externalRef1.JsonWebSignatureAlgorithm `json:"alg"`
+	Flags                   []CertificateFlag                      `json:"flags,omitempty"`
+	Jwk                     externalRef1.JsonWebKey                `json:"jwk"`
+	KeyVaultSecretID        string                                 `json:"sid,omitempty"`
+	Subject                 CertificateSubject                     `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames               `json:"subjectAlternativeNames,omitempty"`
 }
 
 // CertificateFlag defines model for CertificateFlag.

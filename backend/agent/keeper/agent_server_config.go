@@ -39,7 +39,7 @@ func (asc *agentServerConfiguration) VerifyJWTKeys() []cloudkey.JsonWebSignature
 		return cloudkey.JsonWebSignatureKey{
 			KeyType:   item.Kty,
 			KeyID:     utils.NilToDefault(item.KeyID),
-			CurveName: utils.NilToDefault(item.Crv),
+			CurveName: item.Crv,
 			X:         item.X,
 			Y:         item.Y,
 			N:         item.N,

@@ -165,7 +165,7 @@ func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
 		params.KeyProperties.KeySize = d.KeySpec.KeySize
 	case cloudkey.KeyTypeEC:
 		params.KeyProperties.KeyType = to.Ptr(azcertificates.KeyTypeEC)
-		switch *d.KeySpec.Crv {
+		switch d.KeySpec.Crv {
 		case cloudkey.CurveNameP256:
 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP256)
 		case cloudkey.CurveNameP384:
@@ -259,23 +259,23 @@ func (d *CertDoc) getIssuedX509Certificate() (*x509.Certificate, [][]byte, error
 
 func (d *CertDoc) getX509SignatureAlgorithm() (sa x509.SignatureAlgorithm) {
 	switch *d.KeySpec.Alg {
-	case key.JsonWebKeySignatureAlgorithmRS256:
+	case cloudkey.SignatureAlgorithmRS256:
 		sa = x509.SHA256WithRSA
-	case key.JsonWebKeySignatureAlgorithmRS384:
+	case cloudkey.SignatureAlgorithmRS384:
 		sa = x509.SHA384WithRSA
-	case key.JsonWebKeySignatureAlgorithmRS512:
+	case cloudkey.SignatureAlgorithmRS512:
 		sa = x509.SHA512WithRSA
-	case key.JsonWebKeySignatureAlgorithmPS256:
+	case cloudkey.SignatureAlgorithmPS256:
 		sa = x509.SHA256WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmPS384:
+	case cloudkey.SignatureAlgorithmPS384:
 		sa = x509.SHA384WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmPS512:
+	case cloudkey.SignatureAlgorithmPS512:
 		sa = x509.SHA512WithRSAPSS
-	case key.JsonWebKeySignatureAlgorithmES256:
+	case cloudkey.SignatureAlgorithmES256:
 		sa = x509.ECDSAWithSHA256
-	case key.JsonWebKeySignatureAlgorithmES384:
+	case cloudkey.SignatureAlgorithmES384:
 		sa = x509.ECDSAWithSHA384
-	case key.JsonWebKeySignatureAlgorithmES512:
+	case cloudkey.SignatureAlgorithmES512:
 		sa = x509.ECDSAWithSHA512
 	}
 	return sa

@@ -6,7 +6,7 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceId}/key-policy:
+  /v1/{namespaceKind}/{namespaceId}/key-policies:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
@@ -24,7 +24,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyPolicyRef"
-  /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId}:
+  /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
@@ -41,7 +41,7 @@ paths:
       tags:
         - admin
       operationId: PutKeyPolicy
-      summary: Put key spec
+      summary: Put key policy
       requestBody:
         required: true
         content:
@@ -67,13 +67,14 @@ components:
         - P-384
         - P-521
       x-enum-varnames:
-        - JsonWebKeyCurveNameP256
-        - JsonWebKeyCurveNameP384
-        - JsonWebKeyCurveNameP521
+        - CurveNameP256
+        - CurveNameP384
+        - CurveNameP521
       x-go-type: cloudkey.JsonWebKeyCurveName
       x-go-type-import:
         name: cloudkey
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+      x-go-type-skip-optional-pointer: true
     JsonWebKeyOperation:
       type: string
       enum:
@@ -83,13 +84,6 @@ components:
         - decrypt
         - wrapKey
         - unwrapKey
-      x-enum-varnames:
-        - JsonWebKeyOperationSign
-        - JsonWebKeyOperationVerify
-        - JsonWebKeyOperationEncrypt
-        - JsonWebKeyOperationDecrypt
-        - JsonWebKeyOperationWrapKey
-        - JsonWebKeyOperationUnwrapKey
       x-go-type: cloudkey.JsonWebKeyOperation
       x-go-type-import:
         name: cloudkey
@@ -100,18 +94,23 @@ components:
         - EC
         - RSA
         - oct
-      x-enum-varnames:
-        - JsonWebKeyTypeEC
-        - JsonWebKeyTypeRSA
-        - JsonWebKeyTypeOct
       x-go-type: cloudkey.JsonWebKeyType
       x-go-type-import:
         name: cloudkey
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
-    JsonWeyKeySize:
+      x-go-type-skip-optional-pointer: true
+    JsonWebKeySize:
       type: integer
       format: int32
-    JsonWebKeySignatureAlgorithm:
+      # enum:
+      #   - 2048
+      #   - 3072
+      #   - 4096
+      # x-enum-varnames:
+      #   - JsonWebKeySizeRSA2048
+      #   - JsonWebKeySizeRSA3072
+      #   - JsonWebKeySizeRSA4096
+    JsonWebSignatureAlgorithm:
       type: string
       enum:
         - ES256
@@ -123,16 +122,10 @@ components:
         - RS256
         - RS384
         - RS512
-      x-enum-varnames:
-        - JsonWebKeySignatureAlgorithmES256
-        - JsonWebKeySignatureAlgorithmES384
-        - JsonWebKeySignatureAlgorithmES512
-        - JsonWebKeySignatureAlgorithmPS256
-        - JsonWebKeySignatureAlgorithmPS384
-        - JsonWebKeySignatureAlgorithmPS512
-        - JsonWebKeySignatureAlgorithmRS256
-        - JsonWebKeySignatureAlgorithmRS384
-        - JsonWebKeySignatureAlgorithmRS512
+      x-go-type: cloudkey.JsonWebSignatureAlgorithm
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     KeySpec:
       description: these attributes should mostly confirm to JWK (RFC7517)
       type: object
@@ -147,7 +140,7 @@ components:
           $ref: "#/components/schemas/JsonWebKeyCurveName"
           x-go-name: CurveName
         key_size:
-          $ref: "#/components/schemas/JsonWeyKeySize"
+          $ref: "#/components/schemas/JsonWebKeySize"
           x-go-name: KeySize
         key_ops:
           type: array
@@ -183,7 +176,7 @@ components:
         - type: object
           properties:
             alg:
-              $ref: "#/components/schemas/JsonWebKeySignatureAlgorithm"
+              $ref: "#/components/schemas/JsonWebSignatureAlgorithm"
               x-go-name: SignatureAlgorithm
             x5c:
               description: Base64 encoded certificate chain
@@ -343,36 +336,57 @@ components:
     KeyPolicyFields:
       type: object
       properties:
+        keyProperties:
+          $ref: "#/components/schemas/GenerateJsonWebKeyProperties"
         exportable:
           type: boolean
         expiryTime:
           $ref: "oapi-base.yaml#/components/schemas/Period"
-        lifetimeActions:
+        # lifetimeActions:
+        #   type: array
+        #   items:
+        #     $ref: "#/components/schemas/LifetimeAction"
+        #   x-go-type-skip-optional-pointer: true
+      required:
+        - keyProperties
+        - exportable
+    GenerateJsonWebKeyProperties:
+      type: object
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+          x-go-name: KeyType
+          x-go-type-skip-optional-pointer: true
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+          x-go-name: CurveName
+          x-go-type-skip-optional-pointer: true
+        key_size:
+          $ref: "#/components/schemas/JsonWebKeySize"
+          x-go-name: KeySize
+        key_ops:
           type: array
           items:
-            $ref: "#/components/schemas/LifetimeAction"
+            $ref: "#/components/schemas/JsonWebKeyOperation"
+          x-go-name: KeyOperations
           x-go-type-skip-optional-pointer: true
-      required:
-        - exportable
     KeyPolicyParameters:
       type: object
       properties:
         displayName:
           type: string
           x-go-type-skip-optional-pointer: true
-        keySpec:
-          $ref: "#/components/schemas/KeySpec"
+        keyProperties:
+          $ref: "#/components/schemas/GenerateJsonWebKeyProperties"
         exportable:
           type: boolean
         expiryTime:
           $ref: "oapi-base.yaml#/components/schemas/Period"
-        lifetimeActions:
-          type: array
-          items:
-            $ref: "#/components/schemas/LifetimeAction"
-          x-go-type-skip-optional-pointer: true
-      required:
-        - keySpec
+        # lifetimeActions:
+        #   type: array
+        #   items:
+        #     $ref: "#/components/schemas/LifetimeAction"
+        #   x-go-type-skip-optional-pointer: true
     LifetimeAction:
       type: object
       properties:

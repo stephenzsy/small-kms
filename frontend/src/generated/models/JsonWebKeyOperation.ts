@@ -18,12 +18,12 @@
  * @export
  */
 export const JsonWebKeyOperation = {
-    JsonWebKeyOperationSign: 'sign',
-    JsonWebKeyOperationVerify: 'verify',
-    JsonWebKeyOperationEncrypt: 'encrypt',
-    JsonWebKeyOperationDecrypt: 'decrypt',
-    JsonWebKeyOperationWrapKey: 'wrapKey',
-    JsonWebKeyOperationUnwrapKey: 'unwrapKey'
+    Sign: 'sign',
+    Verify: 'verify',
+    Encrypt: 'encrypt',
+    Decrypt: 'decrypt',
+    WrapKey: 'wrapKey',
+    UnwrapKey: 'unwrapKey'
 } as const;
 export type JsonWebKeyOperation = typeof JsonWebKeyOperation[keyof typeof JsonWebKeyOperation];
 

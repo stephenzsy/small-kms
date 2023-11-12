@@ -9,6 +9,7 @@ import { RouteIds } from "./route-constants";
 import { NamespaceContext } from "./admin/contexts/NamespaceContext";
 import { NamespaceKind } from "./generated";
 
+const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
 const EntraProfilesPage = React.lazy(() => import("./admin/EntraProfilesPage"));
 const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
@@ -26,7 +27,7 @@ const ProvisionAgentPage = React.lazy(
 const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
-const RadiusConfigPage = React.lazy(() => import("./admin/RadiusConfigPage"))
+const RadiusConfigPage = React.lazy(() => import("./admin/RadiusConfigPage"));
 
 export const router = createBrowserRouter([
   {
@@ -126,7 +127,6 @@ export const router = createBrowserRouter([
                   { index: true, element: <ManagedAppPage /> },
                   { path: "provision-agent", element: <ProvisionAgentPage /> },
                   { path: "radius-config", element: <RadiusConfigPage /> },
-
                 ],
               },
               {
@@ -141,6 +141,10 @@ export const router = createBrowserRouter([
                   {
                     path: "cert-policy/:certPolicyId",
                     element: <CertPolicyPage />,
+                  },
+                  {
+                    path: "key-policies/:policyId",
+                    element: <KeyPolicyPage />,
                   },
                   {
                     path: "secret-policy/:policyId",

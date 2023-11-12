@@ -124,7 +124,7 @@ func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifi
 	switch certDoc.KeySpec.Kty {
 
 	case cloudkey.KeyTypeEC:
-		switch *certDoc.KeySpec.Crv {
+		switch certDoc.KeySpec.Crv {
 		case cloudkey.CurveNameP256:
 			jwtSigningMethod = cloudkeyx.NewJWTSigningMethod(cloudkey.SignatureAlgorithmES256)
 		case cloudkey.CurveNameP384:

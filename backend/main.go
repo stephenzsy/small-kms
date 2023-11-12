@@ -27,6 +27,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cert"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	requestcontext "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/secret"
@@ -123,7 +124,7 @@ func main() {
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))
 		agentpush.RegisterHandlers(e, agentpush.NewProxiedServer(apiServer))
 		secret.RegisterHandlers(e, secret.NewServer(apiServer))
-		//key.RegisterHandlers(e, key.NewServer(apiServer))
+		key.RegisterHandlers(e, key.NewServer(apiServer))
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(
 			taskmanager.NewTask("echo", func(c context.Context, sigCh <-chan os.Signal) error {

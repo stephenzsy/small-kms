@@ -31,12 +31,12 @@ import {
     JsonWebKeyFromJSONTyped,
     JsonWebKeyToJSON,
 } from './JsonWebKey';
-import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
+import type { JsonWebSignatureAlgorithm } from './JsonWebSignatureAlgorithm';
 import {
-    JsonWebKeySignatureAlgorithmFromJSON,
-    JsonWebKeySignatureAlgorithmFromJSONTyped,
-    JsonWebKeySignatureAlgorithmToJSON,
-} from './JsonWebKeySignatureAlgorithm';
+    JsonWebSignatureAlgorithmFromJSON,
+    JsonWebSignatureAlgorithmFromJSONTyped,
+    JsonWebSignatureAlgorithmToJSON,
+} from './JsonWebSignatureAlgorithm';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -76,10 +76,10 @@ export interface CertificateFields {
     jwk: JsonWebKey;
     /**
      * 
-     * @type {JsonWebKeySignatureAlgorithm}
+     * @type {JsonWebSignatureAlgorithm}
      * @memberof CertificateFields
      */
-    alg: JsonWebKeySignatureAlgorithm;
+    alg: JsonWebSignatureAlgorithm;
     /**
      * 
      * @type {string}
@@ -114,7 +114,7 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'jwk': JsonWebKeyFromJSON(json['jwk']),
-        'alg': JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
+        'alg': JsonWebSignatureAlgorithmFromJSON(json['alg']),
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
     };
 }
@@ -132,7 +132,7 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'jwk': JsonWebKeyToJSON(value.jwk),
-        'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
+        'alg': JsonWebSignatureAlgorithmToJSON(value.alg),
         'sid': value.sid,
     };
 }

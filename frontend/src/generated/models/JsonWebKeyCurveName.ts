@@ -18,9 +18,9 @@
  * @export
  */
 export const JsonWebKeyCurveName = {
-    JsonWebKeyCurveNameP256: 'P-256',
-    JsonWebKeyCurveNameP384: 'P-384',
-    JsonWebKeyCurveNameP521: 'P-521'
+    CurveNameP256: 'P-256',
+    CurveNameP384: 'P-384',
+    CurveNameP521: 'P-521'
 } as const;
 export type JsonWebKeyCurveName = typeof JsonWebKeyCurveName[keyof typeof JsonWebKeyCurveName];
 

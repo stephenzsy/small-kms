@@ -12,7 +12,6 @@ import (
 
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type (
@@ -59,12 +58,10 @@ func (ks *SigningKeySpec) WriteToDigest(w io.Writer) (s int, err error) {
 			}
 		}
 	case "EC":
-		if ks.Crv != nil {
-			if c, err := w.Write([]byte(*ks.Crv)); err != nil {
-				return s + c, err
-			} else {
-				s += c
-			}
+		if c, err := w.Write([]byte(ks.Crv)); err != nil {
+			return s + c, err
+		} else {
+			s += c
 		}
 	}
 	for _, op := range ks.KeyOperations {
@@ -137,11 +134,11 @@ func (ks *SigningKeySpec) SetPublicKey(pubKey crypto.PublicKey) error {
 		ks.Y = base.Base64RawURLEncodedBytes(pubKey.Y.Bytes())
 		switch pubKey.Curve.Params().Name {
 		case elliptic.P256().Params().Name:
-			ks.Crv = utils.ToPtr(cloudkey.CurveNameP256)
+			ks.Crv = cloudkey.CurveNameP256
 		case elliptic.P384().Params().Name:
-			ks.Crv = utils.ToPtr(cloudkey.CurveNameP384)
+			ks.Crv = cloudkey.CurveNameP384
 		case elliptic.P521().Params().Name:
-			ks.Crv = utils.ToPtr(cloudkey.CurveNameP521)
+			ks.Crv = cloudkey.CurveNameP521
 		default:
 			return fmt.Errorf("unsupported EC curve: %s", pubKey.Curve.Params().Name)
 		}

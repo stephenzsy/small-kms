@@ -25,18 +25,18 @@ import {
     JsonWebKeyOperationFromJSONTyped,
     JsonWebKeyOperationToJSON,
 } from './JsonWebKeyOperation';
-import type { JsonWebKeySignatureAlgorithm } from './JsonWebKeySignatureAlgorithm';
-import {
-    JsonWebKeySignatureAlgorithmFromJSON,
-    JsonWebKeySignatureAlgorithmFromJSONTyped,
-    JsonWebKeySignatureAlgorithmToJSON,
-} from './JsonWebKeySignatureAlgorithm';
 import type { JsonWebKeyType } from './JsonWebKeyType';
 import {
     JsonWebKeyTypeFromJSON,
     JsonWebKeyTypeFromJSONTyped,
     JsonWebKeyTypeToJSON,
 } from './JsonWebKeyType';
+import type { JsonWebSignatureAlgorithm } from './JsonWebSignatureAlgorithm';
+import {
+    JsonWebSignatureAlgorithmFromJSON,
+    JsonWebSignatureAlgorithmFromJSONTyped,
+    JsonWebSignatureAlgorithmToJSON,
+} from './JsonWebSignatureAlgorithm';
 
 /**
  * 
@@ -100,10 +100,10 @@ export interface SigningKeySpec {
     y?: string;
     /**
      * 
-     * @type {JsonWebKeySignatureAlgorithm}
+     * @type {JsonWebSignatureAlgorithm}
      * @memberof SigningKeySpec
      */
-    alg?: JsonWebKeySignatureAlgorithm;
+    alg?: JsonWebSignatureAlgorithm;
     /**
      * Base64 encoded certificate chain
      * @type {Array<string>}
@@ -154,7 +154,7 @@ export function SigningKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
         'n': !exists(json, 'n') ? undefined : json['n'],
         'x': !exists(json, 'x') ? undefined : json['x'],
         'y': !exists(json, 'y') ? undefined : json['y'],
-        'alg': !exists(json, 'alg') ? undefined : JsonWebKeySignatureAlgorithmFromJSON(json['alg']),
+        'alg': !exists(json, 'alg') ? undefined : JsonWebSignatureAlgorithmFromJSON(json['alg']),
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
         'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
         'x5tS256': !exists(json, 'x5t#S256') ? undefined : json['x5t#S256'],
@@ -179,7 +179,7 @@ export function SigningKeySpecToJSON(value?: SigningKeySpec | null): any {
         'n': value.n,
         'x': value.x,
         'y': value.y,
-        'alg': JsonWebKeySignatureAlgorithmToJSON(value.alg),
+        'alg': JsonWebSignatureAlgorithmToJSON(value.alg),
         'x5c': value.x5c,
         'x5t': value.x5t,
         'x5t#S256': value.x5tS256,

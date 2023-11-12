@@ -15,6 +15,7 @@ import {
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import { NamespaceConfigContextProvider } from "./contexts/NamespaceConfigContextProvider";
 import { NamespaceContext } from "./contexts/NamespaceContext";
+import { KeyPoliciesTabelCard } from "./tables/PoliciesTableCards";
 
 function ServicePrincipalSection({
   managedApp,
@@ -25,6 +26,7 @@ function ServicePrincipalSection({
 
   const columns = usePolicyRefTableColumns(certPolicyRoutePrefix);
   const secretPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/secret-policy/`;
+  const keyPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/key-policies/`;
   const secretPoliciesTableColumns = usePolicyRefTableColumns(
     secretPolicyRoutePrefix
   );
@@ -52,6 +54,7 @@ function ServicePrincipalSection({
             rowKey={(r) => r.id}
           />
         </Card>
+        <KeyPoliciesTabelCard itemRoutePrefix={keyPolicyRoutePrefix} />
         <Card
           title="Secret policies"
           extra={

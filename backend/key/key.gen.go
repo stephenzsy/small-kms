@@ -17,22 +17,17 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// Defines values for JsonWebKeySignatureAlgorithm.
-const (
-	JsonWebKeySignatureAlgorithmES256 JsonWebKeySignatureAlgorithm = "ES256"
-	JsonWebKeySignatureAlgorithmES384 JsonWebKeySignatureAlgorithm = "ES384"
-	JsonWebKeySignatureAlgorithmES512 JsonWebKeySignatureAlgorithm = "ES512"
-	JsonWebKeySignatureAlgorithmPS256 JsonWebKeySignatureAlgorithm = "PS256"
-	JsonWebKeySignatureAlgorithmPS384 JsonWebKeySignatureAlgorithm = "PS384"
-	JsonWebKeySignatureAlgorithmPS512 JsonWebKeySignatureAlgorithm = "PS512"
-	JsonWebKeySignatureAlgorithmRS256 JsonWebKeySignatureAlgorithm = "RS256"
-	JsonWebKeySignatureAlgorithmRS384 JsonWebKeySignatureAlgorithm = "RS384"
-	JsonWebKeySignatureAlgorithmRS512 JsonWebKeySignatureAlgorithm = "RS512"
-)
+// GenerateJsonWebKeyProperties defines model for GenerateJsonWebKeyProperties.
+type GenerateJsonWebKeyProperties struct {
+	Crv           JsonWebKeyCurveName   `json:"crv,omitempty"`
+	KeyOperations []JsonWebKeyOperation `json:"key_ops,omitempty"`
+	KeySize       *JsonWebKeySize       `json:"key_size,omitempty"`
+	Kty           JsonWebKeyType        `json:"kty,omitempty"`
+}
 
 // JsonWebKey defines model for JsonWebKey.
 type JsonWebKey struct {
-	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
+	Crv           JsonWebKeyCurveName                   `json:"crv,omitempty"`
 	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
 	KeyOperations []JsonWebKeyOperation                 `json:"key_ops,omitempty"`
 	KeyID         *string                               `json:"kid,omitempty"`
@@ -54,17 +49,17 @@ type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
 // JsonWebKeyOperation defines model for JsonWebKeyOperation.
 type JsonWebKeyOperation = cloudkey.JsonWebKeyOperation
 
-// JsonWebKeySignatureAlgorithm defines model for JsonWebKeySignatureAlgorithm.
-type JsonWebKeySignatureAlgorithm string
+// JsonWebKeySize defines model for JsonWebKeySize.
+type JsonWebKeySize = int32
 
 // JsonWebKeyType defines model for JsonWebKeyType.
 type JsonWebKeyType = cloudkey.JsonWebKeyType
 
+// JsonWebSignatureAlgorithm defines model for JsonWebSignatureAlgorithm.
+type JsonWebSignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm
+
 // JsonWebSignatureKey defines model for JsonWebSignatureKey.
 type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
-
-// JsonWeyKeySize defines model for JsonWeyKeySize.
-type JsonWeyKeySize = int32
 
 // Key defines model for Key.
 type Key = keyComposed
@@ -87,20 +82,17 @@ type KeyPolicy = keyPolicyComposed
 
 // KeyPolicyFields defines model for KeyPolicyFields.
 type KeyPolicyFields struct {
-	ExpiryTime      *externalRef0.Period `json:"expiryTime,omitempty"`
-	Exportable      bool                 `json:"exportable"`
-	LifetimeActions []LifetimeAction     `json:"lifetimeActions,omitempty"`
+	ExpiryTime    *externalRef0.Period         `json:"expiryTime,omitempty"`
+	Exportable    bool                         `json:"exportable"`
+	KeyProperties GenerateJsonWebKeyProperties `json:"keyProperties"`
 }
 
 // KeyPolicyParameters defines model for KeyPolicyParameters.
 type KeyPolicyParameters struct {
-	DisplayName string               `json:"displayName,omitempty"`
-	ExpiryTime  *externalRef0.Period `json:"expiryTime,omitempty"`
-	Exportable  *bool                `json:"exportable,omitempty"`
-
-	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
-	KeySpec         KeySpec          `json:"keySpec"`
-	LifetimeActions []LifetimeAction `json:"lifetimeActions,omitempty"`
+	DisplayName   string                        `json:"displayName,omitempty"`
+	ExpiryTime    *externalRef0.Period          `json:"expiryTime,omitempty"`
+	Exportable    *bool                         `json:"exportable,omitempty"`
+	KeyProperties *GenerateJsonWebKeyProperties `json:"keyProperties,omitempty"`
 }
 
 // KeyPolicyRef defines model for KeyPolicyRef.
@@ -113,10 +105,10 @@ type KeyPolicyRefFields struct {
 
 // KeySpec these attributes should mostly confirm to JWK (RFC7517)
 type KeySpec struct {
-	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
+	Crv           JsonWebKeyCurveName                   `json:"crv,omitempty"`
 	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
 	KeyOperations []JsonWebKeyOperation                 `json:"key_ops"`
-	KeySize       *JsonWeyKeySize                       `json:"key_size,omitempty"`
+	KeySize       *JsonWebKeySize                       `json:"key_size,omitempty"`
 	KeyID         *string                               `json:"kid,omitempty"`
 	Kty           JsonWebKeyType                        `json:"kty"`
 	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
@@ -138,11 +130,11 @@ type LifetimeTrigger struct {
 
 // SigningKeySpec defines model for SigningKeySpec.
 type SigningKeySpec struct {
-	Alg           *JsonWebKeySignatureAlgorithm         `json:"alg,omitempty"`
-	Crv           *JsonWebKeyCurveName                  `json:"crv,omitempty"`
+	Alg           *JsonWebSignatureAlgorithm            `json:"alg,omitempty"`
+	Crv           JsonWebKeyCurveName                   `json:"crv,omitempty"`
 	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
 	KeyOperations []JsonWebKeyOperation                 `json:"key_ops"`
-	KeySize       *JsonWeyKeySize                       `json:"key_size,omitempty"`
+	KeySize       *JsonWebKeySize                       `json:"key_size,omitempty"`
 	KeyID         *string                               `json:"kid,omitempty"`
 	Kty           JsonWebKeyType                        `json:"kty"`
 	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
@@ -164,13 +156,13 @@ type PutKeyPolicyJSONRequestBody = KeyPolicyParameters
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List key policies
-	// (GET /v1/{namespaceKind}/{namespaceId}/key-policy)
+	// (GET /v1/{namespaceKind}/{namespaceId}/key-policies)
 	ListKeyPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 	// Get key spec
-	// (GET /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId})
+	// (GET /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId})
 	GetKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Put key spec
-	// (PUT /v1/{namespaceKind}/{namespaceId}/key-policy/{resourceId})
+	// Put key policy
+	// (PUT /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId})
 	PutKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
@@ -301,8 +293,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy", wrapper.ListKeyPolicies)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy/:resourceId", wrapper.GetKeyPolicy)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/key-policy/:resourceId", wrapper.PutKeyPolicy)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies", wrapper.ListKeyPolicies)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.GetKeyPolicy)
+	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.PutKeyPolicy)
 
 }

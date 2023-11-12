@@ -424,7 +424,7 @@ components:
         jwk:
           $ref: "oapi-key.yaml#/components/schemas/JsonWebKey"
         alg:
-          $ref: "oapi-key.yaml#/components/schemas/JsonWebKeySignatureAlgorithm"
+          $ref: "oapi-key.yaml#/components/schemas/JsonWebSignatureAlgorithm"
         sid:
           type: string
           x-go-name: KeyVaultSecretID
