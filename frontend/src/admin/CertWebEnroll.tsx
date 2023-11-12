@@ -1,27 +1,20 @@
 import { useRequest } from "ahooks";
-import { Alert, Button, Steps, Typography } from "antd";
-import {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Alert, Button } from "antd";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useAppAuthContext } from "../auth/AuthProvider";
 import {
   AdminApi,
   CertPolicy,
   Certificate,
-  JsonWebKey,
-  JsonWebKeySignatureAlgorithm,
+  JsonWebSignatureAlgorithm,
   JsonWebSignatureKey,
 } from "../generated";
+import {
+  base64UrlEncodedToStdEncoded,
+  toPEMBlock,
+} from "../utils/encodingUtils";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import AnchorLink from "antd/es/anchor/AnchorLink";
-import { Link } from "../components/Link";
-import { toPEMBlock } from "../utils/encodingUtils";
-import { base64UrlEncodedToStdEncoded } from "../utils/encodingUtils";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
   return useMemo((): RsaHashedKeyGenParams | EcKeyGenParams | undefined => {
@@ -29,58 +22,58 @@ function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
       return undefined;
     }
     switch (certPolicy.keySpec.alg) {
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS256:
+      case JsonWebSignatureAlgorithm.Rs256:
         return {
           name: "RSASSA-PKCS1-v1_5",
           hash: "SHA-256",
           modulusLength: certPolicy.keySpec.keySize!,
           publicExponent: new Uint8Array([1, 0, 1]),
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS384:
+      case JsonWebSignatureAlgorithm.Rs384:
         return {
           name: "RSASSA-PKCS1-v1_5",
           hash: "SHA-384",
           modulusLength: certPolicy.keySpec.keySize!,
           publicExponent: new Uint8Array([1, 0, 1]),
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS512:
+      case JsonWebSignatureAlgorithm.Rs512:
         return {
           name: "RSASSA-PKCS1-v1_5",
           hash: "SHA-512",
           modulusLength: certPolicy.keySpec.keySize!,
           publicExponent: new Uint8Array([1, 0, 1]),
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES256:
+      case JsonWebSignatureAlgorithm.Es256:
         return {
           name: "ECDSA",
           namedCurve: "P-256",
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES384:
+      case JsonWebSignatureAlgorithm.Es384:
         return {
           name: "ECDSA",
           namedCurve: "P-384",
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES512:
+      case JsonWebSignatureAlgorithm.Es512:
         return {
           name: "ECDSA",
           namedCurve: "P-521",
         };
 
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS256:
+      case JsonWebSignatureAlgorithm.Ps256:
         return {
           name: "RSA-PSS",
           hash: "SHA-256",
           modulusLength: certPolicy.keySpec.keySize!,
           publicExponent: new Uint8Array([1, 0, 1]),
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS384:
+      case JsonWebSignatureAlgorithm.Ps384:
         return {
           name: "RSA-PSS",
           hash: "SHA-384",
           modulusLength: certPolicy.keySpec.keySize!,
           publicExponent: new Uint8Array([1, 0, 1]),
         };
-      case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS512:
+      case JsonWebSignatureAlgorithm.Ps512:
         return {
           name: "RSA-PSS",
           hash: "SHA-512",
@@ -115,39 +108,39 @@ function encodeBase64Url(data: string) {
 }
 
 function getSignatureCryptoAlg(
-  alg: JsonWebKeySignatureAlgorithm
+  alg: JsonWebSignatureAlgorithm
 ): AlgorithmIdentifier | RsaPssParams | EcdsaParams | undefined {
   switch (alg) {
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS256:
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS384:
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmRS512:
+    case JsonWebSignatureAlgorithm.Rs256:
+    case JsonWebSignatureAlgorithm.Rs384:
+    case JsonWebSignatureAlgorithm.Rs512:
       return "RSASSA-PKCS1-v1_5";
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES256:
+    case JsonWebSignatureAlgorithm.Es256:
       return {
         hash: "SHA-256",
         name: "ECDSA",
       };
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES384:
+    case JsonWebSignatureAlgorithm.Es384:
       return {
         hash: "SHA-384",
         name: "ECDSA",
       };
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmES512:
+    case JsonWebSignatureAlgorithm.Es512:
       return {
         hash: "SHA-512",
         name: "ECDSA",
       };
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS256:
+    case JsonWebSignatureAlgorithm.Ps256:
       return {
         hash: "SHA-256",
         name: "RSA-PSS",
       };
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS384:
+    case JsonWebSignatureAlgorithm.Ps384:
       return {
         hash: "SHA-384",
         name: "RSA-PSS",
       };
-    case JsonWebKeySignatureAlgorithm.JsonWebKeySignatureAlgorithmPS512:
+    case JsonWebSignatureAlgorithm.Ps512:
       return {
         hash: "SHA-512",
         name: "RSA-PSS",
@@ -158,7 +151,7 @@ function getSignatureCryptoAlg(
 
 async function signProofJwt(
   proofJwtClaims: ProofJwtClaims,
-  jwtAlg: JsonWebKeySignatureAlgorithm,
+  jwtAlg: JsonWebSignatureAlgorithm,
   signAlg: AlgorithmIdentifier | RsaPssParams | EcdsaParams,
   key: CryptoKey
 ) {

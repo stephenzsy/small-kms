@@ -173,10 +173,7 @@ function CertPolicyForm({
         kty: values.kty,
         keySize: values.keySize,
         crv: values.crv,
-        keyOps: [
-          JsonWebKeyOperation.JsonWebKeyOperationSign,
-          JsonWebKeyOperation.JsonWebKeyOperationVerify,
-        ],
+        keyOps: [JsonWebKeyOperation.Sign, JsonWebKeyOperation.Verify],
       },
       subjectAlternativeNames: values.sans,
       issuerNamespaceKind:
@@ -218,7 +215,7 @@ function CertPolicyForm({
         expiryTime: "",
         subjectCN: "",
         displayName: "",
-        kty: JsonWebKeyType.JsonWebKeyTypeRSA,
+        kty: JsonWebKeyType.Rsa,
         keySize: 2048,
         selfSigning: false,
       }}
@@ -255,11 +252,11 @@ function CertPolicyForm({
         <div className="text-lg font-semibold">Key specification</div>
         <Form.Item<CertPolicyFormState> name="kty" label="Key type">
           <Radio.Group>
-            <Radio value={JsonWebKeyType.JsonWebKeyTypeRSA}>RSA</Radio>
-            <Radio value={JsonWebKeyType.JsonWebKeyTypeEC}>EC</Radio>
+            <Radio value={JsonWebKeyType.Rsa}>RSA</Radio>
+            <Radio value={JsonWebKeyType.Ec}>EC</Radio>
           </Radio.Group>
         </Form.Item>
-        {ktyState === JsonWebKeyType.JsonWebKeyTypeRSA ? (
+        {ktyState === JsonWebKeyType.Rsa ? (
           <Form.Item<CertPolicyFormState> name="keySize" label="RSA key size">
             <Radio.Group>
               <Radio value={2048}>2048</Radio>
@@ -267,18 +264,12 @@ function CertPolicyForm({
               <Radio value={4096}>4096</Radio>
             </Radio.Group>
           </Form.Item>
-        ) : ktyState === JsonWebKeyType.JsonWebKeyTypeEC ? (
+        ) : ktyState === JsonWebKeyType.Ec ? (
           <Form.Item<CertPolicyFormState> name="crv" label="EC curve name">
             <Radio.Group>
-              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP256}>
-                P-256
-              </Radio>
-              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP384}>
-                P-384
-              </Radio>
-              <Radio value={JsonWebKeyCurveName.JsonWebKeyCurveNameP521}>
-                P-521
-              </Radio>
+              <Radio value={JsonWebKeyCurveName.CurveNameP256}>P-256</Radio>
+              <Radio value={JsonWebKeyCurveName.CurveNameP384}>P-384</Radio>
+              <Radio value={JsonWebKeyCurveName.CurveNameP521}>P-521</Radio>
             </Radio.Group>
           </Form.Item>
         ) : null}
