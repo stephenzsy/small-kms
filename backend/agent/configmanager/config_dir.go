@@ -59,7 +59,10 @@ func (impl *configPathImpl) ReadFile() ([]byte, error) {
 
 // EnsureDirExist implements ConfigDir.
 func (impl *configPathImpl) EnsureDirExist() error {
-	dirname := filepath.Dir(impl.path)
+	dirname := impl.path
+	if impl.isLeaf {
+		dirname = filepath.Dir(impl.path)
+	}
 	if s, err := os.Stat(dirname); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err

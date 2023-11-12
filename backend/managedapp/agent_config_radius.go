@@ -96,6 +96,20 @@ func (s *server) patchAgentConfigRadius(c ctx.RequestContext, namespaceKind base
 	}
 	digest.Write([]byte(doc.EapTls.CertId))
 
+	if p.Servers != nil {
+		doc.Servers = p.Servers
+		if len(doc.Servers) > 0 {
+			defaultServerConfig := doc.Servers[0]
+			defaultServerConfig.Name = "default"
+			doc.Servers = []frconfig.RadiusServerConfig{defaultServerConfig}
+		}
+	}
+	if len(doc.Servers) > 0 {
+		defaultServer := doc.Servers[0]
+		defaultServer.WriteToDigest(digest)
+		digest.Write([]byte(defaultServer.Name))
+	}
+
 	if p.DebugMode != nil {
 		doc.DebugMode = p.DebugMode
 		if *p.DebugMode {

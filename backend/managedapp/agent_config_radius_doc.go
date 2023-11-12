@@ -13,6 +13,7 @@ type AgentConfigRadiusDoc struct {
 	Clients   []frconfig.RadiusClientConfig `json:"clients,omitempty"`
 	DebugMode *bool                         `json:"debugMode,omitempty"`
 	EapTls    frconfig.RadiusEapTls         `json:"eapTls"`
+	Servers   []frconfig.RadiusServerConfig `json:"servers,omitempty"`
 }
 
 func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
@@ -24,6 +25,7 @@ func (d *AgentConfigRadiusDoc) populateModel(m *AgentConfigRadius) {
 	m.Clients = d.Clients
 	m.EapTls = &d.EapTls
 	m.DebugMode = d.DebugMode
+	m.Servers = d.Servers
 	m.RefreshAfter = time.Now().Add(time.Hour * 24)
 }
 

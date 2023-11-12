@@ -57,10 +57,37 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - certPolicyId
+    RadiusServerListenerType:
+      type: string
+      enum:
+        - auth
+        - acct
+      x-enum-varnames:
+        - RadiusServerListenerTypeAuth
+        - RadiusServerListenerTypeAcct
+    RadiusServerListenConfig:
+      properties:
+        type:
+          $ref: "#/components/schemas/RadiusServerListenerType"
+        ipaddr:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        port:
+          type: integer
+          default: 0
+      required:
+        - type
+        - ipaddr
+        - port
     RadiusServerConfig:
       type: object
       properties:
         name:
           type: string
+        listeners:
+          type: array
+          items:
+            $ref: "#/components/schemas/RadiusServerListenConfig"
       required:
         - name
+        - listeners

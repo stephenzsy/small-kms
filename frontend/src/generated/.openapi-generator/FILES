@@ -53,6 +53,9 @@ models/ProfileRefFields.ts
 models/PullImageRequest.ts
 models/RadiusClientConfig.ts
 models/RadiusEapTls.ts
+models/RadiusServerConfig.ts
+models/RadiusServerListenConfig.ts
+models/RadiusServerListenerType.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ResourceKind.ts

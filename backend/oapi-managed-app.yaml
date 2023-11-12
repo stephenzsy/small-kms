@@ -474,6 +474,11 @@ components:
           items:
             $ref: "oapi-freeradius-config.yaml#/components/schemas/RadiusClientConfig"
           x-go-type-skip-optional-pointer: true
+        servers:
+          type: array
+          items:
+            $ref: "oapi-freeradius-config.yaml#/components/schemas/RadiusServerConfig"
+          x-go-type-skip-optional-pointer: true
         eapTls:
           $ref: "oapi-freeradius-config.yaml#/components/schemas/RadiusEapTls"
     AzureRoleAssignment:

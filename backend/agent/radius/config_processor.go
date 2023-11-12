@@ -126,6 +126,11 @@ func (p *radiusConfigProcessor) process(c context.Context) (*ProcessedRadiusConf
 	} else {
 		pc.HostBinds = append(pc.HostBinds, hostBindings...)
 	}
+	if hostBinding, err := p.processServers(c); err != nil {
+		return nil, err
+	} else {
+		pc.HostBinds = append(pc.HostBinds, hostBinding)
+	}
 	return pc, nil
 }
 
@@ -234,4 +239,24 @@ func (p *radiusConfigProcessor) processEAP(c context.Context) ([]string, error) 
 		configPath.Path() + ":/opt/etc/raddb/mods-enabled/eap:ro",
 		raddbCertsDir.Path() + ":/opt/etc/raddb/certs:ro",
 	}, nil
+}
+
+func (p *radiusConfigProcessor) processServers(c context.Context) (string, error) {
+	configDir := p.configDir.Versioned(p.config.Version).Dir("raddb", "sites-enabled")
+	if err := configDir.EnsureDirExist(); err != nil {
+		return "", err
+	}
+	for _, server := range p.config.Servers {
+
+		configPath := configDir.File(server.Name)
+		sb := &strings.Builder{}
+		if err := server.MarshalFreeradiusConfig(sb, ""); err != nil {
+			return "", err
+		}
+		if err := configPath.WriteFile([]byte(sb.String())); err != nil {
+			return "", err
+		}
+	}
+	return configDir.Path() + ":/opt/etc/raddb/sites-enabled:ro", nil
+
 }

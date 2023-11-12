@@ -31,6 +31,12 @@ import {
     RadiusEapTlsFromJSONTyped,
     RadiusEapTlsToJSON,
 } from './RadiusEapTls';
+import type { RadiusServerConfig } from './RadiusServerConfig';
+import {
+    RadiusServerConfigFromJSON,
+    RadiusServerConfigFromJSONTyped,
+    RadiusServerConfigToJSON,
+} from './RadiusServerConfig';
 
 /**
  * 
@@ -56,6 +62,12 @@ export interface AgentConfigRadiusFields {
      * @memberof AgentConfigRadiusFields
      */
     clients?: Array<RadiusClientConfig>;
+    /**
+     * 
+     * @type {Array<RadiusServerConfig>}
+     * @memberof AgentConfigRadiusFields
+     */
+    servers?: Array<RadiusServerConfig>;
     /**
      * 
      * @type {RadiusEapTls}
@@ -86,6 +98,7 @@ export function AgentConfigRadiusFieldsFromJSONTyped(json: any, ignoreDiscrimina
         'container': !exists(json, 'container') ? undefined : AgentContainerConfigurationFromJSON(json['container']),
         'debugMode': !exists(json, 'debugMode') ? undefined : json['debugMode'],
         'clients': !exists(json, 'clients') ? undefined : ((json['clients'] as Array<any>).map(RadiusClientConfigFromJSON)),
+        'servers': !exists(json, 'servers') ? undefined : ((json['servers'] as Array<any>).map(RadiusServerConfigFromJSON)),
         'eapTls': !exists(json, 'eapTls') ? undefined : RadiusEapTlsFromJSON(json['eapTls']),
     };
 }
@@ -102,6 +115,7 @@ export function AgentConfigRadiusFieldsToJSON(value?: AgentConfigRadiusFields | 
         'container': AgentContainerConfigurationToJSON(value.container),
         'debugMode': value.debugMode,
         'clients': value.clients === undefined ? undefined : ((value.clients as Array<any>).map(RadiusClientConfigToJSON)),
+        'servers': value.servers === undefined ? undefined : ((value.servers as Array<any>).map(RadiusServerConfigToJSON)),
         'eapTls': RadiusEapTlsToJSON(value.eapTls),
     };
 }

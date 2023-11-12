@@ -46,6 +46,7 @@ import {
   useRadiusConfigPatch,
 } from "./contexts/RadiusConfigPatchContext";
 import { RadiusConfigContainerForm } from "./forms/RadiusConfigContainerForm";
+import { RadiusConfigServersForm } from "./forms/RadiusConfigServersForm";
 
 const wellKnownRoleDefinitionIds: Record<string, string> = {
   "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
@@ -187,7 +188,11 @@ function RadiusEapTlsForm() {
         })
       }
     >
-      <Form.Item<RadiusEapTlsFormState> name="certPolicyId" label="Server TLS certificate policy ID">
+      <Form.Item<RadiusEapTlsFormState>
+        name="certPolicyId"
+        label="Server TLS certificate policy ID"
+        required
+      >
         <Input />
       </Form.Item>
       <Form.Item className="mt-6">
@@ -284,6 +289,11 @@ const collapseItems: CollapseProps["items"] = [
     key: "eap-tls",
     label: "EAP-TLS",
     children: <RadiusEapTlsForm />,
+  },
+  {
+    key: "servers",
+    label: "Servers",
+    children: <RadiusConfigServersForm />,
   },
   {
     key: "misceallaneous",

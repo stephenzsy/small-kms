@@ -7,6 +7,12 @@ import (
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 )
 
+// Defines values for RadiusServerListenerType.
+const (
+	RadiusServerListenerTypeAcct RadiusServerListenerType = "acct"
+	RadiusServerListenerTypeAuth RadiusServerListenerType = "auth"
+)
+
 // RadiusClientConfig defines model for RadiusClientConfig.
 type RadiusClientConfig struct {
 	Ipaddr         string          `json:"ipaddr,omitempty"`
@@ -21,3 +27,19 @@ type RadiusEapTls struct {
 	CertId       externalRef0.Id `json:"certId,omitempty"`
 	CertPolicyId externalRef0.Id `json:"certPolicyId"`
 }
+
+// RadiusServerConfig defines model for RadiusServerConfig.
+type RadiusServerConfig struct {
+	Listeners []RadiusServerListenConfig `json:"listeners"`
+	Name      string                     `json:"name"`
+}
+
+// RadiusServerListenConfig defines model for RadiusServerListenConfig.
+type RadiusServerListenConfig struct {
+	Ipaddr string                   `json:"ipaddr"`
+	Port   int                      `json:"port"`
+	Type   RadiusServerListenerType `json:"type"`
+}
+
+// RadiusServerListenerType defines model for RadiusServerListenerType.
+type RadiusServerListenerType string
