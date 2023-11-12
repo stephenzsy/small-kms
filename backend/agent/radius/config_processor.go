@@ -3,6 +3,7 @@ package radius
 import (
 	"context"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -128,21 +129,6 @@ func (p *radiusConfigProcessor) process(c context.Context) (*ProcessedRadiusConf
 	return pc, nil
 }
 
-func (p *radiusConfigProcessor) processEAP(c context.Context) ([]string, error) {
-	configPath := p.configDir.Versioned(p.config.Version).File("raddb", "mods-enabled", "eap")
-	if err := configPath.EnsureDirExist(); err != nil {
-		return nil, err
-	}
-	sb := &strings.Builder{}
-	if err := frconfig.MarshalModEAP(sb, ""); err != nil {
-		return nil, err
-	}
-	if err := configPath.WriteFile([]byte(sb.String())); err != nil {
-		return nil, err
-	}
-	return []string{configPath.Path() + ":/opt/etc/raddb/mods-enabled/eap:ro"}, nil
-}
-
 func (p *radiusConfigProcessor) processClients(c context.Context) (string, error) {
 	logger := log.Ctx(c)
 	configPath := p.configDir.Versioned(p.config.Version).File("raddb", "clients.conf")
@@ -182,4 +168,70 @@ func (p *radiusConfigProcessor) processClients(c context.Context) (string, error
 		return "", err
 	}
 	return configPath.Path(), nil
+}
+
+func (p *radiusConfigProcessor) processEAP(c context.Context) ([]string, error) {
+	logger := log.Ctx(c)
+	// fetch server cert
+
+	kvSClient, err := p.agentEnv.AzSecretsClient()
+	if err != nil {
+		return nil, err
+	}
+	certResp, err := p.agentClient.GetCertificateWithResponse(c, base.NamespaceKindServicePrincipal, "me",
+		p.config.EapTls.CertId)
+	if err != nil {
+		return nil, err
+	}
+	if certResp.JSON200 == nil {
+		return nil, fmt.Errorf("no certificate returned, status code %d", certResp.StatusCode())
+	}
+
+	kvSecretID := azsecrets.ID(certResp.JSON200.KeyVaultSecretID)
+	if kvSecretID == "" {
+		return nil, fmt.Errorf("no keyvault secret id returned, status code %d", certResp.StatusCode())
+	}
+	kvResp, err := kvSClient.GetSecret(c, kvSecretID.Name(), kvSecretID.Version(), nil)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info().Msgf("retrieved secret %s", kvSecretID)
+	pemBytes := []byte(*kvResp.Value)
+	raddbCertsDir := p.configDir.Versioned(p.config.Version).Dir("raddb", "certs")
+	serverCertPath := raddbCertsDir.File("server.pem")
+	if err := serverCertPath.EnsureDirExist(); err != nil {
+		return nil, err
+	}
+	if err := serverCertPath.WriteFile(pemBytes); err != nil {
+		return nil, err
+	}
+
+	// write CA file
+	if len(certResp.JSON200.Jwk.CertificateChain) >= 2 {
+		caCertPem := pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: []byte(certResp.JSON200.Jwk.CertificateChain[1]),
+		})
+		caCertPath := raddbCertsDir.File("ca.pem")
+		if err := caCertPath.WriteFile(caCertPem); err != nil {
+			return nil, err
+		}
+	}
+
+	configPath := p.configDir.Versioned(p.config.Version).File("raddb", "mods-enabled", "eap")
+	if err := configPath.EnsureDirExist(); err != nil {
+		return nil, err
+	}
+
+	sb := &strings.Builder{}
+	if err := frconfig.MarshalModEAP(sb, ""); err != nil {
+		return nil, err
+	}
+	if err := configPath.WriteFile([]byte(sb.String())); err != nil {
+		return nil, err
+	}
+	return []string{
+		configPath.Path() + ":/opt/etc/raddb/mods-enabled/eap:ro",
+		raddbCertsDir.Path() + ":/opt/etc/raddb/certs:ro",
+	}, nil
 }
