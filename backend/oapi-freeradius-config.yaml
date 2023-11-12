@@ -57,3 +57,10 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - certPolicyId
+    RadiusServerConfig:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
