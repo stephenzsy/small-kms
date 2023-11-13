@@ -51,8 +51,10 @@ type Key = keyComposed
 
 // KeyFields defines model for KeyFields.
 type KeyFields struct {
-	Iat externalRef0.NumericDate `json:"iat"`
-	Nbf externalRef0.NumericDate `json:"nbf"`
+	Iat     externalRef0.NumericDate     `json:"iat"`
+	KeySize *JsonWebKeySize              `json:"key_size,omitempty"`
+	Nbf     *externalRef0.NumericDate    `json:"nbf,omitempty"`
+	Policy  externalRef0.ResourceLocator `json:"policy"`
 }
 
 // KeyPolicy defines model for KeyPolicy.

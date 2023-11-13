@@ -80,6 +80,8 @@ paths:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies"
   /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies~1{resourceId}"
+  /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate:
+    $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies~1{resourceId}~1generate"
   /v1/{namespaceKind}/{namespaceId}/secret-policies:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secret-policies"
   /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}:

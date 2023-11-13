@@ -39,12 +39,15 @@ models/JsonWebKeyOperation.ts
 models/JsonWebKeyType.ts
 models/JsonWebSignatureAlgorithm.ts
 models/JsonWebSignatureKey.ts
-models/KeyAttributes.ts
+models/Key.ts
+models/KeyFields.ts
 models/KeyPolicy.ts
 models/KeyPolicyFields.ts
 models/KeyPolicyParameters.ts
 models/KeyPolicyRef.ts
 models/KeyPolicyRefFields.ts
+models/KeyRef.ts
+models/KeyRefFields.ts
 models/KeySpec.ts
 models/LaunchAgentRequest.ts
 models/LifetimeAction.ts

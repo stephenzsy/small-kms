@@ -31,122 +31,177 @@ import {
     JsonWebKeyTypeFromJSONTyped,
     JsonWebKeyTypeToJSON,
 } from './JsonWebKeyType';
-import type { JsonWebSignatureAlgorithm } from './JsonWebSignatureAlgorithm';
-import {
-    JsonWebSignatureAlgorithmFromJSON,
-    JsonWebSignatureAlgorithmFromJSONTyped,
-    JsonWebSignatureAlgorithmToJSON,
-} from './JsonWebSignatureAlgorithm';
 
 /**
  * 
  * @export
- * @interface JsonWebSignatureKey
+ * @interface Key
  */
-export interface JsonWebSignatureKey {
+export interface Key {
+    /**
+     * 
+     * @type {string}
+     * @memberof Key
+     */
+    id: string;
+    /**
+     * 
+     * @type {Date}
+     * @memberof Key
+     */
+    updated: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof Key
+     */
+    deleted?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof Key
+     */
+    updatedBy?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Key
+     */
+    exp?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Key
+     */
+    policy: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Key
+     */
+    keySize?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Key
+     */
+    iat: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Key
+     */
+    nbf?: number;
     /**
      * 
      * @type {JsonWebKeyType}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     kty: JsonWebKeyType;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
-    kid?: string;
+    kid: string;
     /**
      * 
      * @type {Array<JsonWebKeyOperation>}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     keyOps?: Array<JsonWebKeyOperation>;
     /**
      * 
      * @type {JsonWebKeyCurveName}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     crv?: JsonWebKeyCurveName;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     n?: string;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     e?: string;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     x?: string;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     y?: string;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     x5u?: string;
     /**
      * Base64 encoded certificate chain
      * @type {Array<string>}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     x5c?: Array<string>;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     x5t?: string;
     /**
      * 
      * @type {string}
-     * @memberof JsonWebSignatureKey
+     * @memberof Key
      */
     x5tS256?: string;
-    /**
-     * 
-     * @type {JsonWebSignatureAlgorithm}
-     * @memberof JsonWebSignatureKey
-     */
-    alg: JsonWebSignatureAlgorithm;
 }
 
 /**
- * Check if a given object implements the JsonWebSignatureKey interface.
+ * Check if a given object implements the Key interface.
  */
-export function instanceOfJsonWebSignatureKey(value: object): boolean {
+export function instanceOfKey(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "updated" in value;
+    isInstance = isInstance && "policy" in value;
+    isInstance = isInstance && "iat" in value;
     isInstance = isInstance && "kty" in value;
-    isInstance = isInstance && "alg" in value;
+    isInstance = isInstance && "kid" in value;
 
     return isInstance;
 }
 
-export function JsonWebSignatureKeyFromJSON(json: any): JsonWebSignatureKey {
-    return JsonWebSignatureKeyFromJSONTyped(json, false);
+export function KeyFromJSON(json: any): Key {
+    return KeyFromJSONTyped(json, false);
 }
 
-export function JsonWebSignatureKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): JsonWebSignatureKey {
+export function KeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Key {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'id': json['id'],
+        'updated': (new Date(json['updated'])),
+        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
+        'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
+        'exp': !exists(json, 'exp') ? undefined : json['exp'],
+        'policy': json['policy'],
+        'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
+        'iat': json['iat'],
+        'nbf': !exists(json, 'nbf') ? undefined : json['nbf'],
         'kty': JsonWebKeyTypeFromJSON(json['kty']),
-        'kid': !exists(json, 'kid') ? undefined : json['kid'],
+        'kid': json['kid'],
         'keyOps': !exists(json, 'key_ops') ? undefined : ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'n': !exists(json, 'n') ? undefined : json['n'],
@@ -157,11 +212,10 @@ export function JsonWebSignatureKeyFromJSONTyped(json: any, ignoreDiscriminator:
         'x5c': !exists(json, 'x5c') ? undefined : json['x5c'],
         'x5t': !exists(json, 'x5t') ? undefined : json['x5t'],
         'x5tS256': !exists(json, 'x5t#S256') ? undefined : json['x5t#S256'],
-        'alg': JsonWebSignatureAlgorithmFromJSON(json['alg']),
     };
 }
 
-export function JsonWebSignatureKeyToJSON(value?: JsonWebSignatureKey | null): any {
+export function KeyToJSON(value?: Key | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -170,6 +224,15 @@ export function JsonWebSignatureKeyToJSON(value?: JsonWebSignatureKey | null): a
     }
     return {
         
+        'id': value.id,
+        'updated': (value.updated.toISOString()),
+        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
+        'updatedBy': value.updatedBy,
+        'exp': value.exp,
+        'policy': value.policy,
+        'key_size': value.keySize,
+        'iat': value.iat,
+        'nbf': value.nbf,
         'kty': JsonWebKeyTypeToJSON(value.kty),
         'kid': value.kid,
         'key_ops': value.keyOps === undefined ? undefined : ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
@@ -182,7 +245,6 @@ export function JsonWebSignatureKeyToJSON(value?: JsonWebSignatureKey | null): a
         'x5c': value.x5c,
         'x5t': value.x5t,
         'x5t#S256': value.x5tS256,
-        'alg': JsonWebSignatureAlgorithmToJSON(value.alg),
     };
 }
 

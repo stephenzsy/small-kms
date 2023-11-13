@@ -16,62 +16,64 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface CertificateAttributes
+ * @interface KeyFields
  */
-export interface CertificateAttributes {
+export interface KeyFields {
     /**
      * 
      * @type {string}
-     * @memberof CertificateAttributes
+     * @memberof KeyFields
      */
-    issuer?: string;
+    policy: string;
     /**
      * 
      * @type {number}
-     * @memberof CertificateAttributes
+     * @memberof KeyFields
      */
-    iat?: number;
+    keySize?: number;
     /**
      * 
      * @type {number}
-     * @memberof CertificateAttributes
+     * @memberof KeyFields
+     */
+    iat: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof KeyFields
      */
     nbf?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof CertificateAttributes
-     */
-    exp?: number;
 }
 
 /**
- * Check if a given object implements the CertificateAttributes interface.
+ * Check if a given object implements the KeyFields interface.
  */
-export function instanceOfCertificateAttributes(value: object): boolean {
+export function instanceOfKeyFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "policy" in value;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
 
-export function CertificateAttributesFromJSON(json: any): CertificateAttributes {
-    return CertificateAttributesFromJSONTyped(json, false);
+export function KeyFieldsFromJSON(json: any): KeyFields {
+    return KeyFieldsFromJSONTyped(json, false);
 }
 
-export function CertificateAttributesFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateAttributes {
+export function KeyFieldsFromJSONTyped(json: any, ignoreDiscriminator: boolean): KeyFields {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'issuer': !exists(json, 'issuer') ? undefined : json['issuer'],
-        'iat': !exists(json, 'iat') ? undefined : json['iat'],
+        'policy': json['policy'],
+        'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
+        'iat': json['iat'],
         'nbf': !exists(json, 'nbf') ? undefined : json['nbf'],
-        'exp': !exists(json, 'exp') ? undefined : json['exp'],
     };
 }
 
-export function CertificateAttributesToJSON(value?: CertificateAttributes | null): any {
+export function KeyFieldsToJSON(value?: KeyFields | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -80,10 +82,10 @@ export function CertificateAttributesToJSON(value?: CertificateAttributes | null
     }
     return {
         
-        'issuer': value.issuer,
+        'policy': value.policy,
+        'key_size': value.keySize,
         'iat': value.iat,
         'nbf': value.nbf,
-        'exp': value.exp,
     };
 }
 

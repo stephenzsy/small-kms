@@ -301,6 +301,11 @@ components:
     KeyFields:
       type: object
       properties:
+        policy:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+        key_size:
+          $ref: "#/components/schemas/JsonWebKeySize"
+          x-go-name: KeySize
         iat:
           $ref: "oapi-base.yaml#/components/schemas/NumericDate"
           x-go-name: Created
@@ -308,8 +313,8 @@ components:
           $ref: "oapi-base.yaml#/components/schemas/NumericDate"
           x-go-name: NotBefore
       required:
+        - policy
         - iat
-        - nbf
     KeyPolicyRef:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"

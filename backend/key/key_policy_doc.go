@@ -19,7 +19,7 @@ type KeyPolicyDoc struct {
 	KeyProperties GenerateJsonWebKeyProperties `json:"keyProperties"`
 	Exportable    bool                         `json:"exportable"`
 	Version       base.HexDigest               `json:"version"`
-	ExpiryTime    *base.Period                 `json:"expiryTime"`
+	ExpiryTime    *base.Period                 `json:"expiryTime,omitempty"`
 }
 
 const (

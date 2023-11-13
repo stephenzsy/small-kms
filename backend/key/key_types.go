@@ -31,7 +31,7 @@ type (
 	}
 
 	keyComposed struct {
-		keyRefComposed
+		KeyRef
 		cloudkey.JsonWebKeyBase
 		KeyFields
 	}

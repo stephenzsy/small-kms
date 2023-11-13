@@ -40,9 +40,11 @@ type KeyPolicyFormState = GenerateJsonWebKeyProperties &
 function KeyPolicyForm({
   policyId,
   value,
+  onChange,
 }: {
   policyId: string;
   value?: KeyPolicy;
+  onChange?: (value: KeyPolicy) => void;
 }) {
   const [form] = useForm<KeyPolicyFormState>();
   const newPolicyId = useWatch("identifier", form);
@@ -53,12 +55,14 @@ function KeyPolicyForm({
   const api = useAuthedClient(AdminApi);
   const { run } = useRequest(
     async (req: KeyPolicyParameters) => {
-      await api.putKeyPolicy({
+      const result = await api.putKeyPolicy({
         namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
         resourceId: policyId || newPolicyId,
         keyPolicyParameters: req,
       });
+      onChange?.(result);
+      return result;
     },
     { manual: true }
   );
@@ -115,9 +119,6 @@ function KeyPolicyForm({
         <Radio.Group>
           <Radio value={JsonWebKeyType.Rsa}>RSA</Radio>
           <Radio value={JsonWebKeyType.Ec}>Elliptic Curve</Radio>
-          <Radio value={JsonWebKeyType.Oct}>
-            Octet sequence (symmetric keys)
-          </Radio>
         </Radio.Group>
       </Form.Item>
       {kty === JsonWebKeyType.Rsa && (
@@ -184,9 +185,9 @@ function GenerateKeyControl({
 }) {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
   const adminApi = useAuthedClient(AdminApi);
-  const { run: generateSecret, loading } = useRequest(
+  const { run, loading } = useRequest(
     async () => {
-      await adminApi.generateSecret({
+      await adminApi.generateKey({
         resourceId: policyId,
         namespaceId: namespaceId,
         namespaceKind,
@@ -202,7 +203,7 @@ function GenerateKeyControl({
         loading={loading}
         type="primary"
         onClick={() => {
-          //generateSecret();
+          run();
         }}
       >
         Generate cloud key
@@ -333,7 +334,7 @@ export default function KeyPolicyPage() {
       </Card>
       {policyId !== undefined && (
         <Card title="Create or update secret policy">
-          <KeyPolicyForm policyId={policyId} value={data} />
+          <KeyPolicyForm policyId={policyId} value={data} onChange={mutate} />
           {/* <CertPolicyForm
           certPolicyId={certPolicyId}
           value={data}

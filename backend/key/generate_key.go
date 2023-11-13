@@ -2,7 +2,9 @@ package key
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
@@ -45,10 +47,19 @@ func (*server) GenerateKey(ec echo.Context, namespaceKind base.NamespaceKind, na
 	doc.X = resp.Key.X
 	doc.N = resp.Key.N
 	doc.E = resp.Key.E
+	doc.Created = *jwt.NewNumericDate(*resp.Attributes.Created)
+	if resp.Attributes.NotBefore != nil {
+		doc.NotBefore = jwt.NewNumericDate(*resp.Attributes.NotBefore)
+	}
+	if resp.Attributes.Expires != nil {
+		doc.NotAfter = jwt.NewNumericDate(*resp.Attributes.Expires)
+	}
 	err = base.GetAzCosmosCRUDService(c).Create(c, doc, nil)
 	if err != nil {
 		return err
 	}
 
-	panic("unimplemented")
+	model := &Key{}
+	doc.populateModel(model)
+	return c.JSON(http.StatusOK, model)
 }
