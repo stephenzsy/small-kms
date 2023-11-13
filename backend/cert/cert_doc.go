@@ -121,7 +121,7 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	d.PopulateModelRef(&m.CertificateRef)
 	m.Jwk = key.JsonWebKey{
 		KeyType:          d.KeySpec.Kty,
-		CurveName:        d.KeySpec.Crv,
+		Curve:            d.KeySpec.Crv,
 		E:                d.KeySpec.E,
 		N:                d.KeySpec.N,
 		X:                d.KeySpec.X,

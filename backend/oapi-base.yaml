@@ -82,6 +82,7 @@ components:
         - cert-policy
         - cert
         - key-policy
+        - key
         - secret-policy
         - secret
         - ns-config
@@ -96,6 +97,7 @@ components:
         - ResourceKindCertPolicy
         - ResourceKindCert
         - ResourceKindKeyPolicy
+        - ResourceKindKey
         - ResourceKindSecretPolicy
         - ResourceKindSecret
         - ResourceKindNamespaceConfig

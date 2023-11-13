@@ -18,6 +18,15 @@ type azCloudKey struct {
 	keyType   i.JsonWebKeyType
 }
 
+var keyOpMapping = map[i.JsonWebKeyOperation]azkeys.KeyOperation{
+	i.JsonWebKeyOperationSign:      azkeys.KeyOperationSign,
+	i.JsonWebKeyOperationVerify:    azkeys.KeyOperationVerify,
+	i.JsonWebKeyOperationEncrypt:   azkeys.KeyOperationEncrypt,
+	i.JsonWebKeyOperationDecrypt:   azkeys.KeyOperationDecrypt,
+	i.JsonWebKeyOperationWrapKey:   azkeys.KeyOperationWrapKey,
+	i.JsonWebKeyOperationUnwrapKey: azkeys.KeyOperationUnwrapKey,
+}
+
 var algMapping = map[i.JsonWebSignatureAlgorithm]azkeys.SignatureAlgorithm{
 	i.SignatureAlgorithmRS256: azkeys.SignatureAlgorithmRS256,
 	i.SignatureAlgorithmRS384: azkeys.SignatureAlgorithmRS384,
@@ -64,9 +73,17 @@ func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.Json
 	}
 	if kvKey.Crv != nil {
 		crv := crvReverseMapping[*kvKey.Crv]
-		r.CurveName = crv
+		r.Curve = crv
 	}
 	return r
+}
+
+func ToAzKeyOperation(op i.JsonWebKeyOperation) azkeys.KeyOperation {
+	if v, ok := keyOpMapping[op]; !ok {
+		return azkeys.KeyOperation("")
+	} else {
+		return v
+	}
 }
 
 // Public implements cloudkey.CloudSignatureKey.

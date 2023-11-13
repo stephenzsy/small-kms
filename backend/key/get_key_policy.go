@@ -21,15 +21,25 @@ func (*server) GetKeyPolicy(ec echo.Context, namespaceKind base.NamespaceKind, n
 
 	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
 
-	doc := &KeyPolicyDoc{}
-	docSvc := base.GetAzCosmosCRUDService(c)
-	if err := docSvc.Read(c, base.NewDocLocator(namespaceKind, namespaceIdentifier, base.ResourceKindKeyPolicy, resourceIdentifier), doc, nil); err != nil {
-		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: key policy %s not found", base.ErrResponseStatusNotFound, resourceIdentifier)
-		}
+	doc, err := apiGetKeyPolicyDoc(c, resourceIdentifier)
+	if err != nil {
+		return err
 	}
 
 	m := &KeyPolicy{}
 	doc.populateModel(m)
 	return c.JSON(200, m)
+}
+
+func apiGetKeyPolicyDoc(c ctx.RequestContext, policyID base.ID) (*KeyPolicyDoc, error) {
+	doc := &KeyPolicyDoc{}
+	nsCtx := ns.GetNSContext(c)
+	docSvc := base.GetAzCosmosCRUDService(c)
+	if err := docSvc.Read(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindKeyPolicy, policyID), doc, nil); err != nil {
+		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
+			return nil, fmt.Errorf("%w: key policy %s not found", base.ErrResponseStatusNotFound, policyID)
+		}
+		return nil, err
+	}
+	return doc, nil
 }

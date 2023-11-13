@@ -87,13 +87,6 @@ func (k *identifier) IsNilOrEmpty() bool {
 var _ encoding.TextMarshaler = identifier{}
 var _ encoding.TextUnmarshaler = (*identifier)(nil)
 
-func UUIDIdentifier(id UUID) identifier {
-	return identifier{
-		isUUID:  true,
-		uuidVal: id,
-	}
-}
-
 func StringIdentifier(id string) identifier {
 	return identifier{
 		isUUID: false,

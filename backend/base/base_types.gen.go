@@ -36,6 +36,7 @@ const (
 	ResourceKindAgentInstance           ResourceKind = "agent-instance"
 	ResourceKindCert                    ResourceKind = "cert"
 	ResourceKindCertPolicy              ResourceKind = "cert-policy"
+	ResourceKindKey                     ResourceKind = "key"
 	ResourceKindKeyPolicy               ResourceKind = "key-policy"
 	ResourceKindNamespaceConfig         ResourceKind = "ns-config"
 	ResourceKindSecret                  ResourceKind = "secret"
