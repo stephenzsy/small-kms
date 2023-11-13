@@ -60,8 +60,8 @@ paths:
     $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf~1{groupId}"
   /v1/{namespaceKind}/{namespaceId}/certificates:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates"
-  /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert~1{resourceId}"
+  /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-policy:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}:
@@ -84,6 +84,8 @@ paths:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies~1{resourceId}~1generate"
   /v1/{namespaceKind}/{namespaceId}/keys:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1keys"
+  /v1/{namespaceKind}/{namespaceId}/keys/{resourceId}:
+    $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1keys~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/secret-policies:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secret-policies"
   /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}:

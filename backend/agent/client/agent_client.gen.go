@@ -16,6 +16,7 @@ import (
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/cert"
+	externalRef2 "github.com/stephenzsy/small-kms/backend/key"
 	externalRef3 "github.com/stephenzsy/small-kms/backend/managedapp"
 	externalRef4 "github.com/stephenzsy/small-kms/backend/secret"
 )
@@ -44,6 +45,9 @@ type AgentConfigRadiusResponse = externalRef3.AgentConfigRadius
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = externalRef1.Certificate
+
+// KeyResponse defines model for KeyResponse.
+type KeyResponse = externalRef2.Key
 
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
@@ -153,6 +157,9 @@ type ClientInterface interface {
 	// GetCertificate request
 	GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetKey request
+	GetKey(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSecret request
 	GetSecret(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -231,6 +238,18 @@ func (c *Client) EnrollCertificate(ctx context.Context, namespaceKind externalRe
 
 func (c *Client) GetCertificate(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCertificateRequest(c.Server, namespaceKind, namespaceId, resourceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKey(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeyRequest(c.Server, namespaceKind, namespaceId, resourceId)
 	if err != nil {
 		return nil, err
 	}
@@ -509,7 +528,55 @@ func NewGetCertificateRequest(server string, namespaceKind externalRef0.Namespac
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1/%s/%s/cert/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1/%s/%s/certificates/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetKeyRequest generates requests for GetKey
+func NewGetKeyRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/%s/%s/keys/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -659,6 +726,9 @@ type ClientWithResponsesInterface interface {
 	// GetCertificateWithResponse request
 	GetCertificateWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*GetCertificateResponse, error)
 
+	// GetKeyWithResponse request
+	GetKeyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*GetKeyResponse, error)
+
 	// GetSecretWithResponse request
 	GetSecretWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetSecretParams, reqEditors ...RequestEditorFn) (*GetSecretResponse, error)
 }
@@ -772,6 +842,28 @@ func (r GetCertificateResponse) StatusCode() int {
 	return 0
 }
 
+type GetKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *KeyResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSecretResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -853,6 +945,15 @@ func (c *ClientWithResponses) GetCertificateWithResponse(ctx context.Context, na
 		return nil, err
 	}
 	return ParseGetCertificateResponse(rsp)
+}
+
+// GetKeyWithResponse request returning *GetKeyResponse
+func (c *ClientWithResponses) GetKeyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, reqEditors ...RequestEditorFn) (*GetKeyResponse, error) {
+	rsp, err := c.GetKey(ctx, namespaceKind, namespaceId, resourceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetKeyResponse(rsp)
 }
 
 // GetSecretWithResponse request returning *GetSecretResponse
@@ -974,6 +1075,32 @@ func ParseGetCertificateResponse(rsp *http.Response) (*GetCertificateResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest CertificateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKeyResponse parses an HTTP response from a GetKeyWithResponse call
+func ParseGetKeyResponse(rsp *http.Response) (*GetKeyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest KeyResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

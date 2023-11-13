@@ -7,25 +7,26 @@ import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 import { EyeIcon } from "@heroicons/react/24/outline";
 
-export default function SecretPage() {
+export default function KeyPage() {
   const { namespaceKind, namespaceId: namespaceIdentifier } =
     useContext(NamespaceContext);
 
   const { id } = useParams() as { id: string };
 
   const adminApi = useAuthedClient(AdminApi);
-  const {
-    data: secret,
-    run: getWithValue,
-    loading,
-  } = useRequest((withValue?: boolean) => {
-    return adminApi.getSecret({
-      resourceId: id,
-      namespaceId: namespaceIdentifier,
-      namespaceKind: namespaceKind,
-      withValue: withValue,
-    });
-  }, {});
+  const { data: key, loading } = useRequest(
+    () => {
+      return adminApi.getKey({
+        resourceId: id,
+        namespaceId: namespaceIdentifier,
+        namespaceKind: namespaceKind,
+      });
+    },
+    {
+      refreshDeps: [id, namespaceIdentifier, namespaceKind],
+      ready: !!id && !!namespaceIdentifier && !!namespaceKind,
+    }
+  );
 
   // const {
   //   data: deleted,
@@ -45,44 +46,22 @@ export default function SecretPage() {
   const [reviewSecret, { toggle }] = useBoolean();
   return (
     <>
-      <Typography.Title>Certificate</Typography.Title>
-      <Card title="Certificate">
+      <Typography.Title>Key</Typography.Title>
+      <Card title="Key" loading={loading}>
         <dl>
           <div>
             <dt className="font-medium">ID</dt>
-            <dd className="font-mono">{secret?.id}</dd>
+            <dd className="font-mono">{key?.id}</dd>
           </div>
           <div>
-            <dt className="font-medium">Secret Key Vault ID</dt>
-            <dd className="font-mono">{secret?.sid}</dd>
+            <dt className="font-medium">Key Vault ID</dt>
+            <dd className="font-mono">{key?.kid}</dd>
           </div>
         </dl>
       </Card>
       {
         <Card title="Actions">
-          <div className="flex flex-row gap-4">
-            <Button
-              onClick={() => {
-                getWithValue(true);
-              }}
-              type="primary"
-              loading={loading}
-            >
-              Get secret value
-            </Button>
-            <Input
-              readOnly
-              value={secret?.value}
-              type={reviewSecret ? "text" : "password"}
-            />
-            <Button
-              type="text"
-              onClick={toggle}
-              icon={<EyeIcon className="h-em w-em" />}
-            >
-              Review secret
-            </Button>
-          </div>
+          <div className="flex flex-row gap-4"></div>
         </Card>
       }
     </>

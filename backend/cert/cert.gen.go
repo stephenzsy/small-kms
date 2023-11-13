@@ -242,15 +242,15 @@ type ServerInterface interface {
 	// Update certificate rules for namespace
 	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential)
 	PutCertificateRuleMsEntraClientCredential(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
-	// Delete certificate
-	// (DELETE /v1/{namespaceKind}/{namespaceId}/cert/{resourceId})
-	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Get certificate
-	// (GET /v1/{namespaceKind}/{namespaceId}/cert/{resourceId})
-	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// List certificates
 	// (GET /v1/{namespaceKind}/{namespaceId}/certificates)
 	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListCertificatesParams) error
+	// Delete certificate
+	// (DELETE /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId})
+	DeleteCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	// Get certificate
+	// (GET /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId})
+	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Exchange PKCS12
 	// (POST /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12)
 	ExchangePKCS12(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
@@ -629,6 +629,41 @@ func (w *ServerInterfaceWrapper) PutCertificateRuleMsEntraClientCredential(ctx e
 	return err
 }
 
+// ListCertificates converts echo context to params.
+func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCertificatesParams
+	// ------------- Optional query parameter "policyId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceId, params)
+	return err
+}
+
 // DeleteCertificate converts echo context to params.
 func (w *ServerInterfaceWrapper) DeleteCertificate(ctx echo.Context) error {
 	var err error
@@ -694,41 +729,6 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetCertificate(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
-// ListCertificates converts echo context to params.
-func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListCertificatesParams
-	// ------------- Optional query parameter "policyId" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceId, params)
 	return err
 }
 
@@ -805,9 +805,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/issuer", wrapper.PutCertificateRuleIssuer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/ms-entra-client-credential", wrapper.GetCertificateRuleMsEntraClientCredential)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/ms-entra-client-credential", wrapper.PutCertificateRuleMsEntraClientCredential)
-	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.DeleteCertificate)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.GetCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/certificates", wrapper.ListCertificates)
+	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId", wrapper.DeleteCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId", wrapper.GetCertificate)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId/exchange-p12", wrapper.ExchangePKCS12)
 
 }

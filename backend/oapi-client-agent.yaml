@@ -8,12 +8,14 @@ servers:
 security:
   - BearerAuth: []
 paths:
-  /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert~1{resourceId}"
+  /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1enroll-cert"
+  /v1/{namespaceKind}/{namespaceId}/keys/{resourceId}:
+    $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1keys~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/secrets/{resourceId}:
-    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secrets~1{resourceId}"    
+    $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secrets~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/agent-config/server:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1server"
   /v1/{namespaceKind}/{namespaceId}/agent-config/radius:
@@ -34,7 +36,7 @@ components:
     AgentConfigServer:
       $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigServer"
     AgentConfigRadius:
-      $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigRadius"        
+      $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigRadius"
     AgentInstanceFields:
       $ref: "oapi-managed-app.yaml#/components/schemas/AgentInstanceFields"
     Secret:
@@ -52,4 +54,9 @@ components:
         application/json:
           schema:
             $ref: "oapi-managed-app.yaml#/components/schemas/AgentConfigRadius"
-
+    KeyResponse:
+      description: Key response
+      content:
+        application/json:
+          schema:
+            $ref: "oapi-key.yaml#/components/schemas/Key"

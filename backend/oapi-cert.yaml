@@ -31,7 +31,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CertificateRef"
-  /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
+  /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"

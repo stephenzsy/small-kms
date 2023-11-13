@@ -9,6 +9,7 @@ import { RouteIds } from "./route-constants";
 import { NamespaceContext } from "./admin/contexts/NamespaceContext";
 import { NamespaceKind } from "./generated";
 
+const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
 const EntraProfilesPage = React.lazy(() => import("./admin/EntraProfilesPage"));
@@ -157,6 +158,10 @@ export const router = createBrowserRouter([
                   {
                     path: "cert/:certId",
                     element: <CertificatePage />,
+                  },
+                  {
+                    path: "keys/:id",
+                    element: <KeyPage />,
                   },
                   {
                     path: "agent/:instanceId/dashboard",

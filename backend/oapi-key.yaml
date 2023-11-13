@@ -89,6 +89,20 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyRef"
+  /v1/{namespaceKind}/{namespaceId}/keys/{resourceId}:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
+    get:
+      tags:
+        - admin
+        - agentclient
+      operationId: GetKey
+      summary: Get key
+      responses:
+        200:
+          $ref: "#/components/responses/KeyResponse"
 security:
   - BearerAuth: []
 components:
