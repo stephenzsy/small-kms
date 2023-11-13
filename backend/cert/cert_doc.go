@@ -120,16 +120,16 @@ func (d *CertDoc) PopulateModel(m *Certificate) {
 	}
 	d.PopulateModelRef(&m.CertificateRef)
 	m.Jwk = key.JsonWebKey{
-		Kty:              d.KeySpec.Kty,
-		Crv:              d.KeySpec.Crv,
+		KeyType:          d.KeySpec.Kty,
+		CurveName:        d.KeySpec.Crv,
 		E:                d.KeySpec.E,
 		N:                d.KeySpec.N,
 		X:                d.KeySpec.X,
 		Y:                d.KeySpec.Y,
-		X5t:              d.KeySpec.X5t,
-		X5tS256:          d.KeySpec.X5tS256,
+		ThumbprintSHA1:   d.KeySpec.X5t,
+		ThumbprintSHA256: d.KeySpec.X5tS256,
 		KeyOperations:    d.KeySpec.KeyOperations,
-		KeyID:            d.KeySpec.KeyID,
+		KeyID:            *d.KeySpec.KeyID,
 		CertificateChain: d.KeySpec.CertificateChain,
 	}
 	if d.KeySpec.Alg != nil {

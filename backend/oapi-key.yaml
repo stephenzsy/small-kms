@@ -51,6 +51,19 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/KeyPolicyResponse"
+  /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
+    post:
+      tags:
+        - admin
+      operationId: GenerateKey
+      summary: Generate Key
+      responses:
+        201:
+          $ref: "#/components/responses/KeyResponse"
 security:
   - BearerAuth: []
 components:
@@ -192,48 +205,19 @@ components:
               $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
               x-go-name: ThumbprintSHA256
     JsonWebSignatureKey:
-      type: object
-      properties:
-        kty:
-          $ref: "#/components/schemas/JsonWebKeyType"
-          x-go-name: KeyType
-        key_ops:
-          type: array
-          items:
-            $ref: "#/components/schemas/JsonWebKeyOperation"
-          x-go-name: KeyOperations
-          x-go-type-skip-optional-pointer: true
-        kid:
-          default: (RFC7517 4.5.) Key ID
-          type: string
-          x-go-name: KeyID
-          x-go-type-skip-optional-pointer: true
-        crv:
-          $ref: "#/components/schemas/JsonWebKeyCurveName"
-          x-go-name: CurveName
-          x-go-type-skip-optional-pointer: true
-        x:
-          description: X component of an EC public key.
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-type-skip-optional-pointer: true
-        y:
-          description: Y component of an EC public key
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-type-skip-optional-pointer: true
-        n:
-          description: RSA modulus
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-type-skip-optional-pointer: true
-        e:
-          description: RSA public exponent
-          $ref: "oapi-base.yaml#/components/schemas/Base64RawURLEncodedBytes"
-          x-go-type-skip-optional-pointer: true
-      required:
-        - kty
-      x-go-type: cloudkey.JsonWebSignatureKey
-      x-go-type-import:
-        name: cloudkey
-        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+      allOf:
+        - $ref: "#/components/schemas/JsonWebKey"
+        - type: object
+          properties:
+            alg:
+              $ref: "#/components/schemas/JsonWebSignatureAlgorithm"
+              x-go-name: SignatureAlgorithm
+          required:
+            - alg
+        - x-go-type: cloudkey.JsonWebSignatureKey
+          x-go-type-import:
+            name: cloudkey
+            path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     JsonWebKey:
       type: object
       properties:
@@ -290,14 +274,31 @@ components:
           x-go-name: ThumbprintSHA256
       required:
         - kty
-    Key:
+      x-go-type: cloudkey.JsonWebKeyBase
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+    KeyRef:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
-        - $ref: "#/components/schemas/KeySpec"
+        - $ref: "#/components/schemas/KeyRefFields"
+        - x-go-type: keyRefComposed
+    KeyRefFields:
+      type: object
+      properties:
+        exp:
+          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
+          x-go-name: NotAfter
+    Key:
+      allOf:
+        - $ref: "#/components/schemas/KeyRef"
         - $ref: "#/components/schemas/KeyFields"
+        - $ref: "#/components/schemas/JsonWebKey"
         - x-go-type: keyComposed
-    KeyAttributes:
-      description: these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
+      required:
+        - kid
+        - kty
+    KeyFields:
       type: object
       properties:
         iat:
@@ -306,17 +307,9 @@ components:
         nbf:
           $ref: "oapi-base.yaml#/components/schemas/NumericDate"
           x-go-name: NotBefore
-        exp:
-          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
-          x-go-name: NotAfter
-    KeyFields:
-      type: object
-      properties:
-        attributes:
-          $ref: "#/components/schemas/KeyAttributes"
       required:
-        - kid
-        - attributes
+        - iat
+        - nbf
     KeyPolicyRef:
       allOf:
         - $ref: "oapi-base.yaml#/components/schemas/ResourceReference"
@@ -411,3 +404,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/KeyPolicy"
+    KeyResponse:
+      description: Key response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Key"

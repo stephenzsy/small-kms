@@ -61,18 +61,25 @@ const (
 	JsonWebKeyOperationDeriveBits = "deriveBits"
 )
 
-type JsonWebKey[TAlg JsonWebSignatureAlgorithm] struct {
-	KeyType       JsonWebKeyType             `json:"kty"`               // RFC7517 4.1. "kty" (Key Type) Parameter Values for JWK
-	Alg           TAlg                       `json:"alg,omitempty"`     // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
-	KeyID         string                     `json:"kid,omitempty"`     // RFC7517 4.5. "kid" (Key ID) Parameter
-	CurveName     JsonWebKeyCurveName        `json:"crv,omitempty"`     // RFC7518 6.2.1.1. "crv" (Curve) Parameter
-	N             Base64RawURLEncodableBytes `json:"n,omitempty"`       // RFC7518 6.3.1.1. "n" (Modulus) Parameter
-	E             Base64RawURLEncodableBytes `json:"e,omitempty"`       // RFC7518 6.3.1.2. "e" (Exponent) Parameter
-	X             Base64RawURLEncodableBytes `json:"x,omitempty"`       // RFC7518 6.2.1.2. "x" (X Coordinate) Parameter
-	Y             Base64RawURLEncodableBytes `json:"y,omitempty"`       // RFC7518 6.2.1.3. "y" (Y Coordinate) Parameter
-	KeyOperations []string                   `json:"key_ops,omitempty"` // RFC7517 4.3. "key_ops" (Key Operations) Parameter Values for JWK
+type JsonWebKeyBase struct {
+	KeyType          JsonWebKeyType               `json:"kty"`                // RFC7517 4.1. "kty" (Key Type) Parameter Values for JWK
+	KeyID            string                       `json:"kid,omitempty"`      // RFC7517 4.5. "kid" (Key ID) Parameter
+	CurveName        JsonWebKeyCurveName          `json:"crv,omitempty"`      // RFC7518 6.2.1.1. "crv" (Curve) Parameter
+	N                Base64RawURLEncodableBytes   `json:"n,omitempty"`        // RFC7518 6.3.1.1. "n" (Modulus) Parameter
+	E                Base64RawURLEncodableBytes   `json:"e,omitempty"`        // RFC7518 6.3.1.2. "e" (Exponent) Parameter
+	X                Base64RawURLEncodableBytes   `json:"x,omitempty"`        // RFC7518 6.2.1.2. "x" (X Coordinate) Parameter
+	Y                Base64RawURLEncodableBytes   `json:"y,omitempty"`        // RFC7518 6.2.1.3. "y" (Y Coordinate) Parameter
+	KeyOperations    []JsonWebKeyOperation        `json:"key_ops,omitempty"`  // RFC7517 4.3. "key_ops" (Key Operations) Parameter Values for JWK
+	ThumbprintSHA1   Base64RawURLEncodableBytes   `json:"x5t,omitempty"`      // RFC7517 4.8. "x5t" (X.509 Certificate SHA-1 Thumbprint) Parameter
+	ThumbprintSHA256 Base64RawURLEncodableBytes   `json:"x5t#S256,omitempty"` // RFC7517 4.9. "x5t#S256" (X.509 Certificate SHA-256 Thumbprint) Parameter
+	CertificateChain []Base64RawURLEncodableBytes `json:"x5c,omitempty"`      // RFC7517 4.7. "x5c" (X.509 Certificate Chain) Parameter
 
 	cachedPublicKey crypto.PublicKey
+}
+
+type JsonWebKey[TAlg JsonWebSignatureAlgorithm] struct {
+	JsonWebKeyBase
+	Alg TAlg `json:"alg,omitempty"` // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
 }
 
 type JsonWebSignatureKey = JsonWebKey[JsonWebSignatureAlgorithm]

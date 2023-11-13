@@ -53,12 +53,14 @@ func (ck *azCloudKey) KeyID() string {
 func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.JsonWebSignatureAlgorithm] {
 	keyID := string(*kvKey.KID)
 	r := &i.JsonWebKey[i.JsonWebSignatureAlgorithm]{
-		KeyType: ktyReverseMapping[*kvKey.Kty],
-		KeyID:   keyID,
-		X:       kvKey.X,
-		Y:       kvKey.Y,
-		N:       kvKey.N,
-		E:       kvKey.E,
+		JsonWebKeyBase: i.JsonWebKeyBase{
+			KeyType: ktyReverseMapping[*kvKey.Kty],
+			KeyID:   keyID,
+			X:       kvKey.X,
+			Y:       kvKey.Y,
+			N:       kvKey.N,
+			E:       kvKey.E,
+		},
 	}
 	if kvKey.Crv != nil {
 		crv := crvReverseMapping[*kvKey.Crv]

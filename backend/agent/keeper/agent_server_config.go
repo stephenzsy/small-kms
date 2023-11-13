@@ -37,13 +37,7 @@ type agentServerConfiguration struct {
 func (asc *agentServerConfiguration) VerifyJWTKeys() []cloudkey.JsonWebSignatureKey {
 	return utils.MapSlice(asc.JWTVerifyKeys, func(item key.JsonWebKey) cloudkey.JsonWebSignatureKey {
 		return cloudkey.JsonWebSignatureKey{
-			KeyType:   item.Kty,
-			KeyID:     utils.NilToDefault(item.KeyID),
-			CurveName: item.Crv,
-			X:         item.X,
-			Y:         item.Y,
-			N:         item.N,
-			E:         item.E,
+			JsonWebKeyBase: item,
 		}
 	})
 }

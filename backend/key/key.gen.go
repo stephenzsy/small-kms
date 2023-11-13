@@ -26,22 +26,7 @@ type GenerateJsonWebKeyProperties struct {
 }
 
 // JsonWebKey defines model for JsonWebKey.
-type JsonWebKey struct {
-	Crv           JsonWebKeyCurveName                   `json:"crv,omitempty"`
-	E             externalRef0.Base64RawURLEncodedBytes `json:"e,omitempty"`
-	KeyOperations []JsonWebKeyOperation                 `json:"key_ops,omitempty"`
-	KeyID         *string                               `json:"kid,omitempty"`
-	Kty           JsonWebKeyType                        `json:"kty"`
-	N             externalRef0.Base64RawURLEncodedBytes `json:"n,omitempty"`
-	X             externalRef0.Base64RawURLEncodedBytes `json:"x,omitempty"`
-
-	// X5c Base64 encoded certificate chain
-	CertificateChain []externalRef0.Base64RawURLEncodedBytes `json:"x5c,omitempty"`
-	X5t              externalRef0.Base64RawURLEncodedBytes   `json:"x5t,omitempty"`
-	X5tS256          externalRef0.Base64RawURLEncodedBytes   `json:"x5t#S256,omitempty"`
-	X5u              *string                                 `json:"x5u,omitempty"`
-	Y                externalRef0.Base64RawURLEncodedBytes   `json:"y,omitempty"`
-}
+type JsonWebKey = cloudkey.JsonWebKeyBase
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
 type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
@@ -64,17 +49,10 @@ type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
 // Key defines model for Key.
 type Key = keyComposed
 
-// KeyAttributes these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
-type KeyAttributes struct {
-	Exp *externalRef0.NumericDate `json:"exp,omitempty"`
-	Iat *externalRef0.NumericDate `json:"iat,omitempty"`
-	Nbf *externalRef0.NumericDate `json:"nbf,omitempty"`
-}
-
 // KeyFields defines model for KeyFields.
 type KeyFields struct {
-	// Attributes these attributes are not in JWK (RFC7517), more like JWT (RFC7519) fields
-	Attributes KeyAttributes `json:"attributes"`
+	Iat externalRef0.NumericDate `json:"iat"`
+	Nbf externalRef0.NumericDate `json:"nbf"`
 }
 
 // KeyPolicy defines model for KeyPolicy.
@@ -101,6 +79,14 @@ type KeyPolicyRef = keyPolicyRefComposed
 // KeyPolicyRefFields defines model for KeyPolicyRefFields.
 type KeyPolicyRefFields struct {
 	DisplayName string `json:"displayName"`
+}
+
+// KeyRef defines model for KeyRef.
+type KeyRef = keyRefComposed
+
+// KeyRefFields defines model for KeyRefFields.
+type KeyRefFields struct {
+	Exp *externalRef0.NumericDate `json:"exp,omitempty"`
 }
 
 // KeySpec these attributes should mostly confirm to JWK (RFC7517)
@@ -150,6 +136,9 @@ type SigningKeySpec struct {
 // KeyPolicyResponse defines model for KeyPolicyResponse.
 type KeyPolicyResponse = KeyPolicy
 
+// KeyResponse defines model for KeyResponse.
+type KeyResponse = Key
+
 // PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
 type PutKeyPolicyJSONRequestBody = KeyPolicyParameters
 
@@ -164,6 +153,9 @@ type ServerInterface interface {
 	// Put key policy
 	// (PUT /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId})
 	PutKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	// Generate Key
+	// (POST /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate)
+	GenerateKey(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -265,6 +257,40 @@ func (w *ServerInterfaceWrapper) PutKeyPolicy(ctx echo.Context) error {
 	return err
 }
 
+// GenerateKey converts echo context to params.
+func (w *ServerInterfaceWrapper) GenerateKey(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef0.ResourceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GenerateKey(ctx, namespaceKind, namespaceId, resourceId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -296,5 +322,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.GetKeyPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.PutKeyPolicy)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId/generate", wrapper.GenerateKey)
 
 }

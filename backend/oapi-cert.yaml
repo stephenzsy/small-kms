@@ -54,6 +54,30 @@ paths:
         204:
           description: Certificate deleted
           content: {}
+  /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: ExchangePKCS12
+      summary: Exchange PKCS12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangePKCS12Request"
+      responses:
+        200:
+          description: PKCS12 file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangePKCS12Result"
   /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -388,12 +412,19 @@ components:
         - $ref: "#/components/schemas/CertificateRefFields"
         - x-go-type: certificateRefComposed
     CertificateAttributes:
-      allOf:
-        - $ref: "oapi-key.yaml#/components/schemas/KeyAttributes"
-        - type: object
-          properties:
-            issuer:
-              $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+      type: object
+      properties:
+        issuer:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+        iat:
+          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
+          x-go-name: Created
+        nbf:
+          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
+          x-go-name: NotBefore
+        exp:
+          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
+          x-go-name: NotAfter
     CertificateRefFields:
       type: object
       properties:
@@ -458,6 +489,28 @@ components:
         - enrollmentType
         - publicKey
         - proof
+    ExchangePKCS12Request:
+      type: object
+      properties:
+        keyLocator:
+          $ref: "oapi-base.yaml#/components/schemas/ResourceLocator"
+        privateKey:
+          type: string
+          description: JWE encrypted private key in JWK and _password private field
+        legacy:
+          type: boolean
+          description: Use legacy PKCS12 cipher
+      required:
+        - password
+        - privateKey
+    ExchangePKCS12Result:
+      type: object
+      properties:
+        jwe:
+          type: string
+          description: JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
+      required:
+        - jwe
     PolicyIssuerCertRequest:
       type: object
       properties:

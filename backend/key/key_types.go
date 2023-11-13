@@ -25,9 +25,14 @@ type (
 		KeyPolicyFields
 	}
 
-	keyComposed struct {
+	keyRefComposed struct {
 		base.ResourceReference
-		KeySpec
+		KeyRefFields
+	}
+
+	keyComposed struct {
+		keyRefComposed
+		cloudkey.JsonWebKeyBase
 		KeyFields
 	}
 )
