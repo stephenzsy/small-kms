@@ -7,6 +7,7 @@ import { AdminApi, NamespaceKind, ResourceReference } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertPolicyRefTable } from "./CertPolicyRefTable";
 import { NamespaceContext } from "./contexts/NamespaceContext";
+import { CertificatesTableCard } from "./tables/CertificatesTableCard";
 
 type MemberOfGroupFormState = {
   groupId: string;
@@ -99,16 +100,19 @@ export default function NamespacePage() {
     <>
       <h1>{namespaceId}</h1>
       <div>{namespaceKind}</div>
-      <Card
-        title="Certificate Policies"
-        extra={
-          <Link to="./cert-policy/_create">Create certificate policy</Link>
-        }
-      >
-        <CertPolicyRefTable routePrefix="./cert-policy/" />
-      </Card>
+      {namespaceKind !== NamespaceKind.NamespaceKindUser && (
+        <Card
+          title="Certificate Policies"
+          extra={
+            <Link to="./cert-policy/_create">Create certificate policy</Link>
+          }
+        >
+          <CertPolicyRefTable routePrefix="./cert-policy/" />
+        </Card>
+      )}
       {namespaceKind === NamespaceKind.NamespaceKindUser && (
         <>
+          <CertificatesTableCard />
           <Card title="Listed group memberships">
             <Table<ResourceReference>
               dataSource={groupMemberOf}

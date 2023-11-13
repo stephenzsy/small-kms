@@ -124,17 +124,6 @@ func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.Namespace
 	return c.NoContent(http.StatusNoContent)
 }
 
-// ListCertificates implements ServerInterface.
-func (s *server) ListCertificates(ec echo.Context, namespaceKind base.NamespaceKind,
-	namespaceIdentifier base.ID, params ListCertificatesParams) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return apiListCertificates(c, params)
-}
-
 // CreateCertificate implements ServerInterface.
 func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID, policyID base.ID) error {
 	c, err := s.withAdminAccessAndNamespaceCtx(ec, nsKind, nsID)
