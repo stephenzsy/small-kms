@@ -31,6 +31,7 @@ import { NamespaceContext } from "./contexts/NamespaceContext";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
+import { PolicyItemRefsTableCard } from "./tables/PolicyItemRefsTableCard";
 
 type KeyPolicyFormState = GenerateJsonWebKeyProperties &
   Omit<KeyPolicyParameters, "keyProperties"> & {
@@ -212,54 +213,6 @@ function GenerateKeyControl({
   );
 }
 
-function useSecretsTableColumns(activeIssuerCertificateId: string | undefined) {
-  return useMemo<TableColumnType<SecretRef>[]>(
-    () => [
-      {
-        title: "ID",
-        render: (r: SecretRef) => (
-          <>
-            <span className="font-mono">{r.id}</span>
-          </>
-        ),
-      },
-      {
-        title: "Version",
-        render: (r: SecretRef) => {
-          return <span className="font-mono">{r.version}</span>;
-        },
-      },
-      // {
-      //   title: "Expires",
-      //   render: (r: CertificateRef) => {
-      //     return (
-      //       <span className="font-mono">
-      //         {r.attributes.exp &&
-      //           dateShortFormatter.format(new Date(r.attributes.exp * 1000))}
-      //       </span>
-      //     );
-      //   },
-      // },
-      // {
-      //   title: "Status",
-      //   render: (r: CertificateRef) => {
-      //     if (r.deleted) {
-      //       return <Tag color="red">Deleted</Tag>;
-      //     } else if (!r.thumbprint) {
-      //       return <Tag color="yellow">Pending</Tag>;
-      //     }
-      //     return <Tag color="green">Issued</Tag>;
-      //   },
-      // },
-      {
-        title: "Actions",
-        render: (r: SecretRef) => <Link to={`../secrets/${r.id}`}>View</Link>,
-      },
-    ],
-    [activeIssuerCertificateId]
-  );
-}
-
 export default function KeyPolicyPage() {
   const { namespaceId: namespaceIdentifier, namespaceKind } =
     useContext(NamespaceContext);
@@ -285,9 +238,9 @@ export default function KeyPolicyPage() {
     }
   );
 
-  const { data: issuedSecrets, run: refreshSecrets } = useRequest(
+  const { data: issuedKeys, run: refreshKeys } = useRequest(
     async () => {
-      return await api.listSecrets({
+      return await api.listKeys({
         namespaceId: namespaceIdentifier,
         namespaceKind: namespaceKind,
         policyId: policyId!,
@@ -299,7 +252,6 @@ export default function KeyPolicyPage() {
     }
   );
 
-  const secretsTableColumns = useSecretsTableColumns(undefined);
   return (
     <>
       <Typography.Title>
@@ -311,19 +263,16 @@ export default function KeyPolicyPage() {
             {namespaceKind}:{namespaceIdentifier}:
             {ResourceKind.ResourceKindKeyPolicy}/{policyId}
           </div>
-          <Card title="Secret list">
-            <Table<SecretRef>
-              columns={secretsTableColumns}
-              dataSource={issuedSecrets}
-              rowKey="id"
-            />
-          </Card>
-
+          <PolicyItemRefsTableCard
+            title="Key list"
+            dataSource={issuedKeys}
+            onGetVewLink={(r) => `../keys/${r.id}`}
+          />
           <Card title="Manage key">
             {policyId && (
               <GenerateKeyControl
                 policyId={policyId}
-                onComplete={refreshSecrets}
+                onComplete={refreshKeys}
               />
             )}
           </Card>

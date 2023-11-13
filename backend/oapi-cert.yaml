@@ -6,7 +6,7 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceId}/cert:
+  /v1/{namespaceKind}/{namespaceId}/certificates:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"

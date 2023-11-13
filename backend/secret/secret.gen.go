@@ -78,8 +78,8 @@ type SecretRef = secretRefComposed
 
 // SecretRefFields defines model for SecretRefFields.
 type SecretRefFields struct {
-	PolicyId externalRef0.Id `json:"policyId"`
-	Version  string          `json:"version"`
+	Exp *externalRef0.NumericDate `json:"exp,omitempty"`
+	Iat externalRef0.NumericDate  `json:"iat"`
 }
 
 // SecretPolicyResponse defines model for SecretPolicyResponse.

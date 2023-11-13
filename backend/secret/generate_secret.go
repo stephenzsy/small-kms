@@ -67,7 +67,6 @@ func (s *server) GenerateSecret(ec echo.Context, namespaceKind base.NamespaceKin
 	}
 	logger.Info().Str("secretId", string(*resp.ID)).Msgf("secret created in keyvault")
 
-	doc.Version = resp.ID.Version()
 	doc.KeyVaultStore.ID = string(*resp.ID)
 	if resp.Attributes.Created != nil {
 		doc.Created = *jwt.NewNumericDate(*resp.Attributes.Created)

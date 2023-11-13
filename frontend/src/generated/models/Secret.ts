@@ -45,16 +45,16 @@ export interface Secret {
     updatedBy?: string;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Secret
      */
-    version: string;
+    iat: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Secret
      */
-    policyId: string;
+    exp?: number;
     /**
      * 
      * @type {string}
@@ -82,8 +82,7 @@ export function instanceOfSecret(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "version" in value;
-    isInstance = isInstance && "policyId" in value;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
@@ -102,8 +101,8 @@ export function SecretFromJSONTyped(json: any, ignoreDiscriminator: boolean): Se
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
-        'version': json['version'],
-        'policyId': json['policyId'],
+        'iat': json['iat'],
+        'exp': !exists(json, 'exp') ? undefined : json['exp'],
         'contentType': !exists(json, 'contentType') ? undefined : json['contentType'],
         'value': !exists(json, 'value') ? undefined : json['value'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
@@ -123,8 +122,8 @@ export function SecretToJSON(value?: Secret | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'version': value.version,
-        'policyId': value.policyId,
+        'iat': value.iat,
+        'exp': value.exp,
         'contentType': value.contentType,
         'value': value.value,
         'sid': value.sid,

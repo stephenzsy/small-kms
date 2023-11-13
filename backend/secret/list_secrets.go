@@ -20,22 +20,17 @@ func (*server) ListSecrets(ec echo.Context, nsKind base.NamespaceKind, nsID base
 		return base.ErrResponseStatusForbidden
 	}
 
-	qb := base.NewDefaultCosmoQueryBuilder().
-		WithExtraColumns(secretDocQueryColumnVersion).
-		WithOrderBy(fmt.Sprintf("%s DESC", secretDocQueryColumnCreated))
-
-	storageNsID := base.NewDocNamespacePartitionKey(nsKind, nsID, base.ResourceKindSecret)
-
-	if params.PolicyId != nil {
-		policyIdentifier := base.ParseID(*params.PolicyId)
-
-		policyLocator := base.NewDocLocator(nsKind, nsID, base.ResourceKindSecretPolicy, policyIdentifier)
-
-		qb = qb.WithWhereClauses("c.policy = @policy")
-		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
+	p := api.QueryPolicyItemsParams{
+		ExtraColumns: []string{api.PolicyItemsQueryColumnCreated, api.PolicyItemsQueryColumnNotAfter},
 	}
-
-	pager := base.NewQueryDocPager[*SecretDoc](c, qb, storageNsID)
+	if params.PolicyId != nil {
+		p.PolicyLocator = utils.ToPtr(base.NewDocLocator(nsKind, nsID, base.ResourceKindSecretPolicy,
+			base.ParseID(*params.PolicyId)))
+	}
+	pager := api.QueryPolicyItems[*SecretDoc](
+		c,
+		base.NewDocNamespacePartitionKey(nsKind, nsID, base.ResourceKindSecret),
+		p)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *SecretDoc) *SecretRef {
 		r := &SecretRef{}

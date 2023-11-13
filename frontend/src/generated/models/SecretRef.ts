@@ -45,16 +45,16 @@ export interface SecretRef {
     updatedBy?: string;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof SecretRef
      */
-    version: string;
+    iat: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof SecretRef
      */
-    policyId: string;
+    exp?: number;
 }
 
 /**
@@ -64,8 +64,7 @@ export function instanceOfSecretRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "version" in value;
-    isInstance = isInstance && "policyId" in value;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
@@ -84,8 +83,8 @@ export function SecretRefFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
-        'version': json['version'],
-        'policyId': json['policyId'],
+        'iat': json['iat'],
+        'exp': !exists(json, 'exp') ? undefined : json['exp'],
     };
 }
 
@@ -102,8 +101,8 @@ export function SecretRefToJSON(value?: SecretRef | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
-        'version': value.version,
-        'policyId': value.policyId,
+        'iat': value.iat,
+        'exp': value.exp,
     };
 }
 

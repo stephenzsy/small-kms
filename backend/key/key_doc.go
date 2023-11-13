@@ -52,6 +52,7 @@ func (d *KeyDoc) populateModelRef(r *KeyRef) {
 		return
 	}
 	d.BaseDoc.PopulateModelRef(&r.ResourceReference)
+	r.Iat = d.Created
 	r.Exp = d.NotAfter
 }
 

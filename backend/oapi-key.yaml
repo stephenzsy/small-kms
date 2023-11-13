@@ -64,6 +64,31 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/KeyResponse"
+  /v1/{namespaceKind}/{namespaceId}/keys:
+    parameters:
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
+      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListKeys
+      summary: List keys
+      parameters:
+        - name: policyId
+          in: query
+          description: Policy ID
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KeyRef"
 security:
   - BearerAuth: []
 components:
@@ -286,9 +311,14 @@ components:
     KeyRefFields:
       type: object
       properties:
+        iat:
+          $ref: "oapi-base.yaml#/components/schemas/NumericDate"
+          x-go-name: Created
         exp:
           $ref: "oapi-base.yaml#/components/schemas/NumericDate"
           x-go-name: NotAfter
+      required:
+        - iat
     Key:
       allOf:
         - $ref: "#/components/schemas/KeyRef"

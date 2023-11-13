@@ -67,6 +67,12 @@ export interface Key {
      * @type {number}
      * @memberof Key
      */
+    iat: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Key
+     */
     exp?: number;
     /**
      * 
@@ -80,12 +86,6 @@ export interface Key {
      * @memberof Key
      */
     keySize?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof Key
-     */
-    iat: number;
     /**
      * 
      * @type {number}
@@ -173,8 +173,8 @@ export function instanceOfKey(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "policy" in value;
     isInstance = isInstance && "iat" in value;
+    isInstance = isInstance && "policy" in value;
     isInstance = isInstance && "kty" in value;
     isInstance = isInstance && "kid" in value;
 
@@ -195,10 +195,10 @@ export function KeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Key {
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
+        'iat': json['iat'],
         'exp': !exists(json, 'exp') ? undefined : json['exp'],
         'policy': json['policy'],
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
-        'iat': json['iat'],
         'nbf': !exists(json, 'nbf') ? undefined : json['nbf'],
         'kty': JsonWebKeyTypeFromJSON(json['kty']),
         'kid': json['kid'],
@@ -228,10 +228,10 @@ export function KeyToJSON(value?: Key | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
+        'iat': value.iat,
         'exp': value.exp,
         'policy': value.policy,
         'key_size': value.keySize,
-        'iat': value.iat,
         'nbf': value.nbf,
         'kty': JsonWebKeyTypeToJSON(value.kty),
         'kid': value.kid,

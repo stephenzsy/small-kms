@@ -24,6 +24,12 @@ export interface KeyRefFields {
      * @type {number}
      * @memberof KeyRefFields
      */
+    iat: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof KeyRefFields
+     */
     exp?: number;
 }
 
@@ -32,6 +38,7 @@ export interface KeyRefFields {
  */
 export function instanceOfKeyRefFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
@@ -46,6 +53,7 @@ export function KeyRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
+        'iat': json['iat'],
         'exp': !exists(json, 'exp') ? undefined : json['exp'],
     };
 }
@@ -59,6 +67,7 @@ export function KeyRefFieldsToJSON(value?: KeyRefFields | null): any {
     }
     return {
         
+        'iat': value.iat,
         'exp': value.exp,
     };
 }

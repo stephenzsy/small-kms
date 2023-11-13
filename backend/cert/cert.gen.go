@@ -176,12 +176,6 @@ type CertPolicyResponse = CertPolicy
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = Certificate
 
-// ListCertificatesParams defines parameters for ListCertificates.
-type ListCertificatesParams struct {
-	// PolicyId Policy ID
-	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
-}
-
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
 	DryRun *bool `form:"dryRun,omitempty" json:"dryRun,omitempty"`
@@ -190,6 +184,12 @@ type EnrollCertificateParams struct {
 // AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
 type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
+}
+
+// ListCertificatesParams defines parameters for ListCertificates.
+type ListCertificatesParams struct {
+	// PolicyId Policy ID
+	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
 // PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
@@ -209,9 +209,6 @@ type ExchangePKCS12JSONRequestBody = ExchangePKCS12Request
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List certificates
-	// (GET /v1/{namespaceKind}/{namespaceId}/cert)
-	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListCertificatesParams) error
 	// List cert policies
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy)
 	ListCertPolicies(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
@@ -251,6 +248,9 @@ type ServerInterface interface {
 	// Get certificate
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert/{resourceId})
 	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
+	// List certificates
+	// (GET /v1/{namespaceKind}/{namespaceId}/certificates)
+	ListCertificates(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListCertificatesParams) error
 	// Exchange PKCS12
 	// (POST /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12)
 	ExchangePKCS12(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
@@ -259,41 +259,6 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
-}
-
-// ListCertificates converts echo context to params.
-func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListCertificatesParams
-	// ------------- Optional query parameter "policyId" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceId, params)
-	return err
 }
 
 // ListCertPolicies converts echo context to params.
@@ -732,6 +697,41 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 	return err
 }
 
+// ListCertificates converts echo context to params.
+func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef0.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef0.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCertificatesParams
+	// ------------- Optional query parameter "policyId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListCertificates(ctx, namespaceKind, namespaceId, params)
+	return err
+}
+
 // ExchangePKCS12 converts echo context to params.
 func (w *ServerInterfaceWrapper) ExchangePKCS12(ctx echo.Context) error {
 	var err error
@@ -794,7 +794,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert", wrapper.ListCertificates)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.GetCertPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.PutCertPolicy)
@@ -808,6 +807,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/ms-entra-client-credential", wrapper.PutCertificateRuleMsEntraClientCredential)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert/:resourceId", wrapper.GetCertificate)
+	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/certificates", wrapper.ListCertificates)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId/exchange-p12", wrapper.ExchangePKCS12)
 
 }

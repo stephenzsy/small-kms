@@ -5,12 +5,8 @@ import { Link } from "../../components/Link";
 import { useRequest } from "ahooks";
 import { NamespaceContext } from "../contexts/NamespaceContext";
 import { useAuthedClient } from "../../utils/useCertsApi";
+import { dateShortFormatter } from "../../utils/datetimeUtils";
 
-const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
 
 type CertificateActionsProps = {
   certRef: CertificateRef;

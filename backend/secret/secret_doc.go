@@ -15,7 +15,6 @@ type SecretKeyVaultStore struct {
 type SecretDoc struct {
 	base.BaseDoc
 
-	Version       string              `json:"version"`
 	Policy        base.DocLocator     `json:"policy"`
 	Created       base.NumericDate    `json:"iat"`
 	NotBefore     *base.NumericDate   `json:"nbf,omitempty"`
@@ -33,8 +32,8 @@ func (d *SecretDoc) PopulateModelRef(r *SecretRef) {
 		return
 	}
 	d.BaseDoc.PopulateModelRef(&r.ResourceReference)
-	r.Version = d.Version
-	r.PolicyId = d.Policy.ID()
+	r.Iat = d.Created
+	r.Exp = d.NotAfter
 }
 
 // PopulateModel implements base.ModelPopulater.
@@ -45,7 +44,6 @@ func (d *SecretDoc) PopulateModel(r *Secret) {
 	d.PopulateModelRef(&r.SecretRef)
 	r.ContentType = "text/plain"
 	r.Sid = string(d.KeyVaultStore.ID)
-	r.Version = d.Version
 }
 
 func GetKeyStoreName(nsKind base.NamespaceKind, nsID base.ID, policyID base.ID) string {

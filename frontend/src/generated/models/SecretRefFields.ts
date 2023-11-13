@@ -21,16 +21,16 @@ import { exists, mapValues } from '../runtime';
 export interface SecretRefFields {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof SecretRefFields
      */
-    version: string;
+    iat: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof SecretRefFields
      */
-    policyId: string;
+    exp?: number;
 }
 
 /**
@@ -38,8 +38,7 @@ export interface SecretRefFields {
  */
 export function instanceOfSecretRefFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "version" in value;
-    isInstance = isInstance && "policyId" in value;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
@@ -54,8 +53,8 @@ export function SecretRefFieldsFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'version': json['version'],
-        'policyId': json['policyId'],
+        'iat': json['iat'],
+        'exp': !exists(json, 'exp') ? undefined : json['exp'],
     };
 }
 
@@ -68,8 +67,8 @@ export function SecretRefFieldsToJSON(value?: SecretRefFields | null): any {
     }
     return {
         
-        'version': value.version,
-        'policyId': value.policyId,
+        'iat': value.iat,
+        'exp': value.exp,
     };
 }
 

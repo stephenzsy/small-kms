@@ -48,6 +48,12 @@ export interface KeyRef {
      * @type {number}
      * @memberof KeyRef
      */
+    iat: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof KeyRef
+     */
     exp?: number;
 }
 
@@ -58,6 +64,7 @@ export function instanceOfKeyRef(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
+    isInstance = isInstance && "iat" in value;
 
     return isInstance;
 }
@@ -76,6 +83,7 @@ export function KeyRefFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ke
         'updated': (new Date(json['updated'])),
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'updatedBy': !exists(json, 'updatedBy') ? undefined : json['updatedBy'],
+        'iat': json['iat'],
         'exp': !exists(json, 'exp') ? undefined : json['exp'],
     };
 }
@@ -93,6 +101,7 @@ export function KeyRefToJSON(value?: KeyRef | null): any {
         'updated': (value.updated.toISOString()),
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'updatedBy': value.updatedBy,
+        'iat': value.iat,
         'exp': value.exp,
     };
 }

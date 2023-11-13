@@ -26,22 +26,16 @@ func (s *server) ListCertificates(ec echo.Context,
 		return base.ErrResponseStatusForbidden
 	}
 
-	qb := base.NewDefaultCosmoQueryBuilder().
-		WithExtraColumns(certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter).
-		WithOrderBy(fmt.Sprintf("%s DESC", certDocQueryColumnCreated))
-
-	storageNsID := base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert)
-
-	if params.PolicyId != nil {
-		policyIdentifier := base.ParseID(*params.PolicyId)
-
-		policyLocator := base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, policyIdentifier)
-
-		qb.WhereClauses = append(qb.WhereClauses, "c.policy = @policy")
-		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyLocator.String()})
+	p := api.QueryPolicyItemsParams{
+		ExtraColumns: []string{certDocQueryColumnThumbprintSHA1, certDocQueryColumnNotAfter},
 	}
-
-	pager := base.NewQueryDocPager[*CertQueryDoc](c, qb, storageNsID)
+	if params.PolicyId != nil {
+		p.PolicyLocator = utils.ToPtr(base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, base.ParseID(*params.PolicyId)))
+	}
+	pager := api.QueryPolicyItems[*CertQueryDoc](
+		c,
+		base.NewDocNamespacePartitionKey(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCert),
+		p)
 
 	modelPager := utils.NewMappedItemsPager(pager, func(d *CertQueryDoc) *CertificateRef {
 		r := &CertificateRef{}

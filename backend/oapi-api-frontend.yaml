@@ -26,10 +26,10 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}"
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius:
-    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1config~1radius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1proxy-auth~1token"
+  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/config/radius:
+    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1config~1radius"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1diagnostics"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers:
@@ -58,8 +58,8 @@ paths:
     $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf"
   /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf~1{groupId}"
-  /v1/{namespaceKind}/{namespaceId}/cert:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert"
+  /v1/{namespaceKind}/{namespaceId}/certificates:
+    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates"
   /v1/{namespaceKind}/{namespaceId}/cert/{resourceId}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-policy:
@@ -82,6 +82,8 @@ paths:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate:
     $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1key-policies~1{resourceId}~1generate"
+  /v1/{namespaceKind}/{namespaceId}/keys:
+    $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1keys"
   /v1/{namespaceKind}/{namespaceId}/secret-policies:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secret-policies"
   /v1/{namespaceKind}/{namespaceId}/secret-policies/{resourceId}:
