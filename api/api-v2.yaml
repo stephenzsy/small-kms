@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Cryptocat API
+  version: 0.1.3
+servers:
+  - url: https://example.com
+    description: Local server
+security:
+  - BearerAuth: []
+paths:
+  /v2/agents:
+    get:
+      tags:
+        - admin
+      summary: List agents
+      operationId: ListAgents
+      responses:
+        "200":
+          $ref: "models-shared.yaml#/components/responses/RefsResponse"
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

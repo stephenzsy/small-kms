@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: Cryptocat Agent Models
+  version: 0.1.3
+paths: {}
+components:
+  schemas:
+    Agent:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"

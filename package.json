@@ -12,6 +12,7 @@
     "genclient": "yarn workspace small-kms-tools genclient",
     "genserver": "yarn workspace small-kms-tools genserver",
     "gencli": "yarn workspace small-kms-tools gencli",
-    "dev": "yarn workspace small-kms-frontend dev"
+    "dev": "yarn workspace small-kms-frontend dev",
+    "genclient2": "yarn workspace small-kms-tools genclient2"
   }
 }

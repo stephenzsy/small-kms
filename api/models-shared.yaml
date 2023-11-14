@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: Cryptocat Agent Models
+  version: 0.1.3
+paths: {}
+components:
+  schemas:
+    Ref:
+      type: object
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+        updated:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+        deleted:
+          type: string
+          format: date-time
+        displayName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - id
+        - updated
+        - updatedBy
+    ApplicationByAppIdFields:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        servicePrincipalId:
+          type: string
+      required:
+        - applicationId
+        - servicePrincipalId
+    ApplicationByAppId:
+      allOf:
+        - $ref: "#/components/schemas/Ref"
+        - $ref: "#/components/schemas/ApplicationByAppIdFields"
+        - x-go-type: applicationByAppIdComposed
+  responses:
+    RefsResponse:
+      description: Refs response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Ref"
