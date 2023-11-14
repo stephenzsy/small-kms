@@ -47,4 +47,6 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Ref"
+            type: array
+            items:
+              $ref: "#/components/schemas/Ref"

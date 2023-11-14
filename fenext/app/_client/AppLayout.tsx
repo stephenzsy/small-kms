@@ -16,7 +16,7 @@ import UserAvatar from "./UserAvatar";
 
 const navigation = [
   { name: "Dashboard", href: "#", current: true },
-  { name: "Team", href: "#", current: false },
+  { name: "Agents", href: "/agents", current: false },
   { name: "Projects", href: "#", current: false },
   { name: "Calendar", href: "#", current: false },
 ];
@@ -47,8 +47,6 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
   const meInfo = useMeInfo();
   const avatarImage = useAvatarImage();
   const account = useAccount();
-  console.log(account);
-  console.log(meInfo);
   return (
     <>
       <Disclosure as="nav" className="bg-white shadow-sm">

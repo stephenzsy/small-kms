@@ -26,4 +26,4 @@ type Ref struct {
 }
 
 // RefsResponse defines model for RefsResponse.
-type RefsResponse = Ref
+type RefsResponse = []Ref

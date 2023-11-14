@@ -30,7 +30,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * List agents
      */
-    async listAgentsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Ref>> {
+    async listAgentsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -50,13 +50,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => RefFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
     }
 
     /**
      * List agents
      */
-    async listAgents(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Ref> {
+    async listAgents(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
         const response = await this.listAgentsRaw(initOverrides);
         return await response.value();
     }

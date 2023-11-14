@@ -5,6 +5,7 @@ import "./globals.css";
 import classNames from "classnames";
 import AppLayout from "./_client/AppLayout";
 import { GraphClientProvider } from "./_client/MsGraphClientProvider";
+import { AdminApiProvider } from "@/client/useClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,9 +24,11 @@ export default function RootLayout({
       <body className={classNames(inter.className, "h-full")}>
         <div className="min-h-full">
           <AppMsalProvider>
-            <GraphClientProvider>
-              <AppLayout>{children}</AppLayout>
-            </GraphClientProvider>
+            <AdminApiProvider>
+              <GraphClientProvider>
+                <AppLayout>{children}</AppLayout>
+              </GraphClientProvider>
+            </AdminApiProvider>
           </AppMsalProvider>
         </div>
       </body>

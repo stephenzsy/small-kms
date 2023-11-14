@@ -21,6 +21,7 @@ import (
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
+	"github.com/stephenzsy/small-kms/backend/resdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -39,6 +40,7 @@ type apiServer struct {
 	common.CommonServer
 	parentCtx               context.Context
 	docService              base.AzCosmosCRUDDocService
+	docServiceNew           resdoc.DocService
 	serviceMsGraphClient    *msgraphsdkgo.GraphServiceClient
 	azKeyVaultEndpoint      string
 	azCertificatesClient    *azcertificates.Client
@@ -117,6 +119,8 @@ func (s *apiServer) Value(key any) any {
 	switch key {
 	case base.AzCosmosCRUDDocServiceContextKey:
 		return s.docService
+	case resdoc.DocServiceContextKey:
+		return s.docServiceNew
 	case kv.AzKeyVaultServiceContextKey:
 		return s
 	case graph.ServiceClientIDContextKey:
@@ -169,6 +173,7 @@ func NewApiServer(c context.Context, buildID string) (*apiServer, error) {
 		return nil, err
 	}
 	s.docService = base.NewAzCosmosCRUDDocService(s.azCosmosContainerClient)
+	s.docServiceNew = resdoc.NewAzCosmosSingleContainerDocService(s.azCosmosContainerClient)
 
 	// keyvault
 	if s.azKeyVaultEndpoint, ok = s.EnvService().RequireNonWhitespace(common.EnvKeyAzKeyvaultResourceEndpoint, common.IdentityEnvVarPrefixService); !ok {

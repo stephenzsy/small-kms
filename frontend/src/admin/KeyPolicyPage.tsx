@@ -84,7 +84,6 @@ function KeyPolicyForm({
   }, [value]);
 
   const onFinish = useMemoizedFn((values: KeyPolicyFormState) => {
-    console.log(values);
     run({
       displayName: values.displayName,
       keyProperties: {
