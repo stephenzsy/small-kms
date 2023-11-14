@@ -31,6 +31,8 @@ export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
 export * from './EnrollCertificateRequest';
 export * from './EnrollmentType';
+export * from './ExchangePKCS12Request';
+export * from './ExchangePKCS12Result';
 export * from './GenerateJsonWebKeyProperties';
 export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';

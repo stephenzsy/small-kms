@@ -114,6 +114,23 @@ type AuthResult struct {
 	AccessToken string `json:"accessToken"`
 }
 
+// ExchangePKCS12Request defines model for ExchangePKCS12Request.
+type ExchangePKCS12Request struct {
+	KeyLocator *externalRef1.ResourceLocator `json:"keyLocator,omitempty"`
+
+	// Legacy Use legacy PKCS12 cipher
+	Legacy *bool `json:"legacy,omitempty"`
+
+	// Payload JWE encrypted private key in JWK
+	Payload string `json:"payload"`
+}
+
+// ExchangePKCS12Result defines model for ExchangePKCS12Result.
+type ExchangePKCS12Result struct {
+	// Payload JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
+	Payload string `json:"payload"`
+}
+
 // ManagedApp defines model for ManagedApp.
 type ManagedApp = ManagedAppRef
 
@@ -163,6 +180,9 @@ type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
 // PutAgentInstanceJSONRequestBody defines body for PutAgentInstance for application/json ContentType.
 type PutAgentInstanceJSONRequestBody = AgentInstanceFields
 
+// ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
+type ExchangePKCS12JSONRequestBody = ExchangePKCS12Request
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List managed apps
@@ -210,6 +230,9 @@ type ServerInterface interface {
 
 	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token)
 	CreateAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
+	// Exchange PKCS12
+	// (POST /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12)
+	ExchangePKCS12(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -577,6 +600,40 @@ func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Cont
 	return err
 }
 
+// ExchangePKCS12 converts echo context to params.
+func (w *ServerInterfaceWrapper) ExchangePKCS12(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceKind" -------------
+	var namespaceKind externalRef1.NamespaceKindParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId externalRef1.NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "resourceId" -------------
+	var resourceId externalRef1.ResourceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ExchangePKCS12(ctx, namespaceKind, namespaceId, resourceId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -620,5 +677,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.GetAgentInstance)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.PutAgentInstance)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/proxy-auth/token", wrapper.CreateAgentInstanceProxyAuthToken)
+	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId/exchange-p12", wrapper.ExchangePKCS12)
 
 }

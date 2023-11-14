@@ -13,3 +13,9 @@ type CloudSignatureKey interface {
 	crypto.Signer
 	KeyID() string
 }
+
+type CloudWrappingKey interface {
+	CloudKey
+	crypto.Decrypter
+	KeyID() string
+}

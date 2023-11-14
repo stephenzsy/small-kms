@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { Link } from "../components/Link";
 import { ImportProfileForm } from "./ImportProfileForm";
 import { SyncManagedApplicationForm } from "./forms/SyncManagedApplicationForm";
+import { useSystemAppRequest } from "./forms/useSystemAppRequest";
 
 type CreateManagedAppFormState = {
   displayName?: string;
@@ -105,21 +106,8 @@ function useProfileRefColumns(profileKind: ResourceKind) {
 
 function SystemAppsEntry({ systemAppName }: { systemAppName: SystemAppName }) {
   const adminApi = useAuthedClient(AdminApi);
-  const { data: systemApp, run: syncSystemApp } = useRequest(
-    (isSync?: boolean) => {
-      if (isSync) {
-        return adminApi.syncSystemApp({
-          systemAppName: systemAppName,
-        });
-      }
-      return adminApi.getSystemApp({
-        systemAppName: systemAppName,
-      });
-    },
-    {
-      refreshDeps: [systemAppName],
-    }
-  );
+  const { data: systemApp, run: syncSystemApp } =
+    useSystemAppRequest(systemAppName);
   return (
     <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-2">
       <div>

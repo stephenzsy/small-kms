@@ -1,13 +1,13 @@
 import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { ManagedAppContextProvider } from "./admin/contexts/ManagedAppContext";
+import { NamespaceContext } from "./admin/contexts/NamespaceContext";
 import { NamespaceContextRouteProvider } from "./admin/contexts/NamespaceContextRouteProvider";
 import { AdminLayout } from "./admin/Layout";
 import { AuthProvider } from "./auth/AuthProvider";
+import { NamespaceKind } from "./generated";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
-import { NamespaceContext } from "./admin/contexts/NamespaceContext";
-import { NamespaceKind } from "./generated";
 
 const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));

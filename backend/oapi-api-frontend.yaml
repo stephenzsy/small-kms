@@ -16,6 +16,8 @@ paths:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1managed-app~1{managedAppId}"
   /v1/system-app/{systemAppName}:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1system-app~1{systemAppName}"
+  /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12:
+    $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates~1{resourceId}~1exchange-p12"
   /v1/{namespaceKind}/{namespaceId}/agent-config/server:
     $ref: "oapi-managed-app.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent-config~1server"
   /v1/{namespaceKind}/{namespaceId}/agent-config/{configName}/role-assignments:

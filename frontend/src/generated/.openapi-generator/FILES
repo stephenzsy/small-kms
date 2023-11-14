@@ -32,6 +32,8 @@ models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
 models/EnrollCertificateRequest.ts
 models/EnrollmentType.ts
+models/ExchangePKCS12Request.ts
+models/ExchangePKCS12Result.ts
 models/GenerateJsonWebKeyProperties.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts

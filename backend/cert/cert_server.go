@@ -17,12 +17,6 @@ type server struct {
 	api.APIServer
 }
 
-// ExchangePKCS12 implements ServerInterface.
-func (*server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKind, namespaceId base.ID, resourceId base.ID) error {
-	c := ec.(ctx.RequestContext)
-	return c.NoContent(http.StatusNotImplemented)
-}
-
 // AddKeyVaultRoleAssignment implements ServerInterface.
 func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID, kvCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error {
 	return fmt.Errorf("%w: unimplemented", base.ErrResponseStatusBadRequest)

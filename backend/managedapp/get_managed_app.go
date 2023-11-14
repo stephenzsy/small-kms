@@ -23,9 +23,19 @@ func getManagedApp(c context.Context, appID uuid.UUID) (*ManagedAppDoc, error) {
 }
 
 func apiGetSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
-	appID, err := resolveSystemAppID(c, systemAppName)
+	doc, err := apiGetSystemAppDoc(c, systemAppName)
 	if err != nil {
 		return err
+	}
+	m := &ManagedApp{}
+	doc.PopulateModel(m)
+	return c.JSON(http.StatusOK, m)
+}
+
+func apiGetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*ManagedAppDoc, error) {
+	appID, err := resolveSystemAppID(c, systemAppName)
+	if err != nil {
+		return nil, err
 	}
 	doc := &ManagedAppDoc{}
 	docService := base.GetAzCosmosCRUDService(c)
@@ -35,11 +45,9 @@ func apiGetSystemApp(c ctx.RequestContext, systemAppName SystemAppName) error {
 		base.IDFromUUID(appID)), doc, nil)
 	if err != nil {
 		if errors.Is(err, base.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)
+			return nil, fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)
 		}
-		return err
+		return nil, err
 	}
-	m := &ManagedApp{}
-	doc.PopulateModel(m)
-	return c.JSON(http.StatusOK, m)
+	return doc, nil
 }

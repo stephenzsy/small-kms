@@ -146,23 +146,6 @@ type EnrollCertificateRequest struct {
 // EnrollmentType defines model for EnrollmentType.
 type EnrollmentType string
 
-// ExchangePKCS12Request defines model for ExchangePKCS12Request.
-type ExchangePKCS12Request struct {
-	KeyLocator *externalRef0.ResourceLocator `json:"keyLocator,omitempty"`
-
-	// Legacy Use legacy PKCS12 cipher
-	Legacy *bool `json:"legacy,omitempty"`
-
-	// PrivateKey JWE encrypted private key in JWK and _password private field
-	PrivateKey string `json:"privateKey"`
-}
-
-// ExchangePKCS12Result defines model for ExchangePKCS12Result.
-type ExchangePKCS12Result struct {
-	// Jwe JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
-	Jwe string `json:"jwe"`
-}
-
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
 	DNSNames    []string `json:"dnsNames,omitempty"`
@@ -203,9 +186,6 @@ type PutCertificateRuleIssuerJSONRequestBody = CertificateRuleIssuer
 
 // PutCertificateRuleMsEntraClientCredentialJSONRequestBody defines body for PutCertificateRuleMsEntraClientCredential for application/json ContentType.
 type PutCertificateRuleMsEntraClientCredentialJSONRequestBody = CertificateRuleMsEntraClientCredential
-
-// ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
-type ExchangePKCS12JSONRequestBody = ExchangePKCS12Request
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -251,9 +231,6 @@ type ServerInterface interface {
 	// Get certificate
 	// (GET /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId})
 	GetCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Exchange PKCS12
-	// (POST /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12)
-	ExchangePKCS12(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -732,40 +709,6 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 	return err
 }
 
-// ExchangePKCS12 converts echo context to params.
-func (w *ServerInterfaceWrapper) ExchangePKCS12(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ExchangePKCS12(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -808,6 +751,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/certificates", wrapper.ListCertificates)
 	router.DELETE(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId", wrapper.GetCertificate)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/certificates/:resourceId/exchange-p12", wrapper.ExchangePKCS12)
 
 }

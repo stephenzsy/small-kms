@@ -39,3 +39,12 @@ func wrapKeyNotFoundError(err error, keyID base.ID) error {
 	}
 	return err
 }
+
+func ApiReadKeyDocByLocator(c ctx.RequestContext, locator base.DocLocator) (*KeyDoc, error) {
+	doc := &KeyDoc{}
+	docSvc := base.GetAzCosmosCRUDService(c)
+	if err := docSvc.Read(c, locator, doc, nil); err != nil {
+		return nil, wrapKeyNotFoundError(err, locator.ID())
+	}
+	return doc, nil
+}

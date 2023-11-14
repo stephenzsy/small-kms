@@ -1,11 +1,10 @@
 import { useBoolean, useRequest } from "ahooks";
-import { Button, Card, Input, Typography } from "antd";
-import { useContext, useState } from "react";
+import { Card, Typography } from "antd";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AdminApi } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { EyeIcon } from "@heroicons/react/24/outline";
 
 export default function KeyPage() {
   const { namespaceKind, namespaceId: namespaceIdentifier } =
@@ -59,11 +58,10 @@ export default function KeyPage() {
           </div>
         </dl>
       </Card>
-      {
-        <Card title="Actions">
-          <div className="flex flex-row gap-4"></div>
-        </Card>
-      }
+
+      <Card title="Actions">
+        <div className="flex flex-row gap-4"></div>
+      </Card>
     </>
   );
 }

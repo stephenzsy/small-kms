@@ -3,9 +3,11 @@ package cloudkeyaz
 import (
 	"context"
 	"crypto"
+	"crypto/rsa"
 	"fmt"
 	"io"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	i "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
@@ -114,12 +116,51 @@ func (ck *azCloudKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts
 	}
 }
 
+// Use unwrap key, large blob of data should not be decrypted directly with this key
+func (ck *azCloudKey) Decrypt(rand io.Reader, msg []byte, opts crypto.DecrypterOpts) (plaintext []byte, err error) {
+	params := azkeys.KeyOperationParameters{
+		Value: msg,
+	}
+	switch ck.keyType {
+	case i.KeyTypeRSA:
+		if opts, ok := opts.(*rsa.OAEPOptions); !ok {
+			return nil, fmt.Errorf("%w: %T", i.ErrInvalidAlgorithm, opts)
+		} else {
+			switch opts.Hash {
+			case crypto.SHA256:
+				params.Algorithm = to.Ptr(azkeys.EncryptionAlgorithmRSAOAEP256)
+			case crypto.SHA1:
+				params.Algorithm = to.Ptr(azkeys.EncryptionAlgorithmRSAOAEP)
+			default:
+				return nil, fmt.Errorf("%w: %s", i.ErrInvalidAlgorithm, opts.Hash)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("%w: %s", i.ErrInvalidKeyType, ck.keyType)
+	}
+	resp, err := ck.client.UnwrapKey(ck.c, ck.kid.Name(), ck.kid.Version(), params, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result, nil
+}
+
 var _ i.CloudSignatureKey = (*azCloudKey)(nil)
+var _ i.CloudWrappingKey = (*azCloudKey)(nil)
 
 func NewAzCloudSignatureKeyWithKID(c context.Context, client *azkeys.Client, kid string) i.CloudSignatureKey {
 	return &azCloudKey{
 		client: client,
 		kid:    azkeys.ID(kid),
 		c:      c,
+	}
+}
+
+func NewCloudWrappingKeyWithKID(c context.Context, client *azkeys.Client, kid string, keyType i.JsonWebKeyType) i.CloudWrappingKey {
+	return &azCloudKey{
+		client:  client,
+		kid:     azkeys.ID(kid),
+		c:       c,
+		keyType: keyType,
 	}
 }

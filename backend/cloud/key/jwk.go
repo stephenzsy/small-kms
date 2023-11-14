@@ -5,30 +5,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"encoding/base64"
-	"encoding/hex"
 	"math/big"
 )
-
-type Base64RawURLEncodableBytes []byte
-
-// MarshalText implements encoding.TextMarshaler.
-func (b Base64RawURLEncodableBytes) MarshalText() (text []byte, err error) {
-	text = make([]byte, base64.RawURLEncoding.EncodedLen(len(b)))
-	base64.RawURLEncoding.Encode(text, b)
-	return
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Base64RawURLEncodableBytes) UnmarshalText(text []byte) error {
-	*b = make([]byte, base64.RawURLEncoding.DecodedLen(len(text)))
-	_, err := base64.RawURLEncoding.Decode(*b, text)
-	return err
-}
-
-func (b Base64RawURLEncodableBytes) HexString() string {
-	return hex.EncodeToString(b)
-}
 
 // RFC7518 6.1.1.  "alg" (Algorithm) Parameter Values for JWS
 type JsonWebKeyType string
@@ -67,6 +45,12 @@ type JsonWebKeyBase struct {
 	Curve            JsonWebKeyCurveName          `json:"crv,omitempty"`      // RFC7518 6.2.1.1. "crv" (Curve) Parameter
 	N                Base64RawURLEncodableBytes   `json:"n,omitempty"`        // RFC7518 6.3.1.1. "n" (Modulus) Parameter
 	E                Base64RawURLEncodableBytes   `json:"e,omitempty"`        // RFC7518 6.3.1.2. "e" (Exponent) Parameter
+	D                Base64RawURLEncodableBytes   `json:"d,omitempty"`        // RFC7518 6.3.2.1. "d" (Private Exponent) Parameter, or RFC7518 6.2.2.1. "d" (ECC Private Key) Parameter
+	P                Base64RawURLEncodableBytes   `json:"p,omitempty"`        // RFC7518 6.3.2.2. "p" (First Prime Factor) Parameter
+	Q                Base64RawURLEncodableBytes   `json:"q,omitempty"`        // RFC7518 6.3.3.3. "q" (Second Prime Factor) Parameter
+	DP               Base64RawURLEncodableBytes   `json:"dp,omitempty"`       // RFC7518 6.3.3.4. "dp" (First Factor CRT Exponent) Parameter
+	DQ               Base64RawURLEncodableBytes   `json:"dq,omitempty"`       // RFC7518 6.3.3.5 "dq" (Second Factor CRT Exponent) Parameter
+	QI               Base64RawURLEncodableBytes   `json:"qi,omitempty"`       // RFC7518 6.3.3.6 "qi" (First CRT Coefficient) Parameter
 	X                Base64RawURLEncodableBytes   `json:"x,omitempty"`        // RFC7518 6.2.1.2. "x" (X Coordinate) Parameter
 	Y                Base64RawURLEncodableBytes   `json:"y,omitempty"`        // RFC7518 6.2.1.3. "y" (Y Coordinate) Parameter
 	KeyOperations    []JsonWebKeyOperation        `json:"key_ops,omitempty"`  // RFC7517 4.3. "key_ops" (Key Operations) Parameter Values for JWK
@@ -74,10 +58,11 @@ type JsonWebKeyBase struct {
 	ThumbprintSHA256 Base64RawURLEncodableBytes   `json:"x5t#S256,omitempty"` // RFC7517 4.9. "x5t#S256" (X.509 Certificate SHA-256 Thumbprint) Parameter
 	CertificateChain []Base64RawURLEncodableBytes `json:"x5c,omitempty"`      // RFC7517 4.7. "x5c" (X.509 Certificate Chain) Parameter
 
-	cachedPublicKey crypto.PublicKey
+	cachedPublicKey  crypto.PublicKey
+	cachedPrivateKey crypto.PrivateKey
 }
 
-type JsonWebKey[TAlg JsonWebSignatureAlgorithm] struct {
+type JsonWebKey[TAlg JsonWebSignatureAlgorithm | JsonWebKeyEncryptionAlgorithm] struct {
 	JsonWebKeyBase
 	Alg TAlg `json:"alg,omitempty"` // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
 }
@@ -91,28 +76,72 @@ func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 
 	switch jwk.KeyType {
 	case KeyTypeRSA:
-		jwk.cachedPublicKey = &rsa.PublicKey{
-			N: big.NewInt(0).SetBytes(jwk.N),
-			E: int(big.NewInt(0).SetBytes(jwk.E).Int64()),
-		}
-		return jwk.cachedPublicKey
+		return jwk.rsaPublicKey()
 	case KeyTypeEC:
-		var crv elliptic.Curve
-		switch jwk.Curve {
-		case CurveNameP256:
-			crv = elliptic.P256()
-		case CurveNameP384:
-			crv = elliptic.P384()
-		case CurveNameP521:
-			crv = elliptic.P521()
-		default:
-			return nil
-		}
-		jwk.cachedPublicKey = &ecdsa.PublicKey{
-			Curve: crv,
-			X:     big.NewInt(0).SetBytes(jwk.X),
-			Y:     big.NewInt(0).SetBytes(jwk.Y),
-		}
+		return jwk.ecdsaPublicKey()
 	}
 	return jwk.cachedPublicKey
+}
+
+func (jwk *JsonWebKey[T]) rsaPublicKey() *rsa.PublicKey {
+	if (jwk.cachedPublicKey) != nil {
+		return jwk.cachedPublicKey.(*rsa.PublicKey)
+	}
+	jwk.cachedPublicKey = &rsa.PublicKey{
+		N: big.NewInt(0).SetBytes(jwk.N),
+		E: int(big.NewInt(0).SetBytes(jwk.E).Int64()),
+	}
+	return jwk.cachedPublicKey.(*rsa.PublicKey)
+}
+
+func (jwk *JsonWebKey[T]) ecdsaPublicKey() *ecdsa.PublicKey {
+	if (jwk.cachedPublicKey) != nil {
+		return jwk.cachedPublicKey.(*ecdsa.PublicKey)
+	}
+	var crv elliptic.Curve
+	switch jwk.Curve {
+	case CurveNameP256:
+		crv = elliptic.P256()
+	case CurveNameP384:
+		crv = elliptic.P384()
+	case CurveNameP521:
+		crv = elliptic.P521()
+	default:
+		return nil
+	}
+	jwk.cachedPublicKey = &ecdsa.PublicKey{
+		Curve: crv,
+		X:     big.NewInt(0).SetBytes(jwk.X),
+		Y:     big.NewInt(0).SetBytes(jwk.Y),
+	}
+	return jwk.cachedPublicKey.(*ecdsa.PublicKey)
+}
+
+// Cloud keys typically don't have retrieveable private key
+func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
+	if jwk.cachedPrivateKey != nil {
+		return jwk.cachedPrivateKey
+	}
+
+	switch jwk.KeyType {
+	case KeyTypeRSA:
+		jwk.cachedPrivateKey = &rsa.PrivateKey{
+			PublicKey: *jwk.rsaPublicKey(),
+			D:         big.NewInt(0).SetBytes(jwk.D),
+			Primes:    []*big.Int{big.NewInt(0).SetBytes(jwk.P), big.NewInt(0).SetBytes(jwk.Q)},
+			Precomputed: rsa.PrecomputedValues{
+				Dp:   big.NewInt(0).SetBytes(jwk.DP),
+				Dq:   big.NewInt(0).SetBytes(jwk.DQ),
+				Qinv: big.NewInt(0).SetBytes(jwk.QI),
+			},
+		}
+		return jwk.cachedPrivateKey
+	case KeyTypeEC:
+		jwk.cachedPrivateKey = &ecdsa.PrivateKey{
+			PublicKey: *jwk.ecdsaPublicKey(),
+			D:         big.NewInt(0).SetBytes(jwk.D),
+		}
+	}
+
+	return jwk.cachedPrivateKey
 }
