@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { AppMsalProvider } from "./_client/AppMsalProvider";
 import "./globals.css";
-import { MsalProvider } from "@azure/msal-react";
-import { AppMsalProvider } from "./_AppMsalProvider";
+import classNames from "classnames";
+import AppLayout from "./_client/AppLayout";
+import { GraphClientProvider } from "./_client/MsGraphClientProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AppMsalProvider>{children}</AppMsalProvider>
+    <html lang="en" className="h-full bg-gray-100">
+      <body className={classNames(inter.className, "h-full")}>
+        <div className="min-h-full">
+          <AppMsalProvider>
+            <GraphClientProvider>
+              <AppLayout>{children}</AppLayout>
+            </GraphClientProvider>
+          </AppMsalProvider>
+        </div>
       </body>
     </html>
   );

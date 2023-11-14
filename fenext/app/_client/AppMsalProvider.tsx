@@ -1,15 +1,12 @@
 "use client";
 
 import {
-  AccountInfo,
   AuthenticationResult,
   EventType,
-  PublicClientApplication,
+  PublicClientApplication
 } from "@azure/msal-browser";
 import {
-  AuthenticatedTemplate,
-  MsalProvider,
-  UnauthenticatedTemplate,
+  MsalProvider
 } from "@azure/msal-react";
 import type { PropsWithChildren } from "react";
 
@@ -18,6 +15,7 @@ const msalInstance = new PublicClientApplication({
     clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID!,
     authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`,
     redirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
+    postLogoutRedirectUri: "/",
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -43,23 +41,5 @@ msalInstance.initialize().then(() => {
 });
 
 export function AppMsalProvider(props: PropsWithChildren<{}>) {
-  console.log(process.env.NEXT_PUBLIC_AZURE_TENANT_ID)
-  return (
-    <MsalProvider instance={msalInstance}>
-      <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
-      <UnauthenticatedTemplate>
-        You must authenticate{" "}
-        <button
-          onClick={() => {
-            msalInstance.loginRedirect({
-              scopes: [process.env.NEXT_PUBLIC_API_SCOPE!],
-              redirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
-            });
-          }}
-        >
-          Login
-        </button>
-      </UnauthenticatedTemplate>
-    </MsalProvider>
-  );
+  return <MsalProvider instance={msalInstance}>{props.children}</MsalProvider>;
 }
