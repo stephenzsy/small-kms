@@ -1,4 +1,4 @@
-name: Backend Build and Publish
+name: Freeradius Build and Publish
 on:
   push:
     branches:

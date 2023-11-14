@@ -26,6 +26,29 @@ const (
 	queryColumnDisplayName = "c.displayName"
 )
 
+func sanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
+	if len(keyOps) == 0 {
+		return nil
+	}
+
+	// remove duplicates
+	seen := make(map[JsonWebKeyOperation]bool)
+	for _, keyOp := range keyOps {
+		switch keyOp {
+		case cloudkey.JsonWebKeyOperationSign, cloudkey.JsonWebKeyOperationVerify,
+			cloudkey.JsonWebKeyOperationEncrypt, cloudkey.JsonWebKeyOperationDecrypt,
+			cloudkey.JsonWebKeyOperationWrapKey, cloudkey.JsonWebKeyOperationUnwrapKey:
+			seen[keyOp] = true
+		}
+	}
+
+	result := make([]JsonWebKeyOperation, 0, len(seen))
+	for keyOp := range seen {
+		result = append(result, keyOp)
+	}
+	return result
+}
+
 func (doc *KeyPolicyDoc) init(c ctx.RequestContext, policyID base.ID, params *KeyPolicyParameters) error {
 	logger := log.Ctx(c)
 	nsCtx := ns.GetNSContext(c)
@@ -75,6 +98,11 @@ func (doc *KeyPolicyDoc) init(c ctx.RequestContext, policyID base.ID, params *Ke
 			default:
 				logger.Warn().Str("crv", string(params.KeyProperties.Crv)).Msg("invalid curve, default to P384")
 			}
+		}
+
+		keyOps := sanitizeKeyOperations(params.KeyProperties.KeyOperations)
+		if len(keyOps) > 0 {
+			doc.KeyProperties.KeyOperations = keyOps
 		}
 	}
 

@@ -1,4 +1,4 @@
-name: Freeradius Image Build and Publish
+name: Backend Image Build and Publish
 on:
   push:
     branches:
