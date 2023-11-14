@@ -19,7 +19,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54
 	github.com/microsoftgraph/msgraph-sdk-go v1.25.0
-	github.com/oapi-codegen/runtime v1.0.0
+	github.com/oapi-codegen/runtime v1.1.0
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7

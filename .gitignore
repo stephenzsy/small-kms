@@ -64,3 +64,4 @@ terraform.rc
 SmallKMSCertClient/SmallKMSCertClient/bin/Debug/net7.0/SmallKMSCertClient.runtimeconfig.json
 /SmallKMSCertClient/SmallKMSCertClient/Properties/launchSettings.json
 /SmallKMSCertClient/SmallKMSCertClient/*.json
+backend/backend
