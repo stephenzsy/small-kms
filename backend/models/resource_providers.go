@@ -9,10 +9,7 @@ const (
 
 type ResourceProvider string
 
-const ()
-
-type ProfileResourceProvider ResourceProvider
-
 const (
-	ProfileResourceProviderAgent ProfileResourceProvider = "agent"
+	ProfileResourceProviderSystem ResourceProvider = "sys"
+	ProfileResourceProviderAgent  ResourceProvider = "agent"
 )

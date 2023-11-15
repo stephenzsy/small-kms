@@ -2,6 +2,7 @@ package agentadmin
 
 import (
 	"github.com/labstack/echo/v4"
+	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -20,17 +21,14 @@ func (s *AgentAdminServer) ListAgents(ec echo.Context) error {
 	qb := resdoc.NewDefaultCosmoQueryBuilder().WithExtraColumns("c.displayName")
 	pager := resdoc.NewQueryDocPager[*AgentDoc](c, qb, resdoc.PartitionKey{
 		NamespaceProvider: models.NamespaceProviderProfile,
-		NamespaceID:       "global",
-		ResourceProvider:  models.ResourceProvider(models.ProfileResourceProviderAgent),
+		NamespaceID:       appadmin.AppNamespaceID,
+		ResourceProvider:  models.ProfileResourceProviderAgent,
 	})
 
 	modelPager := utils.NewMappedItemsPager(pager, func(doc *AgentDoc) *models.Ref {
-		return &models.Ref{
-			ID:          doc.ID,
-			Updated:     doc.Timestamp.Time,
-			Deleted:     doc.Deleted,
-			DisplayName: doc.DisplayName,
-		}
+		ref := doc.ToRef()
+		ref.DisplayName = doc.DisplayName
+		return &ref
 	})
 
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))

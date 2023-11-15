@@ -25,5 +25,8 @@ type Ref struct {
 	UpdatedBy   string     `json:"updatedBy"`
 }
 
+// ApplicationByAppIdResponse defines model for ApplicationByAppIdResponse.
+type ApplicationByAppIdResponse = ApplicationByAppId
+
 // RefsResponse defines model for RefsResponse.
 type RefsResponse = []Ref

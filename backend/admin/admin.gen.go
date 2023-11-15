@@ -4,7 +4,11 @@
 package admin
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 )
 
 const (
@@ -16,6 +20,12 @@ type ServerInterface interface {
 	// List agents
 	// (GET /v2/agents)
 	ListAgents(ctx echo.Context) error
+	// Get system app
+	// (GET /v2/system-app/{id})
+	GetSystemApp(ctx echo.Context, id string) error
+	// Sync managed app
+	// (POST /v2/system-app/{id})
+	SyncSystemApp(ctx echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -31,6 +41,42 @@ func (w *ServerInterfaceWrapper) ListAgents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.ListAgents(ctx)
+	return err
+}
+
+// GetSystemApp converts echo context to params.
+func (w *ServerInterfaceWrapper) GetSystemApp(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetSystemApp(ctx, id)
+	return err
+}
+
+// SyncSystemApp converts echo context to params.
+func (w *ServerInterfaceWrapper) SyncSystemApp(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.SyncSystemApp(ctx, id)
 	return err
 }
 
@@ -63,5 +109,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v2/agents", wrapper.ListAgents)
+	router.GET(baseURL+"/v2/system-app/:id", wrapper.GetSystemApp)
+	router.POST(baseURL+"/v2/system-app/:id", wrapper.SyncSystemApp)
 
 }

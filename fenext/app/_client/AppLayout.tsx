@@ -13,11 +13,12 @@ import {
 import { useRequest } from "ahooks";
 import { useGraphClient } from "./MsGraphClientProvider";
 import UserAvatar from "./UserAvatar";
+import { PageContent } from "@/components/PageLayout";
 
 const navigation = [
   { name: "Dashboard", href: "#", current: true },
   { name: "Agents", href: "/agents", current: false },
-  { name: "Projects", href: "#", current: false },
+  { name: "System", href: "/system", current: false },
   { name: "Calendar", href: "#", current: false },
 ];
 const userNavigation = [
@@ -28,8 +29,11 @@ const userNavigation = [
 
 function useAvatarImage(): string | undefined {
   const graphClient = useGraphClient();
-  const { data } = useRequest(() => {
-    return graphClient.api("/me/photo/$value").get();
+  const { data } = useRequest(async () => {
+    try {
+      return await graphClient.api("/me/photo/$value").get();
+    } catch {}
+    return undefined;
   }, {});
   return data;
 }
@@ -212,32 +216,23 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
       </Disclosure>
 
       <div className="py-10">
-        <header>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
-              Dashboard
-            </h1>
-          </div>
-        </header>
-        <main>
-          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
-            <UnauthenticatedTemplate>
-              You must be signed in{" "}
-              <button
-                onClick={() => {
-                  msalInstance.loginRedirect({
-                    scopes: [process.env.NEXT_PUBLIC_API_SCOPE!],
-                    extraScopesToConsent: ["User.Read"],
-                    redirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
-                  });
-                }}
-              >
-                Login
-              </button>
-            </UnauthenticatedTemplate>
-          </div>
-        </main>
+        <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
+        <UnauthenticatedTemplate>
+          <PageContent>
+            You must be signed in{" "}
+            <button
+              onClick={() => {
+                msalInstance.loginRedirect({
+                  scopes: [process.env.NEXT_PUBLIC_API_SCOPE!],
+                  extraScopesToConsent: ["User.Read"],
+                  redirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
+                });
+              }}
+            >
+              Login
+            </button>
+          </PageContent>
+        </UnauthenticatedTemplate>
       </div>
     </>
   );

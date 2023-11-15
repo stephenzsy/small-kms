@@ -50,3 +50,9 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Ref"
+    ApplicationByAppIdResponse:
+      description: ApplicationByAppId response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApplicationByAppId"

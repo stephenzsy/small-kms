@@ -20,7 +20,6 @@ export function AdminApiProvider(props: PropsWithChildren<{}>) {
       })
     );
   }, [instance]);
-  console.log(client);
   return (
     <AdminApiContext.Provider value={client}>
       {props.children}

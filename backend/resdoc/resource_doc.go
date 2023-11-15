@@ -1,9 +1,12 @@
 package resdoc
 
 import (
+	"context"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	"github.com/stephenzsy/small-kms/backend/models"
 )
 
@@ -20,8 +23,39 @@ type ResourceDoc struct {
 	UpdatedBy    string              `json:"updatedBy,omitempty"`
 }
 
-type ResourceDocument interface {
+// setTimestamp implements ResourceDocument.
+func (doc *ResourceDoc) setTimestamp(t time.Time) {
+	doc.Timestamp = jwt.NewNumericDate(t)
 }
+
+// partitionKey implements ResourceDocument.
+func (doc *ResourceDoc) partitionKey() PartitionKey {
+	return doc.PartitionKey
+}
+
+// setETag implements ResourceDocument.
+func (d *ResourceDoc) setETag(etag azcore.ETag) {
+	if d.ETag == nil {
+		return
+	}
+	d.ETag = &etag
+}
+
+func (d *ResourceDoc) prepareForWrite(c context.Context) {
+	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
+	// clear read-only fields
+	d.ETag = nil
+	d.Timestamp = nil
+}
+
+type ResourceDocument interface {
+	partitionKey() PartitionKey
+	setETag(etag azcore.ETag)
+	prepareForWrite(c context.Context)
+	setTimestamp(t time.Time)
+}
+
+var _ ResourceDocument = (*ResourceDoc)(nil)
 
 type ResourceQueryDocument interface {
 }

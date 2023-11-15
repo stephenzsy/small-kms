@@ -17,6 +17,29 @@ paths:
       responses:
         "200":
           $ref: "models-shared.yaml#/components/responses/RefsResponse"
+  /v2/system-app/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - admin
+      operationId: GetSystemApp
+      summary: Get system app
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+    post:
+      tags:
+        - admin
+      operationId: SyncSystemApp
+      summary: Sync managed app
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
 components:
   securitySchemes:
     BearerAuth:

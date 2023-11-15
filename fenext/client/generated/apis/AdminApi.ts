@@ -15,17 +15,66 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApplicationByAppId,
   Ref,
 } from '../models/index';
 import {
+    ApplicationByAppIdFromJSON,
+    ApplicationByAppIdToJSON,
     RefFromJSON,
     RefToJSON,
 } from '../models/index';
+
+export interface GetSystemAppRequest {
+    id: string;
+}
+
+export interface SyncSystemAppRequest {
+    id: string;
+}
 
 /**
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Get system app
+     */
+    async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getSystemApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/system-app/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+    }
+
+    /**
+     * Get system app
+     */
+    async getSystemApp(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+        const response = await this.getSystemAppRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * List agents
@@ -58,6 +107,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listAgents(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
         const response = await this.listAgentsRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync managed app
+     */
+    async syncSystemAppRaw(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling syncSystemApp.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/system-app/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync managed app
+     */
+    async syncSystemApp(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+        const response = await this.syncSystemAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -1,6 +1,8 @@
 apis/AdminApi.ts
 apis/index.ts
 index.ts
+models/ApplicationByAppId.ts
+models/ApplicationByAppIdFields.ts
 models/Ref.ts
 models/index.ts
 runtime.ts
