@@ -31,12 +31,6 @@ const (
 	AgentModeServer   AgentMode = "server"
 )
 
-// Defines values for SystemAppName.
-const (
-	SystemAppNameAPI     SystemAppName = "api"
-	SystemAppNameBackend SystemAppName = "backend"
-)
-
 // AgentConfig defines model for AgentConfig.
 type AgentConfig = agentConfigComposed
 
@@ -159,9 +153,6 @@ type SecretMount struct {
 	TargetName string `json:"targetName"`
 }
 
-// SystemAppName defines model for SystemAppName.
-type SystemAppName string
-
 // ManagedAppIdParameter defines model for ManagedAppIdParameter.
 type ManagedAppIdParameter = openapi_types.UUID
 
@@ -197,12 +188,6 @@ type ServerInterface interface {
 	// Sync managed app
 	// (POST /v1/managed-app/{managedAppId})
 	SyncManagedApp(ctx echo.Context, managedAppId ManagedAppIdParameter) error
-	// Get system app
-	// (GET /v1/system-app/{systemAppName})
-	GetSystemApp(ctx echo.Context, systemAppName SystemAppName) error
-	// Sync managed app
-	// (POST /v1/system-app/{systemAppName})
-	SyncSystemApp(ctx echo.Context, systemAppName SystemAppName) error
 	// Get agent config radius
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent-config/radius)
 	GetAgentConfigRadius(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter) error
@@ -295,42 +280,6 @@ func (w *ServerInterfaceWrapper) SyncManagedApp(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.SyncManagedApp(ctx, managedAppId)
-	return err
-}
-
-// GetSystemApp converts echo context to params.
-func (w *ServerInterfaceWrapper) GetSystemApp(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "systemAppName" -------------
-	var systemAppName SystemAppName
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "systemAppName", runtime.ParamLocationPath, ctx.Param("systemAppName"), &systemAppName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter systemAppName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetSystemApp(ctx, systemAppName)
-	return err
-}
-
-// SyncSystemApp converts echo context to params.
-func (w *ServerInterfaceWrapper) SyncSystemApp(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "systemAppName" -------------
-	var systemAppName SystemAppName
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "systemAppName", runtime.ParamLocationPath, ctx.Param("systemAppName"), &systemAppName)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter systemAppName: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.SyncSystemApp(ctx, systemAppName)
 	return err
 }
 
@@ -666,8 +615,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v1/managed-app", wrapper.CreateManagedApp)
 	router.GET(baseURL+"/v1/managed-app/:managedAppId", wrapper.GetManagedApp)
 	router.POST(baseURL+"/v1/managed-app/:managedAppId", wrapper.SyncManagedApp)
-	router.GET(baseURL+"/v1/system-app/:systemAppName", wrapper.GetSystemApp)
-	router.POST(baseURL+"/v1/system-app/:systemAppName", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.GetAgentConfigRadius)
 	router.PATCH(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/radius", wrapper.PatchAgentConfigRadius)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.GetAgentConfigServer)

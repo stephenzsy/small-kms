@@ -1,21 +1,19 @@
+import { useRequest } from "ahooks";
+import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
+import { useForm } from "antd/es/form/Form";
 import Title from "antd/es/typography/Title";
+import { useMemo } from "react";
+import { Link } from "../components/Link";
 import {
   AdminApi,
   CreateManagedAppRequest,
   ManagedAppRef,
   ProfileRef,
-  ResourceKind,
-  SystemAppName,
+  ResourceKind
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { useRequest } from "ahooks";
-import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
-import { useForm } from "antd/es/form/Form";
-import { useMemo } from "react";
-import { Link } from "../components/Link";
 import { ImportProfileForm } from "./ImportProfileForm";
 import { SyncManagedApplicationForm } from "./forms/SyncManagedApplicationForm";
-import { useSystemAppRequest } from "./forms/useSystemAppRequest";
 
 type CreateManagedAppFormState = {
   displayName?: string;
@@ -104,35 +102,6 @@ function useProfileRefColumns(profileKind: ResourceKind) {
   );
 }
 
-function SystemAppsEntry({ systemAppName }: { systemAppName: SystemAppName }) {
-  const adminApi = useAuthedClient(AdminApi);
-  const { data: systemApp, run: syncSystemApp } =
-    useSystemAppRequest(systemAppName);
-  return (
-    <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-2">
-      <div>
-        Type: <span className="font-mono">{systemAppName}</span>
-      </div>
-      <div>Display name: {systemApp?.displayName}</div>
-      <div>
-        Application ID (Client ID):{" "}
-        <span className="font-mono">{systemApp?.id}</span>
-      </div>
-      <div className="flex items-center gap-4">
-        {systemApp && <Link to={`/app/system/${systemAppName}`}>View</Link>}
-        <Button
-          type="link"
-          onClick={() => {
-            syncSystemApp(true);
-          }}
-        >
-          Sync
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function ManagedAppsPage() {
   const adminApi = useAuthedClient(AdminApi);
 
@@ -166,8 +135,6 @@ export default function ManagedAppsPage() {
       <Title>Applications</Title>
       <Card title="System applications">
         <div className="space-y-4">
-          <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameAPI} />
-          <SystemAppsEntry systemAppName={SystemAppName.SystemAppNameBackend} />
           <Link className="block" to={`/app/system/default/provision-agent`}>
             Agent global configurations
           </Link>

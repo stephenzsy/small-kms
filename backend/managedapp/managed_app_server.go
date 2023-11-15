@@ -69,26 +69,6 @@ func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceK
 	return apiPutAgentInstance(c, instanceId, fields)
 }
 
-// SyncSystemApp implements ServerInterface.
-func (s *server) SyncSystemApp(ec echo.Context, systemAppName SystemAppName) error {
-	c := ec.(ctx.RequestContext)
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	return apiSyncSystemApp(c, systemAppName)
-}
-
-// GetSystemApp implements ServerInterface.
-func (s *server) GetSystemApp(ec echo.Context, systemAppName SystemAppName) error {
-	c := ec.(ctx.RequestContext)
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	return apiGetSystemApp(c, systemAppName)
-}
-
 // GetAgentConfigServer implements ServerInterface.
 func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, nsID base.ID) error {
 	c := ec.(ctx.RequestContext)

@@ -9,6 +9,8 @@ import { NamespaceKind } from "./generated";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 
+const AgentsPage = React.lazy(() => import("./agents/page"));
+const SystemAppsPage = React.lazy(() => import("./system/page"));
 const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
@@ -59,6 +61,8 @@ export const router = createBrowserRouter([
         ),
         id: RouteIds.home,
       },
+      { path: "agents", element: <AgentsPage /> },
+      { path: "system", element: <SystemAppsPage /> },
       {
         path: "entra/:nsKind",
         children: [
@@ -104,7 +108,7 @@ export const router = createBrowserRouter([
               {
                 path: "system/:appId",
                 element: (
-                  <ManagedAppContextProvider isSystemApp={true}>
+                  <ManagedAppContextProvider>
                     <ManagedAppPage isSystemApp />
                   </ManagedAppContextProvider>
                 ),
@@ -120,7 +124,7 @@ export const router = createBrowserRouter([
               {
                 path: "managed/:appId",
                 element: (
-                  <ManagedAppContextProvider isSystemApp={false}>
+                  <ManagedAppContextProvider>
                     <Outlet />
                   </ManagedAppContextProvider>
                 ),

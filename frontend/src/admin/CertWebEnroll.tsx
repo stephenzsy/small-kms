@@ -14,7 +14,6 @@ import {
   KeyRef,
   NamespaceKind,
   ResourceKind,
-  SystemAppName,
 } from "../generated";
 import {
   base64StdEncodedToUrlEncoded,
@@ -592,9 +591,7 @@ function KeySelector({
   value?: string;
   onChange?: (value: string) => void;
 }) {
-  const { data: systemApp } = useSystemAppRequest(
-    SystemAppName.SystemAppNameBackend
-  );
+  const { data: systemApp } = useSystemAppRequest("backend");
 
   const nsId = systemApp?.servicePrincipalId;
 

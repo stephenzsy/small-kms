@@ -1,8 +1,8 @@
+import { useMemoizedFn, useRequest } from "ahooks";
 import { PropsWithChildren, createContext } from "react";
 import { useParams } from "react-router-dom";
+import { AdminApi, type ManagedAppRef } from "../../generated";
 import { useAuthedClient } from "../../utils/useCertsApi";
-import { AdminApi, type ManagedAppRef, SystemAppName } from "../../generated";
-import { useMemoizedFn, useRequest } from "ahooks";
 
 export type ManagedAppContextValue = {
   managedApp?: ManagedAppRef;
@@ -12,31 +12,18 @@ export const ManagedAppContext = createContext<ManagedAppContextValue>({
   syncApp: () => {},
 });
 
-export function ManagedAppContextProvider({
-  children,
-  isSystemApp = false,
-}: PropsWithChildren<{
-  isSystemApp?: boolean;
-}>) {
+export function ManagedAppContextProvider({ children }: PropsWithChildren<{}>) {
   const { appId } = useParams() as { appId: string };
   const adminApi = useAuthedClient(AdminApi);
   const { data: managedApp, run } = useRequest(
     (sync?: boolean) => {
-      if (isSystemApp) {
-        if (sync) {
-          return adminApi.syncSystemApp({
-            systemAppName: appId as SystemAppName,
-          });
-        }
-        return adminApi.getSystemApp({ systemAppName: appId as SystemAppName });
-      }
       if (sync) {
         return adminApi.syncManagedApp({ managedAppId: appId });
       }
       return adminApi.getManagedApp({ managedAppId: appId });
     },
     {
-      refreshDeps: [appId, isSystemApp],
+      refreshDeps: [appId],
     }
   );
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/admin/systemapp"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
@@ -60,11 +61,13 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 		return fmt.Errorf("%w: this operation can only be performed within 1 hour after cert issurance", base.ErrResponseStatusBadRequest)
 	}
 
-	systemAppDoc, err := apiGetSystemAppDoc(c, SystemAppNameBackend)
+	systemAppDoc, _, err := systemapp.GetSystemAppDoc(c, systemapp.SystemAppNameBackend)
 	if err != nil {
 		return err
 	}
-	if req.KeyLocator.NamespaceKind() != base.NamespaceKindServicePrincipal || req.KeyLocator.NamespaceID() != base.IDFromUUID(systemAppDoc.ServicePrincipalID) {
+	if systemAppDoc.ServicePrincipalID == "" ||
+		req.KeyLocator.NamespaceKind() != base.NamespaceKindServicePrincipal ||
+		req.KeyLocator.NamespaceID() != base.ParseID(systemAppDoc.ServicePrincipalID) {
 		return fmt.Errorf("%w: invalid key locator", base.ErrResponseStatusBadRequest)
 	}
 

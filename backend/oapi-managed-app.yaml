@@ -66,37 +66,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ManagedApp"
-  /v1/system-app/{systemAppName}:
-    parameters:
-      - in: path
-        name: systemAppName
-        required: true
-        schema:
-          $ref: "#/components/schemas/SystemAppName"
-    get:
-      tags:
-        - admin
-      operationId: GetSystemApp
-      summary: Get system app
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ManagedApp"
-    post:
-      tags:
-        - admin
-      operationId: SyncSystemApp
-      summary: Sync managed app
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ManagedApp"
   /v1/{namespaceKind}/{namespaceId}/agent-config/server:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -276,7 +245,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ExchangePKCS12Result"          
+                $ref: "#/components/schemas/ExchangePKCS12Result"
 security:
   - BearerAuth: []
 components:
@@ -544,7 +513,7 @@ components:
           type: string
           description: JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
       required:
-        - payload        
+        - payload
   parameters:
     ManagedAppIdParameter:
       in: path

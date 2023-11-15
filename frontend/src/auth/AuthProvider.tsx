@@ -4,7 +4,13 @@ import {
   InteractionStatus,
   PublicClientApplication,
 } from "@azure/msal-browser";
-import { MsalProvider, useAccount, useMsal } from "@azure/msal-react";
+import {
+  AuthenticatedTemplate,
+  MsalProvider,
+  useAccount,
+  useIsAuthenticated,
+  useMsal,
+} from "@azure/msal-react";
 import { useLatest, useMemoizedFn } from "ahooks";
 import {
   createContext,
@@ -28,32 +34,46 @@ const pca = new PublicClientApplication({
 });
 
 export interface IAppAuthContext {
-  account?: AccountInfo;
+  readonly account: AccountInfo | null;
+  readonly isAuthenticated: boolean;
   logout: () => void;
-  acquireToken: () => Promise<AuthenticationResult | void>;
+  acquireToken: (scopes?: string[]) => Promise<AuthenticationResult | void>;
   readonly isAdmin: boolean;
 }
 
 export const AppAuthContext = createContext<IAppAuthContext>({
+  account: null,
+  isAuthenticated: false,
   logout: () => {},
   acquireToken: () => Promise.resolve(undefined),
   isAdmin: false,
 });
 
+function useActiveAccount() {
+  const { accounts } = useMsal();
+  let account: AccountInfo | undefined;
+  if (accounts && accounts.length > 0) {
+    account = accounts[0];
+  }
+  return useAccount(account);
+}
+
 function AuthContextProvider({ children }: PropsWithChildren<{}>) {
-  const { instance, inProgress, accounts } = useMsal();
-  const account = useAccount(accounts?.[0] ?? undefined);
+  const { instance } = useMsal();
+  const account = useActiveAccount();
   const logout = useMemoizedFn(() => {
     instance.logoutRedirect();
   });
 
   const accountRef = useLatest(account);
   const acquireToken = useMemoizedFn(
-    async (): Promise<AuthenticationResult | void> => {
+    async (
+      scopes: string[] = [import.meta.env.VITE_API_SCOPE]
+    ): Promise<AuthenticationResult | void> => {
       try {
         if (accountRef.current) {
           return await instance.acquireTokenSilent({
-            scopes: [import.meta.env.VITE_API_SCOPE],
+            scopes,
             account: accountRef.current,
           });
         }
@@ -61,15 +81,16 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       } catch {}
       return instance.loginRedirect({
         scopes: [import.meta.env.VITE_API_SCOPE],
+        extraScopesToConsent: [
+          "https://graph.microsoft.com/Directory.Read.All",
+        ],
         redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
       });
     }
   );
-  useEffect(() => {
-    if (inProgress === InteractionStatus.None && accounts.length === 0) {
-      acquireToken();
-    }
-  }, [inProgress, account]);
+
+  const isAuthenticated = useIsAuthenticated(account ?? undefined);
+
   const isAdmin = useMemo(
     () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
     [account]
@@ -78,7 +99,8 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
   return (
     <AppAuthContext.Provider
       value={{
-        account: account ?? undefined,
+        account,
+        isAuthenticated,
         logout,
         acquireToken,
         isAdmin,

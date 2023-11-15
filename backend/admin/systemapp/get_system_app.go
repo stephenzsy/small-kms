@@ -26,7 +26,7 @@ func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 		return err
 	}
 
-	doc, appID, err := apiGetSystemAppDoc(c, appName)
+	doc, appID, err := GetSystemAppDoc(c, appName)
 	if err != nil {
 		if errors.Is(err, echo.ErrNotFound) {
 			return c.JSON(200, &models.ApplicationByAppId{
@@ -54,7 +54,7 @@ func resolveSystemAppID(c context.Context, systemAppName SystemAppName) (uuid.UU
 	return uuid.Nil, fmt.Errorf("%w: system app not found: %s", echo.ErrNotFound, systemAppName)
 }
 
-func apiGetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*SystemAppDoc, uuid.UUID, error) {
+func GetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*SystemAppDoc, uuid.UUID, error) {
 	appID, err := resolveSystemAppID(c, systemAppName)
 	if err != nil {
 		return nil, appID, err

@@ -86,6 +86,5 @@ models/SecretRefFields.ts
 models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts
-models/SystemAppName.ts
 models/index.ts
 runtime.ts
