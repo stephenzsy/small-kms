@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
@@ -18,7 +19,7 @@ import (
 func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 	c := ec.(ctx.RequestContext)
 	if !auth.AuthorizeAdminOnly(c) {
-		return echo.ErrForbidden
+		return base.ErrResponseStatusForbidden
 	}
 
 	appName, err := validateSystemAppName(id)
@@ -28,7 +29,7 @@ func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 
 	doc, appID, err := GetSystemAppDoc(c, appName)
 	if err != nil {
-		if errors.Is(err, echo.ErrNotFound) {
+		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
 			return c.JSON(200, &models.ApplicationByAppId{
 				Ref: models.Ref{
 					ID: appID.String(),
@@ -51,7 +52,7 @@ func resolveSystemAppID(c context.Context, systemAppName SystemAppName) (uuid.UU
 			return uuid.Parse(systemAppID)
 		}
 	}
-	return uuid.Nil, fmt.Errorf("%w: system app not found: %s", echo.ErrNotFound, systemAppName)
+	return uuid.Nil, fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)
 }
 
 func GetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*SystemAppDoc, uuid.UUID, error) {
@@ -70,7 +71,7 @@ func GetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*System
 	}, doc, nil)
 	if err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return nil, appID, fmt.Errorf("%w: system app not found: %s", echo.ErrNotFound, systemAppName)
+			return nil, appID, fmt.Errorf("%w: system app not found: %s", base.ErrResponseStatusNotFound, systemAppName)
 		}
 		return nil, appID, err
 	}

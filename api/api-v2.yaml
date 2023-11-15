@@ -15,8 +15,23 @@ paths:
       summary: List agents
       operationId: ListAgents
       responses:
-        "200":
+        200:
           $ref: "models-shared.yaml#/components/responses/RefsResponse"
+    post:
+      tags:
+        - admin
+      summary: Create agent
+      operationId: CreateAgent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "models-agent.yaml#/components/schemas/CreateAgentRequest"
+      responses:
+        201:
+          $ref: "models-agent.yaml#/components/responses/AgentResposne"
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentResposne"
   /v2/system-app/{id}:
     parameters:
       - in: path
@@ -39,6 +54,8 @@ paths:
       summary: Sync managed app
       responses:
         200:
+          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+        201:
           $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
 components:
   securitySchemes:

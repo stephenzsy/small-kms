@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
 	"github.com/stephenzsy/small-kms/backend/api"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -15,7 +16,7 @@ func (s *AgentAdminServer) ListAgents(ec echo.Context) error {
 	c := ec.(ctx.RequestContext)
 
 	if !authz.AuthorizeAdminOnly(c) {
-		return echo.ErrForbidden
+		return base.ErrResponseStatusForbidden
 	}
 
 	qb := resdoc.NewDefaultCosmoQueryBuilder().WithExtraColumns("c.displayName")

@@ -15,15 +15,25 @@
 
 import * as runtime from '../runtime';
 import type {
+  Agent,
   ApplicationByAppId,
+  CreateAgentRequest,
   Ref,
 } from '../models/index';
 import {
+    AgentFromJSON,
+    AgentToJSON,
     ApplicationByAppIdFromJSON,
     ApplicationByAppIdToJSON,
+    CreateAgentRequestFromJSON,
+    CreateAgentRequestToJSON,
     RefFromJSON,
     RefToJSON,
 } from '../models/index';
+
+export interface CreateAgentOperationRequest {
+    createAgentRequest?: CreateAgentRequest;
+}
 
 export interface GetSystemAppRequest {
     id: string;
@@ -37,6 +47,43 @@ export interface SyncSystemAppRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Create agent
+     */
+    async createAgentRaw(requestParameters: CreateAgentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Agent>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/agents`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateAgentRequestToJSON(requestParameters.createAgentRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentFromJSON(jsonValue));
+    }
+
+    /**
+     * Create agent
+     */
+    async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Agent> {
+        const response = await this.createAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get system app

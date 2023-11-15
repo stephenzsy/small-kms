@@ -30,7 +30,3 @@ func WithDelegatedMsGraphClient(c ctx.RequestContext) (ctx.RequestContext, *msgr
 		return msgraph.NewGraphServiceClientWithCredentials(creds, nil)
 	})
 }
-
-func GetDelegatedMsGraphClient(c context.Context) *msgraph.GraphServiceClient {
-	return auth.GetDelegateClient[msgraph.GraphServiceClient, ContextKey](c, delegatedMsGraphClientContextKey)
-}

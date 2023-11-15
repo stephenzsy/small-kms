@@ -6,6 +6,7 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
 	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
@@ -17,7 +18,7 @@ import (
 func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 	c := ec.(ctx.RequestContext)
 	if !auth.AuthorizeAdminOnly(c) {
-		return echo.ErrForbidden
+		return base.ErrResponseStatusForbidden
 	}
 
 	appName, err := validateSystemAppName(id)
@@ -69,10 +70,11 @@ func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 	}
 
 	docSvc := resdoc.GetDocService(c)
-	if err := docSvc.Upsert(c, doc, nil); err != nil {
+	resp, err := docSvc.Upsert(c, doc, nil)
+	if err != nil {
 		return err
 	}
 
-	return c.JSON(200, doc.ToApplicationByAppId())
+	return c.JSON(resp.RawResponse.StatusCode, doc.ToApplicationByAppId())
 
 }

@@ -8,3 +8,21 @@ components:
     Agent:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"
+    CreateAgentRequest:
+      type: object
+      properties:
+        appId:
+          description: The Application ID (Client ID) of the agent
+          type: string
+          x-go-type-skip-optional-pointer: true
+        displayName:
+          description: The display name of the agent application
+          type: string
+          x-go-type-skip-optional-pointer: true
+  responses:
+    AgentResposne:
+      description: Agent response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Agent"

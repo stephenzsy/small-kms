@@ -193,6 +193,11 @@ func NewApiServer(c context.Context, buildID string) (*apiServer, error) {
 	s.azSubscriptionID = s.EnvService().Default(common.EnvKeyAzSubscriptionID, "", common.IdentityEnvVarPrefixService)
 	s.resourceGroupName = s.EnvService().Default(common.EnvKeyAzResourceGroupName, "", common.IdentityEnvVarPrefixService)
 
+	s.serviceMsGraphClient, err = msgraphsdkgo.NewGraphServiceClientWithCredentials(s.appConfidentialIdentity.TokenCredential(), nil)
+	if err != nil {
+		return s, err
+	}
+
 	return s, nil
 }
 

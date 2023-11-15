@@ -18,7 +18,8 @@ const (
 
 type DocService interface {
 	Read(c context.Context, identifier DocIdentifier, dst ResourceDocument, opts *azcosmos.ItemOptions) error
-	Upsert(context.Context, ResourceDocument, *azcosmos.ItemOptions) error
+	Create(context.Context, ResourceDocument, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
+	Upsert(context.Context, ResourceDocument, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 	NewQueryItemsPager(query string, partitionKey PartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
 }
 
@@ -40,17 +41,17 @@ func (s *azcosmosSingleContainerDocService) Read(
 	return err
 }
 
-func (s *azcosmosSingleContainerDocService) Upsert(
-	c context.Context, doc ResourceDocument, o *azcosmos.ItemOptions) error {
+func (s *azcosmosSingleContainerDocService) Create(
+	c context.Context, doc ResourceDocument, o *azcosmos.ItemOptions) (resp azcosmos.ItemResponse, err error) {
 	partitionKey := azcosmos.NewPartitionKeyString(doc.partitionKey().String())
 	doc.prepareForWrite(c)
 	content, err := json.Marshal(doc)
 	if err != nil {
-		return err
+		return resp, err
 	}
-	resp, err := s.client.UpsertItem(c, partitionKey, content, o)
+	resp, err = s.client.CreateItem(c, partitionKey, content, o)
 	if err != nil {
-		return err
+		return resp, err
 	}
 	doc.setETag(resp.ETag)
 	ts, err := time.Parse(time.RFC1123, resp.RawResponse.Header.Get("Date"))
@@ -59,7 +60,29 @@ func (s *azcosmosSingleContainerDocService) Upsert(
 	} else {
 		doc.setTimestamp(ts)
 	}
-	return nil
+	return resp, nil
+}
+
+func (s *azcosmosSingleContainerDocService) Upsert(
+	c context.Context, doc ResourceDocument, o *azcosmos.ItemOptions) (resp azcosmos.ItemResponse, err error) {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.partitionKey().String())
+	doc.prepareForWrite(c)
+	content, err := json.Marshal(doc)
+	if err != nil {
+		return resp, err
+	}
+	resp, err = s.client.UpsertItem(c, partitionKey, content, o)
+	if err != nil {
+		return resp, err
+	}
+	doc.setETag(resp.ETag)
+	ts, err := time.Parse(time.RFC1123, resp.RawResponse.Header.Get("Date"))
+	if err != nil {
+		log.Ctx(c).Warn().Err(err).Str("DateHeader", resp.RawResponse.Header.Get("Date")).Msg("failed to parse timestamp")
+	} else {
+		doc.setTimestamp(ts)
+	}
+	return resp, nil
 }
 
 func (s *azcosmosSingleContainerDocService) NewQueryItemsPager(

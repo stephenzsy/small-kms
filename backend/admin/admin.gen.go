@@ -9,17 +9,24 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
+	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
 const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
+type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List agents
 	// (GET /v2/agents)
 	ListAgents(ctx echo.Context) error
+	// Create agent
+	// (POST /v2/agents)
+	CreateAgent(ctx echo.Context) error
 	// Get system app
 	// (GET /v2/system-app/{id})
 	GetSystemApp(ctx echo.Context, id string) error
@@ -41,6 +48,17 @@ func (w *ServerInterfaceWrapper) ListAgents(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.ListAgents(ctx)
+	return err
+}
+
+// CreateAgent converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateAgent(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateAgent(ctx)
 	return err
 }
 
@@ -109,6 +127,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v2/agents", wrapper.ListAgents)
+	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
 	router.GET(baseURL+"/v2/system-app/:id", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v2/system-app/:id", wrapper.SyncSystemApp)
 

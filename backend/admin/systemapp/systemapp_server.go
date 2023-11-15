@@ -1,9 +1,9 @@
 package systemapp
 
 import (
-	"github.com/labstack/echo/v4"
 	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
 	"github.com/stephenzsy/small-kms/backend/api"
+	"github.com/stephenzsy/small-kms/backend/base"
 )
 
 type SystemAppName string
@@ -22,7 +22,7 @@ func validateSystemAppName(name string) (SystemAppName, error) {
 	case SystemAppNameAPI, SystemAppNameBackend:
 		return typed, nil
 	default:
-		return typed, echo.ErrNotFound
+		return typed, base.ErrResponseStatusNotFound
 	}
 }
 
