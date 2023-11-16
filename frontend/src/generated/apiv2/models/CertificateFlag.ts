@@ -18,8 +18,6 @@
  * @export
  */
 export const CertificateFlag = {
-    CertificateFlagCA: 'ca',
-    CertificateFlagRootCA: 'rootCa',
     CertificateFlagServerAuth: 'serverAuth',
     CertificateFlagClientAuth: 'clientAuth'
 } as const;

@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrInvalidPartitionKey = errors.New("invalid partition key")
+	ErrInvalidIdentifier   = errors.New("invalid identifier")
 )
 
 type PartitionKey struct {
@@ -19,6 +20,9 @@ type PartitionKey struct {
 }
 
 func (p PartitionKey) String() string {
+	if p.NamespaceProvider == "" && p.NamespaceID == "" && p.ResourceProvider == "" {
+		return ""
+	}
 	return string(p.NamespaceProvider) + ":" + p.NamespaceID + ":" + string(p.ResourceProvider)
 }
 
@@ -27,23 +31,23 @@ func (p PartitionKey) MarshalText() ([]byte, error) {
 }
 
 func (p *PartitionKey) UnmarshalText(text []byte) (err error) {
-	*p, err = PartitionKeyFromString(string(text))
+	*p, err = ParsePartitionKey(string(text))
 	return err
 }
 
-func PartitionKeyFromString(text string) (PartitionKey, error) {
+func ParsePartitionKey(text string) (PartitionKey, error) {
 	var p PartitionKey
 	if text == "" {
 		return p, nil
 	}
-	parts := strings.Split(text, ":")
-	if len(parts) == 3 {
-		p.NamespaceProvider = models.NamespaceProvider(parts[0])
-		p.NamespaceID = parts[1]
-		p.ResourceProvider = models.ResourceProvider(parts[2])
-		return p, nil
+	parts := strings.SplitN(text, ":", 3)
+	if len(parts) != 3 {
+		return p, ErrInvalidPartitionKey
 	}
-	return p, ErrInvalidPartitionKey
+	p.NamespaceProvider = models.NamespaceProvider(parts[0])
+	p.NamespaceID = parts[1]
+	p.ResourceProvider = models.ResourceProvider(parts[2])
+	return p, nil
 }
 
 var _ encoding.TextMarshaler = PartitionKey{}
@@ -53,3 +57,39 @@ type DocIdentifier struct {
 	PartitionKey
 	ID string
 }
+
+func (p DocIdentifier) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
+
+func (p *DocIdentifier) UnmarshalText(text []byte) (err error) {
+	*p, err = ParseIdentifier(string(text))
+	return err
+}
+
+func ParseIdentifier(text string) (identifier DocIdentifier, err error) {
+	if text == "" {
+		return identifier, nil
+	}
+	parts := strings.SplitN(text, "/", 2)
+	if len(parts) != 2 {
+		return identifier, ErrInvalidIdentifier
+	}
+	identifier.PartitionKey, err = ParsePartitionKey(parts[0])
+	if err != nil {
+		return identifier, err
+	}
+	identifier.ID = parts[1]
+	return identifier, nil
+}
+
+func (p DocIdentifier) String() string {
+	partitionKeyString := p.PartitionKey.String()
+	if partitionKeyString == "" && p.ID == "" {
+		return ""
+	}
+	return partitionKeyString + "/" + p.ID
+}
+
+var _ encoding.TextMarshaler = DocIdentifier{}
+var _ encoding.TextUnmarshaler = (*DocIdentifier)(nil)

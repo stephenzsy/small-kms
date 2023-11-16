@@ -40,6 +40,12 @@ import {
 export interface JsonWebKeySpec {
     /**
      * 
+     * @type {string}
+     * @memberof JsonWebKeySpec
+     */
+    alg?: string;
+    /**
+     * 
      * @type {JsonWebKeyType}
      * @memberof JsonWebKeySpec
      */
@@ -84,6 +90,7 @@ export function JsonWebKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
+        'alg': !exists(json, 'alg') ? undefined : json['alg'],
         'kty': JsonWebKeyTypeFromJSON(json['kty']),
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
@@ -100,6 +107,7 @@ export function JsonWebKeySpecToJSON(value?: JsonWebKeySpec | null): any {
     }
     return {
         
+        'alg': value.alg,
         'kty': JsonWebKeyTypeToJSON(value.kty),
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,

@@ -150,6 +150,37 @@ paths:
           $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/service-principal/{namespaceId}/agent-config:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetAgentConfig
+      summary: Get agent config
+      responses:
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentConfigResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutAgentConfig
+      summary: Put agent config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-agent.yaml#/components/schemas/AgentConfigFields"        
+      responses:
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentConfigResponse"
+        201:
+          $ref: "models-agent.yaml#/components/responses/AgentConfigResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   parameters:
     IdParameter:

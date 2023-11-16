@@ -63,6 +63,9 @@ components:
       description: these attributes should mostly confirm to JWK (RFC7517)
       type: object
       properties:
+        alg:
+          type: string
+          x-go-type-skip-optional-pointer: true
         kty:
           $ref: "#/components/schemas/JsonWebKeyType"
           x-go-name: KeyType

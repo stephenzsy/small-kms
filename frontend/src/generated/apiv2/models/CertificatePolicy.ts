@@ -31,12 +31,6 @@ import {
     JsonWebKeySpecFromJSONTyped,
     JsonWebKeySpecToJSON,
 } from './JsonWebKeySpec';
-import type { JsonWebSignatureAlgorithm } from './JsonWebSignatureAlgorithm';
-import {
-    JsonWebSignatureAlgorithmFromJSON,
-    JsonWebSignatureAlgorithmFromJSONTyped,
-    JsonWebSignatureAlgorithmToJSON,
-} from './JsonWebSignatureAlgorithm';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -91,7 +85,7 @@ export interface CertificatePolicy {
      * @type {boolean}
      * @memberof CertificatePolicy
      */
-    ext: boolean;
+    keyExportable: boolean;
     /**
      * 
      * @type {string}
@@ -100,16 +94,10 @@ export interface CertificatePolicy {
     expiryTime: string;
     /**
      * 
-     * @type {JsonWebSignatureAlgorithm}
-     * @memberof CertificatePolicy
-     */
-    alg: JsonWebSignatureAlgorithm;
-    /**
-     * 
      * @type {string}
      * @memberof CertificatePolicy
      */
-    issuerIdentifier: string;
+    issuerPolicyIdentifier: string;
     /**
      * 
      * @type {CertificateSubject}
@@ -127,7 +115,7 @@ export interface CertificatePolicy {
      * @type {Array<CertificateFlag>}
      * @memberof CertificatePolicy
      */
-    flags: Array<CertificateFlag>;
+    flags?: Array<CertificateFlag>;
 }
 
 /**
@@ -139,12 +127,10 @@ export function instanceOfCertificatePolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "ext" in value;
+    isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
-    isInstance = isInstance && "alg" in value;
-    isInstance = isInstance && "issuerIdentifier" in value;
+    isInstance = isInstance && "issuerPolicyIdentifier" in value;
     isInstance = isInstance && "subject" in value;
-    isInstance = isInstance && "flags" in value;
 
     return isInstance;
 }
@@ -165,13 +151,12 @@ export function CertificatePolicyFromJSONTyped(json: any, ignoreDiscriminator: b
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'ext': json['ext'],
+        'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
-        'alg': JsonWebSignatureAlgorithmFromJSON(json['alg']),
-        'issuerIdentifier': json['issuerIdentifier'],
+        'issuerPolicyIdentifier': json['issuerPolicyIdentifier'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
-        'flags': ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
+        'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
     };
 }
 
@@ -190,13 +175,12 @@ export function CertificatePolicyToJSON(value?: CertificatePolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'displayName': value.displayName,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'ext': value.ext,
+        'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
-        'alg': JsonWebSignatureAlgorithmToJSON(value.alg),
-        'issuerIdentifier': value.issuerIdentifier,
+        'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
-        'flags': ((value.flags as Array<any>).map(CertificateFlagToJSON)),
+        'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
     };
 }
 

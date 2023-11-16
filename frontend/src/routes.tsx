@@ -2,7 +2,10 @@ import React from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { ManagedAppContextProvider } from "./admin/contexts/ManagedAppContext";
 import { NamespaceContext } from "./admin/contexts/NamespaceContext";
-import { NamespaceContextRouteProvider } from "./admin/contexts/NamespaceContextRouteProvider";
+import {
+  NamespaceContextRouteProvider,
+  NamespaceContextRouteProvider2,
+} from "./admin/contexts/NamespaceContextRouteProvider";
 import { AdminLayout } from "./admin/Layout";
 import { AuthProvider } from "./auth/AuthProvider";
 import { NamespaceKind } from "./generated";
@@ -24,6 +27,7 @@ const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
 const AppsPage = React.lazy(() => import("./admin/AppsPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
+const CertPolicyPage2 = React.lazy(() => import("./cert-policies/[id]/page"));
 const ManagedAppPage = React.lazy(() => import("./admin/ManagedAppPage"));
 const ProvisionAgentPage = React.lazy(
   () => import("./admin/ProvisionAgentPage")
@@ -76,6 +80,15 @@ export const router = createBrowserRouter([
         ],
       },
       { path: "system", element: <SystemAppsPage /> },
+      {
+        path: ":nsKind/:nsId",
+        element: (
+          <NamespaceContextRouteProvider2>
+            <Outlet />
+          </NamespaceContextRouteProvider2>
+        ),
+        children: [{ path: "cert-policies/:id", element: <CertPolicyPage2 /> }],
+      },
       {
         path: "entra/:nsKind",
         children: [

@@ -15,7 +15,8 @@
 
 import * as runtime from '../runtime';
 import type {
-  Agent,
+  AgentConfig,
+  AgentConfigFields,
   ApplicationByAppId,
   CertificatePolicy,
   CreateAgentRequest,
@@ -25,8 +26,10 @@ import type {
   Ref,
 } from '../models/index';
 import {
-    AgentFromJSON,
-    AgentToJSON,
+    AgentConfigFromJSON,
+    AgentConfigToJSON,
+    AgentConfigFieldsFromJSON,
+    AgentConfigFieldsToJSON,
     ApplicationByAppIdFromJSON,
     ApplicationByAppIdToJSON,
     CertificatePolicyFromJSON,
@@ -49,6 +52,10 @@ export interface CreateAgentOperationRequest {
 
 export interface GetAgentRequest {
     id: string;
+}
+
+export interface GetAgentConfigRequest {
+    namespaceId: string;
 }
 
 export interface GetCertificatePolicyRequest {
@@ -77,6 +84,11 @@ export interface ListKeyPoliciesRequest {
     namespaceId: string;
 }
 
+export interface PutAgentConfigRequest {
+    namespaceId: string;
+    agentConfigFields: AgentConfigFields;
+}
+
 export interface PutCertificatePolicyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -101,7 +113,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Create agent
      */
-    async createAgentRaw(requestParameters: CreateAgentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Agent>> {
+    async createAgentRaw(requestParameters: CreateAgentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -124,13 +136,13 @@ export class AdminApi extends runtime.BaseAPI {
             body: CreateAgentRequestToJSON(requestParameters.createAgentRequest),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
     }
 
     /**
      * Create agent
      */
-    async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Agent> {
+    async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -138,7 +150,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Get agent
      */
-    async getAgentRaw(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Agent>> {
+    async getAgentRaw(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgent.');
         }
@@ -162,14 +174,52 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
     }
 
     /**
      * Get agent
      */
-    async getAgent(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Agent> {
+    async getAgent(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
         const response = await this.getAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent config
+     */
+    async getAgentConfigRaw(requestParameters: GetAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfig>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfig.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-config`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent config
+     */
+    async getAgentConfig(requestParameters: GetAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfig> {
+        const response = await this.getAgentConfigRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -418,6 +468,51 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listKeyPolicies(requestParameters: ListKeyPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
         const response = await this.listKeyPoliciesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put agent config
+     */
+    async putAgentConfigRaw(requestParameters: PutAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfig>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentConfig.');
+        }
+
+        if (requestParameters.agentConfigFields === null || requestParameters.agentConfigFields === undefined) {
+            throw new runtime.RequiredError('agentConfigFields','Required parameter requestParameters.agentConfigFields was null or undefined when calling putAgentConfig.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-config`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentConfigFieldsToJSON(requestParameters.agentConfigFields),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Put agent config
+     */
+    async putAgentConfig(requestParameters: PutAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfig> {
+        const response = await this.putAgentConfigRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

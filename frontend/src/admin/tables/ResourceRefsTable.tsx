@@ -1,8 +1,9 @@
 import { Table, TableColumnsType } from "antd";
-import { Ref as ResourceRef } from "../../generated/apiv2";
 import { useMemo } from "react";
+import { Ref as ResourceRef } from "../../generated/apiv2";
 
 function useResourceRefsTableColumns<T extends ResourceRef>(
+  renderActions?: (r: T) => React.ReactNode,
   extraColumns?: TableColumnsType<T>
 ) {
   return useMemo((): TableColumnsType<T> => {
@@ -19,20 +20,31 @@ function useResourceRefsTableColumns<T extends ResourceRef>(
         key: "displayName",
       },
       ...(extraColumns ?? []),
+      ...(renderActions
+        ? [
+            {
+              title: "Actions",
+              key: "actions",
+              render: renderActions,
+            },
+          ]
+        : []),
     ];
-  }, [extraColumns]);
+  }, [extraColumns, renderActions]);
 }
 
 export function ResourceRefsTable<T extends ResourceRef>({
   resourceRefs,
   loading,
+  renderActions,
   extraColumns,
 }: {
   resourceRefs?: T[];
   loading?: boolean;
+  renderActions?: (r: T) => React.ReactNode;
   extraColumns?: TableColumnsType<T>;
 }) {
-  const columns = useResourceRefsTableColumns<T>(extraColumns);
+  const columns = useResourceRefsTableColumns<T>(renderActions, extraColumns);
   return (
     <Table<T> dataSource={resourceRefs} loading={loading} columns={columns} />
   );

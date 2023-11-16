@@ -1,13 +1,12 @@
-import { Button, Card, Table, type TableColumnType } from "antd";
-import { AdminApi, KeyPolicy, KeyPolicyRef } from "../../generated";
+import { useRequest } from "ahooks";
+import { Card, Table, type TableColumnType } from "antd";
 import { useContext, useMemo } from "react";
 import { Link } from "../../components/Link";
-import {
-  NamespaceConfigContext,
-  NamespaceContext,
-} from "../contexts/NamespaceContext";
+import { AdminApi, KeyPolicyRef } from "../../generated";
 import { useAuthedClient } from "../../utils/useCertsApi";
-import { useRequest } from "ahooks";
+import {
+  NamespaceContext
+} from "../contexts/NamespaceContext";
 
 export function usePolicyRefTableColumns<T extends KeyPolicyRef>(
   routePrefix: string,
@@ -68,11 +67,7 @@ export function KeyPoliciesTabelCard({
   return (
     <Card
       title="Key policies"
-      extra={
-        <Link to={`${itemRoutePrefix}_create`}>
-          Create key policy
-        </Link>
-      }
+      extra={<Link to={`${itemRoutePrefix}_create`}>Create key policy</Link>}
     >
       <Table<KeyPolicyRef>
         columns={columns}

@@ -6,10 +6,7 @@ paths: {}
 components:
   schemas:
     Agent:
-      allOf:
-        - $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"
-        - $ref: "#/components/schemas/AgentFields"
-        - x-go-type: agentComposed
+      $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"
     CreateAgentRequest:
       type: object
       properties:
@@ -21,9 +18,18 @@ components:
           description: The display name of the agent application
           type: string
           x-go-type-skip-optional-pointer: true
-    AgentFields:
+    AgentConfig:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/AgentConfigFields"
+        - x-go-type: agentConfigComposed
+    AgentConfigFields:
       type: object
-      properties: {}
+      properties:
+        keyCredentialsCertificatePolicyId:
+          type: string
+      required:
+        - keyCredentialsCertificatePolicyId
   responses:
     AgentResposne:
       description: Agent response
@@ -31,3 +37,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Agent"
+    AgentConfigResponse:
+      description: Agent config response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentConfig"

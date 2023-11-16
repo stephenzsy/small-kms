@@ -1,7 +1,8 @@
 apis/AdminApi.ts
 apis/index.ts
 index.ts
-models/Agent.ts
+models/AgentConfig.ts
+models/AgentConfigFields.ts
 models/ApplicationByAppId.ts
 models/ApplicationByAppIdFields.ts
 models/CertificateFlag.ts
@@ -14,7 +15,6 @@ models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeySpec.ts
 models/JsonWebKeyType.ts
-models/JsonWebSignatureAlgorithm.ts
 models/KeyPolicy.ts
 models/KeyPolicyFields.ts
 models/NamespaceProvider.ts

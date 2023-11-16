@@ -25,6 +25,7 @@ type JsonWebKeyOperation = cloudkey.JsonWebKeyOperation
 
 // JsonWebKeySpec these attributes should mostly confirm to JWK (RFC7517)
 type JsonWebKeySpec struct {
+	Alg           string                `json:"alg,omitempty"`
 	Crv           JsonWebKeyCurveName   `json:"crv,omitempty"`
 	KeyOperations []JsonWebKeyOperation `json:"key_ops,omitempty"`
 	KeySize       *int                  `json:"key_size,omitempty"`

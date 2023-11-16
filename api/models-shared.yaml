@@ -45,12 +45,20 @@ components:
       type: string
       enum:
         - profile
+        - ca-root
+        - ca-int        
         - agent
         - service-principal
+        - group
+        - user
       x-enum-varnames:
         - NamespaceProviderProfile
+        - NamespaceProviderCARoot
+        - NamespaceProviderCAIntermediate
         - NamespaceProviderAgent
         - NamespaceProviderServicePrincipal
+        - NamespaceProviderGroup
+        - NamespaceProviderUser
   responses:
     RefsResponse:
       description: Refs response

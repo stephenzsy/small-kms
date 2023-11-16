@@ -10,8 +10,12 @@ import (
 // Defines values for NamespaceProvider.
 const (
 	NamespaceProviderAgent            NamespaceProvider = "agent"
+	NamespaceProviderCAIntermediate   NamespaceProvider = "ca-int"
+	NamespaceProviderCARoot           NamespaceProvider = "ca-root"
+	NamespaceProviderGroup            NamespaceProvider = "group"
 	NamespaceProviderProfile          NamespaceProvider = "profile"
 	NamespaceProviderServicePrincipal NamespaceProvider = "service-principal"
+	NamespaceProviderUser             NamespaceProvider = "user"
 )
 
 // ApplicationByAppId defines model for ApplicationByAppId.

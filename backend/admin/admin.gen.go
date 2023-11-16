@@ -37,6 +37,9 @@ type ErrorResponse = ErrorResult
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
+// PutAgentConfigJSONRequestBody defines body for PutAgentConfig for application/json ContentType.
+type PutAgentConfigJSONRequestBody = externalRef1.AgentConfigFields
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Get agent
@@ -48,6 +51,12 @@ type ServerInterface interface {
 	// Create agent
 	// (POST /v2/agents)
 	CreateAgent(ctx echo.Context) error
+	// Get agent config
+	// (GET /v2/service-principal/{namespaceId}/agent-config)
+	GetAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Put agent config
+	// (PUT /v2/service-principal/{namespaceId}/agent-config)
+	PutAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter) error
 	// Get system app
 	// (GET /v2/system-apps/{id})
 	GetSystemApp(ctx echo.Context, id IdParameter) error
@@ -116,6 +125,42 @@ func (w *ServerInterfaceWrapper) CreateAgent(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.CreateAgent(ctx)
+	return err
+}
+
+// GetAgentConfig converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentConfig(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentConfig(ctx, namespaceId)
+	return err
+}
+
+// PutAgentConfig converts echo context to params.
+func (w *ServerInterfaceWrapper) PutAgentConfig(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutAgentConfig(ctx, namespaceId)
 	return err
 }
 
@@ -374,6 +419,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/agent/:id", wrapper.GetAgent)
 	router.GET(baseURL+"/v2/agents", wrapper.ListAgents)
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfig)
+	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.PutAgentConfig)
 	router.GET(baseURL+"/v2/system-apps/:id", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v2/system-apps/:id", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies", wrapper.ListCertificatePolicies)

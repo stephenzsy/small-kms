@@ -19,8 +19,12 @@
  */
 export const NamespaceProvider = {
     NamespaceProviderProfile: 'profile',
+    NamespaceProviderCARoot: 'ca-root',
+    NamespaceProviderCAIntermediate: 'ca-int',
     NamespaceProviderAgent: 'agent',
-    NamespaceProviderServicePrincipal: 'service-principal'
+    NamespaceProviderServicePrincipal: 'service-principal',
+    NamespaceProviderGroup: 'group',
+    NamespaceProviderUser: 'user'
 } as const;
 export type NamespaceProvider = typeof NamespaceProvider[keyof typeof NamespaceProvider];
 

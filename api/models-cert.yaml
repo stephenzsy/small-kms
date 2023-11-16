@@ -8,7 +8,6 @@ components:
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
-        - $ref: "models-key.yaml#/components/schemas/KeyPolicyFields"
         - $ref: "#/components/schemas/CertificatePolicyFields"
         - x-go-type: certificatePolicyComposed
       required:
@@ -16,16 +15,13 @@ components:
     CertificatePolicyFields:
       type: object
       properties:
-        alg:
-          $ref: "models-key.yaml#/components/schemas/JsonWebSignatureAlgorithm"
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        ext:
+        keyExportable:
           type: boolean
-          x-go-name: KeyExtractable
         expiryTime:
           type: string
-        issuerIdentifier:
+        issuerPolicyIdentifier:
           type: string
           x-go-type-skip-optional-pointer: true
         subject:
@@ -36,14 +32,40 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CertificateFlag"
+          x-go-type-skip-optional-pointer: true
       required:
-        - alg
         - keySpec
-        - ext
+        - keyExportable
         - expiryTime
-        - issuerIdentifier
+        - issuerPolicyIdentifier
         - subject
-        - flags
+    CreateCertificatePolicyRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        keySpec:
+          $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
+        keyExportable:
+          type: boolean
+        expiryTime:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        issuerPolicyIdentifier:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+          x-go-type-skip-optional-pointer: true
+      required:
+        - subject
     CertificateSubject:
       type: object
       properties:
@@ -54,13 +76,9 @@ components:
     CertificateFlag:
       type: string
       enum:
-        - ca
-        - rootCa
         - serverAuth
         - clientAuth
       x-enum-varnames:
-        - CertificateFlagCA
-        - CertificateFlagRootCA
         - CertificateFlagServerAuth
         - CertificateFlagClientAuth
     SubjectAlternativeNames:

@@ -11,9 +11,7 @@ import (
 
 // Defines values for CertificateFlag.
 const (
-	CertificateFlagCA         CertificateFlag = "ca"
 	CertificateFlagClientAuth CertificateFlag = "clientAuth"
-	CertificateFlagRootCA     CertificateFlag = "rootCa"
 	CertificateFlagServerAuth CertificateFlag = "serverAuth"
 )
 
@@ -25,11 +23,10 @@ type CertificatePolicy = certificatePolicyComposed
 
 // CertificatePolicyFields defines model for CertificatePolicyFields.
 type CertificatePolicyFields struct {
-	Alg              externalRef1.JsonWebSignatureAlgorithm `json:"alg"`
-	ExpiryTime       string                                 `json:"expiryTime"`
-	KeyExtractable   bool                                   `json:"ext"`
-	Flags            []CertificateFlag                      `json:"flags"`
-	IssuerIdentifier string                                 `json:"issuerIdentifier"`
+	ExpiryTime             string            `json:"expiryTime"`
+	Flags                  []CertificateFlag `json:"flags,omitempty"`
+	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier"`
+	KeyExportable          bool              `json:"keyExportable"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 externalRef1.JsonWebKeySpec `json:"keySpec"`
@@ -40,6 +37,20 @@ type CertificatePolicyFields struct {
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
 	CommonName string `json:"commonName"`
+}
+
+// CreateCertificatePolicyRequest defines model for CreateCertificatePolicyRequest.
+type CreateCertificatePolicyRequest struct {
+	DisplayName            string            `json:"displayName,omitempty"`
+	ExpiryTime             string            `json:"expiryTime,omitempty"`
+	Flags                  []CertificateFlag `json:"flags,omitempty"`
+	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier,omitempty"`
+	KeyExportable          *bool             `json:"keyExportable,omitempty"`
+
+	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
+	KeySpec                 *externalRef1.JsonWebKeySpec `json:"keySpec,omitempty"`
+	Subject                 CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.

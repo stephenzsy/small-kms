@@ -31,12 +31,6 @@ import {
     JsonWebKeySpecFromJSONTyped,
     JsonWebKeySpecToJSON,
 } from './JsonWebKeySpec';
-import type { JsonWebSignatureAlgorithm } from './JsonWebSignatureAlgorithm';
-import {
-    JsonWebSignatureAlgorithmFromJSON,
-    JsonWebSignatureAlgorithmFromJSONTyped,
-    JsonWebSignatureAlgorithmToJSON,
-} from './JsonWebSignatureAlgorithm';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -52,12 +46,6 @@ import {
 export interface CertificatePolicyFields {
     /**
      * 
-     * @type {JsonWebSignatureAlgorithm}
-     * @memberof CertificatePolicyFields
-     */
-    alg: JsonWebSignatureAlgorithm;
-    /**
-     * 
      * @type {JsonWebKeySpec}
      * @memberof CertificatePolicyFields
      */
@@ -67,7 +55,7 @@ export interface CertificatePolicyFields {
      * @type {boolean}
      * @memberof CertificatePolicyFields
      */
-    ext: boolean;
+    keyExportable: boolean;
     /**
      * 
      * @type {string}
@@ -79,7 +67,7 @@ export interface CertificatePolicyFields {
      * @type {string}
      * @memberof CertificatePolicyFields
      */
-    issuerIdentifier: string;
+    issuerPolicyIdentifier: string;
     /**
      * 
      * @type {CertificateSubject}
@@ -97,7 +85,7 @@ export interface CertificatePolicyFields {
      * @type {Array<CertificateFlag>}
      * @memberof CertificatePolicyFields
      */
-    flags: Array<CertificateFlag>;
+    flags?: Array<CertificateFlag>;
 }
 
 /**
@@ -105,13 +93,11 @@ export interface CertificatePolicyFields {
  */
 export function instanceOfCertificatePolicyFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "alg" in value;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "ext" in value;
+    isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "expiryTime" in value;
-    isInstance = isInstance && "issuerIdentifier" in value;
+    isInstance = isInstance && "issuerPolicyIdentifier" in value;
     isInstance = isInstance && "subject" in value;
-    isInstance = isInstance && "flags" in value;
 
     return isInstance;
 }
@@ -126,14 +112,13 @@ export function CertificatePolicyFieldsFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'alg': JsonWebSignatureAlgorithmFromJSON(json['alg']),
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'ext': json['ext'],
+        'keyExportable': json['keyExportable'],
         'expiryTime': json['expiryTime'],
-        'issuerIdentifier': json['issuerIdentifier'],
+        'issuerPolicyIdentifier': json['issuerPolicyIdentifier'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
-        'flags': ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
+        'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
     };
 }
 
@@ -146,14 +131,13 @@ export function CertificatePolicyFieldsToJSON(value?: CertificatePolicyFields | 
     }
     return {
         
-        'alg': JsonWebSignatureAlgorithmToJSON(value.alg),
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'ext': value.ext,
+        'keyExportable': value.keyExportable,
         'expiryTime': value.expiryTime,
-        'issuerIdentifier': value.issuerIdentifier,
+        'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
-        'flags': ((value.flags as Array<any>).map(CertificateFlagToJSON)),
+        'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
     };
 }
 

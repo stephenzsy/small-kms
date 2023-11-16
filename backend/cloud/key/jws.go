@@ -5,7 +5,7 @@ import "crypto"
 type JsonWebSignatureAlgorithm string
 
 const (
-	SignatureAlgoritmNone JsonWebSignatureAlgorithm = "none"
+	SignatureAlgoritmNone JsonWebSignatureAlgorithm = ""
 
 	SignatureAlgorithmHS256 JsonWebSignatureAlgorithm = "HS256"
 	SignatureAlgorithmHS384 JsonWebSignatureAlgorithm = "HS384"

@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './Agent';
+export * from './AgentConfig';
+export * from './AgentConfigFields';
 export * from './ApplicationByAppId';
 export * from './ApplicationByAppIdFields';
 export * from './CertificateFlag';
@@ -13,7 +14,6 @@ export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeySpec';
 export * from './JsonWebKeyType';
-export * from './JsonWebSignatureAlgorithm';
 export * from './KeyPolicy';
 export * from './KeyPolicyFields';
 export * from './NamespaceProvider';

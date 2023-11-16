@@ -1,4 +1,4 @@
-import { useRequest } from "ahooks";
+import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Form, Input, Table, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { AdminApi, CreateAgentRequest, Ref } from "../generated/apiv2";
@@ -76,33 +76,21 @@ function CreateAgentForm({
   );
 }
 
-const useAgentListExtraColumns = () => {
-  return useMemo(
-    () => [
-      {
-        title: "Actions",
-        key: "actions",
-        render: (item: Ref) => {
-          return (
-            <div className="flex flex-row gap-2">
-              <Link to={`/agents/${item.id}`}>View</Link>
-            </div>
-          );
-        },
-      },
-    ],
-    []
-  );
-};
 
 export default function AgentsPage() {
   const { data: agents, run: refreshAgents } = useListAgents();
-  const extraColumns = useAgentListExtraColumns();
+  const renderActions = useMemoizedFn((item: Ref) => {
+    return (
+      <div className="flex flex-row gap-2">
+        <Link to={`/agents/${item.id}`}>View</Link>
+      </div>
+    );
+  });
   return (
     <>
       <Typography.Title>Agents</Typography.Title>
       <Card title="List of agents">
-        <ResourceRefsTable resourceRefs={agents} extraColumns={extraColumns} />
+        <ResourceRefsTable resourceRefs={agents} renderActions={renderActions} />
       </Card>
       <Card title="Import agent application">
         <CreateAgentForm onSuccess={refreshAgents} isCreate={false} />
