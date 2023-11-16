@@ -8,6 +8,8 @@ components:
     Agent:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"
+        - $ref: "#/components/schemas/AgentFields"
+        - x-go-type: agentComposed
     CreateAgentRequest:
       type: object
       properties:
@@ -19,6 +21,9 @@ components:
           description: The display name of the agent application
           type: string
           x-go-type-skip-optional-pointer: true
+    AgentFields:
+      type: object
+      properties: {}
   responses:
     AgentResposne:
       description: Agent response

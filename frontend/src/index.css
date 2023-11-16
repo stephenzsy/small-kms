@@ -2,7 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Mona Sans";
+  src: url("assets/Mona-Sans.woff2") format("woff2 supports variations"),
+    url("assets/Mona-Sans.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-stretch: 75% 125%;
+}
+
 body {
   margin: 0;
-  @include font-sans;
+  @apply font-sans;
+}
+
+dl,
+dt,
+dd {
+  margin: 0;
+}
+
+.dl-item {
+  @apply p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0;
+}
+
+.dt {
+  @apply text-sm font-medium leading-6 text-neutral-900;
+}
+
+.dd {
+  @apply mt-1 text-sm leading-5 text-neutral-700 sm:mt-0 sm:col-span-2;
 }

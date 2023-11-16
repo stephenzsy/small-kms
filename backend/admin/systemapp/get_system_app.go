@@ -36,6 +36,7 @@ func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 				},
 			})
 		}
+		return err
 	}
 
 	return c.JSON(200, doc.ToApplicationByAppId())

@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Cryptocat Cert Models
+  version: 0.1.3
+paths: {}
+components:
+  schemas:
+    CertificatePolicy:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "models-key.yaml#/components/schemas/KeyPolicyFields"
+        - $ref: "#/components/schemas/CertificatePolicyFields"
+        - x-go-type: certificatePolicyComposed
+      required:
+        - expiryTime
+    CertificatePolicyFields:
+      type: object
+      properties:
+        alg:
+          $ref: "models-key.yaml#/components/schemas/JsonWebSignatureAlgorithm"
+        keySpec:
+          $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
+        ext:
+          type: boolean
+          x-go-name: KeyExtractable
+        expiryTime:
+          type: string
+        issuerIdentifier:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        subject:
+          $ref: "#/components/schemas/CertificateSubject"
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+      required:
+        - alg
+        - keySpec
+        - ext
+        - expiryTime
+        - issuerIdentifier
+        - subject
+        - flags
+    CertificateSubject:
+      type: object
+      properties:
+        commonName:
+          type: string
+      required:
+        - commonName
+    CertificateFlag:
+      type: string
+      enum:
+        - ca
+        - rootCa
+        - serverAuth
+        - clientAuth
+      x-enum-varnames:
+        - CertificateFlagCA
+        - CertificateFlagRootCA
+        - CertificateFlagServerAuth
+        - CertificateFlagClientAuth
+    SubjectAlternativeNames:
+      type: object
+      properties:
+        dnsNames:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: DNSNames
+        ipAddresses:
+          type: array
+          items:
+            type: string
+            x-go-type: net.IP
+          x-go-type-skip-optional-pointer: true
+          x-go-name: IPAddresses
+        emails:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+  responses:
+    CertificatePolicyResponse:
+      description: CertificatePolicy response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificatePolicy"

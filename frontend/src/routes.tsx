@@ -9,6 +9,7 @@ import { NamespaceKind } from "./generated";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 
+const AgentPage = React.lazy(() => import("./agents/[id]/page"));
 const AgentsPage = React.lazy(() => import("./agents/page"));
 const SystemAppsPage = React.lazy(() => import("./system/page"));
 const KeyPage = React.lazy(() => import("./admin/KeyPage"));
@@ -61,7 +62,19 @@ export const router = createBrowserRouter([
         ),
         id: RouteIds.home,
       },
-      { path: "agents", element: <AgentsPage /> },
+      {
+        path: "agents",
+        children: [
+          {
+            index: true,
+            element: <AgentsPage />,
+          },
+          {
+            path: ":id",
+            element: <AgentPage />,
+          },
+        ],
+      },
       { path: "system", element: <SystemAppsPage /> },
       {
         path: "entra/:nsKind",

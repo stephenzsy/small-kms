@@ -10,6 +10,7 @@ export default defineConfig({
         manualChunks: {
           react: ["react", "react-dom"],
           "react-router-dom": ["react-router-dom"],
+          "msal": ["@azure/msal-browser", "@azure/msal-react"],
           //antd: ["antd"],
         },
       },

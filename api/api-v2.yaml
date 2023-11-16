@@ -32,13 +32,24 @@ paths:
           $ref: "models-agent.yaml#/components/responses/AgentResposne"
         200:
           $ref: "models-agent.yaml#/components/responses/AgentResposne"
-  /v2/system-app/{id}:
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/agent/{id}:
     parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetAgent
+      summary: Get agent
+      responses:
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentResposne"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/system-apps/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParameter"
     get:
       tags:
         - admin
@@ -47,6 +58,8 @@ paths:
       responses:
         200:
           $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
     post:
       tags:
         - admin
@@ -57,9 +70,121 @@ paths:
           $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
         201:
           $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificate-policies:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      summary: List certificate policies
+      operationId: ListCertificatePolicies
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/RefsResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetCertificatePolicy
+      summary: Get certificate policy
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificatePolicyResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutCertificatePolicy
+      summary: put certificate policy
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificatePolicyResponse"
+        201:
+          $ref: "models-cert.yaml#/components/responses/CertificatePolicyResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/key-policies:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListKeyPolicies
+      summary: List key policies
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/RefsResponse"
+  /v2/{namespaceProvider}/{namespaceId}/key-policies/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetKeyPolicy
+      summary: Get key policy
+      responses:
+        200:
+          $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - admin
+      operationId: PutKeyPolicy
+      summary: put key policy
+      responses:
+        200:
+          $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
+        201:
+          $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
 components:
+  parameters:
+    IdParameter:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    NamespaceProviderParameter:
+      in: path
+      name: namespaceProvider
+      required: true
+      schema:
+        $ref: "models-shared.yaml#/components/schemas/NamespaceProvider"
+    NamespaceIdParameter:
+      in: path
+      name: namespaceId
+      required: true
+      schema:
+        type: string
+  schemas:
+    ErrorResult:
+      type: object
+      properties:
+        message:
+          type: string
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResult"

@@ -1,6 +1,7 @@
 import { StopIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useBoolean, useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Drawer, Form, Input, Table, Typography } from "antd";
+import { Button, Drawer, Form, Input, Table, Typography } from "antd";
+import Card from "antd/es/card";
 import { useForm } from "antd/es/form/Form";
 import { ColumnType } from "antd/es/table";
 import {

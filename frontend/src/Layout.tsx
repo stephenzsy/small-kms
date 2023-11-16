@@ -1,22 +1,17 @@
 import {
-  Disclosure,
-  Menu as HeadlessUIMenu,
-  Transition,
-} from "@headlessui/react";
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+} from "@azure/msal-react";
 import {
+  ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
-  Bars3Icon,
   UserCircleIcon,
-  UserIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Avatar, Button, Layout, Menu, MenuProps } from "antd";
-import classNames from "classnames";
+import { Avatar, Button, ConfigProvider, Layout, Menu, MenuProps } from "antd";
 import type { PropsWithChildren } from "react";
-import { Fragment, useMemo } from "react";
-import { Link, NavLink, useMatches } from "react-router-dom";
+import { useMemo } from "react";
+import { NavLink, useMatches } from "react-router-dom";
 import { useAppAuthContext } from "./auth/AuthProvider";
-import { RouteIds } from "./route-constants";
 
 function useNavItems(isAdmin: boolean): MenuProps["items"] {
   return useMemo(
@@ -54,7 +49,7 @@ function useNavItems(isAdmin: boolean): MenuProps["items"] {
 }
 
 function useUserMenuItems(): MenuProps["items"] {
-  const { account, isAuthenticated, logout } = useAppAuthContext();
+  const { account, isAuthenticated, logout, login } = useAppAuthContext();
   console.log;
   return useMemo(
     () =>
@@ -96,17 +91,16 @@ function useUserMenuItems(): MenuProps["items"] {
     [isAuthenticated, account]
   );
 }
+
+const theme = {
+  token: {
+    fontFamily: "Mona Sans, ui-sans-serif, system-ui, sans-serif",
+  },
+};
+
 export default function AppLayout(props: PropsWithChildren<{}>) {
-  const { account, logout, isAuthenticated } = useAppAuthContext();
+  const { account, login } = useAppAuthContext();
   const matches = useMatches();
-  const isCurrentRouteHome = useMemo(() => {
-    return matches.some((match) => match.id === RouteIds.home);
-  }, [matches]);
-
-  const isCurrentRouteAdmin = useMemo(() => {
-    return matches.some((match) => match.id === RouteIds.admin);
-  }, [matches]);
-
   const isAdmin = useMemo(
     () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
     [account]
@@ -116,22 +110,39 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
   const userNavItems = useUserMenuItems();
 
   return (
-    <Layout className="min-h-full">
-      <Layout.Header className="flex items-center gap-6">
-        <NavLink to="/" className="text-2xl text-white">
-          CryptoCat
-        </NavLink>
-        <Menu
-          className="flex-auto"
-          theme="dark"
-          mode="horizontal"
-          items={navItems}
-        />
-        <Menu items={userNavItems} theme="dark" mode="horizontal" />
-      </Layout.Header>
-      <Layout.Content className="p-6 max-w-7xl mx-auto w-full space-y-6">
-        {props.children}
-      </Layout.Content>
-    </Layout>
+    <ConfigProvider theme={theme}>
+      <Layout className="min-h-full">
+        <Layout.Header className="flex items-center gap-6">
+          <NavLink to="/" className="text-2xl text-white">
+            CryptoCat
+          </NavLink>
+          <Menu
+            className="flex-auto"
+            theme="dark"
+            mode="horizontal"
+            items={navItems}
+          />
+          <Menu items={userNavItems} theme="dark" mode="horizontal" />
+        </Layout.Header>
+        <Layout.Content className="p-6 max-w-7xl mx-auto w-full space-y-6">
+          <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
+          <UnauthenticatedTemplate>
+            <center className="mt-10 lg:mt-40 space-y-4">
+              <div className="text-4xl">
+                You must be logged in to access this app
+              </div>
+              <Button
+                type="primary"
+                className="inline-flex items-center"
+                icon={<ArrowLeftOnRectangleIcon className="h-4 w-4" />}
+                onClick={login}
+              >
+                Login
+              </Button>
+            </center>
+          </UnauthenticatedTemplate>
+        </Layout.Content>
+      </Layout>
+    </ConfigProvider>
   );
 }

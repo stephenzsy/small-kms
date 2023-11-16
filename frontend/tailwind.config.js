@@ -7,6 +7,9 @@ export default {
         ex: "1ex",
         em: "1em",
       },
+      fontFamily: {
+        sans: ["Mona sans", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
     },
   },
   corePlugins: {

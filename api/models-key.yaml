@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Cryptocat Key Models
+  version: 0.1.3
+paths: {}
+components:
+  schemas:
+    JsonWebKeyType:
+      type: string
+      enum:
+        - EC
+        - RSA
+      x-go-type: cloudkey.JsonWebKeyType
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+    JsonWebKeyCurveName:
+      type: string
+      enum:
+        - P-256
+        - P-384
+        - P-521
+      x-enum-varnames:
+        - CurveNameP256
+        - CurveNameP384
+        - CurveNameP521
+      x-go-type: cloudkey.JsonWebKeyCurveName
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+      x-go-type-skip-optional-pointer: true
+    JsonWebKeyOperation:
+      type: string
+      enum:
+        - sign
+        - verify
+        - encrypt
+        - decrypt
+        - wrapKey
+        - unwrapKey
+      x-go-type: cloudkey.JsonWebKeyOperation
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+    JsonWebSignatureAlgorithm:
+      type: string
+      enum:
+        - ES256
+        - ES384
+        - ES512
+        - PS256
+        - PS384
+        - PS512
+        - RS256
+        - RS384
+        - RS512
+      x-go-type: cloudkey.JsonWebSignatureAlgorithm
+      x-go-type-import:
+        name: cloudkey
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+      x-go-type-skip-optional-pointer: true
+    JsonWebKeySpec:
+      description: these attributes should mostly confirm to JWK (RFC7517)
+      type: object
+      properties:
+        kty:
+          $ref: "#/components/schemas/JsonWebKeyType"
+          x-go-name: KeyType
+        crv:
+          $ref: "#/components/schemas/JsonWebKeyCurveName"
+          x-go-name: CurveName
+        key_size:
+          type: integer
+          x-go-name: KeySize
+        key_ops:
+          type: array
+          items:
+            $ref: "#/components/schemas/JsonWebKeyOperation"
+          x-go-name: KeyOperations
+          x-go-type-skip-optional-pointer: true
+      required:
+        - kty
+    KeyPolicy:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/KeyPolicyFields"
+        - x-go-type: keyPolicyComposed
+    KeyPolicyFields:
+      type: object
+      properties:
+        keySpec:
+          $ref: "#/components/schemas/JsonWebKeySpec"
+        ext:
+          type: boolean
+          x-go-name: Extractable
+        expiryTime:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - keySpec
+        - extractable
+    CreateKeyPolicyRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        keySpec:
+          $ref: "#/components/schemas/JsonWebKeySpec"
+        ext:
+          type: boolean
+          x-go-name: Extractable
+        expiryTime:
+          type: string
+          x-go-type-skip-optional-pointer: true
+  responses:
+    KeyPolicyResponse:
+      description: KeyPolicy response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/KeyPolicy"

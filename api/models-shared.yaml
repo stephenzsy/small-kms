@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Cryptocat Agent Models
+  title: Cryptocat Shared Models
   version: 0.1.3
 paths: {}
 components:
@@ -41,6 +41,16 @@ components:
         - $ref: "#/components/schemas/Ref"
         - $ref: "#/components/schemas/ApplicationByAppIdFields"
         - x-go-type: applicationByAppIdComposed
+    NamespaceProvider:
+      type: string
+      enum:
+        - profile
+        - agent
+        - service-principal
+      x-enum-varnames:
+        - NamespaceProviderProfile
+        - NamespaceProviderAgent
+        - NamespaceProviderServicePrincipal
   responses:
     RefsResponse:
       description: Refs response

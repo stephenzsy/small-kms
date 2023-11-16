@@ -1,12 +1,14 @@
-package base
+package caldur_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/stephenzsy/small-kms/backend/utils/caldur"
 )
 
 func TestParsePeriod(t *testing.T) {
-	p, err := ParsePeriod("P1Y")
+	p, err := caldur.Parse("P1Y")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -14,12 +16,12 @@ func TestParsePeriod(t *testing.T) {
 		t.Fatalf("expected 1 year, got %d year", p.Year)
 	}
 
-	p, err = ParsePeriod("2Y")
-	if !errors.Is(err, ErrInvalidPeriod) {
+	p, err = caldur.Parse("2Y")
+	if !errors.Is(err, caldur.ErrInvalidDuration) {
 		t.Fatalf("expected ErrInvalidPeriod, got %v", err)
 	}
 
-	p, err = ParsePeriod("P2Y1M")
+	p, err = caldur.Parse("P2Y1M")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +32,7 @@ func TestParsePeriod(t *testing.T) {
 		t.Fatalf("expected 1 month, got %d month", p.Month)
 	}
 
-	p, err = ParsePeriod("P3M")
+	p, err = caldur.Parse("P3M")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +43,7 @@ func TestParsePeriod(t *testing.T) {
 		t.Fatalf("expected 3 months, got %d months", p.Month)
 	}
 
-	p, err = ParsePeriod("P1Y2M3W4DT5H6M7S")
+	p, err = caldur.Parse("P1Y2M3W4DT5H6M7S")
 	if err != nil {
 		t.Fatal(err)
 	}

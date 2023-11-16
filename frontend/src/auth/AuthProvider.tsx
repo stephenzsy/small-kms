@@ -36,6 +36,7 @@ const pca = new PublicClientApplication({
 export interface IAppAuthContext {
   readonly account: AccountInfo | null;
   readonly isAuthenticated: boolean;
+  login: () => void;
   logout: () => void;
   acquireToken: (scopes?: string[]) => Promise<AuthenticationResult | void>;
   readonly isAdmin: boolean;
@@ -44,6 +45,7 @@ export interface IAppAuthContext {
 export const AppAuthContext = createContext<IAppAuthContext>({
   account: null,
   isAuthenticated: false,
+  login: () => {},
   logout: () => {},
   acquireToken: () => Promise.resolve(undefined),
   isAdmin: false,
@@ -70,24 +72,20 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
     async (
       scopes: string[] = [import.meta.env.VITE_API_SCOPE]
     ): Promise<AuthenticationResult | void> => {
-      try {
-        if (accountRef.current) {
-          return await instance.acquireTokenSilent({
-            scopes,
-            account: accountRef.current,
-          });
-        }
-        instance.setActiveAccount(accountRef.current);
-      } catch {}
-      return instance.loginRedirect({
-        scopes: [import.meta.env.VITE_API_SCOPE],
-        extraScopesToConsent: [
-          "https://graph.microsoft.com/Directory.Read.All",
-        ],
-        redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
+      return await instance.acquireTokenSilent({
+        scopes,
+        account: account ?? undefined,
       });
     }
   );
+
+  const login = useMemoizedFn(() => {
+    instance.loginRedirect({
+      scopes: [import.meta.env.VITE_API_SCOPE],
+      extraScopesToConsent: ["https://graph.microsoft.com/Directory.Read.All"],
+      redirectUri: import.meta.env.VITE_MSAL_REDIRECT_URI,
+    });
+  });
 
   const isAuthenticated = useIsAuthenticated(account ?? undefined);
 
@@ -101,6 +99,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
       value={{
         account,
         isAuthenticated,
+        login,
         logout,
         acquireToken,
         isAdmin,

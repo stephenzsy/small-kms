@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+// Defines values for NamespaceProvider.
+const (
+	NamespaceProviderAgent            NamespaceProvider = "agent"
+	NamespaceProviderProfile          NamespaceProvider = "profile"
+	NamespaceProviderServicePrincipal NamespaceProvider = "service-principal"
+)
+
 // ApplicationByAppId defines model for ApplicationByAppId.
 type ApplicationByAppId = applicationByAppIdComposed
 
@@ -15,6 +22,9 @@ type ApplicationByAppIdFields struct {
 	ApplicationId      string `json:"applicationId"`
 	ServicePrincipalId string `json:"servicePrincipalId"`
 }
+
+// NamespaceProvider defines model for NamespaceProvider.
+type NamespaceProvider string
 
 // Ref defines model for Ref.
 type Ref struct {
