@@ -38,6 +38,9 @@ type JsonWebKeyType = cloudkey.JsonWebKeyType
 // JsonWebSignatureAlgorithm defines model for JsonWebSignatureAlgorithm.
 type JsonWebSignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm
 
+// JsonWebSignatureKey defines model for JsonWebSignatureKey.
+type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
+
 // KeyPolicy defines model for KeyPolicy.
 type KeyPolicy = keyPolicyComposed
 

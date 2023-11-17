@@ -5,6 +5,8 @@ package models
 
 import (
 	"time"
+
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 // Defines values for NamespaceProvider.
@@ -29,6 +31,9 @@ type ApplicationByAppIdFields struct {
 
 // NamespaceProvider defines model for NamespaceProvider.
 type NamespaceProvider string
+
+// NumericDate defines model for NumericDate.
+type NumericDate = jwt.NumericDate
 
 // Ref defines model for Ref.
 type Ref struct {

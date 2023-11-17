@@ -6,6 +6,7 @@ package certmodels
 import (
 	"net"
 
+	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/key"
 )
 
@@ -21,6 +22,24 @@ const (
 	CertificateKeyModeCloudExportable    CertificatePrivateKeyMode = "cloud-exportable"
 	CertificateKeyModeCloudNonExportable CertificatePrivateKeyMode = "cloud-non-exportable"
 )
+
+// Certificate defines model for Certificate.
+type Certificate = certificateComposed
+
+// CertificateFields defines model for CertificateFields.
+type CertificateFields struct {
+	// Cid Key Vault certificate ID
+	KeyVaultCertificateID string                            `json:"cid,omitempty"`
+	Flags                 []CertificateFlag                 `json:"flags,omitempty"`
+	IssuerIdentifier      string                            `json:"issuerIdentifier"`
+	Jwk                   *externalRef1.JsonWebSignatureKey `json:"jwk,omitempty"`
+	Nbf                   externalRef0.NumericDate          `json:"nbf"`
+
+	// Sid Key Vault Secret ID
+	KeyVaultSecretID        string                   `json:"sid,omitempty"`
+	Subject                 string                   `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames `json:"subjectAlternativeNames,omitempty"`
+}
 
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
@@ -43,6 +62,19 @@ type CertificatePolicyFields struct {
 
 // CertificatePrivateKeyMode defines model for CertificatePrivateKeyMode.
 type CertificatePrivateKeyMode string
+
+// CertificateRef defines model for CertificateRef.
+type CertificateRef = certificateRefComposed
+
+// CertificateRefFields defines model for CertificateRefFields.
+type CertificateRefFields struct {
+	Exp              externalRef0.NumericDate  `json:"exp"`
+	Iat              *externalRef0.NumericDate `json:"iat,omitempty"`
+	PolicyIdentifier string                    `json:"policyIdentifier"`
+
+	// Thumbprint Hex encoded certificate thumbprint
+	Thumbprint string `json:"thumbprint"`
+}
 
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
@@ -72,3 +104,6 @@ type SubjectAlternativeNames struct {
 
 // CertificatePolicyResponse defines model for CertificatePolicyResponse.
 type CertificatePolicyResponse = CertificatePolicy
+
+// CertificateResponse defines model for CertificateResponse.
+type CertificateResponse = Certificate

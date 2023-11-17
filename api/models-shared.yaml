@@ -46,7 +46,7 @@ components:
       enum:
         - profile
         - root-ca
-        - int-ca       
+        - int-ca
         - agent
         - service-principal
         - group
@@ -59,6 +59,12 @@ components:
         - NamespaceProviderServicePrincipal
         - NamespaceProviderGroup
         - NamespaceProviderUser
+    NumericDate:
+      type: integer
+      x-go-type: jwt.NumericDate
+      x-go-type-import:
+        name: jwt
+        path: github.com/golang-jwt/jwt/v5
   responses:
     RefsResponse:
       description: Refs response

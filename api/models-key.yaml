@@ -83,6 +83,46 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - kty
+    JsonWebSignatureKey:
+      allOf:
+        - $ref: "#/components/schemas/JsonWebKeySpec"
+        - type: object
+          properties:
+            kid:
+              type: string
+              x-go-type-skip-optional-pointer: true
+            n:
+              type: string
+              x-go-type-skip-optional-pointer: true
+            e:
+              type: string
+              x-go-type-skip-optional-pointer: true
+            x:
+              type: string
+              x-go-type-skip-optional-pointer: true
+            y:
+              type: string
+              x-go-type-skip-optional-pointer: true
+            x5t:
+              type: string
+              x-go-type-skip-optional-pointer: true
+              x-go-name: ThumbprintSHA1
+            x5t#S256:
+              type: string
+              x-go-type-skip-optional-pointer: true
+              x-go-name: ThumbprintSHA256
+            x5c:
+              type: array
+              items:
+                type: string
+              x-go-type-skip-optional-pointer: true
+              x-go-name: CertificateChain
+          required:
+            - kid
+        - x-go-type: cloudkey.JsonWebSignatureKey
+          x-go-type-import:
+            name: cloudkey
+            path: "github.com/stephenzsy/small-kms/backend/cloud/key"
     KeyPolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"

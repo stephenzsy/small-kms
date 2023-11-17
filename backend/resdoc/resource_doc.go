@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
-	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 type ETag = azcore.ETag
@@ -15,12 +14,12 @@ type ETag = azcore.ETag
 // Docs are IDed by the following
 // (?<partitionID>:)<namespaceProvider>:<namespaceID>:<resourceProvider>/<resourceID>
 type ResourceDoc struct {
-	PartitionKey PartitionKey        `json:"namespaceId"`
-	ID           string              `json:"id"`
-	Timestamp    *models.NumericDate `json:"_ts,omitempty"`
-	ETag         *ETag               `json:"_etag,omitempty"`
-	Deleted      *time.Time          `json:"deleted,omitempty"`
-	UpdatedBy    string              `json:"updatedBy,omitempty"`
+	PartitionKey PartitionKey     `json:"namespaceId"`
+	ID           string           `json:"id"`
+	Timestamp    *jwt.NumericDate `json:"_ts,omitempty"`
+	ETag         *ETag            `json:"_etag,omitempty"`
+	Deleted      *time.Time       `json:"deleted,omitempty"`
+	UpdatedBy    string           `json:"updatedBy,omitempty"`
 }
 
 // setTimestamp implements ResourceDocument.

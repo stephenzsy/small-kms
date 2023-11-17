@@ -16,6 +16,16 @@ type (
 		models.Ref
 		CertificatePolicyFields
 	}
+
+	certificateRefComposed struct {
+		models.Ref
+		CertificateRefFields
+	}
+
+	certificateComposed struct {
+		CertificateRef
+		CertificateFields
+	}
 )
 
 func (cs *CertificateSubject) String() string {

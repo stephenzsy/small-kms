@@ -5,6 +5,68 @@ info:
 paths: {}
 components:
   schemas:
+    CertificateRef:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/CertificateRefFields"
+        - x-go-type: certificateRefComposed
+    CertificateRefFields:
+      type: object
+      properties:
+        thumbprint:
+          description: Hex encoded certificate thumbprint
+          type: string
+          x-go-type-skip-optional-pointer: true
+        iat:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: IssuedAt
+        exp:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: NotAfter
+        policyIdentifier:
+          type: string
+      required:
+        - thumbprint
+        - exp
+        - policyIdentifier
+    Certificate:
+      allOf:
+        - $ref: "#/components/schemas/CertificateRef"
+        - $ref: "#/components/schemas/CertificateFields"
+        - x-go-type: certificateComposed
+    CertificateFields:
+      type: object
+      properties:
+        issuerIdentifier:
+          type: string
+        nbf:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: NotBefore
+        jwk:
+          $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
+        subject:
+          type: string
+        subjectAlternativeNames:
+          $ref: "#/components/schemas/SubjectAlternativeNames"
+        flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificateFlag"
+          x-go-type-skip-optional-pointer: true
+        cid:
+          description: Key Vault certificate ID
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: KeyVaultCertificateID
+        sid:
+          description: Key Vault Secret ID
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: KeyVaultSecretID
+      required:
+        - issuerIdentifier
+        - nbf
+        - subject
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
@@ -115,6 +177,12 @@ components:
             type: string
           x-go-type-skip-optional-pointer: true
   responses:
+    CertificateResponse:
+      description: Certificate response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Certificate"
     CertificatePolicyResponse:
       description: CertificatePolicy response
       content:

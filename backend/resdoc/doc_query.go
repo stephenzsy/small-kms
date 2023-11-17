@@ -9,8 +9,8 @@ import (
 
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
-	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -91,9 +91,9 @@ var queryDefaultColumns = []string{
 }
 
 type QueryBaseDoc struct {
-	ID        string             `json:"id"`
-	Timestamp models.NumericDate `json:"_ts"`
-	Deleted   *time.Time         `json:"deleted"`
+	ID        string          `json:"id"`
+	Timestamp jwt.NumericDate `json:"_ts"`
+	Deleted   *time.Time      `json:"deleted"`
 }
 
 // // PopulateModelRef implements ModelRefPopulater.

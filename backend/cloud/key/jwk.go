@@ -49,8 +49,8 @@ type JsonWebKeyBase struct {
 	P                Base64RawURLEncodableBytes   `json:"p,omitempty"`        // RFC7518 6.3.2.2. "p" (First Prime Factor) Parameter
 	Q                Base64RawURLEncodableBytes   `json:"q,omitempty"`        // RFC7518 6.3.3.3. "q" (Second Prime Factor) Parameter
 	DP               Base64RawURLEncodableBytes   `json:"dp,omitempty"`       // RFC7518 6.3.3.4. "dp" (First Factor CRT Exponent) Parameter
-	DQ               Base64RawURLEncodableBytes   `json:"dq,omitempty"`       // RFC7518 6.3.3.5 "dq" (Second Factor CRT Exponent) Parameter
-	QI               Base64RawURLEncodableBytes   `json:"qi,omitempty"`       // RFC7518 6.3.3.6 "qi" (First CRT Coefficient) Parameter
+	DQ               Base64RawURLEncodableBytes   `json:"dq,omitempty"`       // RFC7518 6.3.3.5. "dq" (Second Factor CRT Exponent) Parameter
+	QI               Base64RawURLEncodableBytes   `json:"qi,omitempty"`       // RFC7518 6.3.3.6. "qi" (First CRT Coefficient) Parameter
 	X                Base64RawURLEncodableBytes   `json:"x,omitempty"`        // RFC7518 6.2.1.2. "x" (X Coordinate) Parameter
 	Y                Base64RawURLEncodableBytes   `json:"y,omitempty"`        // RFC7518 6.2.1.3. "y" (Y Coordinate) Parameter
 	KeyOperations    []JsonWebKeyOperation        `json:"key_ops,omitempty"`  // RFC7517 4.3. "key_ops" (Key Operations) Parameter Values for JWK
