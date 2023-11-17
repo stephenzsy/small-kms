@@ -1,4 +1,4 @@
-import { useRequest } from "ahooks";
+import { useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
   Card,
@@ -6,7 +6,7 @@ import {
   Input,
   Select,
   Table,
-  TableColumnType
+  TableColumnType,
 } from "antd";
 import { DefaultOptionType } from "antd/es/cascader";
 import { useForm } from "antd/es/form/Form";
@@ -19,9 +19,15 @@ import {
   ProfileParameters,
   ProfileRef,
   PutProfileRequest,
-  ResourceKind
+  ResourceKind,
 } from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
+import {
+  AdminApi as AdminApiV2,
+  NamespaceProvider,
+  Ref,
+} from "../generated/apiv2";
+import { useAuthedClient, useAuthedClientV2 } from "../utils/useCertsApi";
+import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 
 type ProfileTypeMapRecord<T> = Record<
   | typeof ResourceKind.ProfileResourceKindRootCA
@@ -121,37 +127,13 @@ function CreateProfileForm({
   );
 }
 
-function useColumns(nsKind: NamespaceKind) {
-  return useMemo<TableColumnType<ProfileRef>[]>(
-    () => [
-      {
-        title: "Name",
-        render: (r: ProfileRef) => (
-          <span className="font-mono">{r.id}</span>
-        ),
-      },
-      {
-        title: "Display name",
-        render: (r: ProfileRef) => r.displayName,
-      },
-      {
-        title: "Actions",
-        render: (r: ProfileRef) => (
-          <Link to={`/ca/${nsKind}/${r.id}`}>View</Link>
-        ),
-      },
-    ],
-    []
-  );
-}
-
 export default function CAsPage() {
-  const adminApi = useAuthedClient(AdminApi);
+  const adminApi = useAuthedClientV2(AdminApiV2);
 
   const { data: rootCAs, run: listRootCAs } = useRequest(
     () => {
       return adminApi.listProfiles({
-        profileResourceKind: ResourceKind.ProfileResourceKindRootCA,
+        namespaceProvider: NamespaceProvider.NamespaceProviderRootCA,
       });
     },
     {
@@ -161,15 +143,14 @@ export default function CAsPage() {
   const { data: intermediateCAs, run: listIntermediateCAs } = useRequest(
     () => {
       return adminApi.listProfiles({
-        profileResourceKind: ResourceKind.ProfileResourceKindIntermediateCA,
+        namespaceProvider: NamespaceProvider.NamespaceProviderIntermediateCA,
       });
     },
     {
       refreshDeps: [],
     }
   );
-  const rootColumns = useColumns(NamespaceKind.NamespaceKindRootCA);
-  const intColumns = useColumns(NamespaceKind.NamespaceKindIntermediateCA);
+
   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
     return {
       [ResourceKind.ProfileResourceKindRootCA]: listRootCAs,
@@ -177,21 +158,27 @@ export default function CAsPage() {
     };
   }, [listRootCAs]);
 
+  const renderRootCaActions = useMemoizedFn((item: Ref) => {
+    return <Link to={`/${NamespaceProvider.NamespaceProviderRootCA}/${item.id}`}>View</Link>;
+  });
+
+  const renderIntCaactions = useMemoizedFn((item: Ref) => {
+    return <Link to={`/${NamespaceProvider.NamespaceProviderIntermediateCA}/${item.id}`}>View</Link>;
+  });
+
   return (
     <>
       <Title>Certificate Authorities</Title>
       <Card title="Root certificate authorities">
-        <Table<ProfileRef>
-          columns={rootColumns}
+        <ResourceRefsTable<Ref>
+          renderActions={renderRootCaActions}
           dataSource={rootCAs}
-          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Intermediate certificate authorities">
-        <Table<ProfileRef>
-          columns={intColumns}
+        <ResourceRefsTable<Ref>
+          renderActions={renderIntCaactions}
           dataSource={intermediateCAs}
-          rowKey={(r) => r.id}
         />
       </Card>
       <Card title="Create certificate authority profile">

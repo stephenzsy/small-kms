@@ -1,18 +1,24 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Form, Input, Table, Typography } from "antd";
+import { Button, Card, Form, Input, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { AdminApi, CreateAgentRequest, Ref } from "../generated/apiv2";
+import {
+  AdminApi,
+  CreateAgentRequest,
+  NamespaceProvider,
+  Ref,
+} from "../generated/apiv2";
 
-import { useAuthedClientV2 } from "../utils/useCertsApi";
 import { ResourceRefsTable } from "../admin/tables/ResourceRefsTable";
-import { useMemo } from "react";
 import { Link } from "../components/Link";
+import { useAuthedClientV2 } from "../utils/useCertsApi";
 
 function useListAgents() {
   const api = useAuthedClientV2(AdminApi);
   return useRequest(
     () => {
-      return api.listAgents();
+      return api.listProfiles({
+        namespaceProvider: NamespaceProvider.NamespaceProviderAgent,
+      });
     },
     {
       refreshDeps: [],
@@ -76,7 +82,6 @@ function CreateAgentForm({
   );
 }
 
-
 export default function AgentsPage() {
   const { data: agents, run: refreshAgents } = useListAgents();
   const renderActions = useMemoizedFn((item: Ref) => {
@@ -90,7 +95,10 @@ export default function AgentsPage() {
     <>
       <Typography.Title>Agents</Typography.Title>
       <Card title="List of agents">
-        <ResourceRefsTable resourceRefs={agents} renderActions={renderActions} />
+        <ResourceRefsTable
+          dataSource={agents}
+          renderActions={renderActions}
+        />
       </Card>
       <Card title="Import agent application">
         <CreateAgentForm onSuccess={refreshAgents} isCreate={false} />

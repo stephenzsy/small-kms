@@ -34,18 +34,23 @@ function useResourceRefsTableColumns<T extends ResourceRef>(
 }
 
 export function ResourceRefsTable<T extends ResourceRef>({
-  resourceRefs,
+  dataSource,
   loading,
   renderActions,
   extraColumns,
 }: {
-  resourceRefs?: T[];
+  dataSource: T[] | undefined;
   loading?: boolean;
   renderActions?: (r: T) => React.ReactNode;
   extraColumns?: TableColumnsType<T>;
 }) {
   const columns = useResourceRefsTableColumns<T>(renderActions, extraColumns);
   return (
-    <Table<T> dataSource={resourceRefs} loading={loading} columns={columns} />
+    <Table<T>
+      dataSource={dataSource}
+      loading={loading}
+      columns={columns}
+      rowKey="id"
+    />
   );
 }

@@ -12,7 +12,7 @@ import (
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 	"github.com/rs/zerolog/log"
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/admin/systemapp"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
@@ -58,16 +58,18 @@ func (s *AgentAdminServer) CreateAgent(ec echo.Context) error {
 		return err
 	}
 	doc := &AgentDoc{
-		AppDoc: appadmin.AppDoc{
-			ResourceDoc: resdoc.ResourceDoc{
-				PartitionKey: resdoc.PartitionKey{
-					NamespaceProvider: models.NamespaceProviderProfile,
-					NamespaceID:       appadmin.AppNamespaceID,
-					ResourceProvider:  models.ProfileResourceProviderAgent,
+		AppDoc: profile.AppDoc{
+			ProfileDoc: profile.ProfileDoc{
+				ResourceDoc: resdoc.ResourceDoc{
+					PartitionKey: resdoc.PartitionKey{
+						NamespaceProvider: models.NamespaceProviderProfile,
+						NamespaceID:       profile.NamespaceIDApp,
+						ResourceProvider:  models.ProfileResourceProviderAgent,
+					},
+					ID: *application.GetAppId(),
 				},
-				ID: *application.GetAppId(),
+				DisplayName: *application.GetDisplayName(),
 			},
-			DisplayName:   *application.GetDisplayName(),
 			ApplicationID: *application.GetId(),
 		},
 	}
@@ -134,16 +136,18 @@ func importAgentApp(c ctx.RequestContext, params *agentmodels.CreateAgentRequest
 	}
 
 	agentDoc := &AgentDoc{
-		AppDoc: appadmin.AppDoc{
-			ResourceDoc: resdoc.ResourceDoc{
-				PartitionKey: resdoc.PartitionKey{
-					NamespaceProvider: models.NamespaceProviderProfile,
-					NamespaceID:       appadmin.AppNamespaceID,
-					ResourceProvider:  models.ProfileResourceProviderAgent,
+		AppDoc: profile.AppDoc{
+			ProfileDoc: profile.ProfileDoc{
+				ResourceDoc: resdoc.ResourceDoc{
+					PartitionKey: resdoc.PartitionKey{
+						NamespaceProvider: models.NamespaceProviderProfile,
+						NamespaceID:       profile.NamespaceIDApp,
+						ResourceProvider:  models.ProfileResourceProviderAgent,
+					},
+					ID: *application.GetAppId(),
 				},
-				ID: *application.GetAppId(),
+				DisplayName: *application.GetDisplayName(),
 			},
-			DisplayName:   *application.GetDisplayName(),
 			ApplicationID: *application.GetId(),
 		},
 	}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -65,7 +65,7 @@ func GetSystemAppDoc(c ctx.RequestContext, systemAppName SystemAppName) (*System
 	err = resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{
 			NamespaceProvider: models.NamespaceProviderProfile,
-			NamespaceID:       appadmin.AppNamespaceID,
+			NamespaceID:       profile.NamespaceIDApp,
 			ResourceProvider:  models.ProfileResourceProviderSystem,
 		},
 		ID: appID.String(),

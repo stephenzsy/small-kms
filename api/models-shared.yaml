@@ -45,16 +45,16 @@ components:
       type: string
       enum:
         - profile
-        - ca-root
-        - ca-int        
+        - root-ca
+        - int-ca       
         - agent
         - service-principal
         - group
         - user
       x-enum-varnames:
         - NamespaceProviderProfile
-        - NamespaceProviderCARoot
-        - NamespaceProviderCAIntermediate
+        - NamespaceProviderRootCA
+        - NamespaceProviderIntermediateCA
         - NamespaceProviderAgent
         - NamespaceProviderServicePrincipal
         - NamespaceProviderGroup

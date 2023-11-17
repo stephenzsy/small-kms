@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
 	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -44,15 +44,17 @@ func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 		return err
 	}
 	doc := &SystemAppDoc{
-		ResourceDoc: resdoc.ResourceDoc{
-			PartitionKey: resdoc.PartitionKey{
-				NamespaceProvider: models.NamespaceProviderProfile,
-				NamespaceID:       appadmin.AppNamespaceID,
-				ResourceProvider:  models.ProfileResourceProviderSystem,
+		ProfileDoc: profile.ProfileDoc{
+			ResourceDoc: resdoc.ResourceDoc{
+				PartitionKey: resdoc.PartitionKey{
+					NamespaceProvider: models.NamespaceProviderProfile,
+					NamespaceID:       profile.NamespaceIDApp,
+					ResourceProvider:  models.ProfileResourceProviderSystem,
+				},
+				ID: appID.String(),
 			},
-			ID: appID.String(),
+			DisplayName: *sp.GetDisplayName(),
 		},
-		DisplayName:          *sp.GetDisplayName(),
 		ServicePrincipalID:   *sp.GetId(),
 		ServicePrincipalType: *sp.GetServicePrincipalType(),
 	}

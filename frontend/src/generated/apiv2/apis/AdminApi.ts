@@ -20,6 +20,7 @@ import type {
   ApplicationByAppId,
   CertificatePolicy,
   CreateAgentRequest,
+  CreateCertificatePolicyRequest,
   ErrorResult,
   KeyPolicy,
   NamespaceProvider,
@@ -36,6 +37,8 @@ import {
     CertificatePolicyToJSON,
     CreateAgentRequestFromJSON,
     CreateAgentRequestToJSON,
+    CreateCertificatePolicyRequestFromJSON,
+    CreateCertificatePolicyRequestToJSON,
     ErrorResultFromJSON,
     ErrorResultToJSON,
     KeyPolicyFromJSON,
@@ -84,6 +87,10 @@ export interface ListKeyPoliciesRequest {
     namespaceId: string;
 }
 
+export interface ListProfilesRequest {
+    namespaceProvider: NamespaceProvider;
+}
+
 export interface PutAgentConfigRequest {
     namespaceId: string;
     agentConfigFields: AgentConfigFields;
@@ -93,6 +100,7 @@ export interface PutCertificatePolicyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
+    createCertificatePolicyRequest: CreateCertificatePolicyRequest;
 }
 
 export interface PutKeyPolicyRequest {
@@ -168,7 +176,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/agent/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            path: `/v2/agents/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -354,40 +362,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * List agents
-     */
-    async listAgentsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v2/agents`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
-    }
-
-    /**
-     * List agents
-     */
-    async listAgents(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
-        const response = await this.listAgentsRaw(initOverrides);
-        return await response.value();
-    }
-
-    /**
      * List certificate policies
      */
     async listCertificatePoliciesRaw(requestParameters: ListCertificatePoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
@@ -472,6 +446,44 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * list profiles
+     */
+    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling listProfiles.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/profiles/{namespaceProvider}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
+    }
+
+    /**
+     * list profiles
+     */
+    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
+        const response = await this.listProfilesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Put agent config
      */
     async putAgentConfigRaw(requestParameters: PutAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfig>> {
@@ -532,9 +544,15 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling putCertificatePolicy.');
         }
 
+        if (requestParameters.createCertificatePolicyRequest === null || requestParameters.createCertificatePolicyRequest === undefined) {
+            throw new runtime.RequiredError('createCertificatePolicyRequest','Required parameter requestParameters.createCertificatePolicyRequest was null or undefined when calling putCertificatePolicy.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -549,6 +567,7 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
+            body: CreateCertificatePolicyRequestToJSON(requestParameters.createCertificatePolicyRequest),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CertificatePolicyFromJSON(jsonValue));

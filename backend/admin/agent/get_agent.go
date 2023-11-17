@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	profile "github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -24,7 +24,7 @@ func (*AgentAdminServer) GetAgent(ec echo.Context, id string) error {
 	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{
 			NamespaceProvider: models.NamespaceProviderProfile,
-			NamespaceID:       appadmin.AppNamespaceID,
+			NamespaceID:       profile.NamespaceIDApp,
 			ResourceProvider:  models.ProfileResourceProviderAgent,
 		},
 		ID: id,

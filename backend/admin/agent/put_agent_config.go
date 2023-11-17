@@ -36,7 +36,7 @@ func (*AgentAdminServer) PutAgentConfig(ec echo.Context, namespaceId string) err
 		KeyCrendentialsCertificatePolicyID: params.KeyCredentialsCertificatePolicyId,
 	}
 
-	// TODO verify credential policy exists
+	// TODO: verify credential policy exists
 
 	docSvc := resdoc.GetDocService(c)
 	resp, err := docSvc.Upsert(c, doc, nil)

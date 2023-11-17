@@ -19,8 +19,8 @@
  */
 export const NamespaceProvider = {
     NamespaceProviderProfile: 'profile',
-    NamespaceProviderCARoot: 'ca-root',
-    NamespaceProviderCAIntermediate: 'ca-int',
+    NamespaceProviderRootCA: 'root-ca',
+    NamespaceProviderIntermediateCA: 'int-ca',
     NamespaceProviderAgent: 'agent',
     NamespaceProviderServicePrincipal: 'service-principal',
     NamespaceProviderGroup: 'group',

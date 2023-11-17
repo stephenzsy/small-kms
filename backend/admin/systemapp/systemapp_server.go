@@ -1,7 +1,7 @@
 package systemapp
 
 import (
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 )
@@ -14,7 +14,7 @@ const (
 	SystemAppNameBackend SystemAppName = "backend"
 )
 
-type SystemAppDoc = appadmin.AppDoc
+type SystemAppDoc = profile.AppDoc
 
 func validateSystemAppName(name string) (SystemAppName, error) {
 	typed := SystemAppName(name)

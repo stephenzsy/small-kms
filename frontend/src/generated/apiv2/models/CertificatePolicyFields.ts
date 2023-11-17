@@ -19,6 +19,12 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
+import type { CertificatePrivateKeyMode } from './CertificatePrivateKeyMode';
+import {
+    CertificatePrivateKeyModeFromJSON,
+    CertificatePrivateKeyModeFromJSONTyped,
+    CertificatePrivateKeyModeToJSON,
+} from './CertificatePrivateKeyMode';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -52,10 +58,10 @@ export interface CertificatePolicyFields {
     keySpec: JsonWebKeySpec;
     /**
      * 
-     * @type {boolean}
+     * @type {CertificatePrivateKeyMode}
      * @memberof CertificatePolicyFields
      */
-    keyExportable: boolean;
+    keyMode: CertificatePrivateKeyMode;
     /**
      * 
      * @type {string}
@@ -94,7 +100,7 @@ export interface CertificatePolicyFields {
 export function instanceOfCertificatePolicyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "keyExportable" in value;
+    isInstance = isInstance && "keyMode" in value;
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "issuerPolicyIdentifier" in value;
     isInstance = isInstance && "subject" in value;
@@ -113,7 +119,7 @@ export function CertificatePolicyFieldsFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyExportable': json['keyExportable'],
+        'keyMode': CertificatePrivateKeyModeFromJSON(json['keyMode']),
         'expiryTime': json['expiryTime'],
         'issuerPolicyIdentifier': json['issuerPolicyIdentifier'],
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -132,7 +138,7 @@ export function CertificatePolicyFieldsToJSON(value?: CertificatePolicyFields | 
     return {
         
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyExportable': value.keyExportable,
+        'keyMode': CertificatePrivateKeyModeToJSON(value.keyMode),
         'expiryTime': value.expiryTime,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'subject': CertificateSubjectToJSON(value.subject),

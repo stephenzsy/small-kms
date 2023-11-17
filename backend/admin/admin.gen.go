@@ -11,6 +11,7 @@ import (
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
+	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
 )
 
 const (
@@ -40,17 +41,20 @@ type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 // PutAgentConfigJSONRequestBody defines body for PutAgentConfig for application/json ContentType.
 type PutAgentConfigJSONRequestBody = externalRef1.AgentConfigFields
 
+// PutCertificatePolicyJSONRequestBody defines body for PutCertificatePolicy for application/json ContentType.
+type PutCertificatePolicyJSONRequestBody = externalRef2.CreateCertificatePolicyRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get agent
-	// (GET /v2/agent/{id})
-	GetAgent(ctx echo.Context, id IdParameter) error
-	// List agents
-	// (GET /v2/agents)
-	ListAgents(ctx echo.Context) error
 	// Create agent
 	// (POST /v2/agents)
 	CreateAgent(ctx echo.Context) error
+	// Get agent
+	// (GET /v2/agents/{id})
+	GetAgent(ctx echo.Context, id IdParameter) error
+	// list profiles
+	// (GET /v2/profiles/{namespaceProvider})
+	ListProfiles(ctx echo.Context, namespaceProvider NamespaceProviderParameter) error
 	// Get agent config
 	// (GET /v2/service-principal/{namespaceId}/agent-config)
 	GetAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter) error
@@ -88,6 +92,17 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
+// CreateAgent converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateAgent(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateAgent(ctx)
+	return err
+}
+
 // GetAgent converts echo context to params.
 func (w *ServerInterfaceWrapper) GetAgent(ctx echo.Context) error {
 	var err error
@@ -106,25 +121,21 @@ func (w *ServerInterfaceWrapper) GetAgent(ctx echo.Context) error {
 	return err
 }
 
-// ListAgents converts echo context to params.
-func (w *ServerInterfaceWrapper) ListAgents(ctx echo.Context) error {
+// ListProfiles converts echo context to params.
+func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListAgents(ctx)
-	return err
-}
-
-// CreateAgent converts echo context to params.
-func (w *ServerInterfaceWrapper) CreateAgent(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.CreateAgent(ctx)
+	err = w.Handler.ListProfiles(ctx, namespaceProvider)
 	return err
 }
 
@@ -416,9 +427,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v2/agent/:id", wrapper.GetAgent)
-	router.GET(baseURL+"/v2/agents", wrapper.ListAgents)
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
+	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
+	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfig)
 	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.PutAgentConfig)
 	router.GET(baseURL+"/v2/system-apps/:id", wrapper.GetSystemApp)

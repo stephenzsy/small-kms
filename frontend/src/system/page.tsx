@@ -7,16 +7,16 @@ function SystemAppsEntry({ systemAppName }: { systemAppName: string }) {
     useSystemAppRequest(systemAppName);
   return (
     <div className="space-y-4">
-      <dl>
-        <div>
+      <dl className="dl">
+        <div className="dl-item">
           <dt>Application ID (Client ID)</dt>
           <dd className="font-mono">{systemApp?.id}</dd>
         </div>
-        <div>
+        <div className="dl-item">
           <dt>Display Name</dt>
           <dd>{systemApp?.displayName}</dd>
         </div>
-        <div>
+        <div className="dl-item">
           <dt>Service Principal ID</dt>
           <dd className="font-mono">{systemApp?.servicePrincipalId}</dd>
         </div>

@@ -12,13 +12,24 @@ components:
         - x-go-type: certificatePolicyComposed
       required:
         - expiryTime
+    CertificatePrivateKeyMode:
+      type: string
+      enum:
+        - cloud-non-exportable
+        - cloud-exportable
+        - client
+      x-enum-varnames:
+        - CertificateKeyModeCloudNonExportable
+        - CertificateKeyModeCloudExportable
+        - CertificateKeyModeClient
+      x-go-type-skip-optional-pointer: true
     CertificatePolicyFields:
       type: object
       properties:
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyExportable:
-          type: boolean
+        keyMode:
+          $ref: "#/components/schemas/CertificatePrivateKeyMode"
         expiryTime:
           type: string
         issuerPolicyIdentifier:
@@ -35,7 +46,7 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - keySpec
-        - keyExportable
+        - keyMode
         - expiryTime
         - issuerPolicyIdentifier
         - subject
@@ -45,14 +56,14 @@ components:
         displayName:
           type: string
           x-go-type-skip-optional-pointer: true
-        keySpec:
-          $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyExportable:
-          type: boolean
-        expiryTime:
+        issuerPolicyIdentifier:
           type: string
           x-go-type-skip-optional-pointer: true
-        issuerPolicyIdentifier:
+        keySpec:
+          $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
+        keyMode:
+          $ref: "#/components/schemas/CertificatePrivateKeyMode"
+        expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true
         subject:
@@ -69,10 +80,11 @@ components:
     CertificateSubject:
       type: object
       properties:
-        commonName:
+        cn:
           type: string
+          x-go-name: CommonName
       required:
-        - commonName
+        - cn
     CertificateFlag:
       type: string
       enum:

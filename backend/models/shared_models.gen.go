@@ -10,10 +10,10 @@ import (
 // Defines values for NamespaceProvider.
 const (
 	NamespaceProviderAgent            NamespaceProvider = "agent"
-	NamespaceProviderCAIntermediate   NamespaceProvider = "ca-int"
-	NamespaceProviderCARoot           NamespaceProvider = "ca-root"
 	NamespaceProviderGroup            NamespaceProvider = "group"
+	NamespaceProviderIntermediateCA   NamespaceProvider = "int-ca"
 	NamespaceProviderProfile          NamespaceProvider = "profile"
+	NamespaceProviderRootCA           NamespaceProvider = "root-ca"
 	NamespaceProviderServicePrincipal NamespaceProvider = "service-principal"
 	NamespaceProviderUser             NamespaceProvider = "user"
 )

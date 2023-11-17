@@ -25,10 +25,10 @@ dd {
   @apply p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0;
 }
 
-.dt {
+.dl dt {
   @apply text-sm font-medium leading-6 text-neutral-900;
 }
 
-.dd {
+.dl dd {
   @apply mt-1 text-sm leading-5 text-neutral-700 sm:mt-0 sm:col-span-2;
 }

@@ -15,6 +15,13 @@ const (
 	CertificateFlagServerAuth CertificateFlag = "serverAuth"
 )
 
+// Defines values for CertificatePrivateKeyMode.
+const (
+	CertificateKeyModeClient             CertificatePrivateKeyMode = "client"
+	CertificateKeyModeCloudExportable    CertificatePrivateKeyMode = "cloud-exportable"
+	CertificateKeyModeCloudNonExportable CertificatePrivateKeyMode = "cloud-non-exportable"
+)
+
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
 
@@ -23,10 +30,10 @@ type CertificatePolicy = certificatePolicyComposed
 
 // CertificatePolicyFields defines model for CertificatePolicyFields.
 type CertificatePolicyFields struct {
-	ExpiryTime             string            `json:"expiryTime"`
-	Flags                  []CertificateFlag `json:"flags,omitempty"`
-	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier"`
-	KeyExportable          bool              `json:"keyExportable"`
+	ExpiryTime             string                    `json:"expiryTime"`
+	Flags                  []CertificateFlag         `json:"flags,omitempty"`
+	IssuerPolicyIdentifier string                    `json:"issuerPolicyIdentifier"`
+	KeyMode                CertificatePrivateKeyMode `json:"keyMode"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 externalRef1.JsonWebKeySpec `json:"keySpec"`
@@ -34,18 +41,21 @@ type CertificatePolicyFields struct {
 	SubjectAlternativeNames *SubjectAlternativeNames    `json:"subjectAlternativeNames,omitempty"`
 }
 
+// CertificatePrivateKeyMode defines model for CertificatePrivateKeyMode.
+type CertificatePrivateKeyMode string
+
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
-	CommonName string `json:"commonName"`
+	CommonName string `json:"cn"`
 }
 
 // CreateCertificatePolicyRequest defines model for CreateCertificatePolicyRequest.
 type CreateCertificatePolicyRequest struct {
-	DisplayName            string            `json:"displayName,omitempty"`
-	ExpiryTime             string            `json:"expiryTime,omitempty"`
-	Flags                  []CertificateFlag `json:"flags,omitempty"`
-	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier,omitempty"`
-	KeyExportable          *bool             `json:"keyExportable,omitempty"`
+	DisplayName            string                    `json:"displayName,omitempty"`
+	ExpiryTime             string                    `json:"expiryTime,omitempty"`
+	Flags                  []CertificateFlag         `json:"flags,omitempty"`
+	IssuerPolicyIdentifier string                    `json:"issuerPolicyIdentifier,omitempty"`
+	KeyMode                CertificatePrivateKeyMode `json:"keyMode,omitempty"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 *externalRef1.JsonWebKeySpec `json:"keySpec,omitempty"`

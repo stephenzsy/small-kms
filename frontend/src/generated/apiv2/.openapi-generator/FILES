@@ -8,8 +8,10 @@ models/ApplicationByAppIdFields.ts
 models/CertificateFlag.ts
 models/CertificatePolicy.ts
 models/CertificatePolicyFields.ts
+models/CertificatePrivateKeyMode.ts
 models/CertificateSubject.ts
 models/CreateAgentRequest.ts
+models/CreateCertificatePolicyRequest.ts
 models/ErrorResult.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts

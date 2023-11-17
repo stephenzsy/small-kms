@@ -65,6 +65,14 @@ func VerifyKeyVaultIdentifier(id base.ID) error {
 	return nil
 }
 
+func ValidateID(id string) error {
+	if len(id) < 1 || len(id) > 48 || !keyVaultNameIdentiferPattern.MatchString(string(id)) {
+		return fmt.Errorf("%w: invalid ID, %s", base.ErrResponseStatusBadRequest, id)
+	}
+
+	return nil
+}
+
 func WithResovingMeNSContext(parent ctx.RequestContext, kind base.NamespaceKind, id base.ID) (ctx.RequestContext, *nsContext) {
 	if strings.EqualFold("me", string(id)) {
 		id = base.IDFromUUID(auth.GetAuthIdentity(parent).ClientPrincipalID())

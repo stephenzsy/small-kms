@@ -1,9 +1,9 @@
 package agentadmin
 
 import (
-	appadmin "github.com/stephenzsy/small-kms/backend/admin/app"
+	profile "github.com/stephenzsy/small-kms/backend/admin/profile"
 )
 
 type AgentDoc struct {
-	appadmin.AppDoc
+	profile.AppDoc
 }

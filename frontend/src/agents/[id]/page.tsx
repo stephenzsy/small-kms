@@ -1,7 +1,6 @@
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Card, Divider, Typography } from "antd";
 import { useParams } from "react-router-dom";
-import { useCertificatePolicies } from "../../admin/hooks/useCertificatePolicies";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { Link } from "../../components/Link";
 import {
@@ -31,15 +30,25 @@ export default function AgentPage() {
   const { id } = useParams<{ id: string }>();
   const { data: agent } = useAgent(id);
   const spId = agent?.servicePrincipalId;
-  const { data: certPolicies, loading: certPoliciesLoading } =
-    useCertificatePolicies(
-      NamespaceProvider.NamespaceProviderServicePrincipal,
-      spId
-    );
+  const api = useAuthedClientV2(AdminApi);
+  const { data: certPolicies, loading: certPoliciesLoading } = useRequest(
+    async () => {
+      if (spId) {
+        return api.listCertificatePolicies({
+          namespaceProvider:
+            NamespaceProvider.NamespaceProviderServicePrincipal,
+          namespaceId: spId,
+        });
+      }
+    },
+    {
+      refreshDeps: [spId],
+    }
+  );
   const renderActions = useMemoizedFn((item: ResourceReference) => {
     return (
       <div className="flex flex-row gap-2">
-        <Link to={`/service-principals/${spId}/cert-policies/${item.id}`}>
+        <Link to={`/service-principal/${spId}/cert-policies/${item.id}`}>
           View
         </Link>
       </div>
@@ -52,8 +61,8 @@ export default function AgentPage() {
       <Card title="Agent info">
         <dl className="dl">
           <div className="dl-item">
-            <dt className="dt">ID (Client ID)</dt>
-            <dd className="dd font-mono">{agent?.id}</dd>
+            <dt>ID (Client ID)</dt>
+            <dd className="font-mono">{agent?.id}</dd>
           </div>
           <div className="dl-item">
             <dt className="dt">Display name</dt>
@@ -73,7 +82,7 @@ export default function AgentPage() {
       <Typography.Title level={2}>Service Principal</Typography.Title>
       <Card title="Certificate Policies">
         <ResourceRefsTable
-          resourceRefs={certPolicies}
+          dataSource={certPolicies}
           loading={certPoliciesLoading}
           renderActions={renderActions}
         />

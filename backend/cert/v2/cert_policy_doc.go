@@ -22,13 +22,13 @@ type CertPolicyDoc struct {
 	resdoc.ResourceDoc
 	DisplayName string `json:"displayName"`
 
-	KeySpec       keymodels.JsonWebKeySpec            `json:"keySpec"`
-	KeyExportable bool                                `json:"keyExportable"`
-	ExpiryTime    caldur.CalendarDuration             `json:"expiryTime"`
-	Subject       certmodels.CertificateSubject       `json:"subject"`
-	SANs          *certmodels.SubjectAlternativeNames `json:"sans,omitempty"`
-	Flags         []certmodels.CertificateFlag        `json:"flags,omitempty"`
-	IssuerPolicy  resdoc.DocIdentifier                `json:"issuerPolicy"`
+	KeySpec      keymodels.JsonWebKeySpec             `json:"keySpec"`
+	KeyMode      certmodels.CertificatePrivateKeyMode `json:"keyMode"`
+	ExpiryTime   caldur.CalendarDuration              `json:"expiryTime"`
+	Subject      certmodels.CertificateSubject        `json:"subject"`
+	SANs         *certmodels.SubjectAlternativeNames  `json:"sans,omitempty"`
+	Flags        []certmodels.CertificateFlag         `json:"flags,omitempty"`
+	IssuerPolicy resdoc.DocIdentifier                 `json:"issuerPolicy"`
 
 	Version []byte `json:"version"`
 }
@@ -52,7 +52,7 @@ func (d *CertPolicyDoc) init(
 	requireAlg := false // including CA or Self
 
 	switch nsProvider {
-	case models.NamespaceProviderCARoot:
+	case models.NamespaceProviderRootCA:
 		// TODO: verify key policy with the same ID exists
 		requireAlg = true
 		d.ExpiryTime = caldur.CalendarDuration{
@@ -66,10 +66,11 @@ func (d *CertPolicyDoc) init(
 				cloudkey.JsonWebKeyOperationVerify,
 			},
 		}
-	case models.NamespaceProviderCAIntermediate:
+		d.KeyMode = certmodels.CertificateKeyModeCloudNonExportable
+	case models.NamespaceProviderIntermediateCA:
 		d.IssuerPolicy = resdoc.DocIdentifier{
 			PartitionKey: resdoc.PartitionKey{
-				NamespaceProvider: models.NamespaceProviderCARoot,
+				NamespaceProvider: models.NamespaceProviderRootCA,
 				NamespaceID:       "default",
 				ResourceProvider:  models.ResourceProviderCertPolicy,
 			},
@@ -83,7 +84,7 @@ func (d *CertPolicyDoc) init(
 			if err != nil {
 				return fmt.Errorf("%w: invalid issuer policy identifier: %s", base.ErrResponseStatusBadRequest, p.IssuerPolicyIdentifier)
 			}
-			if parsed.NamespaceProvider != models.NamespaceProviderCARoot {
+			if parsed.NamespaceProvider != models.NamespaceProviderRootCA {
 				return fmt.Errorf("%w: issuer policy must be root ca", base.ErrResponseStatusBadRequest)
 			}
 			d.IssuerPolicy.NamespaceID = parsed.NamespaceID
@@ -102,11 +103,12 @@ func (d *CertPolicyDoc) init(
 				cloudkey.JsonWebKeyOperationVerify,
 			},
 		}
+		d.KeyMode = certmodels.CertificateKeyModeCloudNonExportable
 	case models.NamespaceProviderServicePrincipal,
 		models.NamespaceProviderGroup:
 		d.IssuerPolicy = resdoc.DocIdentifier{
 			PartitionKey: resdoc.PartitionKey{
-				NamespaceProvider: models.NamespaceProviderCAIntermediate,
+				NamespaceProvider: models.NamespaceProviderIntermediateCA,
 				NamespaceID:       "default",
 				ResourceProvider:  models.ResourceProviderCertPolicy,
 			},
@@ -120,7 +122,7 @@ func (d *CertPolicyDoc) init(
 			if err != nil {
 				return fmt.Errorf("%w: invalid issuer policy identifier: %s", base.ErrResponseStatusBadRequest, p.IssuerPolicyIdentifier)
 			}
-			if parsed.NamespaceProvider != models.NamespaceProviderCAIntermediate {
+			if parsed.NamespaceProvider != models.NamespaceProviderIntermediateCA {
 				return fmt.Errorf("%w: issuer policy must be intermediate ca", base.ErrResponseStatusBadRequest)
 			}
 			d.IssuerPolicy.NamespaceID = parsed.NamespaceID
@@ -128,11 +130,13 @@ func (d *CertPolicyDoc) init(
 		}
 		// TODO verify issuer policy
 
-		d.KeyExportable = true
-		if p.KeyExportable != nil && !*p.KeyExportable {
-			d.KeyExportable = false
+		d.KeyMode = certmodels.CertificateKeyModeCloudExportable
+		switch p.KeyMode {
+		case certmodels.CertificateKeyModeCloudNonExportable,
+			certmodels.CertificateKeyModeCloudExportable,
+			certmodels.CertificateKeyModeClient:
+			d.KeyMode = p.KeyMode
 		}
-
 		d.ExpiryTime = caldur.CalendarDuration{
 			Year: 1,
 		}
@@ -154,7 +158,7 @@ func (d *CertPolicyDoc) init(
 				d.Flags = append(d.Flags, certmodels.CertificateFlagClientAuth)
 			}
 		}
-		if len(p.Flags) == 0 {
+		if len(d.Flags) == 0 {
 			return fmt.Errorf("%w: certificate must have at least one usage flag", base.ErrResponseStatusBadRequest)
 		}
 	default:
@@ -190,7 +194,7 @@ func (d *CertPolicyDoc) init(
 			}
 
 		default:
-			return fmt.Errorf("%w: unsupported key type: %s", base.ErrResponseStatusBadRequest, ks.Kty)
+			// other values use default
 		}
 		if len(ks.KeyOperations) == 0 {
 			d.KeySpec.KeyOperations = []key.JsonWebKeyOperation{
@@ -257,9 +261,7 @@ func (d *CertPolicyDoc) init(
 	// get checksum of key fields
 	dw := md5.New()
 	d.KeySpec.Digest(dw)
-	if d.KeyExportable {
-		io.WriteString(dw, "ext")
-	}
+	dw.Write([]byte(d.KeyMode))
 	io.WriteString(dw, d.IssuerPolicy.String())
 	dw.Write(d.ExpiryTime.Bytes())
 	io.WriteString(dw, d.Subject.String())
@@ -285,7 +287,7 @@ func (d *CertPolicyDoc) ToModel() (m certmodels.CertificatePolicy) {
 	if m.KeySpec.KeyOperations == nil {
 		m.KeySpec.KeyOperations = []key.JsonWebKeyOperation{}
 	}
-	m.KeyExportable = d.KeyExportable
+	m.KeyMode = d.KeyMode
 	m.ExpiryTime = d.ExpiryTime.String()
 	m.Subject = d.Subject
 	m.SubjectAlternativeNames = d.SANs

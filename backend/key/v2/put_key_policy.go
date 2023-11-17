@@ -7,6 +7,7 @@ import (
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
 	keymodels "github.com/stephenzsy/small-kms/backend/models/key"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
 
@@ -19,6 +20,10 @@ func (*KeyAdminServer) PutKeyPolicy(ec echo.Context, nsProvider models.Namespace
 
 	req := new(keymodels.CreateKeyPolicyRequest)
 	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := ns.ValidateID(ID); err != nil {
 		return err
 	}
 

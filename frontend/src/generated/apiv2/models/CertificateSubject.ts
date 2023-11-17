@@ -24,7 +24,7 @@ export interface CertificateSubject {
      * @type {string}
      * @memberof CertificateSubject
      */
-    commonName: string;
+    cn: string;
 }
 
 /**
@@ -32,7 +32,7 @@ export interface CertificateSubject {
  */
 export function instanceOfCertificateSubject(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "commonName" in value;
+    isInstance = isInstance && "cn" in value;
 
     return isInstance;
 }
@@ -47,7 +47,7 @@ export function CertificateSubjectFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'commonName': json['commonName'],
+        'cn': json['cn'],
     };
 }
 
@@ -60,7 +60,7 @@ export function CertificateSubjectToJSON(value?: CertificateSubject | null): any
     }
     return {
         
-        'commonName': value.commonName,
+        'cn': value.cn,
     };
 }
 
