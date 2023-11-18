@@ -59,6 +59,12 @@ export interface CreateAgentOperationRequest {
     createAgentRequest?: CreateAgentRequest;
 }
 
+export interface DeleteCertificateRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+}
+
 export interface GenerateCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -71,6 +77,13 @@ export interface GetAgentRequest {
 
 export interface GetAgentConfigRequest {
     namespaceId: string;
+}
+
+export interface GetCertificateRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    includeJwk?: boolean;
 }
 
 export interface GetCertificatePolicyRequest {
@@ -170,6 +183,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Delete certificate
+     */
+    async deleteCertificateRaw(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling deleteCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteCertificate.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete certificate
+     */
+    async deleteCertificate(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.deleteCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -292,6 +351,56 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfig(requestParameters: GetAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfig> {
         const response = await this.getAgentConfigRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get certificate
+     */
+    async getCertificateRaw(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificate.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.includeJwk !== undefined) {
+            queryParameters['includeJwk'] = requestParameters.includeJwk;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate
+     */
+    async getCertificate(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.getCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

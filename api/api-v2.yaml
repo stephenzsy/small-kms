@@ -158,6 +158,40 @@ paths:
       responses:
         200:
           $ref: "models-cert.yaml#/components/responses/CertificateRefsResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificates/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetCertificate
+      summary: Get certificate
+      parameters:
+        - in: query
+          name: includeJwk
+          description: Include JWK
+          required: false
+          schema:
+            type: boolean
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificateResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - admin
+      operationId: DeleteCertificate
+      summary: Delete certificate
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificateResponse"
+        204:
+          $ref: "#/components/responses/NoContentResponse"         
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/key-policies:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"
@@ -260,6 +294,9 @@ components:
       scheme: bearer
       bearerFormat: JWT
   responses:
+    NoContentResponse:
+      description: No content response
+      content: {}
     ErrorResponse:
       description: Error response
       content:

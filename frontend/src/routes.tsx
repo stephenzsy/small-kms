@@ -24,7 +24,7 @@ const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./me/MainPage"));
 const NamespacePage = React.lazy(() => import("./admin/NamespacePage"));
 const NamespacePage2 = React.lazy(() => import("./admin/NamespacePage2"));
-const CertificatePage = React.lazy(() => import("./admin/CertificatePage"));
+const CertificatePage = React.lazy(() => import("./certificates/[id]/page"));
 const AppsPage = React.lazy(() => import("./admin/AppsPage"));
 const CAsPage = React.lazy(() => import("./admin/CAsPage"));
 const CertPolicyPage = React.lazy(() => import("./admin/CertPolicyPage"));
@@ -91,6 +91,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <NamespacePage2 /> },
           { path: "cert-policies/:id", element: <CertPolicyPage2 /> },
+          { path: "certificates/:id", element: <CertificatePage /> },
         ],
       },
       {

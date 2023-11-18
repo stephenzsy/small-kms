@@ -47,6 +47,14 @@ func (d *ResourceDoc) setETag(etag azcore.ETag) {
 	d.ETag = &etag
 }
 
+func (d *ResourceDoc) getUpdatedBy() string {
+	return d.UpdatedBy
+}
+
+func (d *ResourceDoc) setUpdatedBy(value string) {
+	d.UpdatedBy = value
+}
+
 func (d *ResourceDoc) prepareForWrite(c context.Context) {
 	d.UpdatedBy = auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
 	// clear read-only fields
@@ -54,11 +62,18 @@ func (d *ResourceDoc) prepareForWrite(c context.Context) {
 	d.Timestamp = nil
 }
 
+func (d *ResourceDoc) getID() string {
+	return d.ID
+}
+
 type ResourceDocument interface {
+	getID() string
 	partitionKey() PartitionKey
 	setETag(etag azcore.ETag)
 	prepareForWrite(c context.Context)
 	setTimestamp(t time.Time)
+	getUpdatedBy() string
+	setUpdatedBy(value string)
 }
 
 var _ ResourceDocument = (*ResourceDoc)(nil)

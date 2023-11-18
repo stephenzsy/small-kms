@@ -155,6 +155,9 @@ export default function CertPolicyPage() {
   return (
     <>
       <Typography.Title>Certificate Policy</Typography.Title>
+      <div className="font-mono">
+        {namespaceProvider}:{namespaceId}:cert-policy/{id}
+      </div>
       <Card
         title="Certificates"
         extra={

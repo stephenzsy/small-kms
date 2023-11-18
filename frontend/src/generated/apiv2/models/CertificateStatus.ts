@@ -20,7 +20,8 @@
 export const CertificateStatus = {
     CertificateStatusPending: 'pending',
     CertificateStatusIssued: 'issued',
-    CertificateStatusDeactivated: 'deactivated'
+    CertificateStatusDeactivated: 'deactivated',
+    CertificateStatusUnverified: 'unverified'
 } as const;
 export type CertificateStatus = typeof CertificateStatus[keyof typeof CertificateStatus];
 

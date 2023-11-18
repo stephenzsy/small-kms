@@ -47,7 +47,7 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 	}
 	defer func() {
 		if err != nil {
-			if cancelErr := certDoc.cancel(c); cancelErr != nil {
+			if cancelErr := certDoc.cleanupKeyVault(c); cancelErr != nil {
 				err = fmt.Errorf("%w+%w", err, cancelErr)
 			}
 		}
@@ -62,7 +62,7 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		if err != nil {
 			return
 		}
-		err = c.JSON(resp.RawResponse.StatusCode, certDoc.ToModel())
+		err = c.JSON(resp.RawResponse.StatusCode, certDoc.ToModel(true))
 	}()
 	var signed []byte
 	signed, err = x509.CreateCertificate(rand.Reader,

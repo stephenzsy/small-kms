@@ -21,6 +21,7 @@ const (
 	CertificateStatusDeactivated CertificateStatus = "deactivated"
 	CertificateStatusIssued      CertificateStatus = "issued"
 	CertificateStatusPending     CertificateStatus = "pending"
+	CertificateStatusUnverified  CertificateStatus = "unverified"
 )
 
 // Certificate defines model for Certificate.

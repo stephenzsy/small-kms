@@ -24,7 +24,8 @@ func httpResposneError(statusCode int, message string) error {
 }
 
 var (
-	ErrAzCosmosDocNotFound = errors.New("az cosmos doc not found")
+	ErrAzCosmosDocNotFound    = errors.New("az cosmos doc not found")
+	ErrAzKeyVaultItemNotFound = errors.New("az key vault key not found")
 
 	ErrMsGraphResourceNotFound = errors.New("Request_ResourceNotFound")
 
@@ -42,6 +43,19 @@ func HandleAzCosmosError(err error) error {
 	if errors.As(err, &respError) {
 		if respError.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("%w:%w", ErrAzCosmosDocNotFound, err)
+		}
+	}
+	return err
+}
+
+func HandleAzKeyVaultError(err error) error {
+	if err == nil || errors.Is(err, ErrAzKeyVaultItemNotFound) {
+		return err
+	}
+	var respError *azcore.ResponseError
+	if errors.As(err, &respError) {
+		if respError.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("%w:%w", ErrAzKeyVaultItemNotFound, err)
 		}
 	}
 	return err

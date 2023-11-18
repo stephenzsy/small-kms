@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -17,6 +18,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	cloudkeyaz "github.com/stephenzsy/small-kms/backend/cloud/key/az"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
@@ -237,22 +239,24 @@ func (d *CertDoc) ToRef() (m certmodels.CertificateRef) {
 	return m
 }
 
-func (d *CertDoc) ToModel() (m certmodels.Certificate) {
+func (d *CertDoc) ToModel(includeJwk bool) (m certmodels.Certificate) {
 	m.CertificateRef = d.ToRef()
-	m.Jwk = &keymodels.JsonWebSignatureKey{
-		JsonWebKeyBase: cloudkey.JsonWebKeyBase{
-			KeyType:          d.JsonWebKey.KeyType,
-			Curve:            d.JsonWebKey.Curve,
-			E:                d.JsonWebKey.E,
-			N:                d.JsonWebKey.N,
-			X:                d.JsonWebKey.X,
-			Y:                d.JsonWebKey.Y,
-			ThumbprintSHA1:   d.JsonWebKey.ThumbprintSHA1,
-			ThumbprintSHA256: d.JsonWebKey.ThumbprintSHA256,
-			KeyOperations:    d.JsonWebKey.KeyOperations,
-			CertificateChain: d.JsonWebKey.CertificateChain,
-		},
-		Alg: d.JsonWebKey.Alg,
+	if includeJwk {
+		m.Jwk = &keymodels.JsonWebSignatureKey{
+			JsonWebKeyBase: cloudkey.JsonWebKeyBase{
+				KeyType:          d.JsonWebKey.KeyType,
+				Curve:            d.JsonWebKey.Curve,
+				E:                d.JsonWebKey.E,
+				N:                d.JsonWebKey.N,
+				X:                d.JsonWebKey.X,
+				Y:                d.JsonWebKey.Y,
+				ThumbprintSHA1:   d.JsonWebKey.ThumbprintSHA1,
+				ThumbprintSHA256: d.JsonWebKey.ThumbprintSHA256,
+				KeyOperations:    d.JsonWebKey.KeyOperations,
+				CertificateChain: d.JsonWebKey.CertificateChain,
+			},
+			Alg: d.JsonWebKey.Alg,
+		}
 	}
 	m.Subject = d.Subject.String()
 	m.Flags = d.Flags
@@ -261,7 +265,7 @@ func (d *CertDoc) ToModel() (m certmodels.Certificate) {
 	return m
 }
 
-func (d *certDocSelfSignedGeneratePending) cancel(c context.Context) error {
+func (d *CertDoc) cleanupKeyVault(c context.Context) error {
 	if d.JsonWebKey.KeyID != "" {
 		kid := azkeys.ID(d.JsonWebKey.KeyID)
 		azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
@@ -270,7 +274,12 @@ func (d *certDocSelfSignedGeneratePending) cancel(c context.Context) error {
 				Enabled: to.Ptr(false),
 			},
 		}, nil)
-		return err
+		if err != nil {
+			err = base.HandleAzKeyVaultError(err)
+			if !errors.Is(err, base.ErrAzKeyVaultItemNotFound) {
+				return err
+			}
+		}
 	}
 	return nil
 }

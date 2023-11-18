@@ -84,10 +84,12 @@ components:
         - pending
         - issued
         - deactivated
+        - unverified
       x-enum-varnames:
         - CertificateStatusPending
         - CertificateStatusIssued
         - CertificateStatusDeactivated
+        - CertificateStatusUnverified
       x-go-type-skip-optional-pointer: true
     CertificatePolicyFields:
       type: object

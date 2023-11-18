@@ -8,6 +8,7 @@ import (
 	azruntime "github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/internal/auth"
 )
 
 type ContextKey int
@@ -21,10 +22,40 @@ type DocService interface {
 	Create(context.Context, ResourceDocument, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 	Upsert(context.Context, ResourceDocument, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 	NewQueryItemsPager(query string, partitionKey PartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
+	Delete(context.Context, DocIdentifier, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
+	Patch(context.Context, ResourceDocument, azcosmos.PatchOperations, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 }
 
 type azcosmosSingleContainerDocService struct {
 	client *azcosmos.ContainerClient
+}
+
+// Patch implements DocService.
+func (s *azcosmosSingleContainerDocService) Patch(c context.Context, doc ResourceDocument, patchOps azcosmos.PatchOperations, opts *azcosmos.ItemOptions) (azcosmos.ItemResponse, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(doc.partitionKey().String())
+	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
+	if doc.getUpdatedBy() != nextUpdatedBy {
+		patchOps.AppendSet("/updatedBy", nextUpdatedBy)
+	}
+	resp, err := s.client.PatchItem(c, partitionKey, string(doc.getID()), patchOps, opts)
+	if err != nil {
+		return resp, err
+	}
+	doc.setUpdatedBy(nextUpdatedBy)
+	doc.setETag(resp.ETag)
+	ts, err := time.Parse(time.RFC1123, resp.RawResponse.Header.Get("Date"))
+	if err != nil {
+		log.Ctx(c).Warn().Err(err).Str("DateHeader", resp.RawResponse.Header.Get("Date")).Msg("failed to parse timestamp")
+	} else {
+		doc.setTimestamp(ts)
+	}
+	return resp, nil
+}
+
+// Delete implements DocService.
+func (s *azcosmosSingleContainerDocService) Delete(c context.Context, docIdentifier DocIdentifier, opts *azcosmos.ItemOptions) (azcosmos.ItemResponse, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(docIdentifier.PartitionKey.String())
+	return s.client.DeleteItem(c, partitionKey, docIdentifier.ID, opts)
 }
 
 func (s *azcosmosSingleContainerDocService) Read(
