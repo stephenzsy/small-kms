@@ -93,3 +93,10 @@ func (nsCtx *nsContext) AllowSelf() authz.AuthZFunc {
 		return c, authz.AuthzResultNone
 	}
 }
+
+func ResolveMeNamespace(c ctx.RequestContext, namespaceId string) string {
+	if strings.EqualFold("me", namespaceId) {
+		return auth.GetAuthIdentity(c).ClientPrincipalID().String()
+	}
+	return namespaceId
+}

@@ -1,7 +1,8 @@
-package admin
+package adminserver
 
 import (
 	echo "github.com/labstack/echo/v4"
+	"github.com/stephenzsy/small-kms/backend/admin"
 	agentadmin "github.com/stephenzsy/small-kms/backend/admin/agent"
 	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/admin/systemapp"
@@ -28,7 +29,7 @@ func (*server) PutAgentConfig(ctx echo.Context, namespaceId string) error {
 	panic("unimplemented")
 }
 
-var _ ServerInterface = (*server)(nil)
+var _ admin.ServerInterface = (*server)(nil)
 
 func NewServer(apiServer api.APIServer) *server {
 	return &server{

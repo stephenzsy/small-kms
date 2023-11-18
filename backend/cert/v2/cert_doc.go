@@ -65,9 +65,11 @@ type certDocSelfSignedGeneratePending struct {
 }
 
 const (
-	certDocQueryColumnThumbprintSHA1 = "c.keySpec.x5t"
-	certDocQueryColumnIssuedAt       = "c.iat"
-	certDocQueryColumnNotAfter       = "c.exp"
+	certDocQueryColStatus         = "c.status"
+	certDocQueryColThumbprintSHA1 = "c.jwk.x5t"
+	certDocQueryColIssuedAt       = "c.iat"
+	certDocQueryColNotAfter       = "c.exp"
+	certDocQueryColPolicy         = "c.policy"
 )
 
 // func GetKeyVaultStoreName(nsProvider models.NamespaceProvider, nsID string, policyID string) string {

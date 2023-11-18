@@ -22,6 +22,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/admin"
+	adminserver "github.com/stephenzsy/small-kms/backend/admin/server"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -126,7 +127,7 @@ func main() {
 		agentpush.RegisterHandlers(e, agentpush.NewProxiedServer(apiServer))
 		secret.RegisterHandlers(e, secret.NewServer(apiServer))
 		key.RegisterHandlers(e, key.NewServer(apiServer))
-		admin.RegisterHandlers(e, admin.NewServer(apiServer))
+		admin.RegisterHandlers(e, adminserver.NewServer(apiServer))
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(
 			taskmanager.NewTask("echo", func(c context.Context, sigCh <-chan os.Signal) error {

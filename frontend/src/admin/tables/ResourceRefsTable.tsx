@@ -4,6 +4,7 @@ import { Ref as ResourceRef } from "../../generated/apiv2";
 
 function useResourceRefsTableColumns<T extends ResourceRef>(
   renderActions?: (r: T) => React.ReactNode,
+  noDisplayName?: boolean,
   extraColumns?: TableColumnsType<T>
 ) {
   return useMemo((): TableColumnsType<T> => {
@@ -12,13 +13,17 @@ function useResourceRefsTableColumns<T extends ResourceRef>(
         title: "ID",
         dataIndex: "id",
         key: "id",
-        className: "font-mono",
+        className: "font-mono text-sm",
       },
-      {
-        title: "Display Name",
-        dataIndex: "displayName",
-        key: "displayName",
-      },
+      ...(noDisplayName
+        ? []
+        : [
+            {
+              title: "Display Name",
+              dataIndex: "displayName",
+              key: "displayName",
+            },
+          ]),
       ...(extraColumns ?? []),
       ...(renderActions
         ? [
@@ -38,13 +43,19 @@ export function ResourceRefsTable<T extends ResourceRef>({
   loading,
   renderActions,
   extraColumns,
+  noDisplayName,
 }: {
   dataSource: T[] | undefined;
   loading?: boolean;
   renderActions?: (r: T) => React.ReactNode;
   extraColumns?: TableColumnsType<T>;
+  noDisplayName?: boolean;
 }) {
-  const columns = useResourceRefsTableColumns<T>(renderActions, extraColumns);
+  const columns = useResourceRefsTableColumns<T>(
+    renderActions,
+    noDisplayName,
+    extraColumns
+  );
   return (
     <Table<T>
       dataSource={dataSource}

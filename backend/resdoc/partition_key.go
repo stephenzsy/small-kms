@@ -101,3 +101,17 @@ func (p *DocIdentifier) IsEmpty() bool {
 
 var _ encoding.TextMarshaler = DocIdentifier{}
 var _ encoding.TextUnmarshaler = (*DocIdentifier)(nil)
+
+func NewDocIdentifier(nsProvider models.NamespaceProvider,
+	nsID string,
+	rProvider models.ResourceProvider,
+	id string) DocIdentifier {
+	return DocIdentifier{
+		PartitionKey: PartitionKey{
+			NamespaceProvider: nsProvider,
+			NamespaceID:       nsID,
+			ResourceProvider:  rProvider,
+		},
+		ID: id,
+	}
+}

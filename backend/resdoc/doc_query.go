@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/stephenzsy/small-kms/backend/models"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
@@ -90,21 +91,19 @@ var queryDefaultColumns = []string{
 	"c.deleted",
 }
 
-type QueryBaseDoc struct {
+type ResourceQueryDoc struct {
 	ID        string          `json:"id"`
 	Timestamp jwt.NumericDate `json:"_ts"`
 	Deleted   *time.Time      `json:"deleted"`
 }
 
 // // PopulateModelRef implements ModelRefPopulater.
-// func (d *QueryBaseDoc) PopulateModelRef(r *ResourceReference) {
-// 	if d == nil || r == nil {
-// 		return
-// 	}
-// 	r.ID = d.ID
-// 	r.Deleted = d.Deleted
-// 	r.Updated = d.Timestamp.Time
-// }
+func (d *ResourceQueryDoc) ToRef() (m models.Ref) {
+	m.ID = d.ID
+	m.Deleted = d.Deleted
+	m.Updated = d.Timestamp.Time
+	return
+}
 
 // // GetID implements QueryDocument.
 // func (d *QueryBaseDoc) GetID() ID {

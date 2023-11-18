@@ -139,6 +139,25 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         403:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificates:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListCertificates
+      summary: List certificates
+      parameters:
+        - name: policyId
+          in: query
+          description: Policy ID
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificateRefsResponse"
   /v2/{namespaceProvider}/{namespaceId}/key-policies:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

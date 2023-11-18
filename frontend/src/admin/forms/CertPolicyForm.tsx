@@ -109,7 +109,7 @@ export function CertPolicyForm({
   //   }
   // );
 
-  const { run } = useRequest(
+  const { run, loading } = useRequest(
     async (id: string, params: CreateCertificatePolicyRequest) => {
       const result = await adminApi.putCertificatePolicy({
         namespaceProvider,
@@ -327,7 +327,7 @@ export function CertPolicyForm({
       </div> */}
 
       <Form.Item>
-        <Button htmlType="submit" type="primary">
+        <Button htmlType="submit" type="primary" loading={loading}>
           Submit
         </Button>
       </Form.Item>

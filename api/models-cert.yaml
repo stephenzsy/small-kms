@@ -28,6 +28,7 @@ components:
           x-go-name: NotAfter
         policyIdentifier:
           type: string
+          x-go-type-skip-optional-pointer: true
       required:
         - thumbprint
         - exp
@@ -208,3 +209,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CertificatePolicy"
+    CertificateRefsResponse:
+      description: List of CertificateRefs response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/CertificateRef"

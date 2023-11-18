@@ -25,5 +25,9 @@ func (s HexDigest) MarshalText() (text []byte, err error) {
 	return
 }
 
+func (s HexDigest) String() string {
+	return hex.EncodeToString(s)
+}
+
 var _ encoding.TextMarshaler = HexDigest{}
 var _ encoding.TextUnmarshaler = (*HexDigest)(nil)

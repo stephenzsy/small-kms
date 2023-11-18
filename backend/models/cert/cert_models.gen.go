@@ -44,6 +44,11 @@ type CertificateFields struct {
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
 
+// CertificatePendingOperationFields defines model for CertificatePendingOperationFields.
+type CertificatePendingOperationFields struct {
+	DigestToSign *[]byte `json:"digestToSign,omitempty"`
+}
+
 // CertificatePolicy defines model for CertificatePolicy.
 type CertificatePolicy = certificatePolicyComposed
 
@@ -109,6 +114,9 @@ type SubjectAlternativeNames struct {
 
 // CertificatePolicyResponse defines model for CertificatePolicyResponse.
 type CertificatePolicyResponse = CertificatePolicy
+
+// CertificateRefsResponse defines model for CertificateRefsResponse.
+type CertificateRefsResponse = []CertificateRef
 
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = Certificate
