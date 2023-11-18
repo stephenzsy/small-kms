@@ -19,12 +19,6 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
-import type { CertificatePrivateKeyMode } from './CertificatePrivateKeyMode';
-import {
-    CertificatePrivateKeyModeFromJSON,
-    CertificatePrivateKeyModeFromJSONTyped,
-    CertificatePrivateKeyModeToJSON,
-} from './CertificatePrivateKeyMode';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -58,10 +52,22 @@ export interface CertificatePolicyFields {
     keySpec: JsonWebKeySpec;
     /**
      * 
-     * @type {CertificatePrivateKeyMode}
+     * @type {boolean}
      * @memberof CertificatePolicyFields
      */
-    keyMode: CertificatePrivateKeyMode;
+    keyExportable: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificatePolicyFields
+     */
+    allowGenerate: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificatePolicyFields
+     */
+    allowEnroll: boolean;
     /**
      * 
      * @type {string}
@@ -100,7 +106,9 @@ export interface CertificatePolicyFields {
 export function instanceOfCertificatePolicyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "keyMode" in value;
+    isInstance = isInstance && "keyExportable" in value;
+    isInstance = isInstance && "allowGenerate" in value;
+    isInstance = isInstance && "allowEnroll" in value;
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "issuerPolicyIdentifier" in value;
     isInstance = isInstance && "subject" in value;
@@ -119,7 +127,9 @@ export function CertificatePolicyFieldsFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyMode': CertificatePrivateKeyModeFromJSON(json['keyMode']),
+        'keyExportable': json['keyExportable'],
+        'allowGenerate': json['allowGenerate'],
+        'allowEnroll': json['allowEnroll'],
         'expiryTime': json['expiryTime'],
         'issuerPolicyIdentifier': json['issuerPolicyIdentifier'],
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -138,7 +148,9 @@ export function CertificatePolicyFieldsToJSON(value?: CertificatePolicyFields | 
     return {
         
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyMode': CertificatePrivateKeyModeToJSON(value.keyMode),
+        'keyExportable': value.keyExportable,
+        'allowGenerate': value.allowGenerate,
+        'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'subject': CertificateSubjectToJSON(value.subject),

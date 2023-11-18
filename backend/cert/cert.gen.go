@@ -47,30 +47,32 @@ type CertPolicy = certPolicyComposed
 
 // CertPolicyFields defines model for CertPolicyFields.
 type CertPolicyFields struct {
-	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
-	Flags                     []CertificateFlag            `json:"flags"`
-	IssuerNamespaceIdentifier externalRef0.Id              `json:"issuerNamespaceIdentifier"`
-	IssuerNamespaceKind       externalRef0.NamespaceKind   `json:"issuerNamespaceKind"`
-	KeyExportable             bool                         `json:"keyExportable"`
-	KeySpec                   externalRef1.SigningKeySpec  `json:"keySpec"`
-	LifetimeAction            *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
-	Subject                   CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames   *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
-	Version                   HexDigest                    `json:"version"`
+	ExpiryTime                externalRef0.Period `json:"expiryTime"`
+	Flags                     []CertificateFlag   `json:"flags"`
+	IssuerNamespaceIdentifier externalRef0.Id     `json:"issuerNamespaceIdentifier"`
+	// Deprecated:
+	IssuerNamespaceKind     externalRef0.NamespaceKind   `json:"issuerNamespaceKind"`
+	KeyExportable           bool                         `json:"keyExportable"`
+	KeySpec                 externalRef1.SigningKeySpec  `json:"keySpec"`
+	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
+	Subject                 CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+	Version                 HexDigest                    `json:"version"`
 }
 
 // CertPolicyParameters defines model for CertPolicyParameters.
 type CertPolicyParameters struct {
-	DisplayName               string                       `json:"displayName,omitempty"`
-	ExpiryTime                externalRef0.Period          `json:"expiryTime"`
-	Flags                     []CertificateFlag            `json:"flags,omitempty"`
-	IssuerNamespaceIdentifier externalRef0.Id              `json:"issuerNamespaceIdentifier,omitempty"`
-	IssuerNamespaceKind       *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
-	KeyExportable             *bool                        `json:"keyExportable,omitempty"`
-	KeySpec                   *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
-	LifetimeAction            *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
-	Subject                   CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames   *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+	DisplayName               string              `json:"displayName,omitempty"`
+	ExpiryTime                externalRef0.Period `json:"expiryTime"`
+	Flags                     []CertificateFlag   `json:"flags,omitempty"`
+	IssuerNamespaceIdentifier externalRef0.Id     `json:"issuerNamespaceIdentifier,omitempty"`
+	// Deprecated:
+	IssuerNamespaceKind     *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
+	KeyExportable           *bool                        `json:"keyExportable,omitempty"`
+	KeySpec                 *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
+	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
+	Subject                 CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
 // CertPolicyRef defines model for CertPolicyRef.

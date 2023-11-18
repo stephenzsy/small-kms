@@ -119,10 +119,9 @@ func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifi
 	if certDoc.KeySpec.KeyID == nil {
 		return fmt.Errorf("%w: no key ID found", base.ErrResponseStatusBadRequest)
 	}
-	ck := cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeyVaultService.AzKeysClient(), *certDoc.KeySpec.KeyID)
+	ck := cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeyVaultService.AzKeysClient(), *certDoc.KeySpec.KeyID, *certDoc.KeySpec.Alg)
 	var jwtSigningMethod jwt.SigningMethod
 	switch certDoc.KeySpec.Kty {
-
 	case cloudkey.KeyTypeEC:
 		switch certDoc.KeySpec.Crv {
 		case cloudkey.CurveNameP256:

@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"io"
 	"math/big"
 )
 
@@ -48,9 +49,9 @@ type JsonWebKeyBase struct {
 	D                Base64RawURLEncodableBytes   `json:"d,omitempty"`        // RFC7518 6.3.2.1. "d" (Private Exponent) Parameter, or RFC7518 6.2.2.1. "d" (ECC Private Key) Parameter
 	P                Base64RawURLEncodableBytes   `json:"p,omitempty"`        // RFC7518 6.3.2.2. "p" (First Prime Factor) Parameter
 	Q                Base64RawURLEncodableBytes   `json:"q,omitempty"`        // RFC7518 6.3.3.3. "q" (Second Prime Factor) Parameter
-	DP               Base64RawURLEncodableBytes   `json:"dp,omitempty"`       // RFC7518 6.3.3.4. "dp" (First Factor CRT Exponent) Parameter
-	DQ               Base64RawURLEncodableBytes   `json:"dq,omitempty"`       // RFC7518 6.3.3.5. "dq" (Second Factor CRT Exponent) Parameter
-	QI               Base64RawURLEncodableBytes   `json:"qi,omitempty"`       // RFC7518 6.3.3.6. "qi" (First CRT Coefficient) Parameter
+	Dp               Base64RawURLEncodableBytes   `json:"dp,omitempty"`       // RFC7518 6.3.3.4. "dp" (First Factor CRT Exponent) Parameter
+	Dq               Base64RawURLEncodableBytes   `json:"dq,omitempty"`       // RFC7518 6.3.3.5. "dq" (Second Factor CRT Exponent) Parameter
+	Qinv             Base64RawURLEncodableBytes   `json:"qi,omitempty"`       // RFC7518 6.3.3.6. "qi" (First CRT Coefficient) Parameter
 	X                Base64RawURLEncodableBytes   `json:"x,omitempty"`        // RFC7518 6.2.1.2. "x" (X Coordinate) Parameter
 	Y                Base64RawURLEncodableBytes   `json:"y,omitempty"`        // RFC7518 6.2.1.3. "y" (Y Coordinate) Parameter
 	KeyOperations    []JsonWebKeyOperation        `json:"key_ops,omitempty"`  // RFC7517 4.3. "key_ops" (Key Operations) Parameter Values for JWK
@@ -130,9 +131,9 @@ func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
 			D:         big.NewInt(0).SetBytes(jwk.D),
 			Primes:    []*big.Int{big.NewInt(0).SetBytes(jwk.P), big.NewInt(0).SetBytes(jwk.Q)},
 			Precomputed: rsa.PrecomputedValues{
-				Dp:   big.NewInt(0).SetBytes(jwk.DP),
-				Dq:   big.NewInt(0).SetBytes(jwk.DQ),
-				Qinv: big.NewInt(0).SetBytes(jwk.QI),
+				Dp:   big.NewInt(0).SetBytes(jwk.Dp),
+				Dq:   big.NewInt(0).SetBytes(jwk.Dq),
+				Qinv: big.NewInt(0).SetBytes(jwk.Qinv),
 			},
 		}
 		return jwk.cachedPrivateKey
@@ -144,4 +145,72 @@ func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
 	}
 
 	return jwk.cachedPrivateKey
+}
+
+func (jwk *JsonWebKey[T]) SetPublicKey(publicKey crypto.PublicKey) error {
+	switch publicKey := publicKey.(type) {
+	case *rsa.PublicKey:
+		jwk.KeyType = KeyTypeRSA
+		jwk.N = publicKey.N.Bytes()
+		jwk.E = big.NewInt(int64(publicKey.E)).Bytes()
+	case *ecdsa.PublicKey:
+		jwk.KeyType = KeyTypeEC
+		switch publicKey.Curve {
+		case elliptic.P256():
+			jwk.Curve = CurveNameP256
+		case elliptic.P384():
+			jwk.Curve = CurveNameP384
+		case elliptic.P521():
+			jwk.Curve = CurveNameP521
+		default:
+			return errInvalidCurve
+		}
+		jwk.X = publicKey.X.Bytes()
+		jwk.Y = publicKey.Y.Bytes()
+	default:
+		return ErrInvalidKeyType
+	}
+	jwk.cachedPublicKey = publicKey
+	jwk.cachedPrivateKey = nil
+	jwk.D = nil
+	jwk.P = nil
+	jwk.Q = nil
+	jwk.Dp = nil
+	jwk.Dq = nil
+	jwk.Qinv = nil
+	return nil
+}
+
+func SanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
+	if keyOps == nil {
+		return nil
+	}
+	seen := make(map[JsonWebKeyOperation]bool)
+	result := make([]JsonWebKeyOperation, 0, len(keyOps))
+	for _, op := range keyOps {
+		if _, ok := seen[op]; ok {
+			continue
+		}
+		seen[op] = true
+		result = append(result, op)
+	}
+	return result
+}
+
+func (jwk *JsonWebKey[T]) Digest(w io.Writer) {
+	w.Write([]byte(jwk.KeyType))
+	w.Write([]byte(jwk.Curve))
+	w.Write(jwk.N)
+	w.Write(jwk.E)
+	w.Write(jwk.X)
+	w.Write(jwk.Y)
+	w.Write([]byte(jwk.KeyID))
+	w.Write(jwk.ThumbprintSHA1)
+	w.Write(jwk.ThumbprintSHA256)
+	for _, v := range jwk.CertificateChain {
+		w.Write(v)
+	}
+	for _, v := range jwk.KeyOperations {
+		w.Write([]byte(v))
+	}
 }

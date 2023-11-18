@@ -17,6 +17,9 @@ components:
           description: Hex encoded certificate thumbprint
           type: string
           x-go-type-skip-optional-pointer: true
+        status:
+          $ref: "#/components/schemas/CertificateStatus"
+          x-go-type-skip-optional-pointer: true
         iat:
           $ref: "models-shared.yaml#/components/schemas/NumericDate"
           x-go-name: IssuedAt
@@ -74,24 +77,28 @@ components:
         - x-go-type: certificatePolicyComposed
       required:
         - expiryTime
-    CertificatePrivateKeyMode:
+    CertificateStatus:
       type: string
       enum:
-        - cloud-non-exportable
-        - cloud-exportable
-        - client
+        - pending
+        - issued
+        - deactivated
       x-enum-varnames:
-        - CertificateKeyModeCloudNonExportable
-        - CertificateKeyModeCloudExportable
-        - CertificateKeyModeClient
+        - CertificateStatusPending
+        - CertificateStatusIssued
+        - CertificateStatusDeactivated
       x-go-type-skip-optional-pointer: true
     CertificatePolicyFields:
       type: object
       properties:
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyMode:
-          $ref: "#/components/schemas/CertificatePrivateKeyMode"
+        keyExportable:
+          type: boolean
+        allowGenerate:
+          type: boolean
+        allowEnroll:
+          type: boolean
         expiryTime:
           type: string
         issuerPolicyIdentifier:
@@ -108,10 +115,18 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - keySpec
-        - keyMode
+        - keyExportable
+        - allowGenerate
+        - allowEnroll
         - expiryTime
         - issuerPolicyIdentifier
         - subject
+    CertificatePendingOperationFields:
+      type: object
+      properties:
+        digestToSign:
+          type: string
+          format: byte
     CreateCertificatePolicyRequest:
       type: object
       properties:
@@ -123,8 +138,12 @@ components:
           x-go-type-skip-optional-pointer: true
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyMode:
-          $ref: "#/components/schemas/CertificatePrivateKeyMode"
+        keyExportable:
+          type: boolean
+        allowGenerate:
+          type: boolean
+        allowEnroll:
+          type: boolean
         expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true

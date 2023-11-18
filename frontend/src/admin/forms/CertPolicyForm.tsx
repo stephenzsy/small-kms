@@ -1,12 +1,19 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Divider, Form, Input, Radio, Typography } from "antd";
+import {
+  Button,
+  Checkbox,
+  Divider,
+  Form,
+  Input,
+  Radio,
+  Typography,
+} from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { useEffect } from "react";
 import { JsonWebKeyCurveName, JsonWebKeyType } from "../../generated";
 import {
   AdminApi,
   CertificatePolicy,
-  CertificatePrivateKeyMode,
   CertificateSubject,
   CreateCertificatePolicyRequest,
   NamespaceProvider,
@@ -14,6 +21,7 @@ import {
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 function SANFormList({
   name,
@@ -120,6 +128,9 @@ export function CertPolicyForm({
   const ktyState = useWatch(["keySpec", "kty"], form);
   const keyExportable = useWatch("keyExportable", form);
 
+  const isCA =
+    namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
+    namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA;
   //const _selfSigning = useWatch("selfSigning", form);
   //const isSelfSigning = namespaceKind === NamespaceKind.NamespaceKindRootCA;
   // ? true
@@ -144,12 +155,9 @@ export function CertPolicyForm({
       layout="vertical"
       initialValues={
         value ?? {
-          keyMode:
-            namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
-            namespaceProvider ===
-              NamespaceProvider.NamespaceProviderIntermediateCA
-              ? CertificatePrivateKeyMode.CertificateKeyModeCloudNonExportable
-              : CertificatePrivateKeyMode.CertificateKeyModeCloudExportable,
+          keyExportable: isCA ? false : true,
+          allowGenerate: isCA ? true : false,
+          allowEnroll: isCA ? false : true,
         }
       }
       onFinish={onFinish}
@@ -215,35 +223,31 @@ export function CertPolicyForm({
           </Form.Item>
         ) : null}
         <Form.Item<CreateCertificatePolicyRequest>
-          name={"keyMode"}
-          label="Private Key Mode"
+          name={"keyExportable"}
+          valuePropName="checked"
+          getValueFromEvent={(e: CheckboxChangeEvent) => {
+            return e.target.checked;
+          }}
         >
-          <Radio.Group
-            disabled={
-              namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
-              namespaceProvider ===
-                NamespaceProvider.NamespaceProviderIntermediateCA
-            }
-            className="flex flex-col gap-4"
-          >
-            <Radio
-              value={
-                CertificatePrivateKeyMode.CertificateKeyModeCloudNonExportable
-              }
-            >
-              Cloud non-exportable
-            </Radio>
-            <Radio
-              value={
-                CertificatePrivateKeyMode.CertificateKeyModeCloudExportable
-              }
-            >
-              Cloud exportable
-            </Radio>
-            <Radio value={CertificatePrivateKeyMode.CertificateKeyModeClient}>
-              Client
-            </Radio>
-          </Radio.Group>
+          <Checkbox disabled={isCA}>Private Key Exportable</Checkbox>
+        </Form.Item>
+        <Form.Item<CreateCertificatePolicyRequest>
+          name={"allowGenerate"}
+          valuePropName="checked"
+          getValueFromEvent={(e: CheckboxChangeEvent) => {
+            return e.target.checked;
+          }}
+        >
+          <Checkbox disabled={isCA}>Allow Generate Certificate</Checkbox>
+        </Form.Item>
+        <Form.Item<CreateCertificatePolicyRequest>
+          name={"allowEnroll"}
+          valuePropName="checked"
+          getValueFromEvent={(e: CheckboxChangeEvent) => {
+            return e.target.checked;
+          }}
+        >
+          <Checkbox disabled={isCA}>Allow Enroll Certificate</Checkbox>
         </Form.Item>
       </div>
 

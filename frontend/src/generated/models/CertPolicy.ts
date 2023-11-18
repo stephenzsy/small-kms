@@ -90,6 +90,7 @@ export interface CertPolicy {
      * 
      * @type {NamespaceKind}
      * @memberof CertPolicy
+     * @deprecated
      */
     issuerNamespaceKind: NamespaceKind;
     /**

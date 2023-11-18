@@ -22,13 +22,15 @@ type CertPolicyDoc struct {
 	resdoc.ResourceDoc
 	DisplayName string `json:"displayName"`
 
-	KeySpec      keymodels.JsonWebKeySpec             `json:"keySpec"`
-	KeyMode      certmodels.CertificatePrivateKeyMode `json:"keyMode"`
-	ExpiryTime   caldur.CalendarDuration              `json:"expiryTime"`
-	Subject      certmodels.CertificateSubject        `json:"subject"`
-	SANs         *certmodels.SubjectAlternativeNames  `json:"sans,omitempty"`
-	Flags        []certmodels.CertificateFlag         `json:"flags,omitempty"`
-	IssuerPolicy resdoc.DocIdentifier                 `json:"issuerPolicy"`
+	KeySpec       keymodels.JsonWebKeySpec            `json:"keySpec"`
+	KeyExportable bool                                `json:"keyExportable"`
+	AllowGenerate bool                                `json:"allowGenerate"`
+	AllowEnroll   bool                                `json:"allowEnroll"`
+	ExpiryTime    caldur.CalendarDuration             `json:"expiryTime"`
+	Subject       certmodels.CertificateSubject       `json:"subject"`
+	SANs          *certmodels.SubjectAlternativeNames `json:"sans,omitempty"`
+	Flags         []certmodels.CertificateFlag        `json:"flags,omitempty"`
+	IssuerPolicy  resdoc.DocIdentifier                `json:"issuerPolicy"`
 
 	Version []byte `json:"version"`
 }
@@ -50,24 +52,28 @@ func (d *CertPolicyDoc) init(
 
 	nsProvider := d.PartitionKey.NamespaceProvider
 	requireAlg := false // including CA or Self
+	keySignVerifyOnly := false
 
 	switch nsProvider {
 	case models.NamespaceProviderRootCA:
 		// TODO: verify key policy with the same ID exists
 		requireAlg = true
+		keySignVerifyOnly = true
+
 		d.ExpiryTime = caldur.CalendarDuration{
 			Year: 10,
 		}
 		d.KeySpec = keymodels.JsonWebKeySpec{
 			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(4096),
-			KeyOperations: []key.JsonWebKeyOperation{
-				cloudkey.JsonWebKeyOperationSign,
-				cloudkey.JsonWebKeyOperationVerify,
-			},
 		}
-		d.KeyMode = certmodels.CertificateKeyModeCloudNonExportable
+		d.KeyExportable = false
+		d.AllowGenerate = true
+		d.AllowEnroll = false
 	case models.NamespaceProviderIntermediateCA:
+		requireAlg = true
+		keySignVerifyOnly = true
+
 		d.IssuerPolicy = resdoc.DocIdentifier{
 			PartitionKey: resdoc.PartitionKey{
 				NamespaceProvider: models.NamespaceProviderRootCA,
@@ -91,19 +97,17 @@ func (d *CertPolicyDoc) init(
 			d.IssuerPolicy.ID = parsed.ID
 		}
 		// TODO: verify issuer policy
-		requireAlg = true
+
 		d.ExpiryTime = caldur.CalendarDuration{
 			Year: 3,
 		}
 		d.KeySpec = keymodels.JsonWebKeySpec{
 			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(4096),
-			KeyOperations: []key.JsonWebKeyOperation{
-				cloudkey.JsonWebKeyOperationSign,
-				cloudkey.JsonWebKeyOperationVerify,
-			},
 		}
-		d.KeyMode = certmodels.CertificateKeyModeCloudNonExportable
+		d.KeyExportable = false
+		d.AllowGenerate = true
+		d.AllowEnroll = false
 	case models.NamespaceProviderServicePrincipal,
 		models.NamespaceProviderGroup:
 		d.IssuerPolicy = resdoc.DocIdentifier{
@@ -130,23 +134,29 @@ func (d *CertPolicyDoc) init(
 		}
 		// TODO verify issuer policy
 
-		d.KeyMode = certmodels.CertificateKeyModeCloudExportable
-		switch p.KeyMode {
-		case certmodels.CertificateKeyModeCloudNonExportable,
-			certmodels.CertificateKeyModeCloudExportable,
-			certmodels.CertificateKeyModeClient:
-			d.KeyMode = p.KeyMode
+		d.KeyExportable = true
+		d.AllowGenerate = true
+		d.AllowEnroll = true
+
+		if p.KeyExportable != nil {
+			d.KeyExportable = *p.KeyExportable
 		}
+		if p.AllowGenerate != nil {
+			d.AllowGenerate = *p.AllowGenerate
+		}
+		if p.AllowEnroll != nil {
+			d.AllowEnroll = *p.AllowEnroll
+		}
+		if !d.AllowGenerate && !d.AllowEnroll {
+			return fmt.Errorf("%w: certificate policy must allow generate or enroll", base.ErrResponseStatusBadRequest)
+		}
+
 		d.ExpiryTime = caldur.CalendarDuration{
 			Year: 1,
 		}
 		d.KeySpec = keymodels.JsonWebKeySpec{
 			Kty:     cloudkey.KeyTypeRSA,
 			KeySize: utils.ToPtr(2048),
-			KeyOperations: []key.JsonWebKeyOperation{
-				cloudkey.JsonWebKeyOperationSign,
-				cloudkey.JsonWebKeyOperationVerify,
-			},
 		}
 		if len(p.Flags) == 0 {
 			d.Flags = []certmodels.CertificateFlag{certmodels.CertificateFlagServerAuth, certmodels.CertificateFlagClientAuth}
@@ -166,6 +176,7 @@ func (d *CertPolicyDoc) init(
 	}
 
 	var pAlg cloudkey.JsonWebSignatureAlgorithm
+
 	if p.KeySpec != nil {
 		ks := *p.KeySpec
 		pAlg = cloudkey.JsonWebSignatureAlgorithm(ks.Alg)
@@ -181,7 +192,6 @@ func (d *CertPolicyDoc) init(
 				}
 				// any other value will be using default
 			}
-
 		case cloudkey.KeyTypeEC:
 			d.KeySpec.Kty = cloudkey.KeyTypeEC
 			d.KeySpec.Crv = cloudkey.CurveNameP384
@@ -192,17 +202,36 @@ func (d *CertPolicyDoc) init(
 				d.KeySpec.Crv = ks.Crv
 				// other values will use default
 			}
-
 		default:
 			// other values use default
 		}
-		if len(ks.KeyOperations) == 0 {
-			d.KeySpec.KeyOperations = []key.JsonWebKeyOperation{
-				cloudkey.JsonWebKeyOperationSign,
-				cloudkey.JsonWebKeyOperationVerify,
-			}
-		} else {
+		if !keySignVerifyOnly && len(ks.KeyOperations) > 0 {
 			d.KeySpec.KeyOperations = ks.KeyOperations
+			if !slices.Contains(ks.KeyOperations, cloudkey.JsonWebKeyOperationSign) ||
+				!slices.Contains(ks.KeyOperations, cloudkey.JsonWebKeyOperationVerify) {
+				return fmt.Errorf("%w: key operations must include sign and verify", base.ErrResponseStatusBadRequest)
+			}
+			d.KeySpec.KeyOperations = cloudkey.SanitizeKeyOperations(ks.KeyOperations)
+
+		}
+	}
+
+	if len(d.KeySpec.KeyOperations) == 0 {
+		d.KeySpec.KeyOperations = []cloudkey.JsonWebKeyOperation{
+			cloudkey.JsonWebKeyOperationSign,
+			cloudkey.JsonWebKeyOperationVerify,
+		}
+		if !keySignVerifyOnly {
+			switch d.KeySpec.Kty {
+			case cloudkey.KeyTypeRSA:
+				d.KeySpec.KeyOperations = append(d.KeySpec.KeyOperations,
+					cloudkey.JsonWebKeyOperationWrapKey, cloudkey.JsonWebKeyOperationUnwrapKey)
+			case cloudkey.KeyTypeEC:
+				if d.KeyExportable {
+					d.KeySpec.KeyOperations = append(d.KeySpec.KeyOperations,
+						cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits)
+				}
+			}
 		}
 	}
 
@@ -261,7 +290,15 @@ func (d *CertPolicyDoc) init(
 	// get checksum of key fields
 	dw := md5.New()
 	d.KeySpec.Digest(dw)
-	dw.Write([]byte(d.KeyMode))
+	if d.KeyExportable {
+		dw.Write([]byte("keyExportable"))
+	}
+	if d.AllowGenerate {
+		dw.Write([]byte("allowGenerate"))
+	}
+	if d.AllowEnroll {
+		dw.Write([]byte("allowEnroll"))
+	}
 	io.WriteString(dw, d.IssuerPolicy.String())
 	dw.Write(d.ExpiryTime.Bytes())
 	io.WriteString(dw, d.Subject.String())
@@ -282,12 +319,14 @@ func (d *CertPolicyDoc) ToRef() (m models.Ref) {
 }
 
 func (d *CertPolicyDoc) ToModel() (m certmodels.CertificatePolicy) {
-	m.Ref = d.ResourceDoc.ToRef()
+	m.Ref = d.ToRef()
 	m.KeySpec = d.KeySpec
 	if m.KeySpec.KeyOperations == nil {
 		m.KeySpec.KeyOperations = []key.JsonWebKeyOperation{}
 	}
-	m.KeyMode = d.KeyMode
+	m.KeyExportable = d.KeyExportable
+	m.AllowGenerate = d.AllowGenerate
+	m.AllowEnroll = d.AllowEnroll
 	m.ExpiryTime = d.ExpiryTime.String()
 	m.Subject = d.Subject
 	m.SubjectAlternativeNames = d.SANs

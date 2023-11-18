@@ -29,9 +29,13 @@ type (
 )
 
 func (cs *CertificateSubject) String() string {
+	return cs.ToPkixName().String()
+}
+
+func (cs *CertificateSubject) ToPkixName() pkix.Name {
 	return pkix.Name{
 		CommonName: cs.CommonName,
-	}.String()
+	}
 }
 
 func SanitizeDNSNames(dnsNames []string) []string {

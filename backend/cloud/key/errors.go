@@ -6,6 +6,7 @@ var (
 	errInvalidKeyType = errors.New("invalid key type")
 	errInvalidKey     = errors.New("invalid key")
 	errInvalidAlg     = errors.New("invalid algorithm")
+	errInvalidCurve   = errors.New("invalid curve")
 )
 
 func exportErr(err error) error {
@@ -14,6 +15,7 @@ func exportErr(err error) error {
 
 var (
 	ErrInvalidKeyType   = exportErr(errInvalidKeyType)
+	ErrInvalidCurve     = exportErr(errInvalidCurve)
 	ErrInvalidKey       = exportErr(errInvalidKey)
 	ErrInvalidAlgorithm = exportErr(errInvalidAlg)
 )

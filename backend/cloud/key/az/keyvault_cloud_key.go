@@ -13,11 +13,13 @@ import (
 )
 
 type azCloudKey struct {
-	client    *azkeys.Client
-	c         context.Context
-	kid       azkeys.ID
-	publicKey crypto.PublicKey
-	keyType   i.JsonWebKeyType
+	client     *azkeys.Client
+	c          context.Context
+	kid        azkeys.ID
+	publicKey  crypto.PublicKey
+	keyType    i.JsonWebKeyType
+	jwsa       i.JsonWebSignatureAlgorithm
+	formatX509 bool
 }
 
 var keyOpMapping = map[i.JsonWebKeyOperation]azkeys.KeyOperation{
@@ -61,25 +63,6 @@ func (ck *azCloudKey) KeyID() string {
 	return string(ck.kid)
 }
 
-func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.JsonWebSignatureAlgorithm] {
-	keyID := string(*kvKey.KID)
-	r := &i.JsonWebKey[i.JsonWebSignatureAlgorithm]{
-		JsonWebKeyBase: i.JsonWebKeyBase{
-			KeyType: ktyReverseMapping[*kvKey.Kty],
-			KeyID:   keyID,
-			X:       kvKey.X,
-			Y:       kvKey.Y,
-			N:       kvKey.N,
-			E:       kvKey.E,
-		},
-	}
-	if kvKey.Crv != nil {
-		crv := crvReverseMapping[*kvKey.Crv]
-		r.Curve = crv
-	}
-	return r
-}
-
 func ToAzKeyOperation(op i.JsonWebKeyOperation) azkeys.KeyOperation {
 	if v, ok := keyOpMapping[op]; !ok {
 		return azkeys.KeyOperation("")
@@ -101,16 +84,16 @@ func (ck *azCloudKey) Public() crypto.PublicKey {
 }
 
 // Sign implements cloudkey.CloudSignatureKey.
-func (ck *azCloudKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	if alg, ok := opts.(i.JsonWebSignatureAlgorithm); !ok {
-		return nil, fmt.Errorf("%w: %T", i.ErrInvalidAlgorithm, opts)
-	} else if azSignAlg, ok := algMapping[alg]; !ok {
-		return nil, fmt.Errorf("%w: %s", i.ErrInvalidAlgorithm, alg)
+func (ck *azCloudKey) Sign(rand io.Reader, digest []byte, _ crypto.SignerOpts) (signature []byte, err error) {
+	if azSignAlg, ok := algMapping[ck.jwsa]; !ok {
+		return nil, fmt.Errorf("%w: %s", i.ErrInvalidAlgorithm, ck.jwsa)
 	} else if resp, err := ck.client.Sign(ck.c, ck.kid.Name(), ck.kid.Version(), azkeys.SignParameters{
 		Algorithm: &azSignAlg,
 		Value:     digest,
 	}, nil); err != nil {
 		return nil, err
+	} else if ck.formatX509 {
+		return toX509Signature(resp.Result, azSignAlg)
 	} else {
 		return resp.Result, nil
 	}
@@ -148,11 +131,13 @@ func (ck *azCloudKey) Decrypt(rand io.Reader, msg []byte, opts crypto.DecrypterO
 var _ i.CloudSignatureKey = (*azCloudKey)(nil)
 var _ i.CloudWrappingKey = (*azCloudKey)(nil)
 
-func NewAzCloudSignatureKeyWithKID(c context.Context, client *azkeys.Client, kid string) i.CloudSignatureKey {
+func NewAzCloudSignatureKeyWithKID(c context.Context, client *azkeys.Client, kid string,
+	jwsa i.JsonWebSignatureAlgorithm) i.CloudSignatureKey {
 	return &azCloudKey{
 		client: client,
 		kid:    azkeys.ID(kid),
 		c:      c,
+		jwsa:   jwsa,
 	}
 }
 
@@ -163,4 +148,25 @@ func NewCloudWrappingKeyWithKID(c context.Context, client *azkeys.Client, kid st
 		c:       c,
 		keyType: keyType,
 	}
+}
+
+func CreateCloudSignatureKey(c context.Context,
+	client *azkeys.Client,
+	name string,
+	ckParams azkeys.CreateKeyParameters,
+	jwsa i.JsonWebSignatureAlgorithm,
+	formatX509 bool) (azkeys.CreateKeyResponse, i.CloudSignatureKey, error) {
+	ckResp, err := client.CreateKey(c, name, ckParams, nil)
+	if err != nil {
+		return ckResp, nil, err
+	}
+
+	return ckResp, &azCloudKey{
+		client:     client,
+		kid:        *ckResp.Key.KID,
+		c:          c,
+		publicKey:  newSigningJWKFromKeyVaultKey(ckResp.Key).PublicKey(),
+		jwsa:       jwsa,
+		formatX509: formatX509,
+	}, nil
 }

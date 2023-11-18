@@ -19,12 +19,6 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
-import type { CertificatePrivateKeyMode } from './CertificatePrivateKeyMode';
-import {
-    CertificatePrivateKeyModeFromJSON,
-    CertificatePrivateKeyModeFromJSONTyped,
-    CertificatePrivateKeyModeToJSON,
-} from './CertificatePrivateKeyMode';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -70,10 +64,22 @@ export interface CreateCertificatePolicyRequest {
     keySpec?: JsonWebKeySpec;
     /**
      * 
-     * @type {CertificatePrivateKeyMode}
+     * @type {boolean}
      * @memberof CreateCertificatePolicyRequest
      */
-    keyMode?: CertificatePrivateKeyMode;
+    keyExportable?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreateCertificatePolicyRequest
+     */
+    allowGenerate?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreateCertificatePolicyRequest
+     */
+    allowEnroll?: boolean;
     /**
      * 
      * @type {string}
@@ -123,7 +129,9 @@ export function CreateCertificatePolicyRequestFromJSONTyped(json: any, ignoreDis
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
         'keySpec': !exists(json, 'keySpec') ? undefined : JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyMode': !exists(json, 'keyMode') ? undefined : CertificatePrivateKeyModeFromJSON(json['keyMode']),
+        'keyExportable': !exists(json, 'keyExportable') ? undefined : json['keyExportable'],
+        'allowGenerate': !exists(json, 'allowGenerate') ? undefined : json['allowGenerate'],
+        'allowEnroll': !exists(json, 'allowEnroll') ? undefined : json['allowEnroll'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
         'subject': CertificateSubjectFromJSON(json['subject']),
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
@@ -143,7 +151,9 @@ export function CreateCertificatePolicyRequestToJSON(value?: CreateCertificatePo
         'displayName': value.displayName,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyMode': CertificatePrivateKeyModeToJSON(value.keyMode),
+        'keyExportable': value.keyExportable,
+        'allowGenerate': value.allowGenerate,
+        'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,
         'subject': CertificateSubjectToJSON(value.subject),
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),

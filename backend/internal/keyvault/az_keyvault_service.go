@@ -2,10 +2,21 @@ package kv
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"github.com/stephenzsy/small-kms/backend/models"
+)
+
+type MaterialNameKind string
+
+const (
+	MaterialNameKindCertificate     MaterialNameKind = "c"
+	MaterialNameKindKey             MaterialNameKind = "k"
+	MaterialNameKindSecret          MaterialNameKind = "s"
+	MaterialNameKindfCertificateKey MaterialNameKind = "ck"
 )
 
 type AzKeyVaultService interface {
@@ -26,4 +37,11 @@ func GetAzKeyVaultService(c context.Context) AzKeyVaultService {
 		return s
 	}
 	return nil
+}
+
+func GetMaterialName(
+	kind MaterialNameKind,
+	nsProvider models.NamespaceProvider, nsID string, policyID string) string {
+
+	return fmt.Sprintf("%s-%s-%s-%s", kind, nsProvider, nsID, policyID)
 }

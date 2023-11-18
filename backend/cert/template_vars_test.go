@@ -15,7 +15,7 @@ func TestProcessTemplate(t *testing.T) {
 	graphObj := graphmodels.NewDirectoryObject()
 	graphObj.SetId(stringPtr("123"))
 	ctx = context.WithValue(ctx, groupMemberGraphObjectContextKey, graphObj)
-	result, err := processTemplate(ctx, "test", templateStr)
+	result, err := ProcessTemplate(ctx, "test", templateStr)
 	assert.NoError(t, err)
 	assert.Equal(t, "Hello, 123!", result)
 }
@@ -24,7 +24,7 @@ func TestProcessTemplateMissingVar(t *testing.T) {
 	ctx := context.Background()
 
 	templateStr := "Hello, {{member.graph.id}}!"
-	_, err := processTemplate(ctx, "test", templateStr)
+	_, err := ProcessTemplate(ctx, "test", templateStr)
 	assert.Error(t, err)
 }
 
@@ -32,7 +32,7 @@ func TestProcessTemplateBadTemplate(t *testing.T) {
 	ctx := context.Background()
 
 	templateStr := "Hello, {{member.graph.bad}}!"
-	_, err := processTemplate(ctx, "test", templateStr)
+	_, err := ProcessTemplate(ctx, "test", templateStr)
 	assert.Error(t, err)
 }
 

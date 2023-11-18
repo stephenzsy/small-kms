@@ -12,6 +12,7 @@ import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
 import { NavLink, useMatches } from "react-router-dom";
 import { useAppAuthContext } from "./auth/AuthProvider";
+import { DrawerProvider } from "./admin/contexts/DrawerContext";
 
 function useNavItems(isAdmin: boolean): MenuProps["items"] {
   return useMemo(
@@ -125,7 +126,9 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
           <Menu items={userNavItems} theme="dark" mode="horizontal" />
         </Layout.Header>
         <Layout.Content className="p-6 max-w-7xl mx-auto w-full space-y-6">
-          <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
+          <DrawerProvider>
+            <AuthenticatedTemplate>{props.children}</AuthenticatedTemplate>
+          </DrawerProvider>
           <UnauthenticatedTemplate>
             <center className="mt-10 lg:mt-40 space-y-4">
               <div className="text-4xl">

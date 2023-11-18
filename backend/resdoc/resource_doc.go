@@ -22,6 +22,13 @@ type ResourceDoc struct {
 	UpdatedBy    string           `json:"updatedBy,omitempty"`
 }
 
+func (doc *ResourceDoc) Identifier() DocIdentifier {
+	return DocIdentifier{
+		PartitionKey: doc.PartitionKey,
+		ID:           doc.ID,
+	}
+}
+
 // setTimestamp implements ResourceDocument.
 func (doc *ResourceDoc) setTimestamp(t time.Time) {
 	doc.Timestamp = jwt.NewNumericDate(t)

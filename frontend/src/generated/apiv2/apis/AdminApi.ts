@@ -18,6 +18,7 @@ import type {
   AgentConfig,
   AgentConfigFields,
   ApplicationByAppId,
+  Certificate,
   CertificatePolicy,
   CreateAgentRequest,
   CreateCertificatePolicyRequest,
@@ -33,6 +34,8 @@ import {
     AgentConfigFieldsToJSON,
     ApplicationByAppIdFromJSON,
     ApplicationByAppIdToJSON,
+    CertificateFromJSON,
+    CertificateToJSON,
     CertificatePolicyFromJSON,
     CertificatePolicyToJSON,
     CreateAgentRequestFromJSON,
@@ -51,6 +54,12 @@ import {
 
 export interface CreateAgentOperationRequest {
     createAgentRequest?: CreateAgentRequest;
+}
+
+export interface GenerateCertificateRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
 }
 
 export interface GetAgentRequest {
@@ -152,6 +161,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * put certificate policy
+     */
+    async generateCertificateRaw(requestParameters: GenerateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling generateCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling generateCertificate.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling generateCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/generate`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * put certificate policy
+     */
+    async generateCertificate(requestParameters: GenerateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.generateCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

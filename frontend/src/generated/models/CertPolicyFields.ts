@@ -60,6 +60,7 @@ export interface CertPolicyFields {
      * 
      * @type {NamespaceKind}
      * @memberof CertPolicyFields
+     * @deprecated
      */
     issuerNamespaceKind: NamespaceKind;
     /**

@@ -20,6 +20,14 @@ func (*CertServer) GetCertificatePolicy(ec echo.Context, namespaceProvider model
 		return base.ErrResponseStatusForbidden
 	}
 
+	doc, err := getCertificatePolicyInternal(c, namespaceProvider, namespaceId, id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, doc.ToModel())
+}
+
+func getCertificatePolicyInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertPolicyDoc, error) {
 	doc := &CertPolicyDoc{}
 	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{
@@ -30,10 +38,9 @@ func (*CertServer) GetCertificatePolicy(ec echo.Context, namespaceProvider model
 		ID: id,
 	}, doc, nil); err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, id)
+			return nil, fmt.Errorf("%w: certificate policy not found: %s", base.ErrResponseStatusNotFound, id)
 		}
-		return err
+		return nil, err
 	}
-	return c.JSON(200, doc.ToModel())
-
+	return doc, nil
 }

@@ -19,12 +19,6 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
-import type { CertificatePrivateKeyMode } from './CertificatePrivateKeyMode';
-import {
-    CertificatePrivateKeyModeFromJSON,
-    CertificatePrivateKeyModeFromJSONTyped,
-    CertificatePrivateKeyModeToJSON,
-} from './CertificatePrivateKeyMode';
 import type { CertificateSubject } from './CertificateSubject';
 import {
     CertificateSubjectFromJSON,
@@ -88,10 +82,22 @@ export interface CertificatePolicy {
     keySpec: JsonWebKeySpec;
     /**
      * 
-     * @type {CertificatePrivateKeyMode}
+     * @type {boolean}
      * @memberof CertificatePolicy
      */
-    keyMode: CertificatePrivateKeyMode;
+    keyExportable: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificatePolicy
+     */
+    allowGenerate: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CertificatePolicy
+     */
+    allowEnroll: boolean;
     /**
      * 
      * @type {string}
@@ -133,7 +139,9 @@ export function instanceOfCertificatePolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "keyMode" in value;
+    isInstance = isInstance && "keyExportable" in value;
+    isInstance = isInstance && "allowGenerate" in value;
+    isInstance = isInstance && "allowEnroll" in value;
     isInstance = isInstance && "expiryTime" in value;
     isInstance = isInstance && "issuerPolicyIdentifier" in value;
     isInstance = isInstance && "subject" in value;
@@ -157,7 +165,9 @@ export function CertificatePolicyFromJSONTyped(json: any, ignoreDiscriminator: b
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyMode': CertificatePrivateKeyModeFromJSON(json['keyMode']),
+        'keyExportable': json['keyExportable'],
+        'allowGenerate': json['allowGenerate'],
+        'allowEnroll': json['allowEnroll'],
         'expiryTime': json['expiryTime'],
         'issuerPolicyIdentifier': json['issuerPolicyIdentifier'],
         'subject': CertificateSubjectFromJSON(json['subject']),
@@ -181,7 +191,9 @@ export function CertificatePolicyToJSON(value?: CertificatePolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'displayName': value.displayName,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyMode': CertificatePrivateKeyModeToJSON(value.keyMode),
+        'keyExportable': value.keyExportable,
+        'allowGenerate': value.allowGenerate,
+        'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'subject': CertificateSubjectToJSON(value.subject),

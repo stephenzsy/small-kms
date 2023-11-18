@@ -35,6 +35,10 @@ func (p *PartitionKey) UnmarshalText(text []byte) (err error) {
 	return err
 }
 
+func (p *PartitionKey) IsEmpty() bool {
+	return p.NamespaceProvider == "" && p.NamespaceID == "" && p.ResourceProvider == ""
+}
+
 func ParsePartitionKey(text string) (PartitionKey, error) {
 	var p PartitionKey
 	if text == "" {
@@ -89,6 +93,10 @@ func (p DocIdentifier) String() string {
 		return ""
 	}
 	return partitionKeyString + "/" + p.ID
+}
+
+func (p *DocIdentifier) IsEmpty() bool {
+	return p.PartitionKey.IsEmpty() && p.ID == ""
 }
 
 var _ encoding.TextMarshaler = DocIdentifier{}

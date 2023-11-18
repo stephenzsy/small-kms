@@ -108,6 +108,7 @@ export interface CertPolicyParameters {
      * 
      * @type {NamespaceKind}
      * @memberof CertPolicyParameters
+     * @deprecated
      */
     issuerNamespaceKind?: NamespaceKind;
     /**

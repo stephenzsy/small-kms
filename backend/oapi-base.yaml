@@ -53,6 +53,7 @@ components:
         name: cloudkey
       x-go-type-skip-optional-pointer: true
     NamespaceKind:
+      deprecated: true
       type: string
       enum:
         - sys

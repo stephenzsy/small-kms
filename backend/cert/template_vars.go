@@ -12,7 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func processTemplate(c context.Context, templateName, templateStr string) (string, error) {
+func ProcessTemplate(c context.Context, templateName, templateStr string) (string, error) {
 	bad := func(e error) (string, error) {
 		return templateStr, e
 	}

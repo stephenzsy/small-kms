@@ -1,6 +1,9 @@
 package cloudkey
 
-import "crypto"
+import (
+	"crypto"
+	"crypto/x509"
+)
 
 type JsonWebSignatureAlgorithm string
 
@@ -39,6 +42,18 @@ var supportedAlgs = map[JsonWebSignatureAlgorithm]bool{
 	SignatureAlgorithmPS512: true,
 }
 
+var jwsAlgToX509SigAlg = map[JsonWebSignatureAlgorithm]x509.SignatureAlgorithm{
+	SignatureAlgorithmRS256: x509.SHA256WithRSA,
+	SignatureAlgorithmRS384: x509.SHA384WithRSA,
+	SignatureAlgorithmRS512: x509.SHA512WithRSA,
+	SignatureAlgorithmPS256: x509.SHA256WithRSAPSS,
+	SignatureAlgorithmPS384: x509.SHA384WithRSAPSS,
+	SignatureAlgorithmPS512: x509.SHA512WithRSAPSS,
+	SignatureAlgorithmES256: x509.ECDSAWithSHA256,
+	SignatureAlgorithmES384: x509.ECDSAWithSHA384,
+	SignatureAlgorithmES512: x509.ECDSAWithSHA512,
+}
+
 // HashFunc implements crypto.SignerOpts.
 func (alg JsonWebSignatureAlgorithm) HashFunc() crypto.Hash {
 	switch alg {
@@ -65,6 +80,13 @@ func (alg JsonWebSignatureAlgorithm) HashFunc() crypto.Hash {
 // HashFunc implements crypto.SignerOpts.
 func (alg JsonWebSignatureAlgorithm) IsSupported() bool {
 	return supportedAlgs[alg]
+}
+
+func (alg JsonWebSignatureAlgorithm) X509SignatureAlgorithm() x509.SignatureAlgorithm {
+	if v, ok := jwsAlgToX509SigAlg[alg]; ok {
+		return v
+	}
+	return x509.UnknownSignatureAlgorithm
 }
 
 var _ crypto.SignerOpts = JsonWebSignatureAlgorithm("")

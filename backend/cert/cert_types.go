@@ -77,7 +77,7 @@ const (
 )
 
 func (s *CertificateSubject) processTemplate(c context.Context) (processed CertificateSubject, err error) {
-	if cn, err := processTemplate(c, "subjectCN", s.CommonName); err != nil {
+	if cn, err := ProcessTemplate(c, "subjectCN", s.CommonName); err != nil {
 		return processed, err
 	} else {
 		processed.CommonName = cn
