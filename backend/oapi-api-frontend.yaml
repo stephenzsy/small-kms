@@ -66,8 +66,6 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}"
-  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1create-cert"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1enroll-cert"
   /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:

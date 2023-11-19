@@ -200,9 +200,6 @@ type ServerInterface interface {
 	// Put cert policy
 	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
 	PutCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Create certificate
-	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert)
-	CreateCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Enroll certificate
 	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert)
 	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params EnrollCertificateParams) error
@@ -331,40 +328,6 @@ func (w *ServerInterfaceWrapper) PutCertPolicy(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
-// CreateCertificate converts echo context to params.
-func (w *ServerInterfaceWrapper) CreateCertificate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.CreateCertificate(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -742,7 +705,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.GetCertPolicy)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.PutCertPolicy)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/create-cert", wrapper.CreateCertificate)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/enroll-cert", wrapper.EnrollCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)

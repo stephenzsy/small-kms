@@ -124,22 +124,6 @@ func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.Namespace
 	return c.NoContent(http.StatusNoContent)
 }
 
-// CreateCertificate implements ServerInterface.
-func (s *server) CreateCertificate(ec echo.Context, nsKind base.NamespaceKind, nsID base.ID, policyID base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, nsKind, nsID)
-	if err != nil {
-		return err
-	}
-
-	r, err := createCertFromPolicy(c, base.NewDocLocator(nsKind, nsID, base.ResourceKindCertPolicy, policyID), nil)
-	if err != nil {
-		return err
-	}
-	m := new(Certificate)
-	r.PopulateModel(m)
-	return c.JSON(http.StatusCreated, m)
-}
-
 // PutCertPolicy implements ServerInterface.
 func (s *server) PutCertPolicy(ec echo.Context,
 	namespaceKind base.NamespaceKind,

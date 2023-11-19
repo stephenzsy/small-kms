@@ -1,3 +1,4 @@
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
@@ -13,8 +14,9 @@ import {
 } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { useForm, useWatch } from "antd/es/form/Form";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAppAuthContext } from "../auth/AuthProvider";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
@@ -32,59 +34,11 @@ import {
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
+import { CertWebEnroll } from "./CertWebEnroll";
 import {
   NamespaceConfigContext,
   NamespaceContext,
 } from "./contexts/NamespaceContext";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useAppAuthContext } from "../auth/AuthProvider";
-import { CertWebEnroll } from "./CertWebEnroll";
-
-function RequestCertificateControl({
-  certPolicyId,
-  onComplete,
-}: {
-  certPolicyId: string;
-  onComplete?: () => void;
-}) {
-  const { namespaceId: namespaceIdentifier, namespaceKind } =
-    useContext(NamespaceContext);
-  const adminApi = useAuthedClient(AdminApi);
-  const [force, setForce] = useState(false);
-  const { run: issueCert, loading } = useRequest(
-    async (force: boolean) => {
-      await adminApi.createCertificate({
-        resourceId: certPolicyId,
-        namespaceId: namespaceIdentifier,
-        namespaceKind,
-      });
-      onComplete?.();
-    },
-    { manual: true }
-  );
-
-  return (
-    <div className="flex gap-8 items-center">
-      <Button
-        loading={loading}
-        type="primary"
-        onClick={() => {
-          issueCert(force);
-        }}
-      >
-        Request certificate
-      </Button>
-      <Checkbox
-        checked={force}
-        onChange={(e) => {
-          setForce(e.target.checked);
-        }}
-      >
-        Force
-      </Checkbox>
-    </div>
-  );
-}
 
 type CertPolicyFormState = {
   certPolicyId: string;
@@ -548,10 +502,6 @@ export default function CertPolicyPage() {
       {isAdmin && (
         <Card title="Manage certificates">
           <div className="space-y-4">
-            <RequestCertificateControl
-              certPolicyId={certPolicyId}
-              onComplete={refreshCertificates}
-            />
             {(namespaceKind === NamespaceKind.NamespaceKindRootCA ||
               namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) &&
               (certPolicyId !== issuerRule?.policyId ? (

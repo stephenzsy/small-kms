@@ -167,19 +167,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertPolicyResponse"
-  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/create-cert:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-    post:
-      tags:
-        - admin
-      operationId: CreateCertificate
-      summary: Create certificate
-      responses:
-        201:
-          $ref: "#/components/responses/CertificateResponse"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
