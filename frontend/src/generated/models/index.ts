@@ -17,7 +17,6 @@ export * from './AzureKeyvaultResourceCategory';
 export * from './AzureRoleAssignment';
 export * from './CertPolicy';
 export * from './CertPolicyFields';
-export * from './CertPolicyParameters';
 export * from './CertPolicyRef';
 export * from './CertPolicyRefFields';
 export * from './Certificate';

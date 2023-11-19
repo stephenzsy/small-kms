@@ -153,20 +153,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertPolicyResponse"
-    put:
-      tags:
-        - admin
-      operationId: PutCertPolicy
-      summary: Put cert policy
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertPolicyParameters"
-      responses:
-        200:
-          $ref: "#/components/responses/CertPolicyResponse"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

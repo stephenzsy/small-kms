@@ -60,21 +60,6 @@ type CertPolicyFields struct {
 	Version                 HexDigest                    `json:"version"`
 }
 
-// CertPolicyParameters defines model for CertPolicyParameters.
-type CertPolicyParameters struct {
-	DisplayName               string              `json:"displayName,omitempty"`
-	ExpiryTime                externalRef0.Period `json:"expiryTime"`
-	Flags                     []CertificateFlag   `json:"flags,omitempty"`
-	IssuerNamespaceIdentifier externalRef0.Id     `json:"issuerNamespaceIdentifier,omitempty"`
-	// Deprecated:
-	IssuerNamespaceKind     *externalRef0.NamespaceKind  `json:"issuerNamespaceKind,omitempty"`
-	KeyExportable           *bool                        `json:"keyExportable,omitempty"`
-	KeySpec                 *externalRef1.SigningKeySpec `json:"keySpec,omitempty"`
-	LifetimeAction          *externalRef1.LifetimeAction `json:"lifetimeAction,omitempty"`
-	Subject                 CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
-}
-
 // CertPolicyRef defines model for CertPolicyRef.
 type CertPolicyRef = certPolicyRefComposed
 
@@ -177,9 +162,6 @@ type ListCertificatesParams struct {
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
 
-// PutCertPolicyJSONRequestBody defines body for PutCertPolicy for application/json ContentType.
-type PutCertPolicyJSONRequestBody = CertPolicyParameters
-
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
@@ -197,9 +179,6 @@ type ServerInterface interface {
 	// Get cert policy
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
 	GetCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Put cert policy
-	// (PUT /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
-	PutCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// Enroll certificate
 	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert)
 	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params EnrollCertificateParams) error
@@ -294,40 +273,6 @@ func (w *ServerInterfaceWrapper) GetCertPolicy(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
-// PutCertPolicy converts echo context to params.
-func (w *ServerInterfaceWrapper) PutCertPolicy(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -704,7 +649,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.GetCertPolicy)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.PutCertPolicy)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/enroll-cert", wrapper.EnrollCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)

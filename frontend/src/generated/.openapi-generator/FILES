@@ -18,7 +18,6 @@ models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts
 models/CertPolicy.ts
 models/CertPolicyFields.ts
-models/CertPolicyParameters.ts
 models/CertPolicyRef.ts
 models/CertPolicyRefFields.ts
 models/Certificate.ts

@@ -3,18 +3,14 @@ import { useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
   Card,
-  Checkbox,
   Form,
   Input,
-  Radio,
   Table,
   TableColumnType,
   Tag,
-  Typography,
+  Typography
 } from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import { useForm, useWatch } from "antd/es/form/Form";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppAuthContext } from "../auth/AuthProvider";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
@@ -22,18 +18,14 @@ import { Link } from "../components/Link";
 import {
   AdminApi,
   CertPolicy,
-  CertPolicyParameters,
   CertificateRef,
   JsonWebKeyCurveName,
-  JsonWebKeyOperation,
   JsonWebKeyType,
   NamespaceKind,
-  ProfileRef,
   ResourceKind,
-  SubjectAlternativeNames,
+  SubjectAlternativeNames
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { CertificateIssuerNamespaceSelect } from "./CertPolicySelector";
 import { CertWebEnroll } from "./CertWebEnroll";
 import {
   NamespaceConfigContext,
@@ -52,229 +44,6 @@ type CertPolicyFormState = {
   sans: SubjectAlternativeNames;
   issuerNamespaceId: string;
 };
-
-function CertPolicyForm({
-  certPolicyId,
-  value,
-  onChange,
-}: {
-  certPolicyId: string;
-  value: CertPolicy | undefined;
-  onChange?: (value: CertPolicy | undefined) => void;
-}) {
-  const [form] = useForm<CertPolicyFormState>();
-  const { namespaceId: namespaceIdentifier, namespaceKind } =
-    useContext(NamespaceContext);
-
-  const adminApi = useAuthedClient(AdminApi);
-
-  const { run } = useRequest(
-    async (name: string, params: CertPolicyParameters) => {
-      const result = await adminApi.putCertPolicy({
-        namespaceKind: namespaceKind,
-        resourceId: name,
-        namespaceId: namespaceIdentifier,
-        certPolicyParameters: params,
-      });
-      onChange?.(result);
-      return result;
-    },
-    {
-      manual: true,
-    }
-  );
-
-  const ktyState = useWatch("kty", form);
-  const keyExportable = useWatch("keyExportable", form);
-
-  //const _selfSigning = useWatch("selfSigning", form);
-
-  const isSelfSigning = namespaceKind === NamespaceKind.NamespaceKindRootCA;
-  // ? true
-  // : namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-  // ? false
-  // : _selfSigning;
-  // */
-
-  const onFinish = useMemoizedFn((values: CertPolicyFormState) => {
-    run(certPolicyId || values.certPolicyId, {
-      expiryTime: values.expiryTime,
-      subject: {
-        commonName: values.subjectCN,
-      },
-      displayName: values.displayName,
-      keyExportable: values.keyExportable,
-      keySpec: {
-        kty: values.kty,
-        keySize: values.keySize,
-        crv: values.crv,
-        keyOps: [JsonWebKeyOperation.Sign, JsonWebKeyOperation.Verify],
-      },
-      subjectAlternativeNames: values.sans,
-      issuerNamespaceKind:
-        namespaceKind === NamespaceKind.NamespaceKindRootCA ||
-        namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-          ? NamespaceKind.NamespaceKindRootCA
-          : NamespaceKind.NamespaceKindIntermediateCA,
-      issuerNamespaceIdentifier:
-        namespaceKind === NamespaceKind.NamespaceKindRootCA
-          ? namespaceIdentifier
-          : values.issuerNamespaceId,
-    });
-  });
-
-  useEffect(() => {
-    if (!value) {
-      return;
-    }
-    form.setFieldsValue({
-      certPolicyId: value.id,
-      displayName: value.displayName,
-      subjectCN: value.subject.commonName,
-      expiryTime: value.expiryTime,
-      keyExportable: value.keyExportable,
-      kty: value.keySpec.kty,
-      keySize: value.keySpec.keySize,
-      crv: value.keySpec.crv,
-      issuerNamespaceId: value.issuerNamespaceIdentifier,
-      sans: value.subjectAlternativeNames ?? {},
-    });
-  }, [value]);
-
-  return (
-    <Form<CertPolicyFormState>
-      form={form}
-      layout="vertical"
-      initialValues={{
-        certPolicyId: certPolicyId,
-        expiryTime: "",
-        subjectCN: "",
-        displayName: "",
-        kty: JsonWebKeyType.Rsa,
-        keySize: 2048,
-        selfSigning: false,
-      }}
-      onFinish={onFinish}
-    >
-      {!certPolicyId && (
-        <Form.Item<CertPolicyFormState>
-          name="certPolicyId"
-          label="Policy ID"
-          required
-        >
-          <Input />
-        </Form.Item>
-      )}
-      <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
-        <Input />
-      </Form.Item>
-      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
-        <div className="text-lg font-semibold">Key specification</div>
-        <Form.Item<CertPolicyFormState> name="kty" label="Key type">
-          <Radio.Group>
-            <Radio value={JsonWebKeyType.Rsa}>RSA</Radio>
-            <Radio value={JsonWebKeyType.Ec}>EC</Radio>
-          </Radio.Group>
-        </Form.Item>
-        {ktyState === JsonWebKeyType.Rsa ? (
-          <Form.Item<CertPolicyFormState> name="keySize" label="RSA key size">
-            <Radio.Group>
-              <Radio value={2048}>2048</Radio>
-              <Radio value={3072}>3072</Radio>
-              <Radio value={4096}>4096</Radio>
-            </Radio.Group>
-          </Form.Item>
-        ) : ktyState === JsonWebKeyType.Ec ? (
-          <Form.Item<CertPolicyFormState> name="crv" label="EC curve name">
-            <Radio.Group>
-              <Radio value={JsonWebKeyCurveName.CurveNameP256}>P-256</Radio>
-              <Radio value={JsonWebKeyCurveName.CurveNameP384}>P-384</Radio>
-              <Radio value={JsonWebKeyCurveName.CurveNameP521}>P-521</Radio>
-            </Radio.Group>
-          </Form.Item>
-        ) : null}
-      </div>
-      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
-        <div className="text-lg font-semibold">Subject</div>
-        <Form.Item<CertPolicyFormState>
-          name="subjectCN"
-          label="Common name (CN)"
-          required
-        >
-          <Input placeholder="example.org" />
-        </Form.Item>
-      </div>
-
-      <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
-        <div className="text-lg font-semibold">Subject alternative names</div>
-        <Form.Item<CertPolicyFormState> label="DNS names">
-          <SANFormList
-            name={["sans", "dnsNames"]}
-            addButtonLabel="+ Add DNS name"
-            inputPlaceholder="example.com"
-          />
-        </Form.Item>
-        <Form.Item<CertPolicyFormState> label="IP addresses">
-          <SANFormList
-            name={["sans", "ipAddresses"]}
-            addButtonLabel="+ Add IP Address"
-            inputPlaceholder="127.0.0.1 or ::1"
-          />
-        </Form.Item>
-
-        <Form.Item<CertPolicyFormState> label="Email addresses">
-          <SANFormList
-            name={["sans", "emails"]}
-            addButtonLabel="+ Add Email Address"
-            inputPlaceholder="example@example.com"
-          />
-        </Form.Item>
-      </div>
-
-      <Form.Item<CertPolicyFormState>
-        name="expiryTime"
-        label="Expiry time"
-        required
-      >
-        <Input placeholder="P1Y" />
-      </Form.Item>
-
-      <div className="flex items-start gap-6">
-        <Form.Item<CertPolicyFormState>
-          name="keyExportable"
-          valuePropName="checked"
-          getValueFromEvent={(e: CheckboxChangeEvent) => {
-            if (e.target.indeterminate) {
-              return undefined;
-            }
-            return e.target.checked;
-          }}
-        >
-          <Checkbox indeterminate={keyExportable === undefined}>
-            Key exportable:{" "}
-            {keyExportable === undefined ? "default" : keyExportable.toString()}
-          </Checkbox>
-        </Form.Item>
-        {keyExportable !== undefined && (
-          <Button
-            type="link"
-            onClick={() => {
-              form.setFieldValue("keyExportable", undefined);
-            }}
-          >
-            Reset to default
-          </Button>
-        )}
-      </div>
-
-      <Form.Item>
-        <Button htmlType="submit" type="primary">
-          Submit
-        </Button>
-      </Form.Item>
-    </Form>
-  );
-}
 
 const dateShortFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
@@ -503,15 +272,6 @@ export default function CertPolicyPage() {
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />
       </Card>
-      {isAdmin && (
-        <Card title="Create or update certificate policy">
-          <CertPolicyForm
-            certPolicyId={certPolicyId}
-            value={data}
-            onChange={onMutate}
-          />
-        </Card>
-      )}
       <Card title="Certificate web enrollment">
         <CertWebEnroll certPolicy={data} />
       </Card>

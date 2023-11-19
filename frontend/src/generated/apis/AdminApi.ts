@@ -26,7 +26,6 @@ import type {
   AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   CertPolicy,
-  CertPolicyParameters,
   CertPolicyRef,
   Certificate,
   CertificateRef,
@@ -79,8 +78,6 @@ import {
     AzureRoleAssignmentToJSON,
     CertPolicyFromJSON,
     CertPolicyToJSON,
-    CertPolicyParametersFromJSON,
-    CertPolicyParametersToJSON,
     CertPolicyRefFromJSON,
     CertPolicyRefToJSON,
     CertificateFromJSON,
@@ -422,13 +419,6 @@ export interface PutAgentInstanceRequest {
     namespaceId: string;
     resourceId: string;
     agentInstanceFields: AgentInstanceFields;
-}
-
-export interface PutCertPolicyRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    certPolicyParameters: CertPolicyParameters;
 }
 
 export interface PutCertificateRuleIssuerRequest {
@@ -2708,59 +2698,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putAgentInstance(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.putAgentInstanceRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * Put cert policy
-     */
-    async putCertPolicyRaw(requestParameters: PutCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertPolicy>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertPolicy.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertPolicy.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putCertPolicy.');
-        }
-
-        if (requestParameters.certPolicyParameters === null || requestParameters.certPolicyParameters === undefined) {
-            throw new runtime.RequiredError('certPolicyParameters','Required parameter requestParameters.certPolicyParameters was null or undefined when calling putCertPolicy.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CertPolicyParametersToJSON(requestParameters.certPolicyParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertPolicyFromJSON(jsonValue));
-    }
-
-    /**
-     * Put cert policy
-     */
-    async putCertPolicy(requestParameters: PutCertPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertPolicy> {
-        const response = await this.putCertPolicyRaw(requestParameters, initOverrides);
-        return await response.value();
     }
 
     /**

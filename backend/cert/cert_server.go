@@ -124,31 +124,6 @@ func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.Namespace
 	return c.NoContent(http.StatusNoContent)
 }
 
-// PutCertPolicy implements ServerInterface.
-func (s *server) PutCertPolicy(ec echo.Context,
-	namespaceKind base.NamespaceKind,
-	namespaceIdentifier base.ID,
-	resourceIdentifier base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	params := new(CertPolicyParameters)
-	if err := c.Bind(params); err != nil {
-		return err
-	}
-
-	if err := ns.VerifyKeyVaultIdentifier(namespaceIdentifier); err != nil {
-		return err
-	}
-	r, err := putCertPolicy(c, resourceIdentifier, params)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, r)
-}
-
 var _ ServerInterface = (*server)(nil)
 
 func NewServer(apiServer api.APIServer) *server {
