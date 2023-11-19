@@ -7,6 +7,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
 // Defines values for NamespaceProvider.
@@ -19,6 +20,17 @@ const (
 	NamespaceProviderServicePrincipal NamespaceProvider = "service-principal"
 	NamespaceProviderUser             NamespaceProvider = "user"
 )
+
+// Base64URLEncoded defines model for Base64URLEncoded.
+type Base64URLEncoded = cloudkey.Base64RawURLEncodableBytes
+
+// LinkRef defines model for LinkRef.
+type LinkRef = linkRefComposed
+
+// LinkRefFields defines model for LinkRefFields.
+type LinkRefFields struct {
+	LinkTo string `json:"linkTo"`
+}
 
 // NamespaceProvider defines model for NamespaceProvider.
 type NamespaceProvider string
@@ -47,6 +59,9 @@ type Ref struct {
 	Updated     time.Time  `json:"updated"`
 	UpdatedBy   string     `json:"updatedBy"`
 }
+
+// LinkRefResponse defines model for LinkRefResponse.
+type LinkRefResponse = LinkRef
 
 // ProfileResponse defines model for ProfileResponse.
 type ProfileResponse = Profile

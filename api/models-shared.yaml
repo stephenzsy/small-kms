@@ -69,7 +69,32 @@ components:
       x-go-type-import:
         name: jwt
         path: github.com/golang-jwt/jwt/v5
+    LinkRefFields:
+      type: object
+      properties:
+        linkTo:
+          type: string
+      required:
+        - linkTo
+    LinkRef:
+      allOf:
+        - $ref: "#/components/schemas/Ref"
+        - $ref: "#/components/schemas/LinkRefFields"
+        - x-go-type: linkRefComposed
+    Base64URLEncoded:
+      type: string
+      x-go-type: cloudkey.Base64RawURLEncodableBytes
+      x-go-type-import:
+        path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+        name: cloudkey
+      x-go-type-skip-optional-pointer: true
   responses:
+    LinkRefResponse:
+      description: Link ref response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/LinkRef"
     RefsResponse:
       description: Refs response
       content:

@@ -5,4 +5,9 @@ type (
 		Ref
 		ProfileFields
 	}
+
+	linkRefComposed struct {
+		Ref
+		LinkRefFields
+	}
 )

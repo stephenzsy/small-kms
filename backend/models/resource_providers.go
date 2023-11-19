@@ -12,4 +12,5 @@ const (
 	ResourceProviderKeyPolicy               ResourceProvider = "key-policy"
 	ResourceProviderCert                    ResourceProvider = "cert"
 	ResourceProviderCertPolicy              ResourceProvider = "cert-policy"
+	ResourceProviderLink                    ResourceProvider = "link"
 )

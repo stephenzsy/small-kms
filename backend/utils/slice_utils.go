@@ -1,6 +1,7 @@
 package utils
 
 type MapFunc[T any, U any] func(U) T
+type MapFuncWithError[T any, U any] func(U) (T, error)
 
 func MapSlice[T any, U any](from []U, mapFunc MapFunc[T, U]) []T {
 	if from == nil {
@@ -11,6 +12,21 @@ func MapSlice[T any, U any](from []U, mapFunc MapFunc[T, U]) []T {
 		to[i] = mapFunc(v)
 	}
 	return to
+}
+
+func MapSliceWithError[T any, U any](from []U, mapFunc MapFuncWithError[T, U]) ([]T, error) {
+	if from == nil {
+		return nil, nil
+	}
+	to := make([]T, len(from))
+	var err error
+	for i, v := range from {
+		to[i], err = mapFunc(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return to, err
 }
 
 func FilterSlice[T any](from []T, f func(T) bool) []T {

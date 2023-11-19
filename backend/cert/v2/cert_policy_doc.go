@@ -9,6 +9,7 @@ import (
 
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/key"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -336,4 +337,13 @@ func (d *CertPolicyDoc) ToModel() (m certmodels.CertificatePolicy) {
 		m.IssuerPolicyIdentifier = "self"
 	}
 	return m
+}
+
+func (d *CertPolicyDoc) getIssuerCert(c ctx.RequestContext) (*CertDoc, error) {
+	linkDoc, err := getPolicyIssuerCertInternal(c, d.PartitionKey.NamespaceProvider, d.PartitionKey.NamespaceID, d.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return getCertificateInternal(c, linkDoc.LinkTo.NamespaceProvider, linkDoc.LinkTo.NamespaceID, linkDoc.LinkTo.ID)
 }

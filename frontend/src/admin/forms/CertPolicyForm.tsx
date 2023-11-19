@@ -6,10 +6,11 @@ import {
   Form,
   Input,
   Radio,
+  Select,
   Typography,
 } from "antd";
-import { useForm, useWatch } from "antd/es/form/Form";
-import { useEffect } from "react";
+import { FormInstance, useForm, useWatch } from "antd/es/form/Form";
+import { useEffect, useMemo, useState } from "react";
 import { JsonWebKeyCurveName, JsonWebKeyType } from "../../generated";
 import {
   AdminApi,
@@ -22,6 +23,7 @@ import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
+import { DefaultOptionType } from "antd/es/select";
 
 function SANFormList({
   name,
@@ -65,13 +67,97 @@ function SANFormList({
 function IssuerSelector({
   api,
   namespaceProvider,
+  form
 }: {
   api: AdminApi;
   namespaceProvider: NamespaceProvider;
+  form: FormInstance<CreateCertificatePolicyRequest>
 }) {
+  const issuerNamespaceProvider =
+    namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA
+      ? NamespaceProvider.NamespaceProviderRootCA
+      : NamespaceProvider.NamespaceProviderIntermediateCA;
+
+  const { data } = useRequest(
+    () => {
+      return api.listProfiles({
+        namespaceProvider: issuerNamespaceProvider,
+      });
+    },
+    {
+      refreshDeps: [issuerNamespaceProvider],
+    }
+  );
+
+  const options = useMemo((): DefaultOptionType[] => {
+    if (!data) {
+      return [];
+    }
+    return data.map((v) => {
+      return {
+        label: (
+          <span>
+            {v.displayName} ({issuerNamespaceProvider}:{v.id})
+          </span>
+        ),
+        value: v.id,
+      };
+    });
+  }, [data]);
+
+  const [selectedNamespaceId, setSelectedNamespaceId] = useState<string>();
+
+  const { data: policies } = useRequest(
+    async () => {
+      if (selectedNamespaceId) {
+        return await api.listCertificatePolicies({
+          namespaceId: selectedNamespaceId,
+          namespaceProvider: issuerNamespaceProvider,
+        });
+      }
+    },
+    {
+      refreshDeps: [selectedNamespaceId],
+    }
+  );
+
+  const policyOptions = useMemo((): DefaultOptionType[] => {
+    if (!policies) {
+      return [];
+    }
+    return policies.map((v) => {
+      return {
+        label: (
+          <span>
+            {v.displayName} ({v.id})
+          </span>
+        ),
+        value: `${issuerNamespaceProvider}:${selectedNamespaceId}:cert-policy/${v.id}`,
+      };
+    });
+  }, [policies]);
+
+  const issuerPolicyIdentifier = useWatch("issuerPolicyIdentifier", form);
+  const nsId = issuerPolicyIdentifier?.split(":")[1];
+  useEffect(() => {
+    if (nsId) {
+      setSelectedNamespaceId(nsId);
+    }
+  }, [nsId]);
+
   return (
     <div>
       <Typography.Title level={4}>Issuer</Typography.Title>
+      <Form.Item label="Select issuer namespace">
+        <Select
+          options={options}
+          value={selectedNamespaceId}
+          onChange={(value) => setSelectedNamespaceId(value)}
+        />
+      </Form.Item>
+      <Form.Item<CreateCertificatePolicyRequest> label="Select issuer policy" name="issuerPolicyIdentifier" >
+        <Select options={policyOptions} />
+      </Form.Item>
     </div>
   );
 }
@@ -169,7 +255,7 @@ export function CertPolicyForm({
         <Input />
       </Form.Item>
       {namespaceProvider !== NamespaceProvider.NamespaceProviderRootCA && (
-        <IssuerSelector api={adminApi} namespaceProvider={namespaceProvider} />
+        <IssuerSelector api={adminApi} namespaceProvider={namespaceProvider}  form={form}/>
       )}
       {/* {!isSelfSigning && (
         <Form.Item<CertPolicyFormState>

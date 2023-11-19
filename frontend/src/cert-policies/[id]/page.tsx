@@ -9,9 +9,13 @@ import {
   Typography,
 } from "antd";
 import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
-import { AdminApi, CertificateStatus } from "../../generated/apiv2";
+import {
+  AdminApi,
+  CertificateStatus,
+  NamespaceProvider,
+} from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { useRequest } from "ahooks";
+import { useMemoizedFn, useRequest } from "ahooks";
 import { useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";
 import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
@@ -41,28 +45,33 @@ function useCertificatePolicy(id: string | undefined) {
   );
 }
 
-function useCertificateTableColumns(): TableColumnsType<CertificateRef> {
+function useCertificateTableColumns(
+  currentIssuerId?: string
+): TableColumnsType<CertificateRef> {
   return [
     {
       title: "Status",
-      dataIndex: "status",
       key: "status",
-      render: (status: string) => {
+      render: (certRef: CertificateRef) => {
+        const { id, status } = certRef;
         return (
-          <Tag
-            className="capitalize"
-            color={
-              status === CertificateStatus.CertificateStatusIssued
-                ? "green"
-                : status === CertificateStatus.CertificateStatusPending
-                ? "orange"
-                : status === CertificateStatus.CertificateStatusDeactivated
-                ? "red"
-                : undefined
-            }
-          >
-            {status}
-          </Tag>
+          <span className="flex">
+            <Tag
+              className="capitalize"
+              color={
+                status === CertificateStatus.CertificateStatusIssued
+                  ? "green"
+                  : status === CertificateStatus.CertificateStatusPending
+                  ? "orange"
+                  : status === CertificateStatus.CertificateStatusDeactivated
+                  ? "red"
+                  : undefined
+              }
+            >
+              {status}
+            </Tag>
+            {id === currentIssuerId && <Tag color="blue">Issuer</Tag>}
+          </span>
         );
       },
     },
@@ -129,6 +138,33 @@ export default function CertPolicyPage() {
       refreshDeps: [namespaceId, namespaceProvider, id],
     }
   );
+  const { data: currentIssuerResp, run: setIssuer } = useRequest(
+    async (certificateIdentifier?: string) => {
+      if (!id) {
+        return;
+      }
+      try {
+        if (certificateIdentifier) {
+          return await api.putCertificatePolicyIssuer({
+            id: id,
+            namespaceId: namespaceId,
+            namespaceProvider: namespaceProvider,
+            linkRefFields: {
+              linkTo: certificateIdentifier,
+            },
+          });
+        }
+        return await api.getCertificatePolicyIssuer({
+          id: id,
+          namespaceId: namespaceId,
+          namespaceProvider: namespaceProvider,
+        });
+      } catch {}
+    },
+    {
+      refreshDeps: [namespaceId, namespaceProvider, id],
+    }
+  );
   const { run: generateCertificate, loading: generateCertificateLoading } =
     useRequest(
       async () => {
@@ -144,14 +180,27 @@ export default function CertPolicyPage() {
       { manual: true }
     );
 
-  const certColumns = useCertificateTableColumns();
-  const viewCert = (cert: CertificateRef) => {
+  const currentIssuerId = currentIssuerResp?.linkTo?.split("/")[1];
+  const certColumns = useCertificateTableColumns(currentIssuerId);
+  const viewCert = useMemoizedFn((cert: CertificateRef) => {
     return (
-      <div>
+      <div className="flex gap-2 items-center">
         <Link to={`../certificates/${cert.id}`}>View</Link>
+        {(namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
+          namespaceProvider ===
+            NamespaceProvider.NamespaceProviderIntermediateCA) && (
+          <Button
+            type="link"
+            onClick={() => {
+              setIssuer(`${namespaceProvider}:${namespaceId}:cert/${cert.id}`);
+            }}
+          >
+            Set as issuer
+          </Button>
+        )}
       </div>
     );
-  };
+  });
   return (
     <>
       <Typography.Title>Certificate Policy</Typography.Title>

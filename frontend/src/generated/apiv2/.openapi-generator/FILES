@@ -23,6 +23,8 @@ models/JsonWebKeyType.ts
 models/JsonWebSignatureKey.ts
 models/KeyPolicy.ts
 models/KeyPolicyFields.ts
+models/LinkRef.ts
+models/LinkRefFields.ts
 models/NamespaceProvider.ts
 models/Profile.ts
 models/ProfileFields.ts

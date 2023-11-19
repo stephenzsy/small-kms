@@ -105,6 +105,7 @@ components:
         expiryTime:
           type: string
         issuerPolicyIdentifier:
+          description: Policy identififier of parent issuer
           type: string
           x-go-type-skip-optional-pointer: true
         subject:
@@ -206,8 +207,7 @@ components:
         publicKey:
           $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
         signature:
-          type: string
-          x-go-type-skip-optional-pointer: true
+          $ref: "models-shared.yaml#/components/schemas/Base64URLEncoded"
       required:
         - publicKey
     EnrollCertificateOperation:
@@ -216,7 +216,7 @@ components:
         certificateIdentifier:
           type: string
         payloadToSign:
-          type: string
+          $ref: "models-shared.yaml#/components/schemas/Base64URLEncoded"
       required:
         - certificateIdentifier
         - textToSign

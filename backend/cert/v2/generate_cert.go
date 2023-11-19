@@ -28,6 +28,10 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		return err
 	}
 
+	if !policy.AllowGenerate {
+		return base.ErrResponseStatusBadRequest
+	}
+
 	certDoc := &certDocSelfSignedGeneratePending{
 		CertDoc: CertDoc{
 			ResourceDoc: resdoc.ResourceDoc{
@@ -42,9 +46,6 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 
 	c = c.Elevate()
 	err = certDoc.init(c, nsProvider, nsID, policy)
-	if err != nil {
-		return err
-	}
 	defer func() {
 		if err != nil {
 			if cancelErr := certDoc.cleanupKeyVault(c); cancelErr != nil {
@@ -64,6 +65,10 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		}
 		err = c.JSON(resp.RawResponse.StatusCode, certDoc.ToModel(true))
 	}()
+	if err != nil {
+		return err
+	}
+
 	var signed []byte
 	signed, err = x509.CreateCertificate(rand.Reader,
 		certDoc.templateX509Cert,
@@ -73,7 +78,7 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 	if err != nil {
 		return
 	}
-	err = certDoc.collectSignedCert(signed)
+	err = certDoc.collectSignedCert(c, signed)
 	if err != nil {
 		return
 	}

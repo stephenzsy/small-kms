@@ -55,12 +55,14 @@ type CertificatePolicy = certificatePolicyComposed
 
 // CertificatePolicyFields defines model for CertificatePolicyFields.
 type CertificatePolicyFields struct {
-	AllowEnroll            bool              `json:"allowEnroll"`
-	AllowGenerate          bool              `json:"allowGenerate"`
-	ExpiryTime             string            `json:"expiryTime"`
-	Flags                  []CertificateFlag `json:"flags,omitempty"`
-	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier"`
-	KeyExportable          bool              `json:"keyExportable"`
+	AllowEnroll   bool              `json:"allowEnroll"`
+	AllowGenerate bool              `json:"allowGenerate"`
+	ExpiryTime    string            `json:"expiryTime"`
+	Flags         []CertificateFlag `json:"flags,omitempty"`
+
+	// IssuerPolicyIdentifier Policy identififier of parent issuer
+	IssuerPolicyIdentifier string `json:"issuerPolicyIdentifier"`
+	KeyExportable          bool   `json:"keyExportable"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 externalRef1.JsonWebKeySpec `json:"keySpec"`
@@ -108,15 +110,15 @@ type CreateCertificatePolicyRequest struct {
 
 // EnrollCertificateOperation defines model for EnrollCertificateOperation.
 type EnrollCertificateOperation struct {
-	CertificateIdentifier string  `json:"certificateIdentifier"`
-	PayloadToSign         *string `json:"payloadToSign,omitempty"`
+	CertificateIdentifier string                        `json:"certificateIdentifier"`
+	PayloadToSign         externalRef0.Base64URLEncoded `json:"payloadToSign,omitempty"`
 }
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
 	OnBehalfOfApp *bool                            `json:"onBehalfOfApp,omitempty"`
 	PublicKey     externalRef1.JsonWebSignatureKey `json:"publicKey"`
-	Signature     string                           `json:"signature,omitempty"`
+	Signature     externalRef0.Base64URLEncoded    `json:"signature,omitempty"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.

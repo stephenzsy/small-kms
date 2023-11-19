@@ -22,6 +22,8 @@ export * from './JsonWebKeyType';
 export * from './JsonWebSignatureKey';
 export * from './KeyPolicy';
 export * from './KeyPolicyFields';
+export * from './LinkRef';
+export * from './LinkRefFields';
 export * from './NamespaceProvider';
 export * from './Profile';
 export * from './ProfileFields';

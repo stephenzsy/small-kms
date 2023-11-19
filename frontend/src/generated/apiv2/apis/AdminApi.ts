@@ -25,6 +25,8 @@ import type {
   EnrollCertificateRequest,
   ErrorResult,
   KeyPolicy,
+  LinkRef,
+  LinkRefFields,
   NamespaceProvider,
   Profile,
   Ref,
@@ -50,6 +52,10 @@ import {
     ErrorResultToJSON,
     KeyPolicyFromJSON,
     KeyPolicyToJSON,
+    LinkRefFromJSON,
+    LinkRefToJSON,
+    LinkRefFieldsFromJSON,
+    LinkRefFieldsToJSON,
     NamespaceProviderFromJSON,
     NamespaceProviderToJSON,
     ProfileFromJSON,
@@ -102,6 +108,12 @@ export interface GetCertificatePolicyRequest {
     id: string;
 }
 
+export interface GetCertificatePolicyIssuerRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+}
+
 export interface GetKeyPolicyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -142,6 +154,13 @@ export interface PutCertificatePolicyRequest {
     namespaceId: string;
     id: string;
     createCertificatePolicyRequest: CreateCertificatePolicyRequest;
+}
+
+export interface PutCertificatePolicyIssuerRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    linkRefFields: LinkRefFields;
 }
 
 export interface PutKeyPolicyRequest {
@@ -519,6 +538,52 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get certificate policy issuer
+     */
+    async getCertificatePolicyIssuerRaw(requestParameters: GetCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LinkRef>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getCertificatePolicyIssuer.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificatePolicyIssuer.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getCertificatePolicyIssuer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/issuer`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LinkRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate policy issuer
+     */
+    async getCertificatePolicyIssuer(requestParameters: GetCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
+        const response = await this.getCertificatePolicyIssuerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get key policy
      */
     async getKeyPolicyRaw(requestParameters: GetKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<KeyPolicy>> {
@@ -865,6 +930,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putCertificatePolicy(requestParameters: PutCertificatePolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificatePolicy> {
         const response = await this.putCertificatePolicyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * put certificate policy issuer
+     */
+    async putCertificatePolicyIssuerRaw(requestParameters: PutCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LinkRef>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling putCertificatePolicyIssuer.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificatePolicyIssuer.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling putCertificatePolicyIssuer.');
+        }
+
+        if (requestParameters.linkRefFields === null || requestParameters.linkRefFields === undefined) {
+            throw new runtime.RequiredError('linkRefFields','Required parameter requestParameters.linkRefFields was null or undefined when calling putCertificatePolicyIssuer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/issuer`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: LinkRefFieldsToJSON(requestParameters.linkRefFields),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LinkRefFromJSON(jsonValue));
+    }
+
+    /**
+     * put certificate policy issuer
+     */
+    async putCertificatePolicyIssuer(requestParameters: PutCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
+        const response = await this.putCertificatePolicyIssuerRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

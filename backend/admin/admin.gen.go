@@ -59,6 +59,9 @@ type PutCertificatePolicyJSONRequestBody = externalRef2.CreateCertificatePolicyR
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 
+// PutCertificatePolicyIssuerJSONRequestBody defines body for PutCertificatePolicyIssuer for application/json ContentType.
+type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Create agent
@@ -100,6 +103,12 @@ type ServerInterface interface {
 	// put certificate policy
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/generate)
 	GenerateCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// Get certificate policy issuer
+	// (GET /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/issuer)
+	GetCertificatePolicyIssuer(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// put certificate policy issuer
+	// (PUT /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/issuer)
+	PutCertificatePolicyIssuer(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// List certificates
 	// (GET /v2/{namespaceProvider}/{namespaceId}/certificates)
 	ListCertificates(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, params ListCertificatesParams) error
@@ -432,6 +441,74 @@ func (w *ServerInterfaceWrapper) GenerateCertificate(ctx echo.Context) error {
 	return err
 }
 
+// GetCertificatePolicyIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificatePolicyIssuer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificatePolicyIssuer(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
+// PutCertificatePolicyIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) PutCertificatePolicyIssuer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutCertificatePolicyIssuer(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
 // ListCertificates converts echo context to params.
 func (w *ServerInterfaceWrapper) ListCertificates(ctx echo.Context) error {
 	var err error
@@ -679,6 +756,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies/:id", wrapper.PutCertificatePolicy)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies/:id/enroll", wrapper.EnrollCertificate)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies/:id/generate", wrapper.GenerateCertificate)
+	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies/:id/issuer", wrapper.GetCertificatePolicyIssuer)
+	router.PUT(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies/:id/issuer", wrapper.PutCertificatePolicyIssuer)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates", wrapper.ListCertificates)
 	router.DELETE(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id", wrapper.GetCertificate)

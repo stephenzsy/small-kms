@@ -105,7 +105,7 @@ export interface CertificatePolicy {
      */
     expiryTime: string;
     /**
-     * 
+     * Policy identififier of parent issuer
      * @type {string}
      * @memberof CertificatePolicy
      */

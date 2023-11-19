@@ -2,6 +2,7 @@ package cert
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -39,7 +40,7 @@ func getCertificateInternal(c ctx.RequestContext, namespaceProvider models.Names
 	certDoc := &CertDoc{}
 	if err := resdoc.GetDocService(c).Read(c, resdoc.NewDocIdentifier(namespaceProvider, namespaceId, models.ResourceProviderCert, id), certDoc, nil); err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return nil, base.ErrResponseStatusNotFound
+			return nil, fmt.Errorf("%w: certificate ID: %s", base.ErrResponseStatusNotFound, id)
 		}
 		return nil, err
 	}

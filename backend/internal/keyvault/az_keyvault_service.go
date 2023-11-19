@@ -13,10 +13,10 @@ import (
 type MaterialNameKind string
 
 const (
-	MaterialNameKindCertificate     MaterialNameKind = "c"
-	MaterialNameKindKey             MaterialNameKind = "k"
-	MaterialNameKindSecret          MaterialNameKind = "s"
-	MaterialNameKindfCertificateKey MaterialNameKind = "ck"
+	MaterialNameKindCertificate    MaterialNameKind = "c"
+	MaterialNameKindKey            MaterialNameKind = "k"
+	MaterialNameKindSecret         MaterialNameKind = "s"
+	MaterialNameKindCertificateKey MaterialNameKind = "ck"
 )
 
 type AzKeyVaultService interface {

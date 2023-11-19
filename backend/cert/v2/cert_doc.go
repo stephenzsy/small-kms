@@ -15,17 +15,20 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	cloudkeyaz "github.com/stephenzsy/small-kms/backend/cloud/key/az"
+	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	keymodels "github.com/stephenzsy/small-kms/backend/models/key"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
+	"github.com/stephenzsy/small-kms/backend/utils"
 	"github.com/stephenzsy/small-kms/backend/utils/caldur"
 )
 
@@ -62,8 +65,10 @@ type certDocSelfSignedGeneratePending struct {
 	serialNumber     *big.Int
 	templateX509Cert *x509.Certificate
 	issuerX509Cert   *x509.Certificate
+	issuerCertChain  []cloudkey.Base64RawURLEncodableBytes
 	publicKey        crypto.PublicKey
 	signer           crypto.Signer
+	createCertResp   *azcertificates.CreateCertificateResponse
 }
 
 const (
@@ -81,7 +86,7 @@ const (
 
 // upon success, this function craetes a key in keyvault
 func (d *certDocSelfSignedGeneratePending) init(
-	c context.Context,
+	c ctx.RequestContext,
 	nsProvider models.NamespaceProvider, nsID string,
 	pDoc *CertPolicyDoc) error {
 	certID, err := uuid.NewRandom()
@@ -111,34 +116,69 @@ func (d *certDocSelfSignedGeneratePending) init(
 	d.NotBefore.Time = now
 	d.NotAfter.Time = caldur.Shift(now, pDoc.ExpiryTime)
 
+	azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
 	d.templateX509Cert = d.generateCertificateTemplate()
 	if pDoc.IssuerPolicy.IsEmpty() {
 		d.issuerX509Cert = d.templateX509Cert
-		if pDoc.AllowGenerate {
-			ckParams, err := d.getAzCreateKeyParams()
-			if err != nil {
-				return err
-			}
-			d.KeyVaultStore = &CertDocKeyVaultStore{
-				Name: kv.GetMaterialName(kv.MaterialNameKindfCertificateKey, nsProvider, nsID, pDoc.ID),
-			}
-			azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
-			ckResp, ck, err := cloudkeyaz.CreateCloudSignatureKey(c,
-				azKeysClient, d.KeyVaultStore.Name, ckParams, d.JsonWebKey.Alg, true)
-			if err != nil {
-				return err
-			}
-			d.JsonWebKey.N = ckResp.Key.N
-			d.JsonWebKey.E = ckResp.Key.E
-			d.JsonWebKey.X = ckResp.Key.X
-			d.JsonWebKey.Y = ckResp.Key.Y
-			d.JsonWebKey.KeyID = string(*ckResp.Key.KID)
-			d.publicKey = ck.Public()
-			d.signer = ck
+		ckParams, err := d.getAzCreateKeyParams()
+		if err != nil {
+			return err
 		}
+		d.KeyVaultStore = &CertDocKeyVaultStore{
+			Name: kv.GetMaterialName(kv.MaterialNameKindCertificateKey, nsProvider, nsID, pDoc.ID),
+		}
+		ckResp, ck, err := cloudkeyaz.CreateCloudSignatureKey(c,
+			azKeysClient, d.KeyVaultStore.Name, ckParams, d.JsonWebKey.Alg, true)
+		if err != nil {
+			return err
+		}
+		d.JsonWebKey.N = ckResp.Key.N
+		d.JsonWebKey.E = ckResp.Key.E
+		d.JsonWebKey.X = ckResp.Key.X
+		d.JsonWebKey.Y = ckResp.Key.Y
+		d.JsonWebKey.KeyID = string(*ckResp.Key.KID)
+		d.publicKey = ck.Public()
+		d.signer = ck
 	} else {
-		// TODO: load issuer
-		return fmt.Errorf("unimplemented")
+		issuerPolicy, err := getCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
+		if err != nil {
+			return err
+		}
+		signerCert, err := issuerPolicy.getIssuerCert(c)
+		if err != nil {
+			return err
+		} else if signerCert.Status != certmodels.CertificateStatusIssued {
+			return fmt.Errorf("issuer certificate is not issued")
+		} else if time.Until(signerCert.NotAfter.Time) < 24*time.Hour {
+			return fmt.Errorf("issuer certificate is expiring soon or has expired")
+		}
+		d.issuerCertChain = signerCert.JsonWebKey.CertificateChain
+		d.issuerX509Cert, err = x509.ParseCertificate(signerCert.JsonWebKey.CertificateChain[0])
+		d.KeyVaultStore = &CertDocKeyVaultStore{
+			Name: kv.GetMaterialName(kv.MaterialNameKindCertificate, nsProvider, nsID, pDoc.ID),
+		}
+		if err != nil {
+			return err
+		}
+		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg)
+
+		// now needs public key from keyvault
+		azCertClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
+		createCertParams, err := d.getAzCreateCertParams()
+		if err != nil {
+			return err
+		}
+		resp, err := azCertClient.CreateCertificate(c, d.KeyVaultStore.Name, createCertParams, nil)
+		if err != nil {
+			return err
+		}
+		d.createCertResp = &resp
+		csrParsed, err := x509.ParseCertificateRequest(resp.CSR)
+		if err != nil {
+			return err
+		}
+		d.publicKey = csrParsed.PublicKey
+
 	}
 
 	return nil
@@ -182,8 +222,70 @@ func (d *certDocSelfSignedGeneratePending) getAzCreateKeyParams() (params azkeys
 	return params, nil
 }
 
-func (d *certDocSelfSignedGeneratePending) collectSignedCert(cert []byte) (err error) {
-	d.JsonWebKey.CertificateChain = []cloudkey.Base64RawURLEncodableBytes{cert}
+func (d *certDocSelfSignedGeneratePending) getAzCreateCertParams() (params azcertificates.CreateCertificateParameters, err error) {
+	params.CertificateAttributes = &azcertificates.CertificateAttributes{
+		Enabled:   to.Ptr(true),
+		NotBefore: &d.NotBefore.Time,
+		Expires:   &d.NotAfter.Time,
+	}
+	params.CertificatePolicy = &azcertificates.CertificatePolicy{
+		KeyProperties: &azcertificates.KeyProperties{
+			Exportable: &d.KeyExportable,
+		},
+		SecretProperties: &azcertificates.SecretProperties{
+			ContentType: to.Ptr("application/x-pem-file"),
+		},
+		X509CertificateProperties: &azcertificates.X509CertificateProperties{
+			Subject: to.Ptr(d.Subject.String()),
+		},
+	}
+	kp := params.CertificatePolicy.KeyProperties
+	switch d.JsonWebKey.KeyType {
+	case cloudkey.KeyTypeEC:
+		kp.KeyType = to.Ptr(azcertificates.KeyTypeEC)
+		switch d.JsonWebKey.Curve {
+		case cloudkey.CurveNameP256:
+			kp.Curve = to.Ptr(azcertificates.CurveNameP256)
+		case cloudkey.CurveNameP384:
+			kp.Curve = to.Ptr(azcertificates.CurveNameP384)
+		case cloudkey.CurveNameP521:
+			kp.Curve = to.Ptr(azcertificates.CurveNameP521)
+		default:
+			return params, cloudkey.ErrInvalidCurve
+		}
+	case cloudkey.KeyTypeRSA:
+		kp.KeyType = to.Ptr(azcertificates.KeyTypeRSA)
+		switch d.rsaKeySize {
+		case 2048, 3072, 4096:
+			kp.KeySize = to.Ptr(int32(d.rsaKeySize))
+		}
+	default:
+		return params, cloudkey.ErrInvalidKeyType
+	}
+	return params, nil
+}
+
+func (d *certDocSelfSignedGeneratePending) collectSignedCert(c context.Context, cert []byte) (err error) {
+
+	d.JsonWebKey.CertificateChain = append([]cloudkey.Base64RawURLEncodableBytes(nil), cert)
+	d.JsonWebKey.CertificateChain = append(d.JsonWebKey.CertificateChain, d.issuerCertChain...)
+	if d.createCertResp != nil {
+		certClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
+		resp, err := certClient.MergeCertificate(c, d.createCertResp.ID.Name(), azcertificates.MergeCertificateParameters{
+			X509Certificates: utils.MapSlice(d.JsonWebKey.CertificateChain, func(e base.Base64RawURLEncodedBytes) []byte {
+				return e
+			}),
+		}, nil)
+		if err != nil {
+			return err
+		}
+		d.JsonWebKey.KeyID = string(*resp.KID)
+		d.KeyVaultStore.ID = string(*resp.ID)
+		if resp.SID != nil {
+			d.KeyVaultStore.SID = string(*resp.SID)
+		}
+	}
+
 	sha1d := sha1.New()
 	sha1d.Write(cert)
 	d.JsonWebKey.ThumbprintSHA1 = sha1d.Sum(nil)
@@ -266,7 +368,18 @@ func (d *CertDoc) ToModel(includeJwk bool) (m certmodels.Certificate) {
 }
 
 func (d *CertDoc) cleanupKeyVault(c context.Context) error {
-	if d.JsonWebKey.KeyID != "" {
+	if d.KeyVaultStore != nil && d.KeyVaultStore.ID != "" {
+		certClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
+		cid := azcertificates.ID(d.KeyVaultStore.ID)
+		_, err := certClient.UpdateCertificate(c, cid.Name(), cid.Version(), azcertificates.UpdateCertificateParameters{
+			CertificateAttributes: &azcertificates.CertificateAttributes{
+				Enabled: to.Ptr(false),
+			},
+		}, nil)
+		if err != nil {
+			return err
+		}
+	} else if d.JsonWebKey.KeyID != "" {
 		kid := azkeys.ID(d.JsonWebKey.KeyID)
 		azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
 		_, err := azKeysClient.UpdateKey(c, kid.Name(), kid.Version(), azkeys.UpdateKeyParameters{
@@ -284,41 +397,16 @@ func (d *CertDoc) cleanupKeyVault(c context.Context) error {
 	return nil
 }
 
-// var _ base.ModelPopulater[Certificate] = (*CertDoc)(nil)
-
-// func (d *CertDoc) getSigningParams() kv.SigningParams {
-// 	params := kv.SigningParams{
-// 		SigAlg: azkeys.SignatureAlgorithm(*d.KeySpec.Alg),
-// 	}
-// 	if d.KeySpec.KeyID != nil {
-// 		params.CertID = azcertificates.ID(*d.KeySpec.KeyID)
-// 	}
-// 	return params
-// }
-
-// func (d *CertDoc) getCSRProviderParams() kv.CSRProviderParams {
-// 	params := kv.CSRProviderParams{
-// 		CertName:      d.KeyVaultStore.Name,
-// 		KeyProperties: azcertificates.KeyProperties{},
-// 	}
-// 	switch d.KeySpec.Kty {
-// 	case cloudkey.KeyTypeRSA:
-// 		params.KeyProperties.KeyType = to.Ptr(azcertificates.KeyTypeRSA)
-// 		params.KeyProperties.KeySize = d.KeySpec.KeySize
-// 	case cloudkey.KeyTypeEC:
-// 		params.KeyProperties.KeyType = to.Ptr(azcertificates.KeyTypeEC)
-// 		switch d.KeySpec.Crv {
-// 		case cloudkey.CurveNameP256:
-// 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP256)
-// 		case cloudkey.CurveNameP384:
-// 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP384)
-// 		case cloudkey.CurveNameP521:
-// 			params.KeyProperties.Curve = to.Ptr(azcertificates.CurveNameP521)
-// 		}
-// 	}
-// 	params.KeyProperties.Exportable = &d.KeyExportable
-// 	return params
-// }
+func (d *certDocSelfSignedGeneratePending) cleanupKeyVault(c context.Context) error {
+	if d.createCertResp != nil {
+		azCertClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
+		_, err := azCertClient.DeleteCertificateOperation(c, d.createCertResp.ID.Name(), nil)
+		if err != nil {
+			return err
+		}
+	}
+	return d.CertDoc.cleanupKeyVault(c)
+}
 
 func (d *certDocSelfSignedGeneratePending) generateCertificateTemplate() *x509.Certificate {
 
@@ -372,74 +460,3 @@ func (d *certDocSelfSignedGeneratePending) generateCertificateTemplate() *x509.C
 
 	return cert
 }
-
-// func (d *CertDoc) applyPatch(c context.Context,
-// 	docService base.AzCosmosCRUDDocService,
-// 	patch *CertDocSigningPatch) error {
-// 	nextKeySpec := d.KeySpec
-// 	nextKeySpec.E = patch.KeySpec.E
-// 	nextKeySpec.N = patch.KeySpec.N
-// 	nextKeySpec.X = patch.KeySpec.X
-// 	nextKeySpec.Y = patch.KeySpec.Y
-// 	nextKeySpec.CertificateChain = patch.KeySpec.CertificateChain
-// 	nextKeySpec.KeyID = patch.KeySpec.KeyID
-// 	nextKeySpec.X5t = patch.KeySpec.X5t
-// 	nextKeySpec.X5tS256 = patch.KeySpec.X5tS256
-
-// 	patchOps := azcosmos.PatchOperations{}
-// 	patchOps.AppendSet("/keySpec", nextKeySpec)
-// 	patchOps.AppendSet("/keyVaultStore", patch.KeyVaultStore)
-// 	patchOps.AppendSet("/issuer", patch.Issuer)
-// 	patchOps.AppendSet("/status", CertificateStatusIssued)
-// 	err := docService.Patch(c, d, patchOps, &azcosmos.ItemOptions{
-// 		IfMatchEtag: d.ETag,
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	d.KeySpec = nextKeySpec
-// 	d.KeyVaultStore = patch.KeyVaultStore
-// 	d.Issuer = patch.Issuer
-// 	return nil
-// }
-
-// func (d *CertDoc) getIssuedX509Certificate() (*x509.Certificate, [][]byte, error) {
-// 	chain := utils.MapSlice(d.KeySpec.CertificateChain, func(certBytes base.Base64RawURLEncodedBytes) []byte {
-// 		return certBytes
-// 	})
-// 	cert, err := x509.ParseCertificate(chain[0])
-// 	return cert, chain, err
-// }
-
-// func (d *CertDoc) getX509SignatureAlgorithm() (sa x509.SignatureAlgorithm) {
-// 	switch *d.KeySpec.Alg {
-// 	case cloudkey.SignatureAlgorithmRS256:
-// 		sa = x509.SHA256WithRSA
-// 	case cloudkey.SignatureAlgorithmRS384:
-// 		sa = x509.SHA384WithRSA
-// 	case cloudkey.SignatureAlgorithmRS512:
-// 		sa = x509.SHA512WithRSA
-// 	case cloudkey.SignatureAlgorithmPS256:
-// 		sa = x509.SHA256WithRSAPSS
-// 	case cloudkey.SignatureAlgorithmPS384:
-// 		sa = x509.SHA384WithRSAPSS
-// 	case cloudkey.SignatureAlgorithmPS512:
-// 		sa = x509.SHA512WithRSAPSS
-// 	case cloudkey.SignatureAlgorithmES256:
-// 		sa = x509.ECDSAWithSHA256
-// 	case cloudkey.SignatureAlgorithmES384:
-// 		sa = x509.ECDSAWithSHA384
-// 	case cloudkey.SignatureAlgorithmES512:
-// 		sa = x509.ECDSAWithSHA512
-// 	}
-// 	return sa
-// }
-
-// func (d *CertDoc) x5cPEMBlocks() []pem.Block {
-// 	return utils.MapSlice(d.KeySpec.CertificateChain, func(certBytes base.Base64RawURLEncodedBytes) pem.Block {
-// 		return pem.Block{
-// 			Type:  "CERTIFICATE",
-// 			Bytes: certBytes,
-// 		}
-// 	})
-// }
