@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/cert/v2"
 	"github.com/stephenzsy/small-kms/backend/key/v2"
+	"github.com/stephenzsy/small-kms/backend/models"
 )
 
 type server struct {
@@ -17,6 +18,11 @@ type server struct {
 	*systemapp.SystemAppAdminServer
 	*key.KeyAdminServer
 	*cert.CertServer
+}
+
+// GetMemberGroup implements admin.ServerInterface.
+func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
+	panic("unimplemented")
 }
 
 // GetAgentConfig implements ServerInterface.

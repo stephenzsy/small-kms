@@ -120,6 +120,17 @@ export interface GetKeyPolicyRequest {
     id: string;
 }
 
+export interface GetMemberOfRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+}
+
+export interface GetProfileRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+}
+
 export interface GetSystemAppRequest {
     id: string;
 }
@@ -164,6 +175,12 @@ export interface PutCertificatePolicyIssuerRequest {
 }
 
 export interface PutKeyPolicyRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+}
+
+export interface SyncMemberOfRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
@@ -630,6 +647,94 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get member group
+     */
+    async getMemberOfRaw(requestParameters: GetMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LinkRef>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getMemberOf.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getMemberOf.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getMemberOf.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/memberOf/{id}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LinkRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Get member group
+     */
+    async getMemberOf(requestParameters: GetMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
+        const response = await this.getMemberOfRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get profile
+     */
+    async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getProfile.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/profiles/{namespaceProvider}/{namespaceId}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Get profile
+     */
+    async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.getProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get system app
      */
     async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
@@ -1029,6 +1134,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putKeyPolicy(requestParameters: PutKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<KeyPolicy> {
         const response = await this.putKeyPolicyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync member group
+     */
+    async syncMemberOfRaw(requestParameters: SyncMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LinkRef>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling syncMemberOf.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncMemberOf.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling syncMemberOf.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/memberOf/{id}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LinkRefFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync member group
+     */
+    async syncMemberOf(requestParameters: SyncMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
+        const response = await this.syncMemberOfRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

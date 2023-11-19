@@ -9,9 +9,9 @@ import {
 import { AdminLayout } from "./admin/Layout";
 import { AuthProvider } from "./auth/AuthProvider";
 import { NamespaceKind } from "./generated";
+import { NamespaceProvider } from "./generated/apiv2";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
-import { NamespaceProvider } from "./generated/apiv2";
 
 const ProfilesPage = React.lazy(() => import("./admin/ProfilesPage"));
 const AgentPage = React.lazy(() => import("./agents/[id]/page"));
@@ -20,7 +20,6 @@ const SystemAppsPage = React.lazy(() => import("./system/page"));
 const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
-const EntraProfilesPage = React.lazy(() => import("./admin/EntraProfilesPage"));
 const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
 const MainPage = React.lazy(() => import("./me/MainPage"));
@@ -119,17 +118,15 @@ export const router = createBrowserRouter([
         element: (
           <ProfilesPage
             title="Service Principals"
-            namespaceProvider={NamespaceProvider.NamespaceProviderServicePrincipal}
+            namespaceProvider={
+              NamespaceProvider.NamespaceProviderServicePrincipal
+            }
           />
         ),
       },
       {
         path: "entra/:nsKind",
         children: [
-          {
-            index: true,
-            element: <EntraProfilesPage />,
-          },
           {
             path: ":nsId",
             element: (

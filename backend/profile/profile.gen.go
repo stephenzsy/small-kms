@@ -44,9 +44,6 @@ type PutProfileJSONRequestBody = ProfileParameters
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List profiles
-	// (GET /v1/profile/{profileResourceKind})
-	ListProfiles(ctx echo.Context, profileResourceKind ProfileResourceKindParameter) error
 	// Get profile
 	// (GET /v1/profile/{profileResourceKind}/{namespaceId})
 	GetProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
@@ -67,24 +64,6 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
-}
-
-// ListProfiles converts echo context to params.
-func (w *ServerInterfaceWrapper) ListProfiles(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "profileResourceKind" -------------
-	var profileResourceKind ProfileResourceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListProfiles(ctx, profileResourceKind)
-	return err
 }
 
 // GetProfile converts echo context to params.
@@ -253,7 +232,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v1/profile/:profileResourceKind", wrapper.ListProfiles)
 	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.GetProfile)
 	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.PutProfile)
 	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceId/import", wrapper.ImportProfile)

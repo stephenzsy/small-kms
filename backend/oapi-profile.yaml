@@ -6,23 +6,6 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/profile/{profileResourceKind}:
-    parameters:
-      - $ref: "#/components/parameters/ProfileResourceKindParameter"
-    get:
-      tags:
-        - admin
-      operationId: ListProfiles
-      summary: List profiles
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ProfileRef"
   /v1/profile/{profileResourceKind}/{namespaceId}:
     parameters:
       - $ref: "#/components/parameters/ProfileResourceKindParameter"

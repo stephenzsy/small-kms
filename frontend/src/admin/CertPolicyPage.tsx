@@ -68,25 +68,6 @@ function CertPolicyForm({
 
   const adminApi = useAuthedClient(AdminApi);
 
-  const { data: issuerProfiles } = useRequest(
-    async (): Promise<ProfileRef[] | null> => {
-      if (namespaceKind === NamespaceKind.NamespaceKindRootCA) {
-        return null;
-      }
-      if (namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) {
-        return await adminApi.listProfiles({
-          profileResourceKind: ResourceKind.ProfileResourceKindRootCA,
-        });
-      }
-      return await adminApi.listProfiles({
-        profileResourceKind: ResourceKind.ProfileResourceKindIntermediateCA,
-      });
-    },
-    {
-      refreshDeps: [namespaceKind],
-    }
-  );
-
   const { run } = useRequest(
     async (name: string, params: CertPolicyParameters) => {
       const result = await adminApi.putCertPolicy({
@@ -187,21 +168,6 @@ function CertPolicyForm({
       <Form.Item<CertPolicyFormState> name="displayName" label="Display name">
         <Input />
       </Form.Item>
-      {!isSelfSigning && (
-        <Form.Item<CertPolicyFormState>
-          name="issuerNamespaceId"
-          getValueFromEvent={(v: any) => v}
-        >
-          <CertificateIssuerNamespaceSelect
-            availableNamespaceProfiles={issuerProfiles}
-            profileKind={
-              namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-                ? ResourceKind.ProfileResourceKindRootCA
-                : ResourceKind.ProfileResourceKindIntermediateCA
-            }
-          />
-        </Form.Item>
-      )}
       <div className="ring-1 ring-neutral-300 p-4 rounded-md space-y-4 mb-6">
         <div className="text-lg font-semibold">Key specification</div>
         <Form.Item<CertPolicyFormState> name="kty" label="Key type">

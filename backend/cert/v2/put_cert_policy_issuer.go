@@ -52,7 +52,8 @@ func (*CertServer) PutCertificatePolicyIssuer(ec echo.Context, namespaceProvider
 			},
 			ID: getPolicyIssuerCertLinkID(id),
 		},
-		LinkTo: linkTo,
+		LinkTo:       linkTo,
+		LinkProvider: models.LinkProviderCAPolicyIssuerCertificate,
 	}
 	resp, err := resdoc.GetDocService(c).Upsert(c, doc, nil)
 	if err != nil {

@@ -14,3 +14,11 @@ const (
 	ResourceProviderCertPolicy              ResourceProvider = "cert-policy"
 	ResourceProviderLink                    ResourceProvider = "link"
 )
+
+type LinkProvider string
+
+const (
+	LinkProviderCAPolicyIssuerCertificate LinkProvider = "issuer-cert"
+	LinkProviderGraphMemberOf             LinkProvider = "graph-member-of"
+	LinkProviderGraphMember               LinkProvider = "graph-member"
+)

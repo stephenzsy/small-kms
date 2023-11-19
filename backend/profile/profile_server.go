@@ -34,22 +34,6 @@ func getNamespaceIdentifier(profileResourceKind base.ResourceKind) (base.ID, err
 	return base.ID(""), fmt.Errorf("%w: invalid profile kind: %s", base.ErrResponseStatusBadRequest, profileResourceKind)
 }
 
-// ListRootCAs implements ServerInterface.
-func (s *server) ListProfiles(ec echo.Context, profileResourceKind base.ResourceKind) error {
-	c := ec.(ctx.RequestContext)
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	nsId, err := getNamespaceIdentifier(profileResourceKind)
-	if err != nil {
-		return err
-	}
-	c = ns.WithNSContext(c, base.NamespaceKindProfile, nsId)
-	return apiListProfiles(c, profileResourceKind)
-}
-
 // GetRootCA implements ServerInterface.
 func (s *server) GetProfile(ec echo.Context, profileResourceKind base.ResourceKind, namespaceIdentifier base.ID) error {
 	c := ec.(ctx.RequestContext)

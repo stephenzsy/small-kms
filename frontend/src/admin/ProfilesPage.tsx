@@ -1,7 +1,11 @@
 import { Button, Card, Form, Input, Select, Typography } from "antd";
-import { AdminApi, NamespaceProvider } from "../generated/apiv2";
+import {
+  AdminApi,
+  NamespaceProvider,
+  Ref as ResourceRef,
+} from "../generated/apiv2";
 import { useAuthedClientV2, useGraphClient } from "../utils/useCertsApi";
-import { useRequest } from "ahooks";
+import { useMemoizedFn, useRequest } from "ahooks";
 import { RefsTable } from "./RefsTable";
 import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 import { GraphRequest } from "@microsoft/microsoft-graph-client";
@@ -10,6 +14,8 @@ import { useMemo } from "react";
 import { DefaultOptionType } from "antd/es/select";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
+import { ProfileRef } from "../generated";
+import { Link } from "../components/Link";
 
 export default function ProfilesPage({
   namespaceProvider,
@@ -91,12 +97,20 @@ export default function ProfilesPage({
     }
   );
 
+  const renderActions = useMemoizedFn((r: ResourceRef) => {
+    return <Link to={`/${namespaceProvider}/${r.id}`} >View</Link>
+  });
+
   return (
     <>
       <Typography.Title>{title}</Typography.Title>
 
       <Card title="Profiles">
-        <ResourceRefsTable dataSource={data} loading={loading} />
+        <ResourceRefsTable
+          dataSource={data}
+          loading={loading}
+          renderActions={renderActions}
+        />
       </Card>
 
       <Card title="Import Profile">

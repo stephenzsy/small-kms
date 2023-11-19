@@ -3,6 +3,7 @@ package profile
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/microsoftgraph/msgraph-sdk-go/groups"
@@ -26,9 +27,17 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		return base.ErrResponseStatusForbidden
 	}
 
-	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	doc, err := syncProfileInternal(c, namespaceProvider, namespaceId)
 	if err != nil {
 		return err
+	}
+	return c.JSON(http.StatusOK, doc.ToModel())
+}
+
+func syncProfileInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string) (*ProfileDoc, error) {
+	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	if err != nil {
+		return nil, err
 	}
 	doc := &ProfileDoc{
 		ResourceDoc: resdoc.ResourceDoc{
@@ -49,9 +58,9 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return base.ErrResponseStatusNotFound
+				return nil, base.ErrResponseStatusNotFound
 			}
-			return err
+			return nil, err
 		}
 		doc.PartitionKey.ResourceProvider = models.ProfileResourceProviderServicePrincipal
 		doc.DisplayName = dirObj.GetDisplayName()
@@ -68,9 +77,9 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return base.ErrResponseStatusNotFound
+				return nil, base.ErrResponseStatusNotFound
 			}
-			return err
+			return nil, err
 		}
 		doc.PartitionKey.ResourceProvider = models.ProfileResourceProviderGroup
 		doc.DisplayName = dirObj.GetDisplayName()
@@ -85,9 +94,9 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		if err != nil {
 			err = base.HandleMsGraphError(err)
 			if errors.Is(err, base.ErrMsGraphResourceNotFound) {
-				return base.ErrResponseStatusNotFound
+				return nil, base.ErrResponseStatusNotFound
 			}
-			return err
+			return nil, err
 		}
 		doc.PartitionKey.ResourceProvider = models.ProfileResourceProviderUser
 		doc.DisplayName = dirObj.GetDisplayName()
@@ -96,12 +105,9 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		doc.Mail = dirObj.GetMail()
 		// ok
 	default:
-		return fmt.Errorf("%w: namespace provider %s not supported", base.ErrResponseStatusBadRequest, namespaceProvider)
+		return nil, fmt.Errorf("%w: namespace provider %s not supported", base.ErrResponseStatusBadRequest, namespaceProvider)
 	}
 
-	resp, err := resdoc.GetDocService(c).Upsert(c, doc, nil)
-	if err != nil {
-		return err
-	}
-	return c.JSON(resp.RawResponse.StatusCode, doc.ToModel())
+	_, err = resdoc.GetDocService(c).Upsert(c, doc, nil)
+	return doc, err
 }

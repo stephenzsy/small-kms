@@ -387,10 +387,6 @@ export interface ListKeysRequest {
     policyId?: string;
 }
 
-export interface ListProfilesRequest {
-    profileResourceKind: ResourceKind;
-}
-
 export interface ListSecretPoliciesRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -2424,44 +2420,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listManagedApps(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ManagedAppRef>> {
         const response = await this.listManagedAppsRaw(initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List profiles
-     */
-    async listProfilesRaw(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ProfileRef>>> {
-        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
-            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling listProfiles.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ProfileRefFromJSON));
-    }
-
-    /**
-     * List profiles
-     */
-    async listProfiles(requestParameters: ListProfilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ProfileRef>> {
-        const response = await this.listProfilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

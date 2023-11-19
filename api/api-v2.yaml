@@ -56,6 +56,16 @@ paths:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"
       - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetProfile
+      summary: Get profile
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/ProfileResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
     post:
       tags:
         - admin
@@ -65,7 +75,7 @@ paths:
         200:
           $ref: "models-shared.yaml#/components/responses/ProfileResponse"
         404:
-          $ref: "#/components/responses/ErrorResponse"          
+          $ref: "#/components/responses/ErrorResponse"
   /v2/system-apps/{id}:
     parameters:
       - $ref: "#/components/parameters/IdParameter"
@@ -209,7 +219,7 @@ paths:
         400:
           $ref: "#/components/responses/ErrorResponse"
         403:
-          $ref: "#/components/responses/ErrorResponse"          
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"
@@ -260,7 +270,7 @@ paths:
         200:
           $ref: "models-cert.yaml#/components/responses/CertificateResponse"
         204:
-          $ref: "#/components/responses/NoContentResponse"         
+          $ref: "#/components/responses/NoContentResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/key-policies:
@@ -301,6 +311,31 @@ paths:
         201:
           $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
         400:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/memberOf/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetMemberOf
+      summary: Get member group
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/LinkRefResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - admin
+      operationId: SyncMemberOf
+      summary: Sync member group
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/LinkRefResponse"
+        404:
           $ref: "#/components/responses/ErrorResponse"
   /v2/service-principal/{namespaceId}/agent-config:
     parameters:

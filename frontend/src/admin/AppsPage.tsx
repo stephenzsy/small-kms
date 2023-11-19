@@ -13,7 +13,6 @@ import {
   ResourceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { ImportProfileForm } from "./ImportProfileForm";
 import { SyncManagedApplicationForm } from "./forms/SyncManagedApplicationForm";
 
 type CreateManagedAppFormState = {
@@ -115,17 +114,6 @@ export default function ManagedAppsPage() {
     }
   );
 
-  const { data: servicePrincipals, run: refreshServicePrincipals } = useRequest(
-    () => {
-      return adminApi.listProfiles({
-        profileResourceKind: ResourceKind.ProfileResourceKindServicePrincipal,
-      });
-    },
-    {
-      refreshDeps: [],
-    }
-  );
-
   const managedAppColumns = useManagedAppsColumns();
   const spColumns = useProfileRefColumns(
     ResourceKind.ProfileResourceKindServicePrincipal
@@ -156,19 +144,6 @@ export default function ManagedAppsPage() {
       </Card>
       <Card title="Sync existing managed application">
         <SyncManagedApplicationForm onSynced={listManagedApps} />
-      </Card>
-      <Card title="Service principals">
-        <Table<ProfileRef>
-          columns={spColumns}
-          dataSource={servicePrincipals}
-          rowKey={(r) => r.id}
-        />
-      </Card>
-      <Card title="Import service principal">
-        <ImportProfileForm
-          onCreated={refreshServicePrincipals}
-          profileKind={ResourceKind.ProfileResourceKindServicePrincipal}
-        />
       </Card>
     </>
   );

@@ -45,5 +45,5 @@ func getPolicyIssuerCertInternal(c ctx.RequestContext, namespaceProvider models.
 }
 
 func getPolicyIssuerCertLinkID(policyID string) string {
-	return fmt.Sprintf("issuer-cert-%s", policyID)
+	return fmt.Sprintf("%s-%s", models.LinkProviderCAPolicyIssuerCertificate, policyID)
 }
