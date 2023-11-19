@@ -21,26 +21,30 @@ components:
           format: date-time
         displayName:
           type: string
-          x-go-type-skip-optional-pointer: true
       required:
         - id
         - updated
         - updatedBy
-    ApplicationByAppIdFields:
+    ProfileFields:
       type: object
       properties:
         applicationId:
           type: string
         servicePrincipalId:
           type: string
-      required:
-        - applicationId
-        - servicePrincipalId
-    ApplicationByAppId:
+        servicePrincipalType:
+          type: string
+        userPrincipalName:
+          type: string
+        appId:
+          type: string
+        mail:
+          type: string
+    Profile:
       allOf:
         - $ref: "#/components/schemas/Ref"
-        - $ref: "#/components/schemas/ApplicationByAppIdFields"
-        - x-go-type: applicationByAppIdComposed
+        - $ref: "#/components/schemas/ProfileFields"
+        - x-go-type: profileComposed
     NamespaceProvider:
       type: string
       enum:
@@ -74,9 +78,9 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Ref"
-    ApplicationByAppIdResponse:
-      description: ApplicationByAppId response
+    ProfileResponse:
+      description: Profile response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ApplicationByAppId"
+            $ref: "#/components/schemas/Profile"

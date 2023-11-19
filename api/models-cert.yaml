@@ -198,6 +198,28 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
+    EnrollCertificateRequest:
+      type: object
+      properties:
+        onBehalfOfApp:
+          type: boolean
+        publicKey:
+          $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
+        signature:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - publicKey
+    EnrollCertificateOperation:
+      type: object
+      properties:
+        certificateIdentifier:
+          type: string
+        payloadToSign:
+          type: string
+      required:
+        - certificateIdentifier
+        - textToSign
   responses:
     CertificateResponse:
       description: Certificate response

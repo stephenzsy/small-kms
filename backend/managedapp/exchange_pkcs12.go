@@ -65,9 +65,9 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 	if err != nil {
 		return err
 	}
-	if systemAppDoc.ServicePrincipalID == "" ||
+	if systemAppDoc.ServicePrincipalID == nil || *systemAppDoc.ServicePrincipalID == "" ||
 		req.KeyLocator.NamespaceKind() != base.NamespaceKindServicePrincipal ||
-		req.KeyLocator.NamespaceID() != base.ParseID(systemAppDoc.ServicePrincipalID) {
+		req.KeyLocator.NamespaceID() != base.ParseID(*systemAppDoc.ServicePrincipalID) {
 		return fmt.Errorf("%w: invalid key locator", base.ErrResponseStatusBadRequest)
 	}
 

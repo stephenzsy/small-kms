@@ -3,8 +3,6 @@ apis/index.ts
 index.ts
 models/AgentConfig.ts
 models/AgentConfigFields.ts
-models/ApplicationByAppId.ts
-models/ApplicationByAppIdFields.ts
 models/Certificate.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
@@ -16,6 +14,7 @@ models/CertificateStatus.ts
 models/CertificateSubject.ts
 models/CreateAgentRequest.ts
 models/CreateCertificatePolicyRequest.ts
+models/EnrollCertificateRequest.ts
 models/ErrorResult.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
@@ -25,6 +24,8 @@ models/JsonWebSignatureKey.ts
 models/KeyPolicy.ts
 models/KeyPolicyFields.ts
 models/NamespaceProvider.ts
+models/Profile.ts
+models/ProfileFields.ts
 models/Ref.ts
 models/SubjectAlternativeNames.ts
 models/index.ts

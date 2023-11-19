@@ -30,7 +30,7 @@ func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 	doc, appID, err := GetSystemAppDoc(c, appName)
 	if err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return c.JSON(200, &models.ApplicationByAppId{
+			return c.JSON(200, &models.Profile{
 				Ref: models.Ref{
 					ID: appID.String(),
 				},
@@ -39,7 +39,7 @@ func (s *SystemAppAdminServer) GetSystemApp(ec echo.Context, id string) error {
 		return err
 	}
 
-	return c.JSON(200, doc.ToApplicationByAppId())
+	return c.JSON(200, doc.ToProfile())
 }
 
 func resolveSystemAppID(c context.Context, systemAppName SystemAppName) (uuid.UUID, error) {

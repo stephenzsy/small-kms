@@ -1,8 +1,8 @@
 package models
 
 type (
-	applicationByAppIdComposed struct {
+	profileComposed struct {
 		Ref
-		ApplicationByAppIdFields
+		ProfileFields
 	}
 )

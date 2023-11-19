@@ -106,6 +106,19 @@ type CreateCertificatePolicyRequest struct {
 	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
+// EnrollCertificateOperation defines model for EnrollCertificateOperation.
+type EnrollCertificateOperation struct {
+	CertificateIdentifier string  `json:"certificateIdentifier"`
+	PayloadToSign         *string `json:"payloadToSign,omitempty"`
+}
+
+// EnrollCertificateRequest defines model for EnrollCertificateRequest.
+type EnrollCertificateRequest struct {
+	OnBehalfOfApp *bool                            `json:"onBehalfOfApp,omitempty"`
+	PublicKey     externalRef1.JsonWebSignatureKey `json:"publicKey"`
+	Signature     string                           `json:"signature,omitempty"`
+}
+
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
 	DNSNames    []string `json:"dnsNames,omitempty"`

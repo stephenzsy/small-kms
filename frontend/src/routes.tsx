@@ -11,7 +11,9 @@ import { AuthProvider } from "./auth/AuthProvider";
 import { NamespaceKind } from "./generated";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
+import { NamespaceProvider } from "./generated/apiv2";
 
+const ProfilesPage = React.lazy(() => import("./admin/ProfilesPage"));
 const AgentPage = React.lazy(() => import("./agents/[id]/page"));
 const AgentsPage = React.lazy(() => import("./agents/page"));
 const SystemAppsPage = React.lazy(() => import("./system/page"));
@@ -93,6 +95,33 @@ export const router = createBrowserRouter([
           { path: "cert-policies/:id", element: <CertPolicyPage2 /> },
           { path: "certificates/:id", element: <CertificatePage /> },
         ],
+      },
+      {
+        path: "groups",
+        element: (
+          <ProfilesPage
+            title="Groups"
+            namespaceProvider={NamespaceProvider.NamespaceProviderGroup}
+          />
+        ),
+      },
+      {
+        path: "users",
+        element: (
+          <ProfilesPage
+            title="Users"
+            namespaceProvider={NamespaceProvider.NamespaceProviderUser}
+          />
+        ),
+      },
+      {
+        path: "service-principals",
+        element: (
+          <ProfilesPage
+            title="Service Principals"
+            namespaceProvider={NamespaceProvider.NamespaceProviderServicePrincipal}
+          />
+        ),
       },
       {
         path: "entra/:nsKind",

@@ -1,10 +1,5 @@
-package: admin
-generate:
-  models: true
-  echo-server: true
 import-mapping:
   models-shared.yaml: github.com/stephenzsy/small-kms/backend/models
   models-agent.yaml: github.com/stephenzsy/small-kms/backend/models/agent
   models-key.yaml: github.com/stephenzsy/small-kms/backend/models/key
   models-cert.yaml: github.com/stephenzsy/small-kms/backend/models/cert
-output: admin/admin.gen.go

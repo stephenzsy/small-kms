@@ -8,15 +8,20 @@ import (
 type ProfileDoc struct {
 	resdoc.ResourceDoc
 
-	DisplayName string `json:"displayName"`
+	DisplayName          *string `json:"displayName,omitempty"`
+	UserPrincipalName    *string `json:"userPrincipalName,omitempty"`
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	AppId                *string `json:"appId,omitempty"`
+	Mail                 *string `json:"mail,omitempty"`
 }
 
 type AppDoc struct {
-	ProfileDoc
+	resdoc.ResourceDoc
 
-	ApplicationID        string `json:"applicationId,omitempty"`
-	ServicePrincipalID   string `json:"servicePrincipalId,omitempty"`
-	ServicePrincipalType string `json:"servicePrincipalType,omitempty"`
+	DisplayName          *string `json:"displayName,omitempty"`
+	ApplicationID        *string `json:"applicationId,omitempty"`
+	ServicePrincipalID   *string `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
 }
 
 const (
@@ -31,9 +36,19 @@ func (doc *ProfileDoc) ToRef() (ref models.Ref) {
 	return ref
 }
 
-func (doc *AppDoc) ToApplicationByAppId() (m models.ApplicationByAppId) {
+func (doc *AppDoc) ToProfile() (m models.Profile) {
 	m.Ref = doc.ToRef()
+	m.DisplayName = doc.DisplayName
 	m.ApplicationId = doc.ApplicationID
 	m.ServicePrincipalId = doc.ServicePrincipalID
+	return m
+}
+
+func (doc *ProfileDoc) ToModel() (m models.Profile) {
+	m.Ref = doc.ToRef()
+	m.UserPrincipalName = doc.UserPrincipalName
+	m.ServicePrincipalType = doc.ServicePrincipalType
+	m.AppId = doc.AppId
+	m.Mail = doc.Mail
 	return m
 }

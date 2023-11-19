@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
 
@@ -16,7 +17,8 @@ import (
 func (*CertServer) GetCertificatePolicy(ec echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
 
 	c := ec.(ctx.RequestContext)
-	if !authz.AuthorizeAdminOnly(c) {
+	namespaceId = ns.ResolveMeNamespace(c, namespaceId)
+	if _, authOk := authz.Authorize(c, authz.AllowAdmin, authz.AllowSelf(namespaceId)); !authOk {
 		return base.ErrResponseStatusForbidden
 	}
 

@@ -314,7 +314,7 @@ func (d *CertPolicyDoc) init(
 // populate ref
 func (d *CertPolicyDoc) ToRef() (m models.Ref) {
 	m = d.ResourceDoc.ToRef()
-	m.DisplayName = d.DisplayName
+	m.DisplayName = &d.DisplayName
 	return m
 }
 

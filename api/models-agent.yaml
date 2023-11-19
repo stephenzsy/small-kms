@@ -6,7 +6,7 @@ paths: {}
 components:
   schemas:
     Agent:
-      $ref: "models-shared.yaml#/components/schemas/ApplicationByAppId"
+      $ref: "models-shared.yaml#/components/schemas/Profile"
     CreateAgentRequest:
       type: object
       properties:

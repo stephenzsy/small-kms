@@ -52,6 +52,20 @@ paths:
           $ref: "models-shared.yaml#/components/responses/RefsResponse"
         404:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/profiles/{namespaceProvider}/{namespaceId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    post:
+      tags:
+        - admin
+      operationId: SyncProfile
+      summary: Sync profile
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/ProfileResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"          
   /v2/system-apps/{id}:
     parameters:
       - $ref: "#/components/parameters/IdParameter"
@@ -62,7 +76,7 @@ paths:
       summary: Get system app
       responses:
         200:
-          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+          $ref: "models-shared.yaml#/components/responses/ProfileResponse"
         404:
           $ref: "#/components/responses/ErrorResponse"
     post:
@@ -72,9 +86,9 @@ paths:
       summary: Sync managed app
       responses:
         200:
-          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+          $ref: "models-shared.yaml#/components/responses/ProfileResponse"
         201:
-          $ref: "models-shared.yaml#/components/responses/ApplicationByAppIdResponse"
+          $ref: "models-shared.yaml#/components/responses/ProfileResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/certificate-policies:
@@ -97,6 +111,7 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetCertificatePolicy
       summary: Get certificate policy
       responses:
@@ -139,6 +154,29 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         403:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      tags:
+        - admin
+      operationId: EnrollCertificate
+      summary: put certificate policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-cert.yaml#/components/schemas/EnrollCertificateRequest"
+      responses:
+        201:
+          $ref: "models-cert.yaml#/components/responses/CertificateResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        403:
+          $ref: "#/components/responses/ErrorResponse"          
   /v2/{namespaceProvider}/{namespaceId}/certificates:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

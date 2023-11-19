@@ -17,15 +17,16 @@ import * as runtime from '../runtime';
 import type {
   AgentConfig,
   AgentConfigFields,
-  ApplicationByAppId,
   Certificate,
   CertificatePolicy,
   CertificateRef,
   CreateAgentRequest,
   CreateCertificatePolicyRequest,
+  EnrollCertificateRequest,
   ErrorResult,
   KeyPolicy,
   NamespaceProvider,
+  Profile,
   Ref,
 } from '../models/index';
 import {
@@ -33,8 +34,6 @@ import {
     AgentConfigToJSON,
     AgentConfigFieldsFromJSON,
     AgentConfigFieldsToJSON,
-    ApplicationByAppIdFromJSON,
-    ApplicationByAppIdToJSON,
     CertificateFromJSON,
     CertificateToJSON,
     CertificatePolicyFromJSON,
@@ -45,12 +44,16 @@ import {
     CreateAgentRequestToJSON,
     CreateCertificatePolicyRequestFromJSON,
     CreateCertificatePolicyRequestToJSON,
+    EnrollCertificateRequestFromJSON,
+    EnrollCertificateRequestToJSON,
     ErrorResultFromJSON,
     ErrorResultToJSON,
     KeyPolicyFromJSON,
     KeyPolicyToJSON,
     NamespaceProviderFromJSON,
     NamespaceProviderToJSON,
+    ProfileFromJSON,
+    ProfileToJSON,
     RefFromJSON,
     RefToJSON,
 } from '../models/index';
@@ -63,6 +66,13 @@ export interface DeleteCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
+}
+
+export interface EnrollCertificateOperationRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    enrollCertificateRequest: EnrollCertificateRequest;
 }
 
 export interface GenerateCertificateRequest {
@@ -140,6 +150,11 @@ export interface PutKeyPolicyRequest {
     id: string;
 }
 
+export interface SyncProfileRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+}
+
 export interface SyncSystemAppRequest {
     id: string;
 }
@@ -152,7 +167,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Create agent
      */
-    async createAgentRaw(requestParameters: CreateAgentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+    async createAgentRaw(requestParameters: CreateAgentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -175,13 +190,13 @@ export class AdminApi extends runtime.BaseAPI {
             body: CreateAgentRequestToJSON(requestParameters.createAgentRequest),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
     }
 
     /**
      * Create agent
      */
-    async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+    async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -235,6 +250,59 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * put certificate policy
      */
+    async enrollCertificateRaw(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling enrollCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling enrollCertificate.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling enrollCertificate.');
+        }
+
+        if (requestParameters.enrollCertificateRequest === null || requestParameters.enrollCertificateRequest === undefined) {
+            throw new runtime.RequiredError('enrollCertificateRequest','Required parameter requestParameters.enrollCertificateRequest was null or undefined when calling enrollCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/enroll`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: EnrollCertificateRequestToJSON(requestParameters.enrollCertificateRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * put certificate policy
+     */
+    async enrollCertificate(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.enrollCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * put certificate policy
+     */
     async generateCertificateRaw(requestParameters: GenerateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
         if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
             throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling generateCertificate.');
@@ -281,7 +349,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Get agent
      */
-    async getAgentRaw(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+    async getAgentRaw(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgent.');
         }
@@ -305,13 +373,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
     }
 
     /**
      * Get agent
      */
-    async getAgent(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+    async getAgent(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getAgentRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -499,7 +567,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Get system app
      */
-    async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+    async getSystemAppRaw(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getSystemApp.');
         }
@@ -523,13 +591,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
     }
 
     /**
      * Get system app
      */
-    async getSystemApp(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+    async getSystemApp(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getSystemAppRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -847,9 +915,51 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Sync profile
+     */
+    async syncProfileRaw(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling syncProfile.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/profiles/{namespaceProvider}/{namespaceId}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync profile
+     */
+    async syncProfile(requestParameters: SyncProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.syncProfileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Sync managed app
      */
-    async syncSystemAppRaw(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationByAppId>> {
+    async syncSystemAppRaw(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling syncSystemApp.');
         }
@@ -873,13 +983,13 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationByAppIdFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
     }
 
     /**
      * Sync managed app
      */
-    async syncSystemApp(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationByAppId> {
+    async syncSystemApp(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.syncSystemAppRaw(requestParameters, initOverrides);
         return await response.value();
     }

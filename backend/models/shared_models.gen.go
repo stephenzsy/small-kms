@@ -20,32 +20,36 @@ const (
 	NamespaceProviderUser             NamespaceProvider = "user"
 )
 
-// ApplicationByAppId defines model for ApplicationByAppId.
-type ApplicationByAppId = applicationByAppIdComposed
-
-// ApplicationByAppIdFields defines model for ApplicationByAppIdFields.
-type ApplicationByAppIdFields struct {
-	ApplicationId      string `json:"applicationId"`
-	ServicePrincipalId string `json:"servicePrincipalId"`
-}
-
 // NamespaceProvider defines model for NamespaceProvider.
 type NamespaceProvider string
 
 // NumericDate defines model for NumericDate.
 type NumericDate = jwt.NumericDate
 
+// Profile defines model for Profile.
+type Profile = profileComposed
+
+// ProfileFields defines model for ProfileFields.
+type ProfileFields struct {
+	AppId                *string `json:"appId,omitempty"`
+	ApplicationId        *string `json:"applicationId,omitempty"`
+	Mail                 *string `json:"mail,omitempty"`
+	ServicePrincipalId   *string `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalType *string `json:"servicePrincipalType,omitempty"`
+	UserPrincipalName    *string `json:"userPrincipalName,omitempty"`
+}
+
 // Ref defines model for Ref.
 type Ref struct {
 	Deleted     *time.Time `json:"deleted,omitempty"`
-	DisplayName string     `json:"displayName,omitempty"`
+	DisplayName *string    `json:"displayName,omitempty"`
 	ID          string     `json:"id"`
 	Updated     time.Time  `json:"updated"`
 	UpdatedBy   string     `json:"updatedBy"`
 }
 
-// ApplicationByAppIdResponse defines model for ApplicationByAppIdResponse.
-type ApplicationByAppIdResponse = ApplicationByAppId
+// ProfileResponse defines model for ProfileResponse.
+type ProfileResponse = Profile
 
 // RefsResponse defines model for RefsResponse.
 type RefsResponse = []Ref

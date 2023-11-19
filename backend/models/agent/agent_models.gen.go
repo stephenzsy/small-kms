@@ -8,7 +8,7 @@ import (
 )
 
 // Agent defines model for Agent.
-type Agent = externalRef0.ApplicationByAppId
+type Agent = externalRef0.Profile
 
 // AgentConfig defines model for AgentConfig.
 type AgentConfig = agentConfigComposed

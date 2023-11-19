@@ -2,8 +2,6 @@
 /* eslint-disable */
 export * from './AgentConfig';
 export * from './AgentConfigFields';
-export * from './ApplicationByAppId';
-export * from './ApplicationByAppIdFields';
 export * from './Certificate';
 export * from './CertificateFields';
 export * from './CertificateFlag';
@@ -15,6 +13,7 @@ export * from './CertificateStatus';
 export * from './CertificateSubject';
 export * from './CreateAgentRequest';
 export * from './CreateCertificatePolicyRequest';
+export * from './EnrollCertificateRequest';
 export * from './ErrorResult';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
@@ -24,5 +23,7 @@ export * from './JsonWebSignatureKey';
 export * from './KeyPolicy';
 export * from './KeyPolicyFields';
 export * from './NamespaceProvider';
+export * from './Profile';
+export * from './ProfileFields';
 export * from './Ref';
 export * from './SubjectAlternativeNames';

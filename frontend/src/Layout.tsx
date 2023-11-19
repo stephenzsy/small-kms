@@ -32,16 +32,22 @@ function useNavItems(isAdmin: boolean): MenuProps["items"] {
               label: <NavLink to="/ca">CAs</NavLink>,
             },
             {
-              key: "app",
-              label: <NavLink to="/app">Apps</NavLink>,
-            },
-            {
               key: "groups",
-              label: <NavLink to="/entra/group">Groups</NavLink>,
+              label: <NavLink to="/groups">Groups</NavLink>,
             },
             {
               key: "users",
-              label: <NavLink to="/entra/user">Users</NavLink>,
+              label: <NavLink to="/users">Users</NavLink>,
+            },
+            {
+              key: "service-principals",
+              label: (
+                <NavLink to="/service-principals">Service Principals</NavLink>
+              ),
+            },
+            {
+              key: "app",
+              label: <NavLink to="/app">Apps</NavLink>,
             },
           ]
         : [],

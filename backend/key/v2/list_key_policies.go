@@ -28,7 +28,7 @@ func (*KeyAdminServer) ListKeyPolicies(ec echo.Context, namespaceProvider models
 
 	modelPager := utils.NewMappedItemsPager(pager, func(doc *KeyPolicyDoc) *models.Ref {
 		ref := doc.ToRef()
-		ref.DisplayName = doc.DisplayName
+		ref.DisplayName = &doc.DisplayName
 		return &ref
 	})
 

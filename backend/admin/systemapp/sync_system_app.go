@@ -44,19 +44,17 @@ func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 		return err
 	}
 	doc := &SystemAppDoc{
-		ProfileDoc: profile.ProfileDoc{
-			ResourceDoc: resdoc.ResourceDoc{
-				PartitionKey: resdoc.PartitionKey{
-					NamespaceProvider: models.NamespaceProviderProfile,
-					NamespaceID:       profile.NamespaceIDApp,
-					ResourceProvider:  models.ProfileResourceProviderSystem,
-				},
-				ID: appID.String(),
+		ResourceDoc: resdoc.ResourceDoc{
+			PartitionKey: resdoc.PartitionKey{
+				NamespaceProvider: models.NamespaceProviderProfile,
+				NamespaceID:       profile.NamespaceIDApp,
+				ResourceProvider:  models.ProfileResourceProviderSystem,
 			},
-			DisplayName: *sp.GetDisplayName(),
+			ID: appID.String(),
 		},
-		ServicePrincipalID:   *sp.GetId(),
-		ServicePrincipalType: *sp.GetServicePrincipalType(),
+		DisplayName:          sp.GetDisplayName(),
+		ServicePrincipalID:   sp.GetId(),
+		ServicePrincipalType: sp.GetServicePrincipalType(),
 	}
 
 	if *sp.GetServicePrincipalType() == "Application" {
@@ -68,7 +66,7 @@ func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 		if err != nil {
 			return err
 		}
-		doc.ApplicationID = *application.GetId()
+		doc.ApplicationID = application.GetId()
 	}
 
 	docSvc := resdoc.GetDocService(c)
@@ -77,6 +75,6 @@ func (s *SystemAppAdminServer) SyncSystemApp(ec echo.Context, id string) error {
 		return err
 	}
 
-	return c.JSON(resp.RawResponse.StatusCode, doc.ToApplicationByAppId())
+	return c.JSON(resp.RawResponse.StatusCode, doc.ToProfile())
 
 }

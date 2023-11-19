@@ -161,13 +161,17 @@ export default function CertPolicyPage() {
       <Card
         title="Certificates"
         extra={
-          <Button
-            type="primary"
-            onClick={generateCertificate}
-            loading={generateCertificateLoading}
-          >
-            Generate Certificate
-          </Button>
+          <>
+            {certPolicy?.allowGenerate && (
+              <Button
+                type="primary"
+                onClick={generateCertificate}
+                loading={generateCertificateLoading}
+              >
+                Generate Certificate
+              </Button>
+            )}
+          </>
         }
       >
         <ResourceRefsTable<CertificateRef>

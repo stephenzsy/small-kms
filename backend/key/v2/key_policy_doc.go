@@ -139,7 +139,7 @@ func (doc *KeyPolicyDoc) init(c context.Context, req *keymodels.CreateKeyPolicyR
 
 func (doc *KeyPolicyDoc) ToRef() (m models.Ref) {
 	m = doc.ResourceDoc.ToRef()
-	m.DisplayName = doc.DisplayName
+	m.DisplayName = &doc.DisplayName
 	return m
 }
 

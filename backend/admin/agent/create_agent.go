@@ -59,18 +59,16 @@ func (s *AgentAdminServer) CreateAgent(ec echo.Context) error {
 	}
 	doc := &AgentDoc{
 		AppDoc: profile.AppDoc{
-			ProfileDoc: profile.ProfileDoc{
-				ResourceDoc: resdoc.ResourceDoc{
-					PartitionKey: resdoc.PartitionKey{
-						NamespaceProvider: models.NamespaceProviderProfile,
-						NamespaceID:       profile.NamespaceIDApp,
-						ResourceProvider:  models.ProfileResourceProviderAgent,
-					},
-					ID: *application.GetAppId(),
+			ResourceDoc: resdoc.ResourceDoc{
+				PartitionKey: resdoc.PartitionKey{
+					NamespaceProvider: models.NamespaceProviderProfile,
+					NamespaceID:       profile.NamespaceIDApp,
+					ResourceProvider:  models.ProfileResourceProviderAgent,
 				},
-				DisplayName: *application.GetDisplayName(),
+				ID: *application.GetAppId(),
 			},
-			ApplicationID: *application.GetId(),
+			DisplayName:   application.GetDisplayName(),
+			ApplicationID: application.GetId(),
 		},
 	}
 
@@ -79,8 +77,8 @@ func (s *AgentAdminServer) CreateAgent(ec echo.Context) error {
 	if sp, err := gclient.ServicePrincipals().Post(c, mSp, nil); err != nil {
 		return err
 	} else {
-		doc.ServicePrincipalID = *sp.GetId()
-		doc.ServicePrincipalType = *sp.GetServicePrincipalType()
+		doc.ServicePrincipalID = sp.GetId()
+		doc.ServicePrincipalType = sp.GetServicePrincipalType()
 	}
 
 	// persist document
@@ -90,7 +88,7 @@ func (s *AgentAdminServer) CreateAgent(ec echo.Context) error {
 		return err
 	}
 
-	return c.JSON(resp.RawResponse.StatusCode, doc.ToApplicationByAppId())
+	return c.JSON(resp.RawResponse.StatusCode, doc.ToProfile())
 
 }
 
@@ -99,7 +97,7 @@ func importAgentApp(c ctx.RequestContext, params *agentmodels.CreateAgentRequest
 	if err != nil {
 		return err
 	}
-	if systemappDoc.ServicePrincipalID == "" {
+	if systemappDoc.ServicePrincipalID == nil || *systemappDoc.ServicePrincipalID == "" {
 		return fmt.Errorf("%w: system application ID not found: %s, please sync", base.ErrResponseStatusNotFound, systemapp.SystemAppNameAPI)
 	}
 
@@ -130,25 +128,26 @@ func importAgentApp(c ctx.RequestContext, params *agentmodels.CreateAgentRequest
 	}
 	if !slices.ContainsFunc(owners.GetValue(), func(v gmodels.DirectoryObjectable) bool {
 		log.Ctx(c).Debug().Interface("owner", v.GetId()).Msg("owner")
-		return systemappDoc.ServicePrincipalID == *v.GetId()
+
+		return systemappDoc.ServicePrincipalID != nil && v.GetId() != nil && *systemappDoc.ServicePrincipalID == *v.GetId()
 	}) {
 		return fmt.Errorf("%w: application with AppId not owned by system application: %s", base.ErrResponseStatusForbidden, params.AppId)
 	}
 
 	agentDoc := &AgentDoc{
 		AppDoc: profile.AppDoc{
-			ProfileDoc: profile.ProfileDoc{
-				ResourceDoc: resdoc.ResourceDoc{
-					PartitionKey: resdoc.PartitionKey{
-						NamespaceProvider: models.NamespaceProviderProfile,
-						NamespaceID:       profile.NamespaceIDApp,
-						ResourceProvider:  models.ProfileResourceProviderAgent,
-					},
-					ID: *application.GetAppId(),
+
+			ResourceDoc: resdoc.ResourceDoc{
+				PartitionKey: resdoc.PartitionKey{
+					NamespaceProvider: models.NamespaceProviderProfile,
+					NamespaceID:       profile.NamespaceIDApp,
+					ResourceProvider:  models.ProfileResourceProviderAgent,
 				},
-				DisplayName: *application.GetDisplayName(),
+				ID: *application.GetAppId(),
 			},
-			ApplicationID: *application.GetId(),
+			DisplayName: application.GetDisplayName(),
+
+			ApplicationID: application.GetId(),
 		},
 	}
 
@@ -173,8 +172,8 @@ func importAgentApp(c ctx.RequestContext, params *agentmodels.CreateAgentRequest
 			return err
 		}
 	}
-	agentDoc.ServicePrincipalID = *sp.GetId()
-	agentDoc.ServicePrincipalType = *sp.GetServicePrincipalType()
+	agentDoc.ServicePrincipalID = sp.GetId()
+	agentDoc.ServicePrincipalType = sp.GetServicePrincipalType()
 
 	docSvc := resdoc.GetDocService(c)
 	resp, err := docSvc.Upsert(c, agentDoc, nil)
@@ -203,5 +202,5 @@ func importAgentApp(c ctx.RequestContext, params *agentmodels.CreateAgentRequest
 		}
 	}
 
-	return c.JSON(resp.RawResponse.StatusCode, agentDoc.ToApplicationByAppId())
+	return c.JSON(resp.RawResponse.StatusCode, agentDoc.ToProfile())
 }

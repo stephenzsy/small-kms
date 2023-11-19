@@ -34,5 +34,5 @@ func (*AgentAdminServer) GetAgent(ec echo.Context, id string) error {
 		}
 		return err
 	}
-	return c.JSON(200, doc.ToApplicationByAppId())
+	return c.JSON(200, doc.ToProfile())
 }

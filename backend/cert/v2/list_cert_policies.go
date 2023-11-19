@@ -26,7 +26,7 @@ func (*CertServer) ListCertificatePolicies(ec echo.Context, namespaceProvider mo
 
 	modelPager := utils.NewMappedItemsPager(pager, func(doc *CertPolicyDoc) *models.Ref {
 		ref := doc.ToRef()
-		ref.DisplayName = doc.DisplayName
+		ref.DisplayName = &doc.DisplayName
 		return &ref
 	})
 

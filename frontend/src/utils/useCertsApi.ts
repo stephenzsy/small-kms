@@ -5,6 +5,7 @@ import {
   BaseAPI as BaseAPI2,
   Configuration as Configuration2,
 } from "../generated/apiv2";
+import { Client } from "@microsoft/microsoft-graph-client";
 
 export function useAuthedClient<T extends BaseAPI>(ClientType: {
   new (configuration: Configuration): T;
@@ -39,5 +40,20 @@ export function useAuthedClientV2<T extends BaseAPI2>(ClientType: {
         },
       })
     );
+  }, [account, acquireToken]);
+}
+
+export function useGraphClient(): Client {
+  const { account, acquireToken } = useAppAuthContext();
+
+  return useCreation(() => {
+    return Client.initWithMiddleware({
+      authProvider: {
+        getAccessToken: async () => {
+          const result = await acquireToken(["https://graph.microsoft.com/Directory.Read.All"]);
+          return result?.accessToken || "";
+        },
+      },
+    });
   }, [account, acquireToken]);
 }
