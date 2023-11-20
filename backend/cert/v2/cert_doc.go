@@ -179,7 +179,7 @@ func (d *certDocGeneratePending) init(
 		if err != nil {
 			return err
 		}
-		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg)
+		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg, true)
 		d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
 
 		// now needs public key from keyvault

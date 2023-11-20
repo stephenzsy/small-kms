@@ -132,12 +132,13 @@ var _ i.CloudSignatureKey = (*azCloudKey)(nil)
 var _ i.CloudWrappingKey = (*azCloudKey)(nil)
 
 func NewAzCloudSignatureKeyWithKID(c context.Context, client *azkeys.Client, kid string,
-	jwsa i.JsonWebSignatureAlgorithm) i.CloudSignatureKey {
+	jwsa i.JsonWebSignatureAlgorithm, formatX509 bool) i.CloudSignatureKey {
 	return &azCloudKey{
-		client: client,
-		kid:    azkeys.ID(kid),
-		c:      c,
-		jwsa:   jwsa,
+		client:     client,
+		kid:        azkeys.ID(kid),
+		c:          c,
+		jwsa:       jwsa,
+		formatX509: formatX509,
 	}
 }
 

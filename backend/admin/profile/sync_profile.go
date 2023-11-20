@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 
 	"github.com/microsoftgraph/msgraph-sdk-go/directoryobjects"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -97,6 +98,47 @@ func SyncProfileInternal(c ctx.RequestContext, namespaceId string) (*ProfileDoc,
 	default:
 		return bad(fmt.Errorf("%w: object type is not supported %s not supported", base.ErrResponseStatusBadRequest, *dirObj.GetOdataType()))
 	}
+
+	_, err = resdoc.GetDocService(c).Upsert(c, doc, nil)
+	return doc, err
+}
+
+func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string) (*ProfileDoc, error) {
+	bad := func(e error) (*ProfileDoc, error) {
+		return nil, e
+	}
+
+	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	if err != nil {
+		return bad(err)
+	}
+	doc := &ProfileDoc{
+		ResourceDoc: resdoc.ResourceDoc{
+			PartitionKey: resdoc.PartitionKey{
+				NamespaceProvider: models.NamespaceProviderProfile,
+				NamespaceID:       NamespaceIDGraph,
+				ResourceProvider:  models.ProfileResourceProviderServicePrincipal,
+			},
+		},
+	}
+	sp, err := gclient.ServicePrincipalsWithAppId(&appID).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+		QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+			Select: []string{"id", "displayName", "appId", "servicePrincipalType"},
+		},
+	})
+	if err != nil {
+		err = base.HandleMsGraphError(err)
+		if errors.Is(err, base.ErrMsGraphResourceNotFound) {
+			return bad(fmt.Errorf("%w,%w", base.ErrResponseStatusNotFound, err))
+		}
+		return bad(err)
+	}
+
+	doc.PartitionKey.ResourceProvider = models.ProfileResourceProviderServicePrincipal
+	doc.DisplayName = sp.GetDisplayName()
+	doc.ID = *sp.GetId()
+	doc.AppId = sp.GetAppId()
+	doc.ServicePrincipalType = sp.GetServicePrincipalType()
 
 	_, err = resdoc.GetDocService(c).Upsert(c, doc, nil)
 	return doc, err

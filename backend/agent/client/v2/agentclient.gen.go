@@ -4,6 +4,7 @@
 package agentclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -37,6 +38,15 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
+
+// EnrollCertificateParams defines parameters for EnrollCertificate.
+type EnrollCertificateParams struct {
+	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
+	OnBehalfOfApplication *bool `form:"onBehalfOfApplication,omitempty" json:"onBehalfOfApplication,omitempty"`
+}
+
+// EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
+type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -113,10 +123,39 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 type ClientInterface interface {
 	// GetCertificatePolicy request
 	GetCertificatePolicy(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EnrollCertificateWithBody request with any body
+	EnrollCertificateWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EnrollCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetCertificatePolicy(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCertificatePolicyRequest(c.Server, namespaceProvider, namespaceId, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EnrollCertificateWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnrollCertificateRequestWithBody(c.Server, namespaceProvider, namespaceId, id, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EnrollCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnrollCertificateRequest(c.Server, namespaceProvider, namespaceId, id, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +214,89 @@ func NewGetCertificatePolicyRequest(server string, namespaceProvider NamespacePr
 	return req, nil
 }
 
+// NewEnrollCertificateRequest calls the generic EnrollCertificate builder with application/json body
+func NewEnrollCertificateRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEnrollCertificateRequestWithBody(server, namespaceProvider, namespaceId, id, params, "application/json", bodyReader)
+}
+
+// NewEnrollCertificateRequestWithBody generates requests for EnrollCertificate with any type of body
+func NewEnrollCertificateRequestWithBody(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/%s/%s/certificate-policies/%s/enroll", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.OnBehalfOfApplication != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "onBehalfOfApplication", runtime.ParamLocationQuery, *params.OnBehalfOfApplication); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -220,6 +342,11 @@ func WithBaseURL(baseURL string) ClientOption {
 type ClientWithResponsesInterface interface {
 	// GetCertificatePolicyWithResponse request
 	GetCertificatePolicyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetCertificatePolicyResponse, error)
+
+	// EnrollCertificateWithBodyWithResponse request with any body
+	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
+
+	EnrollCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 }
 
 type GetCertificatePolicyResponse struct {
@@ -245,6 +372,30 @@ func (r GetCertificatePolicyResponse) StatusCode() int {
 	return 0
 }
 
+type EnrollCertificateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *externalRef2.CertificateResponse
+	JSON400      *ErrorResponse
+	JSON403      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r EnrollCertificateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EnrollCertificateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetCertificatePolicyWithResponse request returning *GetCertificatePolicyResponse
 func (c *ClientWithResponses) GetCertificatePolicyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetCertificatePolicyResponse, error) {
 	rsp, err := c.GetCertificatePolicy(ctx, namespaceProvider, namespaceId, id, reqEditors...)
@@ -252,6 +403,23 @@ func (c *ClientWithResponses) GetCertificatePolicyWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseGetCertificatePolicyResponse(rsp)
+}
+
+// EnrollCertificateWithBodyWithResponse request with arbitrary body returning *EnrollCertificateResponse
+func (c *ClientWithResponses) EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error) {
+	rsp, err := c.EnrollCertificateWithBody(ctx, namespaceProvider, namespaceId, id, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEnrollCertificateResponse(rsp)
+}
+
+func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error) {
+	rsp, err := c.EnrollCertificate(ctx, namespaceProvider, namespaceId, id, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEnrollCertificateResponse(rsp)
 }
 
 // ParseGetCertificatePolicyResponse parses an HTTP response from a GetCertificatePolicyWithResponse call
@@ -281,6 +449,46 @@ func ParseGetCertificatePolicyResponse(rsp *http.Response) (*GetCertificatePolic
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseEnrollCertificateResponse parses an HTTP response from a EnrollCertificateWithResponse call
+func ParseEnrollCertificateResponse(rsp *http.Response) (*EnrollCertificateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EnrollCertificateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest externalRef2.CertificateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	}
 

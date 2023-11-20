@@ -6,3 +6,4 @@ agent/agent
 **/*.pem
 agent/config
 agent/*.json
+agent/bootstrapcli/bootstrapcli

@@ -6,7 +6,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/stephenzsy/small-kms/backend/agent/bootstrap"
-	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/urfave/cli/v2"
 )
 
@@ -65,11 +64,6 @@ func main() {
 								Value:   "./sp-client-cert.pem",
 							},
 							&cli.StringFlag{
-								Name:     "namespace-id",
-								Usage:    "namespace identifier",
-								Required: true,
-							},
-							&cli.StringFlag{
 								Name:     "cert-policy-id",
 								Usage:    "policy identifier for the client cert",
 								Required: true,
@@ -77,8 +71,7 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return bootstrap.NewServicePrincipalBootstraper().Bootstrap(c.Context,
-								base.ParseID(c.String("namespace-id")),
-								base.ParseID(c.String("cert-policy-id")),
+								c.String("cert-policy-id"),
 								c.String("cert-path"), c.String("token-cache-file"))
 						},
 					},

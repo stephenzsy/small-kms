@@ -10,16 +10,16 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
+	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/cert"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
+	"github.com/stephenzsy/small-kms/backend/models"
+	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
+	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ServicePrincipalBootstraper struct {
@@ -29,7 +29,7 @@ func NewServicePrincipalBootstraper() *ServicePrincipalBootstraper {
 	return &ServicePrincipalBootstraper{}
 }
 
-func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdentifier base.ID, certPolicyIdentifer base.ID, certPath string, tokenCacheFile string) error {
+func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPolicyID string, certPath string, tokenCacheFile string) error {
 	if certPath == "" {
 		return errors.New("missing client cert path")
 	}
@@ -71,18 +71,18 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		return err
 	}
 
-	nbf := jwt.NewNumericDate(time.Now())
+	// nbf := jwt.NewNumericDate(time.Now())
 
-	t := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
-		Audience:  jwt.ClaimStrings{"00000003-0000-0000-c000-000000000000"},
-		NotBefore: nbf,
-		ExpiresAt: jwt.NewNumericDate(nbf.Time.Add(10 * time.Minute)),
-		Issuer:    string(namespaceIdentifier),
-	})
-	signedToken, err := t.SignedString(privateKey)
-	if err != nil {
-		return err
-	}
+	// t := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
+	// 	Audience:  jwt.ClaimStrings{"00000003-0000-0000-c000-000000000000"},
+	// 	NotBefore: nbf,
+	// 	ExpiresAt: jwt.NewNumericDate(nbf.Time.Add(10 * time.Minute)),
+	// 	Issuer:    string(namespaceIdentifier),
+	// })
+	// signedToken, err := t.SignedString(privateKey)
+	// if err != nil {
+	// 	return err
+	// }
 
 	client, err := agentclient.NewClientWithResponses(baseUrl,
 		agentclient.WithRequestEditorFn(common.ToSilenTokenRequestEditorFn(pubClient, apiAuthScope, authResult.Account)))
@@ -90,14 +90,15 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		return err
 	}
 
-	resp, err := client.EnrollCertificateWithResponse(c, base.NamespaceKindServicePrincipal,
-		namespaceIdentifier,
-		certPolicyIdentifer,
-		nil,
-		agentclient.EnrollCertificateRequest{
-			EnrollmentType: cert.EnrollmentTypeMsEntraClientCredential,
-			PublicKey:      toJwk(privateKey.Public()),
-			Proof:          signedToken,
+	resp, err := client.EnrollCertificateWithResponse(c, models.NamespaceProviderServicePrincipal,
+		"me",
+		certPolicyID,
+		&agentclient.EnrollCertificateParams{
+			OnBehalfOfApplication: utils.ToPtr(true),
+		},
+		certmodels.EnrollCertificateRequest{
+
+			PublicKey: toJwk(privateKey.Public()),
 		})
 	if err != nil {
 		return err
@@ -119,7 +120,7 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, namespaceIdenti
 		Bytes: pkBytes,
 	})
 
-	for _, cert := range resp.JSON200.Jwk.CertificateChain {
+	for _, cert := range resp.JSON201.Jwk.CertificateChain {
 		pem.Encode(certFile, &pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: cert,

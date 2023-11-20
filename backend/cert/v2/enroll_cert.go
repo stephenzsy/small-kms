@@ -25,15 +25,22 @@ import (
 )
 
 // EnrollCertificate implements admin.ServerInterface.
-func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, policyID string, params admin.EnrollCertificateParams) error {
+func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, policyID string, params admin.EnrollCertificateParams) (err error) {
 	c := ec.(ctx.RequestContext)
 	reqIdentity := auth.GetAuthIdentity(c)
+	requesterID := reqIdentity.ClientPrincipalID()
 	namespaceId = ns.ResolveMeNamespace(c, namespaceId)
+	var requesterProfile *profile.ProfileDoc
 	if params.OnBehalfOfApplication != nil && *params.OnBehalfOfApplication && reqIdentity.HasAdminRole() {
-		// TODO
-		return c.JSON(http.StatusNotImplemented, map[string]string{"message": "not implemented"})
-		// appID := reqIdentity.AppID()
-		// profile.SyncProfileWithAppID(c, appID)
+		requesterProfile, err = profile.SyncServicePrincipalProfileByAppID(c, reqIdentity.AppID())
+		if err != nil {
+			return err
+		}
+		namespaceId = requesterProfile.ID
+		if requesterID, err = uuid.Parse(requesterProfile.ID); err != nil {
+			return err
+		}
+		namespaceProvider = models.NamespaceProviderServicePrincipal
 	}
 	if !reqIdentity.HasAdminRole() && !reqIdentity.HasRole(auth.RoleValueAgentActiveHost) && !reqIdentity.HasRole(auth.RoleValueCertificateEnroll) {
 		return base.ErrResponseStatusForbidden
@@ -44,12 +51,13 @@ func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.N
 	}
 
 	canEnroll := false
-	var requesterProfile *profile.ProfileDoc
-	if reqIdentity.ClientPrincipalID() == namespaceUUID {
+	if requesterID == namespaceUUID {
 		// authroize self
-		requesterProfile, err = profile.SyncProfileInternal(c, reqIdentity.ClientPrincipalID().String())
-		if err != nil {
-			return err
+		if requesterProfile == nil {
+			requesterProfile, err = profile.SyncProfileInternal(c, requesterID.String())
+			if err != nil {
+				return err
+			}
 		}
 		requesterTemplateVarData := &ResourceTemplateGraphVarData{
 			ID: requesterProfile.ID,
@@ -60,7 +68,7 @@ func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.N
 	} else if namespaceProvider == models.NamespaceProviderGroup {
 		// authorize group member
 		var nsProfile *profile.ProfileDoc
-		if _, requesterProfile, nsProfile, err = profile.SyncMemberOfInternal(c, reqIdentity.ClientPrincipalID().String(), namespaceId); err == nil {
+		if _, requesterProfile, nsProfile, err = profile.SyncMemberOfInternal(c, requesterID.String(), namespaceId); err == nil {
 			c = c.WithValue(templateContextKeyRequesterGraph, &ResourceTemplateGraphVarData{
 				ID: requesterProfile.ID,
 			})
@@ -136,7 +144,6 @@ type certDocEnrollPending struct {
 
 	templateX509Cert *x509.Certificate
 	issuerX509Cert   *x509.Certificate
-	issuerCertChain  []cloudkey.Base64RawURLEncodableBytes
 	publicKey        crypto.PublicKey
 	signer           crypto.Signer
 }
@@ -191,7 +198,7 @@ func (d *certDocEnrollPending) init(
 		return err
 	}
 	azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
-	d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg)
+	d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg, true)
 	d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
 
 	return nil
