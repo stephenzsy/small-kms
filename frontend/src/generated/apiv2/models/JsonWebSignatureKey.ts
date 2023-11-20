@@ -73,7 +73,7 @@ export interface JsonWebSignatureKey {
      * @type {string}
      * @memberof JsonWebSignatureKey
      */
-    kid: string;
+    kid?: string;
     /**
      * 
      * @type {string}
@@ -124,7 +124,6 @@ export interface JsonWebSignatureKey {
 export function instanceOfJsonWebSignatureKey(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "kty" in value;
-    isInstance = isInstance && "kid" in value;
 
     return isInstance;
 }
@@ -144,7 +143,7 @@ export function JsonWebSignatureKeyFromJSONTyped(json: any, ignoreDiscriminator:
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': !exists(json, 'key_ops') ? undefined : ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
-        'kid': json['kid'],
+        'kid': !exists(json, 'kid') ? undefined : json['kid'],
         'n': !exists(json, 'n') ? undefined : json['n'],
         'e': !exists(json, 'e') ? undefined : json['e'],
         'x': !exists(json, 'x') ? undefined : json['x'],

@@ -23,7 +23,9 @@ export const JsonWebKeyOperation = {
     Encrypt: 'encrypt',
     Decrypt: 'decrypt',
     WrapKey: 'wrapKey',
-    UnwrapKey: 'unwrapKey'
+    UnwrapKey: 'unwrapKey',
+    DeriveKey: 'deriveKey',
+    DeriveBits: 'deriveBits'
 } as const;
 export type JsonWebKeyOperation = typeof JsonWebKeyOperation[keyof typeof JsonWebKeyOperation];
 

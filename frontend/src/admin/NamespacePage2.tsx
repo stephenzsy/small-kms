@@ -99,7 +99,11 @@ function GroupMembershipSyncForm({ userId }: { userId: string }) {
 
 export default function NamespacePage() {
   const { namespaceId, namespaceProvider } = useNamespace();
-
+  const showProfile = [
+    NamespaceProvider.NamespaceProviderServicePrincipal,
+    NamespaceProvider.NamespaceProviderGroup,
+    NamespaceProvider.NamespaceProviderUser,
+  ].some((np) => np === namespaceProvider);
   const showCertPolicies = [
     NamespaceProvider.NamespaceProviderRootCA,
     NamespaceProvider.NamespaceProviderIntermediateCA,
@@ -118,6 +122,7 @@ export default function NamespacePage() {
     },
     {
       refreshDeps: [namespaceId, namespaceProvider],
+      ready: showProfile,
     }
   );
 
@@ -147,24 +152,26 @@ export default function NamespacePage() {
       <Typography.Title>
         Namespace: {profile?.displayName ?? namespaceId}
       </Typography.Title>
-      <Card title="Profile">
-        <dl className="dl">
-          <div>
-            <dt>ID</dt>
-            <dd className="font-mono">{profile?.id}</dd>
-          </div>
-          <div>
-            <dt>Display Name</dt>
-            <dd className="font-mono">{profile?.displayName}</dd>
-          </div>
-          {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
+      {showProfile && (
+        <Card title="Profile">
+          <dl className="dl">
             <div>
-              <dt>User Principal Name</dt>
-              <dd className="font-mono">{profile?.userPrincipalName}</dd>
+              <dt>ID</dt>
+              <dd className="font-mono">{profile?.id}</dd>
             </div>
-          )}
-        </dl>
-      </Card>
+            <div>
+              <dt>Display Name</dt>
+              <dd className="font-mono">{profile?.displayName}</dd>
+            </div>
+            {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
+              <div>
+                <dt>User Principal Name</dt>
+                <dd className="font-mono">{profile?.userPrincipalName}</dd>
+              </div>
+            )}
+          </dl>
+        </Card>
+      )}
       {showCertPolicies && (
         <Card
           title="Certificate Policies"

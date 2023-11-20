@@ -52,3 +52,15 @@ func (doc *ProfileDoc) ToModel() (m models.Profile) {
 	m.Mail = doc.Mail
 	return m
 }
+
+func (doc *ProfileDoc) TargetNamespaceProvider() models.NamespaceProvider {
+	switch doc.PartitionKey.ResourceProvider {
+	case models.ProfileResourceProviderServicePrincipal:
+		return models.NamespaceProviderServicePrincipal
+	case models.ProfileResourceProviderGroup:
+		return models.NamespaceProviderGroup
+	case models.ProfileResourceProviderUser:
+		return models.NamespaceProviderUser
+	}
+	return ""
+}

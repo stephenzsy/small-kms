@@ -38,6 +38,8 @@ components:
         - decrypt
         - wrapKey
         - unwrapKey
+        - deriveKey
+        - deriveBits
       x-go-type: cloudkey.JsonWebKeyOperation
       x-go-type-import:
         name: cloudkey
@@ -117,8 +119,6 @@ components:
                 type: string
               x-go-type-skip-optional-pointer: true
               x-go-name: CertificateChain
-          required:
-            - kid
         - x-go-type: cloudkey.JsonWebSignatureKey
           x-go-type-import:
             name: cloudkey

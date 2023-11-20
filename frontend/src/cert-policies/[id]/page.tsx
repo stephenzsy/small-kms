@@ -19,12 +19,13 @@ import { useMemoizedFn, useRequest } from "ahooks";
 import { useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";
 import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
-import { useContext } from "react";
+import { useContext, useId } from "react";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { CertificateRef } from "../../generated/apiv2";
 import { dateShortFormatter } from "../../utils/datetimeUtils";
 import { Link } from "../../components/Link";
+import { CertWebEnroll } from "../../admin/forms/CertWebEnroll";
 
 function useCertificatePolicy(id: string | undefined) {
   const { namespaceProvider, namespaceId } = useNamespace();
@@ -163,6 +164,9 @@ export default function CertPolicyPage() {
     },
     {
       refreshDeps: [namespaceId, namespaceProvider, id],
+      ready:
+        namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
+        namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA,
     }
   );
   const { run: generateCertificate, loading: generateCertificateLoading } =
@@ -179,6 +183,8 @@ export default function CertPolicyPage() {
       },
       { manual: true }
     );
+
+  const webEnrollCardId = useId();
 
   const currentIssuerId = currentIssuerResp?.linkTo?.split("/")[1];
   const certColumns = useCertificateTableColumns(currentIssuerId);
@@ -210,17 +216,22 @@ export default function CertPolicyPage() {
       <Card
         title="Certificates"
         extra={
-          <>
+          <div className="flex items-center gap-4">
+            {certPolicy?.allowEnroll && (
+              <Typography.Link href={`#${webEnrollCardId}`}>
+                Enroll Certificate
+              </Typography.Link>
+            )}
             {certPolicy?.allowGenerate && (
               <Button
-                type="primary"
+                type="link"
                 onClick={generateCertificate}
                 loading={generateCertificateLoading}
               >
                 Generate Certificate
               </Button>
             )}
-          </>
+          </div>
         }
       >
         <ResourceRefsTable<CertificateRef>
@@ -264,6 +275,11 @@ export default function CertPolicyPage() {
           <CertPolicyForm policyId={id} value={certPolicy} onChange={mutate} />
         )}
       </Card>
+      {certPolicy?.allowEnroll && (
+        <Card id={webEnrollCardId} title="Enroll Certificate">
+          <CertWebEnroll certPolicy={certPolicy} />
+        </Card>
+      )}
     </>
   );
 }

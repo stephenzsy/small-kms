@@ -28,12 +28,6 @@ import {
 export interface EnrollCertificateRequest {
     /**
      * 
-     * @type {boolean}
-     * @memberof EnrollCertificateRequest
-     */
-    onBehalfOfApp?: boolean;
-    /**
-     * 
      * @type {JsonWebSignatureKey}
      * @memberof EnrollCertificateRequest
      */
@@ -66,7 +60,6 @@ export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'onBehalfOfApp': !exists(json, 'onBehalfOfApp') ? undefined : json['onBehalfOfApp'],
         'publicKey': JsonWebSignatureKeyFromJSON(json['publicKey']),
         'signature': !exists(json, 'signature') ? undefined : json['signature'],
     };
@@ -81,7 +74,6 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     }
     return {
         
-        'onBehalfOfApp': value.onBehalfOfApp,
         'publicKey': JsonWebSignatureKeyToJSON(value.publicKey),
         'signature': value.signature,
     };

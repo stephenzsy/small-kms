@@ -205,6 +205,13 @@ paths:
     post:
       tags:
         - admin
+      parameters:
+        - in: query
+          name: onBehalfOfApplication
+          description: Enroll on behalf of application, must have a bearer token with "azp" cliam
+          required: false
+          schema:
+            type: boolean
       operationId: EnrollCertificate
       summary: put certificate policy
       requestBody:

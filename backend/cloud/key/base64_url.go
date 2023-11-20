@@ -24,3 +24,7 @@ func (b *Base64RawURLEncodableBytes) UnmarshalText(text []byte) error {
 func (b Base64RawURLEncodableBytes) HexString() string {
 	return hex.EncodeToString(b)
 }
+
+func (b Base64RawURLEncodableBytes) BitLen() int {
+	return len(b) * 8
+}

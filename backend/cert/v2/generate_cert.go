@@ -32,13 +32,15 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		return base.ErrResponseStatusBadRequest
 	}
 
-	certDoc := &certDocSelfSignedGeneratePending{
-		CertDoc: CertDoc{
-			ResourceDoc: resdoc.ResourceDoc{
-				PartitionKey: resdoc.PartitionKey{
-					NamespaceProvider: nsProvider,
-					NamespaceID:       nsID,
-					ResourceProvider:  models.ResourceProviderCert,
+	certDoc := &certDocGeneratePending{
+		certDocPending: certDocPending{
+			CertDoc: CertDoc{
+				ResourceDoc: resdoc.ResourceDoc{
+					PartitionKey: resdoc.PartitionKey{
+						NamespaceProvider: nsProvider,
+						NamespaceID:       nsID,
+						ResourceProvider:  models.ResourceProviderCert,
+					},
 				},
 			},
 		},

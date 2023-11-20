@@ -1,4 +1,4 @@
-import { useMemoizedFn, useRequest } from "ahooks";
+import { useBoolean, useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
   Checkbox,
@@ -17,6 +17,7 @@ import {
   CertificatePolicy,
   CertificateSubject,
   CreateCertificatePolicyRequest,
+  JsonWebKeyOperation,
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
@@ -24,6 +25,7 @@ import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import { DefaultOptionType } from "antd/es/select";
+import FormItem from "antd/es/form/FormItem";
 
 function SANFormList({
   name,
@@ -67,11 +69,13 @@ function SANFormList({
 function IssuerSelector({
   api,
   namespaceProvider,
-  form
+  onChange,
+  value,
 }: {
   api: AdminApi;
   namespaceProvider: NamespaceProvider;
-  form: FormInstance<CreateCertificatePolicyRequest>
+  value?: string | undefined;
+  onChange?: (value: string | undefined) => void;
 }) {
   const issuerNamespaceProvider =
     namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA
@@ -135,28 +139,56 @@ function IssuerSelector({
         value: `${issuerNamespaceProvider}:${selectedNamespaceId}:cert-policy/${v.id}`,
       };
     });
-  }, [policies]);
+  }, [policies, issuerNamespaceProvider, selectedNamespaceId]);
 
-  const issuerPolicyIdentifier = useWatch("issuerPolicyIdentifier", form);
-  const nsId = issuerPolicyIdentifier?.split(":")[1];
+  const [selfSigned, setSelfSigned] = useState(false);
+
   useEffect(() => {
-    if (nsId) {
-      setSelectedNamespaceId(nsId);
+    if (value === "self") {
+      setSelfSigned(true);
+    } else if (value) {
+      const nsId = value?.split(":")[1];
+      if (nsId) {
+        setSelectedNamespaceId(nsId);
+      }
     }
-  }, [nsId]);
+  }, [value]);
 
   return (
     <div>
       <Typography.Title level={4}>Issuer</Typography.Title>
+      <Form.Item>
+        <Checkbox
+          checked={selfSigned}
+          onChange={(e) => {
+            if (e.target.checked) {
+              onChange?.("self");
+            } else {
+              onChange?.(undefined);
+            }
+            setSelfSigned(e.target.checked);
+          }}
+        >
+          Self-Signed
+        </Checkbox>
+      </Form.Item>
       <Form.Item label="Select issuer namespace">
         <Select
+          disabled={selfSigned}
           options={options}
           value={selectedNamespaceId}
           onChange={(value) => setSelectedNamespaceId(value)}
         />
       </Form.Item>
-      <Form.Item<CreateCertificatePolicyRequest> label="Select issuer policy" name="issuerPolicyIdentifier" >
-        <Select options={policyOptions} />
+      <Form.Item<CreateCertificatePolicyRequest>
+        label="Select issuer policy"
+        name="issuerPolicyIdentifier"
+      >
+        <Select<string>
+          options={policyOptions}
+          onChange={onChange}
+          disabled={selfSigned}
+        />
       </Form.Item>
     </div>
   );
@@ -212,7 +244,6 @@ export function CertPolicyForm({
   );
 
   const ktyState = useWatch(["keySpec", "kty"], form);
-  const keyExportable = useWatch("keyExportable", form);
 
   const isCA =
     namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
@@ -255,24 +286,20 @@ export function CertPolicyForm({
         <Input />
       </Form.Item>
       {namespaceProvider !== NamespaceProvider.NamespaceProviderRootCA && (
-        <IssuerSelector api={adminApi} namespaceProvider={namespaceProvider}  form={form}/>
-      )}
-      {/* {!isSelfSigning && (
-        <Form.Item<CertPolicyFormState>
-          name="issuerNamespaceId"
-          getValueFromEvent={(v: any) => v}
-        >
-          <CertificateIssuerNamespaceSelect
-            availableNamespaceProfiles={issuerProfiles}
-            profileKind={
-              namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-                ? ResourceKind.ProfileResourceKindRootCA
-                : ResourceKind.ProfileResourceKindIntermediateCA
-            }
-          />
-        </Form.Item>
-      )} */}
+        <>
+          <Divider />
 
+          <FormItem<CreateCertificatePolicyRequest>
+            noStyle
+            name="issuerPolicyIdentifier"
+          >
+            <IssuerSelector
+              api={adminApi}
+              namespaceProvider={namespaceProvider}
+            />
+          </FormItem>
+        </>
+      )}
       <Divider />
       <div>
         <Typography.Title level={4}>Key Specification</Typography.Title>
@@ -309,6 +336,27 @@ export function CertPolicyForm({
           </Form.Item>
         ) : null}
         <Form.Item<CreateCertificatePolicyRequest>
+          name={["keySpec", "keyOps"]}
+          label="Key Operations"
+        >
+          <Checkbox.Group className="flex flex-col gap-4">
+            <Checkbox value={JsonWebKeyOperation.Sign}>Sign</Checkbox>
+            <Checkbox value={JsonWebKeyOperation.Verify}>Verify</Checkbox>
+            <Checkbox value={JsonWebKeyOperation.Encrypt}>Encrypt</Checkbox>
+            <Checkbox value={JsonWebKeyOperation.Decrypt}>Decrypt</Checkbox>
+            <Checkbox value={JsonWebKeyOperation.WrapKey}>Wrap Key</Checkbox>
+            <Checkbox value={JsonWebKeyOperation.UnwrapKey}>
+              Unwrap Key
+            </Checkbox>
+            <Checkbox value={JsonWebKeyOperation.DeriveKey}>
+              Derive Key
+            </Checkbox>
+            <Checkbox value={JsonWebKeyOperation.DeriveBits}>
+              Derive Bits
+            </Checkbox>
+          </Checkbox.Group>
+        </Form.Item>
+        <Form.Item<CreateCertificatePolicyRequest>
           name={"keyExportable"}
           valuePropName="checked"
           getValueFromEvent={(e: CheckboxChangeEvent) => {
@@ -317,6 +365,10 @@ export function CertPolicyForm({
         >
           <Checkbox disabled={isCA}>Private Key Exportable</Checkbox>
         </Form.Item>
+      </div>
+      <Divider />
+      <div>
+        <Typography.Title level={4}>Policy Attributes</Typography.Title>
         <Form.Item<CreateCertificatePolicyRequest>
           name={"allowGenerate"}
           valuePropName="checked"

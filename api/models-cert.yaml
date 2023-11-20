@@ -202,8 +202,6 @@ components:
     EnrollCertificateRequest:
       type: object
       properties:
-        onBehalfOfApp:
-          type: boolean
         publicKey:
           $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
         signature:

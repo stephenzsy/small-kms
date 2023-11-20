@@ -79,6 +79,7 @@ export interface EnrollCertificateOperationRequest {
     namespaceId: string;
     id: string;
     enrollCertificateRequest: EnrollCertificateRequest;
+    onBehalfOfApplication?: boolean;
 }
 
 export interface GenerateCertificateRequest {
@@ -304,6 +305,10 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.onBehalfOfApplication !== undefined) {
+            queryParameters['onBehalfOfApplication'] = requestParameters.onBehalfOfApplication;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

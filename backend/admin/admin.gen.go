@@ -35,6 +35,12 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
 
+// EnrollCertificateParams defines parameters for EnrollCertificate.
+type EnrollCertificateParams struct {
+	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
+	OnBehalfOfApplication *bool `form:"onBehalfOfApplication,omitempty" json:"onBehalfOfApplication,omitempty"`
+}
+
 // ListCertificatesParams defines parameters for ListCertificates.
 type ListCertificatesParams struct {
 	// PolicyId Policy ID
@@ -102,7 +108,7 @@ type ServerInterface interface {
 	PutCertificatePolicy(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// put certificate policy
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/enroll)
-	EnrollCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	EnrollCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params EnrollCertificateParams) error
 	// put certificate policy
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/generate)
 	GenerateCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -437,8 +443,17 @@ func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
 
 	ctx.Set(BearerAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EnrollCertificateParams
+	// ------------- Optional query parameter "onBehalfOfApplication" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "onBehalfOfApplication", ctx.QueryParams(), &params.OnBehalfOfApplication)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter onBehalfOfApplication: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.EnrollCertificate(ctx, namespaceProvider, namespaceId, id)
+	err = w.Handler.EnrollCertificate(ctx, namespaceProvider, namespaceId, id, params)
 	return err
 }
 

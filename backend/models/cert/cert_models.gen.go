@@ -116,9 +116,8 @@ type EnrollCertificateOperation struct {
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
-	OnBehalfOfApp *bool                            `json:"onBehalfOfApp,omitempty"`
-	PublicKey     externalRef1.JsonWebSignatureKey `json:"publicKey"`
-	Signature     externalRef0.Base64URLEncoded    `json:"signature,omitempty"`
+	PublicKey externalRef1.JsonWebSignatureKey `json:"publicKey"`
+	Signature externalRef0.Base64URLEncoded    `json:"signature,omitempty"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
