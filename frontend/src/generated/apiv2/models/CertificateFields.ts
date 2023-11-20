@@ -43,6 +43,12 @@ export interface CertificateFields {
      * @type {string}
      * @memberof CertificateFields
      */
+    identififier: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificateFields
+     */
     issuerIdentifier: string;
     /**
      * 
@@ -93,6 +99,7 @@ export interface CertificateFields {
  */
 export function instanceOfCertificateFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "identififier" in value;
     isInstance = isInstance && "issuerIdentifier" in value;
     isInstance = isInstance && "nbf" in value;
     isInstance = isInstance && "subject" in value;
@@ -110,6 +117,7 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'identififier': json['identififier'],
         'issuerIdentifier': json['issuerIdentifier'],
         'nbf': json['nbf'],
         'jwk': !exists(json, 'jwk') ? undefined : JsonWebSignatureKeyFromJSON(json['jwk']),
@@ -130,6 +138,7 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
     }
     return {
         
+        'identififier': value.identififier,
         'issuerIdentifier': value.issuerIdentifier,
         'nbf': value.nbf,
         'jwk': JsonWebSignatureKeyToJSON(value.jwk),

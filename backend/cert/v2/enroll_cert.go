@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -118,9 +117,9 @@ func enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, n
 		certDoc.publicKey,
 		certDoc.signer)
 	if err != nil {
-		return
+		return err
 	}
-	certDoc.collectSignedCertCommon(signed)
+	certDoc.collectSignedCert(signed)
 	certDoc.Checksum = certDoc.calculateChecksum()
 
 	_, docCreateErr := resdoc.GetDocService(c).Create(c, certDoc, nil)
@@ -134,36 +133,13 @@ func enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, n
 
 type certDocEnrollPending struct {
 	certDocPending
+
 	templateX509Cert *x509.Certificate
 	issuerX509Cert   *x509.Certificate
 	issuerCertChain  []cloudkey.Base64RawURLEncodableBytes
 	publicKey        crypto.PublicKey
 	signer           crypto.Signer
 }
-
-type signaturePendingSigner struct {
-	publicKey crypto.PublicKey
-}
-
-type signaturePendingErr struct {
-	digestToSign []byte
-}
-
-func (e *signaturePendingErr) Error() string {
-	return "signature pending"
-}
-
-// Public implements crypto.Signer.
-func (s *signaturePendingSigner) Public() crypto.PublicKey {
-	return s.publicKey
-}
-
-// Sign implements crypto.Signer.
-func (s *signaturePendingSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	return nil, &signaturePendingErr{digestToSign: digest}
-}
-
-var _ crypto.Signer = (*signaturePendingSigner)(nil)
 
 func (d *certDocEnrollPending) init(
 	c ctx.RequestContext,
@@ -194,38 +170,29 @@ func (d *certDocEnrollPending) init(
 	pubKey := publicKey.PublicKey()
 	d.publicKey = pubKey
 
-	azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
 	d.templateX509Cert = d.generateCertificateTemplate()
-	if pDoc.IssuerPolicy.IsEmpty() {
-		d.issuerX509Cert = d.templateX509Cert
 
-		d.signer = &signaturePendingSigner{
-			publicKey: pubKey,
-		}
-
-		d.templateX509Cert.SignatureAlgorithm = d.JsonWebKey.Alg.X509SignatureAlgorithm()
-	} else {
-		issuerPolicy, err := getCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
-		if err != nil {
-			return err
-		}
-		signerCert, err := issuerPolicy.getIssuerCert(c)
-		if err != nil {
-			return err
-		} else if signerCert.Status != certmodels.CertificateStatusIssued {
-			return fmt.Errorf("issuer certificate is not issued")
-		} else if time.Until(signerCert.NotAfter.Time) < 24*time.Hour {
-			return fmt.Errorf("issuer certificate is expiring soon or has expired")
-		}
-		d.issuerCertChain = signerCert.JsonWebKey.CertificateChain
-		d.issuerX509Cert, err = x509.ParseCertificate(signerCert.JsonWebKey.CertificateChain[0])
-
-		if err != nil {
-			return err
-		}
-		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg)
-		d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
+	issuerPolicy, err := getCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
+	if err != nil {
+		return err
 	}
+	signerCert, err := issuerPolicy.getIssuerCert(c)
+	if err != nil {
+		return err
+	} else if signerCert.Status != certmodels.CertificateStatusIssued {
+		return fmt.Errorf("issuer certificate is not issued")
+	} else if time.Until(signerCert.NotAfter.Time) < 24*time.Hour {
+		return fmt.Errorf("issuer certificate is expiring soon or has expired")
+	}
+	d.issuerCertChain = signerCert.JsonWebKey.CertificateChain
+	d.issuerX509Cert, err = x509.ParseCertificate(signerCert.JsonWebKey.CertificateChain[0])
+
+	if err != nil {
+		return err
+	}
+	azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
+	d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg)
+	d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
 
 	return nil
 }

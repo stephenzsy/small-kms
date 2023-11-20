@@ -41,6 +41,8 @@ components:
     CertificateFields:
       type: object
       properties:
+        identififier:
+          type: string
         issuerIdentifier:
           type: string
         nbf:
@@ -68,6 +70,7 @@ components:
           x-go-type-skip-optional-pointer: true
           x-go-name: KeyVaultSecretID
       required:
+        - identififier
         - issuerIdentifier
         - nbf
         - subject
@@ -125,12 +128,6 @@ components:
         - expiryTime
         - issuerPolicyIdentifier
         - subject
-    CertificatePendingOperationFields:
-      type: object
-      properties:
-        digestToSign:
-          type: string
-          format: byte
     CreateCertificatePolicyRequest:
       type: object
       properties:
@@ -204,20 +201,8 @@ components:
       properties:
         publicKey:
           $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
-        signature:
-          $ref: "models-shared.yaml#/components/schemas/Base64URLEncoded"
       required:
         - publicKey
-    EnrollCertificateOperation:
-      type: object
-      properties:
-        certificateIdentifier:
-          type: string
-        payloadToSign:
-          $ref: "models-shared.yaml#/components/schemas/Base64URLEncoded"
-      required:
-        - certificateIdentifier
-        - textToSign
   responses:
     CertificateResponse:
       description: Certificate response

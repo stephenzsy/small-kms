@@ -52,13 +52,11 @@ func (d *CertPolicyDoc) init(
 	}
 
 	nsProvider := d.PartitionKey.NamespaceProvider
-	requireAlg := false // including CA or Self
 	keySignVerifyOnly := false
 
 	switch nsProvider {
 	case models.NamespaceProviderRootCA:
 		// TODO: verify key policy with the same ID exists
-		requireAlg = true
 		keySignVerifyOnly = true
 
 		d.ExpiryTime = caldur.CalendarDuration{
@@ -72,7 +70,6 @@ func (d *CertPolicyDoc) init(
 		d.AllowGenerate = true
 		d.AllowEnroll = false
 	case models.NamespaceProviderIntermediateCA:
-		requireAlg = true
 		keySignVerifyOnly = true
 
 		d.IssuerPolicy = resdoc.DocIdentifier{
@@ -82,9 +79,6 @@ func (d *CertPolicyDoc) init(
 				ResourceProvider:  models.ResourceProviderCertPolicy,
 			},
 			ID: "default",
-		}
-		if p.IssuerPolicyIdentifier == "self" {
-			return fmt.Errorf("%w: issuer policy cannot be self", base.ErrResponseStatusBadRequest)
 		}
 		if p.IssuerPolicyIdentifier != "" {
 			parsed, err := resdoc.ParseIdentifier(p.IssuerPolicyIdentifier)
@@ -119,10 +113,7 @@ func (d *CertPolicyDoc) init(
 			},
 			ID: "default",
 		}
-		if p.IssuerPolicyIdentifier == "self" {
-			d.IssuerPolicy = resdoc.DocIdentifier{}
-			requireAlg = true
-		} else if p.IssuerPolicyIdentifier != "" {
+		if p.IssuerPolicyIdentifier != "" {
 			parsed, err := resdoc.ParseIdentifier(p.IssuerPolicyIdentifier)
 			if err != nil {
 				return fmt.Errorf("%w: invalid issuer policy identifier: %s", base.ErrResponseStatusBadRequest, p.IssuerPolicyIdentifier)
@@ -236,31 +227,29 @@ func (d *CertPolicyDoc) init(
 		}
 	}
 
-	if requireAlg {
-		switch d.KeySpec.Kty {
-		case cloudkey.KeyTypeRSA:
-			d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmRS256)
-			if (*d.KeySpec.KeySize) >= 3072 {
-				d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmRS384)
-			}
-			switch pAlg {
-			case cloudkey.SignatureAlgorithmRS256,
-				cloudkey.SignatureAlgorithmRS384,
-				cloudkey.SignatureAlgorithmRS512,
-				cloudkey.SignatureAlgorithmPS256,
-				cloudkey.SignatureAlgorithmPS384,
-				cloudkey.SignatureAlgorithmPS512:
-				d.KeySpec.Alg = string(pAlg)
-			}
-		case cloudkey.KeyTypeEC:
-			switch d.KeySpec.Crv {
-			case cloudkey.CurveNameP256:
-				d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES256)
-			case cloudkey.CurveNameP384:
-				d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES384)
-			case cloudkey.CurveNameP521:
-				d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES512)
-			}
+	switch d.KeySpec.Kty {
+	case cloudkey.KeyTypeRSA:
+		d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmRS256)
+		if (*d.KeySpec.KeySize) >= 3072 {
+			d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmRS384)
+		}
+		switch pAlg {
+		case cloudkey.SignatureAlgorithmRS256,
+			cloudkey.SignatureAlgorithmRS384,
+			cloudkey.SignatureAlgorithmRS512,
+			cloudkey.SignatureAlgorithmPS256,
+			cloudkey.SignatureAlgorithmPS384,
+			cloudkey.SignatureAlgorithmPS512:
+			d.KeySpec.Alg = string(pAlg)
+		}
+	case cloudkey.KeyTypeEC:
+		switch d.KeySpec.Crv {
+		case cloudkey.CurveNameP256:
+			d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES256)
+		case cloudkey.CurveNameP384:
+			d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES384)
+		case cloudkey.CurveNameP521:
+			d.KeySpec.Alg = string(cloudkey.SignatureAlgorithmES512)
 		}
 	}
 

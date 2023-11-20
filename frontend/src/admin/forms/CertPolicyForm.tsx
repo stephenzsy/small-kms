@@ -141,12 +141,8 @@ function IssuerSelector({
     });
   }, [policies, issuerNamespaceProvider, selectedNamespaceId]);
 
-  const [selfSigned, setSelfSigned] = useState(false);
-
   useEffect(() => {
-    if (value === "self") {
-      setSelfSigned(true);
-    } else if (value) {
+    if (value) {
       const nsId = value?.split(":")[1];
       if (nsId) {
         setSelectedNamespaceId(nsId);
@@ -157,24 +153,9 @@ function IssuerSelector({
   return (
     <div>
       <Typography.Title level={4}>Issuer</Typography.Title>
-      <Form.Item>
-        <Checkbox
-          checked={selfSigned}
-          onChange={(e) => {
-            if (e.target.checked) {
-              onChange?.("self");
-            } else {
-              onChange?.(undefined);
-            }
-            setSelfSigned(e.target.checked);
-          }}
-        >
-          Self-Signed
-        </Checkbox>
-      </Form.Item>
+
       <Form.Item label="Select issuer namespace">
         <Select
-          disabled={selfSigned}
           options={options}
           value={selectedNamespaceId}
           onChange={(value) => setSelectedNamespaceId(value)}
@@ -184,11 +165,7 @@ function IssuerSelector({
         label="Select issuer policy"
         name="issuerPolicyIdentifier"
       >
-        <Select<string>
-          options={policyOptions}
-          onChange={onChange}
-          disabled={selfSigned}
-        />
+        <Select<string> options={policyOptions} onChange={onChange} />
       </Form.Item>
     </div>
   );
@@ -207,25 +184,6 @@ export function CertPolicyForm({
   const { namespaceId, namespaceProvider } = useNamespace();
 
   const adminApi = useAuthedClientV2(AdminApi);
-
-  // const { data: issuerProfiles } = useRequest(
-  //   async (): Promise<ProfileRef[] | null> => {
-  //     if (namespaceProvider === NamespaceProvider.NamespaceKindRootCA) {
-  //       return null;
-  //     }
-  //     if (namespaceKind === NamespaceKind.NamespaceKindIntermediateCA) {
-  //       return await adminApi.listProfiles({
-  //         profileResourceKind: ResourceKind.ProfileResourceKindRootCA,
-  //       });
-  //     }
-  //     return await adminApi.listProfiles({
-  //       profileResourceKind: ResourceKind.ProfileResourceKindIntermediateCA,
-  //     });
-  //   },
-  //   {
-  //     refreshDeps: [namespaceKind],
-  //   }
-  // );
 
   const { run, loading } = useRequest(
     async (id: string, params: CreateCertificatePolicyRequest) => {
@@ -248,13 +206,7 @@ export function CertPolicyForm({
   const isCA =
     namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
     namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA;
-  //const _selfSigning = useWatch("selfSigning", form);
-  //const isSelfSigning = namespaceKind === NamespaceKind.NamespaceKindRootCA;
-  // ? true
-  // : namespaceKind === NamespaceKind.NamespaceKindIntermediateCA
-  // ? false
-  // : _selfSigning;
-  // */
+
   const onFinish = useMemoizedFn((values: CreateCertificatePolicyRequest) => {
     run(policyId, values);
   });
@@ -435,35 +387,6 @@ export function CertPolicyForm({
       >
         <Input placeholder="P1Y" />
       </Form.Item>
-
-      {/* <div className="flex items-start gap-6">
-        <Form.Item<CertPolicyFormState>
-          name="keyExportable"
-          valuePropName="checked"
-          getValueFromEvent={(e: CheckboxChangeEvent) => {
-            if (e.target.indeterminate) {
-              return undefined;
-            }
-            return e.target.checked;
-          }}
-        >
-          <Checkbox indeterminate={keyExportable === undefined}>
-            Key exportable:{" "}
-            {keyExportable === undefined ? "default" : keyExportable.toString()}
-          </Checkbox>
-        </Form.Item>
-        {keyExportable !== undefined && (
-          <Button
-            type="link"
-            onClick={() => {
-              form.setFieldValue("keyExportable", undefined);
-            }}
-          >
-            Reset to default
-          </Button>
-        )}
-      </div> */}
-
       <Form.Item>
         <Button htmlType="submit" type="primary" loading={loading}>
           Submit

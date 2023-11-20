@@ -109,6 +109,12 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
+    identififier: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Certificate
+     */
     issuerIdentifier: string;
     /**
      * 
@@ -165,6 +171,7 @@ export function instanceOfCertificate(value: object): boolean {
     isInstance = isInstance && "thumbprint" in value;
     isInstance = isInstance && "exp" in value;
     isInstance = isInstance && "policyIdentifier" in value;
+    isInstance = isInstance && "identififier" in value;
     isInstance = isInstance && "issuerIdentifier" in value;
     isInstance = isInstance && "nbf" in value;
     isInstance = isInstance && "subject" in value;
@@ -192,6 +199,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'iat': !exists(json, 'iat') ? undefined : json['iat'],
         'exp': json['exp'],
         'policyIdentifier': json['policyIdentifier'],
+        'identififier': json['identififier'],
         'issuerIdentifier': json['issuerIdentifier'],
         'nbf': json['nbf'],
         'jwk': !exists(json, 'jwk') ? undefined : JsonWebSignatureKeyFromJSON(json['jwk']),
@@ -222,6 +230,7 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'iat': value.iat,
         'exp': value.exp,
         'policyIdentifier': value.policyIdentifier,
+        'identififier': value.identififier,
         'issuerIdentifier': value.issuerIdentifier,
         'nbf': value.nbf,
         'jwk': JsonWebSignatureKeyToJSON(value.jwk),

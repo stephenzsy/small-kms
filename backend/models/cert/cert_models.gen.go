@@ -32,6 +32,7 @@ type CertificateFields struct {
 	// Cid Key Vault certificate ID
 	KeyVaultCertificateID string                            `json:"cid,omitempty"`
 	Flags                 []CertificateFlag                 `json:"flags,omitempty"`
+	Identififier          string                            `json:"identififier"`
 	IssuerIdentifier      string                            `json:"issuerIdentifier"`
 	Jwk                   *externalRef1.JsonWebSignatureKey `json:"jwk,omitempty"`
 	Nbf                   externalRef0.NumericDate          `json:"nbf"`
@@ -44,11 +45,6 @@ type CertificateFields struct {
 
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
-
-// CertificatePendingOperationFields defines model for CertificatePendingOperationFields.
-type CertificatePendingOperationFields struct {
-	DigestToSign *[]byte `json:"digestToSign,omitempty"`
-}
 
 // CertificatePolicy defines model for CertificatePolicy.
 type CertificatePolicy = certificatePolicyComposed
@@ -108,16 +104,9 @@ type CreateCertificatePolicyRequest struct {
 	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
-// EnrollCertificateOperation defines model for EnrollCertificateOperation.
-type EnrollCertificateOperation struct {
-	CertificateIdentifier string                        `json:"certificateIdentifier"`
-	PayloadToSign         externalRef0.Base64URLEncoded `json:"payloadToSign,omitempty"`
-}
-
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
 	PublicKey externalRef1.JsonWebSignatureKey `json:"publicKey"`
-	Signature externalRef0.Base64URLEncoded    `json:"signature,omitempty"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.

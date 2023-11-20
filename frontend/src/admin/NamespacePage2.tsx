@@ -139,6 +139,19 @@ export default function NamespacePage() {
     }
   );
 
+  const { data: userCerts, loading: userCertsLoading } = useRequest(
+    () => {
+      return adminApi.listCertificates({
+        namespaceId: namespaceId,
+        namespaceProvider: namespaceProvider,
+      });
+    },
+    {
+      refreshDeps: [namespaceId, namespaceProvider],
+      ready: namespaceProvider === NamespaceProvider.NamespaceProviderUser,
+    }
+  );
+
   const renderActions = useMemoizedFn((ref: Ref) => {
     return (
       <div className="flex flex-row gap-2">
@@ -146,7 +159,13 @@ export default function NamespacePage() {
       </div>
     );
   });
-
+  const renderUserCertActions = useMemoizedFn((ref: Ref) => {
+    return (
+      <div className="flex flex-row gap-2">
+        <Link to={`./certificates/${ref.id}`}>View</Link>
+      </div>
+    );
+  });
   return (
     <>
       <Typography.Title>
@@ -183,6 +202,15 @@ export default function NamespacePage() {
             renderActions={renderActions}
             loading={certPoliciesLoading}
             dataSource={certPolicies}
+          />
+        </Card>
+      )}
+      {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
+        <Card title="Certificates">
+          <ResourceRefsTable
+            renderActions={renderUserCertActions}
+            loading={userCertsLoading}
+            dataSource={userCerts}
           />
         </Card>
       )}

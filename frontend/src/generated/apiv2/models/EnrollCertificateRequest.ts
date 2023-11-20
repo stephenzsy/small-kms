@@ -32,12 +32,6 @@ export interface EnrollCertificateRequest {
      * @memberof EnrollCertificateRequest
      */
     publicKey: JsonWebSignatureKey;
-    /**
-     * 
-     * @type {string}
-     * @memberof EnrollCertificateRequest
-     */
-    signature?: string;
 }
 
 /**
@@ -61,7 +55,6 @@ export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'publicKey': JsonWebSignatureKeyFromJSON(json['publicKey']),
-        'signature': !exists(json, 'signature') ? undefined : json['signature'],
     };
 }
 
@@ -75,7 +68,6 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     return {
         
         'publicKey': JsonWebSignatureKeyToJSON(value.publicKey),
-        'signature': value.signature,
     };
 }
 

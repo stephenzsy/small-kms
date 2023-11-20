@@ -149,7 +149,7 @@ export default function CertificatePage() {
           </div>
           <div>
             <dt>Status</dt>
-            <dd>{cert?.status}</dd>
+            <dd className="capitalize">{cert?.status}</dd>
           </div>
           <div>
             <dt>Serial Number</dt>
@@ -161,12 +161,14 @@ export default function CertificatePage() {
             <dt>Subject</dt>
             <dd>{cert?.subject}</dd>
           </div>
-          <div>
-            <dt>Issued</dt>
-            <dd>
-              <NumericDateTime value={cert?.iat} />
-            </dd>
-          </div>
+          {cert?.iat && (
+            <div>
+              <dt>Issued</dt>
+              <dd>
+                <NumericDateTime value={cert?.iat} />
+              </dd>
+            </div>
+          )}
           <div>
             <dt>Not Before</dt>
             <dd>
@@ -179,10 +181,12 @@ export default function CertificatePage() {
               <NumericDateTime value={cert?.exp} />
             </dd>
           </div>
-          <div>
-            <dt>Thumbprint SHA-1</dt>
-            <dd className="font-mono uppercase">{cert?.thumbprint}</dd>
-          </div>
+          {cert?.thumbprint && (
+            <div>
+              <dt>Thumbprint SHA-1</dt>
+              <dd className="font-mono uppercase">{cert?.thumbprint}</dd>
+            </div>
+          )}
           {cert?.subjectAlternativeNames?.dnsNames && (
             <div>
               <dt>DNS Names</dt>

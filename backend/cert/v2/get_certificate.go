@@ -38,11 +38,19 @@ func (*CertServer) GetCertificate(ec echo.Context, namespaceProvider models.Name
 
 func getCertificateInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertDoc, error) {
 	certDoc := &CertDoc{}
-	if err := resdoc.GetDocService(c).Read(c, resdoc.NewDocIdentifier(namespaceProvider, namespaceId, models.ResourceProviderCert, id), certDoc, nil); err != nil {
-		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return nil, fmt.Errorf("%w: certificate ID: %s", base.ErrResponseStatusNotFound, id)
-		}
+	err := readCertDocInternal(c, namespaceProvider, namespaceId, id, certDoc)
+	if err != nil {
 		return nil, err
 	}
 	return certDoc, nil
+}
+
+func readCertDocInternal[T resdoc.ResourceDocument](c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string, certDoc T) error {
+	if err := resdoc.GetDocService(c).Read(c, resdoc.NewDocIdentifier(namespaceProvider, namespaceId, models.ResourceProviderCert, id), certDoc, nil); err != nil {
+		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
+			return fmt.Errorf("%w: certificate ID: %s", base.ErrResponseStatusNotFound, id)
+		}
+		return err
+	}
+	return nil
 }

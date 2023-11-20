@@ -57,7 +57,6 @@ type CertDoc struct {
 	KeyVaultStore    *CertDocKeyVaultStore               `json:"keyVaultStore,omitempty"`
 	Issuer           resdoc.DocIdentifier                `json:"issuer"`
 	Checksum         []byte                              `json:"checksum"` // sha256 of the cloud certificate and critical fields
-
 }
 
 type certDocPending struct {
@@ -285,7 +284,7 @@ func (d *certDocGeneratePending) getAzCreateCertParams() (params azcertificates.
 	return params, nil
 }
 
-func (d *certDocPending) collectSignedCertCommon(cert []byte) {
+func (d *certDocPending) collectSignedCert(cert []byte) {
 	d.JsonWebKey.CertificateChain = append([]cloudkey.Base64RawURLEncodableBytes(nil), cert)
 	d.JsonWebKey.CertificateChain = append(d.JsonWebKey.CertificateChain, d.issuerCertChain...)
 	sha1d := sha1.New()
@@ -299,7 +298,7 @@ func (d *certDocPending) collectSignedCertCommon(cert []byte) {
 }
 
 func (d *certDocGeneratePending) collectSignedCert(c context.Context, cert []byte) (err error) {
-	d.collectSignedCertCommon(cert)
+	d.certDocPending.collectSignedCert(cert)
 	if d.createCertResp != nil {
 		certClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
 		resp, err := certClient.MergeCertificate(c, d.createCertResp.ID.Name(), azcertificates.MergeCertificateParameters{
@@ -359,13 +358,16 @@ func (d *CertDoc) ToRef() (m certmodels.CertificateRef) {
 	m.Thumbprint = d.JsonWebKey.ThumbprintSHA1.HexString()
 	m.Status = d.Status
 	m.PolicyIdentifier = d.PolicyIdentifier.String()
-	m.Iat = &d.IssuedAt
+	if !d.IssuedAt.Time.IsZero() {
+		m.Iat = &d.IssuedAt
+	}
 	m.Exp = d.NotAfter
 	return m
 }
 
 func (d *CertDoc) ToModel(includeJwk bool) (m certmodels.Certificate) {
 	m.CertificateRef = d.ToRef()
+	m.Identififier = d.Identifier().String()
 	if includeJwk {
 		m.Jwk = &keymodels.JsonWebSignatureKey{
 			JsonWebKeyBase: cloudkey.JsonWebKeyBase{

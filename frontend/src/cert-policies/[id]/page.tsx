@@ -89,7 +89,7 @@ function useCertificateTableColumns(
       dataIndex: "iat",
       key: "iat",
       render: (tsNum?: number) => {
-        if (tsNum) {
+        if (tsNum && tsNum > 0) {
           const ts = new Date(tsNum * 1000);
           return (
             <time dateTime={ts.toISOString()}>
