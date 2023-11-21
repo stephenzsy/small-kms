@@ -118,7 +118,7 @@ export default function AppLayout(props: PropsWithChildren<{}>) {
 
   return (
     <ConfigProvider theme={theme}>
-      <Layout className="min-h-full">
+      <Layout className="min-h-full pb-[100px]">
         <Layout.Header className="flex items-center gap-6">
           <NavLink to="/" className="text-2xl text-white">
             CryptoCat

@@ -341,6 +341,12 @@ paths:
         - admin
       operationId: PutKeyPolicy
       summary: put key policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-key.yaml#/components/schemas/CreateKeyPolicyRequest"
       responses:
         200:
           $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"

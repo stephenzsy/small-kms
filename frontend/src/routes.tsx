@@ -19,6 +19,7 @@ const AgentsPage = React.lazy(() => import("./agents/page"));
 const SystemAppsPage = React.lazy(() => import("./system/page"));
 const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
+const KeyPolicyPage2 = React.lazy(() => import("./key-policies/[id]/page"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
 const SecretPolicyPage = React.lazy(() => import("./admin/SecretPolicyPage"));
 const DiagnosticsPage = React.lazy(() => import("./diagnostics/Page"));
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
           { index: true, element: <NamespacePage2 /> },
           { path: "cert-policies/:id", element: <CertPolicyPage2 /> },
           { path: "certificates/:id", element: <CertificatePage /> },
+          { path: "key-policies/:id", element: <KeyPolicyPage2 /> },
         ],
       },
       {

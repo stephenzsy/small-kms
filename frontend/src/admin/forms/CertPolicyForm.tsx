@@ -1,4 +1,5 @@
-import { useBoolean, useMemoizedFn, useRequest } from "ahooks";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
   Checkbox,
@@ -9,23 +10,22 @@ import {
   Select,
   Typography,
 } from "antd";
-import { FormInstance, useForm, useWatch } from "antd/es/form/Form";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
+import { useForm, useWatch } from "antd/es/form/Form";
+import FormItem from "antd/es/form/FormItem";
+import { DefaultOptionType } from "antd/es/select";
 import { useEffect, useMemo, useState } from "react";
 import { JsonWebKeyCurveName, JsonWebKeyType } from "../../generated";
 import {
   AdminApi,
   CertificatePolicy,
-  CertificateSubject,
   CreateCertificatePolicyRequest,
   JsonWebKeyOperation,
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { CheckboxChangeEvent } from "antd/es/checkbox";
-import { DefaultOptionType } from "antd/es/select";
-import FormItem from "antd/es/form/FormItem";
+import { KeyExportableFormItem, KeySpecFormItems } from "./PolicyFormItems";
 
 function SANFormList({
   name,
@@ -255,68 +255,16 @@ export function CertPolicyForm({
       <Divider />
       <div>
         <Typography.Title level={4}>Key Specification</Typography.Title>
-        <Form.Item<CreateCertificatePolicyRequest>
-          name={["keySpec", "kty"]}
-          label="Key Type"
-        >
-          <Radio.Group>
-            <Radio value={JsonWebKeyType.Rsa}>RSA</Radio>
-            <Radio value={JsonWebKeyType.Ec}>EC</Radio>
-          </Radio.Group>
-        </Form.Item>
-        {ktyState === JsonWebKeyType.Rsa ? (
-          <Form.Item<CreateCertificatePolicyRequest>
-            name={["keySpec", "keySize"]}
-            label="Key Size"
-          >
-            <Radio.Group className="flex flex-col gap-4">
-              <Radio value={2048}>2048</Radio>
-              <Radio value={3072}>3072</Radio>
-              <Radio value={4096}>4096</Radio>
-            </Radio.Group>
-          </Form.Item>
-        ) : ktyState === JsonWebKeyType.Ec ? (
-          <Form.Item<CreateCertificatePolicyRequest>
-            name={["keySpec", "crv"]}
-            label="Elliptic Curve Name"
-          >
-            <Radio.Group className="flex flex-col gap-4">
-              <Radio value={JsonWebKeyCurveName.CurveNameP256}>P-256</Radio>
-              <Radio value={JsonWebKeyCurveName.CurveNameP384}>P-384</Radio>
-              <Radio value={JsonWebKeyCurveName.CurveNameP521}>P-521</Radio>
-            </Radio.Group>
-          </Form.Item>
-        ) : null}
-        <Form.Item<CreateCertificatePolicyRequest>
-          name={["keySpec", "keyOps"]}
-          label="Key Operations"
-        >
-          <Checkbox.Group className="flex flex-col gap-4">
-            <Checkbox value={JsonWebKeyOperation.Sign}>Sign</Checkbox>
-            <Checkbox value={JsonWebKeyOperation.Verify}>Verify</Checkbox>
-            <Checkbox value={JsonWebKeyOperation.Encrypt}>Encrypt</Checkbox>
-            <Checkbox value={JsonWebKeyOperation.Decrypt}>Decrypt</Checkbox>
-            <Checkbox value={JsonWebKeyOperation.WrapKey}>Wrap Key</Checkbox>
-            <Checkbox value={JsonWebKeyOperation.UnwrapKey}>
-              Unwrap Key
-            </Checkbox>
-            <Checkbox value={JsonWebKeyOperation.DeriveKey}>
-              Derive Key
-            </Checkbox>
-            <Checkbox value={JsonWebKeyOperation.DeriveBits}>
-              Derive Bits
-            </Checkbox>
-          </Checkbox.Group>
-        </Form.Item>
-        <Form.Item<CreateCertificatePolicyRequest>
+        <KeySpecFormItems<CreateCertificatePolicyRequest>
+          formInstance={form}
+          ktyName={["keySpec", "kty"]}
+          keySizeName={["keySpec", "keySize"]}
+          crvName={["keySpec", "crv"]}
+          keyOpsName={["keySpec", "keyOps"]}
+        />
+        <KeyExportableFormItem<CreateCertificatePolicyRequest>
           name={"keyExportable"}
-          valuePropName="checked"
-          getValueFromEvent={(e: CheckboxChangeEvent) => {
-            return e.target.checked;
-          }}
-        >
-          <Checkbox disabled={isCA}>Private Key Exportable</Checkbox>
-        </Form.Item>
+        />
       </div>
       <Divider />
       <div>

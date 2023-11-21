@@ -91,6 +91,7 @@ func (doc *KeyPolicyDoc) init(c context.Context, req *keymodels.CreateKeyPolicyR
 
 		case cloudkey.KeyTypeEC:
 			doc.KeySpec.Kty = cloudkey.KeyTypeEC
+			doc.KeySpec.KeySize = nil
 			doc.KeySpec.Crv = cloudkey.CurveNameP384 // default to P384 as cost in KeyVault is the same as 256
 
 			switch req.KeySpec.Crv {

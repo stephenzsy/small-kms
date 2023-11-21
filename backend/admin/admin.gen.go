@@ -12,6 +12,7 @@ import (
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
+	externalRef3 "github.com/stephenzsy/small-kms/backend/models/key"
 )
 
 const (
@@ -76,6 +77,9 @@ type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields
 
 // AddMsEntraKeyCredentialJSONRequestBody defines body for AddMsEntraKeyCredential for application/json ContentType.
 type AddMsEntraKeyCredentialJSONRequestBody = externalRef2.AddMsEntraKeyCredentialRequest
+
+// PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
+type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {

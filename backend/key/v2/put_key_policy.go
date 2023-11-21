@@ -34,11 +34,17 @@ func (*KeyAdminServer) PutKeyPolicy(ec echo.Context, nsProvider models.Namespace
 				NamespaceID:       nsID,
 				ResourceProvider:  models.ResourceProviderKeyPolicy,
 			},
+			ID: ID,
 		},
 	}
 	if err := doc.init(c, req); err != nil {
 		return err
 	}
 
-	panic("unimplemented")
+	resp, err := resdoc.GetDocService(c).Upsert(c, doc, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(resp.RawResponse.StatusCode, doc.ToModel())
 }

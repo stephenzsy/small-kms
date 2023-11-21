@@ -1,6 +1,5 @@
 import { useRequest } from "ahooks";
-import { Button, Form, Input, Table, TableColumnType } from "antd";
-import Card from "antd/es/card";
+import { Button, Card, Form, Input, Table, TableColumnType } from "antd";
 import { useForm } from "antd/es/form/Form";
 import Title from "antd/es/typography/Title";
 import { useMemo } from "react";

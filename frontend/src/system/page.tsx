@@ -22,7 +22,7 @@ function SystemAppsEntry({ systemAppName }: { systemAppName: string }) {
         </div>
       </dl>
       <div className="flex items-center gap-4">
-        <Link to={`/system/${systemAppName}`}>View</Link>
+        <Link to={`/service-principal/${systemApp?.servicePrincipalId}`}>View</Link>
         <Button
           type="link"
           onClick={() => {

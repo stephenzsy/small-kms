@@ -15,6 +15,7 @@ models/CertificateStatus.ts
 models/CertificateSubject.ts
 models/CreateAgentRequest.ts
 models/CreateCertificatePolicyRequest.ts
+models/CreateKeyPolicyRequest.ts
 models/EnrollCertificateRequest.ts
 models/ErrorResult.ts
 models/JsonWebKeyCurveName.ts

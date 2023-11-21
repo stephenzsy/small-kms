@@ -23,6 +23,7 @@ import type {
   CertificateRef,
   CreateAgentRequest,
   CreateCertificatePolicyRequest,
+  CreateKeyPolicyRequest,
   EnrollCertificateRequest,
   ErrorResult,
   KeyPolicy,
@@ -49,6 +50,8 @@ import {
     CreateAgentRequestToJSON,
     CreateCertificatePolicyRequestFromJSON,
     CreateCertificatePolicyRequestToJSON,
+    CreateKeyPolicyRequestFromJSON,
+    CreateKeyPolicyRequestToJSON,
     EnrollCertificateRequestFromJSON,
     EnrollCertificateRequestToJSON,
     ErrorResultFromJSON,
@@ -190,6 +193,7 @@ export interface PutKeyPolicyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
+    createKeyPolicyRequest: CreateKeyPolicyRequest;
 }
 
 export interface SyncMemberOfRequest {
@@ -1179,9 +1183,15 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling putKeyPolicy.');
         }
 
+        if (requestParameters.createKeyPolicyRequest === null || requestParameters.createKeyPolicyRequest === undefined) {
+            throw new runtime.RequiredError('createKeyPolicyRequest','Required parameter requestParameters.createKeyPolicyRequest was null or undefined when calling putKeyPolicy.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -1196,6 +1206,7 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
+            body: CreateKeyPolicyRequestToJSON(requestParameters.createKeyPolicyRequest),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => KeyPolicyFromJSON(jsonValue));

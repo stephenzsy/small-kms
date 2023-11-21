@@ -79,8 +79,6 @@ components:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
         - $ref: "#/components/schemas/CertificatePolicyFields"
         - x-go-type: certificatePolicyComposed
-      required:
-        - expiryTime
     CertificateStatus:
       type: string
       enum:

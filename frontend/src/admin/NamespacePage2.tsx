@@ -15,6 +15,7 @@ import { useNamespace } from "./contexts/NamespaceContextRouteProvider";
 import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 import { DefaultOptionType } from "antd/es/select";
 import { useMemo } from "react";
+import { NamespacePoliciesTableCard } from "./tables/NamespacePoliciesTableCard";
 
 function GroupMembershipSyncForm({ userId }: { userId: string }) {
   const [form] = useForm<{ groupId: string }>();
@@ -126,19 +127,6 @@ export default function NamespacePage() {
     }
   );
 
-  const { data: certPolicies, loading: certPoliciesLoading } = useRequest(
-    () => {
-      return adminApi.listCertificatePolicies({
-        namespaceId: namespaceId,
-        namespaceProvider: namespaceProvider,
-      });
-    },
-    {
-      refreshDeps: [namespaceId, namespaceProvider],
-      ready: showCertPolicies,
-    }
-  );
-
   const { data: userCerts, loading: userCertsLoading } = useRequest(
     () => {
       return adminApi.listCertificates({
@@ -152,13 +140,6 @@ export default function NamespacePage() {
     }
   );
 
-  const renderActions = useMemoizedFn((ref: Ref) => {
-    return (
-      <div className="flex flex-row gap-2">
-        <Link to={`./cert-policies/${ref.id}`}>View</Link>
-      </div>
-    );
-  });
   const renderUserCertActions = useMemoizedFn((ref: Ref) => {
     return (
       <div className="flex flex-row gap-2">
@@ -191,19 +172,10 @@ export default function NamespacePage() {
           </dl>
         </Card>
       )}
-      {showCertPolicies && (
-        <Card
-          title="Certificate Policies"
-          extra={
-            <Link to="./cert-policy/_create">Create certificate policy</Link>
-          }
-        >
-          <ResourceRefsTable
-            renderActions={renderActions}
-            loading={certPoliciesLoading}
-            dataSource={certPolicies}
-          />
-        </Card>
+      {showCertPolicies && <NamespacePoliciesTableCard type="cert" />}
+      {namespaceProvider ===
+        NamespaceProvider.NamespaceProviderServicePrincipal && (
+        <NamespacePoliciesTableCard type="key" />
       )}
       {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
         <Card title="Certificates">
