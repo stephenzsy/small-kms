@@ -32,6 +32,7 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetAgent
       summary: Get agent
       responses:
@@ -353,6 +354,64 @@ paths:
         201:
           $ref: "models-key.yaml#/components/responses/KeyPolicyResponse"
         400:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/key-policies/{id}/generate:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      tags:
+        - admin
+      operationId: GenerateKey
+      summary: put certificate policy
+      responses:
+        201:
+          $ref: "models-key.yaml#/components/responses/KeyResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        403:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/keys:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListKeys
+      summary: List keys
+      parameters:
+        - name: policyId
+          in: query
+          description: Policy ID
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: "models-key.yaml#/components/responses/KeyRefsResponse"
+  /v2/{namespaceProvider}/{namespaceId}/keys/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetKey
+      summary: Get key
+      parameters:
+        - in: query
+          name: includeJwk
+          description: Include JWK
+          required: false
+          schema:
+            type: boolean
+      responses:
+        200:
+          $ref: "models-key.yaml#/components/responses/KeyResponse"
+        404:
           $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/memberOf/{id}:
     parameters:

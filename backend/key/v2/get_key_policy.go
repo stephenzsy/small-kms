@@ -20,19 +20,27 @@ func (*KeyAdminServer) GetKeyPolicy(ec echo.Context, namespaceProvider models.Na
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc := &KeyPolicyDoc{}
-	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
-		PartitionKey: resdoc.PartitionKey{
-			NamespaceProvider: namespaceProvider,
-			NamespaceID:       namespaceId,
-			ResourceProvider:  models.ResourceProviderKeyPolicy,
-		},
-		ID: id,
-	}, doc, nil); err != nil {
-		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: key policy not found: %s", base.ErrResponseStatusNotFound, id)
-		}
+	doc, err := getKeyPolicyInternal(c, namespaceProvider, namespaceId, id)
+	if err != nil {
 		return err
 	}
 	return c.JSON(200, doc.ToModel())
+}
+
+func getKeyPolicyInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policyID string) (*KeyPolicyDoc, error) {
+	doc := &KeyPolicyDoc{}
+	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
+		PartitionKey: resdoc.PartitionKey{
+			NamespaceProvider: nsProvider,
+			NamespaceID:       nsID,
+			ResourceProvider:  models.ResourceProviderKeyPolicy,
+		},
+		ID: policyID,
+	}, doc, nil); err != nil {
+		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
+			return nil, fmt.Errorf("%w: key policy not found: %s", base.ErrResponseStatusNotFound, policyID)
+		}
+		return nil, err
+	}
+	return doc, nil
 }

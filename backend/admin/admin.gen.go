@@ -60,6 +60,18 @@ type AddMsEntraKeyCredentialParams struct {
 	OnBehalfOfApplication *bool `form:"onBehalfOfApplication,omitempty" json:"onBehalfOfApplication,omitempty"`
 }
 
+// ListKeysParams defines parameters for ListKeys.
+type ListKeysParams struct {
+	// PolicyId Policy ID
+	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
+}
+
+// GetKeyParams defines parameters for GetKey.
+type GetKeyParams struct {
+	// IncludeJwk Include JWK
+	IncludeJwk *bool `form:"includeJwk,omitempty" json:"includeJwk,omitempty"`
+}
+
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
@@ -152,6 +164,15 @@ type ServerInterface interface {
 	// put key policy
 	// (PUT /v2/{namespaceProvider}/{namespaceId}/key-policies/{id})
 	PutKeyPolicy(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// put certificate policy
+	// (POST /v2/{namespaceProvider}/{namespaceId}/key-policies/{id}/generate)
+	GenerateKey(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// List keys
+	// (GET /v2/{namespaceProvider}/{namespaceId}/keys)
+	ListKeys(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, params ListKeysParams) error
+	// Get key
+	// (GET /v2/{namespaceProvider}/{namespaceId}/keys/{id})
+	GetKey(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params GetKeyParams) error
 	// Get member group
 	// (GET /v2/{namespaceProvider}/{namespaceId}/memberOf/{id})
 	GetMemberOf(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -824,6 +845,118 @@ func (w *ServerInterfaceWrapper) PutKeyPolicy(ctx echo.Context) error {
 	return err
 }
 
+// GenerateKey converts echo context to params.
+func (w *ServerInterfaceWrapper) GenerateKey(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GenerateKey(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
+// ListKeys converts echo context to params.
+func (w *ServerInterfaceWrapper) ListKeys(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListKeysParams
+	// ------------- Optional query parameter "policyId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListKeys(ctx, namespaceProvider, namespaceId, params)
+	return err
+}
+
+// GetKey converts echo context to params.
+func (w *ServerInterfaceWrapper) GetKey(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetKeyParams
+	// ------------- Optional query parameter "includeJwk" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeJwk", ctx.QueryParams(), &params.IncludeJwk)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeJwk: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetKey(ctx, namespaceProvider, namespaceId, id, params)
+	return err
+}
+
 // GetMemberOf converts echo context to params.
 func (w *ServerInterfaceWrapper) GetMemberOf(ctx echo.Context) error {
 	var err error
@@ -943,6 +1076,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.GetKeyPolicy)
 	router.PUT(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.PutKeyPolicy)
+	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id/generate", wrapper.GenerateKey)
+	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/keys", wrapper.ListKeys)
+	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/keys/:id", wrapper.GetKey)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/memberOf/:id", wrapper.GetMemberOf)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/memberOf/:id", wrapper.SyncMemberOf)
 

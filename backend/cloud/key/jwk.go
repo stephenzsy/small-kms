@@ -70,6 +70,24 @@ type JsonWebKey[TAlg JsonWebSignatureAlgorithm | JsonWebKeyEncryptionAlgorithm] 
 
 type JsonWebSignatureKey = JsonWebKey[JsonWebSignatureAlgorithm]
 
+func (jwk *JsonWebKeyBase) Digest(w io.Writer) {
+	w.Write([]byte(jwk.KeyType))
+	w.Write([]byte(jwk.Curve))
+	w.Write(jwk.N)
+	w.Write(jwk.E)
+	w.Write(jwk.X)
+	w.Write(jwk.Y)
+	w.Write([]byte(jwk.KeyID))
+	w.Write(jwk.ThumbprintSHA1)
+	w.Write(jwk.ThumbprintSHA256)
+	for _, v := range jwk.CertificateChain {
+		w.Write(v)
+	}
+	for _, v := range jwk.KeyOperations {
+		w.Write([]byte(v))
+	}
+}
+
 func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 	if jwk.cachedPublicKey != nil {
 		return jwk.cachedPublicKey
@@ -195,22 +213,4 @@ func SanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
 		result = append(result, op)
 	}
 	return result
-}
-
-func (jwk *JsonWebKey[T]) Digest(w io.Writer) {
-	w.Write([]byte(jwk.KeyType))
-	w.Write([]byte(jwk.Curve))
-	w.Write(jwk.N)
-	w.Write(jwk.E)
-	w.Write(jwk.X)
-	w.Write(jwk.Y)
-	w.Write([]byte(jwk.KeyID))
-	w.Write(jwk.ThumbprintSHA1)
-	w.Write(jwk.ThumbprintSHA256)
-	for _, v := range jwk.CertificateChain {
-		w.Write(v)
-	}
-	for _, v := range jwk.KeyOperations {
-		w.Write([]byte(v))
-	}
 }

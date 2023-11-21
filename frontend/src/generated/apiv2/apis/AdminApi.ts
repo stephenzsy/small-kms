@@ -26,7 +26,9 @@ import type {
   CreateKeyPolicyRequest,
   EnrollCertificateRequest,
   ErrorResult,
+  Key,
   KeyPolicy,
+  KeyRef,
   LinkRef,
   LinkRefFields,
   NamespaceProvider,
@@ -56,8 +58,12 @@ import {
     EnrollCertificateRequestToJSON,
     ErrorResultFromJSON,
     ErrorResultToJSON,
+    KeyFromJSON,
+    KeyToJSON,
     KeyPolicyFromJSON,
     KeyPolicyToJSON,
+    KeyRefFromJSON,
+    KeyRefToJSON,
     LinkRefFromJSON,
     LinkRefToJSON,
     LinkRefFieldsFromJSON,
@@ -97,6 +103,12 @@ export interface EnrollCertificateOperationRequest {
 }
 
 export interface GenerateCertificateRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+}
+
+export interface GenerateKeyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
@@ -164,6 +176,12 @@ export interface ListCertificatesRequest {
 export interface ListKeyPoliciesRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
+}
+
+export interface ListKeysRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    policyId?: string;
 }
 
 export interface ListProfilesRequest {
@@ -455,6 +473,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async generateCertificate(requestParameters: GenerateCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
         const response = await this.generateCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * put certificate policy
+     */
+    async generateKeyRaw(requestParameters: GenerateKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Key>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling generateKey.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling generateKey.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling generateKey.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/key-policies/{id}/generate`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => KeyFromJSON(jsonValue));
+    }
+
+    /**
+     * put certificate policy
+     */
+    async generateKey(requestParameters: GenerateKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Key> {
+        const response = await this.generateKeyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -975,6 +1039,52 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listKeyPolicies(requestParameters: ListKeyPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
         const response = await this.listKeyPoliciesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List keys
+     */
+    async listKeysRaw(requestParameters: ListKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<KeyRef>>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling listKeys.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listKeys.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.policyId !== undefined) {
+            queryParameters['policyId'] = requestParameters.policyId;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/keys`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(KeyRefFromJSON));
+    }
+
+    /**
+     * List keys
+     */
+    async listKeys(requestParameters: ListKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<KeyRef>> {
+        const response = await this.listKeysRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

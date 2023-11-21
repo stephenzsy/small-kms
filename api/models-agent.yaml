@@ -30,11 +30,20 @@ components:
           type: array
           items:
             type: string
+        identityCredentialPolicyId:
+          type: string
         keyCredentialsCertificatePolicyId:
+          type: string
+        pushAuthorizationKeyPolicy:
+          type: string
+        version:
           type: string
       required:
         - envGuards
+        - identityCredentialPolicyId
         - keyCredentialsCertificatePolicyId
+        - pushAuthorizationKeyPolicy
+        - version
   responses:
     AgentResposne:
       description: Agent response

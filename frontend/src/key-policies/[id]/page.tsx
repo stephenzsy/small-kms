@@ -1,21 +1,21 @@
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Input, TableColumnsType, Tag, Typography } from "antd";
-import { useContext, useId } from "react";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { KeyPolicyForm } from "../../admin/forms/KeyPolicyForm";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";
 import { Link } from "../../components/Link";
 import {
   AdminApi,
-  CertificateRef,
-  CertificateStatus,
+  KeyRef,
+  KeyStatus,
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { dateShortFormatter } from "../../utils/datetimeUtils";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { KeyPolicyForm } from "../../admin/forms/KeyPolicyForm";
 
 function useKeyPolicy(id: string | undefined) {
   const { namespaceProvider, namespaceId } = useNamespace();
@@ -36,25 +36,23 @@ function useKeyPolicy(id: string | undefined) {
   );
 }
 
-function useCertificateTableColumns(
+function useKeyTableColumns(
   currentIssuerId?: string
-): TableColumnsType<CertificateRef> {
+): TableColumnsType<KeyRef> {
   return [
     {
       title: "Status",
       key: "status",
-      render: (certRef: CertificateRef) => {
+      render: (certRef: KeyRef) => {
         const { id, status } = certRef;
         return (
           <span className="flex">
             <Tag
               className="capitalize"
               color={
-                status === CertificateStatus.CertificateStatusIssued
+                status === KeyStatus.KeyStatusActive
                   ? "green"
-                  : status === CertificateStatus.CertificateStatusPending
-                  ? "orange"
-                  : status === CertificateStatus.CertificateStatusDeactivated
+                  : status === KeyStatus.KeyStatusInactive
                   ? "red"
                   : undefined
               }
@@ -64,14 +62,6 @@ function useCertificateTableColumns(
             {id === currentIssuerId && <Tag color="blue">Issuer</Tag>}
           </span>
         );
-      },
-    },
-    {
-      title: "Thumbprint SHA-1",
-      dataIndex: "thumbprint",
-      key: "thumbprint",
-      render: (tp?: string) => {
-        return <span className="font-mono text-xs uppercase">{tp}</span>;
       },
     },
     {
@@ -114,12 +104,12 @@ export default function KeyPolicyPage() {
   const { namespaceProvider, namespaceId } = useNamespace();
   const api = useAuthedClientV2(AdminApi);
   const {
-    data: certs,
-    refresh: refreshCerts,
-    loading: certsLoading,
+    data: keys,
+    refresh: refreshKeys,
+    loading: keysLoading,
   } = useRequest(
     async () => {
-      return await api.listCertificates({
+      return await api.listKeys({
         namespaceId: namespaceId,
         namespaceProvider: namespaceProvider,
         policyId: id,
@@ -159,26 +149,23 @@ export default function KeyPolicyPage() {
         namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA,
     }
   );
-  const { run: generateCertificate, loading: generateCertificateLoading } =
-    useRequest(
-      async () => {
-        if (id && keyPolicy) {
-          return await api.generateCertificate({
-            id: id,
-            namespaceId: namespaceId,
-            namespaceProvider: namespaceProvider,
-          });
-        }
-        refreshCerts();
-      },
-      { manual: true }
-    );
-
-  const webEnrollCardId = useId();
+  const { run: generateKey, loading: generateKeyLoading } = useRequest(
+    async () => {
+      if (id && keyPolicy) {
+        return await api.generateKey({
+          id: id,
+          namespaceId: namespaceId,
+          namespaceProvider: namespaceProvider,
+        });
+      }
+      refreshKeys();
+    },
+    { manual: true }
+  );
 
   const currentIssuerId = currentIssuerResp?.linkTo?.split("/")[1];
-  const certColumns = useCertificateTableColumns(currentIssuerId);
-  const viewCert = useMemoizedFn((cert: CertificateRef) => {
+  const keyColumns = useKeyTableColumns(currentIssuerId);
+  const viewKeys = useMemoizedFn((cert: KeyRef) => {
     return (
       <div className="flex gap-2 items-center">
         <Link to={`../certificates/${cert.id}`}>View</Link>
@@ -205,31 +192,24 @@ export default function KeyPolicyPage() {
       </div>
       <Card
         title="Keys"
-        // extra={
-        //   <div className="flex items-center gap-4">
-        //     {certPolicy?.allowEnroll && (
-        //       <Typography.Link href={`#${webEnrollCardId}`}>
-        //         Enroll Certificate
-        //       </Typography.Link>
-        //     )}
-        //     {certPolicy?.allowGenerate && (
-        //       <Button
-        //         type="link"
-        //         onClick={generateCertificate}
-        //         loading={generateCertificateLoading}
-        //       >
-        //         Generate Certificate
-        //       </Button>
-        //     )}
-        //   </div>
-        // }
+        extra={
+          <div className="flex items-center gap-4">
+            <Button
+              type="link"
+              onClick={generateKey}
+              loading={generateKeyLoading}
+            >
+              Generate Key
+            </Button>
+          </div>
+        }
       >
-        <ResourceRefsTable<CertificateRef>
-          loading={certsLoading}
-          dataSource={certs}
-          extraColumns={certColumns}
+        <ResourceRefsTable<KeyRef>
+          loading={keysLoading}
+          dataSource={keys}
+          extraColumns={keyColumns}
           noDisplayName
-          renderActions={viewCert}
+          renderActions={viewKeys}
         />
       </Card>
       <Card

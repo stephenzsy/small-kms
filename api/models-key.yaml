@@ -156,8 +156,11 @@ components:
     KeyStatus:
       type: string
       enum:
-        - Active
-        - Inactive
+        - active
+        - inactive
+      x-enum-varnames:
+        - KeyStatusActive
+        - KeyStatusInactive
     KeyRefFields:
       type: object
       properties:
@@ -222,3 +225,17 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/KeyPolicy"
+    KeyResponse:
+      description: Key response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Key"
+    KeyRefsResponse:
+      description: KeyRefs response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/KeyRef"

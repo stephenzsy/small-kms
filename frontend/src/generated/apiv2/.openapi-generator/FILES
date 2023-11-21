@@ -24,8 +24,13 @@ models/JsonWebKeyOperation.ts
 models/JsonWebKeySpec.ts
 models/JsonWebKeyType.ts
 models/JsonWebSignatureKey.ts
+models/Key.ts
+models/KeyFields.ts
 models/KeyPolicy.ts
 models/KeyPolicyFields.ts
+models/KeyRef.ts
+models/KeyRefFields.ts
+models/KeyStatus.ts
 models/LinkRef.ts
 models/LinkRefFields.ts
 models/NamespaceProvider.ts

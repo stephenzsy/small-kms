@@ -16,7 +16,10 @@ type AgentConfig = agentConfigComposed
 // AgentConfigFields defines model for AgentConfigFields.
 type AgentConfigFields struct {
 	EnvGuards                         []string `json:"envGuards"`
+	IdentityCredentialPolicyId        string   `json:"identityCredentialPolicyId"`
 	KeyCredentialsCertificatePolicyId string   `json:"keyCredentialsCertificatePolicyId"`
+	PushAuthorizationKeyPolicy        string   `json:"pushAuthorizationKeyPolicy"`
+	Version                           string   `json:"version"`
 }
 
 // CreateAgentRequest defines model for CreateAgentRequest.

@@ -10,8 +10,8 @@ import (
 
 // Defines values for KeyStatus.
 const (
-	Active   KeyStatus = "Active"
-	Inactive KeyStatus = "Inactive"
+	KeyStatusActive   KeyStatus = "active"
+	KeyStatusInactive KeyStatus = "inactive"
 )
 
 // CreateKeyPolicyRequest defines model for CreateKeyPolicyRequest.
@@ -93,3 +93,9 @@ type KeyStatus string
 
 // KeyPolicyResponse defines model for KeyPolicyResponse.
 type KeyPolicyResponse = KeyPolicy
+
+// KeyRefsResponse defines model for KeyRefsResponse.
+type KeyRefsResponse = []KeyRef
+
+// KeyResponse defines model for KeyResponse.
+type KeyResponse = Key

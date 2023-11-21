@@ -20,6 +20,11 @@ type server struct {
 	*cert.CertServer
 }
 
+// GetKey implements admin.ServerInterface.
+func (*server) GetKey(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string, params admin.GetKeyParams) error {
+	panic("unimplemented")
+}
+
 // GetMemberGroup implements admin.ServerInterface.
 func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
 	panic("unimplemented")
