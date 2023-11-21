@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  AddMsEntraKeyCredentialRequest,
   AgentConfig,
   AgentConfigFields,
   Certificate,
@@ -32,6 +33,8 @@ import type {
   Ref,
 } from '../models/index';
 import {
+    AddMsEntraKeyCredentialRequestFromJSON,
+    AddMsEntraKeyCredentialRequestToJSON,
     AgentConfigFromJSON,
     AgentConfigToJSON,
     AgentConfigFieldsFromJSON,
@@ -63,6 +66,14 @@ import {
     RefFromJSON,
     RefToJSON,
 } from '../models/index';
+
+export interface AddMsEntraKeyCredentialOperationRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    addMsEntraKeyCredentialRequest: AddMsEntraKeyCredentialRequest;
+    onBehalfOfApplication?: boolean;
+}
 
 export interface CreateAgentOperationRequest {
     createAgentRequest?: CreateAgentRequest;
@@ -200,6 +211,62 @@ export interface SyncSystemAppRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
+
+    /**
+     * Add certificate as MS Entra key credential
+     */
+    async addMsEntraKeyCredentialRaw(requestParameters: AddMsEntraKeyCredentialOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling addMsEntraKeyCredential.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling addMsEntraKeyCredential.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling addMsEntraKeyCredential.');
+        }
+
+        if (requestParameters.addMsEntraKeyCredentialRequest === null || requestParameters.addMsEntraKeyCredentialRequest === undefined) {
+            throw new runtime.RequiredError('addMsEntraKeyCredentialRequest','Required parameter requestParameters.addMsEntraKeyCredentialRequest was null or undefined when calling addMsEntraKeyCredential.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.onBehalfOfApplication !== undefined) {
+            queryParameters['onBehalfOfApplication'] = requestParameters.onBehalfOfApplication;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AddMsEntraKeyCredentialRequestToJSON(requestParameters.addMsEntraKeyCredentialRequest),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Add certificate as MS Entra key credential
+     */
+    async addMsEntraKeyCredential(requestParameters: AddMsEntraKeyCredentialOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addMsEntraKeyCredentialRaw(requestParameters, initOverrides);
+    }
 
     /**
      * Create agent

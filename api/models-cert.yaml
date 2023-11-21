@@ -203,6 +203,15 @@ components:
           $ref: "models-key.yaml#/components/schemas/JsonWebSignatureKey"
       required:
         - publicKey
+    AddMsEntraKeyCredentialRequest:
+      type: object
+      properties:
+        proofJwt:
+          type: string
+        keepLatest:
+          type: integer
+      required:
+        - proofJwt
   responses:
     CertificateResponse:
       description: Certificate response

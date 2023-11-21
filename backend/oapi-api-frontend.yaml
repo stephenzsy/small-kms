@@ -50,12 +50,6 @@ paths:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1launch-agent"
   /v1/profile/{profileResourceKind}/{namespaceId}:
     $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceId}"
-  /v1/profile/{profileResourceKind}/{namespaceId}/import:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceId}~1import"
-  /v1/{namespaceKind}/{namespaceId}/groupMemberOf:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf"
-  /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId}:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1groupMemberOf~1{groupId}"
   /v1/{namespaceKind}/{namespaceId}/certificates:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates"
   /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:

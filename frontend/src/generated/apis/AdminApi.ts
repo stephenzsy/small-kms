@@ -48,7 +48,6 @@ import type {
   PullImageRequest,
   RequestDiagnostics,
   ResourceKind,
-  ResourceReference,
   Secret,
   SecretPolicy,
   SecretPolicyParameters,
@@ -122,8 +121,6 @@ import {
     RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
-    ResourceReferenceFromJSON,
-    ResourceReferenceToJSON,
     SecretFromJSON,
     SecretToJSON,
     SecretPolicyFromJSON,
@@ -334,11 +331,6 @@ export interface GetSecretPolicyRequest {
     resourceId: string;
 }
 
-export interface ImportProfileRequest {
-    profileResourceKind: ResourceKind;
-    namespaceId: string;
-}
-
 export interface ListAgentAzureRoleAssignmentsRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -359,11 +351,6 @@ export interface ListCertificatesRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     policyId?: string;
-}
-
-export interface ListGroupMemberOfRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
 }
 
 export interface ListKeyPoliciesRequest {
@@ -451,12 +438,6 @@ export interface PutSecretPolicyRequest {
     namespaceId: string;
     resourceId: string;
     secretPolicyParameters: SecretPolicyParameters;
-}
-
-export interface SyncGroupMemberOfRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    groupId: string;
 }
 
 export interface SyncManagedAppRequest {
@@ -1982,48 +1963,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Import profile
-     */
-    async importProfileRaw(requestParameters: ImportProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
-        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
-            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling importProfile.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling importProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceId}/import`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
-    }
-
-    /**
-     * Import profile
-     */
-    async importProfile(requestParameters: ImportProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
-        const response = await this.importProfileRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * List Azure role assignments
      */
     async listAgentAzureRoleAssignmentsRaw(requestParameters: ListAgentAzureRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AzureRoleAssignment>>> {
@@ -2196,48 +2135,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listCertificates(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
         const response = await this.listCertificatesRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List group memberOf
-     */
-    async listGroupMemberOfRaw(requestParameters: ListGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ResourceReference>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listGroupMemberOf.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listGroupMemberOf.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/groupMemberOf`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ResourceReferenceFromJSON));
-    }
-
-    /**
-     * List group memberOf
-     */
-    async listGroupMemberOf(requestParameters: ListGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ResourceReference>> {
-        const response = await this.listGroupMemberOfRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2951,51 +2848,6 @@ export class AdminApi extends runtime.BaseAPI {
     async putSecretPolicy(requestParameters: PutSecretPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SecretPolicy> {
         const response = await this.putSecretPolicyRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     * Sync group memberOf
-     */
-    async syncGroupMemberOfRaw(requestParameters: SyncGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling syncGroupMemberOf.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling syncGroupMemberOf.');
-        }
-
-        if (requestParameters.groupId === null || requestParameters.groupId === undefined) {
-            throw new runtime.RequiredError('groupId','Required parameter requestParameters.groupId was null or undefined when calling syncGroupMemberOf.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"groupId"}}`, encodeURIComponent(String(requestParameters.groupId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Sync group memberOf
-     */
-    async syncGroupMemberOf(requestParameters: SyncGroupMemberOfRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.syncGroupMemberOfRaw(requestParameters, initOverrides);
     }
 
     /**

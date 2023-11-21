@@ -32,7 +32,7 @@ func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.N
 	namespaceId = ns.ResolveMeNamespace(c, namespaceId)
 	var requesterProfile *profile.ProfileDoc
 	if params.OnBehalfOfApplication != nil && *params.OnBehalfOfApplication && reqIdentity.HasAdminRole() {
-		requesterProfile, err = profile.SyncServicePrincipalProfileByAppID(c, reqIdentity.AppID())
+		c, requesterProfile, _, err = profile.SyncServicePrincipalProfileByAppID(c, reqIdentity.AppID(), nil)
 		if err != nil {
 			return err
 		}

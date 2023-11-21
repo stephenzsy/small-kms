@@ -9,7 +9,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/base"
 )
 
@@ -50,15 +49,6 @@ type ServerInterface interface {
 	// Put profile
 	// (PUT /v1/profile/{profileResourceKind}/{namespaceId})
 	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
-	// Import profile
-	// (POST /v1/profile/{profileResourceKind}/{namespaceId}/import)
-	ImportProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
-	// List group memberOf
-	// (GET /v1/{namespaceKind}/{namespaceId}/groupMemberOf)
-	ListGroupMemberOf(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
-	// Sync group memberOf
-	// (POST /v1/{namespaceKind}/{namespaceId}/groupMemberOf/{groupId})
-	SyncGroupMemberOf(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, groupId openapi_types.UUID) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -118,92 +108,6 @@ func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
 	return err
 }
 
-// ImportProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) ImportProfile(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "profileResourceKind" -------------
-	var profileResourceKind ProfileResourceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ImportProfile(ctx, profileResourceKind, namespaceId)
-	return err
-}
-
-// ListGroupMemberOf converts echo context to params.
-func (w *ServerInterfaceWrapper) ListGroupMemberOf(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListGroupMemberOf(ctx, namespaceKind, namespaceId)
-	return err
-}
-
-// SyncGroupMemberOf converts echo context to params.
-func (w *ServerInterfaceWrapper) SyncGroupMemberOf(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "groupId" -------------
-	var groupId openapi_types.UUID
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "groupId", runtime.ParamLocationPath, ctx.Param("groupId"), &groupId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter groupId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.SyncGroupMemberOf(ctx, namespaceKind, namespaceId, groupId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -234,8 +138,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.GetProfile)
 	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.PutProfile)
-	router.POST(baseURL+"/v1/profile/:profileResourceKind/:namespaceId/import", wrapper.ImportProfile)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/groupMemberOf", wrapper.ListGroupMemberOf)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/groupMemberOf/:groupId", wrapper.SyncGroupMemberOf)
 
 }

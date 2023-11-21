@@ -27,8 +27,6 @@ var (
 	ErrAzCosmosDocNotFound    = errors.New("az cosmos doc not found")
 	ErrAzKeyVaultItemNotFound = errors.New("az key vault key not found")
 
-	ErrMsGraphResourceNotFound = errors.New("Request_ResourceNotFound")
-
 	ErrResponseStatusBadRequest   = httpResposneError(http.StatusBadRequest, "bad request")
 	ErrResposneStatusUnauthorized = httpResposneError(http.StatusUnauthorized, "unauthorized")
 	ErrResponseStatusForbidden    = httpResposneError(http.StatusForbidden, "forbidden")
@@ -57,17 +55,6 @@ func HandleAzKeyVaultError(err error) error {
 		if respError.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("%w:%w", ErrAzKeyVaultItemNotFound, err)
 		}
-	}
-	return err
-}
-
-func HandleMsGraphError(err error) error {
-	if err == nil || errors.Is(err, ErrMsGraphResourceNotFound) {
-		return err
-	}
-	errCode, _, ok := ExtractGraphODataErrorCode(err)
-	if ok && errCode != nil && *errCode == "Request_ResourceNotFound" {
-		return fmt.Errorf("%w:%w", ErrMsGraphResourceNotFound, err)
 	}
 	return err
 }

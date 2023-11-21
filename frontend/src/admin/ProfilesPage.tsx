@@ -1,21 +1,19 @@
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { GraphRequest } from "@microsoft/microsoft-graph-client";
+import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Form, Input, Select, Typography } from "antd";
+import { useForm } from "antd/es/form/Form";
+import { DefaultOptionType } from "antd/es/select";
+import classNames from "classnames";
+import { useMemo } from "react";
+import { Link } from "../components/Link";
 import {
   AdminApi,
   NamespaceProvider,
   Ref as ResourceRef,
 } from "../generated/apiv2";
 import { useAuthedClientV2, useGraphClient } from "../utils/useCertsApi";
-import { useMemoizedFn, useRequest } from "ahooks";
-import { RefsTable } from "./RefsTable";
 import { ResourceRefsTable } from "./tables/ResourceRefsTable";
-import { GraphRequest } from "@microsoft/microsoft-graph-client";
-import { useForm } from "antd/es/form/Form";
-import { useMemo } from "react";
-import { DefaultOptionType } from "antd/es/select";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import classNames from "classnames";
-import { ProfileRef } from "../generated";
-import { Link } from "../components/Link";
 
 export default function ProfilesPage({
   namespaceProvider,

@@ -4,7 +4,11 @@ import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { AdminApi, CertificateToJSON } from "../../generated/apiv2";
+import {
+  AdminApi,
+  CertificateToJSON,
+  NamespaceProvider,
+} from "../../generated/apiv2";
 import { useMemoizedFn, useRequest } from "ahooks";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";
 import { parse } from "uuid";
@@ -99,6 +103,23 @@ export default function CertificatePage() {
     });
     setBlobUrl(URL.createObjectURL(blob));
   });
+
+  const { run: installAsMsEntraCredential } = useRequest(
+    async () => {
+      if (id) {
+        return api.addMsEntraKeyCredential({
+          id,
+          namespaceId,
+          namespaceProvider,
+          onBehalfOfApplication: true,
+          addMsEntraKeyCredentialRequest: {
+            proofJwt: "",
+          },
+        });
+      }
+    },
+    { manual: true }
+  );
   return (
     <>
       <Typography.Title>Certificate</Typography.Title>
@@ -224,6 +245,20 @@ export default function CertificatePage() {
               </span>
             )}
           </div>
+        </div>
+      </Card>
+      <Card title="Actions">
+        <div className="space-y-4">
+          {namespaceProvider ===
+            NamespaceProvider.NamespaceProviderServicePrincipal && (
+            <Button
+              onClick={() => {
+                installAsMsEntraCredential();
+              }}
+            >
+              Install as Microsoft Entra Key Credential
+            </Button>
+          )}
         </div>
       </Card>
       <Card title="Danger zone">

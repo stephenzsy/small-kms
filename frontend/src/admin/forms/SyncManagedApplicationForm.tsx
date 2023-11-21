@@ -1,13 +1,11 @@
-import {
-  AdminApi,
-  ImportProfileRequest,
-  ResourceKind,
-  SyncManagedAppRequest,
-} from "../../generated";
-import { useAuthedClient } from "../../utils/useCertsApi";
 import { useRequest } from "ahooks";
 import { Button, Form, Input } from "antd";
 import { useForm } from "antd/es/form/Form";
+import {
+  AdminApi,
+  SyncManagedAppRequest
+} from "../../generated";
+import { useAuthedClient } from "../../utils/useCertsApi";
 
 type SyncAppFormState = {
   clientId?: string;

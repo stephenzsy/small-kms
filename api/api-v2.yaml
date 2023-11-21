@@ -281,6 +281,34 @@ paths:
           $ref: "#/components/responses/NoContentResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      parameters:
+        - in: query
+          name: onBehalfOfApplication
+          description: add entra key on onBehalfOfApplication
+          required: false
+          schema:
+            type: boolean
+      tags:
+        - admin
+      operationId: AddMsEntraKeyCredential
+      summary: Add certificate as MS Entra key credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-cert.yaml#/components/schemas/AddMsEntraKeyCredentialRequest"
+      responses:
+        204:
+          $ref: "#/components/responses/NoContentResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/key-policies:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

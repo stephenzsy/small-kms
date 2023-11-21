@@ -1,6 +1,7 @@
 apis/AdminApi.ts
 apis/index.ts
 index.ts
+models/AddMsEntraKeyCredentialRequest.ts
 models/AgentConfig.ts
 models/AgentConfigFields.ts
 models/Certificate.ts

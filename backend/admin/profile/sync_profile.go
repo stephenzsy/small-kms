@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
 	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipalswithappid"
 
 	"github.com/microsoftgraph/msgraph-sdk-go/directoryobjects"
@@ -68,8 +70,8 @@ func SyncProfileInternal(c ctx.RequestContext, namespaceId string) (*ProfileDoc,
 		},
 	})
 	if err != nil {
-		err = base.HandleMsGraphError(err)
-		if errors.Is(err, base.ErrMsGraphResourceNotFound) {
+		err = graph.HandleMsGraphError(err)
+		if errors.Is(err, graph.ErrMsGraphResourceNotFound) {
 			return bad(fmt.Errorf("%w,%w", base.ErrResponseStatusNotFound, err))
 		}
 		return bad(err)
@@ -103,12 +105,33 @@ func SyncProfileInternal(c ctx.RequestContext, namespaceId string) (*ProfileDoc,
 	return doc, err
 }
 
-func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string) (*ProfileDoc, error) {
-	bad := func(e error) (*ProfileDoc, error) {
-		return nil, e
-	}
+func SyncServicePrincipalProfile(c ctx.RequestContext, ID string, additionalSelects []string) (ctx.RequestContext, *ProfileDoc, gmodels.ServicePrincipalable, error) {
+	return syncServicePrincipalProfile(c, additionalSelects, func(client *msgraphsdkgo.GraphServiceClient, querySelects []string) (gmodels.ServicePrincipalable, error) {
+		return client.ServicePrincipals().ByServicePrincipalId(ID).Get(c, &serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{
+				Select: querySelects,
+			},
+		})
+	})
+}
 
+func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string, additionalSelects []string) (ctx.RequestContext, *ProfileDoc, gmodels.ServicePrincipalable, error) {
+	return syncServicePrincipalProfile(c, additionalSelects, func(client *msgraphsdkgo.GraphServiceClient, querySelects []string) (gmodels.ServicePrincipalable, error) {
+		return client.ServicePrincipalsWithAppId(&appID).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
+			QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
+				Select: querySelects,
+			},
+		})
+	})
+
+}
+
+func syncServicePrincipalProfile(c ctx.RequestContext, additionalSelects []string,
+	getSp func(client *msgraphsdkgo.GraphServiceClient, querySelects []string) (gmodels.ServicePrincipalable, error)) (ctx.RequestContext, *ProfileDoc, gmodels.ServicePrincipalable, error) {
 	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	bad := func(e error) (ctx.RequestContext, *ProfileDoc, gmodels.ServicePrincipalable, error) {
+		return c, nil, nil, e
+	}
 	if err != nil {
 		return bad(err)
 	}
@@ -121,14 +144,12 @@ func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string) (*Pr
 			},
 		},
 	}
-	sp, err := gclient.ServicePrincipalsWithAppId(&appID).Get(c, &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetRequestConfiguration{
-		QueryParameters: &serviceprincipalswithappid.ServicePrincipalsWithAppIdRequestBuilderGetQueryParameters{
-			Select: []string{"id", "displayName", "appId", "servicePrincipalType"},
-		},
-	})
+	querySelects := []string{"id", "displayName", "appId", "servicePrincipalType"}
+	querySelects = append(querySelects, additionalSelects...)
+	sp, err := getSp(gclient, querySelects)
 	if err != nil {
-		err = base.HandleMsGraphError(err)
-		if errors.Is(err, base.ErrMsGraphResourceNotFound) {
+		err = graph.HandleMsGraphError(err)
+		if errors.Is(err, graph.ErrMsGraphResourceNotFound) {
 			return bad(fmt.Errorf("%w,%w", base.ErrResponseStatusNotFound, err))
 		}
 		return bad(err)
@@ -141,5 +162,5 @@ func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string) (*Pr
 	doc.ServicePrincipalType = sp.GetServicePrincipalType()
 
 	_, err = resdoc.GetDocService(c).Upsert(c, doc, nil)
-	return doc, err
+	return c, doc, sp, err
 }
