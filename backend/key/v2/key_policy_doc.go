@@ -20,9 +20,9 @@ type KeyPolicyDoc struct {
 	resdoc.ResourceDoc
 	DisplayName string `json:"displayName"`
 
-	KeySpec     keymodels.JsonWebKeySpec `json:"keySpec"`
-	Extractable bool                     `json:"ext"`
-	ExpiryTime  *caldur.CalendarDuration `json:"expiryTime,omitempty"`
+	KeySpec    keymodels.JsonWebKeySpec `json:"keySpec"`
+	Exportable bool                     `json:"exportable"`
+	ExpiryTime *caldur.CalendarDuration `json:"expiryTime,omitempty"`
 
 	Version []byte `json:"version"`
 }
@@ -111,9 +111,9 @@ func (doc *KeyPolicyDoc) init(c context.Context, req *keymodels.CreateKeyPolicyR
 	}
 	doc.KeySpec.Digest(digester)
 
-	if req.Extractable != nil && *req.Extractable {
-		doc.Extractable = true
-		digester.Write([]byte("ext"))
+	if req.Exportable != nil && *req.Exportable {
+		doc.Exportable = true
+		digester.Write([]byte("exportable"))
 	}
 
 	if req.ExpiryTime != "" {
@@ -147,7 +147,7 @@ func (doc *KeyPolicyDoc) ToRef() (m models.Ref) {
 func (doc *KeyPolicyDoc) ToModel() (m keymodels.KeyPolicy) {
 	m.Ref = doc.ResourceDoc.ToRef()
 	m.KeySpec = doc.KeySpec
-	m.Extractable = &doc.Extractable
+	m.Exportable = doc.Exportable
 	if doc.ExpiryTime != nil {
 		m.ExpiryTime = doc.ExpiryTime.String()
 	}

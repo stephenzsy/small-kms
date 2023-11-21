@@ -67,7 +67,7 @@ export interface KeyPolicy {
      * @type {boolean}
      * @memberof KeyPolicy
      */
-    ext?: boolean;
+    exportable: boolean;
     /**
      * 
      * @type {string}
@@ -85,6 +85,7 @@ export function instanceOfKeyPolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "keySpec" in value;
+    isInstance = isInstance && "exportable" in value;
 
     return isInstance;
 }
@@ -105,7 +106,7 @@ export function KeyPolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'ext': !exists(json, 'ext') ? undefined : json['ext'],
+        'exportable': json['exportable'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
     };
 }
@@ -125,7 +126,7 @@ export function KeyPolicyToJSON(value?: KeyPolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'displayName': value.displayName,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'ext': value.ext,
+        'exportable': value.exportable,
         'expiryTime': value.expiryTime,
     };
 }

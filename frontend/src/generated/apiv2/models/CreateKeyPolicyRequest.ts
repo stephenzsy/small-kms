@@ -43,7 +43,7 @@ export interface CreateKeyPolicyRequest {
      * @type {boolean}
      * @memberof CreateKeyPolicyRequest
      */
-    ext?: boolean;
+    exportable?: boolean;
     /**
      * 
      * @type {string}
@@ -73,7 +73,7 @@ export function CreateKeyPolicyRequestFromJSONTyped(json: any, ignoreDiscriminat
         
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'keySpec': !exists(json, 'keySpec') ? undefined : JsonWebKeySpecFromJSON(json['keySpec']),
-        'ext': !exists(json, 'ext') ? undefined : json['ext'],
+        'exportable': !exists(json, 'exportable') ? undefined : json['exportable'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
     };
 }
@@ -89,7 +89,7 @@ export function CreateKeyPolicyRequestToJSON(value?: CreateKeyPolicyRequest | nu
         
         'displayName': value.displayName,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'ext': value.ext,
+        'exportable': value.exportable,
         'expiryTime': value.expiryTime,
     };
 }

@@ -85,7 +85,7 @@ export interface Certificate {
      * @type {CertificateStatus}
      * @memberof Certificate
      */
-    status?: CertificateStatus;
+    status: CertificateStatus;
     /**
      * 
      * @type {number}
@@ -169,6 +169,7 @@ export function instanceOfCertificate(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "thumbprint" in value;
+    isInstance = isInstance && "status" in value;
     isInstance = isInstance && "exp" in value;
     isInstance = isInstance && "policyIdentifier" in value;
     isInstance = isInstance && "identififier" in value;
@@ -195,7 +196,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'thumbprint': json['thumbprint'],
-        'status': !exists(json, 'status') ? undefined : CertificateStatusFromJSON(json['status']),
+        'status': CertificateStatusFromJSON(json['status']),
         'iat': !exists(json, 'iat') ? undefined : json['iat'],
         'exp': json['exp'],
         'policyIdentifier': json['policyIdentifier'],

@@ -19,7 +19,6 @@ components:
           x-go-type-skip-optional-pointer: true
         status:
           $ref: "#/components/schemas/CertificateStatus"
-          x-go-type-skip-optional-pointer: true
         iat:
           $ref: "models-shared.yaml#/components/schemas/NumericDate"
           x-go-name: IssuedAt
@@ -30,6 +29,7 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
       required:
+        - status
         - thumbprint
         - exp
         - policyIdentifier
@@ -91,7 +91,6 @@ components:
         - CertificateStatusIssued
         - CertificateStatusDeactivated
         - CertificateStatusUnverified
-      x-go-type-skip-optional-pointer: true
     CertificatePolicyFields:
       type: object
       properties:

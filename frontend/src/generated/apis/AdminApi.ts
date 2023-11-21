@@ -36,7 +36,6 @@ import type {
   ExchangePKCS12Result,
   Key,
   KeyPolicy,
-  KeyPolicyParameters,
   KeyPolicyRef,
   KeyRef,
   LaunchAgentRequest,
@@ -97,8 +96,6 @@ import {
     KeyToJSON,
     KeyPolicyFromJSON,
     KeyPolicyToJSON,
-    KeyPolicyParametersFromJSON,
-    KeyPolicyParametersToJSON,
     KeyPolicyRefFromJSON,
     KeyPolicyRefToJSON,
     KeyRefFromJSON,
@@ -418,13 +415,6 @@ export interface PutCertificateRuleMsEntraClientCredentialRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     certificateRuleMsEntraClientCredential: CertificateRuleMsEntraClientCredential;
-}
-
-export interface PutKeyPolicyRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    keyPolicyParameters: KeyPolicyParameters;
 }
 
 export interface PutProfileRequest {
@@ -2692,59 +2682,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putCertificateRuleMsEntraClientCredential(requestParameters: PutCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
         const response = await this.putCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Put key policy
-     */
-    async putKeyPolicyRaw(requestParameters: PutKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<KeyPolicy>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putKeyPolicy.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putKeyPolicy.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putKeyPolicy.');
-        }
-
-        if (requestParameters.keyPolicyParameters === null || requestParameters.keyPolicyParameters === undefined) {
-            throw new runtime.RequiredError('keyPolicyParameters','Required parameter requestParameters.keyPolicyParameters was null or undefined when calling putKeyPolicy.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: KeyPolicyParametersToJSON(requestParameters.keyPolicyParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => KeyPolicyFromJSON(jsonValue));
-    }
-
-    /**
-     * Put key policy
-     */
-    async putKeyPolicy(requestParameters: PutKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<KeyPolicy> {
-        const response = await this.putKeyPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

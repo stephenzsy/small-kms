@@ -12,6 +12,16 @@ type (
 		models.Ref
 		KeyPolicyFields
 	}
+
+	keyRefComposed struct {
+		models.Ref
+		KeyRefFields
+	}
+
+	keyComposed struct {
+		KeyRef
+		KeyFields
+	}
 )
 
 func (jwkspec *JsonWebKeySpec) Digest(w io.Writer) {

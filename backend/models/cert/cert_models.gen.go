@@ -80,7 +80,7 @@ type CertificateRefFields struct {
 	Exp              externalRef0.NumericDate  `json:"exp"`
 	Iat              *externalRef0.NumericDate `json:"iat,omitempty"`
 	PolicyIdentifier string                    `json:"policyIdentifier"`
-	Status           CertificateStatus         `json:"status,omitempty"`
+	Status           CertificateStatus         `json:"status"`
 
 	// Thumbprint Hex encoded certificate thumbprint
 	Thumbprint string `json:"thumbprint"`

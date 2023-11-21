@@ -43,7 +43,6 @@ export * from './Key';
 export * from './KeyFields';
 export * from './KeyPolicy';
 export * from './KeyPolicyFields';
-export * from './KeyPolicyParameters';
 export * from './KeyPolicyRef';
 export * from './KeyPolicyRefFields';
 export * from './KeyRef';

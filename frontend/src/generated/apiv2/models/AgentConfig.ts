@@ -51,6 +51,12 @@ export interface AgentConfig {
     displayName?: string;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof AgentConfig
+     */
+    envGuards: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof AgentConfig
      */
@@ -65,6 +71,7 @@ export function instanceOfAgentConfig(value: object): boolean {
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
+    isInstance = isInstance && "envGuards" in value;
     isInstance = isInstance && "keyCredentialsCertificatePolicyId" in value;
 
     return isInstance;
@@ -85,6 +92,7 @@ export function AgentConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'updatedBy': json['updatedBy'],
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
+        'envGuards': json['envGuards'],
         'keyCredentialsCertificatePolicyId': json['keyCredentialsCertificatePolicyId'],
     };
 }
@@ -103,6 +111,7 @@ export function AgentConfigToJSON(value?: AgentConfig | null): any {
         'updatedBy': value.updatedBy,
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'displayName': value.displayName,
+        'envGuards': value.envGuards,
         'keyCredentialsCertificatePolicyId': value.keyCredentialsCertificatePolicyId,
     };
 }

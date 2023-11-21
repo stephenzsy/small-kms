@@ -26,9 +26,14 @@ components:
     AgentConfigFields:
       type: object
       properties:
+        envGuards:
+          type: array
+          items:
+            type: string
         keyCredentialsCertificatePolicyId:
           type: string
       required:
+        - envGuards
         - keyCredentialsCertificatePolicyId
   responses:
     AgentResposne:

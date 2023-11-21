@@ -37,20 +37,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/KeyPolicyResponse"
-    put:
-      tags:
-        - admin
-      operationId: PutKeyPolicy
-      summary: Put key policy
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/KeyPolicyParameters"
-      responses:
-        200:
-          $ref: "#/components/responses/KeyPolicyResponse"
   /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

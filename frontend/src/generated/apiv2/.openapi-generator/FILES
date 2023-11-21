@@ -18,6 +18,7 @@ models/CreateCertificatePolicyRequest.ts
 models/CreateKeyPolicyRequest.ts
 models/EnrollCertificateRequest.ts
 models/ErrorResult.ts
+models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeySpec.ts

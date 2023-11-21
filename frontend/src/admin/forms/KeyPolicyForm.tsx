@@ -1,17 +1,16 @@
+import { useRequest } from "ahooks";
+import { Button, Form, Input } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
+import { useEffect } from "react";
 import {
-  AdminApi,
-  CreateKeyPolicyRequest,
-  JsonWebKeyCurveName,
-  JsonWebKeyOperation,
-  JsonWebKeyType,
-  KeyPolicy,
+    AdminApi,
+    CreateKeyPolicyRequest,
+    JsonWebKeyOperation,
+    JsonWebKeyType,
+    KeyPolicy
 } from "../../generated/apiv2";
-import { useContext, useEffect } from "react";
-import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Checkbox, Form, Input, Radio } from "antd";
+import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
 import { KeyExportableFormItem, KeySpecFormItems } from "./PolicyFormItems";
 
 export function KeyPolicyForm({
@@ -74,7 +73,7 @@ export function KeyPolicyForm({
         crvName={["keySpec", "crv"]}
         keyOpsName={["keySpec", "keyOps"]}
       />
-      <KeyExportableFormItem<CreateKeyPolicyRequest> name={"ext"} />
+      <KeyExportableFormItem<CreateKeyPolicyRequest> name={"exportable"} />
       <Form.Item<CreateKeyPolicyRequest> label="Expiry time" name="expiryTime">
         <Input placeholder="P1M" />
       </Form.Item>

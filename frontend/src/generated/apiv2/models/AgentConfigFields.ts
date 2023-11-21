@@ -21,6 +21,12 @@ import { exists, mapValues } from '../runtime';
 export interface AgentConfigFields {
     /**
      * 
+     * @type {Array<string>}
+     * @memberof AgentConfigFields
+     */
+    envGuards: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof AgentConfigFields
      */
@@ -32,6 +38,7 @@ export interface AgentConfigFields {
  */
 export function instanceOfAgentConfigFields(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "envGuards" in value;
     isInstance = isInstance && "keyCredentialsCertificatePolicyId" in value;
 
     return isInstance;
@@ -47,6 +54,7 @@ export function AgentConfigFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'envGuards': json['envGuards'],
         'keyCredentialsCertificatePolicyId': json['keyCredentialsCertificatePolicyId'],
     };
 }
@@ -60,6 +68,7 @@ export function AgentConfigFieldsToJSON(value?: AgentConfigFields | null): any {
     }
     return {
         
+        'envGuards': value.envGuards,
         'keyCredentialsCertificatePolicyId': value.keyCredentialsCertificatePolicyId,
     };
 }

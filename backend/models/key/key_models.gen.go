@@ -5,17 +5,27 @@ package keymodels
 
 import (
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
+	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
+)
+
+// Defines values for KeyStatus.
+const (
+	Active   KeyStatus = "Active"
+	Inactive KeyStatus = "Inactive"
 )
 
 // CreateKeyPolicyRequest defines model for CreateKeyPolicyRequest.
 type CreateKeyPolicyRequest struct {
 	DisplayName string `json:"displayName,omitempty"`
 	ExpiryTime  string `json:"expiryTime,omitempty"`
-	Extractable *bool  `json:"ext,omitempty"`
+	Exportable  *bool  `json:"exportable,omitempty"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec *JsonWebKeySpec `json:"keySpec,omitempty"`
 }
+
+// JsonWebKey defines model for JsonWebKey.
+type JsonWebKey = cloudkey.JsonWebKeyBase
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
 type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
@@ -41,17 +51,45 @@ type JsonWebSignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm
 // JsonWebSignatureKey defines model for JsonWebSignatureKey.
 type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
 
+// Key defines model for Key.
+type Key = keyComposed
+
+// KeyFields defines model for KeyFields.
+type KeyFields struct {
+	Exportable   bool                      `json:"exportable"`
+	Identififier string                    `json:"identififier"`
+	Jwk          JsonWebKey                `json:"jwk"`
+	Nbf          *externalRef0.NumericDate `json:"nbf,omitempty"`
+
+	// Sid Key Vault Secret ID
+	KeyVaultSecretID string `json:"sid,omitempty"`
+}
+
 // KeyPolicy defines model for KeyPolicy.
 type KeyPolicy = keyPolicyComposed
 
 // KeyPolicyFields defines model for KeyPolicyFields.
 type KeyPolicyFields struct {
-	ExpiryTime  string `json:"expiryTime,omitempty"`
-	Extractable *bool  `json:"ext,omitempty"`
+	ExpiryTime string `json:"expiryTime,omitempty"`
+	Exportable bool   `json:"exportable"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec JsonWebKeySpec `json:"keySpec"`
 }
+
+// KeyRef defines model for KeyRef.
+type KeyRef = keyRefComposed
+
+// KeyRefFields defines model for KeyRefFields.
+type KeyRefFields struct {
+	Exp              *externalRef0.NumericDate `json:"exp,omitempty"`
+	Iat              externalRef0.NumericDate  `json:"iat"`
+	PolicyIdentifier string                    `json:"policyIdentifier"`
+	Status           KeyStatus                 `json:"status"`
+}
+
+// KeyStatus defines model for KeyStatus.
+type KeyStatus string
 
 // KeyPolicyResponse defines model for KeyPolicyResponse.
 type KeyPolicyResponse = KeyPolicy

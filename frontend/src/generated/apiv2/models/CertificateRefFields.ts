@@ -37,7 +37,7 @@ export interface CertificateRefFields {
      * @type {CertificateStatus}
      * @memberof CertificateRefFields
      */
-    status?: CertificateStatus;
+    status: CertificateStatus;
     /**
      * 
      * @type {number}
@@ -64,6 +64,7 @@ export interface CertificateRefFields {
 export function instanceOfCertificateRefFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "thumbprint" in value;
+    isInstance = isInstance && "status" in value;
     isInstance = isInstance && "exp" in value;
     isInstance = isInstance && "policyIdentifier" in value;
 
@@ -81,7 +82,7 @@ export function CertificateRefFieldsFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'thumbprint': json['thumbprint'],
-        'status': !exists(json, 'status') ? undefined : CertificateStatusFromJSON(json['status']),
+        'status': CertificateStatusFromJSON(json['status']),
         'iat': !exists(json, 'iat') ? undefined : json['iat'],
         'exp': json['exp'],
         'policyIdentifier': json['policyIdentifier'],

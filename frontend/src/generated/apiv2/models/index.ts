@@ -17,6 +17,7 @@ export * from './CreateCertificatePolicyRequest';
 export * from './CreateKeyPolicyRequest';
 export * from './EnrollCertificateRequest';
 export * from './ErrorResult';
+export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeySpec';

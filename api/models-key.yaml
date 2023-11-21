@@ -85,7 +85,7 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - kty
-    JsonWebSignatureKey:
+    JsonWebKey:
       allOf:
         - $ref: "#/components/schemas/JsonWebKeySpec"
         - type: object
@@ -119,6 +119,13 @@ components:
                 type: string
               x-go-type-skip-optional-pointer: true
               x-go-name: CertificateChain
+        - x-go-type: cloudkey.JsonWebKeyBase
+          x-go-type-import:
+            name: cloudkey
+            path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+    JsonWebSignatureKey:
+      allOf:
+        - $ref: "#/components/schemas/JsonWebKey"
         - x-go-type: cloudkey.JsonWebSignatureKey
           x-go-type-import:
             name: cloudkey
@@ -133,15 +140,68 @@ components:
       properties:
         keySpec:
           $ref: "#/components/schemas/JsonWebKeySpec"
-        ext:
+        exportable:
           type: boolean
-          x-go-name: Extractable
         expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true
       required:
         - keySpec
-        - extractable
+        - exportable
+    KeyRef:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/KeyRefFields"
+        - x-go-type: keyRefComposed
+    KeyStatus:
+      type: string
+      enum:
+        - Active
+        - Inactive
+    KeyRefFields:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/KeyStatus"
+        iat:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: Created
+        exp:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: NotAfter
+        policyIdentifier:
+          type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - status
+        - iat
+        - policyIdentifier
+    Key:
+      allOf:
+        - $ref: "#/components/schemas/KeyRef"
+        - $ref: "#/components/schemas/KeyFields"
+        - x-go-type: keyComposed
+    KeyFields:
+      type: object
+      properties:
+        identififier:
+          type: string
+        nbf:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+          x-go-name: NotBefore
+        jwk:
+          $ref: "#/components/schemas/JsonWebKey"
+        exportable:
+          type: boolean
+        sid:
+          description: Key Vault Secret ID
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: KeyVaultSecretID
+      required:
+        - identififier
+        - jwk
+        - exportable
     CreateKeyPolicyRequest:
       type: object
       properties:
@@ -150,9 +210,8 @@ components:
           x-go-type-skip-optional-pointer: true
         keySpec:
           $ref: "#/components/schemas/JsonWebKeySpec"
-        ext:
+        exportable:
           type: boolean
-          x-go-name: Extractable
         expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true

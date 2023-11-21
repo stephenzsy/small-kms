@@ -37,7 +37,7 @@ export interface KeyPolicyFields {
      * @type {boolean}
      * @memberof KeyPolicyFields
      */
-    ext?: boolean;
+    exportable: boolean;
     /**
      * 
      * @type {string}
@@ -52,6 +52,7 @@ export interface KeyPolicyFields {
 export function instanceOfKeyPolicyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "keySpec" in value;
+    isInstance = isInstance && "exportable" in value;
 
     return isInstance;
 }
@@ -67,7 +68,7 @@ export function KeyPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: boo
     return {
         
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'ext': !exists(json, 'ext') ? undefined : json['ext'],
+        'exportable': json['exportable'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
     };
 }
@@ -82,7 +83,7 @@ export function KeyPolicyFieldsToJSON(value?: KeyPolicyFields | null): any {
     return {
         
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'ext': value.ext,
+        'exportable': value.exportable,
         'expiryTime': value.expiryTime,
     };
 }
