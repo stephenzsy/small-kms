@@ -56,11 +56,11 @@ func SyncMemberOfInternal(c ctx.RequestContext, nsID string, groupID string) (*r
 
 	// check profiles
 
-	memberProfile, err := SyncProfileInternal(c, nsID)
+	memberProfile, err := SyncProfileInternal(c, nsID, gclient)
 	if err != nil {
 		return bad(err)
 	}
-	grpProfile, err := SyncProfileInternal(c, groupID)
+	grpProfile, err := SyncProfileInternal(c, groupID, gclient)
 	if err != nil {
 		return bad(err)
 	}

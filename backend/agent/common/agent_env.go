@@ -12,27 +12,36 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/managedapp"
+)
+
+type AgentSlot string
+
+const (
+	AgentSlotPrimary   AgentSlot = "primary"
+	AgentSlotSecondary AgentSlot = "secondary"
+
+	LegacyAgentSlotPrimary   AgentSlot = "server"
+	LegacyAgentSlotSecondary AgentSlot = "launcher"
 )
 
 type AgentEnv struct {
 	common.EnvService
-	mode managedapp.AgentMode
+	slot AgentSlot
 
 	certCred        *azidentity.ClientCertificateCredential
 	agentClient     *agentclient.ClientWithResponses
 	azSecretsClient *azsecrets.Client
 }
 
-func NewAgentEnv(envService common.EnvService, mode managedapp.AgentMode) (env *AgentEnv, err error) {
+func NewAgentEnv(envService common.EnvService, mode AgentSlot) (env *AgentEnv, err error) {
 	env = &AgentEnv{
 		EnvService: envService,
-		mode:       mode,
+		slot:       mode,
 	}
 	return env, nil
 }
 
-func parseCertificateKeyPair(filename string) (cert *x509.Certificate, key crypto.PrivateKey, err error) {
+func ParseCertificateKeyPair(filename string) (cert *x509.Certificate, key crypto.PrivateKey, err error) {
 	bad := func(e error) (*x509.Certificate, crypto.PrivateKey, error) {
 		return nil, nil, e
 	}
@@ -66,7 +75,7 @@ func (ae *AgentEnv) CertCred() (*azidentity.ClientCertificateCredential, error) 
 		return nil, ae.ErrMissing(common.EnvKeyAzClientID)
 	} else if clientCertPath, ok := ae.RequireAbsPath(common.EnvKeyAzClientCertPath, common.IdentityEnvVarPrefixAgent); !ok {
 		return nil, ae.ErrMissing(common.EnvKeyAzClientCertPath)
-	} else if cert, key, err := parseCertificateKeyPair(clientCertPath); err != nil {
+	} else if cert, key, err := ParseCertificateKeyPair(clientCertPath); err != nil {
 		return nil, err
 	} else if cred, err := azidentity.NewClientCertificateCredential(
 		tenantID,

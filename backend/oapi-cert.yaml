@@ -153,36 +153,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertPolicyResponse"
-  /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-    post:
-      tags:
-        - admin
-        - agentclient
-      parameters:
-        - in: query
-          name: dryRun
-          required: false
-          schema:
-            type: boolean
-      operationId: EnrollCertificate
-      summary: Enroll certificate
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EnrollCertificateRequest"
-      responses:
-        200:
-          description: Key spec reponse
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Certificate"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

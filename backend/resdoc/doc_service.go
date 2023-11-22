@@ -24,6 +24,7 @@ type DocService interface {
 	NewQueryItemsPager(query string, partitionKey PartitionKey, o *azcosmos.QueryOptions) *azruntime.Pager[azcosmos.QueryItemsResponse]
 	Delete(context.Context, DocIdentifier, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 	Patch(context.Context, ResourceDocument, azcosmos.PatchOperations, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
+	PatchByIdentifier(context.Context, DocIdentifier, azcosmos.PatchOperations, *azcosmos.ItemOptions) (azcosmos.ItemResponse, error)
 }
 
 type azcosmosSingleContainerDocService struct {
@@ -50,6 +51,14 @@ func (s *azcosmosSingleContainerDocService) Patch(c context.Context, doc Resourc
 		doc.setTimestamp(ts)
 	}
 	return resp, nil
+}
+
+func (s *azcosmosSingleContainerDocService) PatchByIdentifier(
+	c context.Context, identifier DocIdentifier, patchOps azcosmos.PatchOperations, opts *azcosmos.ItemOptions) (azcosmos.ItemResponse, error) {
+	partitionKey := azcosmos.NewPartitionKeyString(identifier.PartitionKey.String())
+	nextUpdatedBy := auth.GetAuthIdentity(c).ClientPrincipalDisplayName()
+	patchOps.AppendSet("/updatedBy", nextUpdatedBy)
+	return s.client.PatchItem(c, partitionKey, identifier.ID, patchOps, opts)
 }
 
 // Delete implements DocService.

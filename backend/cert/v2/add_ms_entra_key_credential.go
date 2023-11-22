@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/applicationswithappid"
 	gmodels "github.com/microsoftgraph/msgraph-sdk-go/models"
-	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
+	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -22,26 +23,38 @@ import (
 )
 
 // AddMsEntraKeyCredential implements admin.ServerInterface.
-func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider models.NamespaceProvider, nsID string, id string, params admin.AddMsEntraKeyCredentialParams) error {
+func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider models.NamespaceProvider, nsID string, id string) error {
 	c := ec.(ctx.RequestContext)
+
+	if namespaceProvider != models.NamespaceProviderServicePrincipal {
+		return base.ErrResponseStatusNotFound
+	}
+
 	nsID = ns.ResolveMeNamespace(c, nsID)
+	if _, authOk := authz.Authorize(c, authz.AllowAdmin, authz.AllowSelf(nsID)); !authOk {
+		return base.ErrResponseStatusForbidden
+	}
+
 	reqIdentity := auth.GetAuthIdentity(c)
 	requesterID := reqIdentity.ClientPrincipalID().String()
-	var requesterProfile *profile.ProfileDoc
+	var namespaceProfile *profile.ProfileDoc
 	var err error
-	useUpdate := false
-	var sp gmodels.ServicePrincipalable
-	if params.OnBehalfOfApplication != nil && *params.OnBehalfOfApplication && reqIdentity.HasAdminRole() {
-		c, requesterProfile, sp, err = profile.SyncServicePrincipalProfile(c, nsID, []string{"keyCredentials"})
+	var gclient *msgraphsdkgo.GraphServiceClient
+
+	if reqIdentity.ClientPrincipalID().String() == nsID {
+		// we need client ID
+		gclient = graph.GetServiceMsGraphClient(c)
+
+		namespaceProfile, err = profile.SyncProfileInternal(c, nsID, gclient)
 		if err != nil {
 			return err
 		}
-		nsID = requesterProfile.ID
-		namespaceProvider = models.NamespaceProviderServicePrincipal
-		requesterID = nsID
-		useUpdate = true
 	} else {
-		c, requesterProfile, sp, err = profile.SyncServicePrincipalProfile(c, nsID, []string{"keyCredentials"})
+		c, gclient, err = graph.WithDelegatedMsGraphClient(c)
+		if err != nil {
+			return err
+		}
+		c, namespaceProfile, _, err = profile.SyncServicePrincipalProfile(c, nsID, []string{"keyCredentials"})
 		if err != nil {
 			return err
 		}
@@ -49,11 +62,6 @@ func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider mo
 
 	if requesterID != nsID {
 		return base.ErrResponseStatusForbidden
-	}
-
-	req := certmodels.AddMsEntraKeyCredentialRequest{}
-	if err := c.Bind(&req); err != nil {
-		return err
 	}
 
 	cert, err := getCertificateInternal(c, namespaceProvider, nsID, id)
@@ -67,19 +75,11 @@ func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider mo
 		return base.ErrResponseStatusBadRequest
 	}
 
-	if useUpdate {
-		return updateApplicationWithCert(c, sp, cert, req)
-	}
-
-	return nil
+	return updateApplicationWithCert(c, namespaceProfile, cert, gclient)
 }
 
-func updateApplicationWithCert(c ctx.RequestContext, sp gmodels.ServicePrincipalable, cert *CertDoc, req certmodels.AddMsEntraKeyCredentialRequest) error {
-	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
-	if err != nil {
-		return err
-	}
-	app, err := gclient.ApplicationsWithAppId(sp.GetAppId()).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
+func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc, cert *CertDoc, gclient *msgraphsdkgo.GraphServiceClient) error {
+	app, err := gclient.ApplicationsWithAppId(profile.AppId).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
 		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId", "keyCredentials"},
 		},

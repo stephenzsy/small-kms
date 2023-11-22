@@ -111,10 +111,6 @@ export default function CertificatePage() {
           id,
           namespaceId,
           namespaceProvider,
-          onBehalfOfApplication: true,
-          addMsEntraKeyCredentialRequest: {
-            proofJwt: "",
-          },
         });
       }
     },

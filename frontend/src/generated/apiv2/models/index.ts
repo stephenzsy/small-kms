@@ -1,6 +1,5 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './AddMsEntraKeyCredentialRequest';
 export * from './AgentConfig';
 export * from './AgentConfigBundle';
 export * from './AgentConfigIdentity';

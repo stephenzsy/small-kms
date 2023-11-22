@@ -7,7 +7,6 @@ import (
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
-	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type ConfigiManagerState int
@@ -43,7 +42,7 @@ func (m *ConfigManager) PullConfig(c context.Context) (AgentServerConfiguration,
 	return m.configProcessor.ProcessUpdate(c, resp.JSON200)
 }
 
-func NewConfigManager(envSvc common.EnvService, mode managedapp.AgentMode) (*ConfigManager, error) {
+func NewConfigManager(envSvc common.EnvService, mode agentcommon.AgentSlot) (*ConfigManager, error) {
 	configDir, ok := envSvc.Require(agentcommon.EnvKeyAgentConfigDir, common.IdentityEnvVarPrefixAgent)
 	if !ok {
 		return nil, envSvc.ErrMissing(agentcommon.EnvKeyAgentConfigDir)

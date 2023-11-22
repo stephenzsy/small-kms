@@ -40,16 +40,16 @@ export interface AgentConfigBundle {
     envGuards: Array<string>;
     /**
      * 
-     * @type {Array<AgentConfigRef>}
+     * @type {AgentConfigRef}
      * @memberof AgentConfigBundle
      */
-    items?: Array<AgentConfigRef>;
+    identity?: AgentConfigRef;
     /**
      * 
      * @type {Date}
      * @memberof AgentConfigBundle
      */
-    expires?: Date;
+    expires: Date;
 }
 
 /**
@@ -59,6 +59,7 @@ export function instanceOfAgentConfigBundle(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "id" in value;
     isInstance = isInstance && "envGuards" in value;
+    isInstance = isInstance && "expires" in value;
 
     return isInstance;
 }
@@ -75,8 +76,8 @@ export function AgentConfigBundleFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'id': json['id'],
         'envGuards': json['envGuards'],
-        'items': !exists(json, 'items') ? undefined : ((json['items'] as Array<any>).map(AgentConfigRefFromJSON)),
-        'expires': !exists(json, 'expires') ? undefined : (new Date(json['expires'])),
+        'identity': !exists(json, 'identity') ? undefined : AgentConfigRefFromJSON(json['identity']),
+        'expires': (new Date(json['expires'])),
     };
 }
 
@@ -91,8 +92,8 @@ export function AgentConfigBundleToJSON(value?: AgentConfigBundle | null): any {
         
         'id': value.id,
         'envGuards': value.envGuards,
-        'items': value.items === undefined ? undefined : ((value.items as Array<any>).map(AgentConfigRefToJSON)),
-        'expires': value.expires === undefined ? undefined : (value.expires.toISOString()),
+        'identity': AgentConfigRefToJSON(value.identity),
+        'expires': (value.expires.toISOString()),
     };
 }
 

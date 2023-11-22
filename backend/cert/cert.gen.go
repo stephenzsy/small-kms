@@ -33,12 +33,6 @@ const (
 	CertificateFlagServerAuth CertificateFlag = "serverAuth"
 )
 
-// Defines values for EnrollmentType.
-const (
-	EnrollmentTypeGroupMember             EnrollmentType = "group-memeber"
-	EnrollmentTypeMsEntraClientCredential EnrollmentType = "ms-entra-client-credential"
-)
-
 // AzureKeyvaultResourceCategory defines model for AzureKeyvaultResourceCategory.
 type AzureKeyvaultResourceCategory string
 
@@ -118,21 +112,6 @@ type CertificateSubject struct {
 	CommonName string `json:"commonName"`
 }
 
-// EnrollCertificateRequest defines model for EnrollCertificateRequest.
-type EnrollCertificateRequest struct {
-	EnrollmentType EnrollmentType `json:"enrollmentType"`
-
-	// Force Force enrollment, will clear existing credential on graph, initial enrollment must be forced
-	Force *bool `json:"force,omitempty"`
-
-	// Proof Signed JWT to show proof of possession of the private key
-	Proof     string                           `json:"proof"`
-	PublicKey externalRef1.JsonWebSignatureKey `json:"publicKey"`
-}
-
-// EnrollmentType defines model for EnrollmentType.
-type EnrollmentType string
-
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
 	DNSNames    []string `json:"dnsNames,omitempty"`
@@ -146,11 +125,6 @@ type CertPolicyResponse = CertPolicy
 // CertificateResponse defines model for CertificateResponse.
 type CertificateResponse = Certificate
 
-// EnrollCertificateParams defines parameters for EnrollCertificate.
-type EnrollCertificateParams struct {
-	DryRun *bool `form:"dryRun,omitempty" json:"dryRun,omitempty"`
-}
-
 // AddKeyVaultRoleAssignmentParams defines parameters for AddKeyVaultRoleAssignment.
 type AddKeyVaultRoleAssignmentParams struct {
 	RoleDefinitionId string `form:"roleDefinitionId" json:"roleDefinitionId"`
@@ -161,9 +135,6 @@ type ListCertificatesParams struct {
 	// PolicyId Policy ID
 	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
 }
-
-// EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
-type EnrollCertificateJSONRequestBody = EnrollCertificateRequest
 
 // PutCertificateRuleIssuerJSONRequestBody defines body for PutCertificateRuleIssuer for application/json ContentType.
 type PutCertificateRuleIssuerJSONRequestBody = CertificateRuleIssuer
@@ -179,9 +150,6 @@ type ServerInterface interface {
 	// Get cert policy
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId})
 	GetCertPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Enroll certificate
-	// (POST /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert)
-	EnrollCertificate(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params EnrollCertificateParams) error
 	// List Key Vault role assignments
 	// (GET /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory})
 	ListKeyVaultRoleAssignments(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, resourceCategory AzureKeyvaultResourceCategory) error
@@ -273,49 +241,6 @@ func (w *ServerInterfaceWrapper) GetCertPolicy(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetCertPolicy(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
-// EnrollCertificate converts echo context to params.
-func (w *ServerInterfaceWrapper) EnrollCertificate(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params EnrollCertificateParams
-	// ------------- Optional query parameter "dryRun" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "dryRun", ctx.QueryParams(), &params.DryRun)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter dryRun: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.EnrollCertificate(ctx, namespaceKind, namespaceId, resourceId, params)
 	return err
 }
 
@@ -649,7 +574,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy", wrapper.ListCertPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId", wrapper.GetCertPolicy)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/enroll-cert", wrapper.EnrollCertificate)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.ListKeyVaultRoleAssignments)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/cert-policy/:resourceId/keyvault-role-assignments/:resourceCategory", wrapper.AddKeyVaultRoleAssignment)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/cert-rule/issuer", wrapper.GetCertificateRuleIssuer)

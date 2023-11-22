@@ -27,10 +27,10 @@ type AgentConfig struct {
 
 // AgentConfigBundle defines model for AgentConfigBundle.
 type AgentConfigBundle struct {
-	EnvGuards []string          `json:"envGuards"`
-	Expires   *time.Time        `json:"expires,omitempty"`
-	Id        string            `json:"id"`
-	Items     *[]AgentConfigRef `json:"items,omitempty"`
+	EnvGuards []string        `json:"envGuards"`
+	Expires   time.Time       `json:"expires"`
+	Id        string          `json:"id"`
+	Identity  *AgentConfigRef `json:"identity,omitempty"`
 }
 
 // AgentConfigIdentity defines model for AgentConfigIdentity.

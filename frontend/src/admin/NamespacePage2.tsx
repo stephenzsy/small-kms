@@ -16,6 +16,7 @@ import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 import { DefaultOptionType } from "antd/es/select";
 import { useMemo } from "react";
 import { NamespacePoliciesTableCard } from "./tables/NamespacePoliciesTableCard";
+import type { DirectoryObject } from "@microsoft/microsoft-graph-types";
 
 function GroupMembershipSyncForm({ userId }: { userId: string }) {
   const [form] = useForm<{ groupId: string }>();
@@ -26,10 +27,12 @@ function GroupMembershipSyncForm({ userId }: { userId: string }) {
     loading: dirObjLoading,
   } = useRequest(
     async () => {
-      return await gclient
-        .api(`/users/${userId}/memberOf`)
-        .select(["id", "displayName"])
-        .get();
+      return (
+        await gclient
+          .api(`/users/${userId}/memberOf`)
+          .select(["id", "displayName"])
+          .get()
+      ).value as DirectoryObject[];
     },
     { manual: true }
   );
@@ -43,7 +46,7 @@ function GroupMembershipSyncForm({ userId }: { userId: string }) {
   );
 
   const dirOpjOptions = useMemo<DefaultOptionType[] | undefined>(() => {
-    return dirObjects?.value.map((obj: any) => ({
+    return dirObjects?.map((obj: any) => ({
       label: obj.displayName,
       value: obj.id,
     }));

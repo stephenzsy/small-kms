@@ -39,22 +39,23 @@ func (*ProfileServer) SyncProfile(ec echo.Context, namespaceProvider models.Name
 		return base.ErrResponseStatusBadRequest
 	}
 
-	doc, err := SyncProfileInternal(c, namespaceId)
+	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
+	if err != nil {
+		return err
+	}
+
+	doc, err := SyncProfileInternal(c, namespaceId, gclient)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, doc.ToModel())
 }
 
-func SyncProfileInternal(c ctx.RequestContext, namespaceId string) (*ProfileDoc, error) {
+func SyncProfileInternal(c ctx.RequestContext, namespaceId string, gclient *msgraphsdkgo.GraphServiceClient) (*ProfileDoc, error) {
 	bad := func(e error) (*ProfileDoc, error) {
 		return nil, e
 	}
 
-	c, gclient, err := graph.WithDelegatedMsGraphClient(c)
-	if err != nil {
-		return bad(err)
-	}
 	doc := &ProfileDoc{
 		ResourceDoc: resdoc.ResourceDoc{
 			PartitionKey: resdoc.PartitionKey{
@@ -123,7 +124,6 @@ func SyncServicePrincipalProfileByAppID(c ctx.RequestContext, appID string, addi
 			},
 		})
 	})
-
 }
 
 func syncServicePrincipalProfile(c ctx.RequestContext, additionalSelects []string,

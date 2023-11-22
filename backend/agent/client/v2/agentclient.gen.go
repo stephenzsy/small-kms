@@ -125,6 +125,12 @@ type ClientInterface interface {
 	// GetAgent request
 	GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAgentConfigBundle request
+	GetAgentConfigBundle(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAgentConfig request
+	GetAgentConfig(ctx context.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCertificatePolicy request
 	GetCertificatePolicy(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -132,10 +138,37 @@ type ClientInterface interface {
 	EnrollCertificateWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EnrollCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AddMsEntraKeyCredential request
+	AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAgentConfigBundle(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConfigBundleRequest(c.Server, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAgentConfig(ctx context.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConfigRequest(c.Server, namespaceId, configName)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +215,18 @@ func (c *Client) EnrollCertificate(ctx context.Context, namespaceProvider Namesp
 	return c.Client.Do(req)
 }
 
+func (c *Client) AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddMsEntraKeyCredentialRequest(c.Server, namespaceProvider, namespaceId, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // NewGetAgentRequest generates requests for GetAgent
 func NewGetAgentRequest(server string, id IdParameter) (*http.Request, error) {
 	var err error
@@ -199,6 +244,81 @@ func NewGetAgentRequest(server string, id IdParameter) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/v2/agents/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAgentConfigBundleRequest generates requests for GetAgentConfigBundle
+func NewGetAgentConfigBundleRequest(server string, namespaceId NamespaceIdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAgentConfigRequest generates requests for GetAgentConfig
+func NewGetAgentConfigRequest(server string, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "configName", runtime.ParamLocationPath, configName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-config/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -347,6 +467,54 @@ func NewEnrollCertificateRequestWithBody(server string, namespaceProvider Namesp
 	return req, nil
 }
 
+// NewAddMsEntraKeyCredentialRequest generates requests for AddMsEntraKeyCredential
+func NewAddMsEntraKeyCredentialRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/%s/%s/certificates/%s/ms-entra-key-credential", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -393,6 +561,12 @@ type ClientWithResponsesInterface interface {
 	// GetAgentWithResponse request
 	GetAgentWithResponse(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentResponse, error)
 
+	// GetAgentConfigBundleWithResponse request
+	GetAgentConfigBundleWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigBundleResponse, error)
+
+	// GetAgentConfigWithResponse request
+	GetAgentConfigWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName, reqEditors ...RequestEditorFn) (*GetAgentConfigResponse, error)
+
 	// GetCertificatePolicyWithResponse request
 	GetCertificatePolicyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetCertificatePolicyResponse, error)
 
@@ -400,6 +574,9 @@ type ClientWithResponsesInterface interface {
 	EnrollCertificateWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 
 	EnrollCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
+
+	// AddMsEntraKeyCredentialWithResponse request
+	AddMsEntraKeyCredentialWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AddMsEntraKeyCredentialResponse, error)
 }
 
 type GetAgentResponse struct {
@@ -419,6 +596,52 @@ func (r GetAgentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAgentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAgentConfigBundleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef1.AgentConfigBundle
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentConfigBundleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentConfigBundleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAgentConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef1.AgentConfigResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -472,6 +695,28 @@ func (r EnrollCertificateResponse) StatusCode() int {
 	return 0
 }
 
+type AddMsEntraKeyCredentialResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r AddMsEntraKeyCredentialResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AddMsEntraKeyCredentialResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetAgentWithResponse request returning *GetAgentResponse
 func (c *ClientWithResponses) GetAgentWithResponse(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentResponse, error) {
 	rsp, err := c.GetAgent(ctx, id, reqEditors...)
@@ -479,6 +724,24 @@ func (c *ClientWithResponses) GetAgentWithResponse(ctx context.Context, id IdPar
 		return nil, err
 	}
 	return ParseGetAgentResponse(rsp)
+}
+
+// GetAgentConfigBundleWithResponse request returning *GetAgentConfigBundleResponse
+func (c *ClientWithResponses) GetAgentConfigBundleWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigBundleResponse, error) {
+	rsp, err := c.GetAgentConfigBundle(ctx, namespaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConfigBundleResponse(rsp)
+}
+
+// GetAgentConfigWithResponse request returning *GetAgentConfigResponse
+func (c *ClientWithResponses) GetAgentConfigWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName, reqEditors ...RequestEditorFn) (*GetAgentConfigResponse, error) {
+	rsp, err := c.GetAgentConfig(ctx, namespaceId, configName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConfigResponse(rsp)
 }
 
 // GetCertificatePolicyWithResponse request returning *GetCertificatePolicyResponse
@@ -507,6 +770,15 @@ func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context,
 	return ParseEnrollCertificateResponse(rsp)
 }
 
+// AddMsEntraKeyCredentialWithResponse request returning *AddMsEntraKeyCredentialResponse
+func (c *ClientWithResponses) AddMsEntraKeyCredentialWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AddMsEntraKeyCredentialResponse, error) {
+	rsp, err := c.AddMsEntraKeyCredential(ctx, namespaceProvider, namespaceId, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddMsEntraKeyCredentialResponse(rsp)
+}
+
 // ParseGetAgentResponse parses an HTTP response from a GetAgentWithResponse call
 func ParseGetAgentResponse(rsp *http.Response) (*GetAgentResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -523,6 +795,72 @@ func ParseGetAgentResponse(rsp *http.Response) (*GetAgentResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest externalRef1.AgentResposne
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAgentConfigBundleResponse parses an HTTP response from a GetAgentConfigBundleWithResponse call
+func ParseGetAgentConfigBundleResponse(rsp *http.Response) (*GetAgentConfigBundleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentConfigBundleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef1.AgentConfigBundle
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAgentConfigResponse parses an HTTP response from a GetAgentConfigWithResponse call
+func ParseGetAgentConfigResponse(rsp *http.Response) (*GetAgentConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef1.AgentConfigResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -607,6 +945,32 @@ func ParseEnrollCertificateResponse(rsp *http.Response) (*EnrollCertificateRespo
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAddMsEntraKeyCredentialResponse parses an HTTP response from a AddMsEntraKeyCredentialWithResponse call
+func ParseAddMsEntraKeyCredentialResponse(rsp *http.Response) (*AddMsEntraKeyCredentialResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AddMsEntraKeyCredentialResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 

@@ -54,12 +54,6 @@ type GetCertificateParams struct {
 	IncludeJwk *bool `form:"includeJwk,omitempty" json:"includeJwk,omitempty"`
 }
 
-// AddMsEntraKeyCredentialParams defines parameters for AddMsEntraKeyCredential.
-type AddMsEntraKeyCredentialParams struct {
-	// OnBehalfOfApplication add entra key on onBehalfOfApplication
-	OnBehalfOfApplication *bool `form:"onBehalfOfApplication,omitempty" json:"onBehalfOfApplication,omitempty"`
-}
-
 // ListKeysParams defines parameters for ListKeys.
 type ListKeysParams struct {
 	// PolicyId Policy ID
@@ -86,9 +80,6 @@ type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 
 // PutCertificatePolicyIssuerJSONRequestBody defines body for PutCertificatePolicyIssuer for application/json ContentType.
 type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields
-
-// AddMsEntraKeyCredentialJSONRequestBody defines body for AddMsEntraKeyCredential for application/json ContentType.
-type AddMsEntraKeyCredentialJSONRequestBody = externalRef2.AddMsEntraKeyCredentialRequest
 
 // PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
 type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
@@ -157,7 +148,7 @@ type ServerInterface interface {
 	GetCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params GetCertificateParams) error
 	// Add certificate as MS Entra key credential
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential)
-	AddMsEntraKeyCredential(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params AddMsEntraKeyCredentialParams) error
+	AddMsEntraKeyCredential(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// List key policies
 	// (GET /v2/{namespaceProvider}/{namespaceId}/key-policies)
 	ListKeyPolicies(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
@@ -774,17 +765,8 @@ func (w *ServerInterfaceWrapper) AddMsEntraKeyCredential(ctx echo.Context) error
 
 	ctx.Set(BearerAuthScopes, []string{})
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AddMsEntraKeyCredentialParams
-	// ------------- Optional query parameter "onBehalfOfApplication" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "onBehalfOfApplication", ctx.QueryParams(), &params.OnBehalfOfApplication)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter onBehalfOfApplication: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AddMsEntraKeyCredential(ctx, namespaceProvider, namespaceId, id, params)
+	err = w.Handler.AddMsEntraKeyCredential(ctx, namespaceProvider, namespaceId, id)
 	return err
 }
 

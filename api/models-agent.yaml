@@ -27,19 +27,16 @@ components:
           type: array
           items:
             type: string
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/AgentConfigRef"
+        identity:
+          $ref: "#/components/schemas/AgentConfigRef"
         expires:
           type: string
           format: date-time
       required:
         - id
         - envGuards
-        - identity
         - version
-        - expire
+        - expires
     AgentConfigName:
       type: string
       enum:

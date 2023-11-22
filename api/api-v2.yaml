@@ -288,23 +288,11 @@ paths:
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/IdParameter"
     post:
-      parameters:
-        - in: query
-          name: onBehalfOfApplication
-          description: add entra key on onBehalfOfApplication
-          required: false
-          schema:
-            type: boolean
       tags:
         - admin
+        - agentclient
       operationId: AddMsEntraKeyCredential
       summary: Add certificate as MS Entra key credential
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "models-cert.yaml#/components/schemas/AddMsEntraKeyCredentialRequest"
       responses:
         204:
           $ref: "#/components/responses/NoContentResponse"
@@ -444,6 +432,7 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetAgentConfigBundle
       summary: Get agent config
       responses:
@@ -466,6 +455,7 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetAgentConfig
       summary: Get agent config
       responses:

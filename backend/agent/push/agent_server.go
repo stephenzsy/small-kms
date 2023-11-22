@@ -15,7 +15,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
-	"github.com/stephenzsy/small-kms/backend/managedapp"
 )
 
 type agentServer struct {
@@ -24,7 +23,7 @@ type agentServer struct {
 	dockerClient        dockerclient.APIClient
 	acrAuthProvider     *acr.DockerRegistryAuthProvider
 	acrImageRepo        string
-	mode                managedapp.AgentMode
+	mode                agentcommon.AgentSlot
 	radiusConfigManager *radius.RadiusConfigManager
 	launchedBy          string
 }
@@ -171,7 +170,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 
 var _ ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode managedapp.AgentMode, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager, dockerClient dockerclient.APIClient) (*agentServer, error) {
+func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager, dockerClient dockerclient.APIClient) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string

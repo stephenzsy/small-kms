@@ -165,7 +165,7 @@ func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
 	return jwk.cachedPrivateKey
 }
 
-func (jwk *JsonWebKey[T]) SetPublicKey(publicKey crypto.PublicKey) error {
+func (jwk *JsonWebKeyBase) setPublicKey(publicKey crypto.PublicKey) error {
 	switch publicKey := publicKey.(type) {
 	case *rsa.PublicKey:
 		jwk.KeyType = KeyTypeRSA
@@ -213,4 +213,13 @@ func SanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
 		result = append(result, op)
 	}
 	return result
+}
+
+func NewJsonWebKeyFromPublicKey(publicKey crypto.PublicKey) (*JsonWebKeyBase, error) {
+	jwk := &JsonWebKeyBase{}
+	err := jwk.setPublicKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
+	return jwk, nil
 }

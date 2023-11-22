@@ -2,24 +2,16 @@ package bootstrap
 
 import (
 	"context"
-	"crypto"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
-	"github.com/stephenzsy/small-kms/backend/base"
-	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
+	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
-	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
-	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
 type ServicePrincipalBootstraper struct {
@@ -66,11 +58,6 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPolicyID st
 		return err
 	}
 
-	privateKey, err := cryptoStore.GenerateRSAKeyPair(2048)
-	if err != nil {
-		return err
-	}
-
 	// nbf := jwt.NewNumericDate(time.Now())
 
 	// t := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
@@ -90,51 +77,9 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPolicyID st
 		return err
 	}
 
-	resp, err := client.EnrollCertificateWithResponse(c, models.NamespaceProviderServicePrincipal,
-		"me",
-		certPolicyID,
-		&agentclient.EnrollCertificateParams{
-			OnBehalfOfApplication: utils.ToPtr(true),
-		},
-		certmodels.EnrollCertificateRequest{
-
-			PublicKey: toJwk(privateKey.Public()),
-		})
-	if err != nil {
-		return err
-	}
-
-	pkBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
-	if err != nil {
-		return err
-	}
-
-	certFile, err := os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0400)
-	if err != nil {
-		return err
-	}
-	defer certFile.Close()
-
-	pem.Encode(certFile, &pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: pkBytes,
-	})
-
-	for _, cert := range resp.JSON201.Jwk.CertificateChain {
-		pem.Encode(certFile, &pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: cert,
-		})
-	}
-
-	return nil
-}
-
-func toJwk(k crypto.PublicKey) (jwk cloudkey.JsonWebSignatureKey) {
-	if rsaPubKey, ok := k.(*rsa.PublicKey); ok {
-		jwk.KeyType = cloudkey.KeyTypeRSA
-		jwk.N = base.Base64RawURLEncodedBytes(rsaPubKey.N.Bytes())
-		jwk.E = base.Base64RawURLEncodedBytes(big.NewInt(int64(rsaPubKey.E)).Bytes())
-	}
-	return
+	_, _, err = agentutils.EnrollCertificate(c, client, certPolicyID,
+		func(_ *certmodels.Certificate) (*os.File, error) {
+			return os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0400)
+		}, true)
+	return err
 }

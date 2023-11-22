@@ -20,11 +20,6 @@ type server struct {
 	*cert.CertServer
 }
 
-// GetAgentConfigBundle implements admin.ServerInterface.
-func (*server) GetAgentConfigBundle(ctx echo.Context, namespaceId string) error {
-	panic("unimplemented")
-}
-
 // GetKey implements admin.ServerInterface.
 func (*server) GetKey(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string, params admin.GetKeyParams) error {
 	panic("unimplemented")

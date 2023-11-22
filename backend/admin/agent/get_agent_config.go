@@ -6,6 +6,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
+	ns "github.com/stephenzsy/small-kms/backend/namespace"
 )
 
 // GetAgentConfig implements admin.ServerInterface.
@@ -13,7 +14,8 @@ func (*AgentAdminServer) GetAgentConfig(ec echo.Context, namespaceId string, con
 
 	c := ec.(ctx.RequestContext)
 
-	if !authz.AuthorizeAdminOnly(c) {
+	namespaceId = ns.ResolveMeNamespace(c, namespaceId)
+	if _, authOk := authz.Authorize(c, authz.AllowAdmin, authz.AllowSelf(namespaceId)); !authOk {
 		return base.ErrResponseStatusForbidden
 	}
 

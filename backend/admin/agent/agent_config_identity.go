@@ -3,6 +3,7 @@ package agentadmin
 import (
 	"errors"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert/v2"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -40,6 +41,16 @@ func putAgentConfigIdentity(c ctx.RequestContext, namespaceId string, param *age
 
 	docSvc := resdoc.GetDocService(c)
 	resp, err := docSvc.Upsert(c, doc, nil)
+	if err != nil {
+		return err
+	}
+
+	ops := azcosmos.PatchOperations{}
+	ops.AppendSet("/items/identity", &AgentConfigBundleDocItem{
+		Updated: doc.Timestamp.Time,
+		Version: doc.Version,
+	})
+	_, err = docSvc.PatchByIdentifier(c, bundleDocIdentifier(namespaceId), ops, nil)
 	if err != nil {
 		return err
 	}

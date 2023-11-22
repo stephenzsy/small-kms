@@ -31,19 +31,6 @@ func readCertRuleIssuerDoc(c context.Context, nsIdentifier base.NamespaceIdentif
 	return ruleDoc, err
 }
 
-func getNamespaceIssuerCert(c context.Context, nsIdentifier base.NamespaceIdentifier) (*CertDoc, error) {
-
-	ruleDoc, err := readCertRuleIssuerDoc(c, nsIdentifier)
-	if err != nil {
-		return nil, err
-	}
-
-	docSvc := base.GetAzCosmosCRUDService(c)
-	certDoc := new(CertDoc)
-	err = docSvc.Read(c, base.NewDocLocator(nsIdentifier.Kind(), nsIdentifier.ID(), base.ResourceKindCert, ruleDoc.CertificateID), certDoc, nil)
-	return certDoc, err
-}
-
 func apiGetCertRuleIssuer(c ctx.RequestContext) error {
 	nsCtx := ns.GetNSContext(c)
 	ruleDoc, err := readCertRuleIssuerDoc(c, base.NewNamespaceIdentifier(nsCtx.Kind(), nsCtx.ID()))

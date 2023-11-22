@@ -15,7 +15,6 @@
 
 import * as runtime from '../runtime';
 import type {
-  AddMsEntraKeyCredentialRequest,
   AgentConfig,
   AgentConfigBundle,
   AgentConfigName,
@@ -38,8 +37,6 @@ import type {
   Ref,
 } from '../models/index';
 import {
-    AddMsEntraKeyCredentialRequestFromJSON,
-    AddMsEntraKeyCredentialRequestToJSON,
     AgentConfigFromJSON,
     AgentConfigToJSON,
     AgentConfigBundleFromJSON,
@@ -82,12 +79,10 @@ import {
     RefToJSON,
 } from '../models/index';
 
-export interface AddMsEntraKeyCredentialOperationRequest {
+export interface AddMsEntraKeyCredentialRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
-    addMsEntraKeyCredentialRequest: AddMsEntraKeyCredentialRequest;
-    onBehalfOfApplication?: boolean;
 }
 
 export interface CreateAgentOperationRequest {
@@ -256,7 +251,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Add certificate as MS Entra key credential
      */
-    async addMsEntraKeyCredentialRaw(requestParameters: AddMsEntraKeyCredentialOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async addMsEntraKeyCredentialRaw(requestParameters: AddMsEntraKeyCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
             throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling addMsEntraKeyCredential.');
         }
@@ -269,19 +264,9 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling addMsEntraKeyCredential.');
         }
 
-        if (requestParameters.addMsEntraKeyCredentialRequest === null || requestParameters.addMsEntraKeyCredentialRequest === undefined) {
-            throw new runtime.RequiredError('addMsEntraKeyCredentialRequest','Required parameter requestParameters.addMsEntraKeyCredentialRequest was null or undefined when calling addMsEntraKeyCredential.');
-        }
-
         const queryParameters: any = {};
 
-        if (requestParameters.onBehalfOfApplication !== undefined) {
-            queryParameters['onBehalfOfApplication'] = requestParameters.onBehalfOfApplication;
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -296,7 +281,6 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: AddMsEntraKeyCredentialRequestToJSON(requestParameters.addMsEntraKeyCredentialRequest),
         }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
@@ -305,7 +289,7 @@ export class AdminApi extends runtime.BaseAPI {
     /**
      * Add certificate as MS Entra key credential
      */
-    async addMsEntraKeyCredential(requestParameters: AddMsEntraKeyCredentialOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+    async addMsEntraKeyCredential(requestParameters: AddMsEntraKeyCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.addMsEntraKeyCredentialRaw(requestParameters, initOverrides);
     }
 

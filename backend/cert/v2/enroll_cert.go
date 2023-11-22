@@ -17,6 +17,7 @@ import (
 	cloudkeyaz "github.com/stephenzsy/small-kms/backend/cloud/key/az"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/internal/graph"
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -25,7 +26,7 @@ import (
 )
 
 // EnrollCertificate implements admin.ServerInterface.
-func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, policyID string, params admin.EnrollCertificateParams) (err error) {
+func (s *CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, policyID string, params admin.EnrollCertificateParams) (err error) {
 	c := ec.(ctx.RequestContext)
 	reqIdentity := auth.GetAuthIdentity(c)
 	requesterID := reqIdentity.ClientPrincipalID()
@@ -54,7 +55,9 @@ func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.N
 	if requesterID == namespaceUUID {
 		// authroize self
 		if requesterProfile == nil {
-			requesterProfile, err = profile.SyncProfileInternal(c, requesterID.String())
+			gclient := graph.GetServiceMsGraphClient(c)
+
+			requesterProfile, err = profile.SyncProfileInternal(c, requesterID.String(), gclient)
 			if err != nil {
 				return err
 			}
@@ -184,6 +187,7 @@ func (d *certDocEnrollPending) init(
 		return err
 	}
 	signerCert, err := issuerPolicy.getIssuerCert(c)
+	d.Issuer = signerCert.Identifier()
 	if err != nil {
 		return err
 	} else if signerCert.Status != certmodels.CertificateStatusIssued {

@@ -157,7 +157,7 @@ func (d *certDocGeneratePending) init(
 		d.publicKey = ck.Public()
 		d.signer = ck
 		d.templateX509Cert.SignatureAlgorithm = d.JsonWebKey.Alg.X509SignatureAlgorithm()
-
+		d.Issuer = d.Identifier()
 	} else {
 		issuerPolicy, err := GetCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
 		if err != nil {
@@ -171,6 +171,7 @@ func (d *certDocGeneratePending) init(
 		} else if time.Until(signerCert.NotAfter.Time) < 24*time.Hour {
 			return fmt.Errorf("issuer certificate is expiring soon or has expired")
 		}
+		d.Issuer = signerCert.Identifier()
 		d.issuerCertChain = signerCert.JsonWebKey.CertificateChain
 		d.issuerX509Cert, err = x509.ParseCertificate(signerCert.JsonWebKey.CertificateChain[0])
 		d.KeyVaultStore = &CertDocKeyVaultStore{
@@ -324,6 +325,8 @@ func (d *certDocPending) calculateChecksum() []byte {
 	digest := sha512.New384()
 	// serial number
 	digest.Write(d.serialNumber.Bytes())
+	// issuer
+	io.WriteString(digest, d.Issuer.String())
 	// subject
 	io.WriteString(digest, d.Subject.String())
 	// key and cert

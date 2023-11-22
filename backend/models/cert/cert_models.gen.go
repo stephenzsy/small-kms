@@ -24,12 +24,6 @@ const (
 	CertificateStatusUnverified  CertificateStatus = "unverified"
 )
 
-// AddMsEntraKeyCredentialRequest defines model for AddMsEntraKeyCredentialRequest.
-type AddMsEntraKeyCredentialRequest struct {
-	KeepLatest *int   `json:"keepLatest,omitempty"`
-	ProofJwt   string `json:"proofJwt"`
-}
-
 // Certificate defines model for Certificate.
 type Certificate = certificateComposed
 

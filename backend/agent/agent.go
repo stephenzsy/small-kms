@@ -14,6 +14,8 @@ import (
 	"github.com/rs/zerolog/log"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/agent/configmanager"
+	agentconfigmanager "github.com/stephenzsy/small-kms/backend/agent/configmanager/v2"
+
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
 	"github.com/stephenzsy/small-kms/backend/agent/radius"
@@ -73,12 +75,20 @@ func main() {
 
 	args := flag.Args()
 
-	mode := managedapp.AgentMode(args[0])
+	slot := agentcommon.AgentSlot(args[0])
 	if len(args) >= 2 {
-		switch mode {
-		case managedapp.AgentModeServer,
-			managedapp.AgentModeLauncher:
-			configManager, err := keeper.NewConfigManager(envSvc, mode)
+		switch slot {
+		case agentcommon.AgentSlotPrimary,
+			agentcommon.AgentSlotSecondary,
+			agentcommon.LegacyAgentSlotPrimary,
+			agentcommon.LegacyAgentSlotSecondary:
+			cm2, err := agentconfigmanager.NewConfigManager(envSvc, slot)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("Failed to create config manager")
+			}
+			cm2Poller := agentconfigmanager.NewConfigManagerPollTaskExecutor(cm2)
+
+			configManager, err := keeper.NewConfigManager(envSvc, slot)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("Failed to create config manager")
 			}
@@ -100,7 +110,7 @@ func main() {
 			})
 			radiusConfigManager := radius.NewRadiusConfigManager(configHandlerChain, configManager.EnvConfig, configManager.ConfigDir)
 
-			agentPushServer, err := agentpush.NewServer(BuildID, mode, envSvc, radiusConfigManager, dockerClient)
+			agentPushServer, err := agentpush.NewServer(BuildID, slot, envSvc, radiusConfigManager, dockerClient)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
@@ -122,9 +132,10 @@ func main() {
 				return e, nil
 			}
 			keeperTask := keeper.NewKeeper(configManager)
-			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, mode)
+			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, slot)
 
 			tm := taskmanager.NewChainedTaskManager().
+				WithTask(taskmanager.IntervalExecutorTask(cm2Poller, 0)).
 				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
 				WithTask(echoTask).
 				WithTask(radiusConfigManager)
