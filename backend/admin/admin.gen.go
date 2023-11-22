@@ -76,7 +76,7 @@ type GetKeyParams struct {
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
 // PutAgentConfigJSONRequestBody defines body for PutAgentConfig for application/json ContentType.
-type PutAgentConfigJSONRequestBody = externalRef1.AgentConfigFields
+type PutAgentConfigJSONRequestBody = externalRef1.CreateAgentConfigRequest
 
 // PutCertificatePolicyJSONRequestBody defines body for PutCertificatePolicy for application/json ContentType.
 type PutCertificatePolicyJSONRequestBody = externalRef2.CreateCertificatePolicyRequest
@@ -112,10 +112,13 @@ type ServerInterface interface {
 	SyncProfile(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
 	// Get agent config
 	// (GET /v2/service-principal/{namespaceId}/agent-config)
-	GetAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	GetAgentConfigBundle(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Get agent config
+	// (GET /v2/service-principal/{namespaceId}/agent-config/{configName})
+	GetAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName) error
 	// Put agent config
-	// (PUT /v2/service-principal/{namespaceId}/agent-config)
-	PutAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// (PUT /v2/service-principal/{namespaceId}/agent-config/{configName})
+	PutAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName) error
 	// Get system app
 	// (GET /v2/system-apps/{id})
 	GetSystemApp(ctx echo.Context, id IdParameter) error
@@ -285,8 +288,8 @@ func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 	return err
 }
 
-// GetAgentConfig converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAgentConfig(ctx echo.Context) error {
+// GetAgentConfigBundle converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentConfigBundle(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceId" -------------
 	var namespaceId NamespaceIdParameter
@@ -299,7 +302,33 @@ func (w *ServerInterfaceWrapper) GetAgentConfig(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAgentConfig(ctx, namespaceId)
+	err = w.Handler.GetAgentConfigBundle(ctx, namespaceId)
+	return err
+}
+
+// GetAgentConfig converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentConfig(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "configName" -------------
+	var configName externalRef1.AgentConfigName
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentConfig(ctx, namespaceId, configName)
 	return err
 }
 
@@ -314,10 +343,18 @@ func (w *ServerInterfaceWrapper) PutAgentConfig(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
 	}
 
+	// ------------- Path parameter "configName" -------------
+	var configName externalRef1.AgentConfigName
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "configName", runtime.ParamLocationPath, ctx.Param("configName"), &configName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter configName: %s", err))
+	}
+
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutAgentConfig(ctx, namespaceId)
+	err = w.Handler.PutAgentConfig(ctx, namespaceId, configName)
 	return err
 }
 
@@ -1058,8 +1095,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
-	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfig)
-	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.PutAgentConfig)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfigBundle)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.GetAgentConfig)
+	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.PutAgentConfig)
 	router.GET(baseURL+"/v2/system-apps/:id", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v2/system-apps/:id", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies", wrapper.ListCertificatePolicies)

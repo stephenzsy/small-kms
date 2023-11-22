@@ -159,7 +159,7 @@ func (d *certDocGeneratePending) init(
 		d.templateX509Cert.SignatureAlgorithm = d.JsonWebKey.Alg.X509SignatureAlgorithm()
 
 	} else {
-		issuerPolicy, err := getCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
+		issuerPolicy, err := GetCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
 		if err != nil {
 			return err
 		}

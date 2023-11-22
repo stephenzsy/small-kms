@@ -22,14 +22,14 @@ func (*CertServer) GetCertificatePolicy(ec echo.Context, namespaceProvider model
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc, err := getCertificatePolicyInternal(c, namespaceProvider, namespaceId, id)
+	doc, err := GetCertificatePolicyInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		return err
 	}
 	return c.JSON(200, doc.ToModel())
 }
 
-func getCertificatePolicyInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertPolicyDoc, error) {
+func GetCertificatePolicyInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertPolicyDoc, error) {
 	doc := &CertPolicyDoc{}
 	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{

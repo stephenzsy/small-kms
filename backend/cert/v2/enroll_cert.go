@@ -87,7 +87,7 @@ func (*CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models.N
 		return err
 	}
 
-	policy, err := getCertificatePolicyInternal(c, namespaceProvider, namespaceId, policyID)
+	policy, err := GetCertificatePolicyInternal(c, namespaceProvider, namespaceId, policyID)
 	if err != nil {
 		return err
 	} else if !policy.AllowEnroll {
@@ -179,7 +179,7 @@ func (d *certDocEnrollPending) init(
 
 	d.templateX509Cert = d.generateCertificateTemplate()
 
-	issuerPolicy, err := getCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
+	issuerPolicy, err := GetCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
 	if err != nil {
 		return err
 	}

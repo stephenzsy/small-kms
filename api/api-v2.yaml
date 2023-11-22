@@ -444,6 +444,28 @@ paths:
     get:
       tags:
         - admin
+      operationId: GetAgentConfigBundle
+      summary: Get agent config
+      responses:
+        200:
+          description: Agent config bundle
+          content:
+            application/json:
+              schema:
+                $ref: "models-agent.yaml#/components/schemas/AgentConfigBundle"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+  /v2/service-principal/{namespaceId}/agent-config/{configName}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - in: path
+        name: configName
+        required: true
+        schema:
+          $ref: "models-agent.yaml#/components/schemas/AgentConfigName"
+    get:
+      tags:
+        - admin
       operationId: GetAgentConfig
       summary: Get agent config
       responses:
@@ -461,13 +483,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "models-agent.yaml#/components/schemas/AgentConfigFields"
+              $ref: "models-agent.yaml#/components/schemas/CreateAgentConfigRequest"
       responses:
         200:
           $ref: "models-agent.yaml#/components/responses/AgentConfigResponse"
         201:
           $ref: "models-agent.yaml#/components/responses/AgentConfigResponse"
-        400:
+        404:
           $ref: "#/components/responses/ErrorResponse"
 components:
   parameters:

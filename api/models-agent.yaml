@@ -18,32 +18,70 @@ components:
           description: The display name of the agent application
           type: string
           x-go-type-skip-optional-pointer: true
-    AgentConfig:
-      allOf:
-        - $ref: "models-shared.yaml#/components/schemas/Ref"
-        - $ref: "#/components/schemas/AgentConfigFields"
-        - x-go-type: agentConfigComposed
-    AgentConfigFields:
+    AgentConfigBundle:
       type: object
       properties:
+        id:
+          type: string
         envGuards:
           type: array
           items:
             type: string
-        identityCredentialPolicyId:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentConfigRef"
+        expires:
           type: string
-        keyCredentialsCertificatePolicyId:
+          format: date-time
+      required:
+        - id
+        - envGuards
+        - identity
+        - version
+        - expire
+    AgentConfigName:
+      type: string
+      enum:
+        - identity
+      x-enum-varnames:
+        - AgentConfigNameIdentity
+    AgentConfigRef:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentConfigName"
+        updated:
           type: string
-        pushAuthorizationKeyPolicy:
-          type: string
+          format: date-time
         version:
           type: string
       required:
-        - envGuards
-        - identityCredentialPolicyId
-        - keyCredentialsCertificatePolicyId
-        - pushAuthorizationKeyPolicy
+        - name
+        - updated
         - version
+    AgentConfig:
+      oneOf:
+        - $ref: "#/components/schemas/AgentConfigIdentity"
+      discriminator:
+        propertyName: name
+        mapping:
+          identity: "#/components/schemas/AgentConfigIdentity"
+    CreateAgentConfigRequest:
+      oneOf:
+        - $ref: "#/components/schemas/AgentConfigIdentityFields"
+    AgentConfigIdentity:
+      allOf:
+        - $ref: "#/components/schemas/AgentConfigRef"
+        - $ref: "#/components/schemas/AgentConfigIdentityFields"
+        - x-go-type: agentConfigIdentityComposed
+    AgentConfigIdentityFields:
+      type: object
+      properties:
+        keyCredentialCertificatePolicyId:
+          type: string
+      required:
+        - keyCredentialCertificatePolicyId
   responses:
     AgentResposne:
       description: Agent response
@@ -52,7 +90,7 @@ components:
           schema:
             $ref: "#/components/schemas/Agent"
     AgentConfigResponse:
-      description: Agent config response
+      description: AgentConfig response
       content:
         application/json:
           schema:

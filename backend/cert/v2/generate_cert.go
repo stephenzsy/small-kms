@@ -23,7 +23,7 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 	}
 
 	var policy *CertPolicyDoc
-	policy, err = getCertificatePolicyInternal(c, nsProvider, nsID, policyID)
+	policy, err = GetCertificatePolicyInternal(c, nsProvider, nsID, policyID)
 	if err != nil {
 		return err
 	}

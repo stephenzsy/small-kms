@@ -12,70 +12,20 @@
  * Do not edit the class manually.
  */
 
-import { exists, mapValues } from '../runtime';
+import {
+    AgentConfigIdentity,
+    instanceOfAgentConfigIdentity,
+    AgentConfigIdentityFromJSON,
+    AgentConfigIdentityFromJSONTyped,
+    AgentConfigIdentityToJSON,
+} from './AgentConfigIdentity';
+
 /**
+ * @type AgentConfig
  * 
  * @export
- * @interface AgentConfig
  */
-export interface AgentConfig {
-    /**
-     * 
-     * @type {string}
-     * @memberof AgentConfig
-     */
-    id: string;
-    /**
-     * 
-     * @type {Date}
-     * @memberof AgentConfig
-     */
-    updated: Date;
-    /**
-     * 
-     * @type {string}
-     * @memberof AgentConfig
-     */
-    updatedBy: string;
-    /**
-     * 
-     * @type {Date}
-     * @memberof AgentConfig
-     */
-    deleted?: Date;
-    /**
-     * 
-     * @type {string}
-     * @memberof AgentConfig
-     */
-    displayName?: string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof AgentConfig
-     */
-    envGuards: Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof AgentConfig
-     */
-    keyCredentialsCertificatePolicyId: string;
-}
-
-/**
- * Check if a given object implements the AgentConfig interface.
- */
-export function instanceOfAgentConfig(value: object): boolean {
-    let isInstance = true;
-    isInstance = isInstance && "id" in value;
-    isInstance = isInstance && "updated" in value;
-    isInstance = isInstance && "updatedBy" in value;
-    isInstance = isInstance && "envGuards" in value;
-    isInstance = isInstance && "keyCredentialsCertificatePolicyId" in value;
-
-    return isInstance;
-}
+export type AgentConfig = { name: 'identity' } & AgentConfigIdentity;
 
 export function AgentConfigFromJSON(json: any): AgentConfig {
     return AgentConfigFromJSONTyped(json, false);
@@ -85,16 +35,12 @@ export function AgentConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean
     if ((json === undefined) || (json === null)) {
         return json;
     }
-    return {
-        
-        'id': json['id'],
-        'updated': (new Date(json['updated'])),
-        'updatedBy': json['updatedBy'],
-        'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
-        'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
-        'envGuards': json['envGuards'],
-        'keyCredentialsCertificatePolicyId': json['keyCredentialsCertificatePolicyId'],
-    };
+    switch (json['name']) {
+        case 'identity':
+            return {...AgentConfigIdentityFromJSONTyped(json, true), name: 'identity'};
+        default:
+            throw new Error(`No variant of AgentConfig exists with 'name=${json['name']}'`);
+    }
 }
 
 export function AgentConfigToJSON(value?: AgentConfig | null): any {
@@ -104,15 +50,12 @@ export function AgentConfigToJSON(value?: AgentConfig | null): any {
     if (value === null) {
         return null;
     }
-    return {
-        
-        'id': value.id,
-        'updated': (value.updated.toISOString()),
-        'updatedBy': value.updatedBy,
-        'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
-        'displayName': value.displayName,
-        'envGuards': value.envGuards,
-        'keyCredentialsCertificatePolicyId': value.keyCredentialsCertificatePolicyId,
-    };
+    switch (value['name']) {
+        case 'identity':
+            return AgentConfigIdentityToJSON(value);
+        default:
+            throw new Error(`No variant of AgentConfig exists with 'name=${value['name']}'`);
+    }
+
 }
 

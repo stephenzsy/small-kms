@@ -3,7 +3,11 @@ apis/index.ts
 index.ts
 models/AddMsEntraKeyCredentialRequest.ts
 models/AgentConfig.ts
-models/AgentConfigFields.ts
+models/AgentConfigBundle.ts
+models/AgentConfigIdentity.ts
+models/AgentConfigIdentityFields.ts
+models/AgentConfigName.ts
+models/AgentConfigRef.ts
 models/Certificate.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
@@ -13,6 +17,7 @@ models/CertificateRef.ts
 models/CertificateRefFields.ts
 models/CertificateStatus.ts
 models/CertificateSubject.ts
+models/CreateAgentConfigRequest.ts
 models/CreateAgentRequest.ts
 models/CreateCertificatePolicyRequest.ts
 models/CreateKeyPolicyRequest.ts

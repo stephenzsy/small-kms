@@ -1,11 +1,17 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Card, Divider, Typography } from "antd";
+import { Button, Card, Divider, Form, Select, Typography } from "antd";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { Link } from "../../components/Link";
 import {
   AdminApi,
+  AgentConfigIdentity,
+  AgentConfigIdentityFields,
+  AgentConfigName,
+  CreateAgentConfigRequest,
   NamespaceProvider,
+  Ref,
   Ref as ResourceReference,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
@@ -87,6 +93,96 @@ export default function AgentPage() {
           renderActions={renderActions}
         />
       </Card>
+      {agent?.servicePrincipalId && (
+        <AgentConfigurationsCard
+          namespaceId={agent.servicePrincipalId}
+          certificatePolicies={certPolicies}
+        />
+      )}
     </>
+  );
+}
+
+function AgentIdentityForm({
+  certificatePolicies,
+  value,
+  onPutConfig,
+}: {
+  value: AgentConfigIdentity | undefined;
+  certificatePolicies: Ref[] | undefined;
+  onPutConfig: (config: AgentConfigIdentityFields) => void;
+}) {
+  const [formInstance] = Form.useForm<AgentConfigIdentityFields>();
+
+  const selectOpts = useMemo(() => {
+    return certificatePolicies?.map((cp) => {
+      return {
+        label: (
+          <span>
+            {cp.displayName} ({cp.id})
+          </span>
+        ),
+        value: cp.id,
+      };
+    });
+  }, [certificatePolicies]);
+
+  useEffect(() => {
+    if (value) {
+      formInstance.setFieldsValue(value);
+    }
+  }, [value]);
+
+  return (
+    <Form form={formInstance} layout="vertical" onFinish={onPutConfig}>
+      <Form.Item<AgentConfigIdentityFields>
+        name="keyCredentialCertificatePolicyId"
+        label="Select Key Credential Certificate Policy"
+      >
+        <Select options={selectOpts} />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
+function AgentConfigurationsCard({
+  namespaceId,
+  certificatePolicies,
+}: {
+  namespaceId: string;
+  certificatePolicies: Ref[] | undefined;
+}) {
+  const api = useAuthedClientV2(AdminApi);
+  const { run: updateIdentityConfig, data: identityConfig } = useRequest(
+    async (req?: CreateAgentConfigRequest) => {
+      if (req) {
+        return api.putAgentConfig({
+          configName: AgentConfigName.AgentConfigNameIdentity,
+          namespaceId: namespaceId,
+          createAgentConfigRequest: req,
+        });
+      }
+      return await api.getAgentConfig({
+        configName: AgentConfigName.AgentConfigNameIdentity,
+        namespaceId: namespaceId,
+      });
+    },
+    {
+      refreshDeps: [namespaceId],
+    }
+  );
+  return (
+    <Card title="Agent configurations">
+      <AgentIdentityForm
+        certificatePolicies={certificatePolicies}
+        onPutConfig={updateIdentityConfig}
+        value={identityConfig}
+      />
+    </Card>
   );
 }

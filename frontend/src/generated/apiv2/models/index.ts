@@ -2,7 +2,11 @@
 /* eslint-disable */
 export * from './AddMsEntraKeyCredentialRequest';
 export * from './AgentConfig';
-export * from './AgentConfigFields';
+export * from './AgentConfigBundle';
+export * from './AgentConfigIdentity';
+export * from './AgentConfigIdentityFields';
+export * from './AgentConfigName';
+export * from './AgentConfigRef';
 export * from './Certificate';
 export * from './CertificateFields';
 export * from './CertificateFlag';
@@ -12,6 +16,7 @@ export * from './CertificateRef';
 export * from './CertificateRefFields';
 export * from './CertificateStatus';
 export * from './CertificateSubject';
+export * from './CreateAgentConfigRequest';
 export * from './CreateAgentRequest';
 export * from './CreateCertificatePolicyRequest';
 export * from './CreateKeyPolicyRequest';

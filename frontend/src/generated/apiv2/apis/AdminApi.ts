@@ -17,10 +17,12 @@ import * as runtime from '../runtime';
 import type {
   AddMsEntraKeyCredentialRequest,
   AgentConfig,
-  AgentConfigFields,
+  AgentConfigBundle,
+  AgentConfigName,
   Certificate,
   CertificatePolicy,
   CertificateRef,
+  CreateAgentConfigRequest,
   CreateAgentRequest,
   CreateCertificatePolicyRequest,
   CreateKeyPolicyRequest,
@@ -40,14 +42,18 @@ import {
     AddMsEntraKeyCredentialRequestToJSON,
     AgentConfigFromJSON,
     AgentConfigToJSON,
-    AgentConfigFieldsFromJSON,
-    AgentConfigFieldsToJSON,
+    AgentConfigBundleFromJSON,
+    AgentConfigBundleToJSON,
+    AgentConfigNameFromJSON,
+    AgentConfigNameToJSON,
     CertificateFromJSON,
     CertificateToJSON,
     CertificatePolicyFromJSON,
     CertificatePolicyToJSON,
     CertificateRefFromJSON,
     CertificateRefToJSON,
+    CreateAgentConfigRequestFromJSON,
+    CreateAgentConfigRequestToJSON,
     CreateAgentRequestFromJSON,
     CreateAgentRequestToJSON,
     CreateCertificatePolicyRequestFromJSON,
@@ -120,6 +126,11 @@ export interface GetAgentRequest {
 
 export interface GetAgentConfigRequest {
     namespaceId: string;
+    configName: AgentConfigName;
+}
+
+export interface GetAgentConfigBundleRequest {
+    namespaceId: string;
 }
 
 export interface GetCertificateRequest {
@@ -139,6 +150,13 @@ export interface GetCertificatePolicyIssuerRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
+}
+
+export interface GetKeyRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    includeJwk?: boolean;
 }
 
 export interface GetKeyPolicyRequest {
@@ -190,7 +208,8 @@ export interface ListProfilesRequest {
 
 export interface PutAgentConfigRequest {
     namespaceId: string;
-    agentConfigFields: AgentConfigFields;
+    configName: AgentConfigName;
+    createAgentConfigRequest: CreateAgentConfigRequest;
 }
 
 export interface PutCertificatePolicyRequest {
@@ -568,6 +587,48 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfig.');
         }
 
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling getAgentConfig.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent config
+     */
+    async getAgentConfig(requestParameters: GetAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfig> {
+        const response = await this.getAgentConfigRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent config
+     */
+    async getAgentConfigBundleRaw(requestParameters: GetAgentConfigBundleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentConfigBundle>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentConfigBundle.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -587,14 +648,14 @@ export class AdminApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigBundleFromJSON(jsonValue));
     }
 
     /**
      * Get agent config
      */
-    async getAgentConfig(requestParameters: GetAgentConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfig> {
-        const response = await this.getAgentConfigRaw(requestParameters, initOverrides);
+    async getAgentConfigBundle(requestParameters: GetAgentConfigBundleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigBundle> {
+        const response = await this.getAgentConfigBundleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -737,6 +798,56 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificatePolicyIssuer(requestParameters: GetCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
         const response = await this.getCertificatePolicyIssuerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get key
+     */
+    async getKeyRaw(requestParameters: GetKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Key>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getKey.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getKey.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getKey.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.includeJwk !== undefined) {
+            queryParameters['includeJwk'] = requestParameters.includeJwk;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/keys/{id}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => KeyFromJSON(jsonValue));
+    }
+
+    /**
+     * Get key
+     */
+    async getKey(requestParameters: GetKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Key> {
+        const response = await this.getKeyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1134,8 +1245,12 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentConfig.');
         }
 
-        if (requestParameters.agentConfigFields === null || requestParameters.agentConfigFields === undefined) {
-            throw new runtime.RequiredError('agentConfigFields','Required parameter requestParameters.agentConfigFields was null or undefined when calling putAgentConfig.');
+        if (requestParameters.configName === null || requestParameters.configName === undefined) {
+            throw new runtime.RequiredError('configName','Required parameter requestParameters.configName was null or undefined when calling putAgentConfig.');
+        }
+
+        if (requestParameters.createAgentConfigRequest === null || requestParameters.createAgentConfigRequest === undefined) {
+            throw new runtime.RequiredError('createAgentConfigRequest','Required parameter requestParameters.createAgentConfigRequest was null or undefined when calling putAgentConfig.');
         }
 
         const queryParameters: any = {};
@@ -1153,11 +1268,11 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/service-principal/{namespaceId}/agent-config`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            path: `/v2/service-principal/{namespaceId}/agent-config/{configName}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"configName"}}`, encodeURIComponent(String(requestParameters.configName))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: AgentConfigFieldsToJSON(requestParameters.agentConfigFields),
+            body: CreateAgentConfigRequestToJSON(requestParameters.createAgentConfigRequest),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AgentConfigFromJSON(jsonValue));

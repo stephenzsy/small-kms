@@ -8,8 +8,8 @@ import (
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
-// PutAgentConfig implements admin.ServerInterface.
-func (*AgentAdminServer) PutAgentConfig(ec echo.Context, namespaceId string, configName agentmodels.AgentConfigName) error {
+// GetAgentConfig implements admin.ServerInterface.
+func (*AgentAdminServer) GetAgentConfig(ec echo.Context, namespaceId string, configName agentmodels.AgentConfigName) error {
 
 	c := ec.(ctx.RequestContext)
 
@@ -17,15 +17,9 @@ func (*AgentAdminServer) PutAgentConfig(ec echo.Context, namespaceId string, con
 		return base.ErrResponseStatusForbidden
 	}
 
-	params := new(agentmodels.CreateAgentConfigRequest)
-	if err := c.Bind(params); err != nil {
-		return err
-	}
-
 	switch configName {
 	case agentmodels.AgentConfigNameIdentity:
-		return putAgentConfigIdentity(c, namespaceId, params)
+		return getAgentConfigIdentity(c, namespaceId)
 	}
 	return base.ErrResponseStatusNotFound
-
 }
