@@ -17,17 +17,15 @@ func ExtractKeyVaultName(keyvaultEndpoing string) string {
 	return ""
 }
 
-func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey[i.JsonWebSignatureAlgorithm] {
+func newSigningJWKFromKeyVaultKey(kvKey *azkeys.JSONWebKey) *i.JsonWebKey {
 	keyID := string(*kvKey.KID)
-	r := &i.JsonWebKey[i.JsonWebSignatureAlgorithm]{
-		JsonWebKeyBase: i.JsonWebKeyBase{
-			KeyType: ktyReverseMapping[*kvKey.Kty],
-			KeyID:   keyID,
-			X:       kvKey.X,
-			Y:       kvKey.Y,
-			N:       kvKey.N,
-			E:       kvKey.E,
-		},
+	r := &i.JsonWebKey{
+		KeyType: ktyReverseMapping[*kvKey.Kty],
+		KeyID:   keyID,
+		X:       kvKey.X,
+		Y:       kvKey.Y,
+		N:       kvKey.N,
+		E:       kvKey.E,
 	}
 	if kvKey.Crv != nil {
 		crv := crvReverseMapping[*kvKey.Crv]

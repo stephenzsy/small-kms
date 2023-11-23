@@ -25,7 +25,7 @@ type CreateKeyPolicyRequest struct {
 }
 
 // JsonWebKey defines model for JsonWebKey.
-type JsonWebKey = cloudkey.JsonWebKeyBase
+type JsonWebKey = cloudkey.JsonWebKey
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
 type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
@@ -39,7 +39,7 @@ type JsonWebKeySpec struct {
 	Crv           JsonWebKeyCurveName   `json:"crv,omitempty"`
 	KeyOperations []JsonWebKeyOperation `json:"key_ops,omitempty"`
 	KeySize       *int                  `json:"key_size,omitempty"`
-	Kty           JsonWebKeyType        `json:"kty"`
+	Kty           JsonWebKeyType        `json:"kty,omitempty"`
 }
 
 // JsonWebKeyType defines model for JsonWebKeyType.
@@ -47,9 +47,6 @@ type JsonWebKeyType = cloudkey.JsonWebKeyType
 
 // JsonWebSignatureAlgorithm defines model for JsonWebSignatureAlgorithm.
 type JsonWebSignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm
-
-// JsonWebSignatureKey defines model for JsonWebSignatureKey.
-type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
 
 // Key defines model for Key.
 type Key = keyComposed

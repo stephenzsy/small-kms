@@ -1,19 +1,18 @@
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Alert, Button, Form, Input, Select } from "antd";
 import { DefaultOptionType } from "antd/es/select";
+import Link from "antd/es/typography/Link";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useAppAuthContext } from "../auth/AuthProvider";
 import {
   AdminApi,
   CertPolicy,
   Certificate,
-  ExchangePKCS12Result,
   JsonWebSignatureAlgorithm,
-  JsonWebSignatureKey,
   Key,
   KeyRef,
   NamespaceKind,
-  ResourceKind,
+  ResourceKind
 } from "../generated";
 import {
   base64StdEncodedToUrlEncoded,
@@ -25,7 +24,6 @@ import {
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 import { useSystemAppRequest } from "./forms/useSystemAppRequest";
-import Link from "antd/es/typography/Link";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
   return useMemo((): RsaHashedKeyGenParams | EcKeyGenParams | undefined => {
@@ -336,24 +334,25 @@ export function CertWebEnroll({
           keypair.privateKey
         );
 
-        const enrollResp = await api.enrollCertificate({
-          enrollCertificateRequest: {
-            enrollmentType: "group-memeber",
-            proof: proofJwt,
-            publicKey: (await window.crypto.subtle.exportKey(
-              "jwk",
-              keypair.publicKey
-            )) as JsonWebSignatureKey,
-          },
-          namespaceId,
-          namespaceKind,
-          resourceId: certPolicy.id,
-        });
-        const session = new EnrollmentSession(keypair, proofJwt, enrollResp);
-        return new EnrollmentSessionWithPemBlob(
-          session,
-          await session.getPemBlob()
-        );
+        // const enrollResp = await api.enrollCertificate({
+        //   enrollCertificateRequest: {
+        //     enrollmentType: "group-memeber",
+        //     proof: proofJwt,
+        //     publicKey: (await window.crypto.subtle.exportKey(
+        //       "jwk",
+        //       keypair.publicKey
+        //     )) as JsonWebSignatureKey,
+        //   },
+        //   namespaceId,
+        //   namespaceKind,
+        //   resourceId: certPolicy.id,
+        // });
+        // const session = new EnrollmentSession(keypair, proofJwt, enrollResp);
+        // return new EnrollmentSessionWithPemBlob(
+        //   session,
+        //   await session.getPemBlob()
+        // );
+        return undefined
       }
     },
     { manual: true }

@@ -17,7 +17,7 @@ import (
 
 type KeyDoc struct {
 	resdoc.ResourceDoc
-	cloudkey.JsonWebKeyBase
+	cloudkey.JsonWebKey
 	Status        keymodels.KeyStatus  `json:"status"`
 	Created       models.NumericDate   `json:"iat"`
 	NotBefore     *models.NumericDate  `json:"nbf,omitempty"`
@@ -112,7 +112,7 @@ func (d *KeyDoc) ToKeyRef() (m keymodels.KeyRef) {
 
 func (d *KeyDoc) ToModel() (m keymodels.Key) {
 	m.KeyRef = d.ToKeyRef()
-	m.Jwk = d.JsonWebKeyBase
+	m.Jwk = d.JsonWebKey
 	m.Exportable = d.Exportable
 	m.Identififier = d.Identifier().String()
 	m.Nbf = d.NotBefore

@@ -1,11 +1,18 @@
 package cryptoprovider
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 )
 
 type genericCryptoProviderImpl struct {
+}
+
+// GenerateECDSAKeyPair implements CryptoProvider.
+func (*genericCryptoProviderImpl) GenerateECDSAKeyPair(c elliptic.Curve) (*ecdsa.PrivateKey, error) {
+	return ecdsa.GenerateKey(c, rand.Reader)
 }
 
 // GenerateRSAKeyPair implements certstore.CryptoStoreProvider.

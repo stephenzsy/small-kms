@@ -143,6 +143,6 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 }
 
 type RequestPayload struct {
-	PrivateKey cloudkey.JsonWebSignatureKey `json:"privateKey"`
-	Password   string                       `json:"password"`
+	PrivateKey cloudkey.JsonWebKey `json:"privateKey"`
+	Password   string              `json:"password"`
 }

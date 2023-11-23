@@ -19,12 +19,12 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
-import type { JsonWebSignatureKey } from './JsonWebSignatureKey';
+import type { JsonWebKey } from './JsonWebKey';
 import {
-    JsonWebSignatureKeyFromJSON,
-    JsonWebSignatureKeyFromJSONTyped,
-    JsonWebSignatureKeyToJSON,
-} from './JsonWebSignatureKey';
+    JsonWebKeyFromJSON,
+    JsonWebKeyFromJSONTyped,
+    JsonWebKeyToJSON,
+} from './JsonWebKey';
 import type { SubjectAlternativeNames } from './SubjectAlternativeNames';
 import {
     SubjectAlternativeNamesFromJSON,
@@ -58,10 +58,10 @@ export interface CertificateFields {
     nbf: number;
     /**
      * 
-     * @type {JsonWebSignatureKey}
+     * @type {JsonWebKey}
      * @memberof CertificateFields
      */
-    jwk?: JsonWebSignatureKey;
+    jwk?: JsonWebKey;
     /**
      * 
      * @type {string}
@@ -92,6 +92,12 @@ export interface CertificateFields {
      * @memberof CertificateFields
      */
     sid?: string;
+    /**
+     * 
+     * @type {JsonWebKey}
+     * @memberof CertificateFields
+     */
+    oneTimePkcs12Key?: JsonWebKey;
 }
 
 /**
@@ -120,12 +126,13 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
         'identififier': json['identififier'],
         'issuerIdentifier': json['issuerIdentifier'],
         'nbf': json['nbf'],
-        'jwk': !exists(json, 'jwk') ? undefined : JsonWebSignatureKeyFromJSON(json['jwk']),
+        'jwk': !exists(json, 'jwk') ? undefined : JsonWebKeyFromJSON(json['jwk']),
         'subject': json['subject'],
         'subjectAlternativeNames': !exists(json, 'subjectAlternativeNames') ? undefined : SubjectAlternativeNamesFromJSON(json['subjectAlternativeNames']),
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'cid': !exists(json, 'cid') ? undefined : json['cid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
+        'oneTimePkcs12Key': !exists(json, 'oneTimePkcs12Key') ? undefined : JsonWebKeyFromJSON(json['oneTimePkcs12Key']),
     };
 }
 
@@ -141,12 +148,13 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
         'identififier': value.identififier,
         'issuerIdentifier': value.issuerIdentifier,
         'nbf': value.nbf,
-        'jwk': JsonWebSignatureKeyToJSON(value.jwk),
+        'jwk': JsonWebKeyToJSON(value.jwk),
         'subject': value.subject,
         'subjectAlternativeNames': SubjectAlternativeNamesToJSON(value.subjectAlternativeNames),
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'cid': value.cid,
         'sid': value.sid,
+        'oneTimePkcs12Key': JsonWebKeyToJSON(value.oneTimePkcs12Key),
     };
 }
 

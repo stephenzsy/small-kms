@@ -26,7 +26,6 @@ export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeySpec';
 export * from './JsonWebKeyType';
-export * from './JsonWebSignatureKey';
 export * from './Key';
 export * from './KeyFields';
 export * from './KeyPolicy';

@@ -26,7 +26,7 @@ type GenerateJsonWebKeyProperties struct {
 }
 
 // JsonWebKey defines model for JsonWebKey.
-type JsonWebKey = cloudkey.JsonWebKeyBase
+type JsonWebKey = cloudkey.JsonWebKey
 
 // JsonWebKeyCurveName defines model for JsonWebKeyCurveName.
 type JsonWebKeyCurveName = cloudkey.JsonWebKeyCurveName
@@ -44,7 +44,7 @@ type JsonWebKeyType = cloudkey.JsonWebKeyType
 type JsonWebSignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm
 
 // JsonWebSignatureKey defines model for JsonWebSignatureKey.
-type JsonWebSignatureKey = cloudkey.JsonWebSignatureKey
+type JsonWebSignatureKey = cloudkey.JsonWebKey
 
 // Key defines model for Key.
 type Key = keyComposed

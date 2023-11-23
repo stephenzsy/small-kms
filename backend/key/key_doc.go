@@ -17,7 +17,7 @@ import (
 
 type KeyDoc struct {
 	base.BaseDoc
-	cloudkey.JsonWebKeyBase
+	cloudkey.JsonWebKey
 	KeySize       *int32            `json:"keySize,omitempty"`
 	Created       base.NumericDate  `json:"iat"`
 	NotBefore     *base.NumericDate `json:"nbf,omitempty"`

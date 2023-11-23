@@ -26,7 +26,6 @@ import (
 	kv "github.com/stephenzsy/small-kms/backend/internal/keyvault"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
-	keymodels "github.com/stephenzsy/small-kms/backend/models/key"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 	"github.com/stephenzsy/small-kms/backend/utils/caldur"
@@ -44,7 +43,7 @@ type CertDoc struct {
 	resdoc.ResourceDoc
 
 	Status           certmodels.CertificateStatus        `json:"status"`
-	JsonWebKey       cloudkey.JsonWebSignatureKey        `json:"jwk"`
+	JsonWebKey       cloudkey.JsonWebKey                 `json:"jwk"`
 	KeyExportable    bool                                `json:"keyExportable"`
 	Subject          certmodels.CertificateSubject       `json:"subject"`
 	SANs             *certmodels.SubjectAlternativeNames `json:"sans,omitempty"`
@@ -98,7 +97,7 @@ func (d *certDocPending) commonInitPending(
 
 	d.JsonWebKey.KeyType = pDoc.KeySpec.Kty
 	d.JsonWebKey.Curve = pDoc.KeySpec.Crv
-	d.JsonWebKey.Alg = cloudkey.JsonWebSignatureAlgorithm(pDoc.KeySpec.Alg)
+	d.JsonWebKey.Alg = pDoc.KeySpec.Alg
 	d.JsonWebKey.KeyOperations = pDoc.KeySpec.KeyOperations
 	d.Subject, err = processSubjectTemplate(c, pDoc.Subject)
 	if err != nil {
@@ -145,7 +144,7 @@ func (d *certDocGeneratePending) init(
 			Name: kv.GetMaterialName(kv.MaterialNameKindCertificateKey, nsProvider, nsID, pDoc.ID),
 		}
 		ckResp, ck, err := cloudkeyaz.CreateCloudSignatureKey(c,
-			azKeysClient, d.KeyVaultStore.Name, ckParams, d.JsonWebKey.Alg, true)
+			azKeysClient, d.KeyVaultStore.Name, ckParams, cloudkey.JsonWebSignatureAlgorithm(d.JsonWebKey.Alg), true)
 		if err != nil {
 			return err
 		}
@@ -156,7 +155,7 @@ func (d *certDocGeneratePending) init(
 		d.JsonWebKey.KeyID = string(*ckResp.Key.KID)
 		d.publicKey = ck.Public()
 		d.signer = ck
-		d.templateX509Cert.SignatureAlgorithm = d.JsonWebKey.Alg.X509SignatureAlgorithm()
+		d.templateX509Cert.SignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm(d.JsonWebKey.Alg).X509SignatureAlgorithm()
 		d.Issuer = d.Identifier()
 	} else {
 		issuerPolicy, err := GetCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
@@ -180,8 +179,8 @@ func (d *certDocGeneratePending) init(
 		if err != nil {
 			return err
 		}
-		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg, true)
-		d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
+		d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, cloudkey.JsonWebSignatureAlgorithm(signerCert.JsonWebKey.Alg), true)
+		d.templateX509Cert.SignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm(signerCert.JsonWebKey.Alg).X509SignatureAlgorithm()
 
 		// now needs public key from keyvault
 		azCertClient := kv.GetAzKeyVaultService(c).AzCertificatesClient()
@@ -372,20 +371,18 @@ func (d *CertDoc) ToModel(includeJwk bool) (m certmodels.Certificate) {
 	m.CertificateRef = d.ToRef()
 	m.Identififier = d.Identifier().String()
 	if includeJwk {
-		m.Jwk = &keymodels.JsonWebSignatureKey{
-			JsonWebKeyBase: cloudkey.JsonWebKeyBase{
-				KeyType:          d.JsonWebKey.KeyType,
-				Curve:            d.JsonWebKey.Curve,
-				E:                d.JsonWebKey.E,
-				N:                d.JsonWebKey.N,
-				X:                d.JsonWebKey.X,
-				Y:                d.JsonWebKey.Y,
-				ThumbprintSHA1:   d.JsonWebKey.ThumbprintSHA1,
-				ThumbprintSHA256: d.JsonWebKey.ThumbprintSHA256,
-				KeyOperations:    d.JsonWebKey.KeyOperations,
-				CertificateChain: d.JsonWebKey.CertificateChain,
-			},
-			Alg: d.JsonWebKey.Alg,
+		m.Jwk = &cloudkey.JsonWebKey{
+			KeyType:          d.JsonWebKey.KeyType,
+			Curve:            d.JsonWebKey.Curve,
+			E:                d.JsonWebKey.E,
+			N:                d.JsonWebKey.N,
+			X:                d.JsonWebKey.X,
+			Y:                d.JsonWebKey.Y,
+			ThumbprintSHA1:   d.JsonWebKey.ThumbprintSHA1,
+			ThumbprintSHA256: d.JsonWebKey.ThumbprintSHA256,
+			KeyOperations:    d.JsonWebKey.KeyOperations,
+			CertificateChain: d.JsonWebKey.CertificateChain,
+			Alg:              d.JsonWebKey.Alg,
 		}
 	}
 	m.Subject = d.Subject.String()

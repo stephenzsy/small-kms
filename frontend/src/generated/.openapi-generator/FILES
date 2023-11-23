@@ -29,8 +29,6 @@ models/CertificateRefFields.ts
 models/CertificateRuleIssuer.ts
 models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
-models/EnrollCertificateRequest.ts
-models/EnrollmentType.ts
 models/ExchangePKCS12Request.ts
 models/ExchangePKCS12Result.ts
 models/GenerateJsonWebKeyProperties.ts
@@ -39,7 +37,6 @@ models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeyType.ts
 models/JsonWebSignatureAlgorithm.ts
-models/JsonWebSignatureKey.ts
 models/Key.ts
 models/KeyFields.ts
 models/KeyPolicy.ts

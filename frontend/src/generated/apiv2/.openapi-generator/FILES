@@ -27,7 +27,6 @@ models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeySpec.ts
 models/JsonWebKeyType.ts
-models/JsonWebSignatureKey.ts
 models/Key.ts
 models/KeyFields.ts
 models/KeyPolicy.ts

@@ -36,7 +36,7 @@ func TestJsonWebEncryption_Decrypt(t *testing.T) {
 		"2ULr-4uoL0Z5t4v1LBVmFw",
 	}, ".")
 
-	privatekeyJwk := &cloudkey.JsonWebKey[cloudkey.JsonWebKeyEncryptionAlgorithm]{}
+	privatekeyJwk := &cloudkey.JsonWebKey{}
 	err := json.Unmarshal([]byte(wrapPrivateKey), privatekeyJwk)
 	require.NoError(t, err)
 	privateKey := privatekeyJwk.PrivateKey().(crypto.Decrypter)

@@ -40,8 +40,9 @@ const (
 	JsonWebKeyOperationDeriveBits = "deriveBits"
 )
 
-type JsonWebKeyBase struct {
+type JsonWebKey struct {
 	KeyType          JsonWebKeyType               `json:"kty"`                // RFC7517 4.1. "kty" (Key Type) Parameter Values for JWK
+	Alg              string                       `json:"alg"`                // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
 	KeyID            string                       `json:"kid,omitempty"`      // RFC7517 4.5. "kid" (Key ID) Parameter
 	Curve            JsonWebKeyCurveName          `json:"crv,omitempty"`      // RFC7518 6.2.1.1. "crv" (Curve) Parameter
 	N                Base64RawURLEncodableBytes   `json:"n,omitempty"`        // RFC7518 6.3.1.1. "n" (Modulus) Parameter
@@ -63,14 +64,7 @@ type JsonWebKeyBase struct {
 	cachedPrivateKey crypto.PrivateKey
 }
 
-type JsonWebKey[TAlg JsonWebSignatureAlgorithm | JsonWebKeyEncryptionAlgorithm] struct {
-	JsonWebKeyBase
-	Alg TAlg `json:"alg,omitempty"` // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
-}
-
-type JsonWebSignatureKey = JsonWebKey[JsonWebSignatureAlgorithm]
-
-func (jwk *JsonWebKeyBase) Digest(w io.Writer) {
+func (jwk *JsonWebKey) Digest(w io.Writer) {
 	w.Write([]byte(jwk.KeyType))
 	w.Write([]byte(jwk.Curve))
 	w.Write(jwk.N)
@@ -88,7 +82,7 @@ func (jwk *JsonWebKeyBase) Digest(w io.Writer) {
 	}
 }
 
-func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
+func (jwk *JsonWebKey) PublicKey() crypto.PublicKey {
 	if jwk.cachedPublicKey != nil {
 		return jwk.cachedPublicKey
 	}
@@ -102,7 +96,7 @@ func (jwk *JsonWebKey[T]) PublicKey() crypto.PublicKey {
 	return jwk.cachedPublicKey
 }
 
-func (jwk *JsonWebKey[T]) rsaPublicKey() *rsa.PublicKey {
+func (jwk *JsonWebKey) rsaPublicKey() *rsa.PublicKey {
 	if (jwk.cachedPublicKey) != nil {
 		return jwk.cachedPublicKey.(*rsa.PublicKey)
 	}
@@ -113,7 +107,7 @@ func (jwk *JsonWebKey[T]) rsaPublicKey() *rsa.PublicKey {
 	return jwk.cachedPublicKey.(*rsa.PublicKey)
 }
 
-func (jwk *JsonWebKey[T]) ecdsaPublicKey() *ecdsa.PublicKey {
+func (jwk *JsonWebKey) ecdsaPublicKey() *ecdsa.PublicKey {
 	if (jwk.cachedPublicKey) != nil {
 		return jwk.cachedPublicKey.(*ecdsa.PublicKey)
 	}
@@ -137,7 +131,7 @@ func (jwk *JsonWebKey[T]) ecdsaPublicKey() *ecdsa.PublicKey {
 }
 
 // Cloud keys typically don't have retrieveable private key
-func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
+func (jwk *JsonWebKey) PrivateKey() crypto.PrivateKey {
 	if jwk.cachedPrivateKey != nil {
 		return jwk.cachedPrivateKey
 	}
@@ -165,7 +159,7 @@ func (jwk *JsonWebKey[T]) PrivateKey() crypto.PrivateKey {
 	return jwk.cachedPrivateKey
 }
 
-func (jwk *JsonWebKeyBase) setPublicKey(publicKey crypto.PublicKey) error {
+func (jwk *JsonWebKey) setPublicKey(publicKey crypto.PublicKey) error {
 	switch publicKey := publicKey.(type) {
 	case *rsa.PublicKey:
 		jwk.KeyType = KeyTypeRSA
@@ -215,8 +209,8 @@ func SanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
 	return result
 }
 
-func NewJsonWebKeyFromPublicKey(publicKey crypto.PublicKey) (*JsonWebKeyBase, error) {
-	jwk := &JsonWebKeyBase{}
+func NewJsonWebKeyFromPublicKey(publicKey crypto.PublicKey) (*JsonWebKey, error) {
+	jwk := &JsonWebKey{}
 	err := jwk.setPublicKey(publicKey)
 	if err != nil {
 		return nil, err

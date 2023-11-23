@@ -10,9 +10,9 @@ import (
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 )
 
-func PreconfiguredKeysJWTAuthorization(keys []cloudkey.JsonWebSignatureKey, aud string) echo.MiddlewareFunc {
+func PreconfiguredKeysJWTAuthorization(keys []cloudkey.JsonWebKey, aud string) echo.MiddlewareFunc {
 
-	keyMapping := make(map[string]*cloudkey.JsonWebSignatureKey, len(keys))
+	keyMapping := make(map[string]*cloudkey.JsonWebKey, len(keys))
 	for _, key := range keys {
 		keyMapping[key.KeyID] = &key
 	}

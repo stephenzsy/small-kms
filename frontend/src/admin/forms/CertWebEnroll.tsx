@@ -6,7 +6,7 @@ import {
   AdminApi,
   Certificate,
   CertificatePolicy,
-  JsonWebSignatureKey,
+  JsonWebKey,
   NamespaceProvider,
 } from "../../generated/apiv2";
 import {
@@ -163,7 +163,7 @@ class EnrollmentSession {
         publicKey: (await crypto.subtle.exportKey(
           "jwk",
           this.keyPair.publicKey
-        )) as JsonWebSignatureKey,
+        )) as JsonWebKey,
       },
     });
     return new EnrollmentSession(

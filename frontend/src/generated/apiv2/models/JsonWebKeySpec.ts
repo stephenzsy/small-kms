@@ -49,7 +49,7 @@ export interface JsonWebKeySpec {
      * @type {JsonWebKeyType}
      * @memberof JsonWebKeySpec
      */
-    kty: JsonWebKeyType;
+    kty?: JsonWebKeyType;
     /**
      * 
      * @type {JsonWebKeyCurveName}
@@ -75,7 +75,6 @@ export interface JsonWebKeySpec {
  */
 export function instanceOfJsonWebKeySpec(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "kty" in value;
 
     return isInstance;
 }
@@ -91,7 +90,7 @@ export function JsonWebKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'alg': !exists(json, 'alg') ? undefined : json['alg'],
-        'kty': JsonWebKeyTypeFromJSON(json['kty']),
+        'kty': !exists(json, 'kty') ? undefined : JsonWebKeyTypeFromJSON(json['kty']),
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': !exists(json, 'key_ops') ? undefined : ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),

@@ -31,7 +31,6 @@ import type {
   CertificateRef,
   CertificateRuleIssuer,
   CertificateRuleMsEntraClientCredential,
-  EnrollCertificateRequest,
   ExchangePKCS12Request,
   ExchangePKCS12Result,
   Key,
@@ -86,8 +85,6 @@ import {
     CertificateRuleIssuerToJSON,
     CertificateRuleMsEntraClientCredentialFromJSON,
     CertificateRuleMsEntraClientCredentialToJSON,
-    EnrollCertificateRequestFromJSON,
-    EnrollCertificateRequestToJSON,
     ExchangePKCS12RequestFromJSON,
     ExchangePKCS12RequestToJSON,
     ExchangePKCS12ResultFromJSON,
@@ -220,14 +217,6 @@ export interface DeleteCertificateRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     resourceId: string;
-}
-
-export interface EnrollCertificateOperationRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    enrollCertificateRequest: EnrollCertificateRequest;
-    dryRun?: boolean;
 }
 
 export interface ExchangePKCS12OperationRequest {
@@ -1090,63 +1079,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async deleteCertificate(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.deleteCertificateRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * Enroll certificate
-     */
-    async enrollCertificateRaw(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling enrollCertificate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling enrollCertificate.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling enrollCertificate.');
-        }
-
-        if (requestParameters.enrollCertificateRequest === null || requestParameters.enrollCertificateRequest === undefined) {
-            throw new runtime.RequiredError('enrollCertificateRequest','Required parameter requestParameters.enrollCertificateRequest was null or undefined when calling enrollCertificate.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.dryRun !== undefined) {
-            queryParameters['dryRun'] = requestParameters.dryRun;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/enroll-cert`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: EnrollCertificateRequestToJSON(requestParameters.enrollCertificateRequest),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
-    }
-
-    /**
-     * Enroll certificate
-     */
-    async enrollCertificate(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
-        const response = await this.enrollCertificateRaw(requestParameters, initOverrides);
-        return await response.value();
     }
 
     /**

@@ -2,6 +2,7 @@ package cert
 
 import (
 	"crypto"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
 	"fmt"
@@ -97,11 +98,11 @@ func (s *CertServer) EnrollCertificate(ec echo.Context, namespaceProvider models
 		return fmt.Errorf("%w: policy %s does not allow enroll", base.ErrResponseStatusBadRequest, policyID)
 	}
 
-	return enrollInternal(c, requesterProfile.TargetNamespaceProvider(), requesterProfile.ID, policy, req)
+	return s.enrollInternal(c, requesterProfile.TargetNamespaceProvider(), requesterProfile.ID, policy, req)
 
 }
 
-func enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policy *CertPolicyDoc,
+func (s *CertServer) enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policy *CertPolicyDoc,
 	req *certmodels.EnrollCertificateRequest) (err error) {
 	certDoc := &certDocEnrollPending{
 		certDocPending: certDocPending{
@@ -121,6 +122,21 @@ func enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, n
 		return
 	}
 
+	if req.WithOneTimePkcs12Key != nil && *req.WithOneTimePkcs12Key {
+		oneTimeKey, err := s.cryptoStore.GenerateECDSAKeyPair(elliptic.P384())
+		if err != nil {
+			return err
+		}
+		certDoc.OneTimePkcs12Key = &cloudkey.JsonWebKey{}
+		certDoc.OneTimePkcs12Key.X = oneTimeKey.X.Bytes()
+		certDoc.OneTimePkcs12Key.Y = oneTimeKey.Y.Bytes()
+		certDoc.OneTimePkcs12Key.D = oneTimeKey.D.Bytes()
+		certDoc.OneTimePkcs12Key.Curve = cloudkey.CurveNameP384
+		certDoc.OneTimePkcs12Key.KeyType = cloudkey.KeyTypeEC
+		certDoc.OneTimePkcs12Key.Alg = "ECDH-ES"
+		certDoc.OneTimePkcs12Key.KeyOperations = []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey}
+	}
+
 	var signed []byte
 	signed, err = x509.CreateCertificate(rand.Reader,
 		certDoc.templateX509Cert,
@@ -138,7 +154,7 @@ func enrollInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, n
 		return docCreateErr
 	}
 
-	return c.JSON(http.StatusCreated, certDoc.ToModel(true))
+	return c.JSON(http.StatusCreated, certDoc.ToModel())
 
 }
 
@@ -149,13 +165,14 @@ type certDocEnrollPending struct {
 	issuerX509Cert   *x509.Certificate
 	publicKey        crypto.PublicKey
 	signer           crypto.Signer
+	OneTimePkcs12Key *cloudkey.JsonWebKey `json:"oneTimePkcs12Key"`
 }
 
 func (d *certDocEnrollPending) init(
 	c ctx.RequestContext,
 	nsProvider models.NamespaceProvider, nsID string,
 	pDoc *CertPolicyDoc,
-	publicKey *cloudkey.JsonWebSignatureKey) error {
+	publicKey *cloudkey.JsonWebKey) error {
 	if err := d.certDocPending.commonInitPending(c, nsProvider, nsID, pDoc); err != nil {
 		return err
 	}
@@ -202,8 +219,14 @@ func (d *certDocEnrollPending) init(
 		return err
 	}
 	azKeysClient := kv.GetAzKeyVaultService(c).AzKeysClient()
-	d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, signerCert.JsonWebKey.Alg, true)
-	d.templateX509Cert.SignatureAlgorithm = signerCert.JsonWebKey.Alg.X509SignatureAlgorithm()
+	d.signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, azKeysClient, signerCert.JsonWebKey.KeyID, cloudkey.JsonWebSignatureAlgorithm(signerCert.JsonWebKey.Alg), true)
+	d.templateX509Cert.SignatureAlgorithm = cloudkey.JsonWebSignatureAlgorithm(signerCert.JsonWebKey.Alg).X509SignatureAlgorithm()
 
 	return nil
+}
+
+func (d *certDocEnrollPending) ToModel() (m certmodels.Certificate) {
+	m = d.certDocPending.ToModel(true)
+	m.OneTimePkcs12Key = d.OneTimePkcs12Key
+	return m
 }

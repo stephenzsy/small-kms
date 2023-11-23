@@ -30,12 +30,13 @@ type Certificate = certificateComposed
 // CertificateFields defines model for CertificateFields.
 type CertificateFields struct {
 	// Cid Key Vault certificate ID
-	KeyVaultCertificateID string                            `json:"cid,omitempty"`
-	Flags                 []CertificateFlag                 `json:"flags,omitempty"`
-	Identififier          string                            `json:"identififier"`
-	IssuerIdentifier      string                            `json:"issuerIdentifier"`
-	Jwk                   *externalRef1.JsonWebSignatureKey `json:"jwk,omitempty"`
-	Nbf                   externalRef0.NumericDate          `json:"nbf"`
+	KeyVaultCertificateID string                   `json:"cid,omitempty"`
+	Flags                 []CertificateFlag        `json:"flags,omitempty"`
+	Identififier          string                   `json:"identififier"`
+	IssuerIdentifier      string                   `json:"issuerIdentifier"`
+	Jwk                   *externalRef1.JsonWebKey `json:"jwk,omitempty"`
+	Nbf                   externalRef0.NumericDate `json:"nbf"`
+	OneTimePkcs12Key      *externalRef1.JsonWebKey `json:"oneTimePkcs12Key,omitempty"`
 
 	// Sid Key Vault Secret ID
 	KeyVaultSecretID        string                   `json:"sid,omitempty"`
@@ -106,7 +107,8 @@ type CreateCertificatePolicyRequest struct {
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
-	PublicKey externalRef1.JsonWebSignatureKey `json:"publicKey"`
+	PublicKey            externalRef1.JsonWebKey `json:"publicKey"`
+	WithOneTimePkcs12Key *bool                   `json:"withOneTimePkcs12Key,omitempty"`
 }
 
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.

@@ -14,6 +14,7 @@ components:
       x-go-type-import:
         name: cloudkey
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
+      x-go-type-skip-optional-pointer: true
     JsonWebKeyCurveName:
       type: string
       enum:
@@ -60,7 +61,6 @@ components:
       x-go-type-import:
         name: cloudkey
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
-      x-go-type-skip-optional-pointer: true
     JsonWebKeySpec:
       description: these attributes should mostly confirm to JWK (RFC7517)
       type: object
@@ -83,8 +83,6 @@ components:
             $ref: "#/components/schemas/JsonWebKeyOperation"
           x-go-name: KeyOperations
           x-go-type-skip-optional-pointer: true
-      required:
-        - kty
     JsonWebKey:
       allOf:
         - $ref: "#/components/schemas/JsonWebKeySpec"
@@ -119,14 +117,7 @@ components:
                 type: string
               x-go-type-skip-optional-pointer: true
               x-go-name: CertificateChain
-        - x-go-type: cloudkey.JsonWebKeyBase
-          x-go-type-import:
-            name: cloudkey
-            path: "github.com/stephenzsy/small-kms/backend/cloud/key"
-    JsonWebSignatureKey:
-      allOf:
-        - $ref: "#/components/schemas/JsonWebKey"
-        - x-go-type: cloudkey.JsonWebSignatureKey
+        - x-go-type: cloudkey.JsonWebKey
           x-go-type-import:
             name: cloudkey
             path: "github.com/stephenzsy/small-kms/backend/cloud/key"

@@ -52,9 +52,7 @@ func EnrollCertificate(c context.Context,
 			OnBehalfOfApplication: &onBehalfOf,
 		},
 		certmodels.EnrollCertificateRequest{
-			PublicKey: cloudkey.JsonWebSignatureKey{
-				JsonWebKeyBase: *publicJwk,
-			},
+			PublicKey: *publicJwk,
 		})
 	if err != nil {
 		return bad(err)

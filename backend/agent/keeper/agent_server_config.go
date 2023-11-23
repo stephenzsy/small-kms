@@ -24,7 +24,7 @@ type AgentServerConfiguration interface {
 	NextWaitInterval() time.Duration
 	TLSCertificateBundleFile() string
 	Version() string
-	VerifyJWTKeys() []cloudkey.JsonWebSignatureKey
+	VerifyJWTKeys() []cloudkey.JsonWebKey
 }
 
 type agentServerConfiguration struct {
@@ -34,12 +34,8 @@ type agentServerConfiguration struct {
 }
 
 // VerifyJWTKeys implements AgentServerConfiguration.
-func (asc *agentServerConfiguration) VerifyJWTKeys() []cloudkey.JsonWebSignatureKey {
-	return utils.MapSlice(asc.JWTVerifyKeys, func(item key.JsonWebKey) cloudkey.JsonWebSignatureKey {
-		return cloudkey.JsonWebSignatureKey{
-			JsonWebKeyBase: item,
-		}
-	})
+func (asc *agentServerConfiguration) VerifyJWTKeys() []cloudkey.JsonWebKey {
+	return asc.JWTVerifyKeys
 }
 
 // TLSCertificateBundleFile implements AgentServerConfiguration.

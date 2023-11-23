@@ -67,7 +67,7 @@ func (*KeyAdminServer) GenerateKey(ec echo.Context, namespaceProvider models.Nam
 	doc.Status = keymodels.KeyStatusActive
 
 	digest := sha512.New384()
-	doc.JsonWebKeyBase.Digest(digest)
+	doc.JsonWebKey.Digest(digest)
 
 	if doc.NotBefore != nil {
 		if m, _ := doc.NotBefore.MarshalJSON(); m != nil {

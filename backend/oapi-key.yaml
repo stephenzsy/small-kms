@@ -239,7 +239,7 @@ components:
               x-go-name: SignatureAlgorithm
           required:
             - alg
-        - x-go-type: cloudkey.JsonWebSignatureKey
+        - x-go-type: cloudkey.JsonWebKey
           x-go-type-import:
             name: cloudkey
             path: "github.com/stephenzsy/small-kms/backend/cloud/key"
@@ -299,7 +299,7 @@ components:
           x-go-name: ThumbprintSHA256
       required:
         - kty
-      x-go-type: cloudkey.JsonWebKeyBase
+      x-go-type: cloudkey.JsonWebKey
       x-go-type-import:
         name: cloudkey
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"

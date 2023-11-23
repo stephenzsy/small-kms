@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { JsonWebSignatureKey } from './JsonWebSignatureKey';
+import type { JsonWebKey } from './JsonWebKey';
 import {
-    JsonWebSignatureKeyFromJSON,
-    JsonWebSignatureKeyFromJSONTyped,
-    JsonWebSignatureKeyToJSON,
-} from './JsonWebSignatureKey';
+    JsonWebKeyFromJSON,
+    JsonWebKeyFromJSONTyped,
+    JsonWebKeyToJSON,
+} from './JsonWebKey';
 
 /**
  * 
@@ -28,10 +28,16 @@ import {
 export interface EnrollCertificateRequest {
     /**
      * 
-     * @type {JsonWebSignatureKey}
+     * @type {JsonWebKey}
      * @memberof EnrollCertificateRequest
      */
-    publicKey: JsonWebSignatureKey;
+    publicKey: JsonWebKey;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof EnrollCertificateRequest
+     */
+    withOneTimePkcs12Key?: boolean;
 }
 
 /**
@@ -54,7 +60,8 @@ export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'publicKey': JsonWebSignatureKeyFromJSON(json['publicKey']),
+        'publicKey': JsonWebKeyFromJSON(json['publicKey']),
+        'withOneTimePkcs12Key': !exists(json, 'withOneTimePkcs12Key') ? undefined : json['withOneTimePkcs12Key'],
     };
 }
 
@@ -67,7 +74,8 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     }
     return {
         
-        'publicKey': JsonWebSignatureKeyToJSON(value.publicKey),
+        'publicKey': JsonWebKeyToJSON(value.publicKey),
+        'withOneTimePkcs12Key': value.withOneTimePkcs12Key,
     };
 }
 
