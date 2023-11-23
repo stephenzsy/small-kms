@@ -227,6 +227,8 @@ func (d *certDocEnrollPending) init(
 
 func (d *certDocEnrollPending) ToModel() (m certmodels.Certificate) {
 	m = d.certDocPending.ToModel(true)
-	m.OneTimePkcs12Key = d.OneTimePkcs12Key.PublicJWK()
+	if d.OneTimePkcs12Key != nil {
+		m.OneTimePkcs12Key = d.OneTimePkcs12Key.PublicJWK()
+	}
 	return m
 }

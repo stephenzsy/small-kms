@@ -11,7 +11,9 @@ import (
 
 type ConfigDir string
 
-type RootConfigDir ConfigDir
+type RootConfigDir struct {
+	ConfigDir
+}
 
 type NamedConfigDir struct {
 	RootConfigDir
@@ -32,6 +34,19 @@ func (dir RootConfigDir) Config(name agentmodels.AgentConfigName) NamedConfigDir
 	}
 }
 
+func (dir ConfigDir) EnsureDirExist() error {
+	if _, err := os.Lstat(string(dir)); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if err := os.MkdirAll(string(dir), 0750); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	return nil
+}
+
 func (dir NamedConfigDir) Versioned(version string) NamedConfigDir {
 	dir.Version = version
 	return dir
@@ -40,12 +55,12 @@ func (dir NamedConfigDir) Versioned(version string) NamedConfigDir {
 func (dir NamedConfigDir) ConfigFile(name WellKnownConfigFile, emptyIfNotExist bool) (fp string) {
 
 	if dir.Version == "" {
-		fp = filepath.Join(string(dir.RootConfigDir),
+		fp = filepath.Join(string(dir.RootConfigDir.ConfigDir),
 			"active",
 			string(dir.configName),
 			string(name))
 	} else {
-		fp = filepath.Join(string(dir.RootConfigDir),
+		fp = filepath.Join(string(dir.RootConfigDir.ConfigDir),
 			"versioned",
 			fmt.Sprintf("%s.%s", dir.configName, dir.Version),
 			string(name))
@@ -63,7 +78,7 @@ type CertsConfigDir struct {
 }
 
 func (dir RootConfigDir) Certs() CertsConfigDir {
-	return CertsConfigDir{ConfigDir(filepath.Join(string(dir), "certs"))}
+	return CertsConfigDir{ConfigDir(filepath.Join(string(dir.ConfigDir), "certs"))}
 }
 
 func (dir ConfigDir) OpenFile(filename string, flag int, fileMode os.FileMode, ensureDirExist bool) (*os.File, error) {
@@ -79,6 +94,10 @@ func (dir ConfigDir) OpenFile(filename string, flag int, fileMode os.FileMode, e
 		}
 	}
 	return os.OpenFile(filepath.Join(string(dir), filename), flag, fileMode)
+}
+
+func (dir ConfigDir) File(filename string) string {
+	return filepath.Join(string(dir), filename)
 }
 
 // type ConfigPath interface {

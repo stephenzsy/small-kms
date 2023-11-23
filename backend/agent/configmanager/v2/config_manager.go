@@ -37,7 +37,7 @@ func (cm *configManager) pullConfig(c context.Context) (expires time.Time, err e
 		logger.Error().Err(err).Msg("failed to process identity")
 	}
 
-	return time.Now(), nil
+	return time.Now().Add(time.Hour * 24), nil
 }
 
 func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*configManager, error) {
@@ -45,7 +45,7 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 	if !ok {
 		return nil, envSvc.ErrMissing(agentcommon.EnvKeyAgentConfigDir)
 	}
-	if absFilepath, err := filepath.Abs(configDir); err != nil {
+	if absFilepath, err := filepath.Abs(configDir); err == nil {
 		configDir = absFilepath
 	}
 	envConfig, err := agentcommon.NewAgentEnv(envSvc, slot)
@@ -54,7 +54,7 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 	}
 	cm := &configManager{
 		envConfig: envConfig,
-		configDir: RootConfigDir(configDir),
+		configDir: RootConfigDir{ConfigDir(configDir)},
 	}
 	cm.identityProcessor = &identityProcessor{cm: cm}
 
