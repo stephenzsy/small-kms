@@ -9,12 +9,12 @@ import {
   JsonWebKey,
   NamespaceProvider,
 } from "../../generated/apiv2";
-import {
-  base64UrlDecodeBuffer,
-  base64UrlEncodeBuffer,
-} from "../../utils/encodingUtils";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
+import {
+  base64UrlEncodedToStdEncoded,
+  toPEMBlock,
+} from "../../utils/encodingUtils";
 
 class EnrollmentSession {
   constructor(
@@ -22,9 +22,35 @@ class EnrollmentSession {
     public readonly policyNamespaceID: string,
     public readonly certPolicy: CertificatePolicy,
     public readonly keyPair?: CryptoKeyPair,
-    public readonly enrollCertResponse?: Certificate,
-    public readonly signedCertResponse?: Certificate
+    public readonly enrollCertResponse?: Certificate
   ) {}
+
+  public async getPemBlob(): Promise<Blob | undefined> {
+    if (!this.keyPair || !this.enrollCertResponse?.jwk) {
+      return undefined;
+    }
+    const privateKeyDer = await window.crypto.subtle.exportKey(
+      "pkcs8",
+      this.keyPair.privateKey
+    );
+
+    return new Blob(
+      [
+        [
+          toPEMBlock(
+            btoa(String.fromCharCode(...new Uint8Array(privateKeyDer))),
+            "PRIVATE KEY"
+          ),
+          ...(this.enrollCertResponse.jwk.x5c ?? []).map((cert) =>
+            toPEMBlock(base64UrlEncodedToStdEncoded(cert), "CERTIFICATE")
+          ),
+        ].join("\n"),
+      ],
+      {
+        type: "application/x-pem-file",
+      }
+    );
+  }
 
   private get keyAlgorithm(): string {
     switch (this.certPolicy.keySpec.alg) {
@@ -164,6 +190,7 @@ class EnrollmentSession {
           "jwk",
           this.keyPair.publicKey
         )) as JsonWebKey,
+        withOneTimePkcs12Key: true,
       },
     });
     return new EnrollmentSession(
@@ -187,6 +214,9 @@ export function CertWebEnroll({
   const { namespaceProvider, namespaceId } = useNamespace();
   const api = useAuthedClientV2(AdminApi);
   const unmounted = useUnmountedRef();
+  const [pemBlob, setPemBlob] = useState<Blob | undefined>(undefined);
+  const [pemBlobUrl, setPemBlobUrl] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     if (session) {
       if (!session.keyPair) {
@@ -198,18 +228,37 @@ export function CertWebEnroll({
           }
         });
       } else if (!session.enrollCertResponse) {
-        session.withEnrollmentResponse(api).then((s) => {
-          if (s !== session) {
-            if (!unmounted.current) {
-              setSession((p) => (p == session ? s : p));
+        session
+          .withEnrollmentResponse(api)
+          .then((s) => {
+            if (s !== session) {
+              if (!unmounted.current) {
+                setSession((p) => (p == session ? s : p));
+                return s.getPemBlob();
+              }
             }
-          }
-        });
+          })
+          .then((pemBlob) => {
+            if (pemBlob) {
+              if (!unmounted.current) {
+                setPemBlob(pemBlob);
+              }
+            }
+          });
       }
     }
-  }, [session]);
+  }, [session, api, unmounted]);
 
-  console.log(session);
+  useEffect(() => {
+    if (pemBlob) {
+      const url = URL.createObjectURL(pemBlob);
+      setPemBlobUrl(URL.createObjectURL(pemBlob));
+      return () => {
+        URL.revokeObjectURL(url);
+        setPemBlobUrl(undefined);
+      };
+    }
+  }, [pemBlob]);
 
   return (
     <div>
@@ -222,6 +271,17 @@ export function CertWebEnroll({
       >
         Begin enrollment
       </Button>
+      {pemBlobUrl && (
+        <div className="ring-2 p-4 rounded-md ring-orange-500">
+          <div>This is the only time you can download the private key.</div>
+          <a
+            href={pemBlobUrl}
+            download={`${session?.enrollCertResponse?.id}.pem`}
+          >
+            Download certificate {session?.enrollCertResponse?.id}.pem
+          </a>
+        </div>
+      )}
     </div>
   );
 }

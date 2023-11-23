@@ -371,18 +371,10 @@ func (d *CertDoc) ToModel(includeJwk bool) (m certmodels.Certificate) {
 	m.CertificateRef = d.ToRef()
 	m.Identififier = d.Identifier().String()
 	if includeJwk {
-		m.Jwk = &cloudkey.JsonWebKey{
-			KeyType:          d.JsonWebKey.KeyType,
-			Curve:            d.JsonWebKey.Curve,
-			E:                d.JsonWebKey.E,
-			N:                d.JsonWebKey.N,
-			X:                d.JsonWebKey.X,
-			Y:                d.JsonWebKey.Y,
-			ThumbprintSHA1:   d.JsonWebKey.ThumbprintSHA1,
-			ThumbprintSHA256: d.JsonWebKey.ThumbprintSHA256,
-			KeyOperations:    d.JsonWebKey.KeyOperations,
-			CertificateChain: d.JsonWebKey.CertificateChain,
-			Alg:              d.JsonWebKey.Alg,
+		m.Jwk = &d.JsonWebKey
+		if d.KeyVaultStore != nil {
+			m.KeyVaultCertificateID = d.KeyVaultStore.ID
+			m.KeyVaultSecretID = d.KeyVaultStore.SID
 		}
 	}
 	m.Subject = d.Subject.String()

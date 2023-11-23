@@ -45,6 +45,12 @@ components:
         - $ref: "#/components/schemas/Ref"
         - $ref: "#/components/schemas/ProfileFields"
         - x-go-type: profileComposed
+    ProfileParameters:
+      type: object
+      properties:
+        displayName:
+          type: string
+          x-go-type-skip-optional-pointer: true
     NamespaceProvider:
       type: string
       enum:

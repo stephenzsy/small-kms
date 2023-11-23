@@ -20,10 +20,10 @@ import type {
   AgentConfigName,
   Certificate,
   CertificatePolicy,
+  CertificatePolicyParameters,
   CertificateRef,
   CreateAgentConfigRequest,
   CreateAgentRequest,
-  CreateCertificatePolicyRequest,
   CreateKeyPolicyRequest,
   EnrollCertificateRequest,
   ErrorResult,
@@ -34,6 +34,7 @@ import type {
   LinkRefFields,
   NamespaceProvider,
   Profile,
+  ProfileParameters,
   Ref,
 } from '../models/index';
 import {
@@ -47,14 +48,14 @@ import {
     CertificateToJSON,
     CertificatePolicyFromJSON,
     CertificatePolicyToJSON,
+    CertificatePolicyParametersFromJSON,
+    CertificatePolicyParametersToJSON,
     CertificateRefFromJSON,
     CertificateRefToJSON,
     CreateAgentConfigRequestFromJSON,
     CreateAgentConfigRequestToJSON,
     CreateAgentRequestFromJSON,
     CreateAgentRequestToJSON,
-    CreateCertificatePolicyRequestFromJSON,
-    CreateCertificatePolicyRequestToJSON,
     CreateKeyPolicyRequestFromJSON,
     CreateKeyPolicyRequestToJSON,
     EnrollCertificateRequestFromJSON,
@@ -75,6 +76,8 @@ import {
     NamespaceProviderToJSON,
     ProfileFromJSON,
     ProfileToJSON,
+    ProfileParametersFromJSON,
+    ProfileParametersToJSON,
     RefFromJSON,
     RefToJSON,
 } from '../models/index';
@@ -211,7 +214,7 @@ export interface PutCertificatePolicyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
-    createCertificatePolicyRequest: CreateCertificatePolicyRequest;
+    certificatePolicyParameters: CertificatePolicyParameters;
 }
 
 export interface PutCertificatePolicyIssuerRequest {
@@ -226,6 +229,12 @@ export interface PutKeyPolicyRequest {
     namespaceId: string;
     id: string;
     createKeyPolicyRequest: CreateKeyPolicyRequest;
+}
+
+export interface PutProfileRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    profileParameters: ProfileParameters;
 }
 
 export interface SyncMemberOfRequest {
@@ -1286,8 +1295,8 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling putCertificatePolicy.');
         }
 
-        if (requestParameters.createCertificatePolicyRequest === null || requestParameters.createCertificatePolicyRequest === undefined) {
-            throw new runtime.RequiredError('createCertificatePolicyRequest','Required parameter requestParameters.createCertificatePolicyRequest was null or undefined when calling putCertificatePolicy.');
+        if (requestParameters.certificatePolicyParameters === null || requestParameters.certificatePolicyParameters === undefined) {
+            throw new runtime.RequiredError('certificatePolicyParameters','Required parameter requestParameters.certificatePolicyParameters was null or undefined when calling putCertificatePolicy.');
         }
 
         const queryParameters: any = {};
@@ -1309,7 +1318,7 @@ export class AdminApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: CreateCertificatePolicyRequestToJSON(requestParameters.createCertificatePolicyRequest),
+            body: CertificatePolicyParametersToJSON(requestParameters.certificatePolicyParameters),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CertificatePolicyFromJSON(jsonValue));
@@ -1426,6 +1435,55 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putKeyPolicy(requestParameters: PutKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<KeyPolicy> {
         const response = await this.putKeyPolicyRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Put profile
+     */
+    async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Profile>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling putProfile.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putProfile.');
+        }
+
+        if (requestParameters.profileParameters === null || requestParameters.profileParameters === undefined) {
+            throw new runtime.RequiredError('profileParameters','Required parameter requestParameters.profileParameters was null or undefined when calling putProfile.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/profiles/{namespaceProvider}/{namespaceId}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ProfileParametersToJSON(requestParameters.profileParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileFromJSON(jsonValue));
+    }
+
+    /**
+     * Put profile
+     */
+    async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
+        const response = await this.putProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

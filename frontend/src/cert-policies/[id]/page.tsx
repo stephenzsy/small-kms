@@ -1,31 +1,29 @@
+import { useMemoizedFn, useRequest } from "ahooks";
 import {
   Button,
   Card,
-  Form,
   Input,
-  TableColumnType,
   TableColumnsType,
   Tag,
-  Typography,
+  Typography
 } from "antd";
+import { useContext, useId } from "react";
+import { useParams } from "react-router-dom";
+import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
+import { CertWebEnroll } from "../../admin/forms/CertWebEnroll";
+import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
+import { JsonDataDisplay } from "../../components/JsonDataDisplay";
+import { Link } from "../../components/Link";
 import {
   AdminApi,
+  CertificateRef,
   CertificateStatus,
   NamespaceProvider,
 } from "../../generated/apiv2";
-import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { useMemoizedFn, useRequest } from "ahooks";
-import { useParams } from "react-router-dom";
-import { JsonDataDisplay } from "../../components/JsonDataDisplay";
-import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
-import { useContext, useId } from "react";
-import { DrawerContext } from "../../admin/contexts/DrawerContext";
-import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
-import { CertificateRef } from "../../generated/apiv2";
 import { dateShortFormatter } from "../../utils/datetimeUtils";
-import { Link } from "../../components/Link";
-import { CertWebEnroll } from "../../admin/forms/CertWebEnroll";
+import { useAuthedClientV2 } from "../../utils/useCertsApi";
 
 function useCertificatePolicy(id: string | undefined) {
   const { namespaceProvider, namespaceId } = useNamespace();
@@ -160,7 +158,9 @@ export default function CertPolicyPage() {
           namespaceId: namespaceId,
           namespaceProvider: namespaceProvider,
         });
-      } catch {}
+      } catch {
+        // TODO
+      }
     },
     {
       refreshDeps: [namespaceId, namespaceProvider, id],

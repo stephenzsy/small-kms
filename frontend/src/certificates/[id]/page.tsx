@@ -65,7 +65,9 @@ export default function CertificatePage() {
             namespaceId,
             namespaceProvider,
           });
-        } catch (e) {}
+        } catch {
+          // TODO
+        }
       } else {
         const data = await api.deleteCertificate({
           id,
@@ -88,7 +90,7 @@ export default function CertificatePage() {
   }, [blobUrl]);
 
   const getDownloadLink = useMemoizedFn(async () => {
-    let jwk = cert?.jwk ?? (await runAsync(true))?.jwk;
+    const jwk = cert?.jwk ?? (await runAsync(true))?.jwk;
     if (!jwk) {
       return;
     }

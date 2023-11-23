@@ -6,21 +6,18 @@ import {
   Divider,
   Form,
   Input,
-  Radio,
   Select,
   Typography,
 } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
-import { useForm, useWatch } from "antd/es/form/Form";
+import { useForm } from "antd/es/form/Form";
 import FormItem from "antd/es/form/FormItem";
 import { DefaultOptionType } from "antd/es/select";
 import { useEffect, useMemo, useState } from "react";
-import { JsonWebKeyCurveName, JsonWebKeyType } from "../../generated";
 import {
   AdminApi,
   CertificatePolicy,
-  CreateCertificatePolicyRequest,
-  JsonWebKeyOperation,
+  CertificatePolicyParameters,
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
@@ -107,7 +104,7 @@ function IssuerSelector({
         value: v.id,
       };
     });
-  }, [data]);
+  }, [data, issuerNamespaceProvider]);
 
   const [selectedNamespaceId, setSelectedNamespaceId] = useState<string>();
 
@@ -161,7 +158,7 @@ function IssuerSelector({
           onChange={(value) => setSelectedNamespaceId(value)}
         />
       </Form.Item>
-      <Form.Item<CreateCertificatePolicyRequest>
+      <Form.Item<CertificatePolicyParameters>
         label="Select issuer policy"
         name="issuerPolicyIdentifier"
       >
@@ -180,18 +177,18 @@ export function CertPolicyForm({
   value: CertificatePolicy | undefined;
   onChange?: (value: CertificatePolicy | undefined) => void;
 }) {
-  const [form] = useForm<CreateCertificatePolicyRequest>();
+  const [form] = useForm<CertificatePolicyParameters>();
   const { namespaceId, namespaceProvider } = useNamespace();
 
   const adminApi = useAuthedClientV2(AdminApi);
 
   const { run, loading } = useRequest(
-    async (id: string, params: CreateCertificatePolicyRequest) => {
+    async (id: string, params: CertificatePolicyParameters) => {
       const result = await adminApi.putCertificatePolicy({
         namespaceProvider,
         id,
         namespaceId: namespaceId,
-        createCertificatePolicyRequest: params,
+        certificatePolicyParameters: params,
       });
       onChange?.(result);
       return result;
@@ -201,13 +198,11 @@ export function CertPolicyForm({
     }
   );
 
-  const ktyState = useWatch(["keySpec", "kty"], form);
-
   const isCA =
     namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
     namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA;
 
-  const onFinish = useMemoizedFn((values: CreateCertificatePolicyRequest) => {
+  const onFinish = useMemoizedFn((values: CertificatePolicyParameters) => {
     run(policyId, values);
   });
 
@@ -216,10 +211,10 @@ export function CertPolicyForm({
       return;
     }
     form.setFieldsValue(value);
-  }, [value]);
+  }, [value, form]);
 
   return (
-    <Form<CreateCertificatePolicyRequest>
+    <Form<CertificatePolicyParameters>
       form={form}
       layout="vertical"
       initialValues={
@@ -231,7 +226,7 @@ export function CertPolicyForm({
       }
       onFinish={onFinish}
     >
-      <Form.Item<CreateCertificatePolicyRequest>
+      <Form.Item<CertificatePolicyParameters>
         name="displayName"
         label="Display Name"
       >
@@ -241,7 +236,7 @@ export function CertPolicyForm({
         <>
           <Divider />
 
-          <FormItem<CreateCertificatePolicyRequest>
+          <FormItem<CertificatePolicyParameters>
             noStyle
             name="issuerPolicyIdentifier"
           >
@@ -255,21 +250,21 @@ export function CertPolicyForm({
       <Divider />
       <div>
         <Typography.Title level={4}>Key Specification</Typography.Title>
-        <KeySpecFormItems<CreateCertificatePolicyRequest>
+        <KeySpecFormItems<CertificatePolicyParameters>
           formInstance={form}
           ktyName={["keySpec", "kty"]}
           keySizeName={["keySpec", "keySize"]}
           crvName={["keySpec", "crv"]}
           keyOpsName={["keySpec", "keyOps"]}
         />
-        <KeyExportableFormItem<CreateCertificatePolicyRequest>
+        <KeyExportableFormItem<CertificatePolicyParameters>
           name={"keyExportable"}
         />
       </div>
       <Divider />
       <div>
         <Typography.Title level={4}>Policy Attributes</Typography.Title>
-        <Form.Item<CreateCertificatePolicyRequest>
+        <Form.Item<CertificatePolicyParameters>
           name={"allowGenerate"}
           valuePropName="checked"
           getValueFromEvent={(e: CheckboxChangeEvent) => {
@@ -278,7 +273,7 @@ export function CertPolicyForm({
         >
           <Checkbox disabled={isCA}>Allow Generate Certificate</Checkbox>
         </Form.Item>
-        <Form.Item<CreateCertificatePolicyRequest>
+        <Form.Item<CertificatePolicyParameters>
           name={"allowEnroll"}
           valuePropName="checked"
           getValueFromEvent={(e: CheckboxChangeEvent) => {
@@ -292,7 +287,7 @@ export function CertPolicyForm({
       <Divider />
       <div>
         <Typography.Title level={4}>Subject</Typography.Title>
-        <Form.Item<CreateCertificatePolicyRequest>
+        <Form.Item<CertificatePolicyParameters>
           name={["subject", "cn"]}
           label="Common name (CN)"
           required
@@ -303,14 +298,14 @@ export function CertPolicyForm({
       <Divider />
       <div>
         <Typography.Title level={4}>Subject Alternative Names</Typography.Title>
-        <Form.Item<CreateCertificatePolicyRequest> label="DNS names">
+        <Form.Item<CertificatePolicyParameters> label="DNS names">
           <SANFormList
             name={["sans", "dnsNames"]}
             addButtonLabel="+ Add DNS name"
             inputPlaceholder="example.com"
           />
         </Form.Item>
-        <Form.Item<CreateCertificatePolicyRequest> label="IP addresses">
+        <Form.Item<CertificatePolicyParameters> label="IP addresses">
           <SANFormList
             name={["sans", "ipAddresses"]}
             addButtonLabel="+ Add IP Address"
@@ -318,7 +313,7 @@ export function CertPolicyForm({
           />
         </Form.Item>
 
-        <Form.Item<CreateCertificatePolicyRequest> label="Email addresses">
+        <Form.Item<CertificatePolicyParameters> label="Email addresses">
           <SANFormList
             name={["sans", "emails"]}
             addButtonLabel="+ Add Email Address"
@@ -329,7 +324,7 @@ export function CertPolicyForm({
 
       <Divider />
 
-      <Form.Item<CreateCertificatePolicyRequest>
+      <Form.Item<CertificatePolicyParameters>
         name="expiryTime"
         label="Expiry time"
       >

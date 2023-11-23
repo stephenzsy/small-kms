@@ -1,43 +1,31 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import {
-  Button,
-  Card,
-  Form,
-  Input,
-  Select,
-  Table,
-  TableColumnType,
-} from "antd";
+import { Button, Card, Form, Input, Select } from "antd";
 import { DefaultOptionType } from "antd/es/cascader";
 import { useForm } from "antd/es/form/Form";
 import Title from "antd/es/typography/Title";
 import { useMemo } from "react";
 import { Link } from "../components/Link";
+
 import {
   AdminApi,
-  NamespaceKind,
-  ProfileParameters,
-  ProfileRef,
-  PutProfileRequest,
-  ResourceKind,
-} from "../generated";
-import {
   AdminApi as AdminApiV2,
   NamespaceProvider,
+  ProfileParameters,
+  PutProfileRequest,
   Ref,
 } from "../generated/apiv2";
-import { useAuthedClient, useAuthedClientV2 } from "../utils/useCertsApi";
+import { useAuthedClientV2 } from "../utils/useCertsApi";
 import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 
 type ProfileTypeMapRecord<T> = Record<
-  | typeof ResourceKind.ProfileResourceKindRootCA
-  | typeof ResourceKind.ProfileResourceKindIntermediateCA,
+  | typeof NamespaceProvider.NamespaceProviderRootCA
+  | typeof NamespaceProvider.NamespaceProviderIntermediateCA,
   T
 >;
 
 type CreateProfileFormState = {
   name?: string;
-  profileType?: keyof ProfileTypeMapRecord<any>;
+  profileType?: keyof ProfileTypeMapRecord<unknown>;
   displayName?: string;
 };
 
@@ -46,11 +34,11 @@ function useProfileTypeSelectOptions(): Array<DefaultOptionType> {
     () => [
       {
         label: "Root CA",
-        value: ResourceKind.ProfileResourceKindRootCA,
+        value: NamespaceProvider.NamespaceProviderRootCA,
       },
       {
         label: "Intermediate CA",
-        value: ResourceKind.ProfileResourceKindIntermediateCA,
+        value: NamespaceProvider.NamespaceProviderIntermediateCA,
       },
     ],
     []
@@ -64,22 +52,22 @@ function CreateProfileForm({
 }) {
   const [form] = useForm<CreateProfileFormState>();
 
-  const adminApi = useAuthedClient(AdminApi);
+  const adminApi = useAuthedClientV2(AdminApi);
 
   const { run } = useRequest(
     async (
-      profileType: keyof ProfileTypeMapRecord<any>,
+      profileType: keyof ProfileTypeMapRecord<unknown>,
       name: string,
       params: ProfileParameters
     ) => {
       const req: PutProfileRequest = {
         namespaceId: name,
         profileParameters: params,
-        profileResourceKind: profileType,
+        namespaceProvider: profileType,
       };
       switch (profileType) {
-        case ResourceKind.ProfileResourceKindRootCA:
-        case ResourceKind.ProfileResourceKindIntermediateCA:
+        case NamespaceProvider.NamespaceProviderRootCA:
+        case NamespaceProvider.NamespaceProviderIntermediateCA:
           await adminApi.putProfile(req);
           break;
       }
@@ -153,17 +141,27 @@ export default function CAsPage() {
 
   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
     return {
-      [ResourceKind.ProfileResourceKindRootCA]: listRootCAs,
-      [ResourceKind.ProfileResourceKindIntermediateCA]: listIntermediateCAs,
+      [NamespaceProvider.NamespaceProviderRootCA]: listRootCAs,
+      [NamespaceProvider.NamespaceProviderIntermediateCA]: listIntermediateCAs,
     };
-  }, [listRootCAs]);
+  }, [listRootCAs, listIntermediateCAs]);
 
   const renderRootCaActions = useMemoizedFn((item: Ref) => {
-    return <Link to={`/${NamespaceProvider.NamespaceProviderRootCA}/${item.id}`}>View</Link>;
+    return (
+      <Link to={`/${NamespaceProvider.NamespaceProviderRootCA}/${item.id}`}>
+        View
+      </Link>
+    );
   });
 
   const renderIntCaactions = useMemoizedFn((item: Ref) => {
-    return <Link to={`/${NamespaceProvider.NamespaceProviderIntermediateCA}/${item.id}`}>View</Link>;
+    return (
+      <Link
+        to={`/${NamespaceProvider.NamespaceProviderIntermediateCA}/${item.id}`}
+      >
+        View
+      </Link>
+    );
   });
 
   return (

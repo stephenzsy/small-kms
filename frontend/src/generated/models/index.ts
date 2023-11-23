@@ -52,7 +52,6 @@ export * from './ManagedAppParameters';
 export * from './ManagedAppRef';
 export * from './ManagedAppRefFields';
 export * from './NamespaceKind';
-export * from './ProfileParameters';
 export * from './ProfileRef';
 export * from './ProfileRefFields';
 export * from './PullImageRequest';

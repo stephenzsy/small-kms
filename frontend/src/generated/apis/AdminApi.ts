@@ -41,7 +41,6 @@ import type {
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind,
-  ProfileParameters,
   ProfileRef,
   PullImageRequest,
   RequestDiagnostics,
@@ -105,8 +104,6 @@ import {
     ManagedAppRefToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
-    ProfileParametersFromJSON,
-    ProfileParametersToJSON,
     ProfileRefFromJSON,
     ProfileRefToJSON,
     PullImageRequestFromJSON,
@@ -404,12 +401,6 @@ export interface PutCertificateRuleMsEntraClientCredentialRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     certificateRuleMsEntraClientCredential: CertificateRuleMsEntraClientCredential;
-}
-
-export interface PutProfileRequest {
-    profileResourceKind: ResourceKind;
-    namespaceId: string;
-    profileParameters: ProfileParameters;
 }
 
 export interface PutSecretPolicyRequest {
@@ -2614,55 +2605,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putCertificateRuleMsEntraClientCredential(requestParameters: PutCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
         const response = await this.putCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Put profile
-     */
-    async putProfileRaw(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
-        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
-            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling putProfile.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putProfile.');
-        }
-
-        if (requestParameters.profileParameters === null || requestParameters.profileParameters === undefined) {
-            throw new runtime.RequiredError('profileParameters','Required parameter requestParameters.profileParameters was null or undefined when calling putProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceId}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ProfileParametersToJSON(requestParameters.profileParameters),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
-    }
-
-    /**
-     * Put profile
-     */
-    async putProfile(requestParameters: PutProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
-        const response = await this.putProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

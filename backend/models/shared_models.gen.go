@@ -51,6 +51,11 @@ type ProfileFields struct {
 	UserPrincipalName    *string `json:"userPrincipalName,omitempty"`
 }
 
+// ProfileParameters defines model for ProfileParameters.
+type ProfileParameters struct {
+	DisplayName string `json:"displayName,omitempty"`
+}
+
 // Ref defines model for Ref.
 type Ref struct {
 	Deleted     *time.Time `json:"deleted,omitempty"`

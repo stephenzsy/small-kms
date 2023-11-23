@@ -4,6 +4,8 @@ type ResourceProvider string
 
 const (
 	ProfileResourceProviderSystem           ResourceProvider = "sys"
+	ProfileResourceProviderRootCA           ResourceProvider = ResourceProvider(NamespaceProviderRootCA)
+	ProfileResourceProviderIntermediateCA   ResourceProvider = ResourceProvider(NamespaceProviderIntermediateCA)
 	ProfileResourceProviderAgent            ResourceProvider = "agent"
 	ProfileResourceProviderServicePrincipal ResourceProvider = "service-principal"
 	ProfileResourceProviderUser             ResourceProvider = "user"

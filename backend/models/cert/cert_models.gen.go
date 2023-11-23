@@ -67,6 +67,22 @@ type CertificatePolicyFields struct {
 	SubjectAlternativeNames *SubjectAlternativeNames    `json:"subjectAlternativeNames,omitempty"`
 }
 
+// CertificatePolicyParameters defines model for CertificatePolicyParameters.
+type CertificatePolicyParameters struct {
+	AllowEnroll            *bool             `json:"allowEnroll,omitempty"`
+	AllowGenerate          *bool             `json:"allowGenerate,omitempty"`
+	DisplayName            string            `json:"displayName,omitempty"`
+	ExpiryTime             string            `json:"expiryTime,omitempty"`
+	Flags                  []CertificateFlag `json:"flags,omitempty"`
+	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier,omitempty"`
+	KeyExportable          *bool             `json:"keyExportable,omitempty"`
+
+	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
+	KeySpec                 *externalRef1.JsonWebKeySpec `json:"keySpec,omitempty"`
+	Subject                 CertificateSubject           `json:"subject"`
+	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
+}
+
 // CertificateRef defines model for CertificateRef.
 type CertificateRef = certificateRefComposed
 
@@ -87,22 +103,6 @@ type CertificateStatus string
 // CertificateSubject defines model for CertificateSubject.
 type CertificateSubject struct {
 	CommonName string `json:"cn"`
-}
-
-// CreateCertificatePolicyRequest defines model for CreateCertificatePolicyRequest.
-type CreateCertificatePolicyRequest struct {
-	AllowEnroll            *bool             `json:"allowEnroll,omitempty"`
-	AllowGenerate          *bool             `json:"allowGenerate,omitempty"`
-	DisplayName            string            `json:"displayName,omitempty"`
-	ExpiryTime             string            `json:"expiryTime,omitempty"`
-	Flags                  []CertificateFlag `json:"flags,omitempty"`
-	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier,omitempty"`
-	KeyExportable          *bool             `json:"keyExportable,omitempty"`
-
-	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
-	KeySpec                 *externalRef1.JsonWebKeySpec `json:"keySpec,omitempty"`
-	Subject                 CertificateSubject           `json:"subject"`
-	SubjectAlternativeNames *SubjectAlternativeNames     `json:"subjectAlternativeNames,omitempty"`
 }
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.

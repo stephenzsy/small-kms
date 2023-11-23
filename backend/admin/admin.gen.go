@@ -69,11 +69,14 @@ type GetKeyParams struct {
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
+// PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
+type PutProfileJSONRequestBody = externalRef0.ProfileParameters
+
 // PutAgentConfigJSONRequestBody defines body for PutAgentConfig for application/json ContentType.
 type PutAgentConfigJSONRequestBody = externalRef1.CreateAgentConfigRequest
 
 // PutCertificatePolicyJSONRequestBody defines body for PutCertificatePolicy for application/json ContentType.
-type PutCertificatePolicyJSONRequestBody = externalRef2.CreateCertificatePolicyRequest
+type PutCertificatePolicyJSONRequestBody = externalRef2.CertificatePolicyParameters
 
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
@@ -101,6 +104,9 @@ type ServerInterface interface {
 	// Sync profile
 	// (POST /v2/profiles/{namespaceProvider}/{namespaceId})
 	SyncProfile(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
+	// Put profile
+	// (PUT /v2/profiles/{namespaceProvider}/{namespaceId})
+	PutProfile(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
 	// Get agent config
 	// (GET /v2/service-principal/{namespaceId}/agent-config)
 	GetAgentConfigBundle(ctx echo.Context, namespaceId NamespaceIdParameter) error
@@ -276,6 +282,32 @@ func (w *ServerInterfaceWrapper) SyncProfile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.SyncProfile(ctx, namespaceProvider, namespaceId)
+	return err
+}
+
+// PutProfile converts echo context to params.
+func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PutProfile(ctx, namespaceProvider, namespaceId)
 	return err
 }
 
@@ -1077,6 +1109,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
+	router.PUT(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.PutProfile)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfigBundle)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.GetAgentConfig)
 	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.PutAgentConfig)

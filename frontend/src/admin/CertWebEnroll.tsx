@@ -2,7 +2,7 @@ import { useMemoizedFn, useRequest } from "ahooks";
 import { Alert, Button, Form, Input, Select } from "antd";
 import { DefaultOptionType } from "antd/es/select";
 import Link from "antd/es/typography/Link";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppAuthContext } from "../auth/AuthProvider";
 import {
   AdminApi,
@@ -12,7 +12,7 @@ import {
   Key,
   KeyRef,
   NamespaceKind,
-  ResourceKind
+  ResourceKind,
 } from "../generated";
 import {
   base64StdEncodedToUrlEncoded,
@@ -22,7 +22,6 @@ import {
   toPEMBlock,
 } from "../utils/encodingUtils";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { NamespaceContext } from "./contexts/NamespaceContext";
 import { useSystemAppRequest } from "./forms/useSystemAppRequest";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
@@ -92,94 +91,6 @@ function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
     }
     return undefined;
   }, [certPolicy]);
-}
-
-type ProofJwtClaims = {
-  aud: string;
-  iss: string;
-  nbf: number;
-  exp: number;
-};
-
-function getProofJwtClaims(aud: string, issuer: string): ProofJwtClaims {
-  const now = Math.floor(Date.now() / 1000);
-  return {
-    aud,
-    iss: issuer,
-    nbf: now,
-    exp: now + 600,
-  };
-}
-
-function encodeBase64Url(data: string) {
-  const stdEncoded = btoa(data);
-  return stdEncoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-}
-
-function getSignatureCryptoAlg(
-  alg: JsonWebSignatureAlgorithm
-): AlgorithmIdentifier | RsaPssParams | EcdsaParams | undefined {
-  switch (alg) {
-    case JsonWebSignatureAlgorithm.Rs256:
-    case JsonWebSignatureAlgorithm.Rs384:
-    case JsonWebSignatureAlgorithm.Rs512:
-      return "RSASSA-PKCS1-v1_5";
-    case JsonWebSignatureAlgorithm.Es256:
-      return {
-        hash: "SHA-256",
-        name: "ECDSA",
-      };
-    case JsonWebSignatureAlgorithm.Es384:
-      return {
-        hash: "SHA-384",
-        name: "ECDSA",
-      };
-    case JsonWebSignatureAlgorithm.Es512:
-      return {
-        hash: "SHA-512",
-        name: "ECDSA",
-      };
-    case JsonWebSignatureAlgorithm.Ps256:
-      return {
-        hash: "SHA-256",
-        name: "RSA-PSS",
-      };
-    case JsonWebSignatureAlgorithm.Ps384:
-      return {
-        hash: "SHA-384",
-        name: "RSA-PSS",
-      };
-    case JsonWebSignatureAlgorithm.Ps512:
-      return {
-        hash: "SHA-512",
-        name: "RSA-PSS",
-      };
-  }
-  return undefined;
-}
-
-async function signProofJwt(
-  proofJwtClaims: ProofJwtClaims,
-  jwtAlg: JsonWebSignatureAlgorithm,
-  signAlg: AlgorithmIdentifier | RsaPssParams | EcdsaParams,
-  key: CryptoKey
-) {
-  const encoder = new TextEncoder();
-  const toBeSigned = [
-    encodeBase64Url(
-      JSON.stringify({
-        alg: jwtAlg,
-        typ: "JWT",
-      })
-    ),
-    encodeBase64Url(JSON.stringify(proofJwtClaims)),
-  ].join(".");
-  const data = encoder.encode(toBeSigned);
-  const signatureBuf = await window.crypto.subtle.sign(signAlg, key, data);
-  const encodedSignature = encodeBase64Url(
-    String.fromCharCode(...new Uint8Array(signatureBuf))
-  );
-  return toBeSigned + "." + encodedSignature;
 }
 
 class EnrollmentSession {
@@ -310,30 +221,10 @@ export function CertWebEnroll({
 }) {
   const alg = useKeyGenAlgParams(certPolicy);
   const { account } = useAppAuthContext();
-  const { namespaceId, namespaceKind } = useContext(NamespaceContext);
-
-  const api = useAuthedClient(AdminApi);
 
   const { data, run, loading } = useRequest(
     async (): Promise<EnrollmentSessionWithPemBlob | undefined> => {
       if (alg && account && certPolicy && certPolicy.keySpec.alg) {
-        const keypair = await window.crypto.subtle.generateKey(alg, true, [
-          "sign",
-          "verify",
-        ]);
-
-        const proofJwtClaims = getProofJwtClaims(
-          namespaceId,
-          account.localAccountId
-        );
-
-        const proofJwt = await signProofJwt(
-          proofJwtClaims,
-          certPolicy.keySpec.alg,
-          getSignatureCryptoAlg(certPolicy.keySpec.alg)!,
-          keypair.privateKey
-        );
-
         // const enrollResp = await api.enrollCertificate({
         //   enrollCertificateRequest: {
         //     enrollmentType: "group-memeber",
@@ -352,7 +243,7 @@ export function CertWebEnroll({
         //   session,
         //   await session.getPemBlob()
         // );
-        return undefined
+        return undefined;
       }
     },
     { manual: true }

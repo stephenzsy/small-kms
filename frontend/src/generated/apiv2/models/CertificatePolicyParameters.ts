@@ -41,86 +41,86 @@ import {
 /**
  * 
  * @export
- * @interface CreateCertificatePolicyRequest
+ * @interface CertificatePolicyParameters
  */
-export interface CreateCertificatePolicyRequest {
+export interface CertificatePolicyParameters {
     /**
      * 
      * @type {string}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     displayName?: string;
     /**
      * 
      * @type {string}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     issuerPolicyIdentifier?: string;
     /**
      * 
      * @type {JsonWebKeySpec}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     keySpec?: JsonWebKeySpec;
     /**
      * 
      * @type {boolean}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     keyExportable?: boolean;
     /**
      * 
      * @type {boolean}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     allowGenerate?: boolean;
     /**
      * 
      * @type {boolean}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     allowEnroll?: boolean;
     /**
      * 
      * @type {string}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     expiryTime?: string;
     /**
      * 
      * @type {CertificateSubject}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     subject: CertificateSubject;
     /**
      * 
      * @type {SubjectAlternativeNames}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     subjectAlternativeNames?: SubjectAlternativeNames;
     /**
      * 
      * @type {Array<CertificateFlag>}
-     * @memberof CreateCertificatePolicyRequest
+     * @memberof CertificatePolicyParameters
      */
     flags?: Array<CertificateFlag>;
 }
 
 /**
- * Check if a given object implements the CreateCertificatePolicyRequest interface.
+ * Check if a given object implements the CertificatePolicyParameters interface.
  */
-export function instanceOfCreateCertificatePolicyRequest(value: object): boolean {
+export function instanceOfCertificatePolicyParameters(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "subject" in value;
 
     return isInstance;
 }
 
-export function CreateCertificatePolicyRequestFromJSON(json: any): CreateCertificatePolicyRequest {
-    return CreateCertificatePolicyRequestFromJSONTyped(json, false);
+export function CertificatePolicyParametersFromJSON(json: any): CertificatePolicyParameters {
+    return CertificatePolicyParametersFromJSONTyped(json, false);
 }
 
-export function CreateCertificatePolicyRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CreateCertificatePolicyRequest {
+export function CertificatePolicyParametersFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificatePolicyParameters {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -139,7 +139,7 @@ export function CreateCertificatePolicyRequestFromJSONTyped(json: any, ignoreDis
     };
 }
 
-export function CreateCertificatePolicyRequestToJSON(value?: CreateCertificatePolicyRequest | null): any {
+export function CertificatePolicyParametersToJSON(value?: CertificatePolicyParameters | null): any {
     if (value === undefined) {
         return undefined;
     }

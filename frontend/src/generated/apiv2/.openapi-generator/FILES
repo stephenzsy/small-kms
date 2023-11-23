@@ -12,13 +12,13 @@ models/CertificateFields.ts
 models/CertificateFlag.ts
 models/CertificatePolicy.ts
 models/CertificatePolicyFields.ts
+models/CertificatePolicyParameters.ts
 models/CertificateRef.ts
 models/CertificateRefFields.ts
 models/CertificateStatus.ts
 models/CertificateSubject.ts
 models/CreateAgentConfigRequest.ts
 models/CreateAgentRequest.ts
-models/CreateCertificatePolicyRequest.ts
 models/CreateKeyPolicyRequest.ts
 models/EnrollCertificateRequest.ts
 models/ErrorResult.ts
@@ -39,6 +39,7 @@ models/LinkRefFields.ts
 models/NamespaceProvider.ts
 models/Profile.ts
 models/ProfileFields.ts
+models/ProfileParameters.ts
 models/Ref.ts
 models/SubjectAlternativeNames.ts
 models/index.ts

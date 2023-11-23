@@ -82,6 +82,23 @@ func (jwk *JsonWebKey) Digest(w io.Writer) {
 	}
 }
 
+func (jwk *JsonWebKey) PublicJWK() *JsonWebKey {
+	return &JsonWebKey{
+		KeyType:          jwk.KeyType,
+		Alg:              jwk.Alg,
+		KeyID:            jwk.KeyID,
+		Curve:            jwk.Curve,
+		N:                jwk.N,
+		E:                jwk.E,
+		X:                jwk.X,
+		Y:                jwk.Y,
+		KeyOperations:    jwk.KeyOperations,
+		ThumbprintSHA1:   jwk.ThumbprintSHA1,
+		ThumbprintSHA256: jwk.ThumbprintSHA256,
+		CertificateChain: jwk.CertificateChain,
+	}
+}
+
 func (jwk *JsonWebKey) PublicKey() crypto.PublicKey {
 	if jwk.cachedPublicKey != nil {
 		return jwk.cachedPublicKey

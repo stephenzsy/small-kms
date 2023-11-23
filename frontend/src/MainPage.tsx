@@ -1,4 +1,3 @@
-import { useAppAuthContext } from "./auth/AuthProvider";
 /*
 async function genKeypair() {
   const subtle = new SubtleCrypto();
@@ -16,8 +15,6 @@ async function genKeypair() {
 }
 */
 export default function MainPage() {
-  const { account } = useAppAuthContext();
-
   return (
     <>
       <header className="bg-white shadow">

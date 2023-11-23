@@ -128,7 +128,7 @@ components:
         - expiryTime
         - issuerPolicyIdentifier
         - subject
-    CreateCertificatePolicyRequest:
+    CertificatePolicyParameters:
       type: object
       properties:
         displayName:

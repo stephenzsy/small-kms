@@ -18,20 +18,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/ProfileResponse"
-    put:
-      tags:
-        - admin
-      operationId: PutProfile
-      summary: Put profile
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ProfileParameters"
-      responses:
-        200:
-          $ref: "#/components/responses/ProfileResponse"
 security:
   - BearerAuth: []
 components:
@@ -58,11 +44,6 @@ components:
         - displayName
     Profile:
       $ref: "#/components/schemas/ProfileRef"
-    ProfileParameters:
-      type: object
-      properties:
-        displayName:
-          type: string
   responses:
     ProfileResponse:
       description: OK

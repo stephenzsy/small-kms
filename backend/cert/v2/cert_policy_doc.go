@@ -41,7 +41,7 @@ const (
 )
 
 func (d *CertPolicyDoc) init(
-	p *certmodels.CreateCertificatePolicyRequest) error {
+	p *certmodels.CertificatePolicyParameters) error {
 	if d == nil {
 		return nil
 	}

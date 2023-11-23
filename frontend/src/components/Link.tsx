@@ -1,4 +1,3 @@
-import { Typography } from "antd";
 import classNames from "classnames";
 import { LinkProps, Link as RRLink } from "react-router-dom";
 

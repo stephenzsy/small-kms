@@ -27,8 +27,8 @@ export function base64UrlEncodeBuffer(buffer: ArrayBuffer): string {
 
 export function base64UrlDecodeBuffer(text: string): ArrayBuffer {
   const s = atob(base64UrlEncodedToStdEncoded(text));
-  var bytes = new Uint8Array(s.length);
-  for (var i = 0; i < s.length; i++) {
+  const bytes = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) {
     bytes[i] = s.charCodeAt(i);
   }
   return bytes.buffer;

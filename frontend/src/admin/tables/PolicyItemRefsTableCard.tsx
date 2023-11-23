@@ -1,9 +1,9 @@
-import { Card, Table, TableColumnType } from "antd";
-import { KeyRef, SecretRef } from "../../generated";
-import { useMemo } from "react";
-import { ShortDate, dateShortFormatter } from "../../utils/datetimeUtils";
 import { useMemoizedFn } from "ahooks";
+import { Card, Table, TableColumnType } from "antd";
+import { useMemo } from "react";
 import { Link } from "../../components/Link";
+import { ShortDate } from "../../components/ShortDate";
+import { KeyRef, SecretRef } from "../../generated";
 
 export function usePolicyItemRefTableColumns<T extends SecretRef | KeyRef>(
   onGetVewLink: (item: T) => string | undefined

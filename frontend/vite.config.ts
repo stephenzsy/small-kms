@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -10,10 +11,11 @@ export default defineConfig({
         manualChunks: {
           react: ["react", "react-dom"],
           "react-router-dom": ["react-router-dom"],
-          "msal": ["@azure/msal-browser", "@azure/msal-react"],
+          msal: ["@azure/msal-browser", "@azure/msal-react"],
           //antd: ["antd"],
         },
       },
     },
   },
+  test: {},
 });
