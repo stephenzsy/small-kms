@@ -55,13 +55,13 @@ export interface AgentConfigEndpoint {
      * @type {string}
      * @memberof AgentConfigEndpoint
      */
-    jwtVerifyKeyPolicyIdentifier?: string;
+    jwtVerifyKeyPolicyId: string;
     /**
      * 
      * @type {Array<string>}
      * @memberof AgentConfigEndpoint
      */
-    jwtVerifyKeyIdentifiers?: Array<string>;
+    jwtVerifyKeyIds?: Array<string>;
 }
 
 /**
@@ -73,6 +73,7 @@ export function instanceOfAgentConfigEndpoint(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
+    isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
 }
@@ -91,8 +92,8 @@ export function AgentConfigEndpointFromJSONTyped(json: any, ignoreDiscriminator:
         'updated': (new Date(json['updated'])),
         'version': json['version'],
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
-        'jwtVerifyKeyPolicyIdentifier': !exists(json, 'jwtVerifyKeyPolicyIdentifier') ? undefined : json['jwtVerifyKeyPolicyIdentifier'],
-        'jwtVerifyKeyIdentifiers': !exists(json, 'jwtVerifyKeyIdentifiers') ? undefined : json['jwtVerifyKeyIdentifiers'],
+        'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
+        'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
 }
 
@@ -109,8 +110,8 @@ export function AgentConfigEndpointToJSON(value?: AgentConfigEndpoint | null): a
         'updated': (value.updated.toISOString()),
         'version': value.version,
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
-        'jwtVerifyKeyPolicyIdentifier': value.jwtVerifyKeyPolicyIdentifier,
-        'jwtVerifyKeyIdentifiers': value.jwtVerifyKeyIdentifiers,
+        'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
+        'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };
 }
 

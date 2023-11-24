@@ -6,24 +6,20 @@ import {
   Input,
   InputNumber,
   Radio,
-  Table,
-  TableColumnType,
-  Typography,
+  Typography
 } from "antd";
-import { useContext, useMemo } from "react";
+import { useForm, useWatch } from "antd/es/form/Form";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
+import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
   ResourceKind,
   SecretGenerateMode,
-  SecretPolicyParameters,
-  SecretRef,
+  SecretPolicyParameters
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { useForm, useWatch } from "antd/es/form/Form";
-import { JsonDataDisplay } from "../components/JsonDataDisplay";
-import { Link } from "../components/Link";
 import { PolicyItemRefsTableCard } from "./tables/PolicyItemRefsTableCard";
 
 type SecretPolicyFormState = {
@@ -36,7 +32,6 @@ type SecretPolicyFormState = {
 function SecretPolicyForm({ policyId }: { policyId: string }) {
   const [form] = useForm<SecretPolicyFormState>();
   const newPolicyId = useWatch("identifier", form);
-  const generateMode = useWatch("mode", form);
   const { namespaceId: namespaceIdentifier, namespaceKind } =
     useContext(NamespaceContext);
 
@@ -159,8 +154,6 @@ export default function SecretPolicyPage() {
   const api = useAuthedClient(AdminApi);
   const {
     data,
-    run: refresh,
-    mutate,
   } = useRequest(
     async () => {
       return await api.getSecretPolicy({

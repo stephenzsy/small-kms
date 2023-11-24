@@ -27,6 +27,8 @@ import type {
   CreateKeyPolicyRequest,
   EnrollCertificateRequest,
   ErrorResult,
+  ExchangePKCS12Request,
+  ExchangePKCS12Result,
   Key,
   KeyPolicy,
   KeyRef,
@@ -62,6 +64,10 @@ import {
     EnrollCertificateRequestToJSON,
     ErrorResultFromJSON,
     ErrorResultToJSON,
+    ExchangePKCS12RequestFromJSON,
+    ExchangePKCS12RequestToJSON,
+    ExchangePKCS12ResultFromJSON,
+    ExchangePKCS12ResultToJSON,
     KeyFromJSON,
     KeyToJSON,
     KeyPolicyFromJSON,
@@ -104,6 +110,13 @@ export interface EnrollCertificateOperationRequest {
     id: string;
     enrollCertificateRequest: EnrollCertificateRequest;
     onBehalfOfApplication?: boolean;
+}
+
+export interface ExchangePKCS12OperationRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    exchangePKCS12Request: ExchangePKCS12Request;
 }
 
 export interface GenerateCertificateRequest {
@@ -439,6 +452,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async enrollCertificate(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
         const response = await this.enrollCertificateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Exchange PKCS12
+     */
+    async exchangePKCS12Raw(requestParameters: ExchangePKCS12OperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExchangePKCS12Result>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling exchangePKCS12.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling exchangePKCS12.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling exchangePKCS12.');
+        }
+
+        if (requestParameters.exchangePKCS12Request === null || requestParameters.exchangePKCS12Request === undefined) {
+            throw new runtime.RequiredError('exchangePKCS12Request','Required parameter requestParameters.exchangePKCS12Request was null or undefined when calling exchangePKCS12.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}/exchange-pkcs12`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ExchangePKCS12RequestToJSON(requestParameters.exchangePKCS12Request),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ExchangePKCS12ResultFromJSON(jsonValue));
+    }
+
+    /**
+     * Exchange PKCS12
+     */
+    async exchangePKCS12(requestParameters: ExchangePKCS12OperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExchangePKCS12Result> {
+        const response = await this.exchangePKCS12Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

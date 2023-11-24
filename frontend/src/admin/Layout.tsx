@@ -1,8 +1,8 @@
-import { useMemo, type PropsWithChildren } from "react";
-import { useAppAuthContext } from "../auth/AuthProvider";
+import { useContext, useMemo, type PropsWithChildren } from "react";
+import { AppAuthContext } from "../auth/AuthProvider";
 
-export function AdminLayout(props: PropsWithChildren<{}>) {
-  const { account } = useAppAuthContext();
+export function AdminLayout(props: PropsWithChildren) {
+  const { account } = useContext(AppAuthContext);
 
   const isAdmin = useMemo(
     () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),

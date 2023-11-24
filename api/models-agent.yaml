@@ -96,9 +96,9 @@ components:
       properties:
         tlsCertificatePolicyId:
           type: string
-        jwtVerifyKeyPolicyIdentifier:
+        jwtVerifyKeyPolicyId:
           type: string
-        jwtVerifyKeyIdentifiers:
+        jwtVerifyKeyIds:
           type: array
           items:
             type: string

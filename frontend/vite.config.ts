@@ -12,6 +12,7 @@ export default defineConfig({
           react: ["react", "react-dom"],
           "react-router-dom": ["react-router-dom"],
           msal: ["@azure/msal-browser", "@azure/msal-react"],
+          ahooks: ["ahooks"],
           //antd: ["antd"],
         },
       },

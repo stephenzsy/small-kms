@@ -20,14 +20,14 @@ func (*KeyAdminServer) GetKeyPolicy(ec echo.Context, namespaceProvider models.Na
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc, err := getKeyPolicyInternal(c, namespaceProvider, namespaceId, id)
+	doc, err := GetKeyPolicyInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		return err
 	}
 	return c.JSON(200, doc.ToModel())
 }
 
-func getKeyPolicyInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policyID string) (*KeyPolicyDoc, error) {
+func GetKeyPolicyInternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policyID string) (*KeyPolicyDoc, error) {
 	doc := &KeyPolicyDoc{}
 	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{

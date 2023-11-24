@@ -793,11 +793,11 @@ type DrawerContextValue = {
 const DataDrawerContext = createContext<DrawerContextValue>({
   openDrawer: () => {},
 });
-function DrawerProvider(props: PropsWithChildren<{}>) {
+function DrawerProvider(props: PropsWithChildren) {
   const [drawerOpen, { setTrue: setDrawerOpen, setFalse: closeDrawer }] =
     useBoolean(false);
-  const [handler, setHandler] = useState<DrawerHandler<any>>();
-  const onGetDataRef = useRef<() => Promise<any>>(() => Promise.resolve());
+  const [handler, setHandler] = useState<DrawerHandler<unknown>>();
+  const onGetDataRef = useRef<() => Promise<unknown>>(() => Promise.resolve());
   const { data, loading, run } = useRequest(
     () => {
       return onGetDataRef.current();
@@ -805,7 +805,7 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
     { manual: true }
   );
 
-  const openDrawer = useMemoizedFn((handler: DrawerHandler<any>) => {
+  const openDrawer = useMemoizedFn((handler: DrawerHandler<unknown>) => {
     setHandler(handler);
     setDrawerOpen();
     if (handler.onGetData) {
@@ -818,7 +818,7 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
   return (
     <DataDrawerContext.Provider
       value={{
-        openDrawer,
+        openDrawer: openDrawer as DrawerContextValue["openDrawer"],
       }}
     >
       {props.children}
@@ -836,7 +836,7 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
           )
         }
       >
-        <JsonDataDisplay<any>
+        <JsonDataDisplay<unknown>
           data={data ?? handlerData}
           toJson={toJson}
           loading={loading}
@@ -847,8 +847,6 @@ function DrawerProvider(props: PropsWithChildren<{}>) {
 }
 
 export default function AgentDashboardPage() {
-  const { namespaceId: namespaceIdentifier, namespaceKind } =
-    useContext(NamespaceContext);
   const { instanceId } = useParams<{ instanceId: string }>();
 
   const api = useAuthedClient(AdminApi);

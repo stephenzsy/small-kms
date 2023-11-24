@@ -1,13 +1,13 @@
-import { Button, Table, Tag, type TableColumnType } from "antd";
-import { AdminApi, CertPolicyRef, NamespaceKind } from "../generated";
-import { useMemo, useContext } from "react";
-import { Link } from "../components/Link";
-import {
-  NamespaceContext,
-  NamespaceConfigContext,
-} from "./contexts/NamespaceContext";
-import { useAuthedClient } from "../utils/useCertsApi";
 import { useMemoizedFn, useRequest } from "ahooks";
+import { Table, Tag, type TableColumnType } from "antd";
+import { useContext, useMemo } from "react";
+import { Link } from "../components/Link";
+import { AdminApi, CertPolicyRef } from "../generated";
+import { useAuthedClient } from "../utils/useCertsApi";
+import {
+  NamespaceConfigContext,
+  NamespaceContext,
+} from "./contexts/NamespaceContext";
 
 export function usePolicyRefTableColumns(
   routePrefix: string,

@@ -1,8 +1,11 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import type { Group } from "@microsoft/microsoft-graph-types";
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Form, Input, Select, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
+import { DefaultOptionType } from "antd/es/select";
 import classNames from "classnames";
+import { useMemo } from "react";
 import { Link } from "../components/Link";
 import {
   AdminApi,
@@ -12,11 +15,8 @@ import {
 } from "../generated/apiv2";
 import { useAuthedClientV2, useGraphClient } from "../utils/useCertsApi";
 import { useNamespace } from "./contexts/NamespaceContextRouteProvider";
-import { ResourceRefsTable } from "./tables/ResourceRefsTable";
-import { DefaultOptionType } from "antd/es/select";
-import { useMemo } from "react";
 import { NamespacePoliciesTableCard } from "./tables/NamespacePoliciesTableCard";
-import type { DirectoryObject } from "@microsoft/microsoft-graph-types";
+import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 
 function GroupMembershipSyncForm({ userId }: { userId: string }) {
   const [form] = useForm<{ groupId: string }>();
@@ -32,7 +32,7 @@ function GroupMembershipSyncForm({ userId }: { userId: string }) {
           .api(`/users/${userId}/memberOf`)
           .select(["id", "displayName"])
           .get()
-      ).value as DirectoryObject[];
+      ).value as Group[];
     },
     { manual: true }
   );
@@ -46,7 +46,7 @@ function GroupMembershipSyncForm({ userId }: { userId: string }) {
   );
 
   const dirOpjOptions = useMemo<DefaultOptionType[] | undefined>(() => {
-    return dirObjects?.map((obj: any) => ({
+    return dirObjects?.map((obj: Group) => ({
       label: obj.displayName,
       value: obj.id,
     }));

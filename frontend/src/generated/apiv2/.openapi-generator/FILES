@@ -24,6 +24,8 @@ models/CreateAgentRequest.ts
 models/CreateKeyPolicyRequest.ts
 models/EnrollCertificateRequest.ts
 models/ErrorResult.ts
+models/ExchangePKCS12Request.ts
+models/ExchangePKCS12Result.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts

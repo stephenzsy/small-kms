@@ -22,7 +22,7 @@ func (*KeyAdminServer) GenerateKey(ec echo.Context, namespaceProvider models.Nam
 		return base.ErrResponseStatusForbidden
 	}
 
-	policy, err := getKeyPolicyInternal(c, namespaceProvider, namespaceId, id)
+	policy, err := GetKeyPolicyInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		return err
 	}

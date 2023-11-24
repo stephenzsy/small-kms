@@ -1,13 +1,13 @@
 import { useRequest } from "ahooks";
 import { Button, Form, Input } from "antd";
-import { useForm, useWatch } from "antd/es/form/Form";
+import { useForm } from "antd/es/form/Form";
 import { useEffect } from "react";
 import {
-    AdminApi,
-    CreateKeyPolicyRequest,
-    JsonWebKeyOperation,
-    JsonWebKeyType,
-    KeyPolicy
+  AdminApi,
+  CreateKeyPolicyRequest,
+  JsonWebKeyOperation,
+  JsonWebKeyType,
+  KeyPolicy,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
@@ -23,7 +23,6 @@ export function KeyPolicyForm({
   onChange?: (value: KeyPolicy) => void;
 }) {
   const [form] = useForm<CreateKeyPolicyRequest>();
-  const kty = useWatch(["keySpec", "kty"], form);
   const { namespaceId, namespaceProvider } = useNamespace();
   const api = useAuthedClientV2(AdminApi);
   const { run } = useRequest(
@@ -45,7 +44,7 @@ export function KeyPolicyForm({
       return;
     }
     form.setFieldsValue(value);
-  }, [value]);
+  }, [value, form]);
 
   return (
     <Form<CreateKeyPolicyRequest>

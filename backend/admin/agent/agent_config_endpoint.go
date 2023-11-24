@@ -9,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert/v2"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	"github.com/stephenzsy/small-kms/backend/key/v2"
 	"github.com/stephenzsy/small-kms/backend/models"
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
@@ -16,7 +17,9 @@ import (
 
 type agentConfigDocEndpoint struct {
 	AgentConfigDoc
-	TLSCertificatePolicyID string `json:"tlsCertificatePolicyId"`
+	TLSCertificatePolicyID string   `json:"tlsCertificatePolicyId"`
+	JWTVerifyKeyPolicyID   string   `json:"jwtVerifyKeyPolicyId"`
+	JWTVerifyKeyIDs        []string `json:"jwtVerifyKeyIds"`
 }
 
 func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
@@ -24,6 +27,8 @@ func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
 	m.Updated = d.Timestamp.Time
 	m.Version = hex.EncodeToString(d.Version)
 	m.TlsCertificatePolicyId = d.TLSCertificatePolicyID
+	m.JwtVerifyKeyPolicyId = d.JWTVerifyKeyPolicyID
+	m.JwtVerifyKeyIds = d.JWTVerifyKeyIDs
 	return m
 }
 
@@ -46,16 +51,33 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 			},
 		},
 		TLSCertificatePolicyID: req.TlsCertificatePolicyId,
+		JWTVerifyKeyPolicyID:   req.JwtVerifyKeyPolicyId,
 	}
 
 	versiond := md5.New()
 
-	policy, err := cert.GetCertificatePolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.TlsCertificatePolicyId)
+	certPolicy, err := cert.GetCertificatePolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.TlsCertificatePolicyId)
 	if err != nil {
 		return err
 	}
 	versiond.Write([]byte(doc.TLSCertificatePolicyID))
-	versiond.Write(policy.Version)
+	versiond.Write(certPolicy.Version)
+
+	keyPolicy, err := key.GetKeyPolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.JwtVerifyKeyPolicyId)
+	if err != nil {
+		return err
+	}
+	versiond.Write([]byte(doc.JWTVerifyKeyPolicyID))
+	versiond.Write(keyPolicy.Version)
+
+	doc.JWTVerifyKeyIDs, err = key.ListLatestActiveKeysByPolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId,
+		keyPolicy.Identifier())
+	if err != nil {
+		return err
+	}
+	for _, keyId := range doc.JWTVerifyKeyIDs {
+		versiond.Write([]byte(keyId))
+	}
 
 	doc.Version = versiond.Sum(nil)
 	docSvc := resdoc.GetDocService(c)

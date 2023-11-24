@@ -45,7 +45,7 @@ export function ProxyAuthTokenContextProvider({
       }
       return t ?? "";
     });
-  }, [evictToken]);
+  }, [evictToken, setStoredToken]);
 
   const getAccessToken = useMemoizedFn((): string => {
     const now = Date.now() / 1000;

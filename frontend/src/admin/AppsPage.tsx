@@ -8,8 +8,7 @@ import {
   AdminApi,
   CreateManagedAppRequest,
   ManagedAppRef,
-  ProfileRef,
-  ResourceKind,
+  ProfileRef
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { SyncManagedApplicationForm } from "./forms/SyncManagedApplicationForm";
@@ -78,29 +77,6 @@ function useManagedAppsColumns() {
   );
 }
 
-function useProfileRefColumns(profileKind: ResourceKind) {
-  return useMemo<TableColumnType<ProfileRef>[]>(
-    () => [
-      {
-        title: "ID",
-        render: (r: ProfileRef) => <span className="font-mono">{r.id}</span>,
-      },
-      {
-        title: "Display name",
-        render: (r: ProfileRef) => r.displayName,
-      },
-
-      {
-        title: "Actions",
-        render: (r: ProfileRef) => (
-          <Link to={`/app/${profileKind}/${r.id}`}>View</Link>
-        ),
-      },
-    ],
-    [profileKind]
-  );
-}
-
 export default function ManagedAppsPage() {
   const adminApi = useAuthedClient(AdminApi);
 
@@ -114,9 +90,6 @@ export default function ManagedAppsPage() {
   );
 
   const managedAppColumns = useManagedAppsColumns();
-  const spColumns = useProfileRefColumns(
-    ResourceKind.ProfileResourceKindServicePrincipal
-  );
 
   return (
     <>

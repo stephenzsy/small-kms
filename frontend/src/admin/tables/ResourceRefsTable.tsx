@@ -35,7 +35,7 @@ function useResourceRefsTableColumns<T extends ResourceRef>(
           ]
         : []),
     ];
-  }, [extraColumns, renderActions]);
+  }, [extraColumns, renderActions, noDisplayName]);
 }
 
 export function ResourceRefsTable<T extends ResourceRef>({

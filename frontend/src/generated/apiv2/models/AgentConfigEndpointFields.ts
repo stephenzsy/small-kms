@@ -30,13 +30,13 @@ export interface AgentConfigEndpointFields {
      * @type {string}
      * @memberof AgentConfigEndpointFields
      */
-    jwtVerifyKeyPolicyIdentifier?: string;
+    jwtVerifyKeyPolicyId: string;
     /**
      * 
      * @type {Array<string>}
      * @memberof AgentConfigEndpointFields
      */
-    jwtVerifyKeyIdentifiers?: Array<string>;
+    jwtVerifyKeyIds?: Array<string>;
 }
 
 /**
@@ -45,6 +45,7 @@ export interface AgentConfigEndpointFields {
 export function instanceOfAgentConfigEndpointFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
+    isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
 }
@@ -60,8 +61,8 @@ export function AgentConfigEndpointFieldsFromJSONTyped(json: any, ignoreDiscrimi
     return {
         
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
-        'jwtVerifyKeyPolicyIdentifier': !exists(json, 'jwtVerifyKeyPolicyIdentifier') ? undefined : json['jwtVerifyKeyPolicyIdentifier'],
-        'jwtVerifyKeyIdentifiers': !exists(json, 'jwtVerifyKeyIdentifiers') ? undefined : json['jwtVerifyKeyIdentifiers'],
+        'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
+        'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
 }
 
@@ -75,8 +76,8 @@ export function AgentConfigEndpointFieldsToJSON(value?: AgentConfigEndpointField
     return {
         
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
-        'jwtVerifyKeyPolicyIdentifier': value.jwtVerifyKeyPolicyIdentifier,
-        'jwtVerifyKeyIdentifiers': value.jwtVerifyKeyIdentifiers,
+        'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
+        'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };
 }
 

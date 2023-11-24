@@ -1,24 +1,17 @@
 import {
   AccountInfo,
   AuthenticationResult,
-  InteractionStatus,
   PublicClientApplication,
 } from "@azure/msal-browser";
 import {
-  AuthenticatedTemplate,
   MsalProvider,
   useAccount,
   useIsAuthenticated,
   useMsal,
 } from "@azure/msal-react";
-import { useLatest, useMemoizedFn } from "ahooks";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  type PropsWithChildren,
-  useMemo,
-} from "react";
+import { useCreation, useMemoizedFn } from "ahooks";
+import { createContext, useMemo, type PropsWithChildren } from "react";
+import { AdminApi, Configuration } from "../generated/apiv2";
 
 const pca = new PublicClientApplication({
   auth: {
@@ -40,6 +33,7 @@ export interface IAppAuthContext {
   logout: () => void;
   acquireToken: (scopes?: string[]) => Promise<AuthenticationResult | void>;
   readonly isAdmin: boolean;
+  readonly api: AdminApi | undefined;
 }
 
 export const AppAuthContext = createContext<IAppAuthContext>({
@@ -49,6 +43,7 @@ export const AppAuthContext = createContext<IAppAuthContext>({
   logout: () => {},
   acquireToken: () => Promise.resolve(undefined),
   isAdmin: false,
+  api: undefined,
 });
 
 function useActiveAccount() {
@@ -60,14 +55,13 @@ function useActiveAccount() {
   return useAccount(account);
 }
 
-function AuthContextProvider({ children }: PropsWithChildren<{}>) {
+function AuthContextProvider({ children }: PropsWithChildren) {
   const { instance } = useMsal();
   const account = useActiveAccount();
   const logout = useMemoizedFn(() => {
     instance.logoutRedirect();
   });
 
-  const accountRef = useLatest(account);
   const acquireToken = useMemoizedFn(
     async (
       scopes: string[] = [import.meta.env.VITE_API_SCOPE]
@@ -94,6 +88,18 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
     [account]
   );
 
+  const api = useCreation(() => {
+    return new AdminApi(
+      new Configuration({
+        basePath: import.meta.env.VITE_API_BASE_PATH,
+        accessToken: async () => {
+          const result = await acquireToken();
+          return result?.accessToken || "";
+        },
+      })
+    );
+  }, [account, acquireToken]);
+
   return (
     <AppAuthContext.Provider
       value={{
@@ -103,6 +109,7 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
         logout,
         acquireToken,
         isAdmin,
+        api,
       }}
     >
       {children}
@@ -110,14 +117,10 @@ function AuthContextProvider({ children }: PropsWithChildren<{}>) {
   );
 }
 
-export function AuthProvider({ children }: PropsWithChildren<{}>) {
+export function AuthProvider({ children }: PropsWithChildren) {
   return (
     <MsalProvider instance={pca}>
       <AuthContextProvider>{children}</AuthContextProvider>
     </MsalProvider>
   );
-}
-
-export function useAppAuthContext() {
-  return useContext(AppAuthContext);
 }

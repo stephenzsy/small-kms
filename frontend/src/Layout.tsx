@@ -9,10 +9,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Avatar, Button, ConfigProvider, Layout, Menu, MenuProps } from "antd";
 import type { PropsWithChildren } from "react";
-import { useMemo } from "react";
-import { NavLink, useMatches } from "react-router-dom";
-import { useAppAuthContext } from "./auth/AuthProvider";
+import { useContext, useMemo } from "react";
+import { NavLink } from "react-router-dom";
 import { DrawerProvider } from "./admin/contexts/DrawerContext";
+import { AppAuthContext } from "./auth/AuthProvider";
 
 function useNavItems(isAdmin: boolean): MenuProps["items"] {
   return useMemo(
@@ -56,7 +56,7 @@ function useNavItems(isAdmin: boolean): MenuProps["items"] {
 }
 
 function useUserMenuItems(): MenuProps["items"] {
-  const { account, isAuthenticated, logout, login } = useAppAuthContext();
+  const { account, isAuthenticated, logout } = useContext(AppAuthContext);
   console.log;
   return useMemo(
     () =>
@@ -95,7 +95,7 @@ function useUserMenuItems(): MenuProps["items"] {
               label: <Button>Login</Button>,
             },
           ],
-    [isAuthenticated, account]
+    [isAuthenticated, account, logout]
   );
 }
 
@@ -105,9 +105,9 @@ const theme = {
   },
 };
 
-export default function AppLayout(props: PropsWithChildren<{}>) {
-  const { account, login } = useAppAuthContext();
-  const matches = useMatches();
+export default function AppLayout(props: PropsWithChildren) {
+  const { account, login } = useContext(AppAuthContext);
+  //  const matches = useMatches();
   const isAdmin = useMemo(
     () => !!account?.idTokenClaims?.roles?.includes("App.Admin"),
     [account]

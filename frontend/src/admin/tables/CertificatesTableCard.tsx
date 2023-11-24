@@ -1,12 +1,11 @@
+import { useRequest } from "ahooks";
 import { Card, Table, TableColumnType, Tag } from "antd";
-import { AdminApi, CertificateRef } from "../../generated";
 import { useContext, useMemo } from "react";
 import { Link } from "../../components/Link";
-import { useRequest } from "ahooks";
-import { NamespaceContext } from "../contexts/NamespaceContext";
-import { useAuthedClient } from "../../utils/useCertsApi";
+import { AdminApi, CertificateRef } from "../../generated";
 import { dateShortFormatter } from "../../utils/datetimeUtils";
-
+import { useAuthedClient } from "../../utils/useCertsApi";
+import { NamespaceContext } from "../contexts/NamespaceContext";
 
 type CertificateActionsProps = {
   certRef: CertificateRef;
@@ -14,11 +13,7 @@ type CertificateActionsProps = {
   certPolicyId?: string;
 };
 
-function CertificateActions({
-  certRef,
-  certPolicyId,
-  onSetIssuerPolicy,
-}: CertificateActionsProps) {
+function CertificateActions({ certRef }: CertificateActionsProps) {
   return (
     <div className="flex items-center gap-2">
       <Link to={`/my/certs/${certRef.id}`}>View</Link>
@@ -26,7 +21,7 @@ function CertificateActions({
   );
 }
 
-function useCertTableColumns(activeIssuerCertificateId: string | undefined) {
+function useCertTableColumns() {
   return useMemo<TableColumnType<CertificateRef>[]>(
     () => [
       {
@@ -70,7 +65,7 @@ function useCertTableColumns(activeIssuerCertificateId: string | undefined) {
         render: (r) => <CertificateActions certRef={r} />,
       },
     ],
-    [activeIssuerCertificateId]
+    []
   );
 }
 
@@ -81,7 +76,7 @@ export function CertificatesTableCard({
 }) {
   const { namespaceId, namespaceKind } = useContext(NamespaceContext);
   const api = useAuthedClient(AdminApi);
-  const { data: issuedCertificates, refresh: refreshCertificates } = useRequest(
+  const { data: issuedCertificates } = useRequest(
     async () => {
       return await api.listCertificates({
         namespaceId,
@@ -91,7 +86,7 @@ export function CertificatesTableCard({
     },
     { refreshDeps: [namespaceId, certPolicyId] }
   );
-  const columns = useCertTableColumns(undefined);
+  const columns = useCertTableColumns();
   return (
     <Card title="Certificate list">
       <Table<CertificateRef>

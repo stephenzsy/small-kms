@@ -23,6 +23,8 @@ export * from './CreateAgentRequest';
 export * from './CreateKeyPolicyRequest';
 export * from './EnrollCertificateRequest';
 export * from './ErrorResult';
+export * from './ExchangePKCS12Request';
+export * from './ExchangePKCS12Result';
 export * from './JsonWebKey';
 export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';

@@ -13,7 +13,7 @@ export const DrawerContext = React.createContext<DrawerContextValue>({
   openDrawer: () => {},
 });
 
-export function DrawerProvider({ children }: PropsWithChildren<{}>) {
+export function DrawerProvider({ children }: PropsWithChildren) {
   const [drawerOpen, { setTrue: setDrawerOpenTrue, setFalse: closeDrawer }] =
     useBoolean(false);
   const [{ children: drawerChildren, ...restProps }, setDrawerProps] =

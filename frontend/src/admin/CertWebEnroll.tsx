@@ -3,7 +3,6 @@ import { Alert, Button, Form, Input, Select } from "antd";
 import { DefaultOptionType } from "antd/es/select";
 import Link from "antd/es/typography/Link";
 import { useEffect, useMemo, useState } from "react";
-import { useAppAuthContext } from "../auth/AuthProvider";
 import {
   AdminApi,
   CertPolicy,
@@ -220,11 +219,10 @@ export function CertWebEnroll({
   certPolicy: CertPolicy | undefined;
 }) {
   const alg = useKeyGenAlgParams(certPolicy);
-  const { account } = useAppAuthContext();
 
   const { data, run, loading } = useRequest(
     async (): Promise<EnrollmentSessionWithPemBlob | undefined> => {
-      if (alg && account && certPolicy && certPolicy.keySpec.alg) {
+      if (alg && certPolicy && certPolicy.keySpec.alg) {
         // const enrollResp = await api.enrollCertificate({
         //   enrollCertificateRequest: {
         //     enrollmentType: "group-memeber",

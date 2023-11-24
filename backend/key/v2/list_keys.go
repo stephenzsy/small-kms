@@ -27,12 +27,12 @@ func (*KeyAdminServer) ListKeys(ec echo.Context, namespaceProvider models.Namesp
 		WithExtraColumns("c.status", "c.iat", "c.exp").
 		WithOrderBy("c.iat DESC")
 	if params.PolicyId != nil && *params.PolicyId != "" {
-		policyIdentifer := resdoc.NewDocIdentifier(
+		policyIdentifier := resdoc.NewDocIdentifier(
 			namespaceProvider, namespaceId,
 			models.ResourceProviderKeyPolicy,
 			*params.PolicyId)
 		qb.WithWhereClauses("c.policy = @policy")
-		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyIdentifer.String()})
+		qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyIdentifier.String()})
 	} else {
 		qb.WithExtraColumns("c.policy")
 	}
@@ -46,4 +46,27 @@ func (*KeyAdminServer) ListKeys(ec echo.Context, namespaceProvider models.Namesp
 		return doc.ToKeyRef()
 	})
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))
+}
+
+func ListLatestActiveKeysByPolicyInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, policyIdentifier resdoc.DocIdentifier) ([]string, error) {
+	qb := resdoc.NewDefaultCosmoQueryBuilder().
+		WithExtraColumns("c.status", "c.iat", "c.exp").
+		WithWhereClauses("c.status = 'active'").
+		WithWhereClauses("c.policy = @policy").
+		WithWhereClauses("NOT IS_DEFINED(c.exp) OR c.exp > (GetCurrentTimestamp() / 1000)").
+		WithOrderBy("c.iat DESC").
+		WithOffsetLimit(0, 2)
+
+	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: policyIdentifier.String()})
+
+	pager := resdoc.NewQueryDocPager[*KeyDoc](c, qb, resdoc.PartitionKey{
+		NamespaceProvider: namespaceProvider,
+		NamespaceID:       namespaceId,
+		ResourceProvider:  models.ResourceProviderKey,
+	})
+
+	return utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(doc *KeyDoc) string {
+		return doc.ID
+	}))
+
 }
