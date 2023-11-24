@@ -1,12 +1,13 @@
-package cloudkey_test
+package cloudkey
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"testing"
 
-	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/v3/assert"
 )
@@ -36,17 +37,55 @@ func TestJsonWebEncryption_Decrypt(t *testing.T) {
 		"2ULr-4uoL0Z5t4v1LBVmFw",
 	}, ".")
 
-	privatekeyJwk := &cloudkey.JsonWebKey{}
+	privatekeyJwk := &JsonWebKey{}
 	err := json.Unmarshal([]byte(wrapPrivateKey), privatekeyJwk)
 	require.NoError(t, err)
 	privateKey := privatekeyJwk.PrivateKey().(crypto.Decrypter)
 
 	// Decrypt the JWE
-	jwe, err := cloudkey.NewJsonWebEncryption(jweString)
+	jwe, err := NewJsonWebEncryption(jweString)
 	require.NoError(t, err)
-	decrypted, _, err := jwe.Decrypt(func(header *cloudkey.JoseHeader) crypto.PrivateKey {
+	decrypted, _, err := jwe.Decrypt(func(header *JoseHeader) crypto.PrivateKey {
 		return privateKey
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "plain text", string(decrypted))
+}
+
+func mustDecodeBase64URL(s string) []byte {
+	b, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func TestJsonWebEncryption_KDF(t *testing.T) {
+	alicePrivateKey := JsonWebKey{
+		Curve:   CurveNameP384,
+		KeyType: KeyTypeEC,
+		D:       mustDecodeBase64URL("nD9ydFl6wqTzzQRE7DY50W2HoA3Ipk-qr2GdSTIzasADDIe3fsv30XWOUlCV51-w"),
+		X:       mustDecodeBase64URL("1TOe7fnQIvy_7stDWY9FTWMB2brL-nWLKxOf1N9ysC9aUriKzGVG41TR4uf1_apU"),
+		Y:       mustDecodeBase64URL("g1netoRQTLqVbmYD8EVfqpDne0qcTMdvOiotYdL6Su-D7QOHopG0HgTmWwVhWT-J"),
+	}
+	bobPublicKey := JsonWebKey{
+		Curve:   CurveNameP384,
+		KeyType: KeyTypeEC,
+		X:       mustDecodeBase64URL("n0xM_GPHtVgYod4XUa7KXbuiEoJek1lYRQBetjA8SraIbmKI6baEI5w-lmKAgOR7"),
+		Y:       mustDecodeBase64URL("vuL2ItFJtQaxRe6lkm84m-GC-7oOqPGoSOb8PNNZdxpNvKAnVNLkWRn3K97O3IGZ"),
+	}
+	expetedSharedSecret := mustDecodeBase64URL("jytQHNfFwnNCpeaqsDetKP7UW7H6LFijv3zmoTGpvSs")
+
+	bobEcdhKey, err := bobPublicKey.PublicKey().(*ecdsa.PublicKey).ECDH()
+	require.NoError(t, err)
+	aliceEcdhKey, err := alicePrivateKey.PrivateKey().(*ecdsa.PrivateKey).ECDH()
+	require.NoError(t, err)
+	z, err := aliceEcdhKey.ECDH(bobEcdhKey)
+	require.NoError(t, err)
+	z = z[:32]
+	kdf := &ecdhesKDF{
+		z:   z,
+		alg: "A256GCM",
+	}
+	assert.DeepEqual(t, expetedSharedSecret, kdf.getAESGCM256DerivedKey())
 }

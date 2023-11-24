@@ -4,8 +4,10 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -56,7 +58,8 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 	}
 
 	reqPayload, encKey, err := jwe.Decrypt(func(*cloudkey.JoseHeader) crypto.PrivateKey {
-		return otk.PrivateKey()
+		key, _ := otk.PrivateKey().(*ecdsa.PrivateKey).ECDH()
+		return key
 	})
 	if err != nil {
 		return err
@@ -93,6 +96,19 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 
 	var resultPayload string
 
+	resultHeader := jwe.Protected
+	switch jwe.Protected.Algorithm {
+	case cloudkey.JwkEncAlgEcdhEs:
+		resultHeader = cloudkey.JoseHeader{
+			EncryptionAlgorithm: jwe.Protected.EncryptionAlgorithm,
+		}
+		if headerJson, err := json.Marshal(resultHeader); err != nil {
+			return err
+		} else {
+			resultHeader.Raw = base64.RawURLEncoding.EncodeToString(headerJson)
+		}
+	}
+
 	switch jwe.Protected.EncryptionAlgorithm {
 	case cloudkey.JwkEncAlgAes256Gcm:
 		ci, err := aes.NewCipher(encKey)
@@ -107,11 +123,11 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 		if _, err := rand.Read(iv); err != nil {
 			return err
 		}
-		encrypted := gcm.Seal(nil, iv, pkcs12File, []byte(jwe.Protected.Raw))
+		encrypted := gcm.Seal(nil, iv, pkcs12File, []byte(resultHeader.Raw))
 		ciphertext := encrypted[:len(encrypted)-ci.BlockSize()]
 		tag := encrypted[len(encrypted)-ci.BlockSize():]
 		resultJwe := &cloudkey.JsonWebEncryption{
-			Protected:            jwe.Protected,
+			Protected:            resultHeader,
 			EncryptedKey:         jwe.EncryptedKey,
 			InitializationVector: iv,
 			Ciphertext:           ciphertext,
@@ -121,6 +137,7 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 	}
 
 	return c.JSON(http.StatusOK, &certmodels.ExchangePKCS12Result{
-		Payload: resultPayload,
+		Payload:  resultPayload,
+		Password: password,
 	})
 }

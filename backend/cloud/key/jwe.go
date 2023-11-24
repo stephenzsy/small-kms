@@ -29,7 +29,7 @@ const (
 )
 
 type JoseHeader struct {
-	Algorithm           JsonWebKeyEncryptionAlgorithm `json:"alg"`
+	Algorithm           JsonWebKeyEncryptionAlgorithm `json:"alg,omitempty"`
 	EncryptionAlgorithm JsonWebKeyEncryptionAlgorithm `json:"enc"`
 	KeyID               string                        `json:"kid,omitempty"`
 	EphemeralPublicKey  *JsonWebKey                   `json:"epk,omitempty"`
@@ -151,14 +151,14 @@ func (jwe *JsonWebEncryption) unwrapKey(keyFunc func(header *JoseHeader) crypto.
 		if privateKey, ok := privateKey.(*ecdh.PrivateKey); !ok {
 			return nil, fmt.Errorf("incompatable key")
 		} else if epk, ok := jwe.Protected.EphemeralPublicKey.PublicKey().(*ecdsa.PublicKey); !ok {
-			return nil, fmt.Errorf("incompatable key")
+			return nil, fmt.Errorf("incompatable key, key should be ecdsa")
 		} else if ecdhPubKey, err := epk.ECDH(); err != nil {
 			return nil, err
 		} else if z, err := privateKey.ECDH(ecdhPubKey); err != nil {
 			return nil, err
 		} else {
 			kdf := &ecdhesKDF{
-				z:   z,
+				z:   z[:32],
 				alg: string(jwe.Protected.EncryptionAlgorithm),
 				apu: jwe.Protected.AgreementPartyUInfo,
 				apv: jwe.Protected.AgreementPartyVInfo,

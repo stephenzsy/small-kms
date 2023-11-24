@@ -133,8 +133,7 @@ func (s *CertServer) enrollInternal(c ctx.RequestContext, nsProvider models.Name
 		certDoc.OneTimePkcs12Key.D = oneTimeKey.D.Bytes()
 		certDoc.OneTimePkcs12Key.Curve = cloudkey.CurveNameP384
 		certDoc.OneTimePkcs12Key.KeyType = cloudkey.KeyTypeEC
-		certDoc.OneTimePkcs12Key.Alg = "ECDH-ES"
-		certDoc.OneTimePkcs12Key.KeyOperations = []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey}
+		certDoc.OneTimePkcs12Key.KeyOperations = []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits}
 	}
 
 	var signed []byte
