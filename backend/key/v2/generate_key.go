@@ -84,5 +84,5 @@ func (*KeyAdminServer) GenerateKey(ec echo.Context, namespaceProvider models.Nam
 	if err != nil {
 		return err
 	}
-	return c.JSON(resp.RawResponse.StatusCode, doc.ToModel())
+	return c.JSON(resp.RawResponse.StatusCode, doc.ToModel(true))
 }

@@ -49,14 +49,14 @@ require (
 	github.com/labstack/gommon v0.4.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/microsoft/kiota-abstractions-go v1.5.2 // indirect
+	github.com/microsoft/kiota-abstractions-go v1.5.3 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.0.1 // indirect
 	github.com/microsoft/kiota-http-go v1.1.1 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-json-go v1.0.4 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.0.0 // indirect
 	github.com/microsoft/kiota-serialization-text-go v1.0.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v1.0.0 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go-core v1.0.1 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect

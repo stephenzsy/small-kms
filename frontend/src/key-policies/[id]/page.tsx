@@ -170,7 +170,7 @@ export default function KeyPolicyPage() {
   const viewKeys = useMemoizedFn((cert: KeyRef) => {
     return (
       <div className="flex gap-2 items-center">
-        <Link to={`../certificates/${cert.id}`}>View</Link>
+        <Link to={`../keys/${cert.id}`}>View</Link>
         {(namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
           namespaceProvider ===
             NamespaceProvider.NamespaceProviderIntermediateCA) && (

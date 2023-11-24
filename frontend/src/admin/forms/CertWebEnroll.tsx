@@ -262,15 +262,18 @@ export function CertWebEnroll({
 
   return (
     <div>
-      <Button
-        onClick={() => {
-          setSession(
-            new EnrollmentSession(namespaceProvider, namespaceId, certPolicy)
-          );
-        }}
-      >
-        Begin enrollment
-      </Button>
+      {!session && (
+        <Button
+          type="primary"
+          onClick={() => {
+            setSession(
+              new EnrollmentSession(namespaceProvider, namespaceId, certPolicy)
+            );
+          }}
+        >
+          Begin enrollment
+        </Button>
+      )}
       {pemBlobUrl && (
         <div className="ring-2 p-4 rounded-md ring-orange-500">
           <div>This is the only time you can download the private key.</div>

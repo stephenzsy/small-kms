@@ -18,7 +18,6 @@ const ProfilesPage = React.lazy(() => import("./admin/ProfilesPage"));
 const AgentPage = React.lazy(() => import("./agents/[id]/page"));
 const AgentsPage = React.lazy(() => import("./agents/page"));
 const SystemAppsPage = React.lazy(() => import("./system/page"));
-const KeyPage = React.lazy(() => import("./admin/KeyPage"));
 const KeyPolicyPage = React.lazy(() => import("./admin/KeyPolicyPage"));
 const KeyPolicyPage2 = React.lazy(() => import("./key-policies/[id]/page"));
 const SecretPage = React.lazy(() => import("./admin/SecretPage"));
@@ -40,6 +39,7 @@ const AgentDashboardPage = React.lazy(
   () => import("./admin/AgentDashboardPage")
 );
 const RadiusConfigPage = React.lazy(() => import("./admin/RadiusConfigPage"));
+const KeyPage = React.lazy(() => import("./keys/[id]/page"));
 
 export const router = createBrowserRouter([
   {
@@ -96,6 +96,7 @@ export const router = createBrowserRouter([
           { path: "cert-policies/:id", element: <CertPolicyPage2 /> },
           { path: "certificates/:id", element: <CertificatePage /> },
           { path: "key-policies/:id", element: <KeyPolicyPage2 /> },
+          { path: "keys/:id", element: <KeyPage /> },
         ],
       },
       {
@@ -222,10 +223,6 @@ export const router = createBrowserRouter([
                   {
                     path: "cert/:certId",
                     element: <CertificatePage />,
-                  },
-                  {
-                    path: "keys/:id",
-                    element: <KeyPage />,
                   },
                   {
                     path: "agent/:instanceId/dashboard",

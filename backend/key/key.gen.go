@@ -156,9 +156,6 @@ type ServerInterface interface {
 	// Get key spec
 	// (GET /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId})
 	GetKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// Generate Key
-	// (POST /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate)
-	GenerateKey(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
 	// List keys
 	// (GET /v1/{namespaceKind}/{namespaceId}/keys)
 	ListKeys(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListKeysParams) error
@@ -229,40 +226,6 @@ func (w *ServerInterfaceWrapper) GetKeyPolicy(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetKeyPolicy(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
-// GenerateKey converts echo context to params.
-func (w *ServerInterfaceWrapper) GenerateKey(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GenerateKey(ctx, namespaceKind, namespaceId, resourceId)
 	return err
 }
 
@@ -365,7 +328,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.GetKeyPolicy)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId/generate", wrapper.GenerateKey)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/keys", wrapper.ListKeys)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/keys/:resourceId", wrapper.GetKey)
 

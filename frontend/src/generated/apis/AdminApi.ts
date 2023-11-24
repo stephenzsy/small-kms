@@ -217,12 +217,6 @@ export interface ExchangePKCS12OperationRequest {
     exchangePKCS12Request: ExchangePKCS12Request;
 }
 
-export interface GenerateKeyRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-}
-
 export interface GenerateSecretRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -1071,52 +1065,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async exchangePKCS12(requestParameters: ExchangePKCS12OperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExchangePKCS12Result> {
         const response = await this.exchangePKCS12Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Generate Key
-     */
-    async generateKeyRaw(requestParameters: GenerateKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Key>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling generateKey.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling generateKey.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling generateKey.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => KeyFromJSON(jsonValue));
-    }
-
-    /**
-     * Generate Key
-     */
-    async generateKey(requestParameters: GenerateKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Key> {
-        const response = await this.generateKeyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -37,19 +37,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/KeyPolicyResponse"
-  /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}/generate:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-    post:
-      tags:
-        - admin
-      operationId: GenerateKey
-      summary: Generate Key
-      responses:
-        201:
-          $ref: "#/components/responses/KeyResponse"
   /v1/{namespaceKind}/{namespaceId}/keys:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

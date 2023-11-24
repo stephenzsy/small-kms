@@ -110,9 +110,11 @@ func (d *KeyDoc) ToKeyRef() (m keymodels.KeyRef) {
 	return m
 }
 
-func (d *KeyDoc) ToModel() (m keymodels.Key) {
+func (d *KeyDoc) ToModel(includeJwk bool) (m keymodels.Key) {
 	m.KeyRef = d.ToKeyRef()
-	m.Jwk = d.JsonWebKey
+	if includeJwk {
+		m.Jwk = d.JsonWebKey
+	}
 	m.Exportable = d.Exportable
 	m.Identififier = d.Identifier().String()
 	m.Nbf = d.NotBefore

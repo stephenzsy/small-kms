@@ -91,8 +91,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54 h1:TCT5sTFxoPwPQkdegvnmgmcZRpecDsrLSCyWYUwAWTs=
 github.com/microsoft/go-crypto-winnative v0.0.0-20231013074141-ebaf9de20b54/go.mod h1:fveERXKbeK+XLmOyU24caKnIT/S5nniAX9XCRHfnrM4=
-github.com/microsoft/kiota-abstractions-go v1.5.2 h1:rVGmtb0B557fCxVjHXUrSGXDWTdrIN/9gl6TTBan1fc=
-github.com/microsoft/kiota-abstractions-go v1.5.2/go.mod h1:xyBzTVCYrp7QBW4/p+RFi44PHwp/IPn2dZepuV4nF80=
+github.com/microsoft/kiota-abstractions-go v1.5.3 h1:qUTwuXCbMi99EkHaTh5NGMK5MOKxJn7u/M2FbYcesLY=
+github.com/microsoft/kiota-abstractions-go v1.5.3/go.mod h1:xyBzTVCYrp7QBW4/p+RFi44PHwp/IPn2dZepuV4nF80=
 github.com/microsoft/kiota-authentication-azure-go v1.0.1 h1:F4HH+2QQHSecQg50gVEZaUcxA8/XxCaC2oOMYv2gTIM=
 github.com/microsoft/kiota-authentication-azure-go v1.0.1/go.mod h1:IbifJeoi+sULI0vjnsWYSmDu5atFo/4FZ6WCoAkPjsc=
 github.com/microsoft/kiota-http-go v1.1.1 h1:W4Olo7Z/MwNZCfkcvH/5eLhnn7koRBMMRhLEnf5MPKo=
@@ -107,8 +107,8 @@ github.com/microsoft/kiota-serialization-text-go v1.0.0 h1:XOaRhAXy+g8ZVpcq7x7a0
 github.com/microsoft/kiota-serialization-text-go v1.0.0/go.mod h1:sM1/C6ecnQ7IquQOGUrUldaO5wj+9+v7G2W3sQ3fy6M=
 github.com/microsoftgraph/msgraph-sdk-go v1.25.0 h1:AKHYi6TqyXrKrbgYnVq4RNbxM9FHs+0McoFTmy9VH28=
 github.com/microsoftgraph/msgraph-sdk-go v1.25.0/go.mod h1:9atTwyb9mpNq5MgTBPs2KAlDzGcMcTszDVzE4GeXCeo=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.0.0 h1:7NWTfyXvOjoizW7PmxNp3+8wCKPgpODs/D1cUZ3fkAY=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.0.0/go.mod h1:tQb4q3YMIj2dWhhXhQSJ4ELpol931ANKzHSYK5kX1qE=
+github.com/microsoftgraph/msgraph-sdk-go-core v1.0.1 h1:uq4qZD8VXLiNZY0t4NoRpLDoEiNYJvAQK3hc0ZMmdxs=
+github.com/microsoftgraph/msgraph-sdk-go-core v1.0.1/go.mod h1:HUITyuFN556+0QZ/IVfH5K4FyJM7kllV6ExKi2ImKhE=
 github.com/moby/term v0.5.0 h1:xt8Q1nalod/v7BqbG21f8mQPqH+xAaC9C3N3wfWbVP0=
 github.com/moby/term v0.5.0/go.mod h1:8FzsFHVUBGZdbDsJw/ot+X+d5HLUbvklYLJ9uGfcI3Y=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
