@@ -1,6 +1,7 @@
 package agentadmin
 
 import (
+	"crypto/md5"
 	"encoding/hex"
 	"errors"
 
@@ -13,27 +14,27 @@ import (
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
 
-type agentConfigDocIdentity struct {
+type agentConfigDocEndpoint struct {
 	AgentConfigDoc
-	KeyCredentialsCertificatePolicyID string `json:"keyCredentialsCertificatePolicyId"`
+	TLSCertificatePolicyID string `json:"tlsCertificatePolicyId"`
 }
 
-func (d *agentConfigDocIdentity) ToModel() (m agentmodels.AgentConfigIdentity) {
-	m.Name = agentmodels.AgentConfigNameIdentity
+func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
+	m.Name = agentmodels.AgentConfigNameEndpoint
 	m.Updated = d.Timestamp.Time
 	m.Version = hex.EncodeToString(d.Version)
-	m.KeyCredentialCertificatePolicyId = d.KeyCredentialsCertificatePolicyID
+	m.TlsCertificatePolicyId = d.TLSCertificatePolicyID
 	return m
 }
 
-func putAgentConfigIdentity(c ctx.RequestContext, namespaceId string, param *agentmodels.CreateAgentConfigRequest) error {
+func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *agentmodels.CreateAgentConfigRequest) error {
 
-	req, err := param.AsAgentConfigIdentityFields()
+	req, err := param.AsAgentConfigEndpointFields()
 	if err != nil {
 		return err
 	}
 
-	doc := &agentConfigDocIdentity{
+	doc := &agentConfigDocEndpoint{
 		AgentConfigDoc: AgentConfigDoc{
 			ResourceDoc: resdoc.ResourceDoc{
 				PartitionKey: resdoc.PartitionKey{
@@ -41,18 +42,22 @@ func putAgentConfigIdentity(c ctx.RequestContext, namespaceId string, param *age
 					NamespaceProvider: models.NamespaceProviderServicePrincipal,
 					ResourceProvider:  models.ResourceProviderAgentConfig,
 				},
-				ID: string(agentmodels.AgentConfigNameIdentity),
+				ID: string(agentmodels.AgentConfigNameEndpoint),
 			},
 		},
-		KeyCredentialsCertificatePolicyID: req.KeyCredentialCertificatePolicyId,
+		TLSCertificatePolicyID: req.TlsCertificatePolicyId,
 	}
 
-	policy, err := cert.GetCertificatePolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.KeyCredentialCertificatePolicyId)
+	versiond := md5.New()
+
+	policy, err := cert.GetCertificatePolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.TlsCertificatePolicyId)
 	if err != nil {
 		return err
 	}
-	doc.Version = policy.Version
+	versiond.Write([]byte(doc.TLSCertificatePolicyID))
+	versiond.Write(policy.Version)
 
+	doc.Version = versiond.Sum(nil)
 	docSvc := resdoc.GetDocService(c)
 	resp, err := docSvc.Upsert(c, doc, nil)
 	if err != nil {
@@ -60,7 +65,7 @@ func putAgentConfigIdentity(c ctx.RequestContext, namespaceId string, param *age
 	}
 
 	ops := azcosmos.PatchOperations{}
-	ops.AppendSet("/items/identity", &AgentConfigBundleDocItem{
+	ops.AppendSet("/items/endpoint", &AgentConfigBundleDocItem{
 		Updated: doc.Timestamp.Time,
 		Version: doc.Version,
 	})
@@ -72,12 +77,12 @@ func putAgentConfigIdentity(c ctx.RequestContext, namespaceId string, param *age
 	return c.JSON(resp.RawResponse.StatusCode, doc.ToModel())
 }
 
-func getAgentConfigIdentity(c ctx.RequestContext, namespaceId string) error {
+func getAgentConfigEndpoint(c ctx.RequestContext, namespaceId string) error {
 
 	docSvc := resdoc.GetDocService(c)
-	doc := &agentConfigDocIdentity{}
+	doc := &agentConfigDocEndpoint{}
 	if err := docSvc.Read(c, resdoc.NewDocIdentifier(models.NamespaceProviderServicePrincipal,
-		namespaceId, models.ResourceProviderAgentConfig, string(agentmodels.AgentConfigNameIdentity)), doc, nil); err != nil {
+		namespaceId, models.ResourceProviderAgentConfig, string(agentmodels.AgentConfigNameEndpoint)), doc, nil); err != nil {
 		err = resdoc.HandleAzCosmosError(err)
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
 			return base.ErrResponseStatusNotFound

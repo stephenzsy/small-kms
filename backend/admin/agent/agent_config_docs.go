@@ -33,23 +33,11 @@ func (d *AgentConfigBundleDoc) ToModel() (m agentmodels.AgentConfigBundle) {
 	m.Id = d.ID
 	m.Expires = time.Now().Add(24 * time.Hour)
 	m.Identity = d.Items[agentmodels.AgentConfigNameIdentity].ToModel()
+	m.Endpoint = d.Items[agentmodels.AgentConfigNameEndpoint].ToModel()
 	return m
 }
 
 type AgentConfigDoc struct {
 	resdoc.ResourceDoc
 	Version []byte `json:"version"`
-}
-
-type AgentConfigDocIdentity struct {
-	AgentConfigDoc
-	KeyCredentialsCertificatePolicyID string `json:"keyCredentialsCertificatePolicyId"`
-}
-
-func (d *AgentConfigDocIdentity) ToModel() (m agentmodels.AgentConfigIdentity) {
-	m.Name = agentmodels.AgentConfigNameIdentity
-	m.Updated = d.Timestamp.Time
-	m.Version = hex.EncodeToString(d.Version)
-	m.KeyCredentialCertificatePolicyId = d.KeyCredentialsCertificatePolicyID
-	return m
 }

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 export type JsonDataDisplayProps<T> = {
   data: T | undefined;
   loading?: boolean;
-  toJson?: (data?: T) => any;
+  toJson?: (data?: T) => unknown;
   className?: string;
 };
 

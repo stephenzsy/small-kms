@@ -210,12 +210,6 @@ export interface CreateManagedAppRequest {
     managedAppParameters: ManagedAppParameters;
 }
 
-export interface DeleteCertificateRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-}
-
 export interface ExchangePKCS12OperationRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -1025,51 +1019,6 @@ export class AdminApi extends runtime.BaseAPI {
     async createManagedApp(requestParameters: CreateManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
         const response = await this.createManagedAppRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     * Delete certificate
-     */
-    async deleteCertificateRaw(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling deleteCertificate.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteCertificate.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling deleteCertificate.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Delete certificate
-     */
-    async deleteCertificate(requestParameters: DeleteCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteCertificateRaw(requestParameters, initOverrides);
     }
 
     /**

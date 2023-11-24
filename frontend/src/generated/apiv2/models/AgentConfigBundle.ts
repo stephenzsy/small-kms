@@ -46,6 +46,12 @@ export interface AgentConfigBundle {
     identity?: AgentConfigRef;
     /**
      * 
+     * @type {AgentConfigRef}
+     * @memberof AgentConfigBundle
+     */
+    endpoint?: AgentConfigRef;
+    /**
+     * 
      * @type {Date}
      * @memberof AgentConfigBundle
      */
@@ -77,6 +83,7 @@ export function AgentConfigBundleFromJSONTyped(json: any, ignoreDiscriminator: b
         'id': json['id'],
         'envGuards': json['envGuards'],
         'identity': !exists(json, 'identity') ? undefined : AgentConfigRefFromJSON(json['identity']),
+        'endpoint': !exists(json, 'endpoint') ? undefined : AgentConfigRefFromJSON(json['endpoint']),
         'expires': (new Date(json['expires'])),
     };
 }
@@ -93,6 +100,7 @@ export function AgentConfigBundleToJSON(value?: AgentConfigBundle | null): any {
         'id': value.id,
         'envGuards': value.envGuards,
         'identity': AgentConfigRefToJSON(value.identity),
+        'endpoint': AgentConfigRefToJSON(value.endpoint),
         'expires': (value.expires.toISOString()),
     };
 }

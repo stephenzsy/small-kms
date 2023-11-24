@@ -29,6 +29,8 @@ components:
             type: string
         identity:
           $ref: "#/components/schemas/AgentConfigRef"
+        endpoint:
+          $ref: "#/components/schemas/AgentConfigRef"
         expires:
           type: string
           format: date-time
@@ -41,8 +43,10 @@ components:
       type: string
       enum:
         - identity
+        - endpoint
       x-enum-varnames:
         - AgentConfigNameIdentity
+        - AgentConfigNameEndpoint
     AgentConfigRef:
       type: object
       properties:
@@ -60,13 +64,16 @@ components:
     AgentConfig:
       oneOf:
         - $ref: "#/components/schemas/AgentConfigIdentity"
+        - $ref: "#/components/schemas/AgentConfigEndpoint"
       discriminator:
         propertyName: name
         mapping:
           identity: "#/components/schemas/AgentConfigIdentity"
+          endpoint: "#/components/schemas/AgentConfigEndpoint"
     CreateAgentConfigRequest:
       oneOf:
         - $ref: "#/components/schemas/AgentConfigIdentityFields"
+        - $ref: "#/components/schemas/AgentConfigEndpointFields"
     AgentConfigIdentity:
       allOf:
         - $ref: "#/components/schemas/AgentConfigRef"
@@ -79,6 +86,26 @@ components:
           type: string
       required:
         - keyCredentialCertificatePolicyId
+    AgentConfigEndpoint:
+      allOf:
+        - $ref: "#/components/schemas/AgentConfigRef"
+        - $ref: "#/components/schemas/AgentConfigEndpointFields"
+        - x-go-type: agentConfigEndpointComposed
+    AgentConfigEndpointFields:
+      type: object
+      properties:
+        tlsCertificatePolicyId:
+          type: string
+        jwtVerifyKeyPolicyIdentifier:
+          type: string
+        jwtVerifyKeyIdentifiers:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - tlsCertificatePolicyId
+        - jwtVerifyKeyPolicyId
   responses:
     AgentResposne:
       description: Agent response

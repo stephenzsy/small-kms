@@ -2,6 +2,8 @@
 /* eslint-disable */
 export * from './AgentConfig';
 export * from './AgentConfigBundle';
+export * from './AgentConfigEndpoint';
+export * from './AgentConfigEndpointFields';
 export * from './AgentConfigIdentity';
 export * from './AgentConfigIdentityFields';
 export * from './AgentConfigName';

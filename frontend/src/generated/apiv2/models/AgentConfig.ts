@@ -13,6 +13,13 @@
  */
 
 import {
+    AgentConfigEndpoint,
+    instanceOfAgentConfigEndpoint,
+    AgentConfigEndpointFromJSON,
+    AgentConfigEndpointFromJSONTyped,
+    AgentConfigEndpointToJSON,
+} from './AgentConfigEndpoint';
+import {
     AgentConfigIdentity,
     instanceOfAgentConfigIdentity,
     AgentConfigIdentityFromJSON,
@@ -25,7 +32,7 @@ import {
  * 
  * @export
  */
-export type AgentConfig = { name: 'identity' } & AgentConfigIdentity;
+export type AgentConfig = { name: 'endpoint' } & AgentConfigEndpoint | { name: 'identity' } & AgentConfigIdentity;
 
 export function AgentConfigFromJSON(json: any): AgentConfig {
     return AgentConfigFromJSONTyped(json, false);
@@ -36,6 +43,8 @@ export function AgentConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean
         return json;
     }
     switch (json['name']) {
+        case 'endpoint':
+            return {...AgentConfigEndpointFromJSONTyped(json, true), name: 'endpoint'};
         case 'identity':
             return {...AgentConfigIdentityFromJSONTyped(json, true), name: 'identity'};
         default:
@@ -51,6 +60,8 @@ export function AgentConfigToJSON(value?: AgentConfig | null): any {
         return null;
     }
     switch (value['name']) {
+        case 'endpoint':
+            return AgentConfigEndpointToJSON(value);
         case 'identity':
             return AgentConfigIdentityToJSON(value);
         default:

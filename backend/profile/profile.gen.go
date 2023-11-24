@@ -19,11 +19,6 @@ const (
 // Profile defines model for Profile.
 type Profile = ProfileRef
 
-// ProfileParameters defines model for ProfileParameters.
-type ProfileParameters struct {
-	DisplayName *string `json:"displayName,omitempty"`
-}
-
 // ProfileRef defines model for ProfileRef.
 type ProfileRef = profileRefComposed
 
@@ -38,17 +33,11 @@ type ProfileResourceKindParameter = externalRef0.ResourceKind
 // ProfileResponse defines model for ProfileResponse.
 type ProfileResponse = Profile
 
-// PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
-type PutProfileJSONRequestBody = ProfileParameters
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Get profile
 	// (GET /v1/profile/{profileResourceKind}/{namespaceId})
 	GetProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
-	// Put profile
-	// (PUT /v1/profile/{profileResourceKind}/{namespaceId})
-	PutProfile(ctx echo.Context, profileResourceKind ProfileResourceKindParameter, namespaceId externalRef0.NamespaceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -82,32 +71,6 @@ func (w *ServerInterfaceWrapper) GetProfile(ctx echo.Context) error {
 	return err
 }
 
-// PutProfile converts echo context to params.
-func (w *ServerInterfaceWrapper) PutProfile(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "profileResourceKind" -------------
-	var profileResourceKind ProfileResourceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "profileResourceKind", runtime.ParamLocationPath, ctx.Param("profileResourceKind"), &profileResourceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter profileResourceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutProfile(ctx, profileResourceKind, namespaceId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -137,6 +100,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.GetProfile)
-	router.PUT(baseURL+"/v1/profile/:profileResourceKind/:namespaceId", wrapper.PutProfile)
 
 }

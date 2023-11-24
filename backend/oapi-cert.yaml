@@ -45,15 +45,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/CertificateResponse"
-    delete:
-      tags:
-        - admin
-      operationId: DeleteCertificate
-      summary: Delete certificate
-      responses:
-        204:
-          description: Certificate deleted
-          content: {}
   /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

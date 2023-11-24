@@ -22,6 +22,8 @@ func (*AgentAdminServer) GetAgentConfig(ec echo.Context, namespaceId string, con
 	switch configName {
 	case agentmodels.AgentConfigNameIdentity:
 		return getAgentConfigIdentity(c, namespaceId)
+	case agentmodels.AgentConfigNameEndpoint:
+		return getAgentConfigEndpoint(c, namespaceId)
 	}
 	return base.ErrResponseStatusNotFound
 }

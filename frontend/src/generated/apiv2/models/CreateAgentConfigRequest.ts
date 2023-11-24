@@ -13,6 +13,13 @@
  */
 
 import {
+    AgentConfigEndpointFields,
+    instanceOfAgentConfigEndpointFields,
+    AgentConfigEndpointFieldsFromJSON,
+    AgentConfigEndpointFieldsFromJSONTyped,
+    AgentConfigEndpointFieldsToJSON,
+} from './AgentConfigEndpointFields';
+import {
     AgentConfigIdentityFields,
     instanceOfAgentConfigIdentityFields,
     AgentConfigIdentityFieldsFromJSON,
@@ -25,7 +32,7 @@ import {
  * 
  * @export
  */
-export type CreateAgentConfigRequest = AgentConfigIdentityFields;
+export type CreateAgentConfigRequest = AgentConfigEndpointFields | AgentConfigIdentityFields;
 
 export function CreateAgentConfigRequestFromJSON(json: any): CreateAgentConfigRequest {
     return CreateAgentConfigRequestFromJSONTyped(json, false);
@@ -35,7 +42,7 @@ export function CreateAgentConfigRequestFromJSONTyped(json: any, ignoreDiscrimin
     if ((json === undefined) || (json === null)) {
         return json;
     }
-    return { ...AgentConfigIdentityFieldsFromJSONTyped(json, true) };
+    return { ...AgentConfigEndpointFieldsFromJSONTyped(json, true), ...AgentConfigIdentityFieldsFromJSONTyped(json, true) };
 }
 
 export function CreateAgentConfigRequestToJSON(value?: CreateAgentConfigRequest | null): any {
@@ -46,6 +53,9 @@ export function CreateAgentConfigRequestToJSON(value?: CreateAgentConfigRequest 
         return null;
     }
 
+    if (instanceOfAgentConfigEndpointFields(value)) {
+        return AgentConfigEndpointFieldsToJSON(value as AgentConfigEndpointFields);
+    }
     if (instanceOfAgentConfigIdentityFields(value)) {
         return AgentConfigIdentityFieldsToJSON(value as AgentConfigIdentityFields);
     }

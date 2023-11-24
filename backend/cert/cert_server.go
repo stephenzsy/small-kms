@@ -110,20 +110,6 @@ func (s *server) GetCertificate(ec echo.Context, namespaceKind base.NamespaceKin
 	return c.JSON(http.StatusOK, r)
 }
 
-// DeleteCertificate implements ServerInterface.
-func (s *server) DeleteCertificate(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	err = deleteCertificate(c, resourceIdentifier)
-	if err != nil {
-		return err
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
 var _ ServerInterface = (*server)(nil)
 
 func NewServer(apiServer api.APIServer) *server {

@@ -5,4 +5,9 @@ type (
 		AgentConfigRef
 		AgentConfigIdentityFields
 	}
+
+	agentConfigEndpointComposed struct {
+		AgentConfigRef
+		AgentConfigEndpointFields
+	}
 )

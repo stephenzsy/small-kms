@@ -205,6 +205,33 @@ components:
           type: boolean
       required:
         - publicKey
+    ExchangePKCS12Request:
+      type: object
+      properties:
+        payload:
+          type: string
+          description: JWE encrypted private key in JWK
+        legacy:
+          type: boolean
+          description: Use legacy PKCS12 cipher
+        passwordProtected:
+          type: boolean
+          description: Encrypt the PKCS12 file with a generated password
+      required:
+        - payload
+        - passwordProtected
+    ExchangePKCS12Result:
+      type: object
+      properties:
+        payload:
+          type: string
+          description: JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
+        password:
+          type: string
+          description: Password used to encrypt the PKCS12 file
+      required:
+        - payload        
+        - password
   responses:
     CertificateResponse:
       description: Certificate response

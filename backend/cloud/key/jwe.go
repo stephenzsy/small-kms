@@ -4,8 +4,12 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/ecdh"
+	"crypto/ecdsa"
 	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,13 +25,17 @@ type JsonWebKeyEncryptionAlgorithm string
 const (
 	JwkEncAlgRsaOeap256 JsonWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
 	JwkEncAlgAes256Gcm  JsonWebKeyEncryptionAlgorithm = "A256GCM"
+	JwkEncAlgEcdhEs     JsonWebKeyEncryptionAlgorithm = "ECDH-ES"
 )
 
 type JoseHeader struct {
-	Alg   JsonWebKeyEncryptionAlgorithm `json:"alg"`
-	Enc   JsonWebKeyEncryptionAlgorithm `json:"enc"`
-	KeyID string                        `json:"kid"`
-	Raw   string                        `json:"-"`
+	Algorithm           JsonWebKeyEncryptionAlgorithm `json:"alg"`
+	EncryptionAlgorithm JsonWebKeyEncryptionAlgorithm `json:"enc"`
+	KeyID               string                        `json:"kid,omitempty"`
+	EphemeralPublicKey  *JsonWebKey                   `json:"epk,omitempty"`
+	AgreementPartyUInfo Base64RawURLEncodableBytes    `json:"apu,omitempty"`
+	AgreementPartyVInfo Base64RawURLEncodableBytes    `json:"apv,omitempty"`
+	Raw                 string                        `json:"-"`
 }
 
 type JsonWebEncryption struct {
@@ -96,14 +104,14 @@ func (jwe *JsonWebEncryption) String() string {
 	return sb.String()
 }
 
-func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) crypto.Decrypter) (plaintext []byte, unwrappedKey []byte, err error) {
+func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) crypto.PrivateKey) (plaintext []byte, unwrappedKey []byte, err error) {
 
 	unwrappedKey, err = jwe.unwrapKey(keyFunc)
 	if err != nil {
 		return
 	}
 
-	switch jwe.Protected.Enc {
+	switch jwe.Protected.EncryptionAlgorithm {
 	case JwkEncAlgAes256Gcm:
 		c, err := aes.NewCipher(unwrappedKey)
 		if err != nil {
@@ -119,21 +127,73 @@ func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) crypto.De
 		plaintext, err = gcm.Open(plaintext, jwe.InitializationVector, ciphertext, []byte(jwe.Protected.Raw))
 		return plaintext, unwrappedKey, err
 	default:
-		return plaintext, unwrappedKey, fmt.Errorf("unsupported algorithm: %s", jwe.Protected.Enc)
+		return plaintext, unwrappedKey, fmt.Errorf("unsupported algorithm: %s", jwe.Protected.EncryptionAlgorithm)
 	}
 
 }
 
-func (jwe *JsonWebEncryption) unwrapKey(keyFunc func(header *JoseHeader) crypto.Decrypter) ([]byte, error) {
+func (jwe *JsonWebEncryption) unwrapKey(keyFunc func(header *JoseHeader) crypto.PrivateKey) ([]byte, error) {
 
-	decrypter := keyFunc(&jwe.Protected)
-	switch jwe.Protected.Alg {
+	privateKey := keyFunc(&jwe.Protected)
+	switch jwe.Protected.Algorithm {
 	case JwkEncAlgRsaOeap256:
-		return decrypter.Decrypt(nil, jwe.EncryptedKey, &rsa.OAEPOptions{
-			Hash: crypto.SHA256,
-		})
+		if privateKey, ok := privateKey.(crypto.Decrypter); !ok {
+			return nil, fmt.Errorf("incompatable key")
+		} else {
+			return privateKey.Decrypt(nil, jwe.EncryptedKey, &rsa.OAEPOptions{
+				Hash: crypto.SHA256,
+			})
+		}
+	case JwkEncAlgEcdhEs:
+		if jwe.Protected.EncryptionAlgorithm != JwkEncAlgAes256Gcm {
+			return nil, fmt.Errorf("incompatable enc")
+		}
+		if privateKey, ok := privateKey.(*ecdh.PrivateKey); !ok {
+			return nil, fmt.Errorf("incompatable key")
+		} else if epk, ok := jwe.Protected.EphemeralPublicKey.PublicKey().(*ecdsa.PublicKey); !ok {
+			return nil, fmt.Errorf("incompatable key")
+		} else if ecdhPubKey, err := epk.ECDH(); err != nil {
+			return nil, err
+		} else if z, err := privateKey.ECDH(ecdhPubKey); err != nil {
+			return nil, err
+		} else {
+			kdf := &ecdhesKDF{
+				z:   z,
+				alg: string(jwe.Protected.EncryptionAlgorithm),
+				apu: jwe.Protected.AgreementPartyUInfo,
+				apv: jwe.Protected.AgreementPartyVInfo,
+			}
+			return kdf.getAESGCM256DerivedKey(), nil
+		}
 	default:
-		return nil, fmt.Errorf("unsupported algorithm: %s", jwe.Protected.Alg)
+		return nil, fmt.Errorf("unsupported algorithm: %s", jwe.Protected.Algorithm)
 	}
 
+}
+
+type ecdhesKDF struct {
+	z   []byte
+	alg string
+	apu []byte
+	apv []byte
+}
+
+func uint32ToBytes(v uint32) []byte {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, v)
+	return b
+}
+
+func (kdf *ecdhesKDF) getAESGCM256DerivedKey() []byte {
+	d := sha256.New()
+	d.Write(uint32ToBytes(1)) // round 1
+	d.Write(kdf.z)
+	d.Write(uint32ToBytes(uint32(len(JwkEncAlgAes256Gcm))))
+	d.Write([]byte(JwkEncAlgAes256Gcm))
+	d.Write(uint32ToBytes(uint32(len(kdf.apu))))
+	d.Write(kdf.apu)
+	d.Write(uint32ToBytes(uint32(len(kdf.apv))))
+	d.Write(kdf.apv)
+	d.Write(uint32ToBytes(256))
+	return d.Sum(nil)
 }

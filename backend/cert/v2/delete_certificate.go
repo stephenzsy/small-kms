@@ -35,7 +35,7 @@ func (*CertServer) DeleteCertificate(ec echo.Context,
 	if err = doc.cleanupKeyVault(c); err != nil {
 		return err
 	}
-	if doc.Status == certmodels.CertificateStatusPending {
+	if doc.Status == certmodels.CertificateStatusPending || doc.NotAfter.Time.Before(time.Now()) {
 
 		// delete document
 		_, err := resdoc.GetDocService(c).Delete(c, doc.Identifier(), &azcosmos.ItemOptions{

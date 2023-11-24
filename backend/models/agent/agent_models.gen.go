@@ -14,6 +14,7 @@ import (
 
 // Defines values for AgentConfigName.
 const (
+	AgentConfigNameEndpoint AgentConfigName = "endpoint"
 	AgentConfigNameIdentity AgentConfigName = "identity"
 )
 
@@ -27,10 +28,21 @@ type AgentConfig struct {
 
 // AgentConfigBundle defines model for AgentConfigBundle.
 type AgentConfigBundle struct {
+	Endpoint  *AgentConfigRef `json:"endpoint,omitempty"`
 	EnvGuards []string        `json:"envGuards"`
 	Expires   time.Time       `json:"expires"`
 	Id        string          `json:"id"`
 	Identity  *AgentConfigRef `json:"identity,omitempty"`
+}
+
+// AgentConfigEndpoint defines model for AgentConfigEndpoint.
+type AgentConfigEndpoint = agentConfigEndpointComposed
+
+// AgentConfigEndpointFields defines model for AgentConfigEndpointFields.
+type AgentConfigEndpointFields struct {
+	JwtVerifyKeyIdentifiers      []string `json:"jwtVerifyKeyIdentifiers,omitempty"`
+	JwtVerifyKeyPolicyIdentifier *string  `json:"jwtVerifyKeyPolicyIdentifier,omitempty"`
+	TlsCertificatePolicyId       string   `json:"tlsCertificatePolicyId"`
 }
 
 // AgentConfigIdentity defines model for AgentConfigIdentity.
@@ -99,6 +111,34 @@ func (t *AgentConfig) MergeAgentConfigIdentity(v AgentConfigIdentity) error {
 	return err
 }
 
+// AsAgentConfigEndpoint returns the union data inside the AgentConfig as a AgentConfigEndpoint
+func (t AgentConfig) AsAgentConfigEndpoint() (AgentConfigEndpoint, error) {
+	var body AgentConfigEndpoint
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigEndpoint overwrites any union data inside the AgentConfig as the provided AgentConfigEndpoint
+func (t *AgentConfig) FromAgentConfigEndpoint(v AgentConfigEndpoint) error {
+	v.Name = "endpoint"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigEndpoint performs a merge with any union data inside the AgentConfig, using the provided AgentConfigEndpoint
+func (t *AgentConfig) MergeAgentConfigEndpoint(v AgentConfigEndpoint) error {
+	v.Name = "endpoint"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t AgentConfig) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"name"`
@@ -113,6 +153,8 @@ func (t AgentConfig) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "endpoint":
+		return t.AsAgentConfigEndpoint()
 	case "identity":
 		return t.AsAgentConfigIdentity()
 	default:
@@ -146,6 +188,32 @@ func (t *CreateAgentConfigRequest) FromAgentConfigIdentityFields(v AgentConfigId
 
 // MergeAgentConfigIdentityFields performs a merge with any union data inside the CreateAgentConfigRequest, using the provided AgentConfigIdentityFields
 func (t *CreateAgentConfigRequest) MergeAgentConfigIdentityFields(v AgentConfigIdentityFields) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAgentConfigEndpointFields returns the union data inside the CreateAgentConfigRequest as a AgentConfigEndpointFields
+func (t CreateAgentConfigRequest) AsAgentConfigEndpointFields() (AgentConfigEndpointFields, error) {
+	var body AgentConfigEndpointFields
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAgentConfigEndpointFields overwrites any union data inside the CreateAgentConfigRequest as the provided AgentConfigEndpointFields
+func (t *CreateAgentConfigRequest) FromAgentConfigEndpointFields(v AgentConfigEndpointFields) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAgentConfigEndpointFields performs a merge with any union data inside the CreateAgentConfigRequest, using the provided AgentConfigEndpointFields
+func (t *CreateAgentConfigRequest) MergeAgentConfigEndpointFields(v AgentConfigEndpointFields) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err

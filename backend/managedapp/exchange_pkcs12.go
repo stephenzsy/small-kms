@@ -46,10 +46,10 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 	if err != nil {
 		return fmt.Errorf("%w: invalid payload", base.ErrResponseStatusBadRequest)
 	}
-	switch jwe.Protected.Enc {
+	switch jwe.Protected.EncryptionAlgorithm {
 	case cloudkey.JwkEncAlgAes256Gcm:
 	default:
-		return fmt.Errorf("%w: unsupported algorithm: %s", base.ErrResponseStatusBadRequest, jwe.Protected.Enc)
+		return fmt.Errorf("%w: unsupported algorithm: %s", base.ErrResponseStatusBadRequest, jwe.Protected.EncryptionAlgorithm)
 	}
 
 	certDoc, err := cert.ApiReadCertDocByID(c, certID)
@@ -81,7 +81,7 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 	}
 
 	cloudKey := cloudkeyaz.NewCloudWrappingKeyWithKID(c, kv.GetAzKeyVaultService(c).AzKeysClient(), keyDoc.KeyID, keyDoc.KeyType)
-	decryptedPayload, encKey, err := jwe.Decrypt(func(_ *cloudkey.JoseHeader) crypto.Decrypter {
+	decryptedPayload, encKey, err := jwe.Decrypt(func(_ *cloudkey.JoseHeader) crypto.PrivateKey {
 		return cloudKey
 	})
 	if err != nil {
@@ -110,7 +110,7 @@ func (s *server) ExchangePKCS12(ec echo.Context, namespaceKind base.NamespaceKin
 
 	var resultPayload string
 
-	switch jwe.Protected.Enc {
+	switch jwe.Protected.EncryptionAlgorithm {
 	case cloudkey.JwkEncAlgAes256Gcm:
 		ci, err := aes.NewCipher(encKey)
 		if err != nil {

@@ -140,7 +140,9 @@ export default function KeyPolicyPage() {
           namespaceId: namespaceId,
           namespaceProvider: namespaceProvider,
         });
-      } catch {}
+      } catch {
+        // TODO
+      }
     },
     {
       refreshDeps: [namespaceId, namespaceProvider, id],

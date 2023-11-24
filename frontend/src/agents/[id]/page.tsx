@@ -6,13 +6,15 @@ import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { Link } from "../../components/Link";
 import {
   AdminApi,
+  AgentConfigEndpoint,
+  AgentConfigEndpointFields,
   AgentConfigIdentity,
   AgentConfigIdentityFields,
   AgentConfigName,
   CreateAgentConfigRequest,
   NamespaceProvider,
   Ref,
-  Ref as ResourceReference,
+  Ref as ResourceReference
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 
@@ -131,7 +133,7 @@ function AgentIdentityForm({
     if (value) {
       formInstance.setFieldsValue(value);
     }
-  }, [value]);
+  }, [value, formInstance]);
 
   return (
     <Form form={formInstance} layout="vertical" onFinish={onPutConfig}>
@@ -150,6 +152,76 @@ function AgentIdentityForm({
   );
 }
 
+function AgentEndpointForm({
+  certificatePolicies,
+  value,
+  onPutConfig,
+}: {
+  value: AgentConfigEndpoint | undefined;
+  certificatePolicies: Ref[] | undefined;
+  onPutConfig: (config: AgentConfigEndpointFields) => void;
+}) {
+  const [formInstance] = Form.useForm<AgentConfigEndpointFields>();
+
+  const selectOpts = useMemo(() => {
+    return certificatePolicies?.map((cp) => {
+      return {
+        label: (
+          <span>
+            {cp.displayName} ({cp.id})
+          </span>
+        ),
+        value: cp.id,
+      };
+    });
+  }, [certificatePolicies]);
+
+  useEffect(() => {
+    if (value) {
+      formInstance.setFieldsValue(value);
+    }
+  }, [value, formInstance]);
+
+  return (
+    <Form form={formInstance} layout="vertical" onFinish={onPutConfig}>
+      <Form.Item<AgentConfigEndpointFields>
+        name="tlsCertificatePolicyId"
+        label="Select TLS Certificate Policy"
+      >
+        <Select options={selectOpts} />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
+function useAgentConfigRequest<
+  T extends AgentConfigIdentity | AgentConfigEndpoint
+>(api: AdminApi, namespaceId: string, name: AgentConfigName) {
+  return useRequest(
+    async (req?: CreateAgentConfigRequest): Promise<T> => {
+      if (req) {
+        return (await api.putAgentConfig({
+          configName: name,
+          namespaceId: namespaceId,
+          createAgentConfigRequest: req,
+        })) as T;
+      }
+      return (await api.getAgentConfig({
+        configName: name,
+        namespaceId: namespaceId,
+      })) as T;
+    },
+    {
+      refreshDeps: [namespaceId, name],
+    }
+  );
+}
+
 function AgentConfigurationsCard({
   namespaceId,
   certificatePolicies,
@@ -158,31 +230,37 @@ function AgentConfigurationsCard({
   certificatePolicies: Ref[] | undefined;
 }) {
   const api = useAuthedClientV2(AdminApi);
-  const { run: updateIdentityConfig, data: identityConfig } = useRequest(
-    async (req?: CreateAgentConfigRequest) => {
-      if (req) {
-        return api.putAgentConfig({
-          configName: AgentConfigName.AgentConfigNameIdentity,
-          namespaceId: namespaceId,
-          createAgentConfigRequest: req,
-        });
-      }
-      return await api.getAgentConfig({
-        configName: AgentConfigName.AgentConfigNameIdentity,
-        namespaceId: namespaceId,
-      });
-    },
-    {
-      refreshDeps: [namespaceId],
-    }
-  );
+  const { run: updateIdentityConfig, data: identityConfig } =
+    useAgentConfigRequest<AgentConfigIdentity>(
+      api,
+      namespaceId,
+      AgentConfigName.AgentConfigNameIdentity
+    );
+  const { run: updateEndpointConfig, data: endpointConfig } =
+    useAgentConfigRequest<AgentConfigEndpoint>(
+      api,
+      namespaceId,
+      AgentConfigName.AgentConfigNameEndpoint
+    );
   return (
     <Card title="Agent configurations">
-      <AgentIdentityForm
-        certificatePolicies={certificatePolicies}
-        onPutConfig={updateIdentityConfig}
-        value={identityConfig}
-      />
+      <section>
+        <Typography.Title level={4}>Identity</Typography.Title>
+        <AgentIdentityForm
+          certificatePolicies={certificatePolicies}
+          onPutConfig={updateIdentityConfig}
+          value={identityConfig}
+        />
+      </section>
+      <Divider />
+      <section>
+        <Typography.Title level={4}>Endpoint</Typography.Title>
+        <AgentEndpointForm
+          certificatePolicies={certificatePolicies}
+          onPutConfig={updateEndpointConfig}
+          value={endpointConfig}
+        />
+      </section>
     </Card>
   );
 }

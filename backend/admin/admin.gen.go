@@ -84,6 +84,9 @@ type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 // PutCertificatePolicyIssuerJSONRequestBody defines body for PutCertificatePolicyIssuer for application/json ContentType.
 type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields
 
+// ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
+type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request
+
 // PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
 type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
 
@@ -152,6 +155,9 @@ type ServerInterface interface {
 	// Get certificate
 	// (GET /v2/{namespaceProvider}/{namespaceId}/certificates/{id})
 	GetCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params GetCertificateParams) error
+	// Exchange PKCS12
+	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/exchange-pkcs12)
+	ExchangePKCS12(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Add certificate as MS Entra key credential
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential)
 	AddMsEntraKeyCredential(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -768,6 +774,40 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 	return err
 }
 
+// ExchangePKCS12 converts echo context to params.
+func (w *ServerInterfaceWrapper) ExchangePKCS12(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ExchangePKCS12(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
 // AddMsEntraKeyCredential converts echo context to params.
 func (w *ServerInterfaceWrapper) AddMsEntraKeyCredential(ctx echo.Context) error {
 	var err error
@@ -1125,6 +1165,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates", wrapper.ListCertificates)
 	router.DELETE(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id", wrapper.DeleteCertificate)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id", wrapper.GetCertificate)
+	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/exchange-pkcs12", wrapper.ExchangePKCS12)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/ms-entra-key-credential", wrapper.AddMsEntraKeyCredential)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.GetKeyPolicy)

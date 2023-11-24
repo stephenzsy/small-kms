@@ -1,6 +1,8 @@
 import { XCircleIcon } from "@heroicons/react/24/solid";
 
-export function ErrorAlert(props: React.PropsWithChildren<{ error: any }>) {
+export function ErrorAlert(
+  props: React.PropsWithChildren<{ error: Error }>
+) {
   return (
     <div className="rounded-md bg-red-50 p-4">
       <div className="flex">

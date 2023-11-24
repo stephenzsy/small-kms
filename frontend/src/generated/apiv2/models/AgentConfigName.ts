@@ -18,7 +18,8 @@
  * @export
  */
 export const AgentConfigName = {
-    AgentConfigNameIdentity: 'identity'
+    AgentConfigNameIdentity: 'identity',
+    AgentConfigNameEndpoint: 'endpoint'
 } as const;
 export type AgentConfigName = typeof AgentConfigName[keyof typeof AgentConfigName];
 

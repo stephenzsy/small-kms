@@ -300,6 +300,30 @@ paths:
           $ref: "#/components/responses/NoContentResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/exchange-pkcs12:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: ExchangePKCS12
+      summary: Exchange PKCS12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-cert.yaml#/components/schemas/ExchangePKCS12Request"
+      responses:
+        200:
+          description: PKCS12 file
+          content:
+            application/json:
+              schema:
+                $ref: "models-cert.yaml#/components/schemas/ExchangePKCS12Result"
   /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

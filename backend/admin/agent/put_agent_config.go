@@ -33,6 +33,8 @@ func (*AgentAdminServer) PutAgentConfig(ec echo.Context, namespaceId string, con
 	switch configName {
 	case agentmodels.AgentConfigNameIdentity:
 		return putAgentConfigIdentity(c, namespaceId, params)
+	case agentmodels.AgentConfigNameEndpoint:
+		return putAgentConfigEndpoint(c, namespaceId, params)
 	}
 	return base.ErrResponseStatusNotFound
 

@@ -3,6 +3,8 @@ apis/index.ts
 index.ts
 models/AgentConfig.ts
 models/AgentConfigBundle.ts
+models/AgentConfigEndpoint.ts
+models/AgentConfigEndpointFields.ts
 models/AgentConfigIdentity.ts
 models/AgentConfigIdentityFields.ts
 models/AgentConfigName.ts

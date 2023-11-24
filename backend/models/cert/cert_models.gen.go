@@ -111,6 +111,27 @@ type EnrollCertificateRequest struct {
 	WithOneTimePkcs12Key *bool                   `json:"withOneTimePkcs12Key,omitempty"`
 }
 
+// ExchangePKCS12Request defines model for ExchangePKCS12Request.
+type ExchangePKCS12Request struct {
+	// Legacy Use legacy PKCS12 cipher
+	Legacy *bool `json:"legacy,omitempty"`
+
+	// PasswordProtected Encrypt the PKCS12 file with a generated password
+	PasswordProtected bool `json:"passwordProtected"`
+
+	// Payload JWE encrypted private key in JWK
+	Payload string `json:"payload"`
+}
+
+// ExchangePKCS12Result defines model for ExchangePKCS12Result.
+type ExchangePKCS12Result struct {
+	// Password Password used to encrypt the PKCS12 file
+	Password string `json:"password"`
+
+	// Payload JWE encrypted PKCS12 file, encrypted with the symmetric key from the request
+	Payload string `json:"payload"`
+}
+
 // SubjectAlternativeNames defines model for SubjectAlternativeNames.
 type SubjectAlternativeNames struct {
 	DNSNames    []string `json:"dnsNames,omitempty"`
