@@ -17,12 +17,29 @@ import (
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
+type ConfigManager interface {
+	Client() agentclient.ClientWithResponsesInterface
+	ConfigDir() RootConfigDir
+}
+
 type configManager struct {
 	envConfig         *agentcommon.AgentEnv
 	configDir         RootConfigDir
 	client            agentclient.ClientWithResponsesInterface
 	identityProcessor *identityProcessor
+	endpointProcessor *endpointProcessor
 }
+
+// ConfigDir implements ConfigManager.
+func (cm *configManager) ConfigDir() RootConfigDir {
+	return cm.configDir
+}
+
+func (cm *configManager) Client() agentclient.ClientWithResponsesInterface {
+	return cm.client
+}
+
+var _ ConfigManager = (*configManager)(nil)
 
 func (cm *configManager) pullConfig(c context.Context) (expires time.Time, err error) {
 
@@ -35,6 +52,9 @@ func (cm *configManager) pullConfig(c context.Context) (expires time.Time, err e
 	}
 	if err := cm.identityProcessor.processIdentity(c, resp.JSON200.Identity); err != nil {
 		logger.Error().Err(err).Msg("failed to process identity")
+	}
+	if err := cm.endpointProcessor.processEndpoint(c, resp.JSON200.Endpoint); err != nil {
+		logger.Error().Err(err).Msg("failed to process endpoint")
 	}
 
 	return time.Now().Add(time.Hour * 24), nil
@@ -56,18 +76,23 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 		envConfig: envConfig,
 		configDir: RootConfigDir{ConfigDir(configDir)},
 	}
+	cm.configDir.Active(agentmodels.AgentConfigNameIdentity).EnsureExist()
+	cm.configDir.Active(agentmodels.AgentConfigNameEndpoint).EnsureExist()
 	cm.identityProcessor = &identityProcessor{cm: cm}
+	cm.endpointProcessor = &endpointProcessor{cm: cm}
 
-	certPath := cm.configDir.Config(agentmodels.AgentConfigNameIdentity).ConfigFile(configFileClientCert, true)
-	if certPath == "" {
+	certPath := cm.configDir.Active(agentmodels.AgentConfigNameIdentity).ConfigFile(configFileClientCert)
+	if exists, err := certPath.Exists(); err != nil {
+		return nil, err
+	} else if !exists {
 		if clientCertPath, ok := envSvc.RequireAbsPath(common.EnvKeyAzClientCertPath, common.IdentityEnvVarPrefixAgent); !ok {
 			return nil, envSvc.ErrMissing(common.EnvKeyAzClientCertPath)
 		} else {
-			certPath = clientCertPath
+			certPath = ConfigFile(clientCertPath)
 		}
 	}
 
-	err = cm.configureClient(certPath)
+	err = cm.configureClient(string(certPath))
 	return cm, err
 }
 

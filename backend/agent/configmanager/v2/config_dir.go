@@ -15,26 +15,61 @@ type RootConfigDir struct {
 	ConfigDir
 }
 
-type NamedConfigDir struct {
-	RootConfigDir
-	Version    string
-	configName string
+type LeafConfigDir struct {
+	ConfigDir
 }
+
+func (dir RootConfigDir) Active(name agentmodels.AgentConfigName) LeafConfigDir {
+	return LeafConfigDir{
+		ConfigDir: ConfigDir(filepath.Join(string(dir.ConfigDir), "active", string(name))),
+	}
+}
+
+func (dir RootConfigDir) Versioned(name agentmodels.AgentConfigName, version string) LeafConfigDir {
+	return LeafConfigDir{
+		ConfigDir: ConfigDir(filepath.Join(string(dir.ConfigDir), "versioned", fmt.Sprintf("%s.%s", name, version))),
+	}
+}
+
+type ConfigFile string
 
 type WellKnownConfigFile string
 
 const (
 	configFileClientCert WellKnownConfigFile = "client-cert.pem"
+	configFileServerCert WellKnownConfigFile = "server-cert.pem"
 )
 
-func (dir RootConfigDir) Config(name agentmodels.AgentConfigName) NamedConfigDir {
-	return NamedConfigDir{
-		RootConfigDir: dir,
-		configName:    string(name),
+func (f ConfigFile) Exists() (bool, error) {
+	if _, err := os.Stat(string(f)); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
 	}
+	return true, nil
 }
 
-func (dir ConfigDir) EnsureDirExist() error {
+func (f ConfigFile) LinkToAbsolutePath(targetAbsPath string) error {
+	linkFileName := string(f)
+	if _, err := os.Lstat(linkFileName); err == nil {
+		// delete ink
+		if err := os.Remove(linkFileName); err != nil {
+			return err
+		}
+	}
+	relpath, err := filepath.Rel(filepath.Dir(linkFileName), targetAbsPath)
+	if err != nil {
+		return err
+	}
+	return os.Symlink(relpath, linkFileName)
+}
+
+func (dir LeafConfigDir) ConfigFile(name WellKnownConfigFile) ConfigFile {
+	return ConfigFile(filepath.Join(string(dir.ConfigDir), string(name)))
+}
+
+func (dir ConfigDir) EnsureExist() error {
 	if _, err := os.Lstat(string(dir)); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			if err := os.MkdirAll(string(dir), 0750); err != nil {
@@ -45,32 +80,6 @@ func (dir ConfigDir) EnsureDirExist() error {
 		}
 	}
 	return nil
-}
-
-func (dir NamedConfigDir) Versioned(version string) NamedConfigDir {
-	dir.Version = version
-	return dir
-}
-
-func (dir NamedConfigDir) ConfigFile(name WellKnownConfigFile, emptyIfNotExist bool) (fp string) {
-
-	if dir.Version == "" {
-		fp = filepath.Join(string(dir.RootConfigDir.ConfigDir),
-			"active",
-			string(dir.configName),
-			string(name))
-	} else {
-		fp = filepath.Join(string(dir.RootConfigDir.ConfigDir),
-			"versioned",
-			fmt.Sprintf("%s.%s", dir.configName, dir.Version),
-			string(name))
-	}
-	if emptyIfNotExist {
-		if _, err := os.Stat(fp); err != nil && errors.Is(err, os.ErrNotExist) {
-			return ""
-		}
-	}
-	return fp
 }
 
 type CertsConfigDir struct {
@@ -99,122 +108,3 @@ func (dir ConfigDir) OpenFile(filename string, flag int, fileMode os.FileMode, e
 func (dir ConfigDir) File(filename string) string {
 	return filepath.Join(string(dir), filename)
 }
-
-// type ConfigPath interface {
-// 	Path() string
-// 	EnsureDirExist() error
-// 	WriteFile(data []byte) error
-// 	ReadFile() ([]byte, error)
-// }
-
-// type ConfigDir interface {
-// 	ConfigPath
-// 	Active() ConfigDir
-// 	Versioned(string) ConfigDir
-// 	Dir(paths ...string) ConfigDir
-// 	File(paths ...string) ConfigPath
-// }
-
-// type configPathImpl struct {
-// 	configName  string
-// 	path        string
-// 	isVersioned bool
-// 	isLeaf      bool
-// }
-
-// // Active implements ConfigDir.
-// func (impl *configPathImpl) Active() ConfigDir {
-// 	if impl.isVersioned {
-// 		return impl
-// 	}
-// 	return &configPathImpl{
-// 		configName:  impl.configName,
-// 		path:        filepath.Join(impl.path, fmt.Sprint(impl.configName, ".active")),
-// 		isVersioned: true,
-// 	}
-// }
-
-// // WriteFile implements ConfigPath.
-// func (impl *configPathImpl) WriteFile(data []byte) error {
-// 	if !impl.isLeaf {
-// 		return errors.New("not a leaf path")
-// 	}
-// 	return os.WriteFile(impl.path, data, 0640)
-// }
-
-// // WriteFile implements ConfigPath.
-// func (impl *configPathImpl) ReadFile() ([]byte, error) {
-// 	if !impl.isLeaf {
-// 		return nil, errors.New("not a leaf path")
-// 	}
-// 	return os.ReadFile(impl.path)
-// }
-
-// // EnsureDirExist implements ConfigDir.
-// func (impl *configPathImpl) EnsureDirExist() error {
-// 	dirname := impl.path
-// 	if impl.isLeaf {
-// 		dirname = filepath.Dir(impl.path)
-// 	}
-// 	if s, err := os.Stat(dirname); err != nil {
-// 		if !errors.Is(err, os.ErrNotExist) {
-// 			return err
-// 		}
-// 		if err := os.MkdirAll(dirname, 0750); err != nil {
-// 			return err
-// 		}
-// 	} else if !s.IsDir() {
-// 		return errors.New("not a directory")
-// 	}
-// 	return nil
-// }
-
-// // File implements ConfigDir.
-// func (impl *configPathImpl) File(paths ...string) ConfigPath {
-// 	return &configPathImpl{
-// 		configName:  impl.configName,
-// 		path:        filepath.Join(impl.path, filepath.Join(paths...)),
-// 		isVersioned: impl.isVersioned,
-// 		isLeaf:      true,
-// 	}
-// }
-
-// // Children implements ConfigDir.
-// func (impl *configPathImpl) Dir(paths ...string) ConfigDir {
-// 	return &configPathImpl{
-// 		configName:  impl.configName,
-// 		path:        filepath.Join(impl.path, filepath.Join(paths...)),
-// 		isVersioned: impl.isVersioned,
-// 	}
-// }
-
-// // Path implements ConfigDir.
-// func (impl *configPathImpl) Path() string {
-// 	return impl.path
-// }
-
-// func (impl *configPathImpl) Versioned(version string) ConfigDir {
-// 	if impl.isVersioned {
-// 		return impl
-// 	}
-// 	return &configPathImpl{
-// 		configName:  impl.configName,
-// 		path:        filepath.Join(impl.path, "versioned", fmt.Sprint(impl.configName, ".", version)),
-// 		isVersioned: true,
-// 	}
-// }
-
-// var _ ConfigDir = (*configPathImpl)(nil)
-
-// func NewConfigDir(configName, basePath string) ConfigDir {
-// 	if absPath, err := filepath.Abs(basePath); err == nil {
-// 		return &configPathImpl{
-// 			configName: configName,
-// 			path:       absPath,
-// 		}
-// 	}
-// 	return &configPathImpl{
-// 		configName: configName,
-// 		path:       basePath,
-// 	}
-// }

@@ -3,12 +3,14 @@ package agentutils
 import (
 	"context"
 	"crypto"
+	"crypto/elliptic"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
@@ -21,7 +23,7 @@ func EnrollCertificate(c context.Context,
 	certPolicyID string,
 	openFile func(*certmodels.Certificate) (*os.File, error),
 	onBehalfOf bool) (*certmodels.Certificate, crypto.PrivateKey, error) {
-
+	logger := log.Ctx(c)
 	bad := func(err error) (*certmodels.Certificate, crypto.PrivateKey, error) {
 		return nil, nil, err
 	}
@@ -35,9 +37,29 @@ func EnrollCertificate(c context.Context,
 		return bad(nil)
 	}
 
-	privateKey, err := cryptoStore.GenerateRSAKeyPair(2048)
+	policyResp, err := client.GetCertificatePolicyWithResponse(c, models.NamespaceProviderServicePrincipal, "me", certPolicyID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var privateKey crypto.Signer
+	switch policyResp.JSON200.KeySpec.Kty {
+	case cloudkey.KeyTypeEC:
+		switch policyResp.JSON200.KeySpec.Crv {
+		case cloudkey.CurveNameP256:
+			privateKey, err = cryptoStore.GenerateECDSAKeyPair(elliptic.P256())
+		case cloudkey.CurveNameP384:
+			privateKey, err = cryptoStore.GenerateECDSAKeyPair(elliptic.P384())
+		case cloudkey.CurveNameP521:
+			privateKey, err = cryptoStore.GenerateECDSAKeyPair(elliptic.P521())
+		}
+	case cloudkey.KeyTypeRSA:
+		privateKey, err = cryptoStore.GenerateRSAKeyPair(*policyResp.JSON200.KeySpec.KeySize)
+	}
 	if err != nil {
 		return bad(err)
+	} else if privateKey == nil {
+		return bad(fmt.Errorf("failed to generate keypair"))
 	}
 
 	publicJwk, err := cloudkey.NewJsonWebKeyFromPublicKey(privateKey.Public())
@@ -57,6 +79,9 @@ func EnrollCertificate(c context.Context,
 	if err != nil {
 		return bad(err)
 	} else if resp.StatusCode() != http.StatusCreated {
+		if resp.StatusCode() == 400 {
+			logger.Error().Any("response", resp.JSON400).Send()
+		}
 		return bad(fmt.Errorf("unexpected status code: %d", resp.StatusCode()))
 	}
 
