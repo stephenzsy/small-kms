@@ -21,7 +21,7 @@ import {
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
-import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../contexts/useNamespace";
 import { KeyExportableFormItem, KeySpecFormItems } from "./PolicyFormItems";
 
 function SANFormList({

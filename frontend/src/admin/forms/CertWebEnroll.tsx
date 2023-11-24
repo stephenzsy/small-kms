@@ -11,7 +11,7 @@ import {
   NamespaceProvider,
 } from "../../generated/apiv2";
 import { useAdminApi, useAuthedClientV2 } from "../../utils/useCertsApi";
-import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../contexts/useNamespace";
 import {
   base64StdEncodedToUrlEncoded,
   base64UrlDecodeBuffer,

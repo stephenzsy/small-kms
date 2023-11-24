@@ -1,17 +1,11 @@
-import { Button, Card, Table, Typography } from "antd";
+import { Button, Card, Typography } from "antd";
 import { useContext } from "react";
 import { Link } from "../components/Link";
 import {
-  CertPolicyRef,
   ManagedAppRef,
-  NamespaceKind,
-  SecretPolicyRef,
+  NamespaceKind
 } from "../generated";
-import {
-  useCertPolicies,
-  usePolicyRefTableColumns,
-  useSecretPolicies,
-} from "./CertPolicyRefTable";
+
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import { NamespaceConfigContextProvider } from "./contexts/NamespaceConfigContextProvider";
 import { NamespaceContext } from "./contexts/NamespaceContext";
@@ -22,17 +16,8 @@ function ServicePrincipalSection({
 }: {
   managedApp: ManagedAppRef | undefined;
 }) {
-  const certPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/cert-policy/`;
-
-  const columns = usePolicyRefTableColumns(certPolicyRoutePrefix);
-  const secretPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/secret-policy/`;
   const keyPolicyRoutePrefix = `/app/${NamespaceKind.NamespaceKindServicePrincipal}/${managedApp?.servicePrincipalId}/key-policies/`;
-  const secretPoliciesTableColumns = usePolicyRefTableColumns(
-    secretPolicyRoutePrefix
-  );
 
-  const certPolicies = useCertPolicies();
-  const secretPolicies = useSecretPolicies();
   return (
     <NamespaceConfigContextProvider ruleEntraClientCred>
       <section className="space-y-4">
@@ -40,35 +25,9 @@ function ServicePrincipalSection({
         <div>
           <pre>{managedApp?.servicePrincipalId}</pre>
         </div>
-        <Card
-          title="Certificate policies"
-          extra={
-            <Link to={`${certPolicyRoutePrefix}_create`}>
-              Create certificate policy
-            </Link>
-          }
-        >
-          <Table<CertPolicyRef>
-            columns={columns}
-            dataSource={certPolicies}
-            rowKey={(r) => r.id}
-          />
-        </Card>
+
         <KeyPoliciesTabelCard itemRoutePrefix={keyPolicyRoutePrefix} />
-        <Card
-          title="Secret policies"
-          extra={
-            <Link to={`${secretPolicyRoutePrefix}_create`}>
-              Create secret policy
-            </Link>
-          }
-        >
-          <Table<SecretPolicyRef>
-            columns={secretPoliciesTableColumns}
-            dataSource={secretPolicies}
-            rowKey={(r) => r.id}
-          />
-        </Card>
+
         <Card title="Provisioning">
           <div className="space-y-4 flex flex-col items-start">
             <Link to={`./provision-agent`}>Provision agent</Link>

@@ -7,12 +7,10 @@ import {
   Divider,
   Form,
   Input,
-  Select,
   Table,
-  Typography,
+  Typography
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { DefaultOptionType } from "antd/es/select";
 import { ColumnsType } from "antd/es/table";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
@@ -23,11 +21,9 @@ import {
   AgentConfigServerToJSON,
   AgentInstance,
   AzureRoleAssignment,
-  CertPolicyRef,
-  NamespaceKind,
+  NamespaceKind
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { useCertPolicies } from "./CertPolicyRefTable";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import {
   NamespaceContext,
@@ -51,7 +47,7 @@ const wellKnownRoleDefinitionIds: Record<string, string> = {
   "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
 };
 
-export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
+function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
   return useMemo(() => {
     return [
       {
@@ -78,16 +74,7 @@ export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignmen
   }, []);
 }
 
-type AgentServerConfigFormState = Partial<AgentConfigServerFields> & {};
-
-function useCertPolicyOptions(
-  certPolicies: CertPolicyRef[] | undefined
-): DefaultOptionType[] | undefined {
-  return certPolicies?.map((p) => ({
-    label: p.displayName,
-    value: p.id,
-  }));
-}
+type AgentServerConfigFormState = Partial<AgentConfigServerFields>;
 
 function AgentConfigServerFormCard({
   isGlobalConfig,
@@ -95,8 +82,6 @@ function AgentConfigServerFormCard({
   isGlobalConfig: boolean;
 }) {
   const [form] = useForm<AgentServerConfigFormState>();
-  const certPolicies = useCertPolicies();
-  const certPolicyOptions = useCertPolicyOptions(certPolicies);
   const { namespaceId: namespaceIdentifier, namespaceKind } =
     useContext(NamespaceContext);
 
@@ -127,7 +112,7 @@ function AgentConfigServerFormCard({
       return api.listAgentAzureRoleAssignments({
         namespaceId: namespaceIdentifier,
         namespaceKind,
-        configName: AgentConfigName.AgentConfigNameServer
+        configName: AgentConfigName.AgentConfigNameServer,
       });
     },
     {
@@ -140,7 +125,7 @@ function AgentConfigServerFormCard({
     if (agentServerConfig) {
       form.setFieldsValue(agentServerConfig);
     }
-  }, [agentServerConfig]);
+  }, [agentServerConfig, form]);
 
   const setCurrentBuildTag = useMemoizedFn(async () => {
     const tag = (await api.getDiagnostics()).serviceRuntime.buildId.split(
@@ -182,15 +167,6 @@ function AgentConfigServerFormCard({
             required
           >
             <Input placeholder="example.com/image:latest" />
-          </Form.Item>
-        )}
-        {!isGlobalConfig && (
-          <Form.Item<AgentServerConfigFormState>
-            name="tlsCertificatePolicyId"
-            label="Select server TLS certificate policy"
-            required
-          >
-            <Select options={certPolicyOptions} />
           </Form.Item>
         )}
         {!isGlobalConfig && (

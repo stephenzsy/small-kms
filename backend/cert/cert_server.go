@@ -1,7 +1,6 @@
 package cert
 
 import (
-	"fmt"
 	"net/http"
 
 	echo "github.com/labstack/echo/v4"
@@ -15,11 +14,6 @@ import (
 
 type server struct {
 	api.APIServer
-}
-
-// AddKeyVaultRoleAssignment implements ServerInterface.
-func (*server) AddKeyVaultRoleAssignment(ctx echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier ID, resourceIdentifier ID, kvCategory AzureKeyvaultResourceCategory, params AddKeyVaultRoleAssignmentParams) error {
-	return fmt.Errorf("%w: unimplemented", base.ErrResponseStatusBadRequest)
 }
 
 // ListKeyVaultRoleAssignments implements ServerInterface.

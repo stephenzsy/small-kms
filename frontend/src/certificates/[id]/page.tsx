@@ -2,7 +2,7 @@ import { Button, Card, Typography } from "antd";
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
-import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../../admin/contexts/useNamespace";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import {
   AdminApi,

@@ -10,7 +10,7 @@ import {
 import { useContext, useId } from "react";
 import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
-import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../../admin/contexts/useNamespace";
 import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
 import { CertWebEnroll } from "../../admin/forms/CertWebEnroll";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";

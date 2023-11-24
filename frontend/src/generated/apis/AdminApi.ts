@@ -124,14 +124,6 @@ import {
     SecretRefToJSON,
 } from '../models/index';
 
-export interface AddKeyVaultRoleAssignmentRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    resourceCategory: AzureKeyvaultResourceCategory;
-    roleDefinitionId: string;
-}
-
 export interface AgentDockerContainerInspectRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -406,64 +398,6 @@ export interface SyncManagedAppRequest {
  * 
  */
 export class AdminApi extends runtime.BaseAPI {
-
-    /**
-     * Add Key Vault role assignment
-     */
-    async addKeyVaultRoleAssignmentRaw(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AzureRoleAssignment>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling addKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling addKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling addKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.resourceCategory === null || requestParameters.resourceCategory === undefined) {
-            throw new runtime.RequiredError('resourceCategory','Required parameter requestParameters.resourceCategory was null or undefined when calling addKeyVaultRoleAssignment.');
-        }
-
-        if (requestParameters.roleDefinitionId === null || requestParameters.roleDefinitionId === undefined) {
-            throw new runtime.RequiredError('roleDefinitionId','Required parameter requestParameters.roleDefinitionId was null or undefined when calling addKeyVaultRoleAssignment.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.roleDefinitionId !== undefined) {
-            queryParameters['roleDefinitionId'] = requestParameters.roleDefinitionId;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))).replace(`{${"resourceCategory"}}`, encodeURIComponent(String(requestParameters.resourceCategory))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => AzureRoleAssignmentFromJSON(jsonValue));
-    }
-
-    /**
-     * Add Key Vault role assignment
-     */
-    async addKeyVaultRoleAssignment(requestParameters: AddKeyVaultRoleAssignmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AzureRoleAssignment> {
-        const response = await this.addKeyVaultRoleAssignmentRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
 
     /**
      * Inspect docker container

@@ -1,6 +1,6 @@
 import { Button, Card, Divider, Form, Input, Typography } from "antd";
 import { ResourceRefsTable } from "./ResourceRefsTable";
-import { useNamespace } from "../contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../contexts/useNamespace";
 import { useMemoizedFn, useRequest } from "ahooks";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
 import { AdminApi } from "../../generated/apiv2";

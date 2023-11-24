@@ -4,11 +4,9 @@ import { useContext, useMemo } from "react";
 import { Link } from "../../components/Link";
 import { AdminApi, KeyPolicyRef } from "../../generated";
 import { useAuthedClient } from "../../utils/useCertsApi";
-import {
-  NamespaceContext
-} from "../contexts/NamespaceContext";
+import { NamespaceContext } from "../contexts/NamespaceContext";
 
-export function usePolicyRefTableColumns<T extends KeyPolicyRef>(
+function usePolicyRefTableColumns<T extends KeyPolicyRef>(
   routePrefix: string,
   onRenderTags?: (r: T) => React.ReactNode
 ) {

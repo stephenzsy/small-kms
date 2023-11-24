@@ -3,7 +3,7 @@ import { Button, Card, Typography } from "antd";
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
-import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../../admin/contexts/useNamespace";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";
 import { NumericDateTime } from "../../components/NumericDateTime";
 import { AdminApi, KeyToJSON, NamespaceProvider } from "../../generated/apiv2";

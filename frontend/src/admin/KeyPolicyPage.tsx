@@ -6,7 +6,6 @@ import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { AdminApi, ResourceKind } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { PolicyItemRefsTableCard } from "./tables/PolicyItemRefsTableCard";
 
 export default function KeyPolicyPage() {
   const { namespaceId: namespaceIdentifier, namespaceKind } =
@@ -29,20 +28,6 @@ export default function KeyPolicyPage() {
     }
   );
 
-  const { data: issuedKeys } = useRequest(
-    async () => {
-      return await api.listKeys({
-        namespaceId: namespaceIdentifier,
-        namespaceKind: namespaceKind,
-        policyId: policyId!,
-      });
-    },
-    {
-      refreshDeps: [policyId, namespaceIdentifier, namespaceKind],
-      ready: !!policyId,
-    }
-  );
-
   return (
     <>
       <Typography.Title>
@@ -54,11 +39,6 @@ export default function KeyPolicyPage() {
             {namespaceKind}:{namespaceIdentifier}:
             {ResourceKind.ResourceKindKeyPolicy}/{policyId}
           </div>
-          <PolicyItemRefsTableCard
-            title="Key list"
-            dataSource={issuedKeys}
-            onGetVewLink={(r) => `../keys/${r.id}`}
-          />
         </>
       )}
       <Card title="Current certificate policy">

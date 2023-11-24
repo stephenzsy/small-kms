@@ -13,7 +13,7 @@ export function RadiusConfigContainerForm() {
     if (data?.container) {
       form.setFieldsValue(data.container);
     }
-  }, [data?.container]);
+  }, [data?.container, form]);
 
   return (
     <Form<AgentContainerConfiguration>

@@ -19,7 +19,7 @@ export function RadiusConfigServersForm() {
         servers: data.servers,
       });
     }
-  }, [data]);
+  }, [data, form]);
   return (
     <Form
       form={form}

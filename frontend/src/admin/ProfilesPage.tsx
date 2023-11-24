@@ -1,5 +1,10 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { GraphRequest } from "@microsoft/microsoft-graph-client";
+import {
+  Group,
+  ServicePrincipal,
+  User,
+} from "@microsoft/microsoft-graph-types";
 import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Form, Input, Select, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
@@ -38,7 +43,9 @@ export default function ProfilesPage({
     run: getDirectoryObjects,
     loading: dirObjLoading,
   } = useRequest(
-    async (): Promise<[NamespaceProvider, any]> => {
+    async (): Promise<
+      [NamespaceProvider, { value: Array<User | Group | ServicePrincipal> }]
+    > => {
       let builder: GraphRequest;
       switch (namespaceProvider) {
         case NamespaceProvider.NamespaceProviderServicePrincipal:
@@ -51,7 +58,7 @@ export default function ProfilesPage({
           builder = graphClient.api("/groups");
           break;
         default:
-          return ["" as NamespaceProvider, []];
+          return ["" as NamespaceProvider, { value: [] }];
       }
       return [
         namespaceProvider,
@@ -74,7 +81,7 @@ export default function ProfilesPage({
     if (namespaceProvider !== reqProvider) {
       return undefined;
     }
-    return directoryObjects.value.map((v: any) => {
+    return directoryObjects.value.map((v: User | Group | ServicePrincipal) => {
       return {
         value: v.id,
         label: `${v.displayName} (${v.id})`,
@@ -96,7 +103,7 @@ export default function ProfilesPage({
   );
 
   const renderActions = useMemoizedFn((r: ResourceRef) => {
-    return <Link to={`/${namespaceProvider}/${r.id}`} >View</Link>
+    return <Link to={`/${namespaceProvider}/${r.id}`}>View</Link>;
   });
 
   return (

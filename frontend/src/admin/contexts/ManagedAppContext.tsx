@@ -12,7 +12,7 @@ export const ManagedAppContext = createContext<ManagedAppContextValue>({
   syncApp: () => {},
 });
 
-export function ManagedAppContextProvider({ children }: PropsWithChildren<{}>) {
+export function ManagedAppContextProvider({ children }: PropsWithChildren) {
   const { appId } = useParams() as { appId: string };
   const adminApi = useAuthedClient(AdminApi);
   const { data: managedApp, run } = useRequest(

@@ -1,13 +1,11 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import { NamespaceKind } from "../../generated";
 import { NamespaceConfigContextProvider } from "./NamespaceConfigContextProvider";
 import { NamespaceContext } from "./NamespaceContext";
 import { NamespaceProvider } from "../../generated/apiv2";
 
-export function NamespaceContextRouteProvider(
-  props: React.PropsWithChildren<{}>
-) {
+export function NamespaceContextRouteProvider(props: React.PropsWithChildren) {
   const { nsKind, nsId } = useParams() as {
     nsKind: NamespaceKind;
     nsId: string;
@@ -32,9 +30,7 @@ export function NamespaceContextRouteProvider(
   );
 }
 
-export function NamespaceContextRouteProvider2(
-  props: React.PropsWithChildren<{}>
-) {
+export function NamespaceContextRouteProvider2(props: React.PropsWithChildren) {
   const { nsKind, nsId } = useParams() as {
     nsKind: NamespaceProvider;
     nsId: string;
@@ -42,19 +38,11 @@ export function NamespaceContextRouteProvider2(
 
   return (
     <NamespaceContext.Provider
-      value={{ namespaceId: nsId, namespaceKind: nsKind as any }}
+      value={{ namespaceId: nsId, namespaceKind: nsKind as NamespaceKind }}
     >
       {props.children}
     </NamespaceContext.Provider>
   );
 }
-export function useNamespace(): {
-  namespaceId: string;
-  namespaceProvider: NamespaceProvider;
-} {
-  const ctx = useContext(NamespaceContext);
-  return {
-    namespaceId: ctx.namespaceId,
-    namespaceProvider: ctx.namespaceKind as any,
-  };
-}
+
+

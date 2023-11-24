@@ -6,7 +6,7 @@ import {
   Input,
   InputNumber,
   Radio,
-  Typography
+  Typography,
 } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { useContext } from "react";
@@ -16,11 +16,10 @@ import {
   AdminApi,
   ResourceKind,
   SecretGenerateMode,
-  SecretPolicyParameters
+  SecretPolicyParameters,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
-import { PolicyItemRefsTableCard } from "./tables/PolicyItemRefsTableCard";
 
 type SecretPolicyFormState = {
   identifier: string;
@@ -152,9 +151,7 @@ export default function SecretPolicyPage() {
   const policyId = _policyId === "_create" ? "" : _policyId;
 
   const api = useAuthedClient(AdminApi);
-  const {
-    data,
-  } = useRequest(
+  const { data } = useRequest(
     async () => {
       return await api.getSecretPolicy({
         namespaceId: namespaceIdentifier,
@@ -168,7 +165,7 @@ export default function SecretPolicyPage() {
     }
   );
 
-  const { data: issuedSecrets, run: refreshSecrets } = useRequest(
+  const { run: refreshSecrets } = useRequest(
     async () => {
       return await api.listSecrets({
         namespaceId: namespaceIdentifier,
@@ -191,11 +188,6 @@ export default function SecretPolicyPage() {
         {namespaceKind}:{namespaceIdentifier}:
         {ResourceKind.ResourceKindCertPolicy}/{policyId}
       </div>
-      <PolicyItemRefsTableCard
-        title="Secret list"
-        dataSource={issuedSecrets}
-        onGetVewLink={(r) => `../secrets/${r.id}`}
-      />
       <Card title="Manage secrets">
         {policyId && (
           <GenerateSecretControl

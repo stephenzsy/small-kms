@@ -14,7 +14,7 @@ import {
   SyncMemberOfRequest,
 } from "../generated/apiv2";
 import { useAuthedClientV2, useGraphClient } from "../utils/useCertsApi";
-import { useNamespace } from "./contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "./contexts/useNamespace";
 import { NamespacePoliciesTableCard } from "./tables/NamespacePoliciesTableCard";
 import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 

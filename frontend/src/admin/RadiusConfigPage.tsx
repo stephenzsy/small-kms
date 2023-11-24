@@ -13,36 +13,29 @@ import {
   Typography,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { DefaultOptionType } from "antd/es/select";
 import { ColumnsType } from "antd/es/table";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
   AdminApi,
   AgentConfigName,
-  AgentConfigRadius,
   AgentConfigRadiusFields,
   AgentConfigRadiusToJSON,
-  AgentConfigServerFields,
   AgentContainerConfiguration,
   AgentInstance,
   AzureRoleAssignment,
-  CertPolicyRef,
   NamespaceKind,
   RadiusClientConfig,
   RadiusEapTls,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
-import { useCertPolicies } from "./CertPolicyRefTable";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
 import {
   NamespaceContext,
   NamespaceContextValue,
 } from "./contexts/NamespaceContext";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
   RadiusConfigPatchContext,
-  RadiusConfigPatchProvider,
   useRadiusConfigPatch,
 } from "./contexts/RadiusConfigPatchContext";
 import { RadiusConfigContainerForm } from "./forms/RadiusConfigContainerForm";
@@ -54,7 +47,7 @@ const wellKnownRoleDefinitionIds: Record<string, string> = {
   "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
 };
 
-export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
+function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
   return useMemo(() => {
     return [
       {
@@ -82,15 +75,6 @@ export function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignmen
 }
 
 export type AgentServerConfigFormState = AgentContainerConfiguration;
-
-function useCertPolicyOptions(
-  certPolicies: CertPolicyRef[] | undefined
-): DefaultOptionType[] | undefined {
-  return certPolicies?.map((p) => ({
-    label: p.displayName,
-    value: p.id,
-  }));
-}
 
 function useAgentInstanceColumns(
   namespaceKind: NamespaceKind,
@@ -150,7 +134,7 @@ function RadiusMiscForm() {
         debugMode: data.debugMode,
       });
     }
-  }, [data]);
+  }, [data, form]);
   return (
     <Form form={form} layout="vertical" onFinish={(v) => run(v)}>
       <Form.Item<RadiusMiscFormState>
@@ -177,7 +161,7 @@ function RadiusEapTlsForm() {
     if (data?.eapTls) {
       form.setFieldsValue(data.eapTls);
     }
-  }, [data]);
+  }, [data, form]);
   return (
     <Form
       form={form}
@@ -214,7 +198,7 @@ function RadiusClientsForm() {
         clients: data.clients,
       });
     }
-  }, [data]);
+  }, [data, form]);
   return (
     <Form form={form} layout="vertical" onFinish={(v) => run(v)}>
       <Form.List name={"clients"}>
@@ -368,7 +352,7 @@ export default function RadiusConfigPage({
       ready: !!namespaceId && !!namespaceKind,
     }
   );
-  const { data: radiusConfig, mutate } = patchSvc;
+  const { data: radiusConfig } = patchSvc;
 
   const { data: keysData } = useRequest(
     () => {

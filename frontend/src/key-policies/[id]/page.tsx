@@ -3,7 +3,7 @@ import { Button, Card, Input, TableColumnsType, Tag, Typography } from "antd";
 import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
-import { useNamespace } from "../../admin/contexts/NamespaceContextRouteProvider";
+import { useNamespace } from "../../admin/contexts/useNamespace";
 import { KeyPolicyForm } from "../../admin/forms/KeyPolicyForm";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { JsonDataDisplay } from "../../components/JsonDataDisplay";

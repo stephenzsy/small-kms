@@ -162,20 +162,6 @@ paths:
       responses:
         200:
           $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"
-    post:
-      tags:
-        - admin
-      summary: Add Key Vault role assignment
-      operationId: AddKeyVaultRoleAssignment
-      parameters:
-        - in: query
-          name: roleDefinitionId
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          $ref: "oapi-base.yaml#/components/responses/AzureRoleAssignmentResponse"
 security:
   - BearerAuth: []
 components:
