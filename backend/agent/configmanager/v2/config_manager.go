@@ -20,14 +20,18 @@ import (
 type ConfigManager interface {
 	Client() agentclient.ClientWithResponsesInterface
 	ConfigDir() RootConfigDir
+
+	EnvConfig() *agentcommon.AgentEnv
+	ConfigUpdate() <-chan *AgentEndpointConfiguration
 }
 
 type configManager struct {
-	envConfig         *agentcommon.AgentEnv
-	configDir         RootConfigDir
-	client            agentclient.ClientWithResponsesInterface
-	identityProcessor *identityProcessor
-	endpointProcessor *endpointProcessor
+	envConfig            *agentcommon.AgentEnv
+	configDir            RootConfigDir
+	client               agentclient.ClientWithResponsesInterface
+	identityProcessor    *identityProcessor
+	endpointProcessor    *endpointProcessor
+	endpointConfigUpdate chan *AgentEndpointConfiguration
 }
 
 // ConfigDir implements ConfigManager.
@@ -37,6 +41,14 @@ func (cm *configManager) ConfigDir() RootConfigDir {
 
 func (cm *configManager) Client() agentclient.ClientWithResponsesInterface {
 	return cm.client
+}
+
+func (cm *configManager) EnvConfig() *agentcommon.AgentEnv {
+	return cm.envConfig
+}
+
+func (cm *configManager) ConfigUpdate() <-chan *AgentEndpointConfiguration {
+	return cm.endpointConfigUpdate
 }
 
 var _ ConfigManager = (*configManager)(nil)
@@ -73,8 +85,9 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 		return nil, err
 	}
 	cm := &configManager{
-		envConfig: envConfig,
-		configDir: RootConfigDir{ConfigDir(configDir)},
+		envConfig:            envConfig,
+		configDir:            RootConfigDir{ConfigDir(configDir)},
+		endpointConfigUpdate: make(chan *AgentEndpointConfiguration, 1),
 	}
 	cm.configDir.Active(agentmodels.AgentConfigNameIdentity).EnsureExist()
 	cm.configDir.Active(agentmodels.AgentConfigNameEndpoint).EnsureExist()

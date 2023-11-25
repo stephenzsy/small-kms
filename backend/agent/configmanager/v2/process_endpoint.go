@@ -16,6 +16,11 @@ import (
 type AgentEndpointConfiguration struct {
 	VerifyJWKs []cloudkey.JsonWebKey `json:"verifyJwks"`
 	Version    string                `json:"version"`
+	cm         ConfigManager
+}
+
+func (c *AgentEndpointConfiguration) TLSCertificateBundleFile() string {
+	return string(c.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert))
 }
 
 type endpointProcessor struct {
@@ -29,11 +34,14 @@ func (p *endpointProcessor) init(c context.Context) error {
 	if exists, err := f.Exists(); err != nil {
 		logger.Error().Err(err).Msg("failed to check if endpoint config exists")
 	} else if exists {
-		config := &AgentEndpointConfiguration{}
+		config := &AgentEndpointConfiguration{
+			cm: p.cm,
+		}
 		if err := f.ReadJSON(config); err != nil {
 			logger.Error().Err(err).Msg("failed to read endpoint config")
 		} else {
 			p.currentConfiguration = config
+			p.cm.(*configManager).endpointConfigUpdate <- config
 		}
 	}
 	return nil
@@ -79,6 +87,7 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 	config := &AgentEndpointConfiguration{
 		VerifyJWKs: make([]cloudkey.JsonWebKey, len(endpointConfig.JwtVerifyKeyIds)),
 		Version:    ref.Version,
+		cm:         p.cm,
 	}
 	for _, keyID := range endpointConfig.JwtVerifyKeyIds {
 		if key, err := pullPublicJWK(c, p.cm, keyID); err != nil {

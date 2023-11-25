@@ -1,4 +1,4 @@
-package keeper
+package agentconfigmanager
 
 import (
 	"context"
@@ -16,8 +16,8 @@ import (
 
 type echoTask struct {
 	buildID      string
-	configUpdate <-chan AgentServerConfiguration
-	newEcho      func(config AgentServerConfiguration) (*echo.Echo, error)
+	configUpdate <-chan *AgentEndpointConfiguration
+	newEcho      func(config *AgentEndpointConfiguration) (*echo.Echo, error)
 	agentEnv     *agentcommon.AgentEnv
 	endpoint     string
 	mode         agentcommon.AgentSlot
@@ -28,7 +28,7 @@ func (*echoTask) Name() string {
 	return "Echo"
 }
 
-func GetTLSDefaultConfig(config AgentServerConfiguration) (*tls.Config, error) {
+func GetTLSDefaultConfig(config *AgentEndpointConfiguration) (*tls.Config, error) {
 	tlsCert, err := tls.LoadX509KeyPair(config.TLSCertificateBundleFile(), config.TLSCertificateBundleFile())
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 
 			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
 				base.ID("me"), instanceIdenfier, managedapp.AgentInstanceFields{
-					Version:  config.Version(),
+					Version:  config.Version,
 					Endpoint: et.endpoint,
 					BuildID:  et.buildID,
 					Mode:     managedapp.AgentMode(et.mode),
@@ -89,15 +89,15 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 var _ taskmanager.Task = (*echoTask)(nil)
 
 func NewEchoTask(buildID string,
-	newEcho func(config AgentServerConfiguration) (*echo.Echo, error),
-	keeper *keeperTaskExecutor,
+	newEcho func(config *AgentEndpointConfiguration) (*echo.Echo, error),
+	cm ConfigManager,
 	endpoint string,
 	mode agentcommon.AgentSlot) *echoTask {
 	return &echoTask{
 		buildID:      buildID,
 		newEcho:      newEcho,
-		configUpdate: keeper.ConfigUpdate(),
-		agentEnv:     keeper.cm.EnvConfig,
+		configUpdate: cm.ConfigUpdate(),
+		agentEnv:     cm.EnvConfig(),
 		endpoint:     endpoint,
 		mode:         mode,
 	}

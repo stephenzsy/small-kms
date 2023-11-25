@@ -114,29 +114,27 @@ func main() {
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
-			newEcho := func(config keeper.AgentServerConfiguration) (*echo.Echo, error) {
+			newEcho := func(config *agentconfigmanager.AgentEndpointConfiguration) (*echo.Echo, error) {
 				var err error
 				e := echo.New()
 				e.Use(middleware.Logger())
 				e.Use(middleware.Recover())
 				e.Use(ctx.InjectServiceContextMiddleware(context.Background()))
-				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWTKeys(), agentPushEndpoint))
+				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWKs, agentPushEndpoint))
 				e.Use(base.HandleResponseError)
 				agentpush.RegisterHandlers(e, agentPushServer)
 
 				e.TLSServer.Addr = args[1]
-				e.TLSServer.TLSConfig, err = keeper.GetTLSDefaultConfig(config)
+				e.TLSServer.TLSConfig, err = agentconfigmanager.GetTLSDefaultConfig(config)
 				if err != nil {
 					return nil, err
 				}
 				return e, nil
 			}
-			keeperTask := keeper.NewKeeper(configManager)
-			echoTask := keeper.NewEchoTask(BuildID, newEcho, keeperTask, agentPushEndpoint, slot)
+			echoTask := agentconfigmanager.NewEchoTask(BuildID, newEcho, cm2, agentPushEndpoint, slot)
 
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(cm2Poller, 0)).
-				WithTask(taskmanager.IntervalExecutorTask(keeperTask, 0)).
 				WithTask(echoTask).
 				WithTask(radiusConfigManager)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
