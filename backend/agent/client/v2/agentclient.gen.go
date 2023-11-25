@@ -17,6 +17,7 @@ import (
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
+	externalRef3 "github.com/stephenzsy/small-kms/backend/models/key"
 )
 
 const (
@@ -44,6 +45,15 @@ type ErrorResponse = ErrorResult
 type EnrollCertificateParams struct {
 	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
 	OnBehalfOfApplication *bool `form:"onBehalfOfApplication,omitempty" json:"onBehalfOfApplication,omitempty"`
+}
+
+// GetKeyParams defines parameters for GetKey.
+type GetKeyParams struct {
+	// IncludeJwk Include JWK
+	IncludeJwk *bool `form:"includeJwk,omitempty" json:"includeJwk,omitempty"`
+
+	// Verify verify key
+	Verify *bool `form:"verify,omitempty" json:"verify,omitempty"`
 }
 
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
@@ -149,6 +159,9 @@ type ClientInterface interface {
 
 	// AddMsEntraKeyCredential request
 	AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetKey request
+	GetKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -249,6 +262,18 @@ func (c *Client) ExchangePKCS12(ctx context.Context, namespaceProvider Namespace
 
 func (c *Client) AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAddMsEntraKeyCredentialRequest(c.Server, namespaceProvider, namespaceId, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeyRequest(c.Server, namespaceProvider, namespaceId, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -608,6 +633,92 @@ func NewAddMsEntraKeyCredentialRequest(server string, namespaceProvider Namespac
 	return req, nil
 }
 
+// NewGetKeyRequest generates requests for GetKey
+func NewGetKeyRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/%s/%s/keys/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeJwk != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "includeJwk", runtime.ParamLocationQuery, *params.IncludeJwk); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Verify != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "verify", runtime.ParamLocationQuery, *params.Verify); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -675,6 +786,9 @@ type ClientWithResponsesInterface interface {
 
 	// AddMsEntraKeyCredentialWithResponse request
 	AddMsEntraKeyCredentialWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AddMsEntraKeyCredentialResponse, error)
+
+	// GetKeyWithResponse request
+	GetKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*GetKeyResponse, error)
 }
 
 type GetAgentResponse struct {
@@ -837,6 +951,29 @@ func (r AddMsEntraKeyCredentialResponse) StatusCode() int {
 	return 0
 }
 
+type GetKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef3.KeyResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetAgentWithResponse request returning *GetAgentResponse
 func (c *ClientWithResponses) GetAgentWithResponse(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentResponse, error) {
 	rsp, err := c.GetAgent(ctx, id, reqEditors...)
@@ -914,6 +1051,15 @@ func (c *ClientWithResponses) AddMsEntraKeyCredentialWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseAddMsEntraKeyCredentialResponse(rsp)
+}
+
+// GetKeyWithResponse request returning *GetKeyResponse
+func (c *ClientWithResponses) GetKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*GetKeyResponse, error) {
+	rsp, err := c.GetKey(ctx, namespaceProvider, namespaceId, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetKeyResponse(rsp)
 }
 
 // ParseGetAgentResponse parses an HTTP response from a GetAgentWithResponse call
@@ -1128,6 +1274,39 @@ func ParseAddMsEntraKeyCredentialResponse(rsp *http.Response) (*AddMsEntraKeyCre
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKeyResponse parses an HTTP response from a GetKeyWithResponse call
+func ParseGetKeyResponse(rsp *http.Response) (*GetKeyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef3.KeyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

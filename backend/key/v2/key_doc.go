@@ -1,6 +1,7 @@
 package key
 
 import (
+	"crypto/sha512"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -26,6 +27,23 @@ type KeyDoc struct {
 	Policy        resdoc.DocIdentifier `json:"policy"`
 	PolicyVersion []byte               `json:"policyVersion"`
 	Checksum      []byte               `json:"checksum"`
+}
+
+func (d *KeyDoc) calculateChecksum() []byte {
+	digest := sha512.New384()
+	d.JsonWebKey.Digest(digest)
+
+	if d.NotBefore != nil {
+		if m, _ := d.NotBefore.MarshalJSON(); m != nil {
+			digest.Write(m)
+		}
+	}
+	if d.NotAfter != nil {
+		if m, _ := d.NotAfter.MarshalJSON(); m != nil {
+			digest.Write(m)
+		}
+	}
+	return digest.Sum(nil)
 }
 
 type keyGenerateDoc struct {

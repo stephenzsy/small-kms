@@ -64,6 +64,9 @@ type ListKeysParams struct {
 type GetKeyParams struct {
 	// IncludeJwk Include JWK
 	IncludeJwk *bool `form:"includeJwk,omitempty" json:"includeJwk,omitempty"`
+
+	// Verify verify key
+	Verify *bool `form:"verify,omitempty" json:"verify,omitempty"`
 }
 
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
@@ -1041,6 +1044,13 @@ func (w *ServerInterfaceWrapper) GetKey(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, false, "includeJwk", ctx.QueryParams(), &params.IncludeJwk)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeJwk: %s", err))
+	}
+
+	// ------------- Optional query parameter "verify" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "verify", ctx.QueryParams(), &params.Verify)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter verify: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments

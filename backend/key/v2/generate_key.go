@@ -1,8 +1,6 @@
 package key
 
 import (
-	"crypto/sha512"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -66,20 +64,7 @@ func (*KeyAdminServer) GenerateKey(ec echo.Context, namespaceProvider models.Nam
 	doc.Exportable = *result.Attributes.Exportable
 	doc.Status = keymodels.KeyStatusActive
 
-	digest := sha512.New384()
-	doc.JsonWebKey.Digest(digest)
-
-	if doc.NotBefore != nil {
-		if m, _ := doc.NotBefore.MarshalJSON(); m != nil {
-			digest.Write(m)
-		}
-	}
-	if doc.NotAfter != nil {
-		if m, _ := doc.NotAfter.MarshalJSON(); m != nil {
-			digest.Write(m)
-		}
-	}
-	doc.Checksum = digest.Sum(nil)
+	doc.Checksum = doc.calculateChecksum()
 	resp, err := resdoc.GetDocService(c).Create(c, doc, nil)
 	if err != nil {
 		return err

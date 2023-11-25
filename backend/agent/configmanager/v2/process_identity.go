@@ -5,14 +5,11 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/rs/zerolog/log"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/models"
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
-	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 )
 
 type identityProcessor struct {
@@ -70,15 +67,4 @@ func (p *identityProcessor) processIdentity(c context.Context, ref *agentmodels.
 	p.cm.configureClient(string(certLink))
 
 	return nil
-}
-
-func enrollCert(c context.Context, cm ConfigManager, certPolicyID string) (*certmodels.Certificate, string, error) {
-
-	var enrolledFileName string
-	cert, _, err := agentutils.EnrollCertificate(c, cm.Client(), certPolicyID,
-		func(cert *certmodels.Certificate) (*os.File, error) {
-			enrolledFileName = cm.ConfigDir().Certs().File(fmt.Sprintf("%s.pem", cert.ID))
-			return cm.ConfigDir().Certs().OpenFile(fmt.Sprintf("%s.pem", cert.ID), os.O_CREATE|os.O_WRONLY, 0400, true)
-		}, false)
-	return cert, enrolledFileName, err
 }

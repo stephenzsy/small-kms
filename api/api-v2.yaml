@@ -429,12 +429,19 @@ paths:
     get:
       tags:
         - admin
+        - agentclient
       operationId: GetKey
       summary: Get key
       parameters:
         - in: query
           name: includeJwk
           description: Include JWK
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: verify
+          description: verify key
           required: false
           schema:
             type: boolean

@@ -78,8 +78,11 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 	}
 	cm.configDir.Active(agentmodels.AgentConfigNameIdentity).EnsureExist()
 	cm.configDir.Active(agentmodels.AgentConfigNameEndpoint).EnsureExist()
+	cm.configDir.Certs().EnsureExist()
+	cm.configDir.JWKs().EnsureExist()
 	cm.identityProcessor = &identityProcessor{cm: cm}
 	cm.endpointProcessor = &endpointProcessor{cm: cm}
+	cm.endpointProcessor.init(context.Background())
 
 	certPath := cm.configDir.Active(agentmodels.AgentConfigNameIdentity).ConfigFile(configFileClientCert)
 	if exists, err := certPath.Exists(); err != nil {

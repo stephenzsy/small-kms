@@ -1,6 +1,7 @@
 package agentconfigmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -38,6 +39,7 @@ type WellKnownConfigFile string
 const (
 	configFileClientCert WellKnownConfigFile = "client-cert.pem"
 	configFileServerCert WellKnownConfigFile = "server-cert.pem"
+	configFileEndpoint   WellKnownConfigFile = "endpoint.json"
 )
 
 func (f ConfigFile) Exists() (bool, error) {
@@ -48,6 +50,22 @@ func (f ConfigFile) Exists() (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (f ConfigFile) ReadJSON(v any) error {
+	file, err := os.ReadFile(string(f))
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(file, v)
+}
+
+func (f ConfigFile) WriteJSON(v any) error {
+	file, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(string(f), file, 0640)
 }
 
 func (f ConfigFile) LinkToAbsolutePath(targetAbsPath string) error {
@@ -82,26 +100,19 @@ func (dir ConfigDir) EnsureExist() error {
 	return nil
 }
 
-type CertsConfigDir struct {
+type ImmutableConfigObjectsDir struct {
 	ConfigDir
 }
 
-func (dir RootConfigDir) Certs() CertsConfigDir {
-	return CertsConfigDir{ConfigDir(filepath.Join(string(dir.ConfigDir), "certs"))}
+func (dir RootConfigDir) Certs() ImmutableConfigObjectsDir {
+	return ImmutableConfigObjectsDir{ConfigDir(filepath.Join(string(dir.ConfigDir), "certs"))}
 }
 
-func (dir ConfigDir) OpenFile(filename string, flag int, fileMode os.FileMode, ensureDirExist bool) (*os.File, error) {
-	if _, err := os.Stat(string(dir)); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			if ensureDirExist {
-				if err := os.MkdirAll(string(dir), 0750); err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			return nil, err
-		}
-	}
+func (dir RootConfigDir) JWKs() ImmutableConfigObjectsDir {
+	return ImmutableConfigObjectsDir{ConfigDir(filepath.Join(string(dir.ConfigDir), "jwks"))}
+}
+
+func (dir ConfigDir) OpenFile(filename string, flag int, fileMode os.FileMode) (*os.File, error) {
 	return os.OpenFile(filepath.Join(string(dir), filename), flag, fileMode)
 }
 
