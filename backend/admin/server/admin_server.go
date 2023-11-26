@@ -20,11 +20,6 @@ type server struct {
 	*cert.CertServer
 }
 
-// ListAgentInstances implements admin.ServerInterface.
-func (*server) ListAgentInstances(ctx echo.Context, id string) error {
-	panic("unimplemented")
-}
-
 // GetMemberGroup implements admin.ServerInterface.
 func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
 	panic("unimplemented")

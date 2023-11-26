@@ -1,10 +1,19 @@
 import { useRequest } from "ahooks";
 import { Result } from "ahooks/lib/useRequest/src/types";
-import { Button, Card, Divider, Form, Typography } from "antd";
-import { useEffect } from "react";
+import {
+  Button,
+  Card,
+  Form,
+  TableColumnType,
+  Tabs,
+  TabsProps,
+  Typography,
+} from "antd";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ResourceRefsSelect } from "../../admin/ResourceRefsSelect";
 import { NamespaceContext } from "../../admin/contexts/NamespaceContext";
+import { useNamespace } from "../../admin/contexts/useNamespace";
 import { Link } from "../../components/Link";
 import {
   AdminApi,
@@ -13,11 +22,13 @@ import {
   AgentConfigIdentity,
   AgentConfigIdentityFields,
   AgentConfigName,
+  AgentInstanceRef,
   CreateAgentConfigRequest,
   NamespaceProvider,
   Ref as ResourceRef,
 } from "../../generated/apiv2";
 import { useAdminApi, useAuthedClientV2 } from "../../utils/useCertsApi";
+import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 
 function useAgent(agentId: string | undefined) {
   const api = useAuthedClientV2(AdminApi);
@@ -38,6 +49,22 @@ function useAgent(agentId: string | undefined) {
 export default function AgentPage() {
   const { id } = useParams<{ id: string }>();
   const { data: agent } = useAgent(id);
+
+  const tabItems = useMemo(
+    (): TabsProps["items"] => [
+      {
+        key: "dashboard",
+        label: "Dashboard",
+        children: <AgentDashboardCards appId={id} />,
+      },
+      {
+        key: "configurations",
+        label: "Configurations",
+        children: <AgentConfigurationsCards />,
+      },
+    ],
+    [id]
+  );
 
   return (
     <>
@@ -66,16 +93,16 @@ export default function AgentPage() {
           </div>
         </dl>
       </Card>
-      <NamespaceContext.Provider
-        value={{
-          namespaceId: agent?.servicePrincipalId ?? "",
-          namespaceKind: NamespaceProvider.NamespaceProviderServicePrincipal,
-        }}
-      >
-        {agent?.servicePrincipalId && (
-          <AgentConfigurationsCard namespaceId={agent.servicePrincipalId} />
-        )}
-      </NamespaceContext.Provider>
+      {agent?.servicePrincipalId && (
+        <NamespaceContext.Provider
+          value={{
+            namespaceId: agent.servicePrincipalId,
+            namespaceKind: NamespaceProvider.NamespaceProviderServicePrincipal,
+          }}
+        >
+          <Tabs destroyInactiveTabPane items={tabItems} />
+        </NamespaceContext.Provider>
+      )}
     </>
   );
 }
@@ -189,8 +216,55 @@ function useAgentConfigRequest<
   );
 }
 
-function AgentConfigurationsCard({ namespaceId }: { namespaceId: string }) {
+function AgentDashboardCards({ appId }: { appId: string | undefined }) {
   const api = useAdminApi();
+  const { data: instances } = useRequest(
+    async () => {
+      if (!appId) {
+        return;
+      }
+      return api?.listAgentInstances({
+        id: appId,
+      });
+    },
+    { refreshDeps: [appId] }
+  );
+
+  const extraColumns = useMemo(
+    (): TableColumnType<AgentInstanceRef>[] => [
+      {
+        title: "Endpoint",
+        dataIndex: "endpoint",
+        key: "endpoint",
+      },
+      {
+        title: "State",
+        dataIndex: "state",
+        key: "state",
+        render: (state: AgentInstanceRef["state"]) => {
+          return <span className="capitalize">{state}</span>;
+        },
+      },
+    ],
+    []
+  );
+
+  return (
+    <div className="space-y-4">
+      <Card title="Instances">
+        <ResourceRefsTable
+          dataSource={instances}
+          noDisplayName
+          extraColumns={extraColumns}
+        />
+      </Card>
+    </div>
+  );
+}
+
+function AgentConfigurationsCards() {
+  const api = useAdminApi();
+  const { namespaceId } = useNamespace();
   const { run: updateIdentityConfig, data: identityConfig } =
     useAgentConfigRequest<AgentConfigIdentity>(
       api,
@@ -222,25 +296,22 @@ function AgentConfigurationsCard({ namespaceId }: { namespaceId: string }) {
     { refreshDeps: [namespaceId] }
   );
   return (
-    <Card title="Agent configurations">
-      <section>
-        <Typography.Title level={4}>Identity</Typography.Title>
+    <div className="space-y-4">
+      <Card title="Identity">
         <AgentIdentityForm
           onPutConfig={updateIdentityConfig}
           certificatePolicies={certificatePoliciesResult}
           value={identityConfig}
         />
-      </section>
-      <Divider />
-      <section>
-        <Typography.Title level={4}>Endpoint</Typography.Title>
+      </Card>
+      <Card title="Endpoint">
         <AgentEndpointForm
           certificatePolicies={certificatePoliciesResult}
           keyPolicies={keyPoliciesResult}
           onPutConfig={updateEndpointConfig}
           value={endpointConfig}
         />
-      </section>
-    </Card>
+      </Card>
+    </div>
   );
 }
