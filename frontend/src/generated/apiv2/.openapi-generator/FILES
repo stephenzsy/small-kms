@@ -10,6 +10,7 @@ models/AgentConfigIdentityFields.ts
 models/AgentConfigName.ts
 models/AgentConfigRef.ts
 models/AgentInstance.ts
+models/AgentInstanceFields.ts
 models/AgentInstanceParameters.ts
 models/AgentInstanceRef.ts
 models/AgentInstanceRefFields.ts
@@ -50,6 +51,9 @@ models/Profile.ts
 models/ProfileFields.ts
 models/ProfileParameters.ts
 models/Ref.ts
+models/RequestDiagnostics.ts
+models/RequestHeaderEntry.ts
+models/ServiceRuntimeInfo.ts
 models/SubjectAlternativeNames.ts
 models/index.ts
 runtime.ts

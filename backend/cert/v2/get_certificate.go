@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,7 +24,7 @@ func (*CertServer) GetCertificate(ec echo.Context, namespaceProvider models.Name
 		return base.ErrResponseStatusForbidden
 	}
 
-	certDoc, err := getCertificateInternal(c, namespaceProvider, namespaceId, id)
+	certDoc, err := GetCertificateInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		return err
 	}
@@ -36,7 +37,7 @@ func (*CertServer) GetCertificate(ec echo.Context, namespaceProvider models.Name
 	return c.JSON(http.StatusOK, model)
 }
 
-func getCertificateInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertDoc, error) {
+func GetCertificateInternal(c context.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertDoc, error) {
 	certDoc := &CertDoc{}
 	err := readCertDocInternal(c, namespaceProvider, namespaceId, id, certDoc)
 	if err != nil {
@@ -45,7 +46,7 @@ func getCertificateInternal(c ctx.RequestContext, namespaceProvider models.Names
 	return certDoc, nil
 }
 
-func readCertDocInternal[T resdoc.ResourceDocument](c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string, certDoc T) error {
+func readCertDocInternal[T resdoc.ResourceDocument](c context.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string, certDoc T) error {
 	if err := resdoc.GetDocService(c).Read(c, resdoc.NewDocIdentifier(namespaceProvider, namespaceId, models.ResourceProviderCert, id), certDoc, nil); err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
 			return fmt.Errorf("%w: certificate ID: %s", base.ErrResponseStatusNotFound, id)

@@ -334,5 +334,5 @@ func (d *CertPolicyDoc) getIssuerCert(c ctx.RequestContext) (*CertDoc, error) {
 		return nil, err
 	}
 
-	return getCertificateInternal(c, linkDoc.LinkTo.NamespaceProvider, linkDoc.LinkTo.NamespaceID, linkDoc.LinkTo.ID)
+	return GetCertificateInternal(c, linkDoc.LinkTo.NamespaceProvider, linkDoc.LinkTo.NamespaceID, linkDoc.LinkTo.ID)
 }

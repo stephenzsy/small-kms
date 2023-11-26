@@ -10,10 +10,6 @@ import (
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 )
 
-const (
-	BearerAuthScopes = "BearerAuth.Scopes"
-)
-
 // Defines values for NamespaceKind.
 const (
 	NamespaceKindGroup            NamespaceKind = "group"
@@ -66,18 +62,6 @@ type NumericDate = jwt.NumericDate
 // Period defines model for Period.
 type Period = periodImpl
 
-// RequestDiagnostics defines model for RequestDiagnostics.
-type RequestDiagnostics struct {
-	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
-	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
-}
-
-// RequestHeaderEntry defines model for RequestHeaderEntry.
-type RequestHeaderEntry struct {
-	Key   string   `json:"key"`
-	Value []string `json:"value"`
-}
-
 // ResourceKind defines model for ResourceKind.
 type ResourceKind string
 
@@ -90,13 +74,6 @@ type ResourceReference struct {
 	ID        ID         `json:"id"`
 	Updated   time.Time  `json:"updated"`
 	UpdatedBy *string    `json:"updatedBy,omitempty"`
-}
-
-// ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
-type ServiceRuntimeInfo struct {
-	BuildID     string   `json:"buildId"`
-	Environment []string `json:"environment,omitempty"`
-	GoVersion   string   `json:"goVersion"`
 }
 
 // NamespaceIdParameter defines model for NamespaceIdParameter.

@@ -93,9 +93,6 @@ type ClientInterface interface {
 	// PushAgentConfigRadius request
 	PushAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetAgentDiagnostics request
-	GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AgentDockerContainerList request
 	AgentDockerContainerList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -130,18 +127,6 @@ type ClientInterface interface {
 
 func (c *Client) PushAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPushAgentConfigRadiusRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -325,69 +310,6 @@ func NewPushAgentConfigRadiusRequest(server string, namespaceKind externalRef0.N
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-
-		if params.XCryptocatProxyAuthorization != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
-		}
-
-	}
-
-	return req, nil
-}
-
-// NewGetAgentDiagnosticsRequest generates requests for GetAgentDiagnostics
-func NewGetAgentDiagnosticsRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/diagnostics", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1070,9 +992,6 @@ type ClientWithResponsesInterface interface {
 	// PushAgentConfigRadiusWithResponse request
 	PushAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*PushAgentConfigRadiusResponse, error)
 
-	// GetAgentDiagnosticsWithResponse request
-	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
-
 	// AgentDockerContainerListWithResponse request
 	AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error)
 
@@ -1120,28 +1039,6 @@ func (r PushAgentConfigRadiusResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PushAgentConfigRadiusResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetAgentDiagnosticsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.RequestDiagnostics
-}
-
-// Status returns HTTPResponse.Status
-func (r GetAgentDiagnosticsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetAgentDiagnosticsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1352,15 +1249,6 @@ func (c *ClientWithResponses) PushAgentConfigRadiusWithResponse(ctx context.Cont
 	return ParsePushAgentConfigRadiusResponse(rsp)
 }
 
-// GetAgentDiagnosticsWithResponse request returning *GetAgentDiagnosticsResponse
-func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *GetAgentDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error) {
-	rsp, err := c.GetAgentDiagnostics(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetAgentDiagnosticsResponse(rsp)
-}
-
 // AgentDockerContainerListWithResponse request returning *AgentDockerContainerListResponse
 func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerContainerListParams, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error) {
 	rsp, err := c.AgentDockerContainerList(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
@@ -1469,32 +1357,6 @@ func ParsePushAgentConfigRadiusResponse(rsp *http.Response) (*PushAgentConfigRad
 	response := &PushAgentConfigRadiusResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetAgentDiagnosticsResponse parses an HTTP response from a GetAgentDiagnosticsWithResponse call
-func ParseGetAgentDiagnosticsResponse(rsp *http.Response) (*GetAgentDiagnosticsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetAgentDiagnosticsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.RequestDiagnostics
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil

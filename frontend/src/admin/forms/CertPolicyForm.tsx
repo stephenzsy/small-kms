@@ -300,14 +300,14 @@ export function CertPolicyForm({
         <Typography.Title level={4}>Subject Alternative Names</Typography.Title>
         <Form.Item<CertificatePolicyParameters> label="DNS names">
           <SANFormList
-            name={["sans", "dnsNames"]}
+            name={["subjectAlternativeNames", "dnsNames"]}
             addButtonLabel="+ Add DNS name"
             inputPlaceholder="example.com"
           />
         </Form.Item>
         <Form.Item<CertificatePolicyParameters> label="IP addresses">
           <SANFormList
-            name={["sans", "ipAddresses"]}
+            name={["subjectAlternativeNames", "ipAddresses"]}
             addButtonLabel="+ Add IP Address"
             inputPlaceholder="127.0.0.1 or ::1"
           />
@@ -315,7 +315,7 @@ export function CertPolicyForm({
 
         <Form.Item<CertificatePolicyParameters> label="Email addresses">
           <SANFormList
-            name={["sans", "emails"]}
+            name={["subjectAlternativeNames", "emails"]}
             addButtonLabel="+ Add Email Address"
             inputPlaceholder="example@example.com"
           />

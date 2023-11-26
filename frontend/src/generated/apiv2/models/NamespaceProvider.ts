@@ -21,6 +21,7 @@ export const NamespaceProvider = {
     NamespaceProviderProfile: 'profile',
     NamespaceProviderRootCA: 'root-ca',
     NamespaceProviderIntermediateCA: 'int-ca',
+    NamespaceProviderExternalCA: 'external-ca',
     NamespaceProviderAgent: 'agent',
     NamespaceProviderServicePrincipal: 'service-principal',
     NamespaceProviderGroup: 'group',

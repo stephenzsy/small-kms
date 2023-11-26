@@ -70,10 +70,23 @@ type AgentConfigRef struct {
 }
 
 // AgentInstance defines model for AgentInstance.
-type AgentInstance = AgentInstanceRef
+type AgentInstance = agentInstanceComposed
+
+// AgentInstanceFields defines model for AgentInstanceFields.
+type AgentInstanceFields struct {
+	JwtVerifyKeyId   string `json:"jwtVerifyKeyId"`
+	TlsCertificateId string `json:"tlsCertificateId"`
+}
 
 // AgentInstanceParameters defines model for AgentInstanceParameters.
-type AgentInstanceParameters = AgentInstanceRefFields
+type AgentInstanceParameters struct {
+	BuildId          string             `json:"buildId"`
+	ConfigVersion    string             `json:"configVersion"`
+	Endpoint         string             `json:"endpoint"`
+	JwtVerifyKeyId   string             `json:"jwtVerifyKeyId"`
+	State            AgentInstanceState `json:"state"`
+	TlsCertificateId string             `json:"tlsCertificateId"`
+}
 
 // AgentInstanceRef defines model for AgentInstanceRef.
 type AgentInstanceRef = agentInstanceRefComposed

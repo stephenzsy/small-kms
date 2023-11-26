@@ -1,6 +1,7 @@
 package agentadmin
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
@@ -101,16 +102,23 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 
 func getAgentConfigEndpoint(c ctx.RequestContext, namespaceId string) error {
 
-	docSvc := resdoc.GetDocService(c)
-	doc := &agentConfigDocEndpoint{}
-	if err := docSvc.Read(c, resdoc.NewDocIdentifier(models.NamespaceProviderServicePrincipal,
-		namespaceId, models.ResourceProviderAgentConfig, string(agentmodels.AgentConfigNameEndpoint)), doc, nil); err != nil {
-		err = resdoc.HandleAzCosmosError(err)
-		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return base.ErrResponseStatusNotFound
-		}
+	doc, err := getAgentConfigEndpointInternal(c, namespaceId)
+	if err != nil {
 		return err
 	}
 
 	return c.JSON(200, doc.ToModel())
+}
+
+func getAgentConfigEndpointInternal(c context.Context, namespaceId string) (*agentConfigDocEndpoint, error) {
+	docSvc := resdoc.GetDocService(c)
+	doc := &agentConfigDocEndpoint{}
+	err := docSvc.Read(c, resdoc.NewDocIdentifier(models.NamespaceProviderServicePrincipal,
+		namespaceId, models.ResourceProviderAgentConfig, string(agentmodels.AgentConfigNameEndpoint)), doc, nil)
+	if err != nil {
+		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
+			return doc, base.ErrResponseStatusNotFound
+		}
+	}
+	return doc, err
 }

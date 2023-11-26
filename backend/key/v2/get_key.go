@@ -1,6 +1,7 @@
 package key
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,7 +24,7 @@ func (*KeyAdminServer) GetKey(ec echo.Context, namespaceProvider models.Namespac
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc, err := getKeyInternal(c, namespaceProvider, namespaceId, id)
+	doc, err := GetKeyInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		return err
 	}
@@ -36,7 +37,7 @@ func (*KeyAdminServer) GetKey(ec echo.Context, namespaceProvider models.Namespac
 	return c.JSON(http.StatusOK, model)
 }
 
-func getKeyInternal(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*KeyDoc, error) {
+func GetKeyInternal(c context.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*KeyDoc, error) {
 	certDoc := &KeyDoc{}
 	if err := resdoc.GetDocService(c).Read(c, resdoc.NewDocIdentifier(namespaceProvider, namespaceId, models.ResourceProviderKey, id), certDoc, nil); err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {

@@ -100,10 +100,3 @@ func ResolveMeNamespace(c ctx.RequestContext, namespaceId string) string {
 	}
 	return namespaceId
 }
-
-func ResolveMeAppID(c ctx.RequestContext, appID string) string {
-	if strings.EqualFold("me", appID) {
-		return auth.GetAuthIdentity(c).AppID()
-	}
-	return appID
-}

@@ -136,7 +136,7 @@ func apiCreateAgentInstanceProxyAuthToken(c ctx.RequestContext, resourceIdentifi
 		return fmt.Errorf("%w: unsupported key type", base.ErrResponseStatusBadRequest)
 	}
 	identity := auth.GetAuthIdentity(c)
-	accessToken, err := agentauth.NewSignedAgentAuthJWT(jwtSigningMethod, identity.ClientPrincipalID().String(), instanceDoc.Endpoint, ck)
+	accessToken, _, err := agentauth.NewSignedAgentAuthJWT(jwtSigningMethod, identity.ClientPrincipalID().String(), instanceDoc.Endpoint, ck)
 	if err != nil {
 		return err
 	}

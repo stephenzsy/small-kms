@@ -19,7 +19,8 @@ func (*ProfileServer) PutProfile(ec echo.Context, namespaceProvider models.Names
 
 	switch namespaceProvider {
 	case models.NamespaceProviderRootCA,
-		models.NamespaceProviderIntermediateCA:
+		models.NamespaceProviderIntermediateCA,
+		models.NamespaceProviderExternalCA:
 		// ok
 	default:
 		return base.ErrResponseStatusBadRequest
@@ -46,6 +47,12 @@ func (*ProfileServer) PutProfile(ec echo.Context, namespaceProvider models.Names
 	}
 	if params.DisplayName == "" {
 		doc.DisplayName = &namespaceId
+	} else {
+		doc.DisplayName = &params.DisplayName
+	}
+
+	switch namespaceProvider {
+	case models.NamespaceProviderExternalCA:
 	}
 
 	resp, err := resdoc.GetDocService(c).Upsert(c, doc, nil)

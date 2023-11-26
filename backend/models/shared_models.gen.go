@@ -13,6 +13,7 @@ import (
 // Defines values for NamespaceProvider.
 const (
 	NamespaceProviderAgent            NamespaceProvider = "agent"
+	NamespaceProviderExternalCA       NamespaceProvider = "external-ca"
 	NamespaceProviderGroup            NamespaceProvider = "group"
 	NamespaceProviderIntermediateCA   NamespaceProvider = "int-ca"
 	NamespaceProviderProfile          NamespaceProvider = "profile"
@@ -65,6 +66,25 @@ type Ref struct {
 	UpdatedBy   string     `json:"updatedBy"`
 }
 
+// RequestDiagnostics defines model for RequestDiagnostics.
+type RequestDiagnostics struct {
+	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
+	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
+}
+
+// RequestHeaderEntry defines model for RequestHeaderEntry.
+type RequestHeaderEntry struct {
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
+}
+
+// ServiceRuntimeInfo defines model for ServiceRuntimeInfo.
+type ServiceRuntimeInfo struct {
+	BuildID     string   `json:"buildId"`
+	Environment []string `json:"environment,omitempty"`
+	GoVersion   string   `json:"goVersion"`
+}
+
 // LinkRefResponse defines model for LinkRefResponse.
 type LinkRefResponse = LinkRef
 
@@ -73,3 +93,6 @@ type ProfileResponse = Profile
 
 // RefsResponse defines model for RefsResponse.
 type RefsResponse = []Ref
+
+// RequestDiagnosticsResponse defines model for RequestDiagnosticsResponse.
+type RequestDiagnosticsResponse = RequestDiagnostics

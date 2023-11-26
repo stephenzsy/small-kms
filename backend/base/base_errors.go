@@ -27,10 +27,11 @@ var (
 	ErrAzCosmosDocNotFound    = errors.New("az cosmos doc not found")
 	ErrAzKeyVaultItemNotFound = errors.New("az key vault key not found")
 
-	ErrResponseStatusBadRequest   = httpResposneError(http.StatusBadRequest, "bad request")
-	ErrResposneStatusUnauthorized = httpResposneError(http.StatusUnauthorized, "unauthorized")
-	ErrResponseStatusForbidden    = httpResposneError(http.StatusForbidden, "forbidden")
-	ErrResponseStatusNotFound     = httpResposneError(http.StatusNotFound, "not found")
+	ErrResponseStatusBadRequest      = httpResposneError(http.StatusBadRequest, "bad request")
+	ErrResposneStatusUnauthorized    = httpResposneError(http.StatusUnauthorized, "unauthorized")
+	ErrResponseStatusForbidden       = httpResposneError(http.StatusForbidden, "forbidden")
+	ErrResponseStatusNotFound        = httpResposneError(http.StatusNotFound, "not found")
+	ErrResponseStatusTooManyRequests = httpResposneError(http.StatusTooManyRequests, "conflict")
 )
 
 func HandleAzCosmosError(err error) error {

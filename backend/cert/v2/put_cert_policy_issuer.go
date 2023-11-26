@@ -36,7 +36,7 @@ func (*CertServer) PutCertificatePolicyIssuer(ec echo.Context, namespaceProvider
 	if linkTo.NamespaceProvider != namespaceProvider || linkTo.NamespaceID != namespaceId || linkTo.ResourceProvider != models.ResourceProviderCert {
 		return fmt.Errorf("%w: %s", base.ErrResponseStatusBadRequest, "invalid linkTo")
 	}
-	certDoc, err := getCertificateInternal(c, namespaceProvider, namespaceId, linkTo.ID)
+	certDoc, err := GetCertificateInternal(c, namespaceProvider, namespaceId, linkTo.ID)
 	if err != nil {
 		return err
 	}

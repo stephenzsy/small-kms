@@ -22,13 +22,13 @@ func (*AgentAdminServer) ListAgentInstances(ec echo.Context, appID string) error
 
 	qb := resdoc.NewDefaultCosmoQueryBuilder().WithExtraColumns("c.endpoint", "c.state", "c.configVersion", "c.buildId")
 	pager := resdoc.NewQueryDocPager[*AgentInstanceDoc](c, qb, resdoc.PartitionKey{
-		NamespaceProvider: models.NamespaceProviderAgent,
+		NamespaceProvider: models.NamespaceProviderServicePrincipal,
 		NamespaceID:       appID,
 		ResourceProvider:  models.ResourceProviderAgentInstance,
 	})
 
 	modelPager := utils.NewMappedItemsPager(pager, func(doc *AgentInstanceDoc) *agentmodels.AgentInstanceRef {
-		return doc.ToModel()
+		return doc.ToRef()
 	})
 
 	return api.RespondPagerList(c, utils.NewSerializableItemsPager(modelPager))

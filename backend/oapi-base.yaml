@@ -7,21 +7,7 @@ servers:
     description: Local server
 security:
   - BearerAuth: []
-paths:
-  /v1/diagnostics:
-    get:
-      tags:
-        - admin
-        - agent
-      summary: Get diagnostics
-      operationId: GetDiagnostics
-      responses:
-        "200":
-          description: Diagnostics response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RequestDiagnostics"
+paths: {}
 components:
   securitySchemes:
     BearerAuth:
@@ -134,46 +120,6 @@ components:
         - id
         - uid
         - updated
-    RequestHeaderEntry:
-      type: object
-      properties:
-        key:
-          type: string
-        value:
-          type: array
-          items:
-            type: string
-      required:
-        - key
-        - value
-    ServiceRuntimeInfo:
-      type: object
-      properties:
-        goVersion:
-          type: string
-        buildId:
-          type: string
-          x-go-name: BuildID
-        environment:
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-      required:
-        - goVersion
-        - buildId
-    RequestDiagnostics:
-      type: object
-      properties:
-        requestHeaders:
-          type: array
-          items:
-            $ref: "#/components/schemas/RequestHeaderEntry"
-        serviceRuntime:
-          $ref: "#/components/schemas/ServiceRuntimeInfo"
-      required:
-        - requestHeaders
-        - serviceRuntime
   parameters:
     NamespaceKindParameter:
       in: path

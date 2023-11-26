@@ -39,9 +39,22 @@ components:
     AgentInstance:
       allOf:
         - $ref: "#/components/schemas/AgentInstanceRef"
+        - $ref: "#/components/schemas/AgentInstanceFields"
+        - x-go-type: agentInstanceComposed
+    AgentInstanceFields:
+      type: object
+      properties:
+        tlsCertificateId:
+          type: string
+        jwtVerifyKeyId:
+          type: string
+      required:
+        - tlsCertificateId
+        - jwtVerifyKeyId
     AgentInstanceParameters:
       allOf:
         - $ref: "#/components/schemas/AgentInstanceRefFields"
+        - $ref: "#/components/schemas/AgentInstanceFields"
     CreateAgentRequest:
       type: object
       properties:

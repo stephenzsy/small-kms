@@ -19,7 +19,8 @@ import { ResourceRefsTable } from "./tables/ResourceRefsTable";
 
 type ProfileTypeMapRecord<T> = Record<
   | typeof NamespaceProvider.NamespaceProviderRootCA
-  | typeof NamespaceProvider.NamespaceProviderIntermediateCA,
+  | typeof NamespaceProvider.NamespaceProviderIntermediateCA
+  | typeof NamespaceProvider.NamespaceProviderExternalCA,
   T
 >;
 
@@ -39,6 +40,10 @@ function useProfileTypeSelectOptions(): Array<DefaultOptionType> {
       {
         label: "Intermediate CA",
         value: NamespaceProvider.NamespaceProviderIntermediateCA,
+      },
+      {
+        label: "External CA",
+        value: NamespaceProvider.NamespaceProviderExternalCA,
       },
     ],
     []
@@ -68,6 +73,7 @@ function CreateProfileForm({
       switch (profileType) {
         case NamespaceProvider.NamespaceProviderRootCA:
         case NamespaceProvider.NamespaceProviderIntermediateCA:
+        case NamespaceProvider.NamespaceProviderExternalCA:
           await adminApi.putProfile(req);
           break;
       }
@@ -138,13 +144,25 @@ export default function CAsPage() {
       refreshDeps: [],
     }
   );
+  const { data: externalCAs, run: listExternalCAs } = useRequest(
+    () => {
+      return adminApi.listProfiles({
+        namespaceProvider: NamespaceProvider.NamespaceProviderExternalCA,
+      });
+    },
+    {
+      refreshDeps: [],
+    }
+  );
 
   const onProfileUpsert: ProfileTypeMapRecord<() => void> = useMemo(() => {
     return {
       [NamespaceProvider.NamespaceProviderRootCA]: listRootCAs,
       [NamespaceProvider.NamespaceProviderIntermediateCA]: listIntermediateCAs,
+      [NamespaceProvider.NamespaceProviderExternalCA]: listExternalCAs,
+
     };
-  }, [listRootCAs, listIntermediateCAs]);
+  }, [listRootCAs, listIntermediateCAs, listExternalCAs]);
 
   const renderRootCaActions = useMemoizedFn((item: Ref) => {
     return (
@@ -154,10 +172,21 @@ export default function CAsPage() {
     );
   });
 
-  const renderIntCaactions = useMemoizedFn((item: Ref) => {
+  const renderIntCaActions = useMemoizedFn((item: Ref) => {
     return (
       <Link
         to={`/${NamespaceProvider.NamespaceProviderIntermediateCA}/${item.id}`}
+      >
+        View
+      </Link>
+    );
+  });
+
+
+  const renderExternalCaActions = useMemoizedFn((item: Ref) => {
+    return (
+      <Link
+        to={`/${NamespaceProvider.NamespaceProviderExternalCA}/${item.id}`}
       >
         View
       </Link>
@@ -175,8 +204,14 @@ export default function CAsPage() {
       </Card>
       <Card title="Intermediate certificate authorities">
         <ResourceRefsTable<Ref>
-          renderActions={renderIntCaactions}
+          renderActions={renderIntCaActions}
           dataSource={intermediateCAs}
+        />
+      </Card>
+      <Card title="External certificate authorities">
+        <ResourceRefsTable<Ref>
+          renderActions={renderExternalCaActions}
+          dataSource={externalCAs}
         />
       </Card>
       <Card title="Create certificate authority profile">

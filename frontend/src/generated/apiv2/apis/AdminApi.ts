@@ -41,6 +41,7 @@ import type {
   Profile,
   ProfileParameters,
   Ref,
+  RequestDiagnostics,
 } from '../models/index';
 import {
     AgentConfigFromJSON,
@@ -95,6 +96,8 @@ import {
     ProfileParametersToJSON,
     RefFromJSON,
     RefToJSON,
+    RequestDiagnosticsFromJSON,
+    RequestDiagnosticsToJSON,
 } from '../models/index';
 
 export interface AddMsEntraKeyCredentialRequest {
@@ -153,6 +156,11 @@ export interface GetAgentConfigBundleRequest {
     namespaceId: string;
 }
 
+export interface GetAgentDiagnosticsRequest {
+    namespaceId: string;
+    id: string;
+}
+
 export interface GetCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -202,7 +210,7 @@ export interface GetSystemAppRequest {
 }
 
 export interface ListAgentInstancesRequest {
-    id: string;
+    namespaceId: string;
 }
 
 export interface ListCertificatePoliciesRequest {
@@ -280,7 +288,7 @@ export interface SyncSystemAppRequest {
 }
 
 export interface UpdateAgentInstanceRequest {
-    id: string;
+    namespaceId: string;
     agentInstanceParameters?: AgentInstanceParameters;
 }
 
@@ -738,6 +746,48 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get agent diagnostics
+     */
+    async getAgentDiagnosticsRaw(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentDiagnostics.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgentDiagnostics.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent diagnostics
+     */
+    async getAgentDiagnostics(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
+        const response = await this.getAgentDiagnosticsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get certificate
      */
     async getCertificateRaw(requestParameters: GetCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
@@ -876,6 +926,40 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificatePolicyIssuer(requestParameters: GetCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
         const response = await this.getCertificatePolicyIssuerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnosticsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/diagnostics`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
+    }
+
+    /**
+     * Get diagnostics
+     */
+    async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
+        const response = await this.getDiagnosticsRaw(initOverrides);
         return await response.value();
     }
 
@@ -1109,8 +1193,8 @@ export class AdminApi extends runtime.BaseAPI {
      * List agent instances
      */
     async listAgentInstancesRaw(requestParameters: ListAgentInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AgentInstanceRef>>> {
-        if (requestParameters.id === null || requestParameters.id === undefined) {
-            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling listAgentInstances.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listAgentInstances.');
         }
 
         const queryParameters: any = {};
@@ -1126,7 +1210,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/agents/{id}/instances`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            path: `/v2/service-principal/{namespaceId}/agent-instances`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1744,8 +1828,8 @@ export class AdminApi extends runtime.BaseAPI {
      * Update agent instance
      */
     async updateAgentInstanceRaw(requestParameters: UpdateAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentInstance>> {
-        if (requestParameters.id === null || requestParameters.id === undefined) {
-            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateAgentInstance.');
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling updateAgentInstance.');
         }
 
         const queryParameters: any = {};
@@ -1763,7 +1847,7 @@ export class AdminApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v2/agents/{id}/instances`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            path: `/v2/service-principal/{namespaceId}/agent-instances`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

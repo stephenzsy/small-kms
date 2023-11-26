@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
@@ -147,15 +146,15 @@ func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKi
 }
 
 // GetDiagnostics implements ServerInterface.
-func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ GetAgentDiagnosticsParams) error {
-	c := ec.(ctx.RequestContext)
+// func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ GetAgentDiagnosticsParams) error {
+// 	c := ec.(ctx.RequestContext)
 
-	return base.RespondDiagnostics(c, base.ServiceRuntimeInfo{
-		BuildID:     s.buildID,
-		GoVersion:   runtime.Version(),
-		Environment: s.EnvService().Export(),
-	})
-}
+// 	return base.RespondDiagnostics(c, base.ServiceRuntimeInfo{
+// 		BuildID:     s.buildID,
+// 		GoVersion:   runtime.Version(),
+// 		Environment: s.EnvService().Export(),
+// 	})
+// }
 
 // GetDockerInfo implements ServerInterface.
 func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerInfoParams) error {

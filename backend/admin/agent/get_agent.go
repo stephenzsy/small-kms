@@ -1,6 +1,7 @@
 package agentadmin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -20,19 +21,28 @@ func (*AgentAdminServer) GetAgent(ec echo.Context, id string) error {
 		return base.ErrResponseStatusForbidden
 	}
 
+	doc, err := getAgentInternal(c, id)
+	if err != nil {
+
+		return err
+	}
+	return c.JSON(200, doc.ToProfile())
+}
+
+func getAgentInternal(c context.Context, id string) (*AgentDoc, error) {
 	doc := &AgentDoc{}
-	if err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
+	err := resdoc.GetDocService(c).Read(c, resdoc.DocIdentifier{
 		PartitionKey: resdoc.PartitionKey{
 			NamespaceProvider: models.NamespaceProviderProfile,
 			NamespaceID:       profile.NamespaceIDApp,
 			ResourceProvider:  models.ProfileResourceProviderAgent,
 		},
 		ID: id,
-	}, doc, nil); err != nil {
+	}, doc, nil)
+	if err != nil {
 		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return fmt.Errorf("%w: agent not found: %s", base.ErrResponseStatusNotFound, id)
+			return doc, fmt.Errorf("%w: agent not found: %s", base.ErrResponseStatusNotFound, id)
 		}
-		return err
 	}
-	return c.JSON(200, doc.ToProfile())
+	return doc, err
 }

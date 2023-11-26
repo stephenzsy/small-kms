@@ -18,9 +18,9 @@ func getInstanceID(endpoint string) uuid.UUID {
 }
 
 // CreateAgentInstance implements admin.ServerInterface.
-func (*AgentAdminServer) UpdateAgentInstance(ec echo.Context, appID string) error {
+func (*AgentAdminServer) UpdateAgentInstance(ec echo.Context, nsID string) error {
 	c := ec.(ctx.RequestContext)
-	appID = ns.ResolveMeAppID(c, appID)
+	nsID = ns.ResolveMeNamespace(c, nsID)
 	if _, authOk := authz.Authorize(c, authz.AllowHasRole(auth.RoleValueAgentActiveHost)); !authOk {
 		return base.ErrResponseStatusForbidden
 	}
@@ -38,16 +38,18 @@ func (*AgentAdminServer) UpdateAgentInstance(ec echo.Context, appID string) erro
 	doc := &AgentInstanceDoc{
 		ResourceDoc: resdoc.ResourceDoc{
 			PartitionKey: resdoc.PartitionKey{
-				NamespaceProvider: models.NamespaceProviderAgent,
-				NamespaceID:       appID,
+				NamespaceProvider: models.NamespaceProviderServicePrincipal,
+				NamespaceID:       nsID,
 				ResourceProvider:  models.ResourceProviderAgentInstance,
 			},
 			ID: docID.String(),
 		},
-		Endpoint:      req.Endpoint,
-		State:         req.State,
-		ConfigVersion: req.ConfigVersion,
-		BuildID:       req.BuildId,
+		Endpoint:         req.Endpoint,
+		State:            req.State,
+		ConfigVersion:    req.ConfigVersion,
+		BuildID:          req.BuildId,
+		TlsCertificateID: req.TlsCertificateId,
+		JwtVerfyKeyID:    req.JwtVerifyKeyId,
 	}
 
 	docSvc := resdoc.GetDocService(c)

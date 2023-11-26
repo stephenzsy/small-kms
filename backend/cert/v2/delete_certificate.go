@@ -23,7 +23,7 @@ func (*CertServer) DeleteCertificate(ec echo.Context,
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc, err := getCertificateInternal(c, namespaceProvider, namespaceId, id)
+	doc, err := GetCertificateInternal(c, namespaceProvider, namespaceId, id)
 	if err != nil {
 		if errors.Is(err, base.ErrResponseStatusNotFound) {
 			return c.NoContent(http.StatusNoContent)

@@ -57,6 +57,7 @@ components:
         - profile
         - root-ca
         - int-ca
+        - external-ca
         - agent
         - service-principal
         - group
@@ -65,6 +66,7 @@ components:
         - NamespaceProviderProfile
         - NamespaceProviderRootCA
         - NamespaceProviderIntermediateCA
+        - NamespaceProviderExternalCA
         - NamespaceProviderAgent
         - NamespaceProviderServicePrincipal
         - NamespaceProviderGroup
@@ -94,6 +96,46 @@ components:
         path: "github.com/stephenzsy/small-kms/backend/cloud/key"
         name: cloudkey
       x-go-type-skip-optional-pointer: true
+    RequestHeaderEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+      required:
+        - key
+        - value
+    ServiceRuntimeInfo:
+      type: object
+      properties:
+        goVersion:
+          type: string
+        buildId:
+          type: string
+          x-go-name: BuildID
+        environment:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - goVersion
+        - buildId
+    RequestDiagnostics:
+      type: object
+      properties:
+        requestHeaders:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestHeaderEntry"
+        serviceRuntime:
+          $ref: "#/components/schemas/ServiceRuntimeInfo"
+      required:
+        - requestHeaders
+        - serviceRuntime
   responses:
     LinkRefResponse:
       description: Link ref response
@@ -115,3 +157,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Profile"
+    RequestDiagnosticsResponse:
+      description: Diagnostics response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestDiagnostics"

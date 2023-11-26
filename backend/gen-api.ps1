@@ -1,5 +1,4 @@
 oapi-codegen --package base -generate "types,skip-prune" ./oapi-base.yaml > base/base_types.gen.go
-oapi-codegen --package base -generate "echo-server" ./oapi-base.yaml > base/base_server.gen.go
 oapi-codegen --package profile -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-profile.yaml > profile/profile.gen.go
 oapi-codegen --package managedapp -generate "types,echo-server" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base,oapi-profile.yaml:github.com/stephenzsy/small-kms/backend/profile,oapi-freeradius-config.yaml:github.com/stephenzsy/small-kms/backend/agent/freeradiusconfig" ./oapi-managed-app.yaml > managedapp/managed_app.gen.go
 oapi-codegen --package key -generate "types,echo-server,skip-prune" -import-mapping="oapi-base.yaml:github.com/stephenzsy/small-kms/backend/base" ./oapi-key.yaml > key/key.gen.go

@@ -14,9 +14,11 @@ import (
 )
 
 type AgentEndpointConfiguration struct {
-	VerifyJWKs []cloudkey.JsonWebKey `json:"verifyJwks"`
-	Version    string                `json:"version"`
-	cm         ConfigManager
+	VerifyJWKs       []cloudkey.JsonWebKey `json:"verifyJwks"`
+	VerifyJwkID      string                `json:"verifyJwkId"`
+	Version          string                `json:"version"`
+	TLSCertificateID string                `json:"tlsCertificateId"`
+	cm               ConfigManager
 }
 
 func (c *AgentEndpointConfiguration) TLSCertificateBundleFile() string {
@@ -24,24 +26,21 @@ func (c *AgentEndpointConfiguration) TLSCertificateBundleFile() string {
 }
 
 type endpointProcessor struct {
-	cm                   ConfigManager
-	currentConfiguration *AgentEndpointConfiguration
+	cm     ConfigManager
+	config AgentEndpointConfiguration
 }
 
 func (p *endpointProcessor) init(c context.Context) error {
 	logger := log.Ctx(c)
+	p.config.cm = p.cm
 	f := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileEndpoint)
 	if exists, err := f.Exists(); err != nil {
 		logger.Error().Err(err).Msg("failed to check if endpoint config exists")
 	} else if exists {
-		config := &AgentEndpointConfiguration{
-			cm: p.cm,
-		}
-		if err := f.ReadJSON(config); err != nil {
+		if err := f.ReadJSON(&p.config); err != nil {
 			logger.Error().Err(err).Msg("failed to read endpoint config")
 		} else {
-			p.currentConfiguration = config
-			p.cm.(*configManager).endpointConfigUpdate <- config
+			p.cm.(*configManager).endpointConfigUpdate <- &p.config
 		}
 	}
 	return nil
@@ -52,11 +51,7 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 	if err != nil {
 		return err
 	}
-	currentVersion := ""
-	if p.currentConfiguration != nil {
-		currentVersion = p.currentConfiguration.Version
-	}
-	if currentVersion == ref.Version && !requireEnroll {
+	if p.config.Version == ref.Version && !requireEnroll {
 		return nil
 	}
 	resp, err := p.cm.Client().GetAgentConfigWithResponse(c, "me", agentmodels.AgentConfigNameEndpoint)
@@ -69,46 +64,59 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 	if err != nil {
 		return err
 	}
+	hasChange := false
+	defer func() {
+		if hasChange {
+			p.cm.(*configManager).endpointConfigUpdate <- &p.config
+		}
+	}()
 
 	if requireEnroll {
-		_, certFile, err := enrollCert(c, p.cm, endpointConfig.TlsCertificatePolicyId)
+		certResp, certFile, err := enrollCert(c, p.cm, endpointConfig.TlsCertificatePolicyId)
 		if err != nil {
 			return err
 		}
 		if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert).LinkToAbsolutePath(certFile); err != nil {
 			return err
 		}
+		p.config.TLSCertificateID = certResp.ID
+		hasChange = true
 	}
-	if ref.Version == currentVersion {
+	if ref.Version == p.config.Version {
 		return nil
 	}
 	logger := log.Ctx(c)
-	logger.Info().Str("current", currentVersion).Str("new", ref.Version).Msg("endpoint config version changed, updating")
-	config := &AgentEndpointConfiguration{
-		VerifyJWKs: make([]cloudkey.JsonWebKey, len(endpointConfig.JwtVerifyKeyIds)),
-		Version:    ref.Version,
-		cm:         p.cm,
-	}
+	logger.Info().Str("current", p.config.Version).Str("new", ref.Version).Msg("endpoint config version changed, updating")
+
+	verifyJwks := make([]cloudkey.JsonWebKey, 0, len(endpointConfig.JwtVerifyKeyIds))
+	verifyJwkID := ""
 	for _, keyID := range endpointConfig.JwtVerifyKeyIds {
 		if key, err := pullPublicJWK(c, p.cm, keyID); err != nil {
 			return err
 		} else {
-			config.VerifyJWKs = append(config.VerifyJWKs, key.Jwk)
+			verifyJwks = append(verifyJwks, key.Jwk)
+			if verifyJwkID == "" {
+				verifyJwkID = keyID
+			}
 		}
 	}
+
+	p.config.VerifyJWKs = verifyJwks
+	p.config.VerifyJwkID = verifyJwkID
+	p.config.Version = ref.Version
+	hasChange = true
+
 	versionedDir := p.cm.ConfigDir().Versioned(agentmodels.AgentConfigNameEndpoint, ref.Version)
 	if err := versionedDir.EnsureExist(); err != nil {
 		return err
 	}
-	if err := versionedDir.ConfigFile(configFileEndpoint).WriteJSON(config); err != nil {
+	if err := versionedDir.ConfigFile(configFileEndpoint).WriteJSON(p.config); err != nil {
 		return err
 	}
 	if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileEndpoint).LinkToAbsolutePath(
 		string(versionedDir.ConfigFile(configFileEndpoint))); err != nil {
 		return err
 	}
-
-	p.currentConfiguration = config
 
 	return nil
 }

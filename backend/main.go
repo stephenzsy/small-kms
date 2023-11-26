@@ -120,7 +120,6 @@ func main() {
 		} else {
 			e.Use(auth.ProxiedAADAuth)
 		}
-		base.RegisterHandlers(e, base.NewBaseServer(apiServer))
 		profile.RegisterHandlers(e, profile.NewServer(apiServer))
 		managedapp.RegisterHandlers(e, managedapp.NewServer(apiServer))
 		cert.RegisterHandlers(e, cert.NewServer(apiServer))

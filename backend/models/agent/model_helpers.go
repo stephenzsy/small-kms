@@ -17,4 +17,9 @@ type (
 		models.Ref
 		AgentInstanceRefFields
 	}
+
+	agentInstanceComposed struct {
+		AgentInstanceRef
+		AgentInstanceFields
+	}
 )

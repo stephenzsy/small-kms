@@ -64,7 +64,7 @@ func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider mo
 		return base.ErrResponseStatusForbidden
 	}
 
-	cert, err := getCertificateInternal(c, namespaceProvider, nsID, id)
+	cert, err := GetCertificateInternal(c, namespaceProvider, nsID, id)
 	if err != nil {
 		return err
 	}

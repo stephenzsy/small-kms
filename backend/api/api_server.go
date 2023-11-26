@@ -26,10 +26,9 @@ import (
 )
 
 type APIServer interface {
-	EnvService() common.EnvService
+	common.CommonServer
 	RespondRequireAdmin(c echo.Context) error
 	GetAzKeyVaultEndpoint() string
-	GetBuildID() string
 	WithDelegatedARMAuthRoleAssignmentsClient(c ctx.RequestContext) (ctx.RequestContext, *armauthorization.RoleAssignmentsClient, error)
 	GetAzSubscriptionID() string
 	GetResourceGroupName() string
@@ -63,11 +62,6 @@ type apiServer struct {
 // AzSecretsClient implements kv.AzKeyVaultService.
 func (s *apiServer) AzSecretsClient() *azsecrets.Client {
 	return s.azSecretsClient
-}
-
-// GetBuildID implements APIServer.
-func (s *apiServer) GetBuildID() string {
-	return s.buildID
 }
 
 // GetAzKeyVaultEndpoint implements APIServer.

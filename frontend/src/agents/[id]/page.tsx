@@ -55,7 +55,7 @@ export default function AgentPage() {
       {
         key: "dashboard",
         label: "Dashboard",
-        children: <AgentDashboardCards appId={id} />,
+        children: <AgentDashboardCards />,
       },
       {
         key: "configurations",
@@ -63,7 +63,7 @@ export default function AgentPage() {
         children: <AgentConfigurationsCards />,
       },
     ],
-    [id]
+    []
   );
 
   return (
@@ -216,18 +216,24 @@ function useAgentConfigRequest<
   );
 }
 
-function AgentDashboardCards({ appId }: { appId: string | undefined }) {
+function AgentDashboardCards() {
+  const { namespaceId } = useNamespace();
   const api = useAdminApi();
   const { data: instances } = useRequest(
     async () => {
-      if (!appId) {
-        return;
-      }
-      return api?.listAgentInstances({
-        id: appId,
+      const instances = await api?.listAgentInstances({
+        namespaceId: namespaceId,
       });
+
+      const i = instances?.[0];
+      api?.getAgentDiagnostics({
+        namespaceId: namespaceId,
+        id: i?.id as string,
+      });
+
+      return instances;
     },
-    { refreshDeps: [appId] }
+    { refreshDeps: [namespaceId] }
   );
 
   const extraColumns = useMemo(

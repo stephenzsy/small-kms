@@ -50,6 +50,18 @@ export interface AgentInstanceParameters {
      * @memberof AgentInstanceParameters
      */
     state: AgentInstanceState;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentInstanceParameters
+     */
+    tlsCertificateId: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AgentInstanceParameters
+     */
+    jwtVerifyKeyId: string;
 }
 
 /**
@@ -61,6 +73,8 @@ export function instanceOfAgentInstanceParameters(value: object): boolean {
     isInstance = isInstance && "buildId" in value;
     isInstance = isInstance && "configVersion" in value;
     isInstance = isInstance && "state" in value;
+    isInstance = isInstance && "tlsCertificateId" in value;
+    isInstance = isInstance && "jwtVerifyKeyId" in value;
 
     return isInstance;
 }
@@ -79,6 +93,8 @@ export function AgentInstanceParametersFromJSONTyped(json: any, ignoreDiscrimina
         'buildId': json['buildId'],
         'configVersion': json['configVersion'],
         'state': AgentInstanceStateFromJSON(json['state']),
+        'tlsCertificateId': json['tlsCertificateId'],
+        'jwtVerifyKeyId': json['jwtVerifyKeyId'],
     };
 }
 
@@ -95,6 +111,8 @@ export function AgentInstanceParametersToJSON(value?: AgentInstanceParameters | 
         'buildId': value.buildId,
         'configVersion': value.configVersion,
         'state': AgentInstanceStateToJSON(value.state),
+        'tlsCertificateId': value.tlsCertificateId,
+        'jwtVerifyKeyId': value.jwtVerifyKeyId,
     };
 }
 

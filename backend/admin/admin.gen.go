@@ -72,14 +72,14 @@ type GetKeyParams struct {
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
-// UpdateAgentInstanceJSONRequestBody defines body for UpdateAgentInstance for application/json ContentType.
-type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
-
 // PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
 type PutProfileJSONRequestBody = externalRef0.ProfileParameters
 
 // PutAgentConfigJSONRequestBody defines body for PutAgentConfig for application/json ContentType.
 type PutAgentConfigJSONRequestBody = externalRef1.CreateAgentConfigRequest
+
+// UpdateAgentInstanceJSONRequestBody defines body for UpdateAgentInstance for application/json ContentType.
+type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
 
 // PutCertificatePolicyJSONRequestBody defines body for PutCertificatePolicy for application/json ContentType.
 type PutCertificatePolicyJSONRequestBody = externalRef2.CertificatePolicyParameters
@@ -104,12 +104,9 @@ type ServerInterface interface {
 	// Get agent
 	// (GET /v2/agents/{id})
 	GetAgent(ctx echo.Context, id IdParameter) error
-	// List agent instances
-	// (GET /v2/agents/{id}/instances)
-	ListAgentInstances(ctx echo.Context, id IdParameter) error
-	// Update agent instance
-	// (POST /v2/agents/{id}/instances)
-	UpdateAgentInstance(ctx echo.Context, id IdParameter) error
+	// Get diagnostics
+	// (GET /v2/diagnostics)
+	GetDiagnostics(ctx echo.Context) error
 	// list profiles
 	// (GET /v2/profiles/{namespaceProvider})
 	ListProfiles(ctx echo.Context, namespaceProvider NamespaceProviderParameter) error
@@ -131,6 +128,15 @@ type ServerInterface interface {
 	// Put agent config
 	// (PUT /v2/service-principal/{namespaceId}/agent-config/{configName})
 	PutAgentConfig(ctx echo.Context, namespaceId NamespaceIdParameter, configName externalRef1.AgentConfigName) error
+	// List agent instances
+	// (GET /v2/service-principal/{namespaceId}/agent-instances)
+	ListAgentInstances(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Update agent instance
+	// (POST /v2/service-principal/{namespaceId}/agent-instances)
+	UpdateAgentInstance(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Get agent diagnostics
+	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics)
+	GetAgentDiagnostics(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Get system app
 	// (GET /v2/system-apps/{id})
 	GetSystemApp(ctx echo.Context, id IdParameter) error
@@ -233,39 +239,14 @@ func (w *ServerInterfaceWrapper) GetAgent(ctx echo.Context) error {
 	return err
 }
 
-// ListAgentInstances converts echo context to params.
-func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
+// GetDiagnostics converts echo context to params.
+func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "id" -------------
-	var id IdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
 
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListAgentInstances(ctx, id)
-	return err
-}
-
-// UpdateAgentInstance converts echo context to params.
-func (w *ServerInterfaceWrapper) UpdateAgentInstance(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "id" -------------
-	var id IdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.UpdateAgentInstance(ctx, id)
+	err = w.Handler.GetDiagnostics(ctx)
 	return err
 }
 
@@ -432,6 +413,68 @@ func (w *ServerInterfaceWrapper) PutAgentConfig(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutAgentConfig(ctx, namespaceId, configName)
+	return err
+}
+
+// ListAgentInstances converts echo context to params.
+func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListAgentInstances(ctx, namespaceId)
+	return err
+}
+
+// UpdateAgentInstance converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateAgentInstance(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateAgentInstance(ctx, namespaceId)
+	return err
+}
+
+// GetAgentDiagnostics converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentDiagnostics(ctx, namespaceId, id)
 	return err
 }
 
@@ -1201,8 +1244,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
 	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
-	router.GET(baseURL+"/v2/agents/:id/instances", wrapper.ListAgentInstances)
-	router.POST(baseURL+"/v2/agents/:id/instances", wrapper.UpdateAgentInstance)
+	router.GET(baseURL+"/v2/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
@@ -1210,6 +1252,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config", wrapper.GetAgentConfigBundle)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.GetAgentConfig)
 	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.PutAgentConfig)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances", wrapper.ListAgentInstances)
+	router.POST(baseURL+"/v2/service-principal/:namespaceId/agent-instances", wrapper.UpdateAgentInstance)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
 	router.GET(baseURL+"/v2/system-apps/:id", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v2/system-apps/:id", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies", wrapper.ListCertificatePolicies)

@@ -24,7 +24,8 @@ func (*ProfileServer) ListProfiles(ec echo.Context, namespaceProvider models.Nam
 	case models.NamespaceProviderAgent:
 		namespaceID = NamespaceIDApp
 	case models.NamespaceProviderRootCA,
-		models.NamespaceProviderIntermediateCA:
+		models.NamespaceProviderIntermediateCA,
+		models.NamespaceProviderExternalCA:
 		namespaceID = NamespaceIDCA
 	case models.NamespaceProviderServicePrincipal,
 		models.NamespaceProviderGroup,

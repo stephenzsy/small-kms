@@ -43,7 +43,7 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 	active := true
 	var e *echo.Echo
 
-	lastUpdatedVersion := ""
+	var lastConfig *AgentEndpointConfiguration
 	for active {
 		select {
 		case <-c.Done():
@@ -55,38 +55,41 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 				logger.Info().Err(err).Msg("echo server shutdown")
 				return err
 			}
-			if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceRefFields{
-				BuildId:       et.buildID,
-				Endpoint:      et.endpoint,
-				ConfigVersion: lastUpdatedVersion,
-				State:         agentmodels.AgentInstanceStateStopped,
-			}); err != nil {
-				logger.Error().Err(err).Msg("failed to update agent instance")
-			} else if resp.StatusCode() >= 400 {
-				logger.Error().Int("status", resp.StatusCode()).Msg("failed to update agent instance")
+			if lastConfig != nil {
+				if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceParameters{
+					BuildId:       et.buildID,
+					Endpoint:      et.endpoint,
+					ConfigVersion: lastConfig.Version,
+					State:         agentmodels.AgentInstanceStateStopped,
+				}); err != nil {
+					logger.Error().Err(err).Msg("failed to update agent instance")
+				} else if resp.StatusCode() >= 400 {
+					logger.Error().Int("status", resp.StatusCode()).Msg("failed to update agent instance")
+				}
 			}
-		case config := <-et.configManager.ConfigUpdate():
+		case lastConfig = <-et.configManager.ConfigUpdate():
 			if e != nil {
 				logger.Info().Err(e.Shutdown(c)).Msg("echo server shutdown")
 			}
-			e, err := et.newEcho(config)
+			e, err := et.newEcho(lastConfig)
 			if err != nil {
 				logger.Error().Err(err).Msg("echo server failed to start")
 				continue
 			}
 			go e.StartServer(e.TLSServer)
 
-			if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceRefFields{
-				BuildId:       et.buildID,
-				Endpoint:      et.endpoint,
-				ConfigVersion: config.Version,
-				State:         agentmodels.AgentInstanceStateRunning,
+			if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceParameters{
+				BuildId:          et.buildID,
+				Endpoint:         et.endpoint,
+				ConfigVersion:    lastConfig.Version,
+				State:            agentmodels.AgentInstanceStateRunning,
+				TlsCertificateId: lastConfig.TLSCertificateID,
+				JwtVerifyKeyId:   lastConfig.VerifyJwkID,
 			}); err != nil {
 				logger.Error().Err(err).Msg("failed to update agent instance")
 			} else if resp.StatusCode() >= 400 {
 				logger.Error().Int("status", resp.StatusCode()).RawJSON("body", resp.Body).Msg("failed to update agent instance")
 			}
-			lastUpdatedVersion = config.Version
 		}
 	}
 	return nil
