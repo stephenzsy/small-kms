@@ -18,6 +18,9 @@ import type {
   AgentConfig,
   AgentConfigBundle,
   AgentConfigName,
+  AgentInstance,
+  AgentInstanceParameters,
+  AgentInstanceRef,
   Certificate,
   CertificatePolicy,
   CertificatePolicyParameters,
@@ -46,6 +49,12 @@ import {
     AgentConfigBundleToJSON,
     AgentConfigNameFromJSON,
     AgentConfigNameToJSON,
+    AgentInstanceFromJSON,
+    AgentInstanceToJSON,
+    AgentInstanceParametersFromJSON,
+    AgentInstanceParametersToJSON,
+    AgentInstanceRefFromJSON,
+    AgentInstanceRefToJSON,
     CertificateFromJSON,
     CertificateToJSON,
     CertificatePolicyFromJSON,
@@ -168,6 +177,7 @@ export interface GetKeyRequest {
     namespaceId: string;
     id: string;
     includeJwk?: boolean;
+    verify?: boolean;
 }
 
 export interface GetKeyPolicyRequest {
@@ -188,6 +198,10 @@ export interface GetProfileRequest {
 }
 
 export interface GetSystemAppRequest {
+    id: string;
+}
+
+export interface ListAgentInstancesRequest {
     id: string;
 }
 
@@ -263,6 +277,11 @@ export interface SyncProfileRequest {
 
 export interface SyncSystemAppRequest {
     id: string;
+}
+
+export interface UpdateAgentInstanceRequest {
+    id: string;
+    agentInstanceParameters?: AgentInstanceParameters;
 }
 
 /**
@@ -882,6 +901,10 @@ export class AdminApi extends runtime.BaseAPI {
             queryParameters['includeJwk'] = requestParameters.includeJwk;
         }
 
+        if (requestParameters.verify !== undefined) {
+            queryParameters['verify'] = requestParameters.verify;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -1079,6 +1102,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getSystemApp(requestParameters: GetSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getSystemAppRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List agent instances
+     */
+    async listAgentInstancesRaw(requestParameters: ListAgentInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AgentInstanceRef>>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling listAgentInstances.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/agents/{id}/instances`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AgentInstanceRefFromJSON));
+    }
+
+    /**
+     * List agent instances
+     */
+    async listAgentInstances(requestParameters: ListAgentInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AgentInstanceRef>> {
+        const response = await this.listAgentInstancesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1676,6 +1737,47 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async syncSystemApp(requestParameters: SyncSystemAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.syncSystemAppRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update agent instance
+     */
+    async updateAgentInstanceRaw(requestParameters: UpdateAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentInstance>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateAgentInstance.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/agents/{id}/instances`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AgentInstanceParametersToJSON(requestParameters.agentInstanceParameters),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentInstanceFromJSON(jsonValue));
+    }
+
+    /**
+     * Update agent instance
+     */
+    async updateAgentInstance(requestParameters: UpdateAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentInstance> {
+        const response = await this.updateAgentInstanceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

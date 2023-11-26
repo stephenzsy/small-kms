@@ -9,6 +9,11 @@ models/AgentConfigIdentity.ts
 models/AgentConfigIdentityFields.ts
 models/AgentConfigName.ts
 models/AgentConfigRef.ts
+models/AgentInstance.ts
+models/AgentInstanceParameters.ts
+models/AgentInstanceRef.ts
+models/AgentInstanceRefFields.ts
+models/AgentInstanceState.ts
 models/Certificate.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
