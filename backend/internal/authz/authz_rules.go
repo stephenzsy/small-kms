@@ -22,7 +22,15 @@ func AllowSelf(namespaceId string) AuthZFunc {
 	}
 }
 
-var _ AuthZFunc = AllowAdmin
+func AllowHasRole(role string) AuthZFunc {
+	return func(c RequestContext) (RequestContext, AuthzResult) {
+		identity := auth.GetAuthIdentity(c)
+		if identity.HasRole(role) {
+			return c, AuthzResultAllow
+		}
+		return c, AuthzResultNone
+	}
+}
 
 // convinient function to authorize admin only, context should not be modified
 func AuthorizeAdminOnly(c RequestContext) bool {

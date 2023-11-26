@@ -21,9 +21,9 @@ paths:
               $ref: "models-agent.yaml#/components/schemas/CreateAgentRequest"
       responses:
         201:
-          $ref: "models-agent.yaml#/components/responses/AgentResposne"
+          $ref: "models-agent.yaml#/components/responses/AgentResponse"
         200:
-          $ref: "models-agent.yaml#/components/responses/AgentResposne"
+          $ref: "models-agent.yaml#/components/responses/AgentResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
   /v2/agents/{id}:
@@ -37,9 +37,46 @@ paths:
       summary: Get agent
       responses:
         200:
-          $ref: "models-agent.yaml#/components/responses/AgentResposne"
+          $ref: "models-agent.yaml#/components/responses/AgentResponse"
         404:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/agents/{id}/instances:
+    parameters:
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListAgentInstances
+      summary: List agent instances
+      responses:
+        200:
+          description: List agent instances response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "models-agent.yaml#/components/schemas/AgentInstanceRef"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: UpdateAgentInstance
+      summary: Update agent instance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "models-agent.yaml#/components/schemas/AgentInstanceParameters"
+      responses:
+        201:
+          $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"          
   /v2/profiles/{namespaceProvider}:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

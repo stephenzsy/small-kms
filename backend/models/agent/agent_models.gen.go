@@ -18,6 +18,12 @@ const (
 	AgentConfigNameIdentity AgentConfigName = "identity"
 )
 
+// Defines values for AgentInstanceState.
+const (
+	AgentInstanceStateRunning AgentInstanceState = "running"
+	AgentInstanceStateStopped AgentInstanceState = "stopped"
+)
+
 // Agent defines model for Agent.
 type Agent = externalRef0.Profile
 
@@ -63,6 +69,26 @@ type AgentConfigRef struct {
 	Version string          `json:"version"`
 }
 
+// AgentInstance defines model for AgentInstance.
+type AgentInstance = AgentInstanceRef
+
+// AgentInstanceParameters defines model for AgentInstanceParameters.
+type AgentInstanceParameters = AgentInstanceRefFields
+
+// AgentInstanceRef defines model for AgentInstanceRef.
+type AgentInstanceRef = agentInstanceRefComposed
+
+// AgentInstanceRefFields defines model for AgentInstanceRefFields.
+type AgentInstanceRefFields struct {
+	BuildId       string             `json:"buildId"`
+	ConfigVersion string             `json:"configVersion"`
+	Endpoint      string             `json:"endpoint"`
+	State         AgentInstanceState `json:"state"`
+}
+
+// AgentInstanceState defines model for AgentInstanceState.
+type AgentInstanceState string
+
 // CreateAgentConfigRequest defines model for CreateAgentConfigRequest.
 type CreateAgentConfigRequest struct {
 	union json.RawMessage
@@ -80,8 +106,11 @@ type CreateAgentRequest struct {
 // AgentConfigResponse defines model for AgentConfigResponse.
 type AgentConfigResponse = AgentConfig
 
-// AgentResposne defines model for AgentResposne.
-type AgentResposne = Agent
+// AgentInstanceResponse defines model for AgentInstanceResponse.
+type AgentInstanceResponse = AgentInstance
+
+// AgentResponse defines model for AgentResponse.
+type AgentResponse = Agent
 
 // AsAgentConfigIdentity returns the union data inside the AgentConfig as a AgentConfigIdentity
 func (t AgentConfig) AsAgentConfigIdentity() (AgentConfigIdentity, error) {

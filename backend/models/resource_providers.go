@@ -11,6 +11,7 @@ const (
 	ProfileResourceProviderUser             ResourceProvider = "user"
 	ProfileResourceProviderGroup            ResourceProvider = "group"
 	ResourceProviderAgentConfig             ResourceProvider = "agent-config"
+	ResourceProviderAgentInstance           ResourceProvider = "agent-instance"
 	ResourceProviderKey                     ResourceProvider = "key"
 	ResourceProviderKeyPolicy               ResourceProvider = "key-policy"
 	ResourceProviderCert                    ResourceProvider = "cert"

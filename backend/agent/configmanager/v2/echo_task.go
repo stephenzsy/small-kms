@@ -5,22 +5,19 @@ import (
 	"crypto/tls"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
-	"github.com/stephenzsy/small-kms/backend/base"
-	"github.com/stephenzsy/small-kms/backend/managedapp"
+	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
 type echoTask struct {
-	buildID      string
-	configUpdate <-chan *AgentEndpointConfiguration
-	newEcho      func(config *AgentEndpointConfiguration) (*echo.Echo, error)
-	agentEnv     *agentcommon.AgentEnv
-	endpoint     string
-	mode         agentcommon.AgentSlot
+	buildID       string
+	newEcho       func(config *AgentEndpointConfiguration) (*echo.Echo, error)
+	configManager ConfigManager
+	endpoint      string
+	mode          agentcommon.AgentSlot
 }
 
 // Name implements taskmanager.Task.
@@ -45,13 +42,8 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 	logger.Debug().Msg("echo server starting")
 	active := true
 	var e *echo.Echo
-	agentClient, err := et.agentEnv.AgentClient()
-	if err != nil {
-		return err
-	}
 
-	instanceID := uuid.NewSHA1(uuid.NameSpaceURL, []byte(et.endpoint))
-	instanceIdenfier := base.IDFromUUID(instanceID)
+	lastUpdatedVersion := ""
 	for active {
 		select {
 		case <-c.Done():
@@ -63,7 +55,17 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 				logger.Info().Err(err).Msg("echo server shutdown")
 				return err
 			}
-		case config := <-et.configUpdate:
+			if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceRefFields{
+				BuildId:       et.buildID,
+				Endpoint:      et.endpoint,
+				ConfigVersion: lastUpdatedVersion,
+				State:         agentmodels.AgentInstanceStateStopped,
+			}); err != nil {
+				logger.Error().Err(err).Msg("failed to update agent instance")
+			} else if resp.StatusCode() >= 400 {
+				logger.Error().Int("status", resp.StatusCode()).Msg("failed to update agent instance")
+			}
+		case config := <-et.configManager.ConfigUpdate():
 			if e != nil {
 				logger.Info().Err(e.Shutdown(c)).Msg("echo server shutdown")
 			}
@@ -74,13 +76,17 @@ func (et *echoTask) Start(c context.Context, sigCh <-chan os.Signal) error {
 			}
 			go e.StartServer(e.TLSServer)
 
-			agentClient.PutAgentInstance(c, base.NamespaceKindServicePrincipal,
-				base.ID("me"), instanceIdenfier, managedapp.AgentInstanceFields{
-					Version:  config.Version,
-					Endpoint: et.endpoint,
-					BuildID:  et.buildID,
-					Mode:     managedapp.AgentMode(et.mode),
-				})
+			if resp, err := et.configManager.Client().UpdateAgentInstanceWithResponse(c, "me", agentmodels.AgentInstanceRefFields{
+				BuildId:       et.buildID,
+				Endpoint:      et.endpoint,
+				ConfigVersion: config.Version,
+				State:         agentmodels.AgentInstanceStateRunning,
+			}); err != nil {
+				logger.Error().Err(err).Msg("failed to update agent instance")
+			} else if resp.StatusCode() >= 400 {
+				logger.Error().Int("status", resp.StatusCode()).RawJSON("body", resp.Body).Msg("failed to update agent instance")
+			}
+			lastUpdatedVersion = config.Version
 		}
 	}
 	return nil
@@ -94,11 +100,10 @@ func NewEchoTask(buildID string,
 	endpoint string,
 	mode agentcommon.AgentSlot) *echoTask {
 	return &echoTask{
-		buildID:      buildID,
-		newEcho:      newEcho,
-		configUpdate: cm.ConfigUpdate(),
-		agentEnv:     cm.EnvConfig(),
-		endpoint:     endpoint,
-		mode:         mode,
+		buildID:       buildID,
+		newEcho:       newEcho,
+		configManager: cm,
+		endpoint:      endpoint,
+		mode:          mode,
 	}
 }

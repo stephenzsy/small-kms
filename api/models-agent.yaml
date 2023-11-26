@@ -7,6 +7,41 @@ components:
   schemas:
     Agent:
       $ref: "models-shared.yaml#/components/schemas/Profile"
+    AgentInstanceRef:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/AgentInstanceRefFields"
+        - x-go-type: agentInstanceRefComposed
+    AgentInstanceRefFields:
+      type: object
+      properties:
+        endpoint:
+          type: string
+        buildId:
+          type: string
+        configVersion:
+          type: string
+        state:
+          $ref: "#/components/schemas/AgentInstanceState"
+      required:
+        - endpoint
+        - buildId
+        - configVersion
+        - state
+    AgentInstanceState:
+      type: string
+      enum:
+        - running
+        - stopped
+      x-enum-varnames:
+        - AgentInstanceStateRunning
+        - AgentInstanceStateStopped
+    AgentInstance:
+      allOf:
+        - $ref: "#/components/schemas/AgentInstanceRef"
+    AgentInstanceParameters:
+      allOf:
+        - $ref: "#/components/schemas/AgentInstanceRefFields"
     CreateAgentRequest:
       type: object
       properties:
@@ -107,7 +142,7 @@ components:
         - tlsCertificatePolicyId
         - jwtVerifyKeyPolicyId
   responses:
-    AgentResposne:
+    AgentResponse:
       description: Agent response
       content:
         application/json:
@@ -119,3 +154,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AgentConfig"
+    AgentInstanceResponse:
+      description: AgentInstance response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AgentInstance"

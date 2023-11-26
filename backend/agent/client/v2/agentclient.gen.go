@@ -56,6 +56,9 @@ type GetKeyParams struct {
 	Verify *bool `form:"verify,omitempty" json:"verify,omitempty"`
 }
 
+// UpdateAgentInstanceJSONRequestBody defines body for UpdateAgentInstance for application/json ContentType.
+type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
+
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 
@@ -138,6 +141,11 @@ type ClientInterface interface {
 	// GetAgent request
 	GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateAgentInstanceWithBody request with any body
+	UpdateAgentInstanceWithBody(ctx context.Context, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateAgentInstance(ctx context.Context, id IdParameter, body UpdateAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAgentConfigBundle request
 	GetAgentConfigBundle(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -166,6 +174,30 @@ type ClientInterface interface {
 
 func (c *Client) GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAgentInstanceWithBody(ctx context.Context, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAgentInstanceRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAgentInstance(ctx context.Context, id IdParameter, body UpdateAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAgentInstanceRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -314,6 +346,53 @@ func NewGetAgentRequest(server string, id IdParameter) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateAgentInstanceRequest calls the generic UpdateAgentInstance builder with application/json body
+func NewUpdateAgentInstanceRequest(server string, id IdParameter, body UpdateAgentInstanceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateAgentInstanceRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewUpdateAgentInstanceRequestWithBody generates requests for UpdateAgentInstance with any type of body
+func NewUpdateAgentInstanceRequestWithBody(server string, id IdParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/agents/%s/instances", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -765,6 +844,11 @@ type ClientWithResponsesInterface interface {
 	// GetAgentWithResponse request
 	GetAgentWithResponse(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentResponse, error)
 
+	// UpdateAgentInstanceWithBodyWithResponse request with any body
+	UpdateAgentInstanceWithBodyWithResponse(ctx context.Context, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAgentInstanceResponse, error)
+
+	UpdateAgentInstanceWithResponse(ctx context.Context, id IdParameter, body UpdateAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAgentInstanceResponse, error)
+
 	// GetAgentConfigBundleWithResponse request
 	GetAgentConfigBundleWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigBundleResponse, error)
 
@@ -794,7 +878,7 @@ type ClientWithResponsesInterface interface {
 type GetAgentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AgentResposne
+	JSON200      *externalRef1.AgentResponse
 	JSON404      *ErrorResponse
 }
 
@@ -808,6 +892,30 @@ func (r GetAgentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAgentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAgentInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef1.AgentInstanceResponse
+	JSON201      *externalRef1.AgentInstanceResponse
+	JSON400      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAgentInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAgentInstanceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -983,6 +1091,23 @@ func (c *ClientWithResponses) GetAgentWithResponse(ctx context.Context, id IdPar
 	return ParseGetAgentResponse(rsp)
 }
 
+// UpdateAgentInstanceWithBodyWithResponse request with arbitrary body returning *UpdateAgentInstanceResponse
+func (c *ClientWithResponses) UpdateAgentInstanceWithBodyWithResponse(ctx context.Context, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAgentInstanceResponse, error) {
+	rsp, err := c.UpdateAgentInstanceWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentInstanceResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateAgentInstanceWithResponse(ctx context.Context, id IdParameter, body UpdateAgentInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAgentInstanceResponse, error) {
+	rsp, err := c.UpdateAgentInstance(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentInstanceResponse(rsp)
+}
+
 // GetAgentConfigBundleWithResponse request returning *GetAgentConfigBundleResponse
 func (c *ClientWithResponses) GetAgentConfigBundleWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigBundleResponse, error) {
 	rsp, err := c.GetAgentConfigBundle(ctx, namespaceId, reqEditors...)
@@ -1077,7 +1202,7 @@ func ParseGetAgentResponse(rsp *http.Response) (*GetAgentResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AgentResposne
+		var dest externalRef1.AgentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1089,6 +1214,46 @@ func ParseGetAgentResponse(rsp *http.Response) (*GetAgentResponse, error) {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAgentInstanceResponse parses an HTTP response from a UpdateAgentInstanceWithResponse call
+func ParseUpdateAgentInstanceResponse(rsp *http.Response) (*UpdateAgentInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAgentInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef1.AgentInstanceResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest externalRef1.AgentInstanceResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	}
 

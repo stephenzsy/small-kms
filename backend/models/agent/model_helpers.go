@@ -1,5 +1,7 @@
 package agentmodels
 
+import "github.com/stephenzsy/small-kms/backend/models"
+
 type (
 	agentConfigIdentityComposed struct {
 		AgentConfigRef
@@ -9,5 +11,10 @@ type (
 	agentConfigEndpointComposed struct {
 		AgentConfigRef
 		AgentConfigEndpointFields
+	}
+
+	agentInstanceRefComposed struct {
+		models.Ref
+		AgentInstanceRefFields
 	}
 )

@@ -72,6 +72,9 @@ type GetKeyParams struct {
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
+// UpdateAgentInstanceJSONRequestBody defines body for UpdateAgentInstance for application/json ContentType.
+type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
+
 // PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
 type PutProfileJSONRequestBody = externalRef0.ProfileParameters
 
@@ -101,6 +104,12 @@ type ServerInterface interface {
 	// Get agent
 	// (GET /v2/agents/{id})
 	GetAgent(ctx echo.Context, id IdParameter) error
+	// List agent instances
+	// (GET /v2/agents/{id}/instances)
+	ListAgentInstances(ctx echo.Context, id IdParameter) error
+	// Update agent instance
+	// (POST /v2/agents/{id}/instances)
+	UpdateAgentInstance(ctx echo.Context, id IdParameter) error
 	// list profiles
 	// (GET /v2/profiles/{namespaceProvider})
 	ListProfiles(ctx echo.Context, namespaceProvider NamespaceProviderParameter) error
@@ -221,6 +230,42 @@ func (w *ServerInterfaceWrapper) GetAgent(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgent(ctx, id)
+	return err
+}
+
+// ListAgentInstances converts echo context to params.
+func (w *ServerInterfaceWrapper) ListAgentInstances(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListAgentInstances(ctx, id)
+	return err
+}
+
+// UpdateAgentInstance converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateAgentInstance(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateAgentInstance(ctx, id)
 	return err
 }
 
@@ -1156,6 +1201,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
 	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
+	router.GET(baseURL+"/v2/agents/:id/instances", wrapper.ListAgentInstances)
+	router.POST(baseURL+"/v2/agents/:id/instances", wrapper.UpdateAgentInstance)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
