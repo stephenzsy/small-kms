@@ -16,6 +16,9 @@ models/AgentInstanceRef.ts
 models/AgentInstanceRefFields.ts
 models/AgentInstanceState.ts
 models/Certificate.ts
+models/CertificateExternalIssuer.ts
+models/CertificateExternalIssuerAcme.ts
+models/CertificateExternalIssuerFields.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
 models/CertificatePolicy.ts

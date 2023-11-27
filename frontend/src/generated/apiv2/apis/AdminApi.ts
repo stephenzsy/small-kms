@@ -22,6 +22,8 @@ import type {
   AgentInstanceParameters,
   AgentInstanceRef,
   Certificate,
+  CertificateExternalIssuer,
+  CertificateExternalIssuerFields,
   CertificatePolicy,
   CertificatePolicyParameters,
   CertificateRef,
@@ -58,6 +60,10 @@ import {
     AgentInstanceRefToJSON,
     CertificateFromJSON,
     CertificateToJSON,
+    CertificateExternalIssuerFromJSON,
+    CertificateExternalIssuerToJSON,
+    CertificateExternalIssuerFieldsFromJSON,
+    CertificateExternalIssuerFieldsToJSON,
     CertificatePolicyFromJSON,
     CertificatePolicyToJSON,
     CertificatePolicyParametersFromJSON,
@@ -108,6 +114,11 @@ export interface AddMsEntraKeyCredentialRequest {
 
 export interface CreateAgentOperationRequest {
     createAgentRequest?: CreateAgentRequest;
+}
+
+export interface CreateExternalCertificateIssuerRequest {
+    namespaceId: string;
+    certificateExternalIssuerFields: CertificateExternalIssuerFields;
 }
 
 export interface DeleteCertificateRequest {
@@ -222,6 +233,10 @@ export interface ListCertificatesRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     policyId?: string;
+}
+
+export interface ListExternalCertificateIssuersRequest {
+    namespaceId: string;
 }
 
 export interface ListKeyPoliciesRequest {
@@ -376,6 +391,51 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create certificate issuer
+     */
+    async createExternalCertificateIssuerRaw(requestParameters: CreateExternalCertificateIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateExternalIssuer>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createExternalCertificateIssuer.');
+        }
+
+        if (requestParameters.certificateExternalIssuerFields === null || requestParameters.certificateExternalIssuerFields === undefined) {
+            throw new runtime.RequiredError('certificateExternalIssuerFields','Required parameter requestParameters.certificateExternalIssuerFields was null or undefined when calling createExternalCertificateIssuer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/external-ca/{namespaceId}/certificiate-issuers`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CertificateExternalIssuerFieldsToJSON(requestParameters.certificateExternalIssuerFields),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateExternalIssuerFromJSON(jsonValue));
+    }
+
+    /**
+     * Create certificate issuer
+     */
+    async createExternalCertificateIssuer(requestParameters: CreateExternalCertificateIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateExternalIssuer> {
+        const response = await this.createExternalCertificateIssuerRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1312,6 +1372,44 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listCertificates(requestParameters: ListCertificatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CertificateRef>> {
         const response = await this.listCertificatesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List certificate issuers
+     */
+    async listExternalCertificateIssuersRaw(requestParameters: ListExternalCertificateIssuersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Ref>>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listExternalCertificateIssuers.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/external-ca/{namespaceId}/certificiate-issuers`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RefFromJSON));
+    }
+
+    /**
+     * List certificate issuers
+     */
+    async listExternalCertificateIssuers(requestParameters: ListExternalCertificateIssuersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Ref>> {
+        const response = await this.listExternalCertificateIssuersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

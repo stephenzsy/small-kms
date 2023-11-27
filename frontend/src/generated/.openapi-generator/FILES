@@ -29,8 +29,6 @@ models/CertificateRefFields.ts
 models/CertificateRuleIssuer.ts
 models/CertificateRuleMsEntraClientCredential.ts
 models/CertificateSubject.ts
-models/ExchangePKCS12Request.ts
-models/ExchangePKCS12Result.ts
 models/GenerateJsonWebKeyProperties.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
@@ -61,8 +59,6 @@ models/RadiusEapTls.ts
 models/RadiusServerConfig.ts
 models/RadiusServerListenConfig.ts
 models/RadiusServerListenerType.ts
-models/RequestDiagnostics.ts
-models/RequestHeaderEntry.ts
 models/ResourceKind.ts
 models/ResourceReference.ts
 models/Secret.ts
@@ -77,7 +73,6 @@ models/SecretPolicyRefFields.ts
 models/SecretRandomCharacterClass.ts
 models/SecretRef.ts
 models/SecretRefFields.ts
-models/ServiceRuntimeInfo.ts
 models/SigningKeySpec.ts
 models/SubjectAlternativeNames.ts
 models/index.ts

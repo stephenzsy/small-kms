@@ -1,11 +1,10 @@
 import { useRequest } from "ahooks";
-import { AdminApi } from "../generated";
-import { useAuthedClient } from "../utils/useCertsApi";
+import { useAdminApi } from "../utils/useCertsApi";
 
 export default function DiagnosticsPage() {
-  const client = useAuthedClient(AdminApi);
-  const { data: diagnosticsData } = useRequest(() => {
-    return client.getDiagnostics();
+  const api = useAdminApi();
+  const { data: diagnosticsData } = useRequest(async () => {
+    return await api?.getDiagnostics()
   }, {});
   return (
     <main className="min-h-full place-items-center p-6">

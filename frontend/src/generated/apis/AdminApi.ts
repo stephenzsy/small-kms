@@ -31,8 +31,6 @@ import type {
   CertificateRef,
   CertificateRuleIssuer,
   CertificateRuleMsEntraClientCredential,
-  ExchangePKCS12Request,
-  ExchangePKCS12Result,
   Key,
   KeyPolicy,
   KeyPolicyRef,
@@ -43,7 +41,6 @@ import type {
   NamespaceKind,
   ProfileRef,
   PullImageRequest,
-  RequestDiagnostics,
   ResourceKind,
   Secret,
   SecretPolicy,
@@ -84,10 +81,6 @@ import {
     CertificateRuleIssuerToJSON,
     CertificateRuleMsEntraClientCredentialFromJSON,
     CertificateRuleMsEntraClientCredentialToJSON,
-    ExchangePKCS12RequestFromJSON,
-    ExchangePKCS12RequestToJSON,
-    ExchangePKCS12ResultFromJSON,
-    ExchangePKCS12ResultToJSON,
     KeyFromJSON,
     KeyToJSON,
     KeyPolicyFromJSON,
@@ -108,8 +101,6 @@ import {
     ProfileRefToJSON,
     PullImageRequestFromJSON,
     PullImageRequestToJSON,
-    RequestDiagnosticsFromJSON,
-    RequestDiagnosticsToJSON,
     ResourceKindFromJSON,
     ResourceKindToJSON,
     SecretFromJSON,
@@ -202,13 +193,6 @@ export interface CreateManagedAppRequest {
     managedAppParameters: ManagedAppParameters;
 }
 
-export interface ExchangePKCS12OperationRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    exchangePKCS12Request: ExchangePKCS12Request;
-}
-
 export interface GenerateSecretRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -223,13 +207,6 @@ export interface GetAgentConfigRadiusRequest {
 export interface GetAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
-}
-
-export interface GetAgentDiagnosticsRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    xCryptocatProxyAuthorization?: string;
 }
 
 export interface GetAgentInstanceRequest {
@@ -950,59 +927,6 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * Exchange PKCS12
-     */
-    async exchangePKCS12Raw(requestParameters: ExchangePKCS12OperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExchangePKCS12Result>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling exchangePKCS12.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling exchangePKCS12.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling exchangePKCS12.');
-        }
-
-        if (requestParameters.exchangePKCS12Request === null || requestParameters.exchangePKCS12Request === undefined) {
-            throw new runtime.RequiredError('exchangePKCS12Request','Required parameter requestParameters.exchangePKCS12Request was null or undefined when calling exchangePKCS12.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}/exchange-p12`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ExchangePKCS12RequestToJSON(requestParameters.exchangePKCS12Request),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ExchangePKCS12ResultFromJSON(jsonValue));
-    }
-
-    /**
-     * Exchange PKCS12
-     */
-    async exchangePKCS12(requestParameters: ExchangePKCS12OperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExchangePKCS12Result> {
-        const response = await this.exchangePKCS12Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Generate secret
      */
     async generateSecretRaw(requestParameters: GenerateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Secret>> {
@@ -1129,56 +1053,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentConfigServer(requestParameters: GetAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigServer> {
         const response = await this.getAgentConfigServerRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get agent diagnostics
-     */
-    async getAgentDiagnosticsRaw(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getAgentDiagnostics.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentDiagnostics.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getAgentDiagnostics.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
-            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/diagnostics`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
-    }
-
-    /**
-     * Get agent diagnostics
-     */
-    async getAgentDiagnostics(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
-        const response = await this.getAgentDiagnosticsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1401,40 +1275,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateRuleMsEntraClientCredential(requestParameters: GetCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
         const response = await this.getCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get diagnostics
-     */
-    async getDiagnosticsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RequestDiagnostics>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/diagnostics`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => RequestDiagnosticsFromJSON(jsonValue));
-    }
-
-    /**
-     * Get diagnostics
-     */
-    async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
-        const response = await this.getDiagnosticsRaw(initOverrides);
         return await response.value();
     }
 

@@ -1,15 +1,7 @@
 import { useContext, useEffect, useMemo } from "react";
 
 import { useMemoizedFn, useRequest } from "ahooks";
-import {
-  Button,
-  Card,
-  Divider,
-  Form,
-  Input,
-  Table,
-  Typography
-} from "antd";
+import { Button, Card, Divider, Form, Input, Table, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { ColumnsType } from "antd/es/table";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
@@ -21,7 +13,7 @@ import {
   AgentConfigServerToJSON,
   AgentInstance,
   AzureRoleAssignment,
-  NamespaceKind
+  NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { ManagedAppContext } from "./contexts/ManagedAppContext";
@@ -128,12 +120,12 @@ function AgentConfigServerFormCard({
   }, [agentServerConfig, form]);
 
   const setCurrentBuildTag = useMemoizedFn(async () => {
-    const tag = (await api.getDiagnostics()).serviceRuntime.buildId.split(
-      "\\."
-    )[0];
-    const currentValue = form.getFieldValue("azureAcrImageRef");
-    const currentPrfix = currentValue.split(":")[0];
-    form.setFieldValue("azureAcrImageRef", `${currentPrfix}:${tag}`);
+    // const tag = (await api.getDiagnostics()).serviceRuntime.buildId.split(
+    //   "."
+    // )[0];
+    // const currentValue = form.getFieldValue("azureAcrImageRef");
+    // const currentPrfix = currentValue.split(":")[0];
+    // form.setFieldValue("azureAcrImageRef", `${currentPrfix}:${tag}`);
   });
 
   const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();

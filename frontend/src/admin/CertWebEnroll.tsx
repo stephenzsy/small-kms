@@ -1,27 +1,18 @@
-import { useMemoizedFn, useRequest } from "ahooks";
-import { Alert, Button, Form, Input, Select } from "antd";
-import { DefaultOptionType } from "antd/es/select";
-import Link from "antd/es/typography/Link";
+import { useRequest } from "ahooks";
+import { Alert, Button } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import {
-  AdminApi,
   CertPolicy,
   Certificate,
   JsonWebSignatureAlgorithm,
   Key,
-  KeyRef,
-  NamespaceKind,
-  ResourceKind,
 } from "../generated";
 import {
   base64StdEncodedToUrlEncoded,
-  base64UrlDecodeBuffer,
   base64UrlEncodeBuffer,
   base64UrlEncodedToStdEncoded,
   toPEMBlock,
 } from "../utils/encodingUtils";
-import { useAuthedClient } from "../utils/useCertsApi";
-import { useSystemAppRequest } from "./forms/useSystemAppRequest";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
   return useMemo((): RsaHashedKeyGenParams | EcKeyGenParams | undefined => {
@@ -204,15 +195,6 @@ class EnrollmentSessionWithPemBlob extends EnrollmentSession {
   }
 }
 
-class EnrollmentSessionWithPkcs12Blob extends EnrollmentSession {
-  constructor(
-    readonly session: EnrollmentSession,
-    public readonly pkcs12Blob: Blob
-  ) {
-    super(session.keypair, session.proofJwt, session.enrollResponse);
-  }
-}
-
 export function CertWebEnroll({
   certPolicy,
 }: {
@@ -295,7 +277,6 @@ export function CertWebEnroll({
                   {`${data.enrollResponse.id}.p12`}
                 </pre>
               </div>
-              <DownloadPkcs12Section session={data} />
             </>
           )}
         </div>
@@ -308,273 +289,109 @@ export function CertWebEnroll({
   );
 }
 
-function DownloadPkcs12Section({ session }: { session: EnrollmentSession }) {
-  const api = useAuthedClient(AdminApi);
-  const [selectedKey, setSelectedKey] = useState<string>();
+// function KeySelector({
+//   value,
+//   onChange,
+// }: {
+//   value?: string;
+//   onChange?: (value: string) => void;
+// }) {
+//   const { data: systemApp } = useSystemAppRequest("backend");
 
-  const { data: wrapKeyWithId } = useRequest(
-    async (): Promise<[Key, string] | undefined> => {
-      if (!selectedKey) {
-        return;
-      }
-      const [partitionKey, resourceId] = selectedKey.split("/");
-      const [nsKind, nsId] = partitionKey.split(":");
-      return [
-        await api.getKey({
-          namespaceId: nsId,
-          namespaceKind: nsKind as NamespaceKind,
-          resourceId,
-        }),
-        selectedKey,
-      ];
-    },
-    {
-      refreshDeps: [selectedKey],
-    }
-  );
+//   const nsId = systemApp?.servicePrincipalId;
 
-  const [wrapKey, wrapKeyLocator] = wrapKeyWithId ?? [];
+//   const api = useAuthedClient(AdminApi);
+//   const { data: keyPolicies, loading: keyPoliciesLoading } = useRequest(
+//     async () => {
+//       return await api.listKeyPolicies({
+//         namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
+//         namespaceId: nsId!,
+//       });
+//     },
+//     {
+//       refreshDeps: [nsId],
+//       ready: !!nsId,
+//     }
+//   );
 
-  const [password, setPassword] = useState<string>();
+//   const keyPoliciesOptions = useMemo(() => {
+//     return keyPolicies?.map(
+//       (p): DefaultOptionType => ({
+//         label: (
+//           <span>
+//             {p.displayName} (<span className="font-mono">{p.id}</span>)
+//           </span>
+//         ),
+//         value: p.id,
+//       })
+//     );
+//   }, [keyPolicies]);
 
-  const { data: pkcs12Session, run: exchangePkcs12 } = useRequest(
-    async (
-      session: EnrollmentSession,
-      wrapKey: Key,
-      keyLocator: string,
-      password: string,
-      legacy?: boolean
-    ) => {
-      const [payload, encKey] = await session.preparePayload(wrapKey, password);
-      const resp = await api.exchangePKCS12({
-        exchangePKCS12Request: {
-          keyLocator,
-          payload,
-          legacy,
-        },
-        namespaceId: "me",
-        namespaceKind: NamespaceKind.NamespaceKindUser,
-        resourceId: session.enrollResponse.id,
-      });
-      const reqPayload = payload.split(".");
-      const resPayload = resp.payload.split(".");
-      if (reqPayload[1] !== resPayload[1]) {
-        throw new Error("Invalid response payload[0]");
-      }
-      const iv = base64UrlDecodeBuffer(resPayload[2]);
-      const ciphertext = base64UrlDecodeBuffer(resPayload[3]);
-      const tag = base64UrlDecodeBuffer(resPayload[4]);
-      const encrypted = new Uint8Array(ciphertext.byteLength + tag.byteLength);
-      encrypted.set(new Uint8Array(ciphertext), 0);
-      encrypted.set(new Uint8Array(tag), ciphertext.byteLength);
-      const decrypted = await crypto.subtle.decrypt(
-        {
-          name: "AES-GCM",
-          iv: iv,
-          additionalData: new TextEncoder().encode(reqPayload[0]),
-        },
-        encKey,
-        encrypted
-      );
-      return new EnrollmentSessionWithPkcs12Blob(
-        session,
-        new Blob([decrypted], {
-          type: "application/x-pkcs12",
-        })
-      );
-    },
-    { manual: true }
-  );
+//   const [selectedPolicyId, setSelectedPolicyId] = useState<string>();
 
-  const [pkcs12BlobUrl, setPkcs12BlobUrl] = useState<string>();
-  useEffect(() => {
-    if (!pkcs12Session) {
-      return;
-    }
-    const url = URL.createObjectURL(pkcs12Session.pkcs12Blob);
-    setPkcs12BlobUrl(url);
-    return () => {
-      URL.revokeObjectURL(url);
-      setPkcs12BlobUrl(undefined);
-    };
-  }, [pkcs12Session]);
-  return (
-    <div className="ring-1 ring-neutral-400 rounded-md p-4 space-y-4">
-      <div className="mb-4">
-        <p>
-          Use this option if you would like us to convert to PKCS#12 format.
-          Your private key will be encrypted with the selected key and sent to
-          our server to prepare for this certificate bundle.
-        </p>
-        <p>
-          <span className="text-red-600 font-semibold text">
-            Please delete this file after successful installation.
-          </span>
-        </p>
-      </div>
-      <KeySelector value={selectedKey} onChange={setSelectedKey} />
-      <Form.Item label="Password">
-        <Input
-          type="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-        />
-      </Form.Item>
-      <div className="flex flex-row gap-4 items-center">
-        <Button
-          type="primary"
-          onClick={() => {
-            if (wrapKey && wrapKeyLocator) {
-              exchangePkcs12(session, wrapKey, wrapKeyLocator, password || "");
-            }
-          }}
-        >
-          Get link for certificate bundle (.p12) - Modern
-        </Button>
-        <span>
-          Uses AES-256-CBC with PBKDF2 to encrypt the private key. Select legacy
-          option if encounting problems with loading the certificate bundle.
-        </span>
-      </div>
-      <div className="flex flex-row gap-4 items-center">
-        <Button
-          type="primary"
-          onClick={() => {
-            if (wrapKey && wrapKeyLocator) {
-              exchangePkcs12(
-                session,
-                wrapKey,
-                wrapKeyLocator,
-                password || "",
-                true
-              );
-            }
-          }}
-        >
-          Get link for certificate bundle (.p12) - Legacy
-        </Button>
-        <span>
-          Uses legacy algorithm RC2_CBC or 3DES_CBC to encrypt the private key.
-          Works with macOS and iOS (requires Safari).
-        </span>
-      </div>
-      {pkcs12BlobUrl && (
-        <Link
-          href={pkcs12BlobUrl}
-          download={`${session.enrollResponse.id}.p12`}
-        >
-          Download .p12
-        </Link>
-      )}
-    </div>
-  );
-}
+//   const { data: keysWithPolicyID, loading: keysLoading } = useRequest(
+//     async (): Promise<[KeyRef[], string]> => {
+//       return [
+//         await api.listKeys({
+//           namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
+//           namespaceId: nsId!,
+//           policyId: selectedPolicyId!,
+//         }),
+//         selectedPolicyId!,
+//       ];
+//     },
+//     {
+//       refreshDeps: [nsId, selectedPolicyId],
+//       ready: !!nsId && !!selectedPolicyId,
+//     }
+//   );
 
-function KeySelector({
-  value,
-  onChange,
-}: {
-  value?: string;
-  onChange?: (value: string) => void;
-}) {
-  const { data: systemApp } = useSystemAppRequest("backend");
+//   const keyOptions = useMemo(() => {
+//     const [keys, policyId] = keysWithPolicyID ?? [];
+//     if (!policyId || policyId !== selectedPolicyId) {
+//       return undefined;
+//     }
+//     return keys?.map(
+//       (k): DefaultOptionType => ({
+//         label: <span className="font-mono">{k.id}</span>,
+//         value: k.id,
+//       })
+//     );
+//   }, [keysWithPolicyID, selectedPolicyId]);
 
-  const nsId = systemApp?.servicePrincipalId;
+//   const selectedKeyId = value?.split("/")[1];
 
-  const api = useAuthedClient(AdminApi);
-  const { data: keyPolicies, loading: keyPoliciesLoading } = useRequest(
-    async () => {
-      return await api.listKeyPolicies({
-        namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
-        namespaceId: nsId!,
-      });
-    },
-    {
-      refreshDeps: [nsId],
-      ready: !!nsId,
-    }
-  );
+//   const onSelectChange = useMemoizedFn((keyId) => {
+//     onChange?.(
+//       NamespaceKind.NamespaceKindServicePrincipal +
+//         ":" +
+//         nsId +
+//         ":" +
+//         ResourceKind.ResourceKindKey +
+//         "/" +
+//         keyId
+//     );
+//   });
 
-  const keyPoliciesOptions = useMemo(() => {
-    return keyPolicies?.map(
-      (p): DefaultOptionType => ({
-        label: (
-          <span>
-            {p.displayName} (<span className="font-mono">{p.id}</span>)
-          </span>
-        ),
-        value: p.id,
-      })
-    );
-  }, [keyPolicies]);
-
-  const [selectedPolicyId, setSelectedPolicyId] = useState<string>();
-
-  const { data: keysWithPolicyID, loading: keysLoading } = useRequest(
-    async (): Promise<[KeyRef[], string]> => {
-      return [
-        await api.listKeys({
-          namespaceKind: NamespaceKind.NamespaceKindServicePrincipal,
-          namespaceId: nsId!,
-          policyId: selectedPolicyId!,
-        }),
-        selectedPolicyId!,
-      ];
-    },
-    {
-      refreshDeps: [nsId, selectedPolicyId],
-      ready: !!nsId && !!selectedPolicyId,
-    }
-  );
-
-  const keyOptions = useMemo(() => {
-    const [keys, policyId] = keysWithPolicyID ?? [];
-    if (!policyId || policyId !== selectedPolicyId) {
-      return undefined;
-    }
-    return keys?.map(
-      (k): DefaultOptionType => ({
-        label: <span className="font-mono">{k.id}</span>,
-        value: k.id,
-      })
-    );
-  }, [keysWithPolicyID, selectedPolicyId]);
-
-  const selectedKeyId = value?.split("/")[1];
-
-  const onSelectChange = useMemoizedFn((keyId) => {
-    onChange?.(
-      NamespaceKind.NamespaceKindServicePrincipal +
-        ":" +
-        nsId +
-        ":" +
-        ResourceKind.ResourceKindKey +
-        "/" +
-        keyId
-    );
-  });
-
-  return (
-    <div>
-      <Form.Item label="Select encryption key policy">
-        <Select
-          options={keyPoliciesOptions}
-          loading={keyPoliciesLoading}
-          value={selectedPolicyId}
-          onChange={setSelectedPolicyId}
-        />
-      </Form.Item>
-      <Form.Item label="Select encryption key">
-        <Select
-          disabled={!selectedPolicyId}
-          options={keyOptions}
-          loading={keysLoading}
-          value={selectedKeyId}
-          onChange={onSelectChange}
-        />
-      </Form.Item>
-    </div>
-  );
-}
+//   return (
+//     <div>
+//       <Form.Item label="Select encryption key policy">
+//         <Select
+//           options={keyPoliciesOptions}
+//           loading={keyPoliciesLoading}
+//           value={selectedPolicyId}
+//           onChange={setSelectedPolicyId}
+//         />
+//       </Form.Item>
+//       <Form.Item label="Select encryption key">
+//         <Select
+//           disabled={!selectedPolicyId}
+//           options={keyOptions}
+//           loading={keysLoading}
+//           value={selectedKeyId}
+//           onChange={onSelectChange}
+//         />
+//       </Form.Item>
+//     </div>
+//   );
+// }

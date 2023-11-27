@@ -661,14 +661,14 @@ function AgentDashboard({ api }: { api: AdminApi }) {
     }
   );
 
-  const getAgentDiagnostics = useMemoizedFn(async () => {
-    return await api.getAgentDiagnostics({
-      namespaceId: namespaceIdentifier,
-      namespaceKind,
-      resourceId: instanceId,
-      xCryptocatProxyAuthorization: getAccessToken(),
-    });
-  });
+  // const getAgentDiagnostics = useMemoizedFn(async () => {
+  //   return await api.getAgentDiagnostics({
+  //     namespaceId: namespaceIdentifier,
+  //     namespaceKind,
+  //     resourceId: instanceId,
+  //     xCryptocatProxyAuthorization: getAccessToken(),
+  //   });
+  // });
   const getDockerInfo = useMemoizedFn(async () => {
     return await api.agentDockerInfo({
       namespaceId: namespaceIdentifier,
@@ -745,7 +745,7 @@ function AgentDashboard({ api }: { api: AdminApi }) {
           >
             Docker system info
           </Button>
-          <Button
+          {/* <Button
             type="link"
             onClick={() => {
               openDrawer({
@@ -756,7 +756,7 @@ function AgentDashboard({ api }: { api: AdminApi }) {
             disabled={!hasToken}
           >
             Agent request diagnostics
-          </Button>
+          </Button> */}
         </div>
       </Card>
 
