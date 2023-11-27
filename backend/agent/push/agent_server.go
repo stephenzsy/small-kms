@@ -9,6 +9,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	echo "github.com/labstack/echo/v4"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
+	agentendpoint "github.com/stephenzsy/small-kms/backend/agent/endpoint"
 	"github.com/stephenzsy/small-kms/backend/agent/radius"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
@@ -17,8 +18,7 @@ import (
 )
 
 type agentServer struct {
-	common.CommonServer
-	buildID             string
+	*base.BaseServer
 	dockerClient        dockerclient.APIClient
 	acrAuthProvider     *acr.DockerRegistryAuthProvider
 	acrImageRepo        string
@@ -145,16 +145,10 @@ func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKi
 	return c.JSON(http.StatusOK, result)
 }
 
-// GetDiagnostics implements ServerInterface.
-// func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ GetAgentDiagnosticsParams) error {
-// 	c := ec.(ctx.RequestContext)
-
-// 	return base.RespondDiagnostics(c, base.ServiceRuntimeInfo{
-// 		BuildID:     s.buildID,
-// 		GoVersion:   runtime.Version(),
-// 		Environment: s.EnvService().Export(),
-// 	})
-// }
+// GetAgentDiagnostics implements agentendpoint.ServerInterface.
+func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ string, _ string) error {
+	return s.BaseServer.GetDiagnostics(ec)
+}
 
 // GetDockerInfo implements ServerInterface.
 func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerInfoParams) error {
@@ -168,6 +162,7 @@ func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, 
 }
 
 var _ ServerInterface = (*agentServer)(nil)
+var _ agentendpoint.ServerInterface = (*agentServer)(nil)
 
 func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager, dockerClient dockerclient.APIClient) (*agentServer, error) {
 	var acrLoginServer string
@@ -189,8 +184,7 @@ func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvServ
 	}
 
 	s := &agentServer{
-		CommonServer:        config,
-		buildID:             buildID,
+		BaseServer:          base.NewBaseServer(config),
 		dockerClient:        dockerClient,
 		acrAuthProvider:     acr.NewDockerRegistryAuthProvider(acrLoginServer, config.ServiceIdentity().TokenCredential(), tenantID),
 		acrImageRepo:        acrImageRepo,

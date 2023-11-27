@@ -23,6 +23,16 @@ type server struct {
 	*agentadmin.AgentPushProxiedServer
 }
 
+// CreateExternalCertificateIssuer implements admin.ServerInterface.
+func (*server) CreateExternalCertificateIssuer(ctx echo.Context, namespaceId string) error {
+	panic("unimplemented")
+}
+
+// ListExternalCertificateIssuers implements admin.ServerInterface.
+func (*server) ListExternalCertificateIssuers(ctx echo.Context, namespaceId string) error {
+	panic("unimplemented")
+}
+
 // GetMemberGroup implements admin.ServerInterface.
 func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
 	panic("unimplemented")

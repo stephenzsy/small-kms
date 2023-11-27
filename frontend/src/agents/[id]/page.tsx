@@ -14,6 +14,7 @@ import { useParams } from "react-router-dom";
 import { ResourceRefsSelect } from "../../admin/ResourceRefsSelect";
 import { NamespaceContext } from "../../admin/contexts/NamespaceContext";
 import { useNamespace } from "../../admin/contexts/useNamespace";
+import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 import { Link } from "../../components/Link";
 import {
   AdminApi,
@@ -28,7 +29,6 @@ import {
   Ref as ResourceRef,
 } from "../../generated/apiv2";
 import { useAdminApi, useAuthedClientV2 } from "../../utils/useCertsApi";
-import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
 
 function useAgent(agentId: string | undefined) {
   const api = useAuthedClientV2(AdminApi);
@@ -225,11 +225,11 @@ function AgentDashboardCards() {
         namespaceId: namespaceId,
       });
 
-      const i = instances?.[0];
-      api?.getAgentDiagnostics({
-        namespaceId: namespaceId,
-        id: i?.id as string,
-      });
+      // const i = instances?.[0];
+      // api?.getAgentDiagnostics({
+      //   namespaceId: namespaceId,
+      //   id: i?.id as string,
+      // });
 
       return instances;
     },

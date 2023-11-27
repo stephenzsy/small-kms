@@ -27,6 +27,23 @@ const (
 // Certificate defines model for Certificate.
 type Certificate = certificateComposed
 
+// CertificateExternalIssuer defines model for CertificateExternalIssuer.
+type CertificateExternalIssuer = certificateExternalIssuerComposed
+
+// CertificateExternalIssuerAcme defines model for CertificateExternalIssuerAcme.
+type CertificateExternalIssuerAcme struct {
+	AccountKeyID     string   `json:"accountKeyId"`
+	AccountURL       string   `json:"accountUrl"`
+	AzureDNSZoneName string   `json:"azureDnsZoneName"`
+	Contacts         []string `json:"contacts"`
+	DirectoryURL     string   `json:"directoryUrl"`
+}
+
+// CertificateExternalIssuerFields defines model for CertificateExternalIssuerFields.
+type CertificateExternalIssuerFields struct {
+	Acme *CertificateExternalIssuerAcme `json:"acme,omitempty"`
+}
+
 // CertificateFields defines model for CertificateFields.
 type CertificateFields struct {
 	// Cid Key Vault certificate ID
@@ -138,6 +155,9 @@ type SubjectAlternativeNames struct {
 	Emails      []string `json:"emails,omitempty"`
 	IPAddresses []net.IP `json:"ipAddresses,omitempty"`
 }
+
+// CertificateExternalIssuerResponse defines model for CertificateExternalIssuerResponse.
+type CertificateExternalIssuerResponse = CertificateExternalIssuer
 
 // CertificatePolicyResponse defines model for CertificatePolicyResponse.
 type CertificatePolicyResponse = CertificatePolicy

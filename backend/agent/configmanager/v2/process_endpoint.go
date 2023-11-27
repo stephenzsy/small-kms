@@ -82,40 +82,42 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 		p.config.TLSCertificateID = certResp.ID
 		hasChange = true
 	}
-	if ref.Version == p.config.Version {
-		return nil
-	}
-	logger := log.Ctx(c)
-	logger.Info().Str("current", p.config.Version).Str("new", ref.Version).Msg("endpoint config version changed, updating")
+	if ref.Version != p.config.Version {
+		logger := log.Ctx(c)
+		logger.Info().Str("current", p.config.Version).Str("new", ref.Version).Msg("endpoint config version changed, updating")
 
-	verifyJwks := make([]cloudkey.JsonWebKey, 0, len(endpointConfig.JwtVerifyKeyIds))
-	verifyJwkID := ""
-	for _, keyID := range endpointConfig.JwtVerifyKeyIds {
-		if key, err := pullPublicJWK(c, p.cm, keyID); err != nil {
-			return err
-		} else {
-			verifyJwks = append(verifyJwks, key.Jwk)
-			if verifyJwkID == "" {
-				verifyJwkID = keyID
+		verifyJwks := make([]cloudkey.JsonWebKey, 0, len(endpointConfig.JwtVerifyKeyIds))
+		verifyJwkID := ""
+		for _, keyID := range endpointConfig.JwtVerifyKeyIds {
+			if key, err := pullPublicJWK(c, p.cm, keyID); err != nil {
+				return err
+			} else {
+				verifyJwks = append(verifyJwks, key.Jwk)
+				if verifyJwkID == "" {
+					verifyJwkID = keyID
+				}
 			}
 		}
+
+		p.config.VerifyJWKs = verifyJwks
+		p.config.VerifyJwkID = verifyJwkID
+		p.config.Version = ref.Version
+		hasChange = true
 	}
 
-	p.config.VerifyJWKs = verifyJwks
-	p.config.VerifyJwkID = verifyJwkID
-	p.config.Version = ref.Version
-	hasChange = true
+	if hasChange {
 
-	versionedDir := p.cm.ConfigDir().Versioned(agentmodels.AgentConfigNameEndpoint, ref.Version)
-	if err := versionedDir.EnsureExist(); err != nil {
-		return err
-	}
-	if err := versionedDir.ConfigFile(configFileEndpoint).WriteJSON(p.config); err != nil {
-		return err
-	}
-	if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileEndpoint).LinkToAbsolutePath(
-		string(versionedDir.ConfigFile(configFileEndpoint))); err != nil {
-		return err
+		versionedDir := p.cm.ConfigDir().Versioned(agentmodels.AgentConfigNameEndpoint, ref.Version)
+		if err := versionedDir.EnsureExist(); err != nil {
+			return err
+		}
+		if err := versionedDir.ConfigFile(configFileEndpoint).WriteJSON(p.config); err != nil {
+			return err
+		}
+		if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileEndpoint).LinkToAbsolutePath(
+			string(versionedDir.ConfigFile(configFileEndpoint))); err != nil {
+			return err
+		}
 	}
 
 	return nil

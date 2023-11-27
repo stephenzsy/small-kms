@@ -26,6 +26,11 @@ type (
 		CertificateRef
 		CertificateFields
 	}
+
+	certificateExternalIssuerComposed struct {
+		models.Ref
+		CertificateExternalIssuerFields
+	}
 )
 
 func (cs *CertificateSubject) String() string {

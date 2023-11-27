@@ -77,6 +77,40 @@ components:
         - issuerIdentifier
         - nbf
         - subject
+    CertificateExternalIssuer:
+      allOf:
+        - $ref: "models-shared.yaml#/components/schemas/Ref"
+        - $ref: "#/components/schemas/CertificateExternalIssuerFields"
+        - x-go-type: certificateExternalIssuerComposed
+    CertificateExternalIssuerFields:
+      type: object
+      properties:
+        acme:
+          $ref: "#/components/schemas/CertificateExternalIssuerAcme"
+    CertificateExternalIssuerAcme:
+      properties:
+        directoryUrl:
+          type: string
+          x-go-name: DirectoryURL
+        accountKeyId:
+          type: string
+          x-go-name: AccountKeyID          
+        accountUrl:
+          type: string
+          x-go-name: AccountURL
+        contacts:
+          type: array
+          items:
+            type: string
+        azureDnsZoneName:
+          type: string
+          x-go-name: AzureDNSZoneName
+      required:
+        - directoryUrl
+        - accountKeyId
+        - accountUrl
+        - contacts
+        - azureDnsZoneName
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
@@ -230,7 +264,7 @@ components:
           type: string
           description: Password used to encrypt the PKCS12 file
       required:
-        - payload        
+        - payload
         - password
   responses:
     CertificateResponse:
@@ -253,3 +287,9 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/CertificateRef"
+    CertificateExternalIssuerResponse:
+      description: CertificateIssuer response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CertificateExternalIssuer"

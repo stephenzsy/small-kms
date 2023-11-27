@@ -15,6 +15,7 @@ import (
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/agent/configmanager"
 	agentconfigmanager "github.com/stephenzsy/small-kms/backend/agent/configmanager/v2"
+	agentendpoint "github.com/stephenzsy/small-kms/backend/agent/endpoint"
 
 	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
@@ -123,6 +124,7 @@ func main() {
 				e.Use(auth.PreconfiguredKeysJWTAuthorization(config.VerifyJWKs, agentPushEndpoint))
 				e.Use(base.HandleResponseError)
 				agentpush.RegisterHandlers(e, agentPushServer)
+				agentendpoint.RegisterHandlers(e, agentPushServer)
 
 				e.TLSServer.Addr = args[1]
 				e.TLSServer.TLSConfig, err = agentconfigmanager.GetTLSDefaultConfig(config)

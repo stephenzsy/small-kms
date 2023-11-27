@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	agentendpointclient "github.com/stephenzsy/small-kms/backend/admin/endpointclient"
 	agentauth "github.com/stephenzsy/small-kms/backend/agent/auth"
+	agentendpoint "github.com/stephenzsy/small-kms/backend/agent/endpoint"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cert/v2"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
@@ -24,7 +24,7 @@ import (
 )
 
 type pooledClient struct {
-	agentendpointclient.ClientWithResponsesInterface
+	agentendpoint.ClientWithResponsesInterface
 	exp         time.Time
 	namespaceID string
 	instanceID  string
@@ -37,7 +37,7 @@ type ProxyClientPool struct {
 	cutoff  time.Time
 }
 
-func newClientWithCreds(server string, caCertBytes []byte, accessToken string) (agentendpointclient.ClientWithResponsesInterface, error) {
+func newClientWithCreds(server string, caCertBytes []byte, accessToken string) (agentendpoint.ClientWithResponsesInterface, error) {
 	caPool := x509.NewCertPool()
 	caCert, err := x509.ParseCertificate(caCertBytes)
 	if err != nil {
@@ -51,12 +51,12 @@ func newClientWithCreds(server string, caCertBytes []byte, accessToken string) (
 		RootCAs:    caPool,
 		MinVersion: tls.VersionTLS13,
 	}
-	return agentendpointclient.NewClientWithResponses(server, agentendpointclient.WithHTTPClient(&nethttp.Client{
+	return agentendpoint.NewClientWithResponses(server, agentendpoint.WithHTTPClient(&nethttp.Client{
 		Transport: clientTransport,
 		CheckRedirect: func(req *nethttp.Request, via []*nethttp.Request) error {
 			return nethttp.ErrUseLastResponse
 		},
-	}), agentendpointclient.WithRequestEditorFn(func(ctx context.Context, req *nethttp.Request) error {
+	}), agentendpoint.WithRequestEditorFn(func(ctx context.Context, req *nethttp.Request) error {
 		if req.Header.Get("Authorization") == "" {
 			req.Header.Set("Authorization", "Bearer "+accessToken)
 		}
@@ -102,7 +102,7 @@ func (p *ProxyClientPool) cleanup() {
 	}
 }
 
-func (p *ProxyClientPool) GetClient(c context.Context, namespaceID string, instanceID string) (agentendpointclient.ClientWithResponsesInterface, error) {
+func (p *ProxyClientPool) GetClient(c context.Context, namespaceID string, instanceID string) (agentendpoint.ClientWithResponsesInterface, error) {
 	p.lock.Lock()
 	p.cleanup()
 	p.lock.Unlock()

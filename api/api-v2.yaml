@@ -130,6 +130,35 @@ paths:
           $ref: "models-shared.yaml#/components/responses/ProfileResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/external-ca/{namespaceId}/certificiate-issuers:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    get:
+      tags:
+        - admin
+      operationId: ListExternalCertificateIssuers
+      summary: List certificate issuers
+      responses:
+        200:
+          $ref: "models-shared.yaml#/components/responses/RefsResponse"
+    post:
+      tags:
+        - admin
+      operationId: CreateExternalCertificateIssuer
+      summary: Create certificate issuer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-cert.yaml#/components/schemas/CertificateExternalIssuerFields"
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificateExternalIssuerResponse"
+        201:
+          $ref: "models-cert.yaml#/components/responses/CertificateExternalIssuerResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/certificate-policies:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"
@@ -571,9 +600,9 @@ paths:
             schema:
               $ref: "models-agent.yaml#/components/schemas/AgentInstanceParameters"
       responses:
-        201:
-          $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
         200:
+          $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
+        201:
           $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"

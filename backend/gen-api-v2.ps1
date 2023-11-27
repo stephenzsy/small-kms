@@ -5,4 +5,4 @@ oapi-codegen --package certmodels -generate "types,skip-prune" -import-mapping="
 
 oapi-codegen --config "./gen-api-v2-config.yaml" -package admin -generate "models,echo-server" -include-tags "admin" -o "./admin/admin.gen.go" ../api/api-v2.yaml 
 oapi-codegen --config "./gen-api-v2-config.yaml" -package agentclient -generate "models,client" -include-tags "agentclient"  -o "./agent/client/v2/agentclient.gen.go" ../api/api-v2.yaml 
-oapi-codegen --config "./gen-api-v2-config.yaml" -package agentendpointclient -generate "models,client" -include-tags "agent"  -o "./admin/endpointclient/agent_endpoint_client.gen.go" ../api/api-v2.yaml 
+oapi-codegen --config "./gen-api-v2-config.yaml" -package agentendpoint -generate "models,client,echo-server" -include-tags "agent"  -o "./agent/endpoint/agent_endpoint.gen.go" ../api/api-v2.yaml 

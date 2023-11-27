@@ -72,6 +72,9 @@ type GetKeyParams struct {
 // CreateAgentJSONRequestBody defines body for CreateAgent for application/json ContentType.
 type CreateAgentJSONRequestBody = externalRef1.CreateAgentRequest
 
+// CreateExternalCertificateIssuerJSONRequestBody defines body for CreateExternalCertificateIssuer for application/json ContentType.
+type CreateExternalCertificateIssuerJSONRequestBody = externalRef2.CertificateExternalIssuerFields
+
 // PutProfileJSONRequestBody defines body for PutProfile for application/json ContentType.
 type PutProfileJSONRequestBody = externalRef0.ProfileParameters
 
@@ -107,6 +110,12 @@ type ServerInterface interface {
 	// Get diagnostics
 	// (GET /v2/diagnostics)
 	GetDiagnostics(ctx echo.Context) error
+	// List certificate issuers
+	// (GET /v2/external-ca/{namespaceId}/certificiate-issuers)
+	ListExternalCertificateIssuers(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Create certificate issuer
+	// (POST /v2/external-ca/{namespaceId}/certificiate-issuers)
+	CreateExternalCertificateIssuer(ctx echo.Context, namespaceId NamespaceIdParameter) error
 	// list profiles
 	// (GET /v2/profiles/{namespaceProvider})
 	ListProfiles(ctx echo.Context, namespaceProvider NamespaceProviderParameter) error
@@ -247,6 +256,42 @@ func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetDiagnostics(ctx)
+	return err
+}
+
+// ListExternalCertificateIssuers converts echo context to params.
+func (w *ServerInterfaceWrapper) ListExternalCertificateIssuers(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListExternalCertificateIssuers(ctx, namespaceId)
+	return err
+}
+
+// CreateExternalCertificateIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateExternalCertificateIssuer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateExternalCertificateIssuer(ctx, namespaceId)
 	return err
 }
 
@@ -1245,6 +1290,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
 	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
 	router.GET(baseURL+"/v2/diagnostics", wrapper.GetDiagnostics)
+	router.GET(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers", wrapper.ListExternalCertificateIssuers)
+	router.POST(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers", wrapper.CreateExternalCertificateIssuer)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
