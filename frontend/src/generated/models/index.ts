@@ -26,7 +26,6 @@ export * from './CertificateFlag';
 export * from './CertificateRef';
 export * from './CertificateRefFields';
 export * from './CertificateRuleIssuer';
-export * from './CertificateRuleMsEntraClientCredential';
 export * from './CertificateSubject';
 export * from './GenerateJsonWebKeyProperties';
 export * from './JsonWebKey';

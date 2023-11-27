@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  CertificateRuleIssuer,
-  CertificateRuleMsEntraClientCredential,
-  NamespaceKind,
-} from "../../generated";
+import { CertificateRuleIssuer, NamespaceKind } from "../../generated";
 
 export type NamespaceContextValue = {
   namespaceKind: NamespaceKind;
@@ -18,14 +14,10 @@ export const NamespaceContext = React.createContext<NamespaceContextValue>({
 type NamespaceConfigContextValue = {
   issuer: CertificateRuleIssuer | undefined;
   setIssuer: (rule: CertificateRuleIssuer) => void;
-  entraClientCred: CertificateRuleMsEntraClientCredential | undefined;
-  setEntraClientCred: (rule: CertificateRuleMsEntraClientCredential) => void;
 };
 
 export const NamespaceConfigContext =
   React.createContext<NamespaceConfigContextValue>({
     issuer: undefined,
     setIssuer: () => {},
-    entraClientCred: undefined,
-    setEntraClientCred: () => {},
   });

@@ -54,8 +54,6 @@ paths:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/cert-rule/issuer:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-rule~1issuer"
-  /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential:
-    $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-rule~1ms-entra-client-credential"
   /v1/{namespaceKind}/{namespaceId}/cert-policy/{resourceId}/keyvault-role-assignments/{resourceCategory}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1cert-policy~1{resourceId}~1keyvault-role-assignments~1{resourceCategory}"
   /v1/{namespaceKind}/{namespaceId}/key-policies:

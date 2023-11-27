@@ -1,10 +1,6 @@
 import { useRequest } from "ahooks";
 import React, { useContext } from "react";
-import {
-  AdminApi,
-  CertificateRuleIssuer,
-  CertificateRuleMsEntraClientCredential,
-} from "../../generated";
+import { AdminApi, CertificateRuleIssuer } from "../../generated";
 import { useAuthedClient } from "../../utils/useCertsApi";
 import { NamespaceConfigContext, NamespaceContext } from "./NamespaceContext";
 
@@ -14,7 +10,8 @@ export function NamespaceConfigContextProvider(
     ruleEntraClientCred?: boolean;
   }>
 ) {
-  const { namespaceKind, namespaceId: namespaceIdentifier } = useContext(NamespaceContext);
+  const { namespaceKind, namespaceId: namespaceIdentifier } =
+    useContext(NamespaceContext);
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: issuer, run: setIssuer } = useRequest(
@@ -37,33 +34,11 @@ export function NamespaceConfigContextProvider(
     }
   );
 
-  const { data: msEntraClientCred, run: setMsEntraClientCred } = useRequest(
-    (params?: CertificateRuleMsEntraClientCredential) => {
-      if (params) {
-        return adminApi.putCertificateRuleMsEntraClientCredential({
-          namespaceId: namespaceIdentifier,
-          namespaceKind,
-          certificateRuleMsEntraClientCredential: params,
-        });
-      }
-      return adminApi.getCertificateRuleMsEntraClientCredential({
-        namespaceId: namespaceIdentifier,
-        namespaceKind,
-      });
-    },
-    {
-      refreshDeps: [namespaceIdentifier, namespaceKind],
-      ready: !!props.ruleEntraClientCred && !!namespaceIdentifier,
-    }
-  );
-
   return (
     <NamespaceConfigContext.Provider
       value={{
         issuer: issuer,
         setIssuer: setIssuer,
-        entraClientCred: msEntraClientCred,
-        setEntraClientCred: setMsEntraClientCred,
       }}
     >
       {props.children}

@@ -79,40 +79,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRuleIssuer"
-  /v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      operationId: GetCertificateRuleMsEntraClientCredential
-      summary: Get certificate rules for namespace
-      responses:
-        200:
-          description: Certificate rules response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"
-    put:
-      tags:
-        - admin
-      operationId: PutCertificateRuleMsEntraClientCredential
-      summary: Update certificate rules for namespace
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"
-      responses:
-        200:
-          description: Certificate rules response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRuleMsEntraClientCredential"
   /v1/{namespaceKind}/{namespaceId}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

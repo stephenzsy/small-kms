@@ -30,7 +30,6 @@ import type {
   Certificate,
   CertificateRef,
   CertificateRuleIssuer,
-  CertificateRuleMsEntraClientCredential,
   Key,
   KeyPolicy,
   KeyPolicyRef,
@@ -79,8 +78,6 @@ import {
     CertificateRefToJSON,
     CertificateRuleIssuerFromJSON,
     CertificateRuleIssuerToJSON,
-    CertificateRuleMsEntraClientCredentialFromJSON,
-    CertificateRuleMsEntraClientCredentialToJSON,
     KeyFromJSON,
     KeyToJSON,
     KeyPolicyFromJSON,
@@ -232,11 +229,6 @@ export interface GetCertificateRuleIssuerRequest {
     namespaceId: string;
 }
 
-export interface GetCertificateRuleMsEntraClientCredentialRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-}
-
 export interface GetKeyRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -352,12 +344,6 @@ export interface PutCertificateRuleIssuerRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     certificateRuleIssuer: CertificateRuleIssuer;
-}
-
-export interface PutCertificateRuleMsEntraClientCredentialRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    certificateRuleMsEntraClientCredential: CertificateRuleMsEntraClientCredential;
 }
 
 export interface PutSecretPolicyRequest {
@@ -1233,48 +1219,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateRuleIssuer(requestParameters: GetCertificateRuleIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleIssuer> {
         const response = await this.getCertificateRuleIssuerRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get certificate rules for namespace
-     */
-    async getCertificateRuleMsEntraClientCredentialRaw(requestParameters: GetCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRuleMsEntraClientCredential>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getCertificateRuleMsEntraClientCredential.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateRuleMsEntraClientCredential.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRuleMsEntraClientCredentialFromJSON(jsonValue));
-    }
-
-    /**
-     * Get certificate rules for namespace
-     */
-    async getCertificateRuleMsEntraClientCredential(requestParameters: GetCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
-        const response = await this.getCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2227,55 +2171,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putCertificateRuleIssuer(requestParameters: PutCertificateRuleIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleIssuer> {
         const response = await this.putCertificateRuleIssuerRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Update certificate rules for namespace
-     */
-    async putCertificateRuleMsEntraClientCredentialRaw(requestParameters: PutCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRuleMsEntraClientCredential>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
-        }
-
-        if (requestParameters.certificateRuleMsEntraClientCredential === null || requestParameters.certificateRuleMsEntraClientCredential === undefined) {
-            throw new runtime.RequiredError('certificateRuleMsEntraClientCredential','Required parameter requestParameters.certificateRuleMsEntraClientCredential was null or undefined when calling putCertificateRuleMsEntraClientCredential.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/ms-entra-client-credential`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CertificateRuleMsEntraClientCredentialToJSON(requestParameters.certificateRuleMsEntraClientCredential),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRuleMsEntraClientCredentialFromJSON(jsonValue));
-    }
-
-    /**
-     * Update certificate rules for namespace
-     */
-    async putCertificateRuleMsEntraClientCredential(requestParameters: PutCertificateRuleMsEntraClientCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleMsEntraClientCredential> {
-        const response = await this.putCertificateRuleMsEntraClientCredentialRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
