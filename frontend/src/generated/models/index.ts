@@ -33,8 +33,6 @@ export * from './JsonWebKeyCurveName';
 export * from './JsonWebKeyOperation';
 export * from './JsonWebKeyType';
 export * from './JsonWebSignatureAlgorithm';
-export * from './Key';
-export * from './KeyFields';
 export * from './KeyPolicy';
 export * from './KeyPolicyFields';
 export * from './KeyPolicyRef';

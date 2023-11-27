@@ -5,13 +5,10 @@ import {
   CertPolicy,
   Certificate,
   JsonWebSignatureAlgorithm,
-  Key,
 } from "../generated";
 import {
-  base64StdEncodedToUrlEncoded,
-  base64UrlEncodeBuffer,
   base64UrlEncodedToStdEncoded,
-  toPEMBlock,
+  toPEMBlock
 } from "../utils/encodingUtils";
 
 function useKeyGenAlgParams(certPolicy: CertPolicy | undefined) {
@@ -112,77 +109,6 @@ class EnrollmentSession {
         type: "application/x-pem-file",
       }
     );
-  }
-
-  public async preparePayload(
-    wrapKey: Key,
-    password: string
-  ): Promise<[string, CryptoKey]> {
-    const encKey = await crypto.subtle.generateKey(
-      {
-        name: "AES-GCM",
-        length: 256,
-      },
-      true,
-      ["encrypt", "decrypt"]
-    );
-
-    const wrapPublickey = await crypto.subtle.importKey(
-      "jwk",
-      wrapKey,
-      { name: "RSA-OAEP", hash: "SHA-256" },
-      true,
-      ["wrapKey"]
-    );
-
-    const joseHeader = {
-      alg: "RSA-OAEP-256",
-      kid: wrapKey.kid,
-      enc: "A256GCM",
-    };
-
-    const joseEncoded = base64StdEncodedToUrlEncoded(
-      btoa(JSON.stringify(joseHeader))
-    );
-    const encryptedKey = await crypto.subtle.wrapKey(
-      "raw",
-      encKey,
-      wrapPublickey,
-      {
-        name: "RSA-OAEP",
-      }
-    );
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const plainTextBuffer = new TextEncoder().encode(
-      JSON.stringify({
-        password,
-        privateKey: await crypto.subtle.exportKey(
-          "jwk",
-          this.keypair.privateKey
-        ),
-      })
-    );
-    const encrypted = await crypto.subtle.encrypt(
-      {
-        name: "AES-GCM",
-        iv,
-        additionalData: new TextEncoder().encode(joseEncoded),
-      },
-      encKey,
-      plainTextBuffer
-    );
-    const ciphertext = encrypted.slice(0, -16);
-    const tag = encrypted.slice(-16);
-    return [
-      [
-        joseEncoded,
-        base64UrlEncodeBuffer(encryptedKey),
-        base64UrlEncodeBuffer(iv),
-        base64UrlEncodeBuffer(ciphertext),
-        base64UrlEncodeBuffer(tag),
-      ].join("."),
-      encKey,
-    ];
   }
 }
 
