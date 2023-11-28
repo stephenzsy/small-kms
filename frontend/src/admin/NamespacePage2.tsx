@@ -180,6 +180,9 @@ export default function NamespacePage() {
         NamespaceProvider.NamespaceProviderServicePrincipal && (
         <NamespacePoliciesTableCard type="key" />
       )}
+      {namespaceProvider === NamespaceProvider.NamespaceProviderExternalCA && (
+        <NamespacePoliciesTableCard type="issuer" />
+      )}
       {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
         <Card title="Certificates">
           <ResourceRefsTable

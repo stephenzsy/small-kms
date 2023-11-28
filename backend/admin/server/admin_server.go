@@ -30,11 +30,6 @@ func (*server) CreateExternalCertificateIssuer(ctx echo.Context, namespaceId str
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
-// ListExternalCertificateIssuers implements admin.ServerInterface.
-func (*server) ListExternalCertificateIssuers(ctx echo.Context, namespaceId string) error {
-	return ctx.NoContent(http.StatusNotImplemented)
-}
-
 // GetMemberGroup implements admin.ServerInterface.
 func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
 	return ctx.NoContent(http.StatusNotImplemented)

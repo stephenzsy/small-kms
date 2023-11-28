@@ -7,9 +7,10 @@ import { AdminApi } from "../../generated/apiv2";
 import { Link } from "../../components/Link";
 import { useForm } from "antd/es/form/Form";
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 
 export type NamespacePoliciesTableCardProps = {
-  type: "cert" | "key";
+  type: "cert" | "key" | "issuer";
 };
 
 export function NamespacePoliciesTableCard({
@@ -30,6 +31,10 @@ export function NamespacePoliciesTableCard({
           namespaceId,
           namespaceProvider,
         });
+      } else if (type === "issuer") {
+        return await api.listExternalCertificateIssuers({
+          namespaceId,
+        });
       }
     },
     {
@@ -37,15 +42,37 @@ export function NamespacePoliciesTableCard({
     }
   );
 
+  const linkPrefix = useMemo(() => {
+    return `./${
+      type === "cert"
+        ? "cert-policies"
+        : type === "key"
+        ? "key-policies"
+        : type === "issuer"
+        ? "external-issuer"
+        : ""
+    }`;
+  }, [type]);
+
   const renderActions = useMemoizedFn((ref) => {
-    const linkTo = `./${type}-policies/${ref.id}`;
+    const linkTo = `./${linkPrefix}/${ref.id}`;
     return <Link to={linkTo}>View</Link>;
   });
 
   const [formInstance] = useForm<{ policyId: string }>();
 
   return (
-    <Card title={type === "cert" ? "Certificate Policies" : "Key Policies"}>
+    <Card
+      title={
+        type === "cert"
+          ? "Certificate Policies"
+          : type === "key"
+          ? "Key Policies"
+          : type === "issuer"
+          ? "Certificate Issuer"
+          : ""
+      }
+    >
       <ResourceRefsTable
         renderActions={renderActions}
         loading={loading}
@@ -58,7 +85,7 @@ export function NamespacePoliciesTableCard({
         layout="inline"
         onFinish={(p) => {
           const policyId = p.policyId.trim();
-          navigate(`./${type}-policies/${policyId}`);
+          navigate(`./${linkPrefix}/${policyId}`);
         }}
       >
         <Form.Item name="policyId" label="Policy ID" required>
