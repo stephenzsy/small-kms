@@ -3,12 +3,7 @@ import { Button, Card, Table, TableColumnType, Tag, Typography } from "antd";
 import { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
-import {
-  AdminApi,
-  CertificateRef,
-  NamespaceKind,
-  ResourceKind,
-} from "../generated";
+import { AdminApi, CertificateRef, NamespaceKind } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { CertWebEnroll } from "./CertWebEnroll";
 import {
@@ -119,10 +114,6 @@ export default function CertPolicyPage() {
       <Typography.Title>
         Certificate Policy: {certPolicyId || "new policy"}
       </Typography.Title>
-      <div className="font-mono">
-        {namespaceKind}:{namespaceId}:{ResourceKind.ResourceKindCertPolicy}/
-        {certPolicyId}
-      </div>
       <Card title="Certificate list">
         <Table<CertificateRef>
           columns={certListColumns}

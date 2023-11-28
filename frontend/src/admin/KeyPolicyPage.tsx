@@ -3,7 +3,7 @@ import { Card, Typography } from "antd";
 import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
-import { AdminApi, ResourceKind } from "../generated";
+import { AdminApi } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
 import { NamespaceContext } from "./contexts/NamespaceContext";
 
@@ -33,14 +33,6 @@ export default function KeyPolicyPage() {
       <Typography.Title>
         Key Policy: {policyId || "new policy"}
       </Typography.Title>
-      {policyId && (
-        <>
-          <div className="font-mono">
-            {namespaceKind}:{namespaceIdentifier}:
-            {ResourceKind.ResourceKindKeyPolicy}/{policyId}
-          </div>
-        </>
-      )}
       <Card title="Current certificate policy">
         <JsonDataDisplay data={data} />
       </Card>

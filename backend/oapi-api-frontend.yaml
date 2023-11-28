@@ -34,16 +34,12 @@ paths:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1containers~1{containerId}~1stop"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1images"
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info:
-    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1info"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1networks"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1pull-image"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1launch-agent"
-  /v1/profile/{profileResourceKind}/{namespaceId}:
-    $ref: "oapi-profile.yaml#/paths/~1v1~1profile~1{profileResourceKind}~1{namespaceId}"
   /v1/{namespaceKind}/{namespaceId}/certificates:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates"
   /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:

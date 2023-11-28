@@ -37,9 +37,7 @@ import type {
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind,
-  ProfileRef,
   PullImageRequest,
-  ResourceKind,
   Secret,
   SecretPolicy,
   SecretPolicyParameters,
@@ -91,12 +89,8 @@ import {
     ManagedAppRefToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
-    ProfileRefFromJSON,
-    ProfileRefToJSON,
     PullImageRequestFromJSON,
     PullImageRequestToJSON,
-    ResourceKindFromJSON,
-    ResourceKindToJSON,
     SecretFromJSON,
     SecretToJSON,
     SecretPolicyFromJSON,
@@ -141,13 +135,6 @@ export interface AgentDockerContainerStopRequest {
 }
 
 export interface AgentDockerImageListRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    xCryptocatProxyAuthorization?: string;
-}
-
-export interface AgentDockerInfoRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     resourceId: string;
@@ -234,11 +221,6 @@ export interface GetKeyPolicyRequest {
 
 export interface GetManagedAppRequest {
     managedAppId: string;
-}
-
-export interface GetProfileRequest {
-    profileResourceKind: ResourceKind;
-    namespaceId: string;
 }
 
 export interface GetSecretRequest {
@@ -610,56 +592,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentDockerImageList(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.agentDockerImageListRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get docker system info
-     */
-    async agentDockerInfoRaw(requestParameters: AgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerInfo.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerInfo.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerInfo.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
-            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse<any>(response);
-    }
-
-    /**
-     * Get docker system info
-     */
-    async agentDockerInfo(requestParameters: AgentDockerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
-        const response = await this.agentDockerInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1294,48 +1226,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getManagedApp(requestParameters: GetManagedAppRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ManagedAppRef> {
         const response = await this.getManagedAppRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get profile
-     */
-    async getProfileRaw(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ProfileRef>> {
-        if (requestParameters.profileResourceKind === null || requestParameters.profileResourceKind === undefined) {
-            throw new runtime.RequiredError('profileResourceKind','Required parameter requestParameters.profileResourceKind was null or undefined when calling getProfile.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getProfile.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/profile/{profileResourceKind}/{namespaceId}`.replace(`{${"profileResourceKind"}}`, encodeURIComponent(String(requestParameters.profileResourceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProfileRefFromJSON(jsonValue));
-    }
-
-    /**
-     * Get profile
-     */
-    async getProfile(requestParameters: GetProfileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ProfileRef> {
-        const response = await this.getProfileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

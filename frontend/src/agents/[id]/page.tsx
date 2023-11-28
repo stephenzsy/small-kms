@@ -9,9 +9,9 @@ import {
   TabsProps,
   Typography,
 } from "antd";
-import { useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useContext, useEffect, useMemo } from "react";
 import { ResourceRefsSelect } from "../../admin/ResourceRefsSelect";
+import { AgentContext } from "../../admin/contexts/AgentContext";
 import { NamespaceContext } from "../../admin/contexts/NamespaceContext";
 import { useNamespace } from "../../admin/contexts/useNamespace";
 import { ResourceRefsTable } from "../../admin/tables/ResourceRefsTable";
@@ -28,27 +28,10 @@ import {
   NamespaceProvider,
   Ref as ResourceRef,
 } from "../../generated/apiv2";
-import { useAdminApi, useAuthedClientV2 } from "../../utils/useCertsApi";
-
-function useAgent(agentId: string | undefined) {
-  const api = useAuthedClientV2(AdminApi);
-  return useRequest(
-    async () => {
-      if (agentId) {
-        return api.getAgent({
-          id: agentId,
-        });
-      }
-    },
-    {
-      refreshDeps: [agentId],
-    }
-  );
-}
+import { useAdminApi } from "../../utils/useCertsApi";
 
 export default function AgentPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data: agent } = useAgent(id);
+  const { agent } = useContext(AgentContext);
 
   const tabItems = useMemo(
     (): TabsProps["items"] => [
@@ -249,6 +232,15 @@ function AgentDashboardCards() {
         key: "state",
         render: (state: AgentInstanceRef["state"]) => {
           return <span className="capitalize">{state}</span>;
+        },
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        render: (instance: AgentInstanceRef) => {
+          return (
+            <Link to={`./instances/${instance.id}/dashboard`}>Dashboard</Link>
+          );
         },
       },
     ],

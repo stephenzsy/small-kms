@@ -56,7 +56,6 @@ models/RadiusEapTls.ts
 models/RadiusServerConfig.ts
 models/RadiusServerListenConfig.ts
 models/RadiusServerListenerType.ts
-models/ResourceKind.ts
 models/ResourceReference.ts
 models/Secret.ts
 models/SecretFields.ts

@@ -172,6 +172,16 @@ export interface GetAgentDiagnosticsRequest {
     id: string;
 }
 
+export interface GetAgentDockerSystemInformationRequest {
+    namespaceId: string;
+    id: string;
+}
+
+export interface GetAgentInstanceRequest {
+    namespaceId: string;
+    id: string;
+}
+
 export interface GetCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -844,6 +854,90 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgentDiagnostics(requestParameters: GetAgentDiagnosticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
         const response = await this.getAgentDiagnosticsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent docker system information
+     */
+    async getAgentDockerSystemInformationRaw(requestParameters: GetAgentDockerSystemInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentDockerSystemInformation.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgentDockerSystemInformation.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get agent docker system information
+     */
+    async getAgentDockerSystemInformation(requestParameters: GetAgentDockerSystemInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.getAgentDockerSystemInformationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get agent instance
+     */
+    async getAgentInstanceRaw(requestParameters: GetAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentInstance>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentInstance.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgentInstance.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentInstanceFromJSON(jsonValue));
+    }
+
+    /**
+     * Get agent instance
+     */
+    async getAgentInstance(requestParameters: GetAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentInstance> {
+        const response = await this.getAgentInstanceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -13,6 +13,7 @@ import { NamespaceKind } from "./generated";
 import { NamespaceProvider } from "./generated/apiv2";
 import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
+import { AgentContextProvider } from "./agents/[id]/AgentContextProvider";
 
 const ProfilesPage = React.lazy(() => import("./admin/ProfilesPage"));
 const AgentPage = React.lazy(() => import("./agents/[id]/page"));
@@ -36,7 +37,7 @@ const ProvisionAgentPage = React.lazy(
   () => import("./admin/ProvisionAgentPage")
 );
 const AgentDashboardPage = React.lazy(
-  () => import("./admin/AgentDashboardPage")
+  () => import("./agents/[id]/dashboard/page")
 );
 const RadiusConfigPage = React.lazy(() => import("./admin/RadiusConfigPage"));
 const KeyPage = React.lazy(() => import("./keys/[id]/page"));
@@ -79,7 +80,21 @@ export const router = createBrowserRouter([
           },
           {
             path: ":id",
-            element: <AgentPage />,
+            element: (
+              <AgentContextProvider>
+                <Outlet />
+              </AgentContextProvider>
+            ),
+            children: [
+              {
+                index: true,
+                element: <AgentPage />,
+              },
+              {
+                path: "instances/:instanceId/dashboard",
+                element: <AgentDashboardPage />,
+              },
+            ],
           },
         ],
       },
@@ -223,10 +238,6 @@ export const router = createBrowserRouter([
                   {
                     path: "cert/:certId",
                     element: <CertificatePage />,
-                  },
-                  {
-                    path: "agent/:instanceId/dashboard",
-                    element: <AgentDashboardPage />,
                   },
                 ],
               },

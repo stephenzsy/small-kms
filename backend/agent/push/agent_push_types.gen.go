@@ -22,9 +22,6 @@ type DockerContainerJSON = types.ContainerJSON
 // DockerImageSummary defines model for DockerImageSummary.
 type DockerImageSummary = types.ImageSummary
 
-// DockerInfo defines model for DockerInfo.
-type DockerInfo = types.Info
-
 // DockerNetworkResource defines model for DockerNetworkResource.
 type DockerNetworkResource = types.NetworkResource
 
@@ -83,11 +80,6 @@ type AgentDockerContainerStopParams struct {
 
 // AgentDockerImageListParams defines parameters for AgentDockerImageList.
 type AgentDockerImageListParams struct {
-	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
-}
-
-// AgentDockerInfoParams defines parameters for AgentDockerInfo.
-type AgentDockerInfoParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

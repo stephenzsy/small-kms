@@ -154,6 +154,11 @@ components:
       required:
         - tlsCertificatePolicyId
         - jwtVerifyKeyPolicyId
+    DockerInfo:
+      type: object
+      x-go-type: types.Info
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"        
   responses:
     AgentResponse:
       description: Agent response

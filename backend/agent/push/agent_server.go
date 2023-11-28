@@ -151,7 +151,7 @@ func (s *agentServer) GetAgentDiagnostics(ec echo.Context, _ string, _ string) e
 }
 
 // GetDockerInfo implements ServerInterface.
-func (s *agentServer) AgentDockerInfo(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerInfoParams) error {
+func (s *agentServer) GetAgentDockerSystemInformation(ec echo.Context, _, _ string) error {
 	c := ec.(ctx.RequestContext)
 
 	info, err := s.dockerClient.Info(c)

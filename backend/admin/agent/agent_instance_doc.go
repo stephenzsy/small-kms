@@ -20,8 +20,9 @@ func (doc *AgentInstanceDoc) ToRef() (m *agentmodels.AgentInstanceRef) {
 	if doc == nil {
 		return nil
 	}
-	m = &agentmodels.AgentInstanceRef{}
-	m.Ref = doc.ResourceDoc.ToRef()
+	m = &agentmodels.AgentInstanceRef{
+		Ref: doc.ResourceDoc.ToRef(),
+	}
 	m.Endpoint = doc.Endpoint
 	m.State = doc.State
 	m.ConfigVersion = doc.ConfigVersion

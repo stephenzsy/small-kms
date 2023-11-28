@@ -14,7 +14,6 @@ import { useParams } from "react-router-dom";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import {
   AdminApi,
-  ResourceKind,
   SecretGenerateMode,
   SecretPolicyParameters,
 } from "../generated";
@@ -184,10 +183,6 @@ export default function SecretPolicyPage() {
       <Typography.Title>
         Secret Policy: {policyId || "new policy"}
       </Typography.Title>
-      <div className="font-mono">
-        {namespaceKind}:{namespaceIdentifier}:
-        {ResourceKind.ResourceKindCertPolicy}/{policyId}
-      </div>
       <Card title="Manage secrets">
         {policyId && (
           <GenerateSecretControl

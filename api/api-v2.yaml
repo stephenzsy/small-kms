@@ -606,6 +606,20 @@ paths:
           $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetAgentInstance
+      summary: Get agent instance
+      responses:
+        200:
+          $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -619,6 +633,23 @@ paths:
       responses:
         "200":
           $ref: "models-shared.yaml#/components/responses/RequestDiagnosticsResponse"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+        - agent
+      summary: Get agent docker system information
+      operationId: GetAgentDockerSystemInformation
+      responses:
+        "200":
+          description: Docker info
+          content:
+            application/json:
+              schema:
+                $ref: "models-agent.yaml#/components/schemas/DockerInfo"
 components:
   parameters:
     IdParameter:

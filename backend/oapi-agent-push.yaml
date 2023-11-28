@@ -105,25 +105,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DockerImageSummary"
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/info:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
-    get:
-      tags:
-        - agent
-        - admin
-      description: Get docker system info
-      operationId: AgentDockerInfo
-      responses:
-        200:
-          description: DockerInfo
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DockerInfo"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -226,11 +207,6 @@ components:
     DockerContainerJSON:
       type: object
       x-go-type: types.ContainerJSON
-      x-go-type-import:
-        path: "github.com/docker/docker/api/types"
-    DockerInfo:
-      type: object
-      x-go-type: types.Info
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
     DockerImageSummary:

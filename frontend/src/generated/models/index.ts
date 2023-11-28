@@ -55,7 +55,6 @@ export * from './RadiusEapTls';
 export * from './RadiusServerConfig';
 export * from './RadiusServerListenConfig';
 export * from './RadiusServerListenerType';
-export * from './ResourceKind';
 export * from './ResourceReference';
 export * from './Secret';
 export * from './SecretFields';

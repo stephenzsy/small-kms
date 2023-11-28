@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/oapi-codegen/runtime"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 )
@@ -115,6 +116,9 @@ type CreateAgentRequest struct {
 	// DisplayName The display name of the agent application
 	DisplayName string `json:"displayName,omitempty"`
 }
+
+// DockerInfo defines model for DockerInfo.
+type DockerInfo = types.Info
 
 // AgentConfigResponse defines model for AgentConfigResponse.
 type AgentConfigResponse = AgentConfig

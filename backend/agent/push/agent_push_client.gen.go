@@ -108,9 +108,6 @@ type ClientInterface interface {
 	// AgentDockerImageList request
 	AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// AgentDockerInfo request
-	AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AgentDockerNetworkList request
 	AgentDockerNetworkList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -187,18 +184,6 @@ func (c *Client) AgentDockerContainerStop(ctx context.Context, namespaceKind ext
 
 func (c *Client) AgentDockerImageList(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAgentDockerImageListRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AgentDockerInfo(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentDockerInfoRequest(c.Server, namespaceKind, namespaceId, resourceId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -668,69 +653,6 @@ func NewAgentDockerImageListRequest(server string, namespaceKind externalRef0.Na
 	return req, nil
 }
 
-// NewAgentDockerInfoRequest generates requests for AgentDockerInfo
-func NewAgentDockerInfoRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/docker/info", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-
-		if params.XCryptocatProxyAuthorization != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
-		}
-
-	}
-
-	return req, nil
-}
-
 // NewAgentDockerNetworkListRequest generates requests for AgentDockerNetworkList
 func NewAgentDockerNetworkListRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams) (*http.Request, error) {
 	var err error
@@ -1007,9 +929,6 @@ type ClientWithResponsesInterface interface {
 	// AgentDockerImageListWithResponse request
 	AgentDockerImageListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerImageListParams, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error)
 
-	// AgentDockerInfoWithResponse request
-	AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error)
-
 	// AgentDockerNetworkListWithResponse request
 	AgentDockerNetworkListWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerNetworkListParams, reqEditors ...RequestEditorFn) (*AgentDockerNetworkListResponse, error)
 
@@ -1153,28 +1072,6 @@ func (r AgentDockerImageListResponse) StatusCode() int {
 	return 0
 }
 
-type AgentDockerInfoResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *DockerInfo
-}
-
-// Status returns HTTPResponse.Status
-func (r AgentDockerInfoResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AgentDockerInfoResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type AgentDockerNetworkListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1292,15 +1189,6 @@ func (c *ClientWithResponses) AgentDockerImageListWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseAgentDockerImageListResponse(rsp)
-}
-
-// AgentDockerInfoWithResponse request returning *AgentDockerInfoResponse
-func (c *ClientWithResponses) AgentDockerInfoWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentDockerInfoParams, reqEditors ...RequestEditorFn) (*AgentDockerInfoResponse, error) {
-	rsp, err := c.AgentDockerInfo(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAgentDockerInfoResponse(rsp)
 }
 
 // AgentDockerNetworkListWithResponse request returning *AgentDockerNetworkListResponse
@@ -1462,32 +1350,6 @@ func ParseAgentDockerImageListResponse(rsp *http.Response) (*AgentDockerImageLis
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []DockerImageSummary
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAgentDockerInfoResponse parses an HTTP response from a AgentDockerInfoWithResponse call
-func ParseAgentDockerInfoResponse(rsp *http.Response) (*AgentDockerInfoResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AgentDockerInfoResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DockerInfo
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
