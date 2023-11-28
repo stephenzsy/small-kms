@@ -154,6 +154,11 @@ components:
       required:
         - tlsCertificatePolicyId
         - jwtVerifyKeyPolicyId
+    DockerImageSummary:
+      type: object
+      x-go-type: types.ImageSummary
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"        
     DockerInfo:
       type: object
       x-go-type: types.Info

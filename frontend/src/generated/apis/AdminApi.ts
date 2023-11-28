@@ -131,13 +131,6 @@ export interface AgentDockerContainerStopRequest {
     xCryptocatProxyAuthorization?: string;
 }
 
-export interface AgentDockerImageListRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    xCryptocatProxyAuthorization?: string;
-}
-
 export interface AgentDockerNetworkListRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -534,56 +527,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async agentDockerContainerStop(requestParameters: AgentDockerContainerStopRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.agentDockerContainerStopRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * List docker images
-     */
-    async agentDockerImageListRaw(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentDockerImageList.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerImageList.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentDockerImageList.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
-            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse<any>(response);
-    }
-
-    /**
-     * List docker images
-     */
-    async agentDockerImageList(requestParameters: AgentDockerImageListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
-        const response = await this.agentDockerImageListRaw(requestParameters, initOverrides);
-        return await response.value();
     }
 
     /**

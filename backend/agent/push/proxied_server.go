@@ -114,15 +114,6 @@ func (s *proxiedServer) AgentDockerContainerList(ec echo.Context, namespaceKind 
 	})
 }
 
-// AgentDockerImageList implements ServerInterface.
-func (s *proxiedServer) AgentDockerImageList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
-	rID base.ID,
-	params AgentDockerImageListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerImageListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
-	})
-}
-
 // AgentPullImage implements ServerInterface.
 func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
 	rID base.ID,

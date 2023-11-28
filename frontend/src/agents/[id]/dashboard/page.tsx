@@ -603,11 +603,29 @@ type InstanceProps = {
   namespaceId: string;
   instanceId: string;
 };
+
 function DockerSystemInfo({ namespaceId, instanceId }: InstanceProps) {
   const api = useAdminApi();
   const { data } = useRequest(
     async () => {
       return await api?.getAgentDockerSystemInformation({
+        namespaceId,
+        id: instanceId,
+      });
+    },
+    {
+      refreshDeps: [namespaceId, instanceId],
+    }
+  );
+
+  return <JsonDataDisplay data={data} />;
+}
+
+function DockerImagesList({ namespaceId, instanceId }: InstanceProps) {
+  const api = useAdminApi();
+  const { data } = useRequest(
+    async () => {
+      return await api?.listAgentDockerImages({
         namespaceId,
         id: instanceId,
       });
@@ -738,18 +756,23 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
       {/* <ContainersTableCard api={api} /> */}
       <Card title="View">
         <div className="flex flex-col gap-4 items-start">
-          {/* <Button
+          <Button
             type="link"
             onClick={() => {
-              openDrawer({
-                title: "Docker images",
-                onGetData: getDockerImages,
-              });
+              openDrawer(
+                <DockerImagesList
+                  instanceId={instanceId}
+                  namespaceId={namespaceId}
+                />,
+                {
+                  title: "Docker images",
+                  size: "large",
+                }
+              );
             }}
-            disabled={!hasToken}
           >
             List Docker images
-          </Button> */}
+          </Button>
           {/* <Button
             type="link"
             onClick={() => {

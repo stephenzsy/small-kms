@@ -12,7 +12,6 @@ paths:
     get:
       tags:
         - admin
-        - agent
       summary: Get diagnostics
       operationId: GetDiagnostics
       responses:
@@ -633,6 +632,25 @@ paths:
       responses:
         "200":
           $ref: "models-shared.yaml#/components/responses/RequestDiagnosticsResponse"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/images:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"    
+    get:
+      tags:
+        - agent
+        - admin
+      description: List docker images
+      operationId: ListAgentDockerImages
+      responses:
+        200:
+          description: ImageList
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "models-agent.yaml#/components/schemas/DockerImageSummary"
   /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

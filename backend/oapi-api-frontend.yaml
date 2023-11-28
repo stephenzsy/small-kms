@@ -32,8 +32,6 @@ paths:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1containers~1{containerId}"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}/stop:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1containers~1{containerId}~1stop"
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images:
-    $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1images"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks:
     $ref: "oapi-agent-push.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1agent~1instance~1{resourceId}~1docker~1networks"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image:

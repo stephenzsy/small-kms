@@ -104,18 +104,18 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetDiagnostics request
-	GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetAgentDiagnostics request
 	GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAgentDockerImages request
+	ListAgentDockerImages(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAgentDockerSystemInformation request
 	GetAgentDockerSystemInformation(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDiagnosticsRequest(c.Server)
+func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +126,8 @@ func (c *Client) GetDiagnostics(ctx context.Context, reqEditors ...RequestEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceId, id)
+func (c *Client) ListAgentDockerImages(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAgentDockerImagesRequest(c.Server, namespaceId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -148,33 +148,6 @@ func (c *Client) GetAgentDockerSystemInformation(ctx context.Context, namespaceI
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewGetDiagnosticsRequest generates requests for GetDiagnostics
-func NewGetDiagnosticsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v2/diagnostics")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewGetAgentDiagnosticsRequest generates requests for GetAgentDiagnostics
@@ -201,6 +174,47 @@ func NewGetAgentDiagnosticsRequest(server string, namespaceId NamespaceIdParamet
 	}
 
 	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-instances/%s/diagnostics", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAgentDockerImagesRequest generates requests for ListAgentDockerImages
+func NewListAgentDockerImagesRequest(server string, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-instances/%s/docker/images", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -302,36 +316,14 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetDiagnosticsWithResponse request
-	GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error)
-
 	// GetAgentDiagnosticsWithResponse request
 	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
 
+	// ListAgentDockerImagesWithResponse request
+	ListAgentDockerImagesWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*ListAgentDockerImagesResponse, error)
+
 	// GetAgentDockerSystemInformationWithResponse request
 	GetAgentDockerSystemInformationWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDockerSystemInformationResponse, error)
-}
-
-type GetDiagnosticsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.RequestDiagnosticsResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetDiagnosticsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetDiagnosticsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type GetAgentDiagnosticsResponse struct {
@@ -350,6 +342,28 @@ func (r GetAgentDiagnosticsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAgentDiagnosticsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAgentDockerImagesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef1.DockerImageSummary
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAgentDockerImagesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAgentDockerImagesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -378,15 +392,6 @@ func (r GetAgentDockerSystemInformationResponse) StatusCode() int {
 	return 0
 }
 
-// GetDiagnosticsWithResponse request returning *GetDiagnosticsResponse
-func (c *ClientWithResponses) GetDiagnosticsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDiagnosticsResponse, error) {
-	rsp, err := c.GetDiagnostics(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetDiagnosticsResponse(rsp)
-}
-
 // GetAgentDiagnosticsWithResponse request returning *GetAgentDiagnosticsResponse
 func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error) {
 	rsp, err := c.GetAgentDiagnostics(ctx, namespaceId, id, reqEditors...)
@@ -396,6 +401,15 @@ func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Contex
 	return ParseGetAgentDiagnosticsResponse(rsp)
 }
 
+// ListAgentDockerImagesWithResponse request returning *ListAgentDockerImagesResponse
+func (c *ClientWithResponses) ListAgentDockerImagesWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*ListAgentDockerImagesResponse, error) {
+	rsp, err := c.ListAgentDockerImages(ctx, namespaceId, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAgentDockerImagesResponse(rsp)
+}
+
 // GetAgentDockerSystemInformationWithResponse request returning *GetAgentDockerSystemInformationResponse
 func (c *ClientWithResponses) GetAgentDockerSystemInformationWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDockerSystemInformationResponse, error) {
 	rsp, err := c.GetAgentDockerSystemInformation(ctx, namespaceId, id, reqEditors...)
@@ -403,32 +417,6 @@ func (c *ClientWithResponses) GetAgentDockerSystemInformationWithResponse(ctx co
 		return nil, err
 	}
 	return ParseGetAgentDockerSystemInformationResponse(rsp)
-}
-
-// ParseGetDiagnosticsResponse parses an HTTP response from a GetDiagnosticsWithResponse call
-func ParseGetDiagnosticsResponse(rsp *http.Response) (*GetDiagnosticsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetDiagnosticsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.RequestDiagnosticsResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseGetAgentDiagnosticsResponse parses an HTTP response from a GetAgentDiagnosticsWithResponse call
@@ -447,6 +435,32 @@ func ParseGetAgentDiagnosticsResponse(rsp *http.Response) (*GetAgentDiagnosticsR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest externalRef0.RequestDiagnosticsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAgentDockerImagesResponse parses an HTTP response from a ListAgentDockerImagesWithResponse call
+func ParseListAgentDockerImagesResponse(rsp *http.Response) (*ListAgentDockerImagesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAgentDockerImagesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef1.DockerImageSummary
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -485,12 +499,12 @@ func ParseGetAgentDockerSystemInformationResponse(rsp *http.Response) (*GetAgent
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get diagnostics
-	// (GET /v2/diagnostics)
-	GetDiagnostics(ctx echo.Context) error
 	// Get agent diagnostics
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics)
 	GetAgentDiagnostics(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+
+	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/images)
+	ListAgentDockerImages(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Get agent docker system information
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info)
 	GetAgentDockerSystemInformation(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -499,17 +513,6 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
-}
-
-// GetDiagnostics converts echo context to params.
-func (w *ServerInterfaceWrapper) GetDiagnostics(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetDiagnostics(ctx)
-	return err
 }
 
 // GetAgentDiagnostics converts echo context to params.
@@ -535,6 +538,32 @@ func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentDiagnostics(ctx, namespaceId, id)
+	return err
+}
+
+// ListAgentDockerImages converts echo context to params.
+func (w *ServerInterfaceWrapper) ListAgentDockerImages(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListAgentDockerImages(ctx, namespaceId, id)
 	return err
 }
 
@@ -592,8 +621,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/v2/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.ListAgentDockerImages)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/info", wrapper.GetAgentDockerSystemInformation)
 
 }

@@ -84,27 +84,6 @@ paths:
         204:
           description: Container stop result
           content: {}
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/images:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
-    get:
-      tags:
-        - agent
-        - admin
-      description: List docker images
-      operationId: AgentDockerImageList
-      responses:
-        200:
-          description: ImageList
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DockerImageSummary"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/networks:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
@@ -207,11 +186,6 @@ components:
     DockerContainerJSON:
       type: object
       x-go-type: types.ContainerJSON
-      x-go-type-import:
-        path: "github.com/docker/docker/api/types"
-    DockerImageSummary:
-      type: object
-      x-go-type: types.ImageSummary
       x-go-type-import:
         path: "github.com/docker/docker/api/types"
     DockerNetworkResource:

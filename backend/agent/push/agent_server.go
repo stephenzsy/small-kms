@@ -81,7 +81,7 @@ func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.Namespace
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerImageList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerImageListParams) error {
+func (s *agentServer) ListAgentDockerImages(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)
 
 	images, err := s.dockerClient.ImageList(c, types.ImageListOptions{
