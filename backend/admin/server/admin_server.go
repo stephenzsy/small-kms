@@ -1,6 +1,8 @@
 package adminserver
 
 import (
+	"net/http"
+
 	echo "github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/admin"
 	agentadmin "github.com/stephenzsy/small-kms/backend/admin/agent"
@@ -25,17 +27,17 @@ type server struct {
 
 // CreateExternalCertificateIssuer implements admin.ServerInterface.
 func (*server) CreateExternalCertificateIssuer(ctx echo.Context, namespaceId string) error {
-	panic("unimplemented")
+	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // ListExternalCertificateIssuers implements admin.ServerInterface.
 func (*server) ListExternalCertificateIssuers(ctx echo.Context, namespaceId string) error {
-	panic("unimplemented")
+	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // GetMemberGroup implements admin.ServerInterface.
 func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
-	panic("unimplemented")
+	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 var _ admin.ServerInterface = (*server)(nil)

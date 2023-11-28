@@ -38,8 +38,6 @@ models/KeyPolicy.ts
 models/KeyPolicyFields.ts
 models/KeyPolicyRef.ts
 models/KeyPolicyRefFields.ts
-models/KeyRef.ts
-models/KeyRefFields.ts
 models/KeySpec.ts
 models/LaunchAgentRequest.ts
 models/LifetimeAction.ts

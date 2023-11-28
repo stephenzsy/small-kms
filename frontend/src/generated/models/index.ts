@@ -37,8 +37,6 @@ export * from './KeyPolicy';
 export * from './KeyPolicyFields';
 export * from './KeyPolicyRef';
 export * from './KeyPolicyRefFields';
-export * from './KeyRef';
-export * from './KeyRefFields';
 export * from './KeySpec';
 export * from './LaunchAgentRequest';
 export * from './LifetimeAction';

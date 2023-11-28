@@ -142,12 +142,6 @@ type KeyPolicyResponse = KeyPolicy
 // KeyResponse defines model for KeyResponse.
 type KeyResponse = Key
 
-// ListKeysParams defines parameters for ListKeys.
-type ListKeysParams struct {
-	// PolicyId Policy ID
-	PolicyId *string `form:"policyId,omitempty" json:"policyId,omitempty"`
-}
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List key policies
@@ -156,9 +150,6 @@ type ServerInterface interface {
 	// Get key spec
 	// (GET /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId})
 	GetKeyPolicy(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter) error
-	// List keys
-	// (GET /v1/{namespaceKind}/{namespaceId}/keys)
-	ListKeys(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, params ListKeysParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -226,41 +217,6 @@ func (w *ServerInterfaceWrapper) GetKeyPolicy(ctx echo.Context) error {
 	return err
 }
 
-// ListKeys converts echo context to params.
-func (w *ServerInterfaceWrapper) ListKeys(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListKeysParams
-	// ------------- Optional query parameter "policyId" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "policyId", ctx.QueryParams(), &params.PolicyId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter policyId: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListKeys(ctx, namespaceKind, namespaceId, params)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -291,6 +247,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/key-policies/:resourceId", wrapper.GetKeyPolicy)
-	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/keys", wrapper.ListKeys)
 
 }

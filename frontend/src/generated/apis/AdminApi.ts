@@ -32,7 +32,6 @@ import type {
   CertificateRuleIssuer,
   KeyPolicy,
   KeyPolicyRef,
-  KeyRef,
   LaunchAgentRequest,
   ManagedAppParameters,
   ManagedAppRef,
@@ -79,8 +78,6 @@ import {
     KeyPolicyToJSON,
     KeyPolicyRefFromJSON,
     KeyPolicyRefToJSON,
-    KeyRefFromJSON,
-    KeyRefToJSON,
     LaunchAgentRequestFromJSON,
     LaunchAgentRequestToJSON,
     ManagedAppParametersFromJSON,
@@ -268,12 +265,6 @@ export interface ListKeyVaultRoleAssignmentsRequest {
     namespaceId: string;
     resourceId: string;
     resourceCategory: AzureKeyvaultResourceCategory;
-}
-
-export interface ListKeysRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    policyId?: string;
 }
 
 export interface ListSecretPoliciesRequest {
@@ -1590,52 +1581,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listKeyVaultRoleAssignments(requestParameters: ListKeyVaultRoleAssignmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AzureRoleAssignment>> {
         const response = await this.listKeyVaultRoleAssignmentsRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * List keys
-     */
-    async listKeysRaw(requestParameters: ListKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<KeyRef>>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling listKeys.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listKeys.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.policyId !== undefined) {
-            queryParameters['policyId'] = requestParameters.policyId;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/keys`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(KeyRefFromJSON));
-    }
-
-    /**
-     * List keys
-     */
-    async listKeys(requestParameters: ListKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<KeyRef>> {
-        const response = await this.listKeysRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

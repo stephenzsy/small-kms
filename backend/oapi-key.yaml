@@ -37,31 +37,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/KeyPolicyResponse"
-  /v1/{namespaceKind}/{namespaceId}/keys:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-    get:
-      tags:
-        - admin
-      operationId: ListKeys
-      summary: List keys
-      parameters:
-        - name: policyId
-          in: query
-          description: Policy ID
-          required: false
-          schema:
-            type: string
-      responses:
-        200:
-          description: List of keys
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/KeyRef"
 security:
   - BearerAuth: []
 components:
