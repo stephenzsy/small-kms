@@ -1,17 +1,16 @@
 import { useRequest } from "ahooks";
-import { AdminApi } from "../../generated/apiv2";
-import { useAuthedClientV2 } from "../../utils/useCertsApi";
+import { useAdminApi } from "../../utils/useCertsApi";
 
 export function useSystemAppRequest(systemAppName: string) {
-  const adminApi = useAuthedClientV2(AdminApi);
+  const adminApi = useAdminApi();
   return useRequest(
-    (isSync?: boolean) => {
+    async (isSync?: boolean) => {
       if (isSync) {
-        return adminApi.syncSystemApp({
+        return adminApi?.syncSystemApp({
           id: systemAppName,
         });
       }
-      return adminApi.getSystemApp({
+      return adminApi?.getSystemApp({
         id: systemAppName,
       });
     },

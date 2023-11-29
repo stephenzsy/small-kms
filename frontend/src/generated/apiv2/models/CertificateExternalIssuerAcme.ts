@@ -48,7 +48,7 @@ export interface CertificateExternalIssuerAcme {
      * @type {string}
      * @memberof CertificateExternalIssuerAcme
      */
-    azureDnsZoneName: string;
+    azureDnsZoneResourceId: string;
 }
 
 /**
@@ -60,7 +60,7 @@ export function instanceOfCertificateExternalIssuerAcme(value: object): boolean 
     isInstance = isInstance && "accountKeyId" in value;
     isInstance = isInstance && "accountUrl" in value;
     isInstance = isInstance && "contacts" in value;
-    isInstance = isInstance && "azureDnsZoneName" in value;
+    isInstance = isInstance && "azureDnsZoneResourceId" in value;
 
     return isInstance;
 }
@@ -79,7 +79,7 @@ export function CertificateExternalIssuerAcmeFromJSONTyped(json: any, ignoreDisc
         'accountKeyId': json['accountKeyId'],
         'accountUrl': json['accountUrl'],
         'contacts': json['contacts'],
-        'azureDnsZoneName': json['azureDnsZoneName'],
+        'azureDnsZoneResourceId': json['azureDnsZoneResourceId'],
     };
 }
 
@@ -96,7 +96,7 @@ export function CertificateExternalIssuerAcmeToJSON(value?: CertificateExternalI
         'accountKeyId': value.accountKeyId,
         'accountUrl': value.accountUrl,
         'contacts': value.contacts,
-        'azureDnsZoneName': value.azureDnsZoneName,
+        'azureDnsZoneResourceId': value.azureDnsZoneResourceId,
     };
 }
 

@@ -176,12 +176,14 @@ export default function NamespacePage() {
         </Card>
       )}
       {showCertPolicies && <NamespacePoliciesTableCard type="cert" />}
-      {namespaceProvider ===
-        NamespaceProvider.NamespaceProviderServicePrincipal && (
-        <NamespacePoliciesTableCard type="key" />
-      )}
       {namespaceProvider === NamespaceProvider.NamespaceProviderExternalCA && (
         <NamespacePoliciesTableCard type="issuer" />
+      )}
+      {(namespaceProvider ===
+        NamespaceProvider.NamespaceProviderServicePrincipal ||
+        namespaceProvider ===
+          NamespaceProvider.NamespaceProviderExternalCA) && (
+        <NamespacePoliciesTableCard type="key" />
       )}
       {namespaceProvider === NamespaceProvider.NamespaceProviderUser && (
         <Card title="Certificates">

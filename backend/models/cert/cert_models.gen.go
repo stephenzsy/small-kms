@@ -32,11 +32,11 @@ type CertificateExternalIssuer = certificateExternalIssuerComposed
 
 // CertificateExternalIssuerAcme defines model for CertificateExternalIssuerAcme.
 type CertificateExternalIssuerAcme struct {
-	AccountKeyID     string   `json:"accountKeyId"`
-	AccountURL       string   `json:"accountUrl"`
-	AzureDNSZoneName string   `json:"azureDnsZoneName"`
-	Contacts         []string `json:"contacts"`
-	DirectoryURL     string   `json:"directoryUrl"`
+	AccountKeyID           string   `json:"accountKeyId"`
+	AccountURL             string   `json:"accountUrl"`
+	AzureDNSZoneResourceID string   `json:"azureDnsZoneResourceId"`
+	Contacts               []string `json:"contacts"`
+	DirectoryURL           string   `json:"directoryUrl"`
 }
 
 // CertificateExternalIssuerFields defines model for CertificateExternalIssuerFields.

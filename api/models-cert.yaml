@@ -102,15 +102,15 @@ components:
           type: array
           items:
             type: string
-        azureDnsZoneName:
+        azureDnsZoneResourceId:
           type: string
-          x-go-name: AzureDNSZoneName
+          x-go-name: AzureDNSZoneResourceID
       required:
         - directoryUrl
         - accountKeyId
         - accountUrl
         - contacts
-        - azureDnsZoneName
+        - azureDnsZoneResourceId
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"

@@ -49,7 +49,7 @@ export function NamespacePoliciesTableCard({
         : type === "key"
         ? "key-policies"
         : type === "issuer"
-        ? "external-issuer"
+        ? "cert-issuers"
         : ""
     }`;
   }, [type]);

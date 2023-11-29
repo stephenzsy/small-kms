@@ -140,10 +140,14 @@ paths:
       responses:
         200:
           $ref: "models-shared.yaml#/components/responses/RefsResponse"
+  /v2/external-ca/{namespaceId}/certificiate-issuers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
     post:
       tags:
         - admin
-      operationId: CreateExternalCertificateIssuer
+      operationId: PutExternalCertificateIssuer
       summary: Create certificate issuer
       requestBody:
         required: true
@@ -635,7 +639,7 @@ paths:
   /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/images:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
-      - $ref: "#/components/parameters/IdParameter"    
+      - $ref: "#/components/parameters/IdParameter"
     get:
       tags:
         - agent

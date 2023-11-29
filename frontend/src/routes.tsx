@@ -15,6 +15,9 @@ import AppLayout from "./Layout";
 import { RouteIds } from "./route-constants";
 import { AgentContextProvider } from "./agents/[id]/AgentContextProvider";
 
+const CertificateIssuerPage = React.lazy(
+  () => import("./cert-policies/[id]/CertificateIssuer")
+);
 const ProfilesPage = React.lazy(() => import("./admin/ProfilesPage"));
 const AgentPage = React.lazy(() => import("./agents/[id]/page"));
 const AgentsPage = React.lazy(() => import("./agents/page"));
@@ -109,6 +112,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <NamespacePage2 /> },
           { path: "cert-policies/:id", element: <CertPolicyPage2 /> },
+          { path: "cert-issuers/:id", element: <CertificateIssuerPage /> },
           { path: "certificates/:id", element: <CertificatePage /> },
           { path: "key-policies/:id", element: <KeyPolicyPage2 /> },
           { path: "keys/:id", element: <KeyPage /> },
@@ -153,17 +157,7 @@ export const router = createBrowserRouter([
                 <Outlet />
               </NamespaceContextRouteProvider>
             ),
-            children: [
-              { index: true, element: <NamespacePage /> },
-              {
-                path: "cert-policy/:certPolicyId",
-                element: <CertPolicyPage />,
-              },
-              {
-                path: "cert/:certId",
-                element: <CertificatePage />,
-              },
-            ],
+            children: [{ index: true, element: <NamespacePage /> }],
           },
         ],
       },
@@ -235,10 +229,6 @@ export const router = createBrowserRouter([
                     path: "secrets/:id",
                     element: <SecretPage />,
                   },
-                  {
-                    path: "cert/:certId",
-                    element: <CertificatePage />,
-                  },
                 ],
               },
             ],
@@ -260,10 +250,6 @@ export const router = createBrowserRouter([
                   {
                     path: "cert-policy/:certPolicyId",
                     element: <CertPolicyPage />,
-                  },
-                  {
-                    path: "cert/:certId",
-                    element: <CertificatePage />,
                   },
                 ],
               },

@@ -147,7 +147,7 @@ func (p *ProxyClientPool) GetClient(c context.Context, namespaceID string, insta
 		return nil, err
 	}
 
-	ck := cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, kv.GetAzKeyVaultService(c).AzKeysClient(), keyDoc.JsonWebKey.KeyID, cloudkey.SignatureAlgorithmES384, false)
+	ck := cloudkeyaz.NewAzCloudSignatureKeyWithKID(c, kv.GetAzKeyVaultService(c).AzKeysClient(), keyDoc.JsonWebKey.KeyID, cloudkey.SignatureAlgorithmES384, false, keyDoc.PublicKey())
 	identity := auth.GetAuthIdentity(c)
 	accessToken, exp, err := agentauth.NewSignedAgentAuthJWT(cloudkeyx.NewJWTSigningMethod(cloudkey.SignatureAlgorithmES384), identity.ClientPrincipalID().String(), instanceDoc.Endpoint, ck)
 	if err != nil {
