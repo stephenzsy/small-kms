@@ -1,6 +1,6 @@
 import { useRequest } from "ahooks";
 import React, { useContext } from "react";
-import { AdminApi, CertificateRuleIssuer } from "../../generated";
+import { AdminApi } from "../../generated";
 import { useAuthedClient } from "../../utils/useCertsApi";
 import { NamespaceConfigContext, NamespaceContext } from "./NamespaceContext";
 
@@ -15,14 +15,7 @@ export function NamespaceConfigContextProvider(
 
   const adminApi = useAuthedClient(AdminApi);
   const { data: issuer, run: setIssuer } = useRequest(
-    (params?: CertificateRuleIssuer) => {
-      if (params) {
-        return adminApi.putCertificateRuleIssuer({
-          namespaceId: namespaceIdentifier,
-          namespaceKind,
-          certificateRuleIssuer: params,
-        });
-      }
+    () => {
       return adminApi.getCertificateRuleIssuer({
         namespaceId: namespaceIdentifier,
         namespaceKind,

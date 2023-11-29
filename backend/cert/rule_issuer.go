@@ -44,27 +44,3 @@ func apiGetCertRuleIssuer(c ctx.RequestContext) error {
 	ruleDoc.PopulateModel(m)
 	return c.JSON(200, m)
 }
-
-func apiPutCertRuleIssuer(c ctx.RequestContext, p *CertificateRuleIssuer) error {
-	nsCtx := ns.GetNSContext(c)
-	docSvc := base.GetAzCosmosCRUDService(c)
-
-	ruleDoc := new(CertRuleIssuerDoc)
-	ruleDoc.init(nsCtx.Kind(), nsCtx.ID(), base.CertRuleNameIssuer)
-	ruleDoc.PolicyID = p.PolicyId
-	if p.CertificateId == "" {
-		if certIds, err := QueryLatestCertificateIdsIssuedByPolicy(c, base.NewDocLocator(nsCtx.Kind(), nsCtx.ID(), base.ResourceKindCertPolicy, p.PolicyId), 1); err != nil {
-			return err
-		} else if len(certIds) > 0 {
-			ruleDoc.CertificateID = certIds[0]
-		} else {
-			return fmt.Errorf("%w, no certificate issued by policy: %s", base.ErrResponseStatusNotFound, p.PolicyId)
-		}
-	} else {
-		ruleDoc.CertificateID = p.CertificateId
-	}
-	docSvc.Upsert(c, ruleDoc, nil)
-	m := new(CertificateRuleIssuer)
-	ruleDoc.PopulateModel(m)
-	return c.JSON(200, m)
-}

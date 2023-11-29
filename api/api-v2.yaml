@@ -144,6 +144,16 @@ paths:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
       - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - admin
+      operationId: GetExternalCertificateIssuer
+      summary: Get certificate issuer
+      responses:
+        200:
+          $ref: "models-cert.yaml#/components/responses/CertificateExternalIssuerResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
     post:
       tags:
         - admin

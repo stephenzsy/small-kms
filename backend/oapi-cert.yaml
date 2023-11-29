@@ -61,24 +61,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertificateRuleIssuer"
-    put:
-      tags:
-        - admin
-      operationId: PutCertificateRuleIssuer
-      summary: Update certificate rules for namespace
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertificateRuleIssuer"
-      responses:
-        200:
-          description: Certificate rules response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CertificateRuleIssuer"
   /v1/{namespaceKind}/{namespaceId}/cert-policy:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

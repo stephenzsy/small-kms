@@ -6,6 +6,7 @@ import {
   Divider,
   Form,
   Input,
+  Radio,
   Select,
   Typography,
 } from "antd";
@@ -74,10 +75,22 @@ function IssuerSelector({
   value?: string | undefined;
   onChange?: (value: string | undefined) => void;
 }) {
-  const issuerNamespaceProvider =
+  const issuerNamespaceProviderOverride =
     namespaceProvider === NamespaceProvider.NamespaceProviderIntermediateCA
       ? NamespaceProvider.NamespaceProviderRootCA
+      : namespaceProvider ===
+        NamespaceProvider.NamespaceProviderServicePrincipal
+      ? undefined
       : NamespaceProvider.NamespaceProviderIntermediateCA;
+
+  const [isserNamespaceProviderState, setIssuerNamespaceProviderState] =
+    useState<NamespaceProvider>(
+      issuerNamespaceProviderOverride ??
+        NamespaceProvider.NamespaceProviderIntermediateCA
+    );
+
+  const issuerNamespaceProvider =
+    issuerNamespaceProviderOverride ?? isserNamespaceProviderState;
 
   const { data } = useRequest(
     () => {
@@ -150,7 +163,28 @@ function IssuerSelector({
   return (
     <div>
       <Typography.Title level={4}>Issuer</Typography.Title>
-
+      {namespaceProvider ===
+        NamespaceProvider.NamespaceProviderServicePrincipal && (
+        <Form.Item label="Select issuer type">
+          <Radio.Group
+            value={isserNamespaceProviderState}
+            onChange={(e) => {
+              setIssuerNamespaceProviderState(e.target.value);
+              setSelectedNamespaceId(undefined);
+              onChange?.(undefined);
+            }}
+          >
+            <Radio.Button
+              value={NamespaceProvider.NamespaceProviderIntermediateCA}
+            >
+              Internal Intermediate CA
+            </Radio.Button>
+            <Radio.Button value={NamespaceProvider.NamespaceProviderExternalCA}>
+              External CA
+            </Radio.Button>
+          </Radio.Group>
+        </Form.Item>
+      )}
       <Form.Item label="Select issuer namespace">
         <Select
           options={options}

@@ -118,7 +118,12 @@ func (d *CertPolicyDoc) init(
 			if err != nil {
 				return fmt.Errorf("%w: invalid issuer policy identifier: %s", base.ErrResponseStatusBadRequest, p.IssuerPolicyIdentifier)
 			}
-			if parsed.NamespaceProvider != models.NamespaceProviderIntermediateCA {
+			switch parsed.NamespaceProvider {
+			case models.NamespaceProviderIntermediateCA:
+			// ok
+			case models.NamespaceProviderExternalCA:
+				d.IssuerPolicy.NamespaceProvider = models.NamespaceProviderExternalCA
+			default:
 				return fmt.Errorf("%w: issuer policy must be intermediate ca", base.ErrResponseStatusBadRequest)
 			}
 			d.IssuerPolicy.NamespaceID = parsed.NamespaceID

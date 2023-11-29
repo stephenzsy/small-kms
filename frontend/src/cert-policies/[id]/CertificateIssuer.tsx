@@ -2,7 +2,7 @@ import { useRequest } from "ahooks";
 import { Button, Card, Form, Input, SelectProps, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import Select, { DefaultOptionType } from "antd/es/select";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useNamespace } from "../../admin/contexts/useNamespace";
 import { CertificateExternalIssuerAcme } from "../../generated/apiv2";
@@ -73,8 +73,14 @@ function AcmeIssuerForm({ issuerId }: { issuerId: string }) {
   const { namespaceId } = useNamespace();
   const api = useAdminApi();
 
-  const { run } = useRequest(
-    async (acme: CertificateExternalIssuerAcme) => {
+  const { data, run } = useRequest(
+    async (acme?: CertificateExternalIssuerAcme) => {
+      if (!acme) {
+        return api?.getExternalCertificateIssuer({
+          id: issuerId,
+          namespaceId: namespaceId,
+        });
+      }
       return api?.putExternalCertificateIssuer({
         id: issuerId,
         namespaceId: namespaceId,
@@ -82,11 +88,14 @@ function AcmeIssuerForm({ issuerId }: { issuerId: string }) {
           acme,
         },
       });
-    },
-    {
-      manual: true,
     }
   );
+
+  useEffect(() => {
+    if (data?.acme) {
+      formInstance.setFieldsValue(data.acme);
+    }
+  }, [data, formInstance]);
 
   return (
     <Form
@@ -118,11 +127,7 @@ function AcmeIssuerForm({ issuerId }: { issuerId: string }) {
                       name={subField.name}
                       className="flex-auto"
                     >
-                      <Input
-                        placeholder="email@example.com"
-                        type="email"
-                        inputMode="email"
-                      />
+                      <Input placeholder="mailto:email@example.com" />
                     </Form.Item>
                     <Button
                       type="text"

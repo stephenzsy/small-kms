@@ -281,12 +281,6 @@ export interface PutAgentInstanceRequest {
     agentInstanceFields: AgentInstanceFields;
 }
 
-export interface PutCertificateRuleIssuerRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    certificateRuleIssuer: CertificateRuleIssuer;
-}
-
 export interface PutSecretPolicyRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
@@ -1734,55 +1728,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async putAgentInstance(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.putAgentInstanceRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * Update certificate rules for namespace
-     */
-    async putCertificateRuleIssuerRaw(requestParameters: PutCertificateRuleIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateRuleIssuer>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putCertificateRuleIssuer.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putCertificateRuleIssuer.');
-        }
-
-        if (requestParameters.certificateRuleIssuer === null || requestParameters.certificateRuleIssuer === undefined) {
-            throw new runtime.RequiredError('certificateRuleIssuer','Required parameter requestParameters.certificateRuleIssuer was null or undefined when calling putCertificateRuleIssuer.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/cert-rule/issuer`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CertificateRuleIssuerToJSON(requestParameters.certificateRuleIssuer),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateRuleIssuerFromJSON(jsonValue));
-    }
-
-    /**
-     * Update certificate rules for namespace
-     */
-    async putCertificateRuleIssuer(requestParameters: PutCertificateRuleIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleIssuer> {
-        const response = await this.putCertificateRuleIssuerRaw(requestParameters, initOverrides);
-        return await response.value();
     }
 
     /**

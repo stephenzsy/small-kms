@@ -196,6 +196,11 @@ export interface GetCertificatePolicyIssuerRequest {
     id: string;
 }
 
+export interface GetExternalCertificateIssuerRequest {
+    namespaceId: string;
+    id: string;
+}
+
 export interface GetKeyRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -1080,6 +1085,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getDiagnostics(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RequestDiagnostics> {
         const response = await this.getDiagnosticsRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get certificate issuer
+     */
+    async getExternalCertificateIssuerRaw(requestParameters: GetExternalCertificateIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateExternalIssuer>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getExternalCertificateIssuer.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getExternalCertificateIssuer.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/external-ca/{namespaceId}/certificiate-issuers/{id}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateExternalIssuerFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate issuer
+     */
+    async getExternalCertificateIssuer(requestParameters: GetExternalCertificateIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateExternalIssuer> {
+        const response = await this.getExternalCertificateIssuerRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

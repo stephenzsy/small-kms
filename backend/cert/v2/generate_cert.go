@@ -32,6 +32,10 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		return base.ErrResponseStatusBadRequest
 	}
 
+	if policy.IssuerPolicy.NamespaceProvider == models.NamespaceProviderExternalCA {
+		return generateExternal(c, nsProvider, nsID, policy)
+	}
+
 	certDoc := &certDocGeneratePending{
 		certDocPending: certDocPending{
 			CertDoc: CertDoc{
@@ -85,4 +89,25 @@ func (*CertServer) GenerateCertificate(ec echo.Context,
 		return
 	}
 	return
+}
+
+func generateExternal(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policyDoc *CertPolicyDoc) error {
+
+	// load certificate issuer
+
+	certDoc := &certExternalACMEPending{
+		certDocPending: certDocPending{
+			CertDoc: CertDoc{
+				ResourceDoc: resdoc.ResourceDoc{
+					PartitionKey: resdoc.PartitionKey{
+						NamespaceProvider: nsProvider,
+						NamespaceID:       nsID,
+						ResourceProvider:  models.ResourceProviderCert,
+					},
+				},
+			},
+		},
+	}
+
+	return c.JSON(200, certDoc.ToModel(true))
 }

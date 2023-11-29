@@ -64,7 +64,7 @@ func (*CertServer) PutExternalCertificateIssuer(ec echo.Context, namespaceId str
 			PartitionKey: resdoc.PartitionKey{
 				NamespaceProvider: models.NamespaceProviderExternalCA,
 				NamespaceID:       namespaceId,
-				ResourceProvider:  models.ResourceProviderCertPolicy,
+				ResourceProvider:  models.ResourceProviderCertExternalIssuer,
 			},
 			ID: issuerID,
 		},

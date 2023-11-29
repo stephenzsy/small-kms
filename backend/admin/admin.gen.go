@@ -113,6 +113,9 @@ type ServerInterface interface {
 	// List certificate issuers
 	// (GET /v2/external-ca/{namespaceId}/certificiate-issuers)
 	ListExternalCertificateIssuers(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Get certificate issuer
+	// (GET /v2/external-ca/{namespaceId}/certificiate-issuers/{id})
+	GetExternalCertificateIssuer(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Create certificate issuer
 	// (POST /v2/external-ca/{namespaceId}/certificiate-issuers/{id})
 	PutExternalCertificateIssuer(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -286,6 +289,32 @@ func (w *ServerInterfaceWrapper) ListExternalCertificateIssuers(ctx echo.Context
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.ListExternalCertificateIssuers(ctx, namespaceId)
+	return err
+}
+
+// GetExternalCertificateIssuer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetExternalCertificateIssuer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetExternalCertificateIssuer(ctx, namespaceId, id)
 	return err
 }
 
@@ -1415,6 +1444,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
 	router.GET(baseURL+"/v2/diagnostics", wrapper.GetDiagnostics)
 	router.GET(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers", wrapper.ListExternalCertificateIssuers)
+	router.GET(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers/:id", wrapper.GetExternalCertificateIssuer)
 	router.POST(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers/:id", wrapper.PutExternalCertificateIssuer)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)

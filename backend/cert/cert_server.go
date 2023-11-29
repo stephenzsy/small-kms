@@ -25,21 +25,6 @@ func (s *server) ListKeyVaultRoleAssignments(ec echo.Context, namespaceKind base
 	return s.apiListKeyVaultRoleAssignments(c, resourceIdentifier, kvCategory)
 }
 
-// PutCertificateRuleIssuer implements ServerInterface.
-func (s *server) PutCertificateRuleIssuer(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) error {
-	params := new(CertificateRuleIssuer)
-	if err := ec.Bind(params); err != nil {
-		return err
-	}
-
-	c, err := s.withAdminAccessAndNamespaceCtx(ec, namespaceKind, namespaceIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return apiPutCertRuleIssuer(c, params)
-}
-
 func (s *server) withAdminAccessAndNamespaceCtx(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID) (ctx.RequestContext, error) {
 	c := ec.(ctx.RequestContext)
 

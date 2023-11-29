@@ -22,7 +22,7 @@ func (*CertServer) ListExternalCertificateIssuers(ec echo.Context, namespaceId s
 	pager := resdoc.NewQueryDocPager[*CertIssuerDoc](c, qb, resdoc.PartitionKey{
 		NamespaceProvider: models.NamespaceProviderExternalCA,
 		NamespaceID:       namespaceId,
-		ResourceProvider:  models.ResourceProviderCertPolicy,
+		ResourceProvider:  models.ResourceProviderCertExternalIssuer,
 	})
 
 	modelPager := utils.NewMappedItemsPager(pager, func(doc *CertIssuerDoc) *models.Ref {

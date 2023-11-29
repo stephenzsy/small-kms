@@ -475,3 +475,8 @@ func (d *certDocPending) generateCertificateTemplate() *x509.Certificate {
 
 	return cert
 }
+
+type certExternalACMEPending struct {
+	certDocPending
+	OrderURL string `json:"orderUrl"`
+}
