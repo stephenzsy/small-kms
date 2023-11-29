@@ -30,7 +30,6 @@ import type {
   Certificate,
   CertificateRef,
   CertificateRuleIssuer,
-  KeyPolicy,
   KeyPolicyRef,
   LaunchAgentRequest,
   ManagedAppParameters,
@@ -74,8 +73,6 @@ import {
     CertificateRefToJSON,
     CertificateRuleIssuerFromJSON,
     CertificateRuleIssuerToJSON,
-    KeyPolicyFromJSON,
-    KeyPolicyToJSON,
     KeyPolicyRefFromJSON,
     KeyPolicyRefToJSON,
     LaunchAgentRequestFromJSON,
@@ -194,12 +191,6 @@ export interface GetCertificateRequest {
 export interface GetCertificateRuleIssuerRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
-}
-
-export interface GetKeyPolicyRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
 }
 
 export interface GetManagedAppRequest {
@@ -1019,52 +1010,6 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificateRuleIssuer(requestParameters: GetCertificateRuleIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateRuleIssuer> {
         const response = await this.getCertificateRuleIssuerRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Get key spec
-     */
-    async getKeyPolicyRaw(requestParameters: GetKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<KeyPolicy>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling getKeyPolicy.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getKeyPolicy.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling getKeyPolicy.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => KeyPolicyFromJSON(jsonValue));
-    }
-
-    /**
-     * Get key spec
-     */
-    async getKeyPolicy(requestParameters: GetKeyPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<KeyPolicy> {
-        const response = await this.getKeyPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

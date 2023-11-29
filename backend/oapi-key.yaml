@@ -24,19 +24,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KeyPolicyRef"
-  /v1/{namespaceKind}/{namespaceId}/key-policies/{resourceId}:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-    get:
-      tags:
-        - admin
-      operationId: GetKeyPolicy
-      summary: Get key spec
-      responses:
-        200:
-          $ref: "#/components/responses/KeyPolicyResponse"
 security:
   - BearerAuth: []
 components:

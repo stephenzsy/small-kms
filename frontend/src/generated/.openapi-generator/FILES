@@ -28,14 +28,11 @@ models/CertificateRef.ts
 models/CertificateRefFields.ts
 models/CertificateRuleIssuer.ts
 models/CertificateSubject.ts
-models/GenerateJsonWebKeyProperties.ts
 models/JsonWebKey.ts
 models/JsonWebKeyCurveName.ts
 models/JsonWebKeyOperation.ts
 models/JsonWebKeyType.ts
 models/JsonWebSignatureAlgorithm.ts
-models/KeyPolicy.ts
-models/KeyPolicyFields.ts
 models/KeyPolicyRef.ts
 models/KeyPolicyRefFields.ts
 models/KeySpec.ts
