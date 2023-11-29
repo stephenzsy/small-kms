@@ -123,6 +123,9 @@ type DockerImageSummary = types.ImageSummary
 // DockerInfo defines model for DockerInfo.
 type DockerInfo = types.Info
 
+// DockerNetworkResource defines model for DockerNetworkResource.
+type DockerNetworkResource = types.NetworkResource
+
 // AgentConfigResponse defines model for AgentConfigResponse.
 type AgentConfigResponse = AgentConfig
 

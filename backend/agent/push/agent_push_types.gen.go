@@ -19,9 +19,6 @@ type DockerContainer = types.Container
 // DockerContainerJSON defines model for DockerContainerJSON.
 type DockerContainerJSON = types.ContainerJSON
 
-// DockerNetworkResource defines model for DockerNetworkResource.
-type DockerNetworkResource = types.NetworkResource
-
 // LaunchAgentRequest defines model for LaunchAgentRequest.
 type LaunchAgentRequest struct {
 	ContainerName                 string                     `json:"containerName"`
@@ -72,11 +69,6 @@ type AgentDockerContainerInspectParams struct {
 
 // AgentDockerContainerStopParams defines parameters for AgentDockerContainerStop.
 type AgentDockerContainerStopParams struct {
-	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
-}
-
-// AgentDockerNetworkListParams defines parameters for AgentDockerNetworkList.
-type AgentDockerNetworkListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

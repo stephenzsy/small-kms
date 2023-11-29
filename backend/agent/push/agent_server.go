@@ -135,7 +135,7 @@ func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (s *agentServer) AgentDockerNetworkList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerNetworkListParams) error {
+func (s *agentServer) ListAgentDockerNetowks(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)
 
 	result, err := s.dockerClient.NetworkList(c, types.NetworkListOptions{})

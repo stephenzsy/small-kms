@@ -638,6 +638,23 @@ function DockerImagesList({ namespaceId, instanceId }: InstanceProps) {
   return <JsonDataDisplay data={data} />;
 }
 
+function DockerNetworksList({ namespaceId, instanceId }: InstanceProps) {
+  const api = useAdminApi();
+  const { data } = useRequest(
+    async () => {
+      return await api?.listAgentDockerNetowks({
+        namespaceId,
+        id: instanceId,
+      });
+    },
+    {
+      refreshDeps: [namespaceId, instanceId],
+    }
+  );
+
+  return <JsonDataDisplay data={data} />;
+}
+
 function AgentDashboard({ instanceId }: { instanceId: string }) {
   const api = useAdminApi();
   const { namespaceId } = useNamespace();
@@ -773,18 +790,23 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
           >
             List Docker images
           </Button>
-          {/* <Button
+          <Button
             type="link"
             onClick={() => {
-              openDrawer({
-                title: "Docker networks",
-                onGetData: listDockerNetworks,
-              });
+              openDrawer(
+                <DockerNetworksList
+                  instanceId={instanceId}
+                  namespaceId={namespaceId}
+                />,
+                {
+                  title: "Docker networks",
+                  size: "large",
+                }
+              );
             }}
-            disabled={!hasToken}
           >
             List Docker networks
-          </Button> */}
+          </Button>
           <Button
             type="link"
             onClick={() => {

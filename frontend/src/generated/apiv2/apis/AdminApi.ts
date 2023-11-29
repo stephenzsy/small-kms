@@ -230,6 +230,11 @@ export interface ListAgentDockerImagesRequest {
     id: string;
 }
 
+export interface ListAgentDockerNetowksRequest {
+    namespaceId: string;
+    id: string;
+}
+
 export interface ListAgentInstancesRequest {
     namespaceId: string;
 }
@@ -1343,6 +1348,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async listAgentDockerImages(requestParameters: ListAgentDockerImagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
         const response = await this.listAgentDockerImagesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get docker system info
+     */
+    async listAgentDockerNetowksRaw(requestParameters: ListAgentDockerNetowksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling listAgentDockerNetowks.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling listAgentDockerNetowks.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}/docker/networks`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get docker system info
+     */
+    async listAgentDockerNetowks(requestParameters: ListAgentDockerNetowksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
+        const response = await this.listAgentDockerNetowksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

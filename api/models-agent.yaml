@@ -158,12 +158,17 @@ components:
       type: object
       x-go-type: types.ImageSummary
       x-go-type-import:
-        path: "github.com/docker/docker/api/types"        
+        path: "github.com/docker/docker/api/types"
     DockerInfo:
       type: object
       x-go-type: types.Info
       x-go-type-import:
-        path: "github.com/docker/docker/api/types"        
+        path: "github.com/docker/docker/api/types"
+    DockerNetworkResource:
+      type: object
+      x-go-type: types.NetworkResource
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"
   responses:
     AgentResponse:
       description: Agent response

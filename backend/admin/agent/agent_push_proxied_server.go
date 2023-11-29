@@ -14,6 +14,24 @@ type AgentPushProxiedServer struct {
 	clientPool *ProxyClientPool
 }
 
+// ListAgentDockerNetowks implements agentendpoint.ServerInterface.
+func (s *AgentPushProxiedServer) ListAgentDockerNetowks(ec echo.Context, namespaceId string, id string) error {
+	c := ec.(ctx.RequestContext)
+	if !authz.AuthorizeAdminOnly(c) {
+		return base.ErrResponseStatusForbidden
+	}
+
+	client, err := s.clientPool.GetClient(c, namespaceId, id)
+	if err != nil {
+		return err
+	}
+	resp, err := client.ListAgentDockerNetowksWithResponse(c, "me", "me")
+	if err != nil {
+		return err
+	}
+	return c.Blob(resp.StatusCode(), "application/json", resp.Body)
+}
+
 // GetAgentDiagnostics implements admin.ServerInterface.
 func (s *AgentPushProxiedServer) GetAgentDiagnostics(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)

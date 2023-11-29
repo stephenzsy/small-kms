@@ -672,6 +672,25 @@ paths:
             application/json:
               schema:
                 $ref: "models-agent.yaml#/components/schemas/DockerInfo"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/networks:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: Get docker system info
+      operationId: ListAgentDockerNetowks
+      responses:
+        200:
+          description: List of networks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "models-agent.yaml#/components/schemas/DockerNetworkResource"
 components:
   parameters:
     IdParameter:

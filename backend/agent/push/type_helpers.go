@@ -21,10 +21,6 @@ func (r *AgentDockerContainerRemoveResponse) GetBody() []byte {
 	return r.Body
 }
 
-func (r *AgentDockerNetworkListResponse) GetBody() []byte {
-	return r.Body
-}
-
 func (r *AgentLaunchAgentResponse) GetBody() []byte {
 	return r.Body
 }

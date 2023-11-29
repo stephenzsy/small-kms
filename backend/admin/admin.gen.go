@@ -155,6 +155,9 @@ type ServerInterface interface {
 	// Get agent docker system information
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info)
 	GetAgentDockerSystemInformation(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+
+	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/networks)
+	ListAgentDockerNetowks(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Get system app
 	// (GET /v2/system-apps/{id})
 	GetSystemApp(ctx echo.Context, id IdParameter) error
@@ -615,6 +618,32 @@ func (w *ServerInterfaceWrapper) GetAgentDockerSystemInformation(ctx echo.Contex
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentDockerSystemInformation(ctx, namespaceId, id)
+	return err
+}
+
+// ListAgentDockerNetowks converts echo context to params.
+func (w *ServerInterfaceWrapper) ListAgentDockerNetowks(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListAgentDockerNetowks(ctx, namespaceId, id)
 	return err
 }
 
@@ -1400,6 +1429,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.ListAgentDockerImages)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/info", wrapper.GetAgentDockerSystemInformation)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/networks", wrapper.ListAgentDockerNetowks)
 	router.GET(baseURL+"/v2/system-apps/:id", wrapper.GetSystemApp)
 	router.POST(baseURL+"/v2/system-apps/:id", wrapper.SyncSystemApp)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificate-policies", wrapper.ListCertificatePolicies)

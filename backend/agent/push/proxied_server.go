@@ -58,15 +58,6 @@ func (s *proxiedServer) AgentLaunchAgent(ec echo.Context, namespaceKind base.Nam
 		})
 }
 
-// AgentDockerNetworkList implements ServerInterface.
-func (s *proxiedServer) AgentDockerNetworkList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
-	rID base.ID,
-	params AgentDockerNetworkListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerNetworkListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
-	})
-}
-
 func (s *proxiedServer) delegateRequest(ec echo.Context,
 	namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
 	rID base.ID,
