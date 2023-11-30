@@ -5,11 +5,13 @@ import (
 	"crypto/x509"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/labstack/echo/v4"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
+	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
 
@@ -95,7 +97,7 @@ func generateExternal(c ctx.RequestContext, nsProvider models.NamespaceProvider,
 
 	// load certificate issuer
 
-	certDoc := &certExternalACMEPending{
+	certDoc := &certDocExternalACMEPending{
 		certDocPending: certDocPending{
 			CertDoc: CertDoc{
 				ResourceDoc: resdoc.ResourceDoc{
@@ -109,5 +111,31 @@ func generateExternal(c ctx.RequestContext, nsProvider models.NamespaceProvider,
 		},
 	}
 
-	return c.JSON(200, certDoc.ToModel(true))
+	err := certDoc.init(c, nsProvider, nsID, policyDoc)
+	if err != nil {
+		return err
+	}
+
+	docSvc := resdoc.GetDocService(c)
+	resp, err := docSvc.Create(c, certDoc, nil)
+	if err != nil {
+		return err
+	}
+
+	order, err := certDoc.authorizeOrder(c)
+	if err != nil {
+		return err
+	}
+	patchOps := azcosmos.PatchOperations{}
+	patchOps.AppendSet("/orderUrl", order.URI)
+	patchOps.AppendSet("/acmeStep", AcmeStepOrderCreated)
+	patchOps.AppendSet("/status", certmodels.CertificateStatusPendingExternal)
+	_, err = docSvc.Patch(c, certDoc, patchOps, &azcosmos.ItemOptions{
+		IfMatchEtag: certDoc.ETag,
+	})
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(resp.RawResponse.StatusCode, certDoc.ToModel(true))
 }

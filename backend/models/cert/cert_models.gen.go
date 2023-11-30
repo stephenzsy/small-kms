@@ -18,10 +18,11 @@ const (
 
 // Defines values for CertificateStatus.
 const (
-	CertificateStatusDeactivated CertificateStatus = "deactivated"
-	CertificateStatusIssued      CertificateStatus = "issued"
-	CertificateStatusPending     CertificateStatus = "pending"
-	CertificateStatusUnverified  CertificateStatus = "unverified"
+	CertificateStatusDeactivated     CertificateStatus = "deactivated"
+	CertificateStatusIssued          CertificateStatus = "issued"
+	CertificateStatusPending         CertificateStatus = "pending"
+	CertificateStatusPendingExternal CertificateStatus = "pending-external"
+	CertificateStatusUnverified      CertificateStatus = "unverified"
 )
 
 // Certificate defines model for Certificate.

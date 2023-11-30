@@ -94,7 +94,7 @@ components:
           x-go-name: DirectoryURL
         accountKeyId:
           type: string
-          x-go-name: AccountKeyID          
+          x-go-name: AccountKeyID
         accountUrl:
           type: string
           x-go-name: AccountURL
@@ -120,11 +120,13 @@ components:
       type: string
       enum:
         - pending
+        - pending-external
         - issued
         - deactivated
         - unverified
       x-enum-varnames:
         - CertificateStatusPending
+        - CertificateStatusPendingExternal
         - CertificateStatusIssued
         - CertificateStatusDeactivated
         - CertificateStatusUnverified

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net"
 	"slices"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 	"github.com/stephenzsy/small-kms/backend/utils"
 	"github.com/stephenzsy/small-kms/backend/utils/caldur"
+	"golang.org/x/crypto/acme"
 )
 
 type CertificateStatus string
@@ -476,7 +478,42 @@ func (d *certDocPending) generateCertificateTemplate() *x509.Certificate {
 	return cert
 }
 
-type certExternalACMEPending struct {
+type AcmeStep string
+
+const (
+	AcmeStepNone         AcmeStep = ""
+	AcmeStepOrderCreated AcmeStep = "orderCreated"
+)
+
+type certDocExternalACMEPending struct {
 	certDocPending
-	OrderURL string `json:"orderUrl"`
+	ACMEStep AcmeStep `json:"acmeStep"`
+	OrderURL string   `json:"orderUrl"`
+
+	acmeClient *acme.Client
+}
+
+func (doc *certDocExternalACMEPending) init(c ctx.RequestContext, nsProvider models.NamespaceProvider, nsID string, policy *CertPolicyDoc) error {
+	if err := doc.commonInitPending(c, nsProvider, nsID, policy); err != nil {
+		return err
+	}
+	issuerDoc, err := policy.getExternalIssuer(c)
+	if err != nil {
+		return err
+	}
+	doc.acmeClient, err = issuerDoc.ACMEClient(c)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (doc *certDocExternalACMEPending) authorizeOrder(c ctx.RequestContext) (*acme.Order, error) {
+	authIds := make([]acme.AuthzID, 0, len(doc.SANs.DNSNames)+len(doc.SANs.IPAddresses))
+	authIds = append(authIds, acme.DomainIDs(doc.SANs.DNSNames...)...)
+	authIds = append(authIds, acme.IPIDs(utils.MapSlice(doc.SANs.IPAddresses, func(ip net.IP) string {
+		return ip.String()
+	})...)...)
+	return doc.acmeClient.AuthorizeOrder(c, authIds)
 }

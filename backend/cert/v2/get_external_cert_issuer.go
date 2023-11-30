@@ -18,16 +18,21 @@ func (*CertServer) GetExternalCertificateIssuer(ec echo.Context, namespaceId str
 		return base.ErrResponseStatusForbidden
 	}
 
-	doc := &CertIssuerDoc{}
-	docSvc := resdoc.GetDocService(c)
-	err := docSvc.Read(c,
-		resdoc.NewDocIdentifier(models.NamespaceProviderExternalCA, namespaceId, models.ResourceProviderCertExternalIssuer, issuerID), doc, nil)
+	doc, err := getExternalCertificateIssuerInternal(c, namespaceId, issuerID)
 	if err != nil {
-		if errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
-			return base.ErrResponseStatusNotFound
-		}
 		return err
 	}
 
 	return c.JSON(http.StatusOK, doc.ToModel())
+}
+
+func getExternalCertificateIssuerInternal(c ctx.RequestContext, namespaceId string, issuerID string) (*CertIssuerDoc, error) {
+	doc := &CertIssuerDoc{}
+	docSvc := resdoc.GetDocService(c)
+	err := docSvc.Read(c,
+		resdoc.NewDocIdentifier(models.NamespaceProviderExternalCA, namespaceId, models.ResourceProviderCertExternalIssuer, issuerID), doc, nil)
+	if err != nil && errors.Is(err, resdoc.ErrAzCosmosDocNotFound) {
+		return nil, base.ErrResponseStatusNotFound
+	}
+	return doc, err
 }

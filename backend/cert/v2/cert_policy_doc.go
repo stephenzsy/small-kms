@@ -341,3 +341,10 @@ func (d *CertPolicyDoc) getIssuerCert(c ctx.RequestContext) (*CertDoc, error) {
 
 	return GetCertificateInternal(c, linkDoc.LinkTo.NamespaceProvider, linkDoc.LinkTo.NamespaceID, linkDoc.LinkTo.ID)
 }
+
+func (d *CertPolicyDoc) getExternalIssuer(c ctx.RequestContext) (*CertIssuerDoc, error) {
+	if d.IssuerPolicy.NamespaceProvider != models.NamespaceProviderExternalCA {
+		return nil, fmt.Errorf("%w: issuer policy is not external ca", base.ErrResponseStatusBadRequest)
+	}
+	return getExternalCertificateIssuerInternal(c, d.IssuerPolicy.NamespaceID, d.IssuerPolicy.ID)
+}
