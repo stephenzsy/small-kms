@@ -12,6 +12,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
+	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
@@ -22,6 +23,10 @@ func (*CertServer) GetCertificate(ec echo.Context, namespaceProvider models.Name
 	namespaceId = ns.ResolveMeNamespace(c, namespaceId)
 	if _, authOk := authz.Authorize(c, authz.AllowAdmin, authz.AllowSelf(namespaceId)); !authOk {
 		return base.ErrResponseStatusForbidden
+	}
+
+	if params.Pending != nil && *params.Pending {
+		return getCertificatePending(c, namespaceProvider, namespaceId, id)
 	}
 
 	certDoc, err := GetCertificateInternal(c, namespaceProvider, namespaceId, id)
@@ -54,4 +59,40 @@ func readCertDocInternal[T resdoc.ResourceDocument](c context.Context, namespace
 		return err
 	}
 	return nil
+}
+
+func getCertificatePending(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
+	certDoc := &certDocExternalACMEPending{}
+	if err := readCertDocInternal(c, namespaceProvider, namespaceId, id, certDoc); err != nil {
+		return err
+	}
+	if err := certDoc.restore(c); err != nil {
+		return err
+	}
+	order, err := certDoc.acmeClient.GetOrder(c, certDoc.OrderURL)
+	if err != nil {
+		return err
+	}
+	challenges := make([]certmodels.CertificatePendingAcmeChallenge, 0)
+	for _, url := range order.AuthzURLs {
+		a, err := certDoc.acmeClient.GetAuthorization(c, url)
+		if err != nil {
+			return err
+		}
+		for _, ch := range a.Challenges {
+			if ch.Type == "dns-01" {
+				record, err := certDoc.acmeClient.DNS01ChallengeRecord(ch.Token)
+				if err != nil {
+					return err
+				}
+				challenges = append(challenges, certmodels.CertificatePendingAcmeChallenge{
+					DNSRecord: record,
+				})
+			}
+		}
+	}
+	model := certDoc.toModel(&certmodels.CertificatePendingAcme{
+		Challenges: challenges,
+	})
+	return c.JSON(http.StatusOK, model)
 }

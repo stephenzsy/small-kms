@@ -20,6 +20,8 @@ export * from './CertificateExternalIssuerAcme';
 export * from './CertificateExternalIssuerFields';
 export * from './CertificateFields';
 export * from './CertificateFlag';
+export * from './CertificatePendingAcme';
+export * from './CertificatePendingAcmeChallenge';
 export * from './CertificatePolicy';
 export * from './CertificatePolicyFields';
 export * from './CertificatePolicyParameters';

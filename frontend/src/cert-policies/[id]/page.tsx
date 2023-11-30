@@ -1,14 +1,7 @@
 import { useMemoizedFn, useRequest } from "ahooks";
-import {
-  Button,
-  Card,
-  Input,
-  TableColumnsType,
-  Tag,
-  Typography
-} from "antd";
+import { Button, Card, Input, TableColumnsType, Tag, Typography } from "antd";
 import { useContext, useId } from "react";
-import { useParams } from "react-router-dom";
+import { To, useParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/useNamespace";
 import { CertPolicyForm } from "../../admin/forms/CertPolicyForm";
@@ -189,9 +182,15 @@ export default function CertPolicyPage() {
   const currentIssuerId = currentIssuerResp?.linkTo?.split("/")[1];
   const certColumns = useCertificateTableColumns(currentIssuerId);
   const viewCert = useMemoizedFn((cert: CertificateRef) => {
+    const linkTo: To = {
+      pathname: `../certificates/${cert.id}`,
+    };
+    if (cert.status === CertificateStatus.CertificateStatusPendingExternal) {
+      linkTo.search = `?pending=true`;
+    }
     return (
       <div className="flex gap-2 items-center">
-        <Link to={`../certificates/${cert.id}`}>View</Link>
+        <Link to={linkTo}>View</Link>
         {(namespaceProvider === NamespaceProvider.NamespaceProviderRootCA ||
           namespaceProvider ===
             NamespaceProvider.NamespaceProviderIntermediateCA) && (

@@ -1,6 +1,6 @@
 import { Button, Card, Typography } from "antd";
 import { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/useNamespace";
 import { useAuthedClientV2 } from "../../utils/useCertsApi";
@@ -30,6 +30,8 @@ function formatSerialNumber(certID: string): string {
 
 export default function CertificatePage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const pending = searchParams.get("pending");
   const { openDrawer } = useContext(DrawerContext);
   const { namespaceProvider, namespaceId } = useNamespace();
   const api = useAuthedClientV2(AdminApi);
@@ -45,6 +47,7 @@ export default function CertificatePage() {
           namespaceId,
           namespaceProvider,
           includeJwk,
+          pending: pending === "true" ? true : undefined,
         });
       }
     },
@@ -245,18 +248,33 @@ export default function CertificatePage() {
           </div>
         </div>
       </Card>
+      {cert?.pendingAcme && (
+        <Card title="ACME">
+          <ul>
+            {cert.pendingAcme.challenges?.map((chan, ind) => (
+              <li key={ind}>
+                <div>{chan.dnsRecord}</div>
+                <div>
+                  <Button>Ready to verify</Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
       <Card title="Actions">
         <div className="space-y-4">
-          {namespaceProvider ===
-            NamespaceProvider.NamespaceProviderServicePrincipal && (
-            <Button
-              onClick={() => {
-                installAsMsEntraCredential();
-              }}
-            >
-              Install as Microsoft Entra Key Credential
-            </Button>
-          )}
+          {cert?.status === "issued" &&
+            namespaceProvider ===
+              NamespaceProvider.NamespaceProviderServicePrincipal && (
+              <Button
+                onClick={() => {
+                  installAsMsEntraCredential();
+                }}
+              >
+                Install as Microsoft Entra Key Credential
+              </Button>
+            )}
         </div>
       </Card>
       <Card title="Danger zone">

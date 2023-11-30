@@ -182,6 +182,7 @@ export interface GetCertificateRequest {
     namespaceId: string;
     id: string;
     includeJwk?: boolean;
+    pending?: boolean;
 }
 
 export interface GetCertificatePolicyRequest {
@@ -932,6 +933,10 @@ export class AdminApi extends runtime.BaseAPI {
 
         if (requestParameters.includeJwk !== undefined) {
             queryParameters['includeJwk'] = requestParameters.includeJwk;
+        }
+
+        if (requestParameters.pending !== undefined) {
+            queryParameters['pending'] = requestParameters.pending;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

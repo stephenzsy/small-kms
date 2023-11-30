@@ -19,6 +19,12 @@ import {
     CertificateFlagFromJSONTyped,
     CertificateFlagToJSON,
 } from './CertificateFlag';
+import type { CertificatePendingAcme } from './CertificatePendingAcme';
+import {
+    CertificatePendingAcmeFromJSON,
+    CertificatePendingAcmeFromJSONTyped,
+    CertificatePendingAcmeToJSON,
+} from './CertificatePendingAcme';
 import type { JsonWebKey } from './JsonWebKey';
 import {
     JsonWebKeyFromJSON,
@@ -98,6 +104,12 @@ export interface CertificateFields {
      * @memberof CertificateFields
      */
     oneTimePkcs12Key?: JsonWebKey;
+    /**
+     * 
+     * @type {CertificatePendingAcme}
+     * @memberof CertificateFields
+     */
+    pendingAcme?: CertificatePendingAcme;
 }
 
 /**
@@ -133,6 +145,7 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
         'cid': !exists(json, 'cid') ? undefined : json['cid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'oneTimePkcs12Key': !exists(json, 'oneTimePkcs12Key') ? undefined : JsonWebKeyFromJSON(json['oneTimePkcs12Key']),
+        'pendingAcme': !exists(json, 'pendingAcme') ? undefined : CertificatePendingAcmeFromJSON(json['pendingAcme']),
     };
 }
 
@@ -155,6 +168,7 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
         'cid': value.cid,
         'sid': value.sid,
         'oneTimePkcs12Key': JsonWebKeyToJSON(value.oneTimePkcs12Key),
+        'pendingAcme': CertificatePendingAcmeToJSON(value.pendingAcme),
     };
 }
 

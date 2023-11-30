@@ -506,7 +506,28 @@ func (doc *certDocExternalACMEPending) init(c ctx.RequestContext, nsProvider mod
 		return err
 	}
 	return nil
+}
 
+func (doc *certDocExternalACMEPending) restore(c ctx.RequestContext) error {
+	policy, err := GetCertificatePolicyInternal(c, doc.PolicyIdentifier.NamespaceProvider, doc.PolicyIdentifier.NamespaceID, doc.PolicyIdentifier.ID)
+	if err != nil {
+		return err
+	}
+	issuerDoc, err := policy.getExternalIssuer(c)
+	if err != nil {
+		return err
+	}
+	doc.acmeClient, err = issuerDoc.ACMEClient(c)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (doc *certDocExternalACMEPending) toModel(pendingAcme *certmodels.CertificatePendingAcme) *certmodels.Certificate {
+	m := doc.certDocPending.ToModel(true)
+	m.PendingAcme = pendingAcme
+	return &m
 }
 
 func (doc *certDocExternalACMEPending) authorizeOrder(c ctx.RequestContext) (*acme.Order, error) {
@@ -515,5 +536,6 @@ func (doc *certDocExternalACMEPending) authorizeOrder(c ctx.RequestContext) (*ac
 	authIds = append(authIds, acme.IPIDs(utils.MapSlice(doc.SANs.IPAddresses, func(ip net.IP) string {
 		return ip.String()
 	})...)...)
+
 	return doc.acmeClient.AuthorizeOrder(c, authIds)
 }

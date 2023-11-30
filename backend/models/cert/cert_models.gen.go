@@ -55,6 +55,7 @@ type CertificateFields struct {
 	Jwk                   *externalRef1.JsonWebKey `json:"jwk,omitempty"`
 	Nbf                   externalRef0.NumericDate `json:"nbf"`
 	OneTimePkcs12Key      *externalRef1.JsonWebKey `json:"oneTimePkcs12Key,omitempty"`
+	PendingAcme           *CertificatePendingAcme  `json:"pendingAcme,omitempty"`
 
 	// Sid Key Vault Secret ID
 	KeyVaultSecretID        string                   `json:"sid,omitempty"`
@@ -64,6 +65,16 @@ type CertificateFields struct {
 
 // CertificateFlag defines model for CertificateFlag.
 type CertificateFlag string
+
+// CertificatePendingAcme defines model for CertificatePendingAcme.
+type CertificatePendingAcme struct {
+	Challenges []CertificatePendingAcmeChallenge `json:"challenges,omitempty"`
+}
+
+// CertificatePendingAcmeChallenge defines model for CertificatePendingAcmeChallenge.
+type CertificatePendingAcmeChallenge struct {
+	DNSRecord string `json:"dnsRecord,omitempty"`
+}
 
 // CertificatePolicy defines model for CertificatePolicy.
 type CertificatePolicy = certificatePolicyComposed

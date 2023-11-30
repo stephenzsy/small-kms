@@ -52,6 +52,9 @@ type ListCertificatesParams struct {
 type GetCertificateParams struct {
 	// IncludeJwk Include JWK
 	IncludeJwk *bool `form:"includeJwk,omitempty" json:"includeJwk,omitempty"`
+
+	// Pending Include pending certificate properties
+	Pending *bool `form:"pending,omitempty" json:"pending,omitempty"`
 }
 
 // ListKeysParams defines parameters for ListKeys.
@@ -1056,6 +1059,13 @@ func (w *ServerInterfaceWrapper) GetCertificate(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, false, "includeJwk", ctx.QueryParams(), &params.IncludeJwk)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter includeJwk: %s", err))
+	}
+
+	// ------------- Optional query parameter "pending" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pending", ctx.QueryParams(), &params.Pending)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter pending: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments

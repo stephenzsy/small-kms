@@ -21,6 +21,8 @@ models/CertificateExternalIssuerAcme.ts
 models/CertificateExternalIssuerFields.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
+models/CertificatePendingAcme.ts
+models/CertificatePendingAcmeChallenge.ts
 models/CertificatePolicy.ts
 models/CertificatePolicyFields.ts
 models/CertificatePolicyParameters.ts

@@ -335,6 +335,12 @@ paths:
           required: false
           schema:
             type: boolean
+        - in: query
+          name: pending
+          description: Include pending certificate properties
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           $ref: "models-cert.yaml#/components/responses/CertificateResponse"

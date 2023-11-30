@@ -72,6 +72,8 @@ components:
         oneTimePkcs12Key:
           description: Base64 encoded PKCS12 key
           $ref: "models-key.yaml#/components/schemas/JsonWebKey"
+        pendingAcme:
+          $ref: "#/components/schemas/CertificatePendingAcme"
       required:
         - identififier
         - issuerIdentifier
@@ -111,6 +113,19 @@ components:
         - accountUrl
         - contacts
         - azureDnsZoneResourceId
+    CertificatePendingAcme:
+      properties:
+        challenges:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificatePendingAcmeChallenge"
+          x-go-type-skip-optional-pointer: true
+    CertificatePendingAcmeChallenge:
+      properties:
+        dnsRecord:
+          type: string
+          x-go-name: DNSRecord
+          x-go-type-skip-optional-pointer: true
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
