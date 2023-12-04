@@ -10,7 +10,8 @@ import (
 
 func RespondDiagnostics(c ctx.RequestContext, info models.ServiceRuntimeInfo) error {
 	r := models.RequestDiagnostics{
-		ServiceRuntime: info,
+		ServiceRuntime:  info,
+		RequestProtocol: c.Request().Proto,
 	}
 	for k, v := range c.Request().Header {
 		r.RequestHeaders = append(r.RequestHeaders, models.RequestHeaderEntry{

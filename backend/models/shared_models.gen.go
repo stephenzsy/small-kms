@@ -68,8 +68,9 @@ type Ref struct {
 
 // RequestDiagnostics defines model for RequestDiagnostics.
 type RequestDiagnostics struct {
-	RequestHeaders []RequestHeaderEntry `json:"requestHeaders"`
-	ServiceRuntime ServiceRuntimeInfo   `json:"serviceRuntime"`
+	RequestHeaders  []RequestHeaderEntry `json:"requestHeaders"`
+	RequestProtocol string               `json:"requestProtocol"`
+	ServiceRuntime  ServiceRuntimeInfo   `json:"serviceRuntime"`
 }
 
 // RequestHeaderEntry defines model for RequestHeaderEntry.

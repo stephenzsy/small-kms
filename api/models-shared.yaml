@@ -127,6 +127,8 @@ components:
     RequestDiagnostics:
       type: object
       properties:
+        requestProtocol:
+          type: string
         requestHeaders:
           type: array
           items:
@@ -134,6 +136,7 @@ components:
         serviceRuntime:
           $ref: "#/components/schemas/ServiceRuntimeInfo"
       required:
+        - requestProtocol
         - requestHeaders
         - serviceRuntime
   responses:

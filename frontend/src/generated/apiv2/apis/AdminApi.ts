@@ -30,7 +30,6 @@ import type {
   CreateAgentConfigRequest,
   CreateAgentRequest,
   CreateKeyPolicyRequest,
-  EnrollCertificateRequest,
   ErrorResult,
   ExchangePKCS12Request,
   ExchangePKCS12Result,
@@ -77,8 +76,6 @@ import {
     CreateAgentRequestToJSON,
     CreateKeyPolicyRequestFromJSON,
     CreateKeyPolicyRequestToJSON,
-    EnrollCertificateRequestFromJSON,
-    EnrollCertificateRequestToJSON,
     ErrorResultFromJSON,
     ErrorResultToJSON,
     ExchangePKCS12RequestFromJSON,
@@ -125,12 +122,14 @@ export interface DeleteCertificateRequest {
     id: string;
 }
 
-export interface EnrollCertificateOperationRequest {
+export interface EnrollCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
-    enrollCertificateRequest: EnrollCertificateRequest;
     onBehalfOfApplication?: boolean;
+    csrSigningDigest?: string;
+    key?: Blob;
+    password?: string;
 }
 
 export interface ExchangePKCS12OperationRequest {
@@ -478,9 +477,9 @@ export class AdminApi extends runtime.BaseAPI {
     }
 
     /**
-     * put certificate policy
+     * enroll certificate
      */
-    async enrollCertificateRaw(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+    async enrollCertificateRaw(requestParameters: EnrollCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
         if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
             throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling enrollCertificate.');
         }
@@ -493,10 +492,6 @@ export class AdminApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling enrollCertificate.');
         }
 
-        if (requestParameters.enrollCertificateRequest === null || requestParameters.enrollCertificateRequest === undefined) {
-            throw new runtime.RequiredError('enrollCertificateRequest','Required parameter requestParameters.enrollCertificateRequest was null or undefined when calling enrollCertificate.');
-        }
-
         const queryParameters: any = {};
 
         if (requestParameters.onBehalfOfApplication !== undefined) {
@@ -504,8 +499,6 @@ export class AdminApi extends runtime.BaseAPI {
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -515,21 +508,50 @@ export class AdminApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+            { contentType: 'application/json' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters.csrSigningDigest !== undefined) {
+            formParams.append('csrSigningDigest', requestParameters.csrSigningDigest as any);
+        }
+
+        if (requestParameters.key !== undefined) {
+            formParams.append('key', requestParameters.key as any);
+        }
+
+        if (requestParameters.password !== undefined) {
+            formParams.append('password', requestParameters.password as any);
+        }
+
         const response = await this.request({
             path: `/v2/{namespaceProvider}/{namespaceId}/certificate-policies/{id}/enroll`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: EnrollCertificateRequestToJSON(requestParameters.enrollCertificateRequest),
+            body: formParams,
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
     }
 
     /**
-     * put certificate policy
+     * enroll certificate
      */
-    async enrollCertificate(requestParameters: EnrollCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+    async enrollCertificate(requestParameters: EnrollCertificateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
         const response = await this.enrollCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }

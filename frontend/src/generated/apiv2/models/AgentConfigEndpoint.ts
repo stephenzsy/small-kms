@@ -55,7 +55,13 @@ export interface AgentConfigEndpoint {
      * @type {boolean}
      * @memberof AgentConfigEndpoint
      */
-    isTlsCertificatePublicCaSigned: boolean;
+    tlsCertificatePublicCaSigned: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AgentConfigEndpoint
+     */
+    tlsCertificateAutoEnroll: boolean;
     /**
      * 
      * @type {string}
@@ -79,7 +85,8 @@ export function instanceOfAgentConfigEndpoint(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
-    isInstance = isInstance && "isTlsCertificatePublicCaSigned" in value;
+    isInstance = isInstance && "tlsCertificatePublicCaSigned" in value;
+    isInstance = isInstance && "tlsCertificateAutoEnroll" in value;
     isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
@@ -99,7 +106,8 @@ export function AgentConfigEndpointFromJSONTyped(json: any, ignoreDiscriminator:
         'updated': (new Date(json['updated'])),
         'version': json['version'],
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
-        'isTlsCertificatePublicCaSigned': json['isTlsCertificatePublicCaSigned'],
+        'tlsCertificatePublicCaSigned': json['tlsCertificatePublicCaSigned'],
+        'tlsCertificateAutoEnroll': json['tlsCertificateAutoEnroll'],
         'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
         'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
@@ -118,7 +126,8 @@ export function AgentConfigEndpointToJSON(value?: AgentConfigEndpoint | null): a
         'updated': (value.updated.toISOString()),
         'version': value.version,
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
-        'isTlsCertificatePublicCaSigned': value.isTlsCertificatePublicCaSigned,
+        'tlsCertificatePublicCaSigned': value.tlsCertificatePublicCaSigned,
+        'tlsCertificateAutoEnroll': value.tlsCertificateAutoEnroll,
         'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
         'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };

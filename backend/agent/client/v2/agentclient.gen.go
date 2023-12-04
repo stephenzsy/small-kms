@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -41,6 +42,13 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
 
+// EnrollCertificateMultipartBody defines parameters for EnrollCertificate.
+type EnrollCertificateMultipartBody struct {
+	CsrSigningDigest *string             `json:"csrSigningDigest,omitempty"`
+	Key              *openapi_types.File `json:"key,omitempty"`
+	Password         *string             `json:"password,omitempty"`
+}
+
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
 	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
@@ -61,6 +69,9 @@ type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
 
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
+
+// EnrollCertificateMultipartRequestBody defines body for EnrollCertificate for multipart/form-data ContentType.
+type EnrollCertificateMultipartRequestBody EnrollCertificateMultipartBody
 
 // ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
 type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request

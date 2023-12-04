@@ -30,7 +30,13 @@ export interface AgentConfigEndpointFields {
      * @type {boolean}
      * @memberof AgentConfigEndpointFields
      */
-    isTlsCertificatePublicCaSigned: boolean;
+    tlsCertificatePublicCaSigned: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof AgentConfigEndpointFields
+     */
+    tlsCertificateAutoEnroll: boolean;
     /**
      * 
      * @type {string}
@@ -51,7 +57,8 @@ export interface AgentConfigEndpointFields {
 export function instanceOfAgentConfigEndpointFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
-    isInstance = isInstance && "isTlsCertificatePublicCaSigned" in value;
+    isInstance = isInstance && "tlsCertificatePublicCaSigned" in value;
+    isInstance = isInstance && "tlsCertificateAutoEnroll" in value;
     isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
@@ -68,7 +75,8 @@ export function AgentConfigEndpointFieldsFromJSONTyped(json: any, ignoreDiscrimi
     return {
         
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
-        'isTlsCertificatePublicCaSigned': json['isTlsCertificatePublicCaSigned'],
+        'tlsCertificatePublicCaSigned': json['tlsCertificatePublicCaSigned'],
+        'tlsCertificateAutoEnroll': json['tlsCertificateAutoEnroll'],
         'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
         'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
@@ -84,7 +92,8 @@ export function AgentConfigEndpointFieldsToJSON(value?: AgentConfigEndpointField
     return {
         
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
-        'isTlsCertificatePublicCaSigned': value.isTlsCertificatePublicCaSigned,
+        'tlsCertificatePublicCaSigned': value.tlsCertificatePublicCaSigned,
+        'tlsCertificateAutoEnroll': value.tlsCertificateAutoEnroll,
         'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
         'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };

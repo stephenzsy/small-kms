@@ -34,6 +34,12 @@ import {
 export interface RequestDiagnostics {
     /**
      * 
+     * @type {string}
+     * @memberof RequestDiagnostics
+     */
+    requestProtocol: string;
+    /**
+     * 
      * @type {Array<RequestHeaderEntry>}
      * @memberof RequestDiagnostics
      */
@@ -51,6 +57,7 @@ export interface RequestDiagnostics {
  */
 export function instanceOfRequestDiagnostics(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "requestProtocol" in value;
     isInstance = isInstance && "requestHeaders" in value;
     isInstance = isInstance && "serviceRuntime" in value;
 
@@ -67,6 +74,7 @@ export function RequestDiagnosticsFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
+        'requestProtocol': json['requestProtocol'],
         'requestHeaders': ((json['requestHeaders'] as Array<any>).map(RequestHeaderEntryFromJSON)),
         'serviceRuntime': ServiceRuntimeInfoFromJSON(json['serviceRuntime']),
     };
@@ -81,6 +89,7 @@ export function RequestDiagnosticsToJSON(value?: RequestDiagnostics | null): any
     }
     return {
         
+        'requestProtocol': value.requestProtocol,
         'requestHeaders': ((value.requestHeaders as Array<any>).map(RequestHeaderEntryToJSON)),
         'serviceRuntime': ServiceRuntimeInfoToJSON(value.serviceRuntime),
     };
