@@ -47,9 +47,11 @@ type AgentConfigEndpoint = agentConfigEndpointComposed
 
 // AgentConfigEndpointFields defines model for AgentConfigEndpointFields.
 type AgentConfigEndpointFields struct {
-	JwtVerifyKeyIds        []string `json:"jwtVerifyKeyIds,omitempty"`
-	JwtVerifyKeyPolicyId   string   `json:"jwtVerifyKeyPolicyId"`
-	TlsCertificatePolicyId string   `json:"tlsCertificatePolicyId"`
+	JwtVerifyKeyIds              []string `json:"jwtVerifyKeyIds,omitempty"`
+	JwtVerifyKeyPolicyId         string   `json:"jwtVerifyKeyPolicyId"`
+	TLSCertificateAutoEnroll     bool     `json:"tlsCertificateAutoEnroll"`
+	TlsCertificatePolicyId       string   `json:"tlsCertificatePolicyId"`
+	TLSCertificatePublicCASigned bool     `json:"tlsCertificatePublicCaSigned"`
 }
 
 // AgentConfigIdentity defines model for AgentConfigIdentity.

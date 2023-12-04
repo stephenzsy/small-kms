@@ -27,6 +27,12 @@ export interface AgentConfigEndpointFields {
     tlsCertificatePolicyId: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof AgentConfigEndpointFields
+     */
+    isTlsCertificatePublicCaSigned: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof AgentConfigEndpointFields
      */
@@ -45,6 +51,7 @@ export interface AgentConfigEndpointFields {
 export function instanceOfAgentConfigEndpointFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
+    isInstance = isInstance && "isTlsCertificatePublicCaSigned" in value;
     isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
@@ -61,6 +68,7 @@ export function AgentConfigEndpointFieldsFromJSONTyped(json: any, ignoreDiscrimi
     return {
         
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
+        'isTlsCertificatePublicCaSigned': json['isTlsCertificatePublicCaSigned'],
         'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
         'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
@@ -76,6 +84,7 @@ export function AgentConfigEndpointFieldsToJSON(value?: AgentConfigEndpointField
     return {
         
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
+        'isTlsCertificatePublicCaSigned': value.isTlsCertificatePublicCaSigned,
         'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
         'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };

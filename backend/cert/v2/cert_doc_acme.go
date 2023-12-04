@@ -2,8 +2,12 @@ package cert
 
 import (
 	"context"
+	"encoding/pem"
+	"io"
 	"net"
+	"net/http"
 
+	"github.com/rs/zerolog/log"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/models"
@@ -32,6 +36,24 @@ func (doc *certDocACME) CreateCertificate(c ctx.RequestContext, csr CertCSR) ([]
 	order, err := doc.acmeClient.GetOrder(c, doc.OrderURL)
 	if err != nil {
 		return nil, err
+	}
+	if order.Status == acme.StatusValid {
+		log.Ctx(c).Info().Str("cert url", order.CertURL).Msg("order already valid")
+		resp, err := http.Get(order.CertURL)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		pemBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		var b *pem.Block
+		result := make([][]byte, 0, 3)
+		for b, pemBytes = pem.Decode(pemBytes); b != nil; b, pemBytes = pem.Decode(pemBytes) {
+			result = append(result, b.Bytes)
+		}
+		return result, nil
 	}
 	certs, _, err := doc.acmeClient.CreateOrderCert(c, order.FinalizeURL, csr.X509CSRBytes(), true)
 	if err != nil {

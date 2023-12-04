@@ -47,11 +47,11 @@ func (p *endpointProcessor) init(c context.Context) error {
 }
 
 func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.AgentConfigRef) error {
-	requireEnroll, err := p.tlsCertRequireEnroll(c)
+	requireNewCertificate, err := p.tlsCertRequireNewCertificate(c)
 	if err != nil {
 		return err
 	}
-	if p.config.Version == ref.Version && !requireEnroll {
+	if p.config.Version == ref.Version && !requireNewCertificate {
 		return nil
 	}
 	resp, err := p.cm.Client().GetAgentConfigWithResponse(c, "me", agentmodels.AgentConfigNameEndpoint)
@@ -71,7 +71,8 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 		}
 	}()
 
-	if requireEnroll {
+	if requireNewCertificate {
+
 		certResp, certFile, err := enrollCert(c, p.cm, endpointConfig.TlsCertificatePolicyId)
 		if err != nil {
 			return err
@@ -123,7 +124,7 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 	return nil
 }
 
-func (p *endpointProcessor) tlsCertRequireEnroll(c context.Context) (bool, error) {
+func (p *endpointProcessor) tlsCertRequireNewCertificate(c context.Context) (bool, error) {
 	certFile := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert)
 	if exists, err := certFile.Exists(); err != nil {
 		return false, err

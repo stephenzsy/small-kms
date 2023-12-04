@@ -18,9 +18,11 @@ import (
 
 type agentConfigDocEndpoint struct {
 	AgentConfigDoc
-	TLSCertificatePolicyID string   `json:"tlsCertificatePolicyId"`
-	JWTVerifyKeyPolicyID   string   `json:"jwtVerifyKeyPolicyId"`
-	JWTVerifyKeyIDs        []string `json:"jwtVerifyKeyIds"`
+	TLSCertificatePolicyID       string   `json:"tlsCertificatePolicyId"`
+	TLSCertificatePublicCASigned bool     `json:"tlsCertificatePublicCaSigned"`
+	TLSCertificateAutoEnroll     bool     `json:"tlsCertificateAutoEnroll"`
+	JWTVerifyKeyPolicyID         string   `json:"jwtVerifyKeyPolicyId"`
+	JWTVerifyKeyIDs              []string `json:"jwtVerifyKeyIds"`
 }
 
 func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
@@ -30,6 +32,8 @@ func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
 	m.TlsCertificatePolicyId = d.TLSCertificatePolicyID
 	m.JwtVerifyKeyPolicyId = d.JWTVerifyKeyPolicyID
 	m.JwtVerifyKeyIds = d.JWTVerifyKeyIDs
+	m.TLSCertificateAutoEnroll = d.TLSCertificateAutoEnroll
+	m.TLSCertificatePublicCASigned = d.TLSCertificatePublicCASigned
 	return m
 }
 
@@ -51,8 +55,10 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 				ID: string(agentmodels.AgentConfigNameEndpoint),
 			},
 		},
-		TLSCertificatePolicyID: req.TlsCertificatePolicyId,
-		JWTVerifyKeyPolicyID:   req.JwtVerifyKeyPolicyId,
+		TLSCertificatePolicyID:       req.TlsCertificatePolicyId,
+		JWTVerifyKeyPolicyID:         req.JwtVerifyKeyPolicyId,
+		TLSCertificatePublicCASigned: req.TLSCertificatePublicCASigned,
+		TLSCertificateAutoEnroll:     req.TLSCertificateAutoEnroll,
 	}
 
 	versiond := md5.New()

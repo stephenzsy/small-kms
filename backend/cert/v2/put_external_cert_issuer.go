@@ -1,6 +1,8 @@
 package cert
 
 import (
+	"errors"
+
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/base"
@@ -13,6 +15,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	"github.com/stephenzsy/small-kms/backend/resdoc"
+	"github.com/stephenzsy/small-kms/backend/utils"
 	"golang.org/x/crypto/acme"
 )
 
@@ -46,14 +49,17 @@ func (*CertServer) PutExternalCertificateIssuer(ec echo.Context, namespaceId str
 		DirectoryURL: acmeReq.DirectoryURL,
 	}
 	account, err := acmeClient.GetReg(c, "")
-	// account, err := acmeClient.Register(c, &acme.Account{
-	// 	Contact: utils.MapSlice(acmeReq.Contacts, func(contact string) string {
-	// 		return "mailto:" + contact
-	// 	}),
-	// }, func(tosURL string) bool {
-	// 	logger.Info().Str("tosURL", tosURL).Msg("tosURL")
-	// 	return true
-	// })
+	if err != nil && errors.Is(err, acme.ErrNoAccount) {
+		account, err = acmeClient.Register(c, &acme.Account{
+			Contact: utils.MapSlice(acmeReq.Contacts, func(contact string) string {
+				return contact
+			}),
+		}, func(tosURL string) bool {
+			logger.Info().Str("tosURL", tosURL).Msg("tosURL")
+			return true
+		})
+	}
+
 	if err != nil {
 		logger.Error().Err(err).Msg("acmeClient.Register")
 		return err

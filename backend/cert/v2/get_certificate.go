@@ -105,5 +105,8 @@ func getCertificatePending(c ctx.RequestContext, namespaceProvider models.Namesp
 		}
 	}
 	model := certDoc.ToModel(true)
+	model.PendingAcme = &certmodels.CertificatePendingAcme{
+		Authorizations: authorizations,
+	}
 	return c.JSON(http.StatusOK, model)
 }

@@ -185,7 +185,7 @@ export default function CertPolicyPage() {
     const linkTo: To = {
       pathname: `../certificates/${cert.id}`,
     };
-    if (cert.status === CertificateStatus.CertificateStatusPendingExternal) {
+    if (cert.status === CertificateStatus.CertificateStatusPendingAuthorization) {
       linkTo.search = `?pending=true`;
     }
     return (

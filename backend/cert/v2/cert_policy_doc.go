@@ -333,14 +333,13 @@ func (d *CertPolicyDoc) ToModel() (m certmodels.CertificatePolicy) {
 	return m
 }
 
-// func (d *CertPolicyDoc) getIssuerCert(c ctx.RequestContext) (*CertDoc, error) {
-// 	linkDoc, err := getPolicyIssuerCertInternal(c, d.PartitionKey.NamespaceProvider, d.PartitionKey.NamespaceID, d.ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return GetCertificateInternal(c, linkDoc.LinkTo.NamespaceProvider, linkDoc.LinkTo.NamespaceID, linkDoc.LinkTo.ID)
-// }
+func (d *CertPolicyDoc) getIssuerCertIdentifier(c ctx.RequestContext) (resdoc.DocIdentifier, error) {
+	linkDoc, err := getPolicyIssuerCertInternal(c, d.PartitionKey.NamespaceProvider, d.PartitionKey.NamespaceID, d.ID)
+	if err != nil {
+		return resdoc.DocIdentifier{}, err
+	}
+	return linkDoc.LinkTo, err
+}
 
 func (d *CertPolicyDoc) getExternalIssuer(c ctx.RequestContext) (*CertIssuerDoc, error) {
 	if d.IssuerPolicy.NamespaceProvider != models.NamespaceProviderExternalCA {

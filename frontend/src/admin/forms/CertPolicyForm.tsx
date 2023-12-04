@@ -124,6 +124,14 @@ function IssuerSelector({
   const { data: policies } = useRequest(
     async () => {
       if (selectedNamespaceId) {
+        if (
+          issuerNamespaceProvider ===
+          NamespaceProvider.NamespaceProviderExternalCA
+        ) {
+          return await api.listExternalCertificateIssuers({
+            namespaceId: selectedNamespaceId,
+          });
+        }
         return await api.listCertificatePolicies({
           namespaceId: selectedNamespaceId,
           namespaceProvider: issuerNamespaceProvider,

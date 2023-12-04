@@ -287,10 +287,22 @@ paths:
           schema:
             type: boolean
       operationId: EnrollCertificate
-      summary: put certificate policy
+      summary: enroll certificate
       requestBody:
         required: true
         content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                csrSigningDigest:
+                  type: string
+                  format: "models-shared.yaml#/components/schemas/agentConf"
+                key:
+                  type: string
+                  format: binary
+                password:
+                  type: string
           application/json:
             schema:
               $ref: "models-cert.yaml#/components/schemas/EnrollCertificateRequest"

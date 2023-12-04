@@ -22,6 +22,7 @@ const (
 	CertificateStatusIssued               CertificateStatus = "issued"
 	CertificateStatusPending              CertificateStatus = "pending"
 	CertificateStatusPendingAuthorization CertificateStatus = "pending-authorization"
+	CertificateStatusRevoked              CertificateStatus = "revoked"
 	CertificateStatusUnverified           CertificateStatus = "unverified"
 )
 

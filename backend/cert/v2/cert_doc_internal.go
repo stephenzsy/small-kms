@@ -4,8 +4,10 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/x509"
+	"fmt"
 	"math/big"
 	"slices"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -20,6 +22,27 @@ import (
 
 type certDocInternal struct {
 	certDocPending
+}
+
+func (doc *certDocInternal) init(c ctx.RequestContext,
+	nsProvider models.NamespaceProvider, nsID string,
+	pDoc *CertPolicyDoc, publicKey *cloudkey.JsonWebKey) (err error) {
+	if err = doc.certDocPending.init(c, nsProvider, nsID, pDoc, publicKey); err != nil {
+		return err
+	}
+	if doc.PartitionKey.NamespaceProvider == models.NamespaceProviderRootCA {
+		doc.Issuer = doc.Identifier()
+	} else {
+		issuerPolicy, err := GetCertificatePolicyInternal(c, pDoc.IssuerPolicy.NamespaceProvider, pDoc.IssuerPolicy.NamespaceID, pDoc.IssuerPolicy.ID)
+		if err != nil {
+			return err
+		}
+		doc.Issuer, err = issuerPolicy.getIssuerCertIdentifier(c)
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 // CreateCertificate implements CertDocument.
@@ -37,27 +60,36 @@ func (doc *certDocInternal) CreateCertificate(c ctx.RequestContext, csr CertCSR)
 		if err != nil {
 			return nil, err
 		}
+		sigAlg := cloudkey.JsonWebSignatureAlgorithm(doc.JsonWebKey.Alg)
 		ckResp, ck, err := cloudkeyaz.CreateCloudSignatureKey(c,
-			azKeysClient, doc.KeyVaultStore.Name, ckParams, cloudkey.JsonWebSignatureAlgorithm(doc.JsonWebKey.Alg), true)
+			azKeysClient, doc.KeyVaultStore.Name, ckParams, sigAlg, true)
 		if err != nil {
 			return nil, err
 		}
 		doc.JsonWebKey.KeyID = string(*ckResp.Key.KID)
 		publicKey = ck.Public()
 		signer = ck
+		doc.Issuer = doc.Identifier()
+		template.SignatureAlgorithm = sigAlg.X509SignatureAlgorithm()
 	} else {
 		issuerCertDoc, err := GetCertificateInternal(c, doc.Issuer.NamespaceProvider, doc.Issuer.NamespaceID, doc.Issuer.ID)
 		if err != nil {
 			return nil, err
+		} else if issuerCertDoc.GetStatus() != certmodels.CertificateStatusIssued {
+			return nil, fmt.Errorf("issuer certificate is not issued")
+		} else if time.Until(issuerCertDoc.GetNotAfter()) < 24*time.Hour {
+			return nil, fmt.Errorf("issuer certificate is expiring soon or has expired")
 		}
 		issuerCert, err = issuerCertDoc.X509Certificate()
 		if err != nil {
 			return nil, err
 		}
 		issuerJwk := issuerCertDoc.GetJsonWebKey()
+		sigAlg := cloudkey.JsonWebSignatureAlgorithm(issuerJwk.Alg)
+
 		signer = cloudkeyaz.NewAzCloudSignatureKeyWithKID(
 			c, azKeysClient, issuerJwk.KeyID,
-			cloudkey.JsonWebSignatureAlgorithm(issuerJwk.Alg),
+			sigAlg,
 			true,
 			issuerJwk.PublicKey())
 		signerChain = utils.MapSlice(issuerCertDoc.GetJsonWebKey().CertificateChain, func(b cloudkey.Base64RawURLEncodableBytes) []byte { return b })
@@ -65,6 +97,8 @@ func (doc *certDocInternal) CreateCertificate(c ctx.RequestContext, csr CertCSR)
 		if err != nil {
 			return nil, err
 		}
+		template.SignatureAlgorithm = sigAlg.X509SignatureAlgorithm()
+
 	}
 	signed, err := x509.CreateCertificate(rand.Reader,
 		template,

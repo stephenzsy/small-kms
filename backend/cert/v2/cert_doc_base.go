@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"time"
 
@@ -157,13 +156,14 @@ func (d *certDocPending) init(
 
 		var materialName string
 		if nsProvider == models.NamespaceProviderRootCA {
-			materialName = kv.GetMaterialName(kv.MaterialNameKindCertificateKey, nsProvider, nsID, d.ID)
+			materialName = kv.GetMaterialName(kv.MaterialNameKindCertificateKey, nsProvider, nsID, pDoc.ID)
 		} else {
-			materialName = kv.GetMaterialName(kv.MaterialNameKindCertificate, nsProvider, nsID, d.ID)
+			materialName = kv.GetMaterialName(kv.MaterialNameKindCertificate, nsProvider, nsID, pDoc.ID)
 		}
 		d.KeyVaultStore = &CertDocKeyVaultStore{
 			Name: materialName,
 		}
+		d.KeyExportable = pDoc.KeyExportable
 	} else {
 		if d.JsonWebKey.KeyType != publicJwk.KeyType {
 			return fmt.Errorf("%w: public key type does not match", base.ErrResponseStatusBadRequest)
@@ -229,22 +229,38 @@ func (csr *kvCreateCertCSR) PublicKey() (crypto.PublicKey, error) {
 
 var _ CertCSR = (*kvCreateCertCSR)(nil)
 
+type enrollPublicKeyCSR struct {
+	pubKey crypto.PublicKey
+}
+
+// PublicKey implements CertCSR.
+func (csr *enrollPublicKeyCSR) PublicKey() (crypto.PublicKey, error) {
+	return csr.pubKey, nil
+}
+
+// X509CSRBytes implements CertCSR.
+func (*enrollPublicKeyCSR) X509CSRBytes() []byte {
+	return nil
+}
+
+var _ CertCSR = (*enrollPublicKeyCSR)(nil)
+
 // GenerateCertificateRequest implements CertDocument.
 func (doc *certDocPending) GetCertificateRequest(c ctx.RequestContext, skipCheckExisting bool) (CertCSR, error) {
 	if doc.KeyVaultStore == nil {
-		return nil, fmt.Errorf("%w: this certificate does not support generate", base.ErrResponseStatusBadRequest)
+		return &enrollPublicKeyCSR{doc.JsonWebKey.PublicKey()}, nil
 	}
 	client := kv.GetAzKeyVaultService(c).AzCertificatesClient()
-	if !skipCheckExisting {
-		if resp, err := client.GetCertificateOperation(c, doc.KeyVaultStore.Name, nil); err != nil {
-			err = base.HandleAzKeyVaultError(err)
-			if !errors.Is(err, base.ErrResponseStatusNotFound) {
-				return nil, err
-			}
-		} else {
-			return &kvCreateCertCSR{&resp.CertificateOperation}, nil
-		}
-	}
+	// if !skipCheckExisting {
+	// 	if resp, err := client.GetCertificateOperation(c, doc.KeyVaultStore.Name, nil); err != nil {
+	// 		err = kv.HandleAzKeyVaultError(err)
+	// 		if !errors.Is(err, kv.ErrAzKeyVaultItemNotFound) {
+	// 			return nil, err
+	// 		}
+	// 	} else if resp.CertificateOperation.Status == azcertificates. {
+	// 		return &kvCreateCertCSR{&resp.CertificateOperation}, nil
+	// 	}
+	// }
 	params, err := doc.getAzCreateCertParams()
 	if err != nil {
 		return nil, err
@@ -271,10 +287,12 @@ func (d *certDocPending) getAzCreateCertParams() (params azcertificates.CreateCe
 		},
 		X509CertificateProperties: &azcertificates.X509CertificateProperties{
 			Subject: to.Ptr(d.Subject.String()),
-			SubjectAlternativeNames: &azcertificates.SubjectAlternativeNames{
-				DNSNames: to.SliceOfPtrs(d.SANs.DNSNames...),
-			},
 		},
+	}
+	if d.SANs != nil {
+		params.CertificatePolicy.X509CertificateProperties.SubjectAlternativeNames = &azcertificates.SubjectAlternativeNames{
+			DNSNames: to.SliceOfPtrs(d.SANs.DNSNames...),
+		}
 	}
 	kp := params.CertificatePolicy.KeyProperties
 	switch d.JsonWebKey.KeyType {

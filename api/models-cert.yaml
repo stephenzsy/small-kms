@@ -171,16 +171,15 @@ components:
     CertificateStatus:
       type: string
       enum:
+        - pending
         - pending-authorization
-        - pending-csr
-        - pending-issue
         - issued
         - revoked
         - deactivated
         - unverified
       x-enum-varnames:
+        - CertificateStatusPending
         - CertificateStatusPendingAuthorization
-        - CertificateStatusPendingCSR
         - CertificateStatusIssued
         - CertificateStatusRevoked
         - CertificateStatusDeactivated

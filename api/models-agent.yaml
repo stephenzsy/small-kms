@@ -144,6 +144,12 @@ components:
       properties:
         tlsCertificatePolicyId:
           type: string
+        tlsCertificatePublicCaSigned:
+          type: boolean
+          x-go-name: TLSCertificatePublicCASigned
+        tlsCertificateAutoEnroll:
+          type: boolean
+          x-go-name: TLSCertificateAutoEnroll
         jwtVerifyKeyPolicyId:
           type: string
         jwtVerifyKeyIds:
@@ -153,6 +159,8 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - tlsCertificatePolicyId
+        - tlsCertificatePublicCaSigned
+        - tlsCertificateAutoEnroll
         - jwtVerifyKeyPolicyId
     DockerImageSummary:
       type: object

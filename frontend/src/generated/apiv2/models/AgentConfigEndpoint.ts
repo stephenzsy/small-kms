@@ -52,6 +52,12 @@ export interface AgentConfigEndpoint {
     tlsCertificatePolicyId: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof AgentConfigEndpoint
+     */
+    isTlsCertificatePublicCaSigned: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof AgentConfigEndpoint
      */
@@ -73,6 +79,7 @@ export function instanceOfAgentConfigEndpoint(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "version" in value;
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
+    isInstance = isInstance && "isTlsCertificatePublicCaSigned" in value;
     isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
 
     return isInstance;
@@ -92,6 +99,7 @@ export function AgentConfigEndpointFromJSONTyped(json: any, ignoreDiscriminator:
         'updated': (new Date(json['updated'])),
         'version': json['version'],
         'tlsCertificatePolicyId': json['tlsCertificatePolicyId'],
+        'isTlsCertificatePublicCaSigned': json['isTlsCertificatePublicCaSigned'],
         'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
         'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
     };
@@ -110,6 +118,7 @@ export function AgentConfigEndpointToJSON(value?: AgentConfigEndpoint | null): a
         'updated': (value.updated.toISOString()),
         'version': value.version,
         'tlsCertificatePolicyId': value.tlsCertificatePolicyId,
+        'isTlsCertificatePublicCaSigned': value.isTlsCertificatePublicCaSigned,
         'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
         'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
     };
