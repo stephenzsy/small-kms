@@ -44,6 +44,7 @@ import type {
   ProfileParameters,
   Ref,
   RequestDiagnostics,
+  UpdatePendingCertificateRequest,
 } from '../models/index';
 import {
     AgentConfigFromJSON,
@@ -104,6 +105,8 @@ import {
     RefToJSON,
     RequestDiagnosticsFromJSON,
     RequestDiagnosticsToJSON,
+    UpdatePendingCertificateRequestFromJSON,
+    UpdatePendingCertificateRequestToJSON,
 } from '../models/index';
 
 export interface AddMsEntraKeyCredentialRequest {
@@ -332,6 +335,13 @@ export interface SyncSystemAppRequest {
 export interface UpdateAgentInstanceRequest {
     namespaceId: string;
     agentInstanceParameters?: AgentInstanceParameters;
+}
+
+export interface UpdatePendingCertificateOperationRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    updatePendingCertificateRequest: UpdatePendingCertificateRequest;
 }
 
 /**
@@ -2205,6 +2215,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async updateAgentInstance(requestParameters: UpdateAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentInstance> {
         const response = await this.updateAgentInstanceRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update pending certificate
+     */
+    async updatePendingCertificateRaw(requestParameters: UpdatePendingCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Certificate>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling updatePendingCertificate.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling updatePendingCertificate.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updatePendingCertificate.');
+        }
+
+        if (requestParameters.updatePendingCertificateRequest === null || requestParameters.updatePendingCertificateRequest === undefined) {
+            throw new runtime.RequiredError('updatePendingCertificateRequest','Required parameter requestParameters.updatePendingCertificateRequest was null or undefined when calling updatePendingCertificate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}/pending`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdatePendingCertificateRequestToJSON(requestParameters.updatePendingCertificateRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateFromJSON(jsonValue));
+    }
+
+    /**
+     * Update pending certificate
+     */
+    async updatePendingCertificate(requestParameters: UpdatePendingCertificateOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Certificate> {
+        const response = await this.updatePendingCertificateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

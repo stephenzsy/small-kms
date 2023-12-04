@@ -24,6 +24,18 @@ export interface CertificatePendingAcmeChallenge {
      * @type {string}
      * @memberof CertificatePendingAcmeChallenge
      */
+    type: string;
+    /**
+     * URL to the challenge
+     * @type {string}
+     * @memberof CertificatePendingAcmeChallenge
+     */
+    url: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CertificatePendingAcmeChallenge
+     */
     dnsRecord?: string;
 }
 
@@ -32,6 +44,8 @@ export interface CertificatePendingAcmeChallenge {
  */
 export function instanceOfCertificatePendingAcmeChallenge(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "url" in value;
 
     return isInstance;
 }
@@ -46,6 +60,8 @@ export function CertificatePendingAcmeChallengeFromJSONTyped(json: any, ignoreDi
     }
     return {
         
+        'type': json['type'],
+        'url': json['url'],
         'dnsRecord': !exists(json, 'dnsRecord') ? undefined : json['dnsRecord'],
     };
 }
@@ -59,6 +75,8 @@ export function CertificatePendingAcmeChallengeToJSON(value?: CertificatePending
     }
     return {
         
+        'type': value.type,
+        'url': value.url,
         'dnsRecord': value.dnsRecord,
     };
 }

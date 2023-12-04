@@ -124,6 +124,12 @@ export interface Certificate {
     issuerIdentifier: string;
     /**
      * 
+     * @type {string}
+     * @memberof Certificate
+     */
+    serialNumber: string;
+    /**
+     * 
      * @type {number}
      * @memberof Certificate
      */
@@ -192,6 +198,7 @@ export function instanceOfCertificate(value: object): boolean {
     isInstance = isInstance && "policyIdentifier" in value;
     isInstance = isInstance && "identififier" in value;
     isInstance = isInstance && "issuerIdentifier" in value;
+    isInstance = isInstance && "serialNumber" in value;
     isInstance = isInstance && "nbf" in value;
     isInstance = isInstance && "subject" in value;
 
@@ -220,6 +227,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'policyIdentifier': json['policyIdentifier'],
         'identififier': json['identififier'],
         'issuerIdentifier': json['issuerIdentifier'],
+        'serialNumber': json['serialNumber'],
         'nbf': json['nbf'],
         'jwk': !exists(json, 'jwk') ? undefined : JsonWebKeyFromJSON(json['jwk']),
         'subject': json['subject'],
@@ -253,6 +261,7 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'policyIdentifier': value.policyIdentifier,
         'identififier': value.identififier,
         'issuerIdentifier': value.issuerIdentifier,
+        'serialNumber': value.serialNumber,
         'nbf': value.nbf,
         'jwk': JsonWebKeyToJSON(value.jwk),
         'subject': value.subject,

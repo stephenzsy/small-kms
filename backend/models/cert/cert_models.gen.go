@@ -18,11 +18,11 @@ const (
 
 // Defines values for CertificateStatus.
 const (
-	CertificateStatusDeactivated     CertificateStatus = "deactivated"
-	CertificateStatusIssued          CertificateStatus = "issued"
-	CertificateStatusPending         CertificateStatus = "pending"
-	CertificateStatusPendingExternal CertificateStatus = "pending-external"
-	CertificateStatusUnverified      CertificateStatus = "unverified"
+	CertificateStatusDeactivated          CertificateStatus = "deactivated"
+	CertificateStatusIssued               CertificateStatus = "issued"
+	CertificateStatusPending              CertificateStatus = "pending"
+	CertificateStatusPendingAuthorization CertificateStatus = "pending-authorization"
+	CertificateStatusUnverified           CertificateStatus = "unverified"
 )
 
 // Certificate defines model for Certificate.
@@ -56,6 +56,7 @@ type CertificateFields struct {
 	Nbf                   externalRef0.NumericDate `json:"nbf"`
 	OneTimePkcs12Key      *externalRef1.JsonWebKey `json:"oneTimePkcs12Key,omitempty"`
 	PendingAcme           *CertificatePendingAcme  `json:"pendingAcme,omitempty"`
+	SerialNumber          string                   `json:"serialNumber"`
 
 	// Sid Key Vault Secret ID
 	KeyVaultSecretID        string                   `json:"sid,omitempty"`
@@ -68,12 +69,25 @@ type CertificateFlag string
 
 // CertificatePendingAcme defines model for CertificatePendingAcme.
 type CertificatePendingAcme struct {
+	Authorizations []CertificatePendingAcmeAuthorization `json:"authorizations,omitempty"`
+}
+
+// CertificatePendingAcmeAuthorization defines model for CertificatePendingAcmeAuthorization.
+type CertificatePendingAcmeAuthorization struct {
 	Challenges []CertificatePendingAcmeChallenge `json:"challenges,omitempty"`
+	Status     string                            `json:"status"`
+
+	// Url URL to the authorization
+	URL string `json:"url"`
 }
 
 // CertificatePendingAcmeChallenge defines model for CertificatePendingAcmeChallenge.
 type CertificatePendingAcmeChallenge struct {
 	DNSRecord string `json:"dnsRecord,omitempty"`
+	Type      string `json:"type"`
+
+	// Url URL to the challenge
+	URL string `json:"url"`
 }
 
 // CertificatePolicy defines model for CertificatePolicy.
@@ -166,6 +180,12 @@ type SubjectAlternativeNames struct {
 	DNSNames    []string `json:"dnsNames,omitempty"`
 	Emails      []string `json:"emails,omitempty"`
 	IPAddresses []net.IP `json:"ipAddresses,omitempty"`
+}
+
+// UpdatePendingCertificateRequest defines model for UpdatePendingCertificateRequest.
+type UpdatePendingCertificateRequest struct {
+	AcmeAcceptChallenge  string `json:"acmeAcceptChallengeUrl,omitempty"`
+	AcmeOrderCertificate *bool  `json:"acmeOrderCertificate,omitempty"`
 }
 
 // CertificateExternalIssuerResponse defines model for CertificateExternalIssuerResponse.

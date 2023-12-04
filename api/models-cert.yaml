@@ -45,6 +45,8 @@ components:
           type: string
         issuerIdentifier:
           type: string
+        serialNumber:
+          type: string
         nbf:
           $ref: "models-shared.yaml#/components/schemas/NumericDate"
           x-go-name: NotBefore
@@ -77,6 +79,7 @@ components:
       required:
         - identififier
         - issuerIdentifier
+        - serialNumber
         - nbf
         - subject
     CertificateExternalIssuer:
@@ -115,17 +118,51 @@ components:
         - azureDnsZoneResourceId
     CertificatePendingAcme:
       properties:
+        authorizations:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertificatePendingAcmeAuthorization"
+          x-go-type-skip-optional-pointer: true
+    CertificatePendingAcmeAuthorization:
+      properties:
+        url:
+          type: string
+          description: URL to the authorization
+          x-go-name: URL
+        status:
+          type: string
         challenges:
           type: array
           items:
             $ref: "#/components/schemas/CertificatePendingAcmeChallenge"
           x-go-type-skip-optional-pointer: true
+      required:
+        - url
+        - status
     CertificatePendingAcmeChallenge:
       properties:
+        type:
+          type: string
+        url:
+          type: string
+          description: URL to the challenge
+          x-go-name: URL
         dnsRecord:
           type: string
           x-go-name: DNSRecord
           x-go-type-skip-optional-pointer: true
+      required:
+        - type
+        - url
+    UpdatePendingCertificateRequest:
+      properties:
+        acmeAcceptChallengeUrl:
+          type: string
+          x-go-name: AcmeAcceptChallenge
+          x-go-type-skip-optional-pointer: true
+        acmeOrderCertificate:
+          type: boolean
+          x-go-name: AcmeOrderCertificate
     CertificatePolicy:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
@@ -134,15 +171,18 @@ components:
     CertificateStatus:
       type: string
       enum:
-        - pending
-        - pending-external
+        - pending-authorization
+        - pending-csr
+        - pending-issue
         - issued
+        - revoked
         - deactivated
         - unverified
       x-enum-varnames:
-        - CertificateStatusPending
-        - CertificateStatusPendingExternal
+        - CertificateStatusPendingAuthorization
+        - CertificateStatusPendingCSR
         - CertificateStatusIssued
+        - CertificateStatusRevoked
         - CertificateStatusDeactivated
         - CertificateStatusUnverified
     CertificatePolicyFields:

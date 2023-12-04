@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
@@ -68,17 +67,17 @@ func (*CertServer) AddMsEntraKeyCredential(ec echo.Context, namespaceProvider mo
 	if err != nil {
 		return err
 	}
-	if cert.Status != certmodels.CertificateStatusIssued {
+	if cert.GetStatus() != certmodels.CertificateStatusIssued {
 		return base.ErrResponseStatusBadRequest
 	}
-	if cert.NotAfter.Before(time.Now()) {
+	if cert.IsExpired() {
 		return base.ErrResponseStatusBadRequest
 	}
 
 	return updateApplicationWithCert(c, namespaceProfile, cert, gclient)
 }
 
-func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc, cert *CertDoc, gclient *msgraphsdkgo.GraphServiceClient) error {
+func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc, cert CertDocument, gclient *msgraphsdkgo.GraphServiceClient) error {
 	app, err := gclient.ApplicationsWithAppId(profile.AppId).Get(c, &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetRequestConfiguration{
 		QueryParameters: &applicationswithappid.ApplicationsWithAppIdRequestBuilderGetQueryParameters{
 			Select: []string{"id", "appId", "keyCredentials"},
@@ -88,7 +87,7 @@ func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc
 		return err
 	}
 
-	certTpStr := strings.ToLower(cert.JsonWebKey.ThumbprintSHA1.HexString())
+	certTpStr := strings.ToLower(cert.GetJsonWebKey().ThumbprintSHA1.HexString())
 	nextKeyCredentials := make([]gmodels.KeyCredentialable, 0, len(app.GetKeyCredentials())+1)
 
 	for _, installedKey := range app.GetKeyCredentials() {
@@ -104,9 +103,9 @@ func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc
 	toAdd := gmodels.NewKeyCredential()
 	toAdd.SetTypeEscaped(utils.ToPtr("AsymmetricX509Cert"))
 	toAdd.SetUsage(utils.ToPtr("Verify"))
-	toAdd.SetStartDateTime(&cert.NotBefore.Time)
-	toAdd.SetEndDateTime(&cert.NotAfter.Time)
-	toAdd.SetKey(cert.JsonWebKey.CertificateChain[0])
+	toAdd.SetStartDateTime(utils.ToPtr(cert.GetNotBefore()))
+	toAdd.SetEndDateTime(utils.ToPtr(cert.GetNotAfter()))
+	toAdd.SetKey(cert.GetCertificateBytes())
 	nextKeyCredentials = append(nextKeyCredentials, toAdd)
 
 	patchApplication := gmodels.NewApplication()

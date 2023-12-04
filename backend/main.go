@@ -130,7 +130,11 @@ func main() {
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(
 			taskmanager.NewTask("echo", func(c context.Context, sigCh <-chan os.Signal) error {
-				go e.Start(listenerAddress)
+				if os.Getenv("ENABLE_DEV_AUTH") == "true" {
+					go e.StartTLS(listenerAddress, "cert.pem", "key.pem")
+				} else {
+					go e.Start(listenerAddress)
+				}
 				<-sigCh
 				return e.Shutdown(c)
 			}))

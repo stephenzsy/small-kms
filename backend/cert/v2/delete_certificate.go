@@ -32,14 +32,14 @@ func (*CertServer) DeleteCertificate(ec echo.Context,
 	}
 
 	c = c.Elevate()
-	if err = doc.cleanupKeyVault(c); err != nil {
-		return err
-	}
-	if doc.Status == certmodels.CertificateStatusPending || doc.NotAfter.Time.Before(time.Now()) {
+	// if err = doc.cleanupKeyVault(c); err != nil {
+	// 	return err
+	// }
+	if doc.GetStatus() == certmodels.CertificateStatusPending || doc.IsExpired() {
 
 		// delete document
 		_, err := resdoc.GetDocService(c).Delete(c, doc.Identifier(), &azcosmos.ItemOptions{
-			IfMatchEtag: doc.ETag,
+			IfMatchEtag: doc.GetETag(),
 		})
 		if err != nil {
 			return err
@@ -51,7 +51,7 @@ func (*CertServer) DeleteCertificate(ec echo.Context,
 	patchOps.AppendSet("/status", certmodels.CertificateStatusDeactivated)
 	patchOps.AppendSet("/deleted", time.Now().UTC())
 	resp, err := resdoc.GetDocService(c).Patch(c, doc, patchOps, &azcosmos.ItemOptions{
-		IfMatchEtag: doc.ETag,
+		IfMatchEtag: doc.GetETag(),
 	})
 	if err != nil {
 		return err

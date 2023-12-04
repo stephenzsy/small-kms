@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { CertificatePendingAcmeChallenge } from './CertificatePendingAcmeChallenge';
+import type { CertificatePendingAcmeAuthorization } from './CertificatePendingAcmeAuthorization';
 import {
-    CertificatePendingAcmeChallengeFromJSON,
-    CertificatePendingAcmeChallengeFromJSONTyped,
-    CertificatePendingAcmeChallengeToJSON,
-} from './CertificatePendingAcmeChallenge';
+    CertificatePendingAcmeAuthorizationFromJSON,
+    CertificatePendingAcmeAuthorizationFromJSONTyped,
+    CertificatePendingAcmeAuthorizationToJSON,
+} from './CertificatePendingAcmeAuthorization';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface CertificatePendingAcme {
     /**
      * 
-     * @type {Array<CertificatePendingAcmeChallenge>}
+     * @type {Array<CertificatePendingAcmeAuthorization>}
      * @memberof CertificatePendingAcme
      */
-    challenges?: Array<CertificatePendingAcmeChallenge>;
+    authorizations?: Array<CertificatePendingAcmeAuthorization>;
 }
 
 /**
@@ -53,7 +53,7 @@ export function CertificatePendingAcmeFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'challenges': !exists(json, 'challenges') ? undefined : ((json['challenges'] as Array<any>).map(CertificatePendingAcmeChallengeFromJSON)),
+        'authorizations': !exists(json, 'authorizations') ? undefined : ((json['authorizations'] as Array<any>).map(CertificatePendingAcmeAuthorizationFromJSON)),
     };
 }
 
@@ -66,7 +66,7 @@ export function CertificatePendingAcmeToJSON(value?: CertificatePendingAcme | nu
     }
     return {
         
-        'challenges': value.challenges === undefined ? undefined : ((value.challenges as Array<any>).map(CertificatePendingAcmeChallengeToJSON)),
+        'authorizations': value.authorizations === undefined ? undefined : ((value.authorizations as Array<any>).map(CertificatePendingAcmeAuthorizationToJSON)),
     };
 }
 

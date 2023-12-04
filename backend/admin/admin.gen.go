@@ -99,6 +99,9 @@ type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields
 // ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
 type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request
 
+// UpdatePendingCertificateJSONRequestBody defines body for UpdatePendingCertificate for application/json ContentType.
+type UpdatePendingCertificateJSONRequestBody = externalRef2.UpdatePendingCertificateRequest
+
 // PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
 type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
 
@@ -206,6 +209,9 @@ type ServerInterface interface {
 	// Add certificate as MS Entra key credential
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential)
 	AddMsEntraKeyCredential(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// Update pending certificate
+	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/pending)
+	UpdatePendingCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// List key policies
 	// (GET /v2/{namespaceProvider}/{namespaceId}/key-policies)
 	ListKeyPolicies(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
@@ -1141,6 +1147,40 @@ func (w *ServerInterfaceWrapper) AddMsEntraKeyCredential(ctx echo.Context) error
 	return err
 }
 
+// UpdatePendingCertificate converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdatePendingCertificate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdatePendingCertificate(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
 // ListKeyPolicies converts echo context to params.
 func (w *ServerInterfaceWrapper) ListKeyPolicies(ctx echo.Context) error {
 	var err error
@@ -1484,6 +1524,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id", wrapper.GetCertificate)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/exchange-pkcs12", wrapper.ExchangePKCS12)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/ms-entra-key-credential", wrapper.AddMsEntraKeyCredential)
+	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/pending", wrapper.UpdatePendingCertificate)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.GetKeyPolicy)
 	router.PUT(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.PutKeyPolicy)

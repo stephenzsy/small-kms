@@ -154,7 +154,8 @@ func (p *ProxyClientPool) GetClient(c context.Context, namespaceID string, insta
 		return nil, err
 	}
 
-	client, err := newClientWithCreds(instanceDoc.Endpoint, certDoc.JsonWebKey.CertificateChain[len(certDoc.JsonWebKey.CertificateChain)-1], accessToken)
+	certChain := certDoc.GetJsonWebKey().CertificateChain
+	client, err := newClientWithCreds(instanceDoc.Endpoint, certChain[len(certChain)-1], accessToken)
 	if err != nil {
 		return nil, err
 	}

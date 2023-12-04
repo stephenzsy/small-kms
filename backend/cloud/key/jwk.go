@@ -176,12 +176,14 @@ func (jwk *JsonWebKey) PrivateKey() crypto.PrivateKey {
 	return jwk.cachedPrivateKey
 }
 
-func (jwk *JsonWebKey) setPublicKey(publicKey crypto.PublicKey) error {
+func (jwk *JsonWebKey) SetPublicKey(publicKey crypto.PublicKey) error {
 	switch publicKey := publicKey.(type) {
 	case *rsa.PublicKey:
 		jwk.KeyType = KeyTypeRSA
 		jwk.N = publicKey.N.Bytes()
 		jwk.E = big.NewInt(int64(publicKey.E)).Bytes()
+		jwk.X = nil
+		jwk.Y = nil
 	case *ecdsa.PublicKey:
 		jwk.KeyType = KeyTypeEC
 		switch publicKey.Curve {
@@ -196,6 +198,8 @@ func (jwk *JsonWebKey) setPublicKey(publicKey crypto.PublicKey) error {
 		}
 		jwk.X = publicKey.X.Bytes()
 		jwk.Y = publicKey.Y.Bytes()
+		jwk.N = nil
+		jwk.E = nil
 	default:
 		return ErrInvalidKeyType
 	}
@@ -228,7 +232,7 @@ func SanitizeKeyOperations(keyOps []JsonWebKeyOperation) []JsonWebKeyOperation {
 
 func NewJsonWebKeyFromPublicKey(publicKey crypto.PublicKey) (*JsonWebKey, error) {
 	jwk := &JsonWebKey{}
-	err := jwk.setPublicKey(publicKey)
+	err := jwk.SetPublicKey(publicKey)
 	if err != nil {
 		return nil, err
 	}

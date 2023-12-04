@@ -65,6 +65,9 @@ type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 // ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
 type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request
 
+// UpdatePendingCertificateJSONRequestBody defines body for UpdatePendingCertificate for application/json ContentType.
+type UpdatePendingCertificateJSONRequestBody = externalRef2.UpdatePendingCertificateRequest
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -167,6 +170,11 @@ type ClientInterface interface {
 
 	// AddMsEntraKeyCredential request
 	AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatePendingCertificateWithBody request with any body
+	UpdatePendingCertificateWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdatePendingCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetKey request
 	GetKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -294,6 +302,30 @@ func (c *Client) ExchangePKCS12(ctx context.Context, namespaceProvider Namespace
 
 func (c *Client) AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAddMsEntraKeyCredentialRequest(c.Server, namespaceProvider, namespaceId, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePendingCertificateWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePendingCertificateRequestWithBody(c.Server, namespaceProvider, namespaceId, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePendingCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePendingCertificateRequest(c.Server, namespaceProvider, namespaceId, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -712,6 +744,67 @@ func NewAddMsEntraKeyCredentialRequest(server string, namespaceProvider Namespac
 	return req, nil
 }
 
+// NewUpdatePendingCertificateRequest calls the generic UpdatePendingCertificate builder with application/json body
+func NewUpdatePendingCertificateRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdatePendingCertificateRequestWithBody(server, namespaceProvider, namespaceId, id, "application/json", bodyReader)
+}
+
+// NewUpdatePendingCertificateRequestWithBody generates requests for UpdatePendingCertificate with any type of body
+func NewUpdatePendingCertificateRequestWithBody(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/%s/%s/certificates/%s/pending", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetKeyRequest generates requests for GetKey
 func NewGetKeyRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams) (*http.Request, error) {
 	var err error
@@ -870,6 +963,11 @@ type ClientWithResponsesInterface interface {
 
 	// AddMsEntraKeyCredentialWithResponse request
 	AddMsEntraKeyCredentialWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AddMsEntraKeyCredentialResponse, error)
+
+	// UpdatePendingCertificateWithBodyWithResponse request with any body
+	UpdatePendingCertificateWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePendingCertificateResponse, error)
+
+	UpdatePendingCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePendingCertificateResponse, error)
 
 	// GetKeyWithResponse request
 	GetKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*GetKeyResponse, error)
@@ -1059,6 +1157,29 @@ func (r AddMsEntraKeyCredentialResponse) StatusCode() int {
 	return 0
 }
 
+type UpdatePendingCertificateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef2.CertificateResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatePendingCertificateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatePendingCertificateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1176,6 +1297,23 @@ func (c *ClientWithResponses) AddMsEntraKeyCredentialWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseAddMsEntraKeyCredentialResponse(rsp)
+}
+
+// UpdatePendingCertificateWithBodyWithResponse request with arbitrary body returning *UpdatePendingCertificateResponse
+func (c *ClientWithResponses) UpdatePendingCertificateWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePendingCertificateResponse, error) {
+	rsp, err := c.UpdatePendingCertificateWithBody(ctx, namespaceProvider, namespaceId, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePendingCertificateResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdatePendingCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePendingCertificateResponse, error) {
+	rsp, err := c.UpdatePendingCertificate(ctx, namespaceProvider, namespaceId, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePendingCertificateResponse(rsp)
 }
 
 // GetKeyWithResponse request returning *GetKeyResponse
@@ -1439,6 +1577,39 @@ func ParseAddMsEntraKeyCredentialResponse(rsp *http.Response) (*AddMsEntraKeyCre
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatePendingCertificateResponse parses an HTTP response from a UpdatePendingCertificateWithResponse call
+func ParseUpdatePendingCertificateResponse(rsp *http.Response) (*UpdatePendingCertificateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatePendingCertificateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef2.CertificateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

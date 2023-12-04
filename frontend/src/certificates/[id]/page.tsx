@@ -1,22 +1,22 @@
+import { useMemoizedFn, useRequest } from "ahooks";
 import { Button, Card, Typography } from "antd";
 import { useContext, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import { parse } from "uuid";
 import { DrawerContext } from "../../admin/contexts/DrawerContext";
 import { useNamespace } from "../../admin/contexts/useNamespace";
-import { useAuthedClientV2 } from "../../utils/useCertsApi";
+import { JsonDataDisplay } from "../../components/JsonDataDisplay";
+import { NumericDateTime } from "../../components/NumericDateTime";
 import {
-  AdminApi,
   CertificateToJSON,
   NamespaceProvider,
+  UpdatePendingCertificateRequest,
 } from "../../generated/apiv2";
-import { useMemoizedFn, useRequest } from "ahooks";
-import { JsonDataDisplay } from "../../components/JsonDataDisplay";
-import { parse } from "uuid";
-import { NumericDateTime } from "../../components/NumericDateTime";
 import {
   base64UrlEncodedToStdEncoded,
   toPEMBlock,
 } from "../../utils/encodingUtils";
+import { useAdminApi } from "../../utils/useCertsApi";
 
 function formatSerialNumber(certID: string): string {
   const a = parse(certID);
@@ -34,7 +34,7 @@ export default function CertificatePage() {
   const pending = searchParams.get("pending");
   const { openDrawer } = useContext(DrawerContext);
   const { namespaceProvider, namespaceId } = useNamespace();
-  const api = useAuthedClientV2(AdminApi);
+  const api = useAdminApi();
   const {
     data: cert,
     runAsync,
@@ -42,7 +42,7 @@ export default function CertificatePage() {
   } = useRequest(
     async (includeJwk?: boolean) => {
       if (id) {
-        return await api.getCertificate({
+        return await api?.getCertificate({
           id,
           namespaceId,
           namespaceProvider,
@@ -63,7 +63,7 @@ export default function CertificatePage() {
       }
       if (cert?.status == "pending") {
         try {
-          await api.deleteCertificate({
+          await api?.deleteCertificate({
             id,
             namespaceId,
             namespaceProvider,
@@ -72,7 +72,7 @@ export default function CertificatePage() {
           // TODO
         }
       } else {
-        const data = await api.deleteCertificate({
+        const data = await api?.deleteCertificate({
           id,
           namespaceId,
           namespaceProvider,
@@ -112,12 +112,27 @@ export default function CertificatePage() {
   const { run: installAsMsEntraCredential } = useRequest(
     async () => {
       if (id) {
-        return api.addMsEntraKeyCredential({
+        return api?.addMsEntraKeyCredential({
           id,
           namespaceId,
           namespaceProvider,
         });
       }
+    },
+    { manual: true }
+  );
+
+  const { run: updatePendingCert } = useRequest(
+    async (req: UpdatePendingCertificateRequest) => {
+      if (!id) {
+        return;
+      }
+      return await api?.updatePendingCertificate({
+        id,
+        namespaceId,
+        namespaceProvider,
+        updatePendingCertificateRequest: req,
+      });
     },
     { manual: true }
   );
@@ -251,15 +266,44 @@ export default function CertificatePage() {
       {cert?.pendingAcme && (
         <Card title="ACME">
           <ul>
-            {cert.pendingAcme.challenges?.map((chan, ind) => (
-              <li key={ind}>
-                <div>{chan.dnsRecord}</div>
-                <div>
-                  <Button>Ready to verify</Button>
-                </div>
+            {cert.pendingAcme.authorizations?.map((authz) => (
+              <li key={authz.url}>
+                <ul>
+                  {authz.challenges?.map((chan) => (
+                    <li key={chan.url}>
+                      <div>{chan.type}</div>
+                      <div>{chan.dnsRecord}</div>
+                      <div>
+                        <Button
+                          onClick={() => {
+                            updatePendingCert({
+                              acmeAcceptChallengeUrl: chan.url,
+                            });
+                          }}
+                        >
+                          Ready to verify
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>
+          {cert.pendingAcme.authorizations?.every(
+            (authz) => authz.status === "valid"
+          ) && (
+            <Button
+              onClick={() => {
+                updatePendingCert({
+                  acmeOrderCertificate: true,
+                });
+              }}
+              type="primary"
+            >
+              Order certificate
+            </Button>
+          )}
         </Card>
       )}
       <Card title="Actions">

@@ -42,8 +42,8 @@ func (*CertServer) GetCertificate(ec echo.Context, namespaceProvider models.Name
 	return c.JSON(http.StatusOK, model)
 }
 
-func GetCertificateInternal(c context.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (*CertDoc, error) {
-	certDoc := &CertDoc{}
+func GetCertificateInternal(c context.Context, namespaceProvider models.NamespaceProvider, namespaceId string, id string) (CertDocument, error) {
+	certDoc := &certDocBase{}
 	err := readCertDocInternal(c, namespaceProvider, namespaceId, id, certDoc)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func readCertDocInternal[T resdoc.ResourceDocument](c context.Context, namespace
 }
 
 func getCertificatePending(c ctx.RequestContext, namespaceProvider models.NamespaceProvider, namespaceId string, id string) error {
-	certDoc := &certDocExternalACMEPending{}
+	certDoc := &certDocACME{}
 	if err := readCertDocInternal(c, namespaceProvider, namespaceId, id, certDoc); err != nil {
 		return err
 	}
@@ -73,26 +73,37 @@ func getCertificatePending(c ctx.RequestContext, namespaceProvider models.Namesp
 	if err != nil {
 		return err
 	}
-	challenges := make([]certmodels.CertificatePendingAcmeChallenge, 0)
-	for _, url := range order.AuthzURLs {
+	authorizations := make([]certmodels.CertificatePendingAcmeAuthorization, len(order.AuthzURLs))
+
+	for i, url := range order.AuthzURLs {
 		a, err := certDoc.acmeClient.GetAuthorization(c, url)
 		if err != nil {
 			return err
 		}
-		for _, ch := range a.Challenges {
+		authorizations[i] = certmodels.CertificatePendingAcmeAuthorization{
+			Challenges: make([]certmodels.CertificatePendingAcmeChallenge, len(a.Challenges)),
+			Status:     a.Status,
+			URL:        a.URI,
+		}
+		for j, ch := range a.Challenges {
 			if ch.Type == "dns-01" {
 				record, err := certDoc.acmeClient.DNS01ChallengeRecord(ch.Token)
 				if err != nil {
 					return err
 				}
-				challenges = append(challenges, certmodels.CertificatePendingAcmeChallenge{
+				authorizations[i].Challenges[j] = certmodels.CertificatePendingAcmeChallenge{
+					Type:      ch.Type,
 					DNSRecord: record,
-				})
+					URL:       ch.URI,
+				}
+			} else {
+				authorizations[i].Challenges[j] = certmodels.CertificatePendingAcmeChallenge{
+					Type: ch.Type,
+					URL:  ch.URI,
+				}
 			}
 		}
 	}
-	model := certDoc.toModel(&certmodels.CertificatePendingAcme{
-		Challenges: challenges,
-	})
+	model := certDoc.ToModel(true)
 	return c.JSON(http.StatusOK, model)
 }

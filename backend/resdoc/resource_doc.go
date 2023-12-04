@@ -22,6 +22,11 @@ type ResourceDoc struct {
 	UpdatedBy    string           `json:"updatedBy,omitempty"`
 }
 
+// GetETag implements ResourceDocument.
+func (doc *ResourceDoc) GetETag() *azcore.ETag {
+	return doc.ETag
+}
+
 func (doc *ResourceDoc) Identifier() DocIdentifier {
 	return DocIdentifier{
 		PartitionKey: doc.PartitionKey,
@@ -67,9 +72,11 @@ func (d *ResourceDoc) getID() string {
 }
 
 type ResourceDocument interface {
+	Identifier() DocIdentifier
 	getID() string
 	partitionKey() PartitionKey
 	setETag(etag azcore.ETag)
+	GetETag() *azcore.ETag
 	prepareForWrite(c context.Context)
 	setTimestamp(t time.Time)
 	getUpdatedBy() string

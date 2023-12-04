@@ -19,7 +19,7 @@
  */
 export const CertificateStatus = {
     CertificateStatusPending: 'pending',
-    CertificateStatusPendingExternal: 'pending-external',
+    CertificateStatusPendingAuthorization: 'pending-authorization',
     CertificateStatusIssued: 'issued',
     CertificateStatusDeactivated: 'deactivated',
     CertificateStatusUnverified: 'unverified'

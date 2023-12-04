@@ -40,7 +40,7 @@ func (*CertServer) PutCertificatePolicyIssuer(ec echo.Context, namespaceProvider
 	if err != nil {
 		return err
 	}
-	if certDoc.Status != certmodels.CertificateStatusIssued {
+	if certDoc.GetStatus() != certmodels.CertificateStatusIssued {
 		return fmt.Errorf("%w: %s", base.ErrResponseStatusBadRequest, "certificate is not issued")
 	}
 	doc := &resdoc.LinkResourceDoc{

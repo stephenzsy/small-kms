@@ -22,6 +22,7 @@ models/CertificateExternalIssuerFields.ts
 models/CertificateFields.ts
 models/CertificateFlag.ts
 models/CertificatePendingAcme.ts
+models/CertificatePendingAcmeAuthorization.ts
 models/CertificatePendingAcmeChallenge.ts
 models/CertificatePolicy.ts
 models/CertificatePolicyFields.ts
@@ -60,5 +61,6 @@ models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts
 models/ServiceRuntimeInfo.ts
 models/SubjectAlternativeNames.ts
+models/UpdatePendingCertificateRequest.ts
 models/index.ts
 runtime.ts
