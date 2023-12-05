@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -134,7 +135,12 @@ func main() {
 				if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 					go e.StartTLS(listenerAddress, "cert.pem", "key.pem")
 				} else {
-					go e.StartH2CServer(listenerAddress, &http2.Server{})
+					s := &http2.Server{
+						MaxConcurrentStreams: 250,
+						MaxReadFrameSize:     1048576,
+						IdleTimeout:          10 * time.Second,
+					}
+					go e.StartH2CServer(listenerAddress, s)
 				}
 				<-sigCh
 				return e.Shutdown(c)
