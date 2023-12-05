@@ -85,12 +85,6 @@ export interface CertificatePolicy {
      * @type {boolean}
      * @memberof CertificatePolicy
      */
-    keyExportable: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CertificatePolicy
-     */
     allowGenerate: boolean;
     /**
      * 
@@ -139,7 +133,6 @@ export function instanceOfCertificatePolicy(value: object): boolean {
     isInstance = isInstance && "updated" in value;
     isInstance = isInstance && "updatedBy" in value;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "allowGenerate" in value;
     isInstance = isInstance && "allowEnroll" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -165,7 +158,6 @@ export function CertificatePolicyFromJSONTyped(json: any, ignoreDiscriminator: b
         'deleted': !exists(json, 'deleted') ? undefined : (new Date(json['deleted'])),
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyExportable': json['keyExportable'],
         'allowGenerate': json['allowGenerate'],
         'allowEnroll': json['allowEnroll'],
         'expiryTime': json['expiryTime'],
@@ -191,7 +183,6 @@ export function CertificatePolicyToJSON(value?: CertificatePolicy | null): any {
         'deleted': value.deleted === undefined ? undefined : (value.deleted.toISOString()),
         'displayName': value.displayName,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyExportable': value.keyExportable,
         'allowGenerate': value.allowGenerate,
         'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,

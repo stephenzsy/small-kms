@@ -70,6 +70,12 @@ export interface JsonWebKey {
     keyOps?: Array<JsonWebKeyOperation>;
     /**
      * 
+     * @type {boolean}
+     * @memberof JsonWebKey
+     */
+    ext?: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof JsonWebKey
      */
@@ -142,6 +148,7 @@ export function JsonWebKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': !exists(json, 'key_ops') ? undefined : ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
+        'ext': !exists(json, 'ext') ? undefined : json['ext'],
         'kid': !exists(json, 'kid') ? undefined : json['kid'],
         'n': !exists(json, 'n') ? undefined : json['n'],
         'e': !exists(json, 'e') ? undefined : json['e'],
@@ -167,6 +174,7 @@ export function JsonWebKeyToJSON(value?: JsonWebKey | null): any {
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': value.keyOps === undefined ? undefined : ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
+        'ext': value.ext,
         'kid': value.kid,
         'n': value.n,
         'e': value.e,

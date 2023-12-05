@@ -189,8 +189,6 @@ components:
       properties:
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyExportable:
-          type: boolean
         allowGenerate:
           type: boolean
         allowEnroll:
@@ -212,7 +210,6 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - keySpec
-        - keyExportable
         - allowGenerate
         - allowEnroll
         - expiryTime
@@ -229,8 +226,6 @@ components:
           x-go-type-skip-optional-pointer: true
         keySpec:
           $ref: "models-key.yaml#/components/schemas/JsonWebKeySpec"
-        keyExportable:
-          type: boolean
         allowGenerate:
           type: boolean
         allowEnroll:

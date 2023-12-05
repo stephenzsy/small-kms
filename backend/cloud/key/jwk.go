@@ -59,6 +59,7 @@ type JsonWebKey struct {
 	ThumbprintSHA1   Base64RawURLEncodableBytes   `json:"x5t,omitempty"`      // RFC7517 4.8. "x5t" (X.509 Certificate SHA-1 Thumbprint) Parameter
 	ThumbprintSHA256 Base64RawURLEncodableBytes   `json:"x5t#S256,omitempty"` // RFC7517 4.9. "x5t#S256" (X.509 Certificate SHA-256 Thumbprint) Parameter
 	CertificateChain []Base64RawURLEncodableBytes `json:"x5c,omitempty"`      // RFC7517 4.7. "x5c" (X.509 Certificate Chain) Parameter
+	Extractable      *bool                        `json:"ext,omitempty"`
 
 	cachedPublicKey  crypto.PublicKey
 	cachedPrivateKey crypto.PrivateKey

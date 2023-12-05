@@ -68,6 +68,12 @@ export interface JsonWebKeySpec {
      * @memberof JsonWebKeySpec
      */
     keyOps?: Array<JsonWebKeyOperation>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof JsonWebKeySpec
+     */
+    ext?: boolean;
 }
 
 /**
@@ -94,6 +100,7 @@ export function JsonWebKeySpecFromJSONTyped(json: any, ignoreDiscriminator: bool
         'crv': !exists(json, 'crv') ? undefined : JsonWebKeyCurveNameFromJSON(json['crv']),
         'keySize': !exists(json, 'key_size') ? undefined : json['key_size'],
         'keyOps': !exists(json, 'key_ops') ? undefined : ((json['key_ops'] as Array<any>).map(JsonWebKeyOperationFromJSON)),
+        'ext': !exists(json, 'ext') ? undefined : json['ext'],
     };
 }
 
@@ -111,6 +118,7 @@ export function JsonWebKeySpecToJSON(value?: JsonWebKeySpec | null): any {
         'crv': JsonWebKeyCurveNameToJSON(value.crv),
         'key_size': value.keySize,
         'key_ops': value.keyOps === undefined ? undefined : ((value.keyOps as Array<any>).map(JsonWebKeyOperationToJSON)),
+        'ext': value.ext,
     };
 }
 

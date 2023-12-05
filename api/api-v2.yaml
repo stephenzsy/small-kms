@@ -291,18 +291,6 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                csrSigningDigest:
-                  type: string
-                  format: "models-shared.yaml#/components/schemas/agentConf"
-                key:
-                  type: string
-                  format: binary
-                password:
-                  type: string
           application/json:
             schema:
               $ref: "models-cert.yaml#/components/schemas/EnrollCertificateRequest"
@@ -380,7 +368,6 @@ paths:
     post:
       tags:
         - admin
-        - agentclient
       operationId: ExchangePKCS12
       summary: Exchange PKCS12
       requestBody:
@@ -396,6 +383,10 @@ paths:
             application/json:
               schema:
                 $ref: "models-cert.yaml#/components/schemas/ExchangePKCS12Result"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/ms-entra-key-credential:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"

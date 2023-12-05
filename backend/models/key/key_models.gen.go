@@ -37,6 +37,7 @@ type JsonWebKeyOperation = cloudkey.JsonWebKeyOperation
 type JsonWebKeySpec struct {
 	Alg           string                `json:"alg,omitempty"`
 	Crv           JsonWebKeyCurveName   `json:"crv,omitempty"`
+	Extractable   *bool                 `json:"ext,omitempty"`
 	KeyOperations []JsonWebKeyOperation `json:"key_ops,omitempty"`
 	KeySize       *int                  `json:"key_size,omitempty"`
 	Kty           JsonWebKeyType        `json:"kty,omitempty"`
@@ -53,7 +54,6 @@ type Key = keyComposed
 
 // KeyFields defines model for KeyFields.
 type KeyFields struct {
-	Exportable   bool                      `json:"exportable"`
 	Identififier string                    `json:"identififier"`
 	Jwk          JsonWebKey                `json:"jwk"`
 	Nbf          *externalRef0.NumericDate `json:"nbf,omitempty"`
@@ -68,7 +68,6 @@ type KeyPolicy = keyPolicyComposed
 // KeyPolicyFields defines model for KeyPolicyFields.
 type KeyPolicyFields struct {
 	ExpiryTime string `json:"expiryTime,omitempty"`
-	Exportable bool   `json:"exportable"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec JsonWebKeySpec `json:"keySpec"`

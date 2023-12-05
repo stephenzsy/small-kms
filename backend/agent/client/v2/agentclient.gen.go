@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -42,13 +41,6 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
 
-// EnrollCertificateMultipartBody defines parameters for EnrollCertificate.
-type EnrollCertificateMultipartBody struct {
-	CsrSigningDigest *string             `json:"csrSigningDigest,omitempty"`
-	Key              *openapi_types.File `json:"key,omitempty"`
-	Password         *string             `json:"password,omitempty"`
-}
-
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
 	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
@@ -69,12 +61,6 @@ type UpdateAgentInstanceJSONRequestBody = externalRef1.AgentInstanceParameters
 
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
-
-// EnrollCertificateMultipartRequestBody defines body for EnrollCertificate for multipart/form-data ContentType.
-type EnrollCertificateMultipartRequestBody EnrollCertificateMultipartBody
-
-// ExchangePKCS12JSONRequestBody defines body for ExchangePKCS12 for application/json ContentType.
-type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request
 
 // UpdatePendingCertificateJSONRequestBody defines body for UpdatePendingCertificate for application/json ContentType.
 type UpdatePendingCertificateJSONRequestBody = externalRef2.UpdatePendingCertificateRequest
@@ -174,11 +160,6 @@ type ClientInterface interface {
 
 	EnrollCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ExchangePKCS12WithBody request with any body
-	ExchangePKCS12WithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ExchangePKCS12(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body ExchangePKCS12JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AddMsEntraKeyCredential request
 	AddMsEntraKeyCredential(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -277,30 +258,6 @@ func (c *Client) EnrollCertificateWithBody(ctx context.Context, namespaceProvide
 
 func (c *Client) EnrollCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEnrollCertificateRequest(c.Server, namespaceProvider, namespaceId, id, params, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ExchangePKCS12WithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExchangePKCS12RequestWithBody(c.Server, namespaceProvider, namespaceId, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ExchangePKCS12(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body ExchangePKCS12JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExchangePKCS12Request(c.Server, namespaceProvider, namespaceId, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -646,67 +603,6 @@ func NewEnrollCertificateRequestWithBody(server string, namespaceProvider Namesp
 	return req, nil
 }
 
-// NewExchangePKCS12Request calls the generic ExchangePKCS12 builder with application/json body
-func NewExchangePKCS12Request(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body ExchangePKCS12JSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewExchangePKCS12RequestWithBody(server, namespaceProvider, namespaceId, id, "application/json", bodyReader)
-}
-
-// NewExchangePKCS12RequestWithBody generates requests for ExchangePKCS12 with any type of body
-func NewExchangePKCS12RequestWithBody(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v2/%s/%s/certificates/%s/exchange-pkcs12", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewAddMsEntraKeyCredentialRequest generates requests for AddMsEntraKeyCredential
 func NewAddMsEntraKeyCredentialRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
 	var err error
@@ -967,11 +863,6 @@ type ClientWithResponsesInterface interface {
 
 	EnrollCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *EnrollCertificateParams, body EnrollCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*EnrollCertificateResponse, error)
 
-	// ExchangePKCS12WithBodyWithResponse request with any body
-	ExchangePKCS12WithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExchangePKCS12Response, error)
-
-	ExchangePKCS12WithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body ExchangePKCS12JSONRequestBody, reqEditors ...RequestEditorFn) (*ExchangePKCS12Response, error)
-
 	// AddMsEntraKeyCredentialWithResponse request
 	AddMsEntraKeyCredentialWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AddMsEntraKeyCredentialResponse, error)
 
@@ -1124,28 +1015,6 @@ func (r EnrollCertificateResponse) StatusCode() int {
 	return 0
 }
 
-type ExchangePKCS12Response struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef2.ExchangePKCS12Result
-}
-
-// Status returns HTTPResponse.Status
-func (r ExchangePKCS12Response) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ExchangePKCS12Response) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type AddMsEntraKeyCredentialResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1282,23 +1151,6 @@ func (c *ClientWithResponses) EnrollCertificateWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseEnrollCertificateResponse(rsp)
-}
-
-// ExchangePKCS12WithBodyWithResponse request with arbitrary body returning *ExchangePKCS12Response
-func (c *ClientWithResponses) ExchangePKCS12WithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExchangePKCS12Response, error) {
-	rsp, err := c.ExchangePKCS12WithBody(ctx, namespaceProvider, namespaceId, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseExchangePKCS12Response(rsp)
-}
-
-func (c *ClientWithResponses) ExchangePKCS12WithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body ExchangePKCS12JSONRequestBody, reqEditors ...RequestEditorFn) (*ExchangePKCS12Response, error) {
-	rsp, err := c.ExchangePKCS12(ctx, namespaceProvider, namespaceId, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseExchangePKCS12Response(rsp)
 }
 
 // AddMsEntraKeyCredentialWithResponse request returning *AddMsEntraKeyCredentialResponse
@@ -1542,32 +1394,6 @@ func ParseEnrollCertificateResponse(rsp *http.Response) (*EnrollCertificateRespo
 			return nil, err
 		}
 		response.JSON403 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseExchangePKCS12Response parses an HTTP response from a ExchangePKCS12WithResponse call
-func ParseExchangePKCS12Response(rsp *http.Response) (*ExchangePKCS12Response, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ExchangePKCS12Response{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef2.ExchangePKCS12Result
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 

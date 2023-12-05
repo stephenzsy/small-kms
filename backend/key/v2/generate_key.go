@@ -61,7 +61,7 @@ func (*KeyAdminServer) GenerateKey(ec echo.Context, namespaceProvider models.Nam
 	doc.E = result.Key.E
 	doc.X = result.Key.X
 	doc.Y = result.Key.Y
-	doc.Exportable = *result.Attributes.Exportable
+	doc.Extractable = result.Attributes.Exportable
 	doc.Status = keymodels.KeyStatusActive
 
 	doc.Checksum = doc.calculateChecksum()

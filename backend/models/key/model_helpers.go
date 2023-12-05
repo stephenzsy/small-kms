@@ -33,4 +33,7 @@ func (jwkspec *JsonWebKeySpec) Digest(w io.Writer) {
 	for _, op := range jwkspec.KeyOperations {
 		w.Write([]byte(op))
 	}
+	if jwkspec.Extractable != nil {
+		io.WriteString(w, "ext")
+	}
 }

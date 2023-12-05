@@ -300,7 +300,7 @@ export function CertPolicyForm({
           keyOpsName={["keySpec", "keyOps"]}
         />
         <KeyExportableFormItem<CertificatePolicyParameters>
-          name={"keyExportable"}
+          name={["keySpec", "ext"]}
         />
       </div>
       <Divider />

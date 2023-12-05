@@ -195,7 +195,7 @@ func (d *certDocInternal) getAzCreateKeyParams() (params azkeys.CreateKeyParamet
 	}
 	// exportable
 	params.KeyAttributes = &azkeys.KeyAttributes{
-		Exportable: &d.KeyExportable,
+		Exportable: d.JsonWebKey.Extractable,
 		NotBefore:  &d.NotBefore.Time,
 		Expires:    &d.NotAfter.Time,
 		Enabled:    to.Ptr(true),

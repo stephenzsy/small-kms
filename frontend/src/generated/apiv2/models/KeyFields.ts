@@ -45,12 +45,6 @@ export interface KeyFields {
      */
     jwk: JsonWebKey;
     /**
-     * 
-     * @type {boolean}
-     * @memberof KeyFields
-     */
-    exportable: boolean;
-    /**
      * Key Vault Secret ID
      * @type {string}
      * @memberof KeyFields
@@ -65,7 +59,6 @@ export function instanceOfKeyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "identififier" in value;
     isInstance = isInstance && "jwk" in value;
-    isInstance = isInstance && "exportable" in value;
 
     return isInstance;
 }
@@ -83,7 +76,6 @@ export function KeyFieldsFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'identififier': json['identififier'],
         'nbf': !exists(json, 'nbf') ? undefined : json['nbf'],
         'jwk': JsonWebKeyFromJSON(json['jwk']),
-        'exportable': json['exportable'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
     };
 }
@@ -100,7 +92,6 @@ export function KeyFieldsToJSON(value?: KeyFields | null): any {
         'identififier': value.identififier,
         'nbf': value.nbf,
         'jwk': JsonWebKeyToJSON(value.jwk),
-        'exportable': value.exportable,
         'sid': value.sid,
     };
 }

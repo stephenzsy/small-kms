@@ -60,8 +60,7 @@ type certDocBase struct {
 
 	Status certmodels.CertificateStatus `json:"status"`
 
-	JsonWebKey    cloudkey.JsonWebKey `json:"jwk"`
-	KeyExportable bool                `json:"keyExportable"`
+	JsonWebKey cloudkey.JsonWebKey `json:"jwk"`
 
 	Subject          certmodels.CertificateSubject       `json:"subject"`
 	SANs             *certmodels.SubjectAlternativeNames `json:"sans,omitempty"`
@@ -147,6 +146,7 @@ func (d *certDocPending) init(
 	d.JsonWebKey.Curve = pDoc.KeySpec.Crv
 	d.JsonWebKey.Alg = pDoc.KeySpec.Alg
 	d.JsonWebKey.KeyOperations = pDoc.KeySpec.KeyOperations
+	d.JsonWebKey.Extractable = pDoc.KeySpec.Extractable
 	if publicJwk == nil {
 		// cloud mastered key
 
@@ -163,7 +163,6 @@ func (d *certDocPending) init(
 		d.KeyVaultStore = &CertDocKeyVaultStore{
 			Name: materialName,
 		}
-		d.KeyExportable = pDoc.KeyExportable
 	} else {
 		if d.JsonWebKey.KeyType != publicJwk.KeyType {
 			return fmt.Errorf("%w: public key type does not match", base.ErrResponseStatusBadRequest)
@@ -280,7 +279,7 @@ func (d *certDocPending) getAzCreateCertParams() (params azcertificates.CreateCe
 	}
 	params.CertificatePolicy = &azcertificates.CertificatePolicy{
 		KeyProperties: &azcertificates.KeyProperties{
-			Exportable: &d.KeyExportable,
+			Exportable: d.JsonWebKey.Extractable,
 		},
 		SecretProperties: &azcertificates.SecretProperties{
 			ContentType: to.Ptr("application/x-pem-file"),

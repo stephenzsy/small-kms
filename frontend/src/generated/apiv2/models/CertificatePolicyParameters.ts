@@ -67,12 +67,6 @@ export interface CertificatePolicyParameters {
      * @type {boolean}
      * @memberof CertificatePolicyParameters
      */
-    keyExportable?: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CertificatePolicyParameters
-     */
     allowGenerate?: boolean;
     /**
      * 
@@ -129,7 +123,6 @@ export function CertificatePolicyParametersFromJSONTyped(json: any, ignoreDiscri
         'displayName': !exists(json, 'displayName') ? undefined : json['displayName'],
         'issuerPolicyIdentifier': !exists(json, 'issuerPolicyIdentifier') ? undefined : json['issuerPolicyIdentifier'],
         'keySpec': !exists(json, 'keySpec') ? undefined : JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyExportable': !exists(json, 'keyExportable') ? undefined : json['keyExportable'],
         'allowGenerate': !exists(json, 'allowGenerate') ? undefined : json['allowGenerate'],
         'allowEnroll': !exists(json, 'allowEnroll') ? undefined : json['allowEnroll'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
@@ -151,7 +144,6 @@ export function CertificatePolicyParametersToJSON(value?: CertificatePolicyParam
         'displayName': value.displayName,
         'issuerPolicyIdentifier': value.issuerPolicyIdentifier,
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyExportable': value.keyExportable,
         'allowGenerate': value.allowGenerate,
         'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,

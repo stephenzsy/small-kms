@@ -24,7 +24,6 @@ type CertPolicyDoc struct {
 	DisplayName string `json:"displayName"`
 
 	KeySpec       keymodels.JsonWebKeySpec            `json:"keySpec"`
-	KeyExportable bool                                `json:"keyExportable"`
 	AllowGenerate bool                                `json:"allowGenerate"`
 	AllowEnroll   bool                                `json:"allowEnroll"`
 	ExpiryTime    caldur.CalendarDuration             `json:"expiryTime"`
@@ -63,10 +62,10 @@ func (d *CertPolicyDoc) init(
 			Year: 10,
 		}
 		d.KeySpec = keymodels.JsonWebKeySpec{
-			Kty:     cloudkey.KeyTypeRSA,
-			KeySize: utils.ToPtr(4096),
+			Kty:         cloudkey.KeyTypeRSA,
+			KeySize:     utils.ToPtr(4096),
+			Extractable: utils.ToPtr(false),
 		}
-		d.KeyExportable = false
 		d.AllowGenerate = true
 		d.AllowEnroll = false
 	case models.NamespaceProviderIntermediateCA:
@@ -97,10 +96,10 @@ func (d *CertPolicyDoc) init(
 			Year: 3,
 		}
 		d.KeySpec = keymodels.JsonWebKeySpec{
-			Kty:     cloudkey.KeyTypeRSA,
-			KeySize: utils.ToPtr(4096),
+			Kty:         cloudkey.KeyTypeRSA,
+			KeySize:     utils.ToPtr(4096),
+			Extractable: utils.ToPtr(false),
 		}
-		d.KeyExportable = false
 		d.AllowGenerate = true
 		d.AllowEnroll = false
 	case models.NamespaceProviderServicePrincipal,
@@ -131,12 +130,13 @@ func (d *CertPolicyDoc) init(
 		}
 		// TODO verify issuer policy
 
-		d.KeyExportable = true
 		d.AllowGenerate = true
 		d.AllowEnroll = true
 
-		if p.KeyExportable != nil {
-			d.KeyExportable = *p.KeyExportable
+		if p.KeySpec.Extractable != nil {
+			d.KeySpec.Extractable = p.KeySpec.Extractable
+		} else {
+			d.KeySpec.Extractable = utils.ToPtr(true)
 		}
 		if p.AllowGenerate != nil {
 			d.AllowGenerate = *p.AllowGenerate
@@ -224,7 +224,7 @@ func (d *CertPolicyDoc) init(
 				d.KeySpec.KeyOperations = append(d.KeySpec.KeyOperations,
 					cloudkey.JsonWebKeyOperationWrapKey, cloudkey.JsonWebKeyOperationUnwrapKey)
 			case cloudkey.KeyTypeEC:
-				if d.KeyExportable {
+				if d.KeySpec.Extractable != nil && *d.KeySpec.Extractable {
 					d.KeySpec.KeyOperations = append(d.KeySpec.KeyOperations,
 						cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits)
 				}
@@ -285,9 +285,7 @@ func (d *CertPolicyDoc) init(
 	// get checksum of key fields
 	dw := md5.New()
 	d.KeySpec.Digest(dw)
-	if d.KeyExportable {
-		dw.Write([]byte("keyExportable"))
-	}
+
 	if d.AllowGenerate {
 		dw.Write([]byte("allowGenerate"))
 	}
@@ -319,7 +317,6 @@ func (d *CertPolicyDoc) ToModel() (m certmodels.CertificatePolicy) {
 	if m.KeySpec.KeyOperations == nil {
 		m.KeySpec.KeyOperations = []key.JsonWebKeyOperation{}
 	}
-	m.KeyExportable = d.KeyExportable
 	m.AllowGenerate = d.AllowGenerate
 	m.AllowEnroll = d.AllowEnroll
 	m.ExpiryTime = d.ExpiryTime.String()

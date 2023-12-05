@@ -103,7 +103,6 @@ type CertificatePolicyFields struct {
 
 	// IssuerPolicyIdentifier Policy identififier of parent issuer
 	IssuerPolicyIdentifier string `json:"issuerPolicyIdentifier"`
-	KeyExportable          bool   `json:"keyExportable"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 externalRef1.JsonWebKeySpec `json:"keySpec"`
@@ -119,7 +118,6 @@ type CertificatePolicyParameters struct {
 	ExpiryTime             string            `json:"expiryTime,omitempty"`
 	Flags                  []CertificateFlag `json:"flags,omitempty"`
 	IssuerPolicyIdentifier string            `json:"issuerPolicyIdentifier,omitempty"`
-	KeyExportable          *bool             `json:"keyExportable,omitempty"`
 
 	// KeySpec these attributes should mostly confirm to JWK (RFC7517)
 	KeySpec                 *externalRef1.JsonWebKeySpec `json:"keySpec,omitempty"`

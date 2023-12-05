@@ -55,12 +55,6 @@ export interface CertificatePolicyFields {
      * @type {boolean}
      * @memberof CertificatePolicyFields
      */
-    keyExportable: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CertificatePolicyFields
-     */
     allowGenerate: boolean;
     /**
      * 
@@ -106,7 +100,6 @@ export interface CertificatePolicyFields {
 export function instanceOfCertificatePolicyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "keyExportable" in value;
     isInstance = isInstance && "allowGenerate" in value;
     isInstance = isInstance && "allowEnroll" in value;
     isInstance = isInstance && "expiryTime" in value;
@@ -127,7 +120,6 @@ export function CertificatePolicyFieldsFromJSONTyped(json: any, ignoreDiscrimina
     return {
         
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'keyExportable': json['keyExportable'],
         'allowGenerate': json['allowGenerate'],
         'allowEnroll': json['allowEnroll'],
         'expiryTime': json['expiryTime'],
@@ -148,7 +140,6 @@ export function CertificatePolicyFieldsToJSON(value?: CertificatePolicyFields | 
     return {
         
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'keyExportable': value.keyExportable,
         'allowGenerate': value.allowGenerate,
         'allowEnroll': value.allowEnroll,
         'expiryTime': value.expiryTime,

@@ -10,6 +10,6 @@
   "scripts": {
     "genclient": "openapi-generator-cli generate -i ../backend/oapi-api-frontend.yaml -g typescript-fetch -o ../frontend/src/generated --global-property models,apis=Admin:Diagnostics,supportingFiles --additional-properties=supportsES6=true",
     "gencli": "openapi-generator-cli",
-    "genclient2": "openapi-generator-cli generate -i ../api/api-v2.yaml -g typescript-fetch -o ../frontend/src/generated/apiv2 --global-property models,apis=Admin,supportingFiles --additional-properties=supportsES6=true"
+    "genclient2": "openapi-generator-cli generate -i ../api/api-v2.yaml -g typescript-fetch -o ../frontend/src/generated/apiv2 --global-property models,apis=Admin,supportingFiles,skipFormModel=false --additional-properties=supportsES6=true"
   }
 }

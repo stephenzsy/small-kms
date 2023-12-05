@@ -23,7 +23,6 @@ type KeyDoc struct {
 	Created       models.NumericDate   `json:"iat"`
 	NotBefore     *models.NumericDate  `json:"nbf,omitempty"`
 	NotAfter      *models.NumericDate  `json:"exp,omitempty"`
-	Exportable    bool                 `json:"exportable"`
 	Policy        resdoc.DocIdentifier `json:"policy"`
 	PolicyVersion []byte               `json:"policyVersion"`
 	Checksum      []byte               `json:"checksum"`
@@ -65,7 +64,7 @@ func (d *keyGenerateDoc) init(nsProvider models.NamespaceProvider, nsID string, 
 	}
 	d.Curve = policy.KeySpec.Crv
 	d.KeyOperations = policy.KeySpec.KeyOperations
-	d.Exportable = policy.Exportable
+	d.Extractable = policy.KeySpec.Extractable
 	if policy.ExpiryTime != nil {
 		now := time.Now()
 		d.NotBefore = jwt.NewNumericDate(now)
@@ -107,7 +106,7 @@ func (d *keyGenerateDoc) getAzCreateKeyParams() (params azkeys.CreateKeyParamete
 	}
 	// exportable
 	params.KeyAttributes = &azkeys.KeyAttributes{
-		Exportable: &d.Exportable,
+		Exportable: d.Extractable,
 		Enabled:    to.Ptr(true),
 	}
 	if d.NotBefore != nil {
@@ -133,7 +132,6 @@ func (d *KeyDoc) ToModel(includeJwk bool) (m keymodels.Key) {
 	if includeJwk {
 		m.Jwk = d.JsonWebKey
 	}
-	m.Exportable = d.Exportable
 	m.Identififier = d.Identifier().String()
 	m.Nbf = d.NotBefore
 	return m

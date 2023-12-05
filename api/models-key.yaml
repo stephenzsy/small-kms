@@ -83,6 +83,9 @@ components:
             $ref: "#/components/schemas/JsonWebKeyOperation"
           x-go-name: KeyOperations
           x-go-type-skip-optional-pointer: true
+        ext:
+          type: boolean
+          x-go-name: Extractable
     JsonWebKey:
       allOf:
         - $ref: "#/components/schemas/JsonWebKeySpec"
@@ -131,14 +134,11 @@ components:
       properties:
         keySpec:
           $ref: "#/components/schemas/JsonWebKeySpec"
-        exportable:
-          type: boolean
         expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true
       required:
         - keySpec
-        - exportable
     KeyRef:
       allOf:
         - $ref: "models-shared.yaml#/components/schemas/Ref"
@@ -185,8 +185,6 @@ components:
           x-go-name: NotBefore
         jwk:
           $ref: "#/components/schemas/JsonWebKey"
-        exportable:
-          type: boolean
         sid:
           description: Key Vault Secret ID
           type: string

@@ -9,7 +9,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	externalRef0 "github.com/stephenzsy/small-kms/backend/models"
 	externalRef1 "github.com/stephenzsy/small-kms/backend/models/agent"
 	externalRef2 "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -36,13 +35,6 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
-
-// EnrollCertificateMultipartBody defines parameters for EnrollCertificate.
-type EnrollCertificateMultipartBody struct {
-	CsrSigningDigest *string             `json:"csrSigningDigest,omitempty"`
-	Key              *openapi_types.File `json:"key,omitempty"`
-	Password         *string             `json:"password,omitempty"`
-}
 
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
@@ -100,9 +92,6 @@ type PutCertificatePolicyJSONRequestBody = externalRef2.CertificatePolicyParamet
 
 // EnrollCertificateJSONRequestBody defines body for EnrollCertificate for application/json ContentType.
 type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
-
-// EnrollCertificateMultipartRequestBody defines body for EnrollCertificate for multipart/form-data ContentType.
-type EnrollCertificateMultipartRequestBody EnrollCertificateMultipartBody
 
 // PutCertificatePolicyIssuerJSONRequestBody defines body for PutCertificatePolicyIssuer for application/json ContentType.
 type PutCertificatePolicyIssuerJSONRequestBody = externalRef0.LinkRefFields

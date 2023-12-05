@@ -34,12 +34,6 @@ export interface KeyPolicyFields {
     keySpec: JsonWebKeySpec;
     /**
      * 
-     * @type {boolean}
-     * @memberof KeyPolicyFields
-     */
-    exportable: boolean;
-    /**
-     * 
      * @type {string}
      * @memberof KeyPolicyFields
      */
@@ -52,7 +46,6 @@ export interface KeyPolicyFields {
 export function instanceOfKeyPolicyFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "keySpec" in value;
-    isInstance = isInstance && "exportable" in value;
 
     return isInstance;
 }
@@ -68,7 +61,6 @@ export function KeyPolicyFieldsFromJSONTyped(json: any, ignoreDiscriminator: boo
     return {
         
         'keySpec': JsonWebKeySpecFromJSON(json['keySpec']),
-        'exportable': json['exportable'],
         'expiryTime': !exists(json, 'expiryTime') ? undefined : json['expiryTime'],
     };
 }
@@ -83,7 +75,6 @@ export function KeyPolicyFieldsToJSON(value?: KeyPolicyFields | null): any {
     return {
         
         'keySpec': JsonWebKeySpecToJSON(value.keySpec),
-        'exportable': value.exportable,
         'expiryTime': value.expiryTime,
     };
 }
