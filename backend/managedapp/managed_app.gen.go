@@ -94,11 +94,6 @@ type AgentInstanceFields struct {
 // AgentMode defines model for AgentMode.
 type AgentMode string
 
-// AuthResult defines model for AuthResult.
-type AuthResult struct {
-	AccessToken string `json:"accessToken"`
-}
-
 // ManagedApp defines model for ManagedApp.
 type ManagedApp = ManagedAppRef
 
@@ -180,9 +175,6 @@ type ServerInterface interface {
 	// Put agent config server instance
 	// (PUT /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId})
 	PutAgentInstance(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
-
-	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token)
-	CreateAgentInstanceProxyAuthToken(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -446,40 +438,6 @@ func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
 	return err
 }
 
-// CreateAgentInstanceProxyAuthToken converts echo context to params.
-func (w *ServerInterfaceWrapper) CreateAgentInstanceProxyAuthToken(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef1.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef1.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef1.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.CreateAgentInstanceProxyAuthToken(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -519,6 +477,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance", wrapper.ListAgentInstances)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.GetAgentInstance)
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.PutAgentInstance)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/proxy-auth/token", wrapper.CreateAgentInstanceProxyAuthToken)
 
 }

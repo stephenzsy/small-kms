@@ -12,7 +12,6 @@ models/AgentContainerConfiguration.ts
 models/AgentInstance.ts
 models/AgentInstanceFields.ts
 models/AgentMode.ts
-models/AuthResult.ts
 models/AzureKeyvaultResourceCategory.ts
 models/AzureRoleAssignment.ts
 models/CertPolicy.ts

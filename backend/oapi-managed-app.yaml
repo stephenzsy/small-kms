@@ -189,22 +189,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentInstance"
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/proxy-auth/token:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-    post:
-      tags:
-        - admin
-      operationId: CreateAgentInstanceProxyAuthToken
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResult"
 security:
   - BearerAuth: []
 components:

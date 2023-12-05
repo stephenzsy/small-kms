@@ -11,7 +11,6 @@ export * from './AgentContainerConfiguration';
 export * from './AgentInstance';
 export * from './AgentInstanceFields';
 export * from './AgentMode';
-export * from './AuthResult';
 export * from './AzureKeyvaultResourceCategory';
 export * from './AzureRoleAssignment';
 export * from './CertPolicy';

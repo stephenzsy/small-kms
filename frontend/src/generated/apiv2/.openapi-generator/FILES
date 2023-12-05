@@ -1,6 +1,7 @@
 apis/AdminApi.ts
 apis/index.ts
 index.ts
+models/AgentAuthResult.ts
 models/AgentConfig.ts
 models/AgentConfigBundle.ts
 models/AgentConfigEndpoint.ts

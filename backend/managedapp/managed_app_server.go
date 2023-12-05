@@ -6,7 +6,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/api"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
-	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
 	"github.com/stephenzsy/small-kms/backend/utils"
@@ -14,18 +13,6 @@ import (
 
 type server struct {
 	api.APIServer
-}
-
-// GetAgentInstanceProxyAuthToken implements ServerInterface.
-func (s *server) CreateAgentInstanceProxyAuthToken(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID, resourceIdentifier base.ID) error {
-	c := ec.(ctx.RequestContext)
-
-	if !authz.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-
-	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
-	return apiCreateAgentInstanceProxyAuthToken(c, resourceIdentifier)
 }
 
 // GetAgentInstance implements ServerInterface.

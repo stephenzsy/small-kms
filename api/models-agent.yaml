@@ -5,6 +5,13 @@ info:
 paths: {}
 components:
   schemas:
+    AgentAuthResult:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+        - accessToken
     Agent:
       $ref: "models-shared.yaml#/components/schemas/Profile"
     AgentInstanceRef:

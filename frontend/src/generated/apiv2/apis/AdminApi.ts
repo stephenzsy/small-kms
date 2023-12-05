@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  AgentAuthResult,
   AgentConfig,
   AgentConfigBundle,
   AgentConfigName,
@@ -50,6 +51,8 @@ import type {
   UpdatePendingCertificateRequest,
 } from '../models/index';
 import {
+    AgentAuthResultFromJSON,
+    AgentAuthResultToJSON,
     AgentConfigFromJSON,
     AgentConfigToJSON,
     AgentConfigBundleFromJSON,
@@ -167,6 +170,11 @@ export interface GenerateKeyRequest {
 }
 
 export interface GetAgentRequest {
+    id: string;
+}
+
+export interface GetAgentAuthTokenRequest {
+    namespaceId: string;
     id: string;
 }
 
@@ -777,6 +785,46 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getAgent(requestParameters: GetAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.getAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getAgentAuthTokenRaw(requestParameters: GetAgentAuthTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AgentAuthResult>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getAgentAuthToken.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getAgentAuthToken.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v1/service-principal/{namespaceId}/agent-instances/{id}/token`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AgentAuthResultFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getAgentAuthToken(requestParameters: GetAgentAuthTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentAuthResult> {
+        const response = await this.getAgentAuthTokenRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

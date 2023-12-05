@@ -28,6 +28,11 @@ const (
 // Agent defines model for Agent.
 type Agent = externalRef0.Profile
 
+// AgentAuthResult defines model for AgentAuthResult.
+type AgentAuthResult struct {
+	AccessToken string `json:"accessToken"`
+}
+
 // AgentConfig defines model for AgentConfig.
 type AgentConfig struct {
 	union json.RawMessage

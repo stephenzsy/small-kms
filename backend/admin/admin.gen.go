@@ -110,6 +110,9 @@ type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (POST /v1/service-principal/{namespaceId}/agent-instances/{id}/token)
+	GetAgentAuthToken(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Create agent
 	// (POST /v2/agents)
 	CreateAgent(ctx echo.Context) error
@@ -250,6 +253,32 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetAgentAuthToken converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAgentAuthToken(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetAgentAuthToken(ctx, namespaceId, id)
+	return err
 }
 
 // CreateAgent converts echo context to params.
@@ -1559,6 +1588,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/v1/service-principal/:namespaceId/agent-instances/:id/token", wrapper.GetAgentAuthToken)
 	router.POST(baseURL+"/v2/agents", wrapper.CreateAgent)
 	router.GET(baseURL+"/v2/agents/:id", wrapper.GetAgent)
 	router.GET(baseURL+"/v2/diagnostics", wrapper.GetDiagnostics)
