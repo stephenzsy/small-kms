@@ -33,6 +33,7 @@ func GetTLSDefaultConfig(config *AgentEndpointConfiguration) (*tls.Config, error
 	return &tls.Config{
 		MinVersion:   tls.VersionTLS13,
 		Certificates: []tls.Certificate{tlsCert},
+		NextProtos:   []string{"h2", "http/1.1"},
 	}, nil
 }
 
