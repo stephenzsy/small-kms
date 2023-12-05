@@ -37,7 +37,7 @@ export interface EnrollCertificateRequest {
      * @type {boolean}
      * @memberof EnrollCertificateRequest
      */
-    withOneTimePkcs12Key?: boolean;
+    withExportKey?: boolean;
 }
 
 /**
@@ -61,7 +61,7 @@ export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'publicKey': JsonWebKeyFromJSON(json['publicKey']),
-        'withOneTimePkcs12Key': !exists(json, 'withOneTimePkcs12Key') ? undefined : json['withOneTimePkcs12Key'],
+        'withExportKey': !exists(json, 'withExportKey') ? undefined : json['withExportKey'],
     };
 }
 
@@ -75,7 +75,7 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     return {
         
         'publicKey': JsonWebKeyToJSON(value.publicKey),
-        'withOneTimePkcs12Key': value.withOneTimePkcs12Key,
+        'withExportKey': value.withExportKey,
     };
 }
 

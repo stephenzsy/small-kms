@@ -194,7 +194,7 @@ class EnrollmentSession {
           "jwk",
           this.keyPair.publicKey
         )) as JsonWebKey,
-        withOneTimePkcs12Key: true,
+        withExportKey: true,
       },
     });
     return new EnrollmentSession(
@@ -307,7 +307,7 @@ class EnrollmentPKCS12ExchangeSession {
   }
 
   private async preparePayload(): Promise<[string, CryptoKey]> {
-    if (!this.session.enrollCertResponse?.oneTimePkcs12Key) {
+    if (!this.session.enrollCertResponse?.exportKey) {
       throw new Error("Missing oneTimePkcs12Key");
     }
     if (!this.session.keyPair) {
@@ -316,7 +316,7 @@ class EnrollmentPKCS12ExchangeSession {
     console.log("enter");
     const remoteKey = await crypto.subtle.importKey(
       "jwk",
-      this.session.enrollCertResponse?.oneTimePkcs12Key as JsonWebKey,
+      this.session.enrollCertResponse.exportKey as JsonWebKey,
       { name: "ECDH", namedCurve: "P-384" },
       false,
       []

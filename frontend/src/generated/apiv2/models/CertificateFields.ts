@@ -109,7 +109,7 @@ export interface CertificateFields {
      * @type {JsonWebKey}
      * @memberof CertificateFields
      */
-    oneTimePkcs12Key?: JsonWebKey;
+    exportKey?: JsonWebKey;
     /**
      * 
      * @type {CertificatePendingAcme}
@@ -152,7 +152,7 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'cid': !exists(json, 'cid') ? undefined : json['cid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
-        'oneTimePkcs12Key': !exists(json, 'oneTimePkcs12Key') ? undefined : JsonWebKeyFromJSON(json['oneTimePkcs12Key']),
+        'exportKey': !exists(json, 'exportKey') ? undefined : JsonWebKeyFromJSON(json['exportKey']),
         'pendingAcme': !exists(json, 'pendingAcme') ? undefined : CertificatePendingAcmeFromJSON(json['pendingAcme']),
     };
 }
@@ -176,7 +176,7 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'cid': value.cid,
         'sid': value.sid,
-        'oneTimePkcs12Key': JsonWebKeyToJSON(value.oneTimePkcs12Key),
+        'exportKey': JsonWebKeyToJSON(value.exportKey),
         'pendingAcme': CertificatePendingAcmeToJSON(value.pendingAcme),
     };
 }

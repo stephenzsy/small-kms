@@ -86,6 +86,7 @@ type certDocPending struct {
 	certDocBase
 	certUUID   uuid.UUID
 	rsaKeySize int32
+	ExportKey  *cloudkey.JsonWebKey `json:"exportKey,omitempty"`
 }
 
 // GetCertificateBytes implements CertDocument.

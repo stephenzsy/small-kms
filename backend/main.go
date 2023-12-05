@@ -34,6 +34,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/profile"
 	"github.com/stephenzsy/small-kms/backend/secret"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
+	"golang.org/x/net/http2"
 )
 
 var BuildID = "dev"
@@ -133,7 +134,7 @@ func main() {
 				if os.Getenv("ENABLE_DEV_AUTH") == "true" {
 					go e.StartTLS(listenerAddress, "cert.pem", "key.pem")
 				} else {
-					go e.Start(listenerAddress)
+					go e.StartH2CServer(listenerAddress, &http2.Server{})
 				}
 				<-sigCh
 				return e.Shutdown(c)

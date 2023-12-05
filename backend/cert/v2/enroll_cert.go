@@ -1,6 +1,7 @@
 package cert
 
 import (
+	"crypto/elliptic"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
+	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
@@ -122,27 +124,22 @@ func (s *CertServer) enrollInternal(c ctx.RequestContext, nsProvider models.Name
 	if err != nil {
 		return err
 	}
-	return c.JSON(resp.RawResponse.StatusCode, certDoc.ToModel(true))
 
-	// if req.WithOneTimePkcs12Key != nil && *req.WithOneTimePkcs12Key {
-	// 	oneTimeKey, err := s.cryptoStore.GenerateECDSAKeyPair(elliptic.P384())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	certDoc.OneTimePkcs12Key = &cloudkey.JsonWebKey{}
-	// 	certDoc.OneTimePkcs12Key.X = oneTimeKey.X.Bytes()
-	// 	certDoc.OneTimePkcs12Key.Y = oneTimeKey.Y.Bytes()
-	// 	certDoc.OneTimePkcs12Key.D = oneTimeKey.D.Bytes()
-	// 	certDoc.OneTimePkcs12Key.Curve = cloudkey.CurveNameP384
-	// 	certDoc.OneTimePkcs12Key.KeyType = cloudkey.KeyTypeEC
-	// 	certDoc.OneTimePkcs12Key.KeyOperations = []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits}
-	// }
+	if req.WithExportKey != nil && *req.WithExportKey {
+		ek, err := s.cryptoStore.GenerateECDSAKeyPair(elliptic.P384())
+		if err != nil {
+			return err
+		}
+		certDoc.ExportKey = &cloudkey.JsonWebKey{
+			X:             ek.X.Bytes(),
+			Y:             ek.Y.Bytes(),
+			D:             ek.D.Bytes(),
+			Curve:         cloudkey.CurveNameP384,
+			KeyType:       cloudkey.KeyTypeEC,
+			KeyOperations: []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits},
+		}
+	}
+	m := certDoc.ToModel(true)
+	m.ExportKey = certDoc.ExportKey.PublicJWK()
+	return c.JSON(resp.RawResponse.StatusCode, m)
 }
-
-// func (d *certDocEnrollPending) ToModel() (m certmodels.Certificate) {
-// 	m = d.certDocPending.ToModel(true)
-// 	if d.OneTimePkcs12Key != nil {
-// 		m.OneTimePkcs12Key = d.OneTimePkcs12Key.PublicJWK()
-// 	}
-// 	return m
-// }

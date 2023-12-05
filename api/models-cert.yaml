@@ -71,7 +71,7 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
           x-go-name: KeyVaultSecretID
-        oneTimePkcs12Key:
+        exportKey:
           description: Base64 encoded PKCS12 key
           $ref: "models-key.yaml#/components/schemas/JsonWebKey"
         pendingAcme:
@@ -286,7 +286,7 @@ components:
       properties:
         publicKey:
           $ref: "models-key.yaml#/components/schemas/JsonWebKey"
-        withOneTimePkcs12Key:
+        withExportKey:
           type: boolean
       required:
         - publicKey
