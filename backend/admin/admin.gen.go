@@ -102,6 +102,9 @@ type ExchangePKCS12JSONRequestBody = externalRef2.ExchangePKCS12Request
 // UpdatePendingCertificateJSONRequestBody defines body for UpdatePendingCertificate for application/json ContentType.
 type UpdatePendingCertificateJSONRequestBody = externalRef2.UpdatePendingCertificateRequest
 
+// GetCertificateSecretJSONRequestBody defines body for GetCertificateSecret for application/json ContentType.
+type GetCertificateSecretJSONRequestBody = externalRef2.CertificateSecretRequest
+
 // PutKeyPolicyJSONRequestBody defines body for PutKeyPolicy for application/json ContentType.
 type PutKeyPolicyJSONRequestBody = externalRef3.CreateKeyPolicyRequest
 
@@ -125,6 +128,9 @@ type ServerInterface interface {
 	// Create certificate issuer
 	// (POST /v2/external-ca/{namespaceId}/certificiate-issuers/{id})
 	PutExternalCertificateIssuer(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+	// Create one time key for JWE ECDH-ES key agreement
+	// (POST /v2/one-time-key/{namespaceProvider}/{namespaceId})
+	CreateOneTimeKey(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
 	// list profiles
 	// (GET /v2/profiles/{namespaceProvider})
 	ListProfiles(ctx echo.Context, namespaceProvider NamespaceProviderParameter) error
@@ -212,6 +218,9 @@ type ServerInterface interface {
 	// Update pending certificate
 	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/pending)
 	UpdatePendingCertificate(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
+	// Get certificate secret
+	// (POST /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/secret)
+	GetCertificateSecret(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter) error
 	// List key policies
 	// (GET /v2/{namespaceProvider}/{namespaceId}/key-policies)
 	ListKeyPolicies(ctx echo.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) error
@@ -350,6 +359,32 @@ func (w *ServerInterfaceWrapper) PutExternalCertificateIssuer(ctx echo.Context) 
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutExternalCertificateIssuer(ctx, namespaceId, id)
+	return err
+}
+
+// CreateOneTimeKey converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateOneTimeKey(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateOneTimeKey(ctx, namespaceProvider, namespaceId)
 	return err
 }
 
@@ -1181,6 +1216,40 @@ func (w *ServerInterfaceWrapper) UpdatePendingCertificate(ctx echo.Context) erro
 	return err
 }
 
+// GetCertificateSecret converts echo context to params.
+func (w *ServerInterfaceWrapper) GetCertificateSecret(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceProvider" -------------
+	var namespaceProvider NamespaceProviderParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, ctx.Param("namespaceProvider"), &namespaceProvider)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceProvider: %s", err))
+	}
+
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetCertificateSecret(ctx, namespaceProvider, namespaceId, id)
+	return err
+}
+
 // ListKeyPolicies converts echo context to params.
 func (w *ServerInterfaceWrapper) ListKeyPolicies(ctx echo.Context) error {
 	var err error
@@ -1496,6 +1565,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers", wrapper.ListExternalCertificateIssuers)
 	router.GET(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers/:id", wrapper.GetExternalCertificateIssuer)
 	router.POST(baseURL+"/v2/external-ca/:namespaceId/certificiate-issuers/:id", wrapper.PutExternalCertificateIssuer)
+	router.POST(baseURL+"/v2/one-time-key/:namespaceProvider/:namespaceId", wrapper.CreateOneTimeKey)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider", wrapper.ListProfiles)
 	router.GET(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.GetProfile)
 	router.POST(baseURL+"/v2/profiles/:namespaceProvider/:namespaceId", wrapper.SyncProfile)
@@ -1525,6 +1595,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/exchange-pkcs12", wrapper.ExchangePKCS12)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/ms-entra-key-credential", wrapper.AddMsEntraKeyCredential)
 	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/pending", wrapper.UpdatePendingCertificate)
+	router.POST(baseURL+"/v2/:namespaceProvider/:namespaceId/certificates/:id/secret", wrapper.GetCertificateSecret)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies", wrapper.ListKeyPolicies)
 	router.GET(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.GetKeyPolicy)
 	router.PUT(baseURL+"/v2/:namespaceProvider/:namespaceId/key-policies/:id", wrapper.PutKeyPolicy)

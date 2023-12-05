@@ -2,29 +2,23 @@ package cert
 
 import (
 	"crypto"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/ecdsa"
-	"crypto/rand"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	pkcs12utils "github.com/stephenzsy/small-kms/backend/internal/pkcs12"
+	"github.com/stephenzsy/small-kms/backend/key/v2"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	ns "github.com/stephenzsy/small-kms/backend/namespace"
-	"github.com/stephenzsy/small-kms/backend/resdoc"
 )
 
 // ExchangePKCS12 implements admin.ServerInterface.
@@ -45,31 +39,22 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 	if err != nil {
 		return fmt.Errorf("%w: invalid payload", base.ErrResponseStatusBadRequest)
 	}
+
+	if jwe.Protected.KeyID == "" {
+		return fmt.Errorf("%w: invalid payload, one time key id must be specified", base.ErrResponseStatusBadRequest)
+	}
+	otk, err := key.ReadOneTimeKey(c, namespaceProvider, namespaceId, jwe.Protected.KeyID)
+	if err != nil {
+		return err
+	}
+
 	certDoc := certDocInternal{}
 	if err := readCertDocInternal(c, namespaceProvider, namespaceId, id, &certDoc); err != nil {
 		return err
 	}
-	otk := certDoc.ExportKey
-	if otk == nil {
-		return base.ErrResponseStatusBadRequest
-	}
-	deleteOtk := false
-	defer func() {
-		if deleteOtk {
-			ec := c.Elevate()
-			docSvc := resdoc.GetDocService(ec)
-			patchOps := azcosmos.PatchOperations{}
-			patchOps.AppendRemove("/exportKey")
-			_, err := docSvc.Patch(ec, &certDoc, patchOps, nil)
-			if err != nil {
-				log.Ctx(ec).Err(err).Msg("Error delete export key")
-			}
-		}
-	}()
 
-	reqPayload, encKey, err := jwe.Decrypt(func(*cloudkey.JoseHeader) crypto.PrivateKey {
-		key, _ := otk.PrivateKey().(*ecdsa.PrivateKey).ECDH()
-		return key
+	reqPayload, encKey, err := jwe.Decrypt(func(*cloudkey.JoseHeader) (crypto.PrivateKey, error) {
+		return otk.PrivateKey().(*ecdsa.PrivateKey).ECDH()
 	})
 	if err != nil {
 		return err
@@ -106,47 +91,14 @@ func (*CertServer) ExchangePKCS12(ec echo.Context, namespaceProvider models.Name
 
 	var resultPayload string
 
-	resultHeader := jwe.Protected
-	switch jwe.Protected.Algorithm {
-	case cloudkey.JwkEncAlgEcdhEs:
-		resultHeader = cloudkey.JoseHeader{
-			EncryptionAlgorithm: jwe.Protected.EncryptionAlgorithm,
-		}
-		if headerJson, err := json.Marshal(resultHeader); err != nil {
-			return err
-		} else {
-			resultHeader.Raw = base64.RawURLEncoding.EncodeToString(headerJson)
-		}
+	jweBuilder := &cloudkey.JWEAes256GcmEncBuilder{}
+	jweBuilder.SetDirectEncryptionKey(encKey)
+
+	resultPayload, err = jweBuilder.Seal(pkcs12File)
+	if err != nil {
+		return err
 	}
 
-	switch jwe.Protected.EncryptionAlgorithm {
-	case cloudkey.JwkEncAlgAes256Gcm:
-		ci, err := aes.NewCipher(encKey)
-		if err != nil {
-			return err
-		}
-		gcm, err := cipher.NewGCM(ci)
-		if err != nil {
-			return err
-		}
-		iv := make([]byte, gcm.NonceSize())
-		if _, err := rand.Read(iv); err != nil {
-			return err
-		}
-		encrypted := gcm.Seal(nil, iv, pkcs12File, []byte(resultHeader.Raw))
-		ciphertext := encrypted[:len(encrypted)-ci.BlockSize()]
-		tag := encrypted[len(encrypted)-ci.BlockSize():]
-		resultJwe := &cloudkey.JsonWebEncryption{
-			Protected:            resultHeader,
-			EncryptedKey:         jwe.EncryptedKey,
-			InitializationVector: iv,
-			Ciphertext:           ciphertext,
-			AuthenticationTag:    tag,
-		}
-		resultPayload = resultJwe.String()
-	}
-
-	deleteOtk = true
 	return c.JSON(http.StatusOK, &certmodels.ExchangePKCS12Result{
 		Payload:  resultPayload,
 		Password: password,

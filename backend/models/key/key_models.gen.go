@@ -87,6 +87,13 @@ type KeyRefFields struct {
 // KeyStatus defines model for KeyStatus.
 type KeyStatus string
 
+// OneTimeKey OneTimeKey
+type OneTimeKey struct {
+	Exp externalRef0.NumericDate `json:"exp"`
+	Iat externalRef0.NumericDate `json:"iat"`
+	Jwk JsonWebKey               `json:"jwk"`
+}
+
 // KeyPolicyResponse defines model for KeyPolicyResponse.
 type KeyPolicyResponse = KeyPolicy
 

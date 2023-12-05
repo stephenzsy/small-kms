@@ -26,6 +26,7 @@ const (
 	JwkEncAlgRsaOeap256 JsonWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
 	JwkEncAlgAes256Gcm  JsonWebKeyEncryptionAlgorithm = "A256GCM"
 	JwkEncAlgEcdhEs     JsonWebKeyEncryptionAlgorithm = "ECDH-ES"
+	JwkEncAlgDir        JsonWebKeyEncryptionAlgorithm = "dir"
 )
 
 type JoseHeader struct {
@@ -104,7 +105,7 @@ func (jwe *JsonWebEncryption) String() string {
 	return sb.String()
 }
 
-func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) crypto.PrivateKey) (plaintext []byte, unwrappedKey []byte, err error) {
+func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) (crypto.PrivateKey, error)) (plaintext []byte, unwrappedKey []byte, err error) {
 
 	unwrappedKey, err = jwe.unwrapKey(keyFunc)
 	if err != nil {
@@ -132,9 +133,12 @@ func (jwe *JsonWebEncryption) Decrypt(keyFunc func(header *JoseHeader) crypto.Pr
 
 }
 
-func (jwe *JsonWebEncryption) unwrapKey(keyFunc func(header *JoseHeader) crypto.PrivateKey) ([]byte, error) {
+func (jwe *JsonWebEncryption) unwrapKey(keyFunc func(header *JoseHeader) (crypto.PrivateKey, error)) ([]byte, error) {
 
-	privateKey := keyFunc(&jwe.Protected)
+	privateKey, err := keyFunc(&jwe.Protected)
+	if err != nil {
+		return nil, err
+	}
 	switch jwe.Protected.Algorithm {
 	case JwkEncAlgRsaOeap256:
 		if privateKey, ok := privateKey.(crypto.Decrypter); !ok {

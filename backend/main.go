@@ -128,7 +128,11 @@ func main() {
 		agentpush.RegisterHandlers(e, agentpush.NewProxiedServer(apiServer))
 		secret.RegisterHandlers(e, secret.NewServer(apiServer))
 		key.RegisterHandlers(e, key.NewServer(apiServer))
-		admin.RegisterHandlers(e, adminserver.NewServer(apiServer))
+		adminServer, err := adminserver.NewServer(apiServer)
+		if err != nil {
+			logger.Fatal().Err(err).Msg("failed to initialize admin server")
+		}
+		admin.RegisterHandlers(e, adminServer)
 
 		tm := taskmanager.NewChainedTaskManager().WithTask(
 			taskmanager.NewTask("echo", func(c context.Context, sigCh <-chan os.Signal) error {

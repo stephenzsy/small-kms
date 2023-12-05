@@ -1,7 +1,6 @@
 package cert
 
 import (
-	"crypto/elliptic"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -9,7 +8,6 @@ import (
 	"github.com/stephenzsy/small-kms/backend/admin"
 	"github.com/stephenzsy/small-kms/backend/admin/profile"
 	"github.com/stephenzsy/small-kms/backend/base"
-	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
 	"github.com/stephenzsy/small-kms/backend/internal/graph"
@@ -125,21 +123,6 @@ func (s *CertServer) enrollInternal(c ctx.RequestContext, nsProvider models.Name
 		return err
 	}
 
-	if req.WithExportKey != nil && *req.WithExportKey {
-		ek, err := s.cryptoStore.GenerateECDSAKeyPair(elliptic.P384())
-		if err != nil {
-			return err
-		}
-		certDoc.ExportKey = &cloudkey.JsonWebKey{
-			X:             ek.X.Bytes(),
-			Y:             ek.Y.Bytes(),
-			D:             ek.D.Bytes(),
-			Curve:         cloudkey.CurveNameP384,
-			KeyType:       cloudkey.KeyTypeEC,
-			KeyOperations: []cloudkey.JsonWebKeyOperation{cloudkey.JsonWebKeyOperationDeriveKey, cloudkey.JsonWebKeyOperationDeriveBits},
-		}
-	}
 	m := certDoc.ToModel(true)
-	m.ExportKey = certDoc.ExportKey.PublicJWK()
 	return c.JSON(resp.RawResponse.StatusCode, m)
 }

@@ -7,6 +7,8 @@ import (
 	"crypto/rsa"
 	"io"
 	"math/big"
+
+	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 )
 
 // RFC7518 6.1.1.  "alg" (Algorithm) Parameter Values for JWS
@@ -42,7 +44,7 @@ const (
 
 type JsonWebKey struct {
 	KeyType          JsonWebKeyType               `json:"kty"`                // RFC7517 4.1. "kty" (Key Type) Parameter Values for JWK
-	Alg              string                       `json:"alg"`                // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
+	Alg              string                       `json:"alg,omitempty"`      // RFC7517 4.4. "alg" (Algorithm) Header Parameter Values for JWS
 	KeyID            string                       `json:"kid,omitempty"`      // RFC7517 4.5. "kid" (Key ID) Parameter
 	Curve            JsonWebKeyCurveName          `json:"crv,omitempty"`      // RFC7518 6.2.1.1. "crv" (Curve) Parameter
 	N                Base64RawURLEncodableBytes   `json:"n,omitempty"`        // RFC7518 6.3.1.1. "n" (Modulus) Parameter
@@ -84,6 +86,9 @@ func (jwk *JsonWebKey) Digest(w io.Writer) {
 }
 
 func (jwk *JsonWebKey) PublicJWK() *JsonWebKey {
+	if jwk == nil {
+		return nil
+	}
 	return &JsonWebKey{
 		KeyType:          jwk.KeyType,
 		Alg:              jwk.Alg,
@@ -238,4 +243,23 @@ func NewJsonWebKeyFromPublicKey(publicKey crypto.PublicKey) (*JsonWebKey, error)
 		return nil, err
 	}
 	return jwk, nil
+}
+
+func NewEphemeralECDHJwk(cryptoProvider cryptoprovider.CryptoProvider) (*JsonWebKey, error) {
+	keyPair, err := cryptoProvider.GenerateECDSAKeyPair(elliptic.P384())
+	if err != nil {
+		return nil, err
+	}
+
+	return &JsonWebKey{
+		KeyType: KeyTypeEC,
+		Curve:   CurveNameP384,
+		X:       keyPair.X.Bytes(),
+		Y:       keyPair.Y.Bytes(),
+		D:       keyPair.D.Bytes(),
+		KeyOperations: []JsonWebKeyOperation{
+			JsonWebKeyOperationDeriveKey,
+			JsonWebKeyOperationDeriveBits,
+		},
+	}, nil
 }

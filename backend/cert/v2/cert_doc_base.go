@@ -39,6 +39,7 @@ type CertDocument interface {
 	IsExpired() bool
 	GetNotBefore() time.Time
 	GetNotAfter() time.Time
+	KeyVaultSecretID() string
 }
 
 type CertDocumentPending interface {
@@ -51,8 +52,8 @@ type CertDocumentPending interface {
 
 type CertDocKeyVaultStore struct {
 	Name string `json:"name"`
-	ID   string `json:"id"`
-	SID  string `json:"sid"`
+	ID   string `json:"id,omitempty"`
+	SID  string `json:"sid,omitempty"`
 }
 
 type certDocBase struct {
@@ -82,11 +83,18 @@ type certDocBase struct {
 	Checksum []byte `json:"checksum"` // sha256 of the cloud certificate and critical fields
 }
 
+// KeyVaultSecretID implements CertDocument.
+func (d *certDocBase) KeyVaultSecretID() string {
+	if d.KeyVaultStore == nil {
+		return ""
+	}
+	return d.KeyVaultStore.SID
+}
+
 type certDocPending struct {
 	certDocBase
 	certUUID   uuid.UUID
 	rsaKeySize int32
-	ExportKey  *cloudkey.JsonWebKey `json:"exportKey,omitempty"`
 }
 
 // GetCertificateBytes implements CertDocument.
@@ -400,6 +408,8 @@ func (d *certDocBase) ToModel(includeKey bool) *certmodels.Certificate {
 			},
 		},
 		CertificateFields: certmodels.CertificateFields{
+			Identifier:              d.Identifier().String(),
+			IssuerIdentifier:        d.Issuer.String(),
 			SerialNumber:            hex.EncodeToString(d.SerialNumber),
 			Nbf:                     d.NotBefore,
 			Subject:                 d.Subject.String(),

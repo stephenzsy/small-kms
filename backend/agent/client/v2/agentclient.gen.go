@@ -65,6 +65,9 @@ type EnrollCertificateJSONRequestBody = externalRef2.EnrollCertificateRequest
 // UpdatePendingCertificateJSONRequestBody defines body for UpdatePendingCertificate for application/json ContentType.
 type UpdatePendingCertificateJSONRequestBody = externalRef2.UpdatePendingCertificateRequest
 
+// GetCertificateSecretJSONRequestBody defines body for GetCertificateSecret for application/json ContentType.
+type GetCertificateSecretJSONRequestBody = externalRef2.CertificateSecretRequest
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -141,6 +144,9 @@ type ClientInterface interface {
 	// GetAgent request
 	GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateOneTimeKey request
+	CreateOneTimeKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAgentConfigBundle request
 	GetAgentConfigBundle(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -168,12 +174,29 @@ type ClientInterface interface {
 
 	UpdatePendingCertificate(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCertificateSecretWithBody request with any body
+	GetCertificateSecretWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetCertificateSecret(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body GetCertificateSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetKey request
 	GetKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAgent(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateOneTimeKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateOneTimeKeyRequest(c.Server, namespaceProvider, namespaceId)
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +327,30 @@ func (c *Client) UpdatePendingCertificate(ctx context.Context, namespaceProvider
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetCertificateSecretWithBody(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCertificateSecretRequestWithBody(c.Server, namespaceProvider, namespaceId, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCertificateSecret(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body GetCertificateSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCertificateSecretRequest(c.Server, namespaceProvider, namespaceId, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetKey(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetKeyRequest(c.Server, namespaceProvider, namespaceId, id, params)
 	if err != nil {
@@ -343,6 +390,47 @@ func NewGetAgentRequest(server string, id IdParameter) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateOneTimeKeyRequest generates requests for CreateOneTimeKey
+func NewCreateOneTimeKeyRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/one-time-key/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -712,6 +800,67 @@ func NewUpdatePendingCertificateRequestWithBody(server string, namespaceProvider
 	return req, nil
 }
 
+// NewGetCertificateSecretRequest calls the generic GetCertificateSecret builder with application/json body
+func NewGetCertificateSecretRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body GetCertificateSecretJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetCertificateSecretRequestWithBody(server, namespaceProvider, namespaceId, id, "application/json", bodyReader)
+}
+
+// NewGetCertificateSecretRequestWithBody generates requests for GetCertificateSecret with any type of body
+func NewGetCertificateSecretRequestWithBody(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceProvider", runtime.ParamLocationPath, namespaceProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/%s/%s/certificates/%s/secret", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetKeyRequest generates requests for GetKey
 func NewGetKeyRequest(server string, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams) (*http.Request, error) {
 	var err error
@@ -844,6 +993,9 @@ type ClientWithResponsesInterface interface {
 	// GetAgentWithResponse request
 	GetAgentWithResponse(ctx context.Context, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentResponse, error)
 
+	// CreateOneTimeKeyWithResponse request
+	CreateOneTimeKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*CreateOneTimeKeyResponse, error)
+
 	// GetAgentConfigBundleWithResponse request
 	GetAgentConfigBundleWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*GetAgentConfigBundleResponse, error)
 
@@ -871,6 +1023,11 @@ type ClientWithResponsesInterface interface {
 
 	UpdatePendingCertificateWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body UpdatePendingCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePendingCertificateResponse, error)
 
+	// GetCertificateSecretWithBodyWithResponse request with any body
+	GetCertificateSecretWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetCertificateSecretResponse, error)
+
+	GetCertificateSecretWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body GetCertificateSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*GetCertificateSecretResponse, error)
+
 	// GetKeyWithResponse request
 	GetKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*GetKeyResponse, error)
 }
@@ -892,6 +1049,29 @@ func (r GetAgentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAgentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateOneTimeKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *externalRef3.OneTimeKey
+	JSON400      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateOneTimeKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateOneTimeKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1060,6 +1240,30 @@ func (r UpdatePendingCertificateResponse) StatusCode() int {
 	return 0
 }
 
+type GetCertificateSecretResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef2.CertificateSecretResult
+	JSON400      *ErrorResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCertificateSecretResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCertificateSecretResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1090,6 +1294,15 @@ func (c *ClientWithResponses) GetAgentWithResponse(ctx context.Context, id IdPar
 		return nil, err
 	}
 	return ParseGetAgentResponse(rsp)
+}
+
+// CreateOneTimeKeyWithResponse request returning *CreateOneTimeKeyResponse
+func (c *ClientWithResponses) CreateOneTimeKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, reqEditors ...RequestEditorFn) (*CreateOneTimeKeyResponse, error) {
+	rsp, err := c.CreateOneTimeKey(ctx, namespaceProvider, namespaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateOneTimeKeyResponse(rsp)
 }
 
 // GetAgentConfigBundleWithResponse request returning *GetAgentConfigBundleResponse
@@ -1179,6 +1392,23 @@ func (c *ClientWithResponses) UpdatePendingCertificateWithResponse(ctx context.C
 	return ParseUpdatePendingCertificateResponse(rsp)
 }
 
+// GetCertificateSecretWithBodyWithResponse request with arbitrary body returning *GetCertificateSecretResponse
+func (c *ClientWithResponses) GetCertificateSecretWithBodyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetCertificateSecretResponse, error) {
+	rsp, err := c.GetCertificateSecretWithBody(ctx, namespaceProvider, namespaceId, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCertificateSecretResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetCertificateSecretWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, body GetCertificateSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*GetCertificateSecretResponse, error) {
+	rsp, err := c.GetCertificateSecret(ctx, namespaceProvider, namespaceId, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCertificateSecretResponse(rsp)
+}
+
 // GetKeyWithResponse request returning *GetKeyResponse
 func (c *ClientWithResponses) GetKeyWithResponse(ctx context.Context, namespaceProvider NamespaceProviderParameter, namespaceId NamespaceIdParameter, id IdParameter, params *GetKeyParams, reqEditors ...RequestEditorFn) (*GetKeyResponse, error) {
 	rsp, err := c.GetKey(ctx, namespaceProvider, namespaceId, id, params, reqEditors...)
@@ -1215,6 +1445,39 @@ func ParseGetAgentResponse(rsp *http.Response) (*GetAgentResponse, error) {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateOneTimeKeyResponse parses an HTTP response from a CreateOneTimeKeyWithResponse call
+func ParseCreateOneTimeKeyResponse(rsp *http.Response) (*CreateOneTimeKeyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateOneTimeKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest externalRef3.OneTimeKey
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	}
 
@@ -1446,6 +1709,46 @@ func ParseUpdatePendingCertificateResponse(rsp *http.Response) (*UpdatePendingCe
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCertificateSecretResponse parses an HTTP response from a GetCertificateSecretWithResponse call
+func ParseGetCertificateSecretResponse(rsp *http.Response) (*GetCertificateSecretResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCertificateSecretResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef2.CertificateSecretResult
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest ErrorResponse

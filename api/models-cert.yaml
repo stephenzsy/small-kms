@@ -41,7 +41,7 @@ components:
     CertificateFields:
       type: object
       properties:
-        identififier:
+        identifier:
           type: string
         issuerIdentifier:
           type: string
@@ -71,13 +71,10 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
           x-go-name: KeyVaultSecretID
-        exportKey:
-          description: Base64 encoded PKCS12 key
-          $ref: "models-key.yaml#/components/schemas/JsonWebKey"
         pendingAcme:
           $ref: "#/components/schemas/CertificatePendingAcme"
       required:
-        - identififier
+        - identifier
         - issuerIdentifier
         - serialNumber
         - nbf
@@ -286,8 +283,6 @@ components:
       properties:
         publicKey:
           $ref: "models-key.yaml#/components/schemas/JsonWebKey"
-        withExportKey:
-          type: boolean
       required:
         - publicKey
     ExchangePKCS12Request:
@@ -317,6 +312,21 @@ components:
       required:
         - payload
         - password
+    CertificateSecretRequest:
+      type: object
+      properties:
+        jwk:
+          $ref: "models-key.yaml#/components/schemas/JsonWebKey"
+      required:
+        - jwk
+    CertificateSecretResult:
+      type: object
+      properties:
+        payload:
+          type: string
+          description: JWE encrypted certificate in PEM format
+      required:
+        - payload
   responses:
     CertificateResponse:
       description: Certificate response

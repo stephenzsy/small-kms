@@ -360,6 +360,34 @@ paths:
           $ref: "#/components/responses/NoContentResponse"
         400:
           $ref: "#/components/responses/ErrorResponse"
+  /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/secret:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: GetCertificateSecret
+      summary: Get certificate secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "models-cert.yaml#/components/schemas/CertificateSecretRequest"
+      responses:
+        200:
+          description: Certificate secret
+          content:
+            application/json:
+              schema:
+                $ref: "models-cert.yaml#/components/schemas/CertificateSecretResult"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
+        404:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/{namespaceProvider}/{namespaceId}/certificates/{id}/exchange-pkcs12:
     parameters:
       - $ref: "#/components/parameters/NamespaceProviderParameter"
@@ -734,6 +762,25 @@ paths:
                 type: array
                 items:
                   $ref: "models-agent.yaml#/components/schemas/DockerNetworkResource"
+  /v2/one-time-key/{namespaceProvider}/{namespaceId}:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceProviderParameter"
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+    post:
+      tags:
+        - admin
+        - agentclient
+      operationId: CreateOneTimeKey
+      summary: Create one time key for JWE ECDH-ES key agreement
+      responses:
+        201:
+          description: One time key
+          content:
+            application/json:
+              schema:
+                $ref: "models-key.yaml#/components/schemas/OneTimeKey"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
 components:
   parameters:
     IdParameter:

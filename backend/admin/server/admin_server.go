@@ -32,14 +32,20 @@ func (*server) GetMemberOf(ctx echo.Context, namespaceProvider models.NamespaceP
 
 var _ admin.ServerInterface = (*server)(nil)
 
-func NewServer(apiServer api.APIServer) *server {
-	return &server{
-		BaseServer:             base.NewBaseServer(apiServer),
-		ProfileServer:          profile.NewServer(apiServer),
-		AgentAdminServer:       agentadmin.NewServer(apiServer),
-		SystemAppAdminServer:   systemapp.NewServer(apiServer),
-		KeyAdminServer:         key.NewServer(apiServer),
-		CertServer:             cert.NewServer(apiServer),
-		AgentPushProxiedServer: agentadmin.NewAgentPushProxiedServer(apiServer),
+func NewServer(apiServer api.APIServer) (*server, error) {
+	if keyAdminServer, err := key.NewServer(apiServer); err != nil {
+		return nil, err
+	} else if certServer, err := cert.NewServer(apiServer); err != nil {
+		return nil, err
+	} else {
+		return &server{
+			BaseServer:             base.NewBaseServer(apiServer),
+			ProfileServer:          profile.NewServer(apiServer),
+			AgentAdminServer:       agentadmin.NewServer(apiServer),
+			SystemAppAdminServer:   systemapp.NewServer(apiServer),
+			KeyAdminServer:         keyAdminServer,
+			CertServer:             certServer,
+			AgentPushProxiedServer: agentadmin.NewAgentPushProxiedServer(apiServer),
+		}, nil
 	}
 }

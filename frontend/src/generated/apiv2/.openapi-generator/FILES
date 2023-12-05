@@ -29,6 +29,8 @@ models/CertificatePolicyFields.ts
 models/CertificatePolicyParameters.ts
 models/CertificateRef.ts
 models/CertificateRefFields.ts
+models/CertificateSecretRequest.ts
+models/CertificateSecretResult.ts
 models/CertificateStatus.ts
 models/CertificateSubject.ts
 models/CreateAgentConfigRequest.ts
@@ -53,6 +55,7 @@ models/KeyStatus.ts
 models/LinkRef.ts
 models/LinkRefFields.ts
 models/NamespaceProvider.ts
+models/OneTimeKey.ts
 models/Profile.ts
 models/ProfileFields.ts
 models/ProfileParameters.ts

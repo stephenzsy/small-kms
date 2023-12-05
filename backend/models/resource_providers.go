@@ -14,6 +14,7 @@ const (
 	ResourceProviderAgentInstance           ResourceProvider = "agent-instance"
 	ResourceProviderKey                     ResourceProvider = "key"
 	ResourceProviderKeyPolicy               ResourceProvider = "key-policy"
+	ResourceProviderOneTimeKey              ResourceProvider = "one-time-key"
 	ResourceProviderCert                    ResourceProvider = "cert"
 	ResourceProviderCertPolicy              ResourceProvider = "cert-policy"
 	ResourceProviderCertExternalIssuer      ResourceProvider = "cert-external-issuer"

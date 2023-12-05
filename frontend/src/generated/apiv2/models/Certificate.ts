@@ -115,7 +115,7 @@ export interface Certificate {
      * @type {string}
      * @memberof Certificate
      */
-    identififier: string;
+    identifier: string;
     /**
      * 
      * @type {string}
@@ -172,12 +172,6 @@ export interface Certificate {
     sid?: string;
     /**
      * 
-     * @type {JsonWebKey}
-     * @memberof Certificate
-     */
-    exportKey?: JsonWebKey;
-    /**
-     * 
      * @type {CertificatePendingAcme}
      * @memberof Certificate
      */
@@ -196,7 +190,7 @@ export function instanceOfCertificate(value: object): boolean {
     isInstance = isInstance && "status" in value;
     isInstance = isInstance && "exp" in value;
     isInstance = isInstance && "policyIdentifier" in value;
-    isInstance = isInstance && "identififier" in value;
+    isInstance = isInstance && "identifier" in value;
     isInstance = isInstance && "issuerIdentifier" in value;
     isInstance = isInstance && "serialNumber" in value;
     isInstance = isInstance && "nbf" in value;
@@ -225,7 +219,7 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'iat': !exists(json, 'iat') ? undefined : json['iat'],
         'exp': json['exp'],
         'policyIdentifier': json['policyIdentifier'],
-        'identififier': json['identififier'],
+        'identifier': json['identifier'],
         'issuerIdentifier': json['issuerIdentifier'],
         'serialNumber': json['serialNumber'],
         'nbf': json['nbf'],
@@ -235,7 +229,6 @@ export function CertificateFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'cid': !exists(json, 'cid') ? undefined : json['cid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
-        'exportKey': !exists(json, 'exportKey') ? undefined : JsonWebKeyFromJSON(json['exportKey']),
         'pendingAcme': !exists(json, 'pendingAcme') ? undefined : CertificatePendingAcmeFromJSON(json['pendingAcme']),
     };
 }
@@ -259,7 +252,7 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'iat': value.iat,
         'exp': value.exp,
         'policyIdentifier': value.policyIdentifier,
-        'identififier': value.identififier,
+        'identifier': value.identifier,
         'issuerIdentifier': value.issuerIdentifier,
         'serialNumber': value.serialNumber,
         'nbf': value.nbf,
@@ -269,7 +262,6 @@ export function CertificateToJSON(value?: Certificate | null): any {
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'cid': value.cid,
         'sid': value.sid,
-        'exportKey': JsonWebKeyToJSON(value.exportKey),
         'pendingAcme': CertificatePendingAcmeToJSON(value.pendingAcme),
     };
 }

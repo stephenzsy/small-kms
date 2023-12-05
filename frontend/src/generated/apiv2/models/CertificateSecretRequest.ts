@@ -23,42 +23,42 @@ import {
 /**
  * 
  * @export
- * @interface EnrollCertificateRequest
+ * @interface CertificateSecretRequest
  */
-export interface EnrollCertificateRequest {
+export interface CertificateSecretRequest {
     /**
      * 
      * @type {JsonWebKey}
-     * @memberof EnrollCertificateRequest
+     * @memberof CertificateSecretRequest
      */
-    publicKey: JsonWebKey;
+    jwk: JsonWebKey;
 }
 
 /**
- * Check if a given object implements the EnrollCertificateRequest interface.
+ * Check if a given object implements the CertificateSecretRequest interface.
  */
-export function instanceOfEnrollCertificateRequest(value: object): boolean {
+export function instanceOfCertificateSecretRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "publicKey" in value;
+    isInstance = isInstance && "jwk" in value;
 
     return isInstance;
 }
 
-export function EnrollCertificateRequestFromJSON(json: any): EnrollCertificateRequest {
-    return EnrollCertificateRequestFromJSONTyped(json, false);
+export function CertificateSecretRequestFromJSON(json: any): CertificateSecretRequest {
+    return CertificateSecretRequestFromJSONTyped(json, false);
 }
 
-export function EnrollCertificateRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): EnrollCertificateRequest {
+export function CertificateSecretRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CertificateSecretRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'publicKey': JsonWebKeyFromJSON(json['publicKey']),
+        'jwk': JsonWebKeyFromJSON(json['jwk']),
     };
 }
 
-export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest | null): any {
+export function CertificateSecretRequestToJSON(value?: CertificateSecretRequest | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -67,7 +67,7 @@ export function EnrollCertificateRequestToJSON(value?: EnrollCertificateRequest 
     }
     return {
         
-        'publicKey': JsonWebKeyToJSON(value.publicKey),
+        'jwk': JsonWebKeyToJSON(value.jwk),
     };
 }
 

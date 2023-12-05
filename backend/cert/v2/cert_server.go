@@ -7,14 +7,17 @@ import (
 
 type CertServer struct {
 	api.APIServer
-	cryptoStore cryptoprovider.CryptoProvider
+	cryptoProvider cryptoprovider.CryptoProvider
 }
 
-func NewServer(apiServer api.APIServer) *CertServer {
-	cryptoStore, _ := cryptoprovider.NewCryptoProvider()
+func NewServer(apiServer api.APIServer) (*CertServer, error) {
+	cryptoStore, err := cryptoprovider.NewCryptoProvider()
+	if err != nil {
+		return nil, err
+	}
 
 	return &CertServer{
-		APIServer:   apiServer,
-		cryptoStore: cryptoStore,
-	}
+		APIServer:      apiServer,
+		cryptoProvider: cryptoStore,
+	}, nil
 }

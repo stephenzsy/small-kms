@@ -49,7 +49,7 @@ export interface CertificateFields {
      * @type {string}
      * @memberof CertificateFields
      */
-    identififier: string;
+    identifier: string;
     /**
      * 
      * @type {string}
@@ -106,12 +106,6 @@ export interface CertificateFields {
     sid?: string;
     /**
      * 
-     * @type {JsonWebKey}
-     * @memberof CertificateFields
-     */
-    exportKey?: JsonWebKey;
-    /**
-     * 
      * @type {CertificatePendingAcme}
      * @memberof CertificateFields
      */
@@ -123,7 +117,7 @@ export interface CertificateFields {
  */
 export function instanceOfCertificateFields(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "identififier" in value;
+    isInstance = isInstance && "identifier" in value;
     isInstance = isInstance && "issuerIdentifier" in value;
     isInstance = isInstance && "serialNumber" in value;
     isInstance = isInstance && "nbf" in value;
@@ -142,7 +136,7 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'identififier': json['identififier'],
+        'identifier': json['identifier'],
         'issuerIdentifier': json['issuerIdentifier'],
         'serialNumber': json['serialNumber'],
         'nbf': json['nbf'],
@@ -152,7 +146,6 @@ export function CertificateFieldsFromJSONTyped(json: any, ignoreDiscriminator: b
         'flags': !exists(json, 'flags') ? undefined : ((json['flags'] as Array<any>).map(CertificateFlagFromJSON)),
         'cid': !exists(json, 'cid') ? undefined : json['cid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
-        'exportKey': !exists(json, 'exportKey') ? undefined : JsonWebKeyFromJSON(json['exportKey']),
         'pendingAcme': !exists(json, 'pendingAcme') ? undefined : CertificatePendingAcmeFromJSON(json['pendingAcme']),
     };
 }
@@ -166,7 +159,7 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
     }
     return {
         
-        'identififier': value.identififier,
+        'identifier': value.identifier,
         'issuerIdentifier': value.issuerIdentifier,
         'serialNumber': value.serialNumber,
         'nbf': value.nbf,
@@ -176,7 +169,6 @@ export function CertificateFieldsToJSON(value?: CertificateFields | null): any {
         'flags': value.flags === undefined ? undefined : ((value.flags as Array<any>).map(CertificateFlagToJSON)),
         'cid': value.cid,
         'sid': value.sid,
-        'exportKey': JsonWebKeyToJSON(value.exportKey),
         'pendingAcme': CertificatePendingAcmeToJSON(value.pendingAcme),
     };
 }

@@ -50,9 +50,8 @@ type CertificateExternalIssuerFields struct {
 type CertificateFields struct {
 	// Cid Key Vault certificate ID
 	KeyVaultCertificateID string                   `json:"cid,omitempty"`
-	ExportKey             *externalRef1.JsonWebKey `json:"exportKey,omitempty"`
 	Flags                 []CertificateFlag        `json:"flags,omitempty"`
-	Identififier          string                   `json:"identififier"`
+	Identifier            string                   `json:"identifier"`
 	IssuerIdentifier      string                   `json:"issuerIdentifier"`
 	Jwk                   *externalRef1.JsonWebKey `json:"jwk,omitempty"`
 	Nbf                   externalRef0.NumericDate `json:"nbf"`
@@ -139,6 +138,17 @@ type CertificateRefFields struct {
 	Thumbprint string `json:"thumbprint"`
 }
 
+// CertificateSecretRequest defines model for CertificateSecretRequest.
+type CertificateSecretRequest struct {
+	Jwk externalRef1.JsonWebKey `json:"jwk"`
+}
+
+// CertificateSecretResult defines model for CertificateSecretResult.
+type CertificateSecretResult struct {
+	// Payload JWE encrypted certificate in PEM format
+	Payload string `json:"payload"`
+}
+
 // CertificateStatus defines model for CertificateStatus.
 type CertificateStatus string
 
@@ -149,8 +159,7 @@ type CertificateSubject struct {
 
 // EnrollCertificateRequest defines model for EnrollCertificateRequest.
 type EnrollCertificateRequest struct {
-	PublicKey     externalRef1.JsonWebKey `json:"publicKey"`
-	WithExportKey *bool                   `json:"withExportKey,omitempty"`
+	PublicKey externalRef1.JsonWebKey `json:"publicKey"`
 }
 
 // ExchangePKCS12Request defines model for ExchangePKCS12Request.

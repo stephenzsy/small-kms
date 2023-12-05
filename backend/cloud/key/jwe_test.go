@@ -45,8 +45,8 @@ func TestJsonWebEncryption_Decrypt(t *testing.T) {
 	// Decrypt the JWE
 	jwe, err := NewJsonWebEncryption(jweString)
 	require.NoError(t, err)
-	decrypted, _, err := jwe.Decrypt(func(header *JoseHeader) crypto.PrivateKey {
-		return privateKey
+	decrypted, _, err := jwe.Decrypt(func(header *JoseHeader) (crypto.PrivateKey, error) {
+		return privateKey, nil
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "plain text", string(decrypted))

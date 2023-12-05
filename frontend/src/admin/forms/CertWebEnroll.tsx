@@ -194,7 +194,6 @@ class EnrollmentSession {
           "jwk",
           this.keyPair.publicKey
         )) as JsonWebKey,
-        withExportKey: true,
       },
     });
     return new EnrollmentSession(
@@ -230,8 +229,7 @@ async function ecdhEsKdf(z: ArrayBuffer, alg: string): Promise<ArrayBuffer> {
   offset = putBuffer(finalBuffer, offset, new TextEncoder().encode(alg));
   offset = putUint32(finalBuffer, offset, 0);
   offset = putUint32(finalBuffer, offset, 0);
-  offset = putUint32(finalBuffer, offset, z.byteLength * 8);
-  console.log(finalBuffer, offset);
+  putUint32(finalBuffer, offset, z.byteLength * 8);
   return crypto.subtle.digest("SHA-256", finalBuffer);
 }
 
@@ -266,13 +264,17 @@ class EnrollmentPKCS12ExchangeSession {
     if (!this.session.enrollCertResponse) {
       throw new Error("no base session");
     }
-    const [payload, encKey] = await this.preparePayload();
-    const [ns, certId] =
-      this.session.enrollCertResponse.identififier.split("/");
-    const [namespaceProvider, namespaceId] = ns.split(":");
+    const [nsProvider, nsId] =
+      this.session.enrollCertResponse.identifier.split(":");
+    const otk = await api.createOneTimeKey({
+      namespaceId: nsId,
+      namespaceProvider: nsProvider as NamespaceProvider,
+    });
+    const [payload, encKey] = await this.preparePayload(otk.jwk);
+    const certId = this.session.enrollCertResponse.id;
     const resp = await api.exchangePKCS12({
-      namespaceId,
-      namespaceProvider: namespaceProvider as NamespaceProvider,
+      namespaceId: nsId,
+      namespaceProvider: nsProvider as NamespaceProvider,
       id: certId,
       exchangePKCS12Request: {
         payload,
@@ -306,22 +308,19 @@ class EnrollmentPKCS12ExchangeSession {
     );
   }
 
-  private async preparePayload(): Promise<[string, CryptoKey]> {
-    if (!this.session.enrollCertResponse?.exportKey) {
-      throw new Error("Missing oneTimePkcs12Key");
-    }
+  private async preparePayload(
+    remoteJwk: JsonWebKey
+  ): Promise<[string, CryptoKey]> {
     if (!this.session.keyPair) {
       throw new Error("Missing keyPair");
     }
-    console.log("enter");
     const remoteKey = await crypto.subtle.importKey(
       "jwk",
-      this.session.enrollCertResponse.exportKey as JsonWebKey,
+      remoteJwk,
       { name: "ECDH", namedCurve: "P-384" },
       false,
       []
     );
-    console.log("remote key ok");
     const ephemeralKey = await window.crypto.subtle.generateKey(
       {
         name: "ECDH",
@@ -339,6 +338,7 @@ class EnrollmentPKCS12ExchangeSession {
       alg: "ECDH-ES",
       enc: "A256GCM",
       epk: await crypto.subtle.exportKey("jwk", ephemeralKey.publicKey),
+      kid: remoteJwk.kid,
     };
 
     const joseEncoded = base64StdEncodedToUrlEncoded(

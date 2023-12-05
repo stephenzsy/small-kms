@@ -26,6 +26,14 @@ type CertQueryDoc struct {
 	Policy         resdoc.DocIdentifier                `json:"policy"`
 }
 
+const (
+	certDocQueryColStatus         = "c.status"
+	certDocQueryColThumbprintSHA1 = "c.jwk.x5t"
+	certDocQueryColIssuedAt       = "c.iat"
+	certDocQueryColNotAfter       = "c.exp"
+	certDocQueryColPolicy         = "c.policy"
+)
+
 func (d *CertQueryDoc) ToRef() (m certmodels.CertificateRef) {
 	m.Ref = d.ResourceQueryDoc.ToRef()
 	m.Thumbprint = d.ThumbprintSHA1.HexString()

@@ -27,6 +27,8 @@ import type {
   CertificatePolicy,
   CertificatePolicyParameters,
   CertificateRef,
+  CertificateSecretRequest,
+  CertificateSecretResult,
   CreateAgentConfigRequest,
   CreateAgentRequest,
   CreateKeyPolicyRequest,
@@ -40,6 +42,7 @@ import type {
   LinkRef,
   LinkRefFields,
   NamespaceProvider,
+  OneTimeKey,
   Profile,
   ProfileParameters,
   Ref,
@@ -71,6 +74,10 @@ import {
     CertificatePolicyParametersToJSON,
     CertificateRefFromJSON,
     CertificateRefToJSON,
+    CertificateSecretRequestFromJSON,
+    CertificateSecretRequestToJSON,
+    CertificateSecretResultFromJSON,
+    CertificateSecretResultToJSON,
     CreateAgentConfigRequestFromJSON,
     CreateAgentConfigRequestToJSON,
     CreateAgentRequestFromJSON,
@@ -97,6 +104,8 @@ import {
     LinkRefFieldsToJSON,
     NamespaceProviderFromJSON,
     NamespaceProviderToJSON,
+    OneTimeKeyFromJSON,
+    OneTimeKeyToJSON,
     ProfileFromJSON,
     ProfileToJSON,
     ProfileParametersFromJSON,
@@ -117,6 +126,11 @@ export interface AddMsEntraKeyCredentialRequest {
 
 export interface CreateAgentOperationRequest {
     createAgentRequest?: CreateAgentRequest;
+}
+
+export interface CreateOneTimeKeyRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
 }
 
 export interface DeleteCertificateRequest {
@@ -198,6 +212,13 @@ export interface GetCertificatePolicyIssuerRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
     id: string;
+}
+
+export interface GetCertificateSecretRequest {
+    namespaceProvider: NamespaceProvider;
+    namespaceId: string;
+    id: string;
+    certificateSecretRequest: CertificateSecretRequest;
 }
 
 export interface GetExternalCertificateIssuerRequest {
@@ -428,6 +449,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async createAgent(requestParameters: CreateAgentOperationRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Profile> {
         const response = await this.createAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create one time key for JWE ECDH-ES key agreement
+     */
+    async createOneTimeKeyRaw(requestParameters: CreateOneTimeKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OneTimeKey>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling createOneTimeKey.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling createOneTimeKey.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/one-time-key/{namespaceProvider}/{namespaceId}`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => OneTimeKeyFromJSON(jsonValue));
+    }
+
+    /**
+     * Create one time key for JWE ECDH-ES key agreement
+     */
+    async createOneTimeKey(requestParameters: CreateOneTimeKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OneTimeKey> {
+        const response = await this.createOneTimeKeyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1066,6 +1129,59 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async getCertificatePolicyIssuer(requestParameters: GetCertificatePolicyIssuerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LinkRef> {
         const response = await this.getCertificatePolicyIssuerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get certificate secret
+     */
+    async getCertificateSecretRaw(requestParameters: GetCertificateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CertificateSecretResult>> {
+        if (requestParameters.namespaceProvider === null || requestParameters.namespaceProvider === undefined) {
+            throw new runtime.RequiredError('namespaceProvider','Required parameter requestParameters.namespaceProvider was null or undefined when calling getCertificateSecret.');
+        }
+
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling getCertificateSecret.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getCertificateSecret.');
+        }
+
+        if (requestParameters.certificateSecretRequest === null || requestParameters.certificateSecretRequest === undefined) {
+            throw new runtime.RequiredError('certificateSecretRequest','Required parameter requestParameters.certificateSecretRequest was null or undefined when calling getCertificateSecret.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/{namespaceProvider}/{namespaceId}/certificates/{id}/secret`.replace(`{${"namespaceProvider"}}`, encodeURIComponent(String(requestParameters.namespaceProvider))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CertificateSecretRequestToJSON(requestParameters.certificateSecretRequest),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CertificateSecretResultFromJSON(jsonValue));
+    }
+
+    /**
+     * Get certificate secret
+     */
+    async getCertificateSecret(requestParameters: GetCertificateSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CertificateSecretResult> {
+        const response = await this.getCertificateSecretRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

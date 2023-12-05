@@ -207,6 +207,20 @@ components:
         expiryTime:
           type: string
           x-go-type-skip-optional-pointer: true
+    OneTimeKey:
+      description: OneTimeKey
+      type: object
+      properties:
+        jwk:
+          $ref: "#/components/schemas/JsonWebKey"
+        exp:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+        iat:
+          $ref: "models-shared.yaml#/components/schemas/NumericDate"
+      required:
+        - jwk
+        - exp
+        - iat
   responses:
     KeyPolicyResponse:
       description: KeyPolicy response
