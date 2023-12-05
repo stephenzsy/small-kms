@@ -47,11 +47,11 @@ type AgentConfigEndpoint = agentConfigEndpointComposed
 
 // AgentConfigEndpointFields defines model for AgentConfigEndpointFields.
 type AgentConfigEndpointFields struct {
-	JwtVerifyKeyIds              []string `json:"jwtVerifyKeyIds,omitempty"`
-	JwtVerifyKeyPolicyId         string   `json:"jwtVerifyKeyPolicyId"`
-	TLSCertificateAutoEnroll     bool     `json:"tlsCertificateAutoEnroll"`
-	TlsCertificatePolicyId       string   `json:"tlsCertificatePolicyId"`
-	TLSCertificatePublicCASigned bool     `json:"tlsCertificatePublicCaSigned"`
+	JwtVerifyKeyIds          []string `json:"jwtVerifyKeyIds,omitempty"`
+	JwtVerifyKeyPolicyId     string   `json:"jwtVerifyKeyPolicyId"`
+	TLSCertificateAutoEnroll bool     `json:"tlsCertificateAutoEnroll"`
+	TLSCertificateID         string   `json:"tlsCertificateId,omitempty"`
+	TlsCertificatePolicyId   string   `json:"tlsCertificatePolicyId"`
 }
 
 // AgentConfigIdentity defines model for AgentConfigIdentity.
@@ -77,18 +77,20 @@ type AgentInstance = agentInstanceComposed
 
 // AgentInstanceFields defines model for AgentInstanceFields.
 type AgentInstanceFields struct {
-	JwtVerifyKeyId   string `json:"jwtVerifyKeyId"`
-	TlsCertificateId string `json:"tlsCertificateId"`
+	JwtVerifyKeyId                 string `json:"jwtVerifyKeyId"`
+	TlsCertificateId               string `json:"tlsCertificateId"`
+	TLSCertificateSignedByPublicCA bool   `json:"tlsCertificateSignedByPublicCa"`
 }
 
 // AgentInstanceParameters defines model for AgentInstanceParameters.
 type AgentInstanceParameters struct {
-	BuildId          string             `json:"buildId"`
-	ConfigVersion    string             `json:"configVersion"`
-	Endpoint         string             `json:"endpoint"`
-	JwtVerifyKeyId   string             `json:"jwtVerifyKeyId"`
-	State            AgentInstanceState `json:"state"`
-	TlsCertificateId string             `json:"tlsCertificateId"`
+	BuildId                        string             `json:"buildId"`
+	ConfigVersion                  string             `json:"configVersion"`
+	Endpoint                       string             `json:"endpoint"`
+	JwtVerifyKeyId                 string             `json:"jwtVerifyKeyId"`
+	State                          AgentInstanceState `json:"state"`
+	TlsCertificateId               string             `json:"tlsCertificateId"`
+	TLSCertificateSignedByPublicCA bool               `json:"tlsCertificateSignedByPublicCa"`
 }
 
 // AgentInstanceRef defines model for AgentInstanceRef.

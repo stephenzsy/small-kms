@@ -2,6 +2,8 @@ package agentconfigmanager
 
 import (
 	"context"
+	"crypto"
+	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -10,7 +12,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
+	"github.com/stephenzsy/small-kms/backend/models"
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
+	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 )
 
 type AgentEndpointConfiguration struct {
@@ -47,11 +51,11 @@ func (p *endpointProcessor) init(c context.Context) error {
 }
 
 func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.AgentConfigRef) error {
-	requireNewCertificate, err := p.tlsCertRequireNewCertificate(c)
+	certExpiring, err := p.tlsCertificateExpiringSoon(c)
 	if err != nil {
 		return err
 	}
-	if p.config.Version == ref.Version && !requireNewCertificate {
+	if p.config.Version == ref.Version && !certExpiring {
 		return nil
 	}
 	resp, err := p.cm.Client().GetAgentConfigWithResponse(c, "me", agentmodels.AgentConfigNameEndpoint)
@@ -71,20 +75,58 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 		}
 	}()
 
-	if requireNewCertificate {
+	logger := log.Ctx(c)
 
-		certResp, certFile, err := enrollCert(c, p.cm, endpointConfig.TlsCertificatePolicyId)
+	if endpointConfig.TLSCertificateAutoEnroll {
+		if certExpiring {
+			certResp, certFile, err := enrollCert(c, p.cm.CryptoProvider(),
+				p.cm, endpointConfig.TlsCertificatePolicyId)
+			if err != nil {
+				return err
+			}
+			if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert).LinkToAbsolutePath(certFile); err != nil {
+				return err
+			}
+			p.config.TLSCertificateID = certResp.ID
+			hasChange = true
+		}
+	} else if p.config.TLSCertificateID != endpointConfig.TLSCertificateID {
+		// get certificate
+		jwk, err := cloudkey.NewEphemeralECDHJwk(p.cm.CryptoProvider())
 		if err != nil {
 			return err
 		}
-		if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert).LinkToAbsolutePath(certFile); err != nil {
+		resp, err := p.cm.Client().GetCertificateSecretWithResponse(c,
+			models.NamespaceProviderServicePrincipal,
+			"me", endpointConfig.TLSCertificateID, certmodels.CertificateSecretRequest{
+				Jwk: *jwk,
+			})
+		if err != nil {
+			return err
+		} else if resp.StatusCode() != http.StatusOK {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+		jwe, err := cloudkey.NewJsonWebEncryption(resp.JSON200.Payload)
+		if err != nil {
 			return err
 		}
-		p.config.TLSCertificateID = certResp.ID
-		hasChange = true
+		if pemBytes, _, err := jwe.Decrypt(func(*cloudkey.JoseHeader) (crypto.PrivateKey, error) {
+			return jwk.PrivateKey().(*ecdsa.PrivateKey).ECDH()
+		}); err != nil {
+			return err
+		} else {
+			certFile, err := writeCert(c, p.cm, endpointConfig.TLSCertificateID, pemBytes)
+			if err != nil {
+				return err
+			}
+			if err := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert).LinkToAbsolutePath(certFile); err != nil {
+				return err
+			}
+			p.config.TLSCertificateID = endpointConfig.TLSCertificateID
+			hasChange = true
+		}
 	}
 	if ref.Version != p.config.Version {
-		logger := log.Ctx(c)
 		logger.Info().Str("current", p.config.Version).Str("new", ref.Version).Msg("endpoint config version changed, updating")
 
 		verifyJwks := make([]cloudkey.JsonWebKey, 0, len(endpointConfig.JwtVerifyKeyIds))
@@ -124,7 +166,7 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 	return nil
 }
 
-func (p *endpointProcessor) tlsCertRequireNewCertificate(c context.Context) (bool, error) {
+func (p *endpointProcessor) tlsCertificateExpiringSoon(c context.Context) (bool, error) {
 	certFile := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert)
 	if exists, err := certFile.Exists(); err != nil {
 		return false, err

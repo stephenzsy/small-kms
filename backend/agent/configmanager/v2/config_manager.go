@@ -14,6 +14,7 @@ import (
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
 	"github.com/stephenzsy/small-kms/backend/common"
+	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
@@ -23,6 +24,7 @@ type ConfigManager interface {
 
 	EnvConfig() *agentcommon.AgentEnv
 	ConfigUpdate() <-chan *AgentEndpointConfiguration
+	CryptoProvider() cryptoprovider.CryptoProvider
 }
 
 type configManager struct {
@@ -32,6 +34,12 @@ type configManager struct {
 	identityProcessor    *identityProcessor
 	endpointProcessor    *endpointProcessor
 	endpointConfigUpdate chan *AgentEndpointConfiguration
+	cryptoProvider       cryptoprovider.CryptoProvider
+}
+
+// CryptoProvider implements ConfigManager.
+func (cm *configManager) CryptoProvider() cryptoprovider.CryptoProvider {
+	return cm.cryptoProvider
 }
 
 // ConfigDir implements ConfigManager.
@@ -88,6 +96,10 @@ func NewConfigManager(envSvc common.EnvService, slot agentcommon.AgentSlot) (*co
 		envConfig:            envConfig,
 		configDir:            RootConfigDir{ConfigDir(configDir)},
 		endpointConfigUpdate: make(chan *AgentEndpointConfiguration, 1),
+	}
+	cm.cryptoProvider, err = cryptoprovider.NewCryptoProvider()
+	if err != nil {
+		return nil, err
 	}
 	cm.configDir.Active(agentmodels.AgentConfigNameIdentity).EnsureExist()
 	cm.configDir.Active(agentmodels.AgentConfigNameEndpoint).EnsureExist()

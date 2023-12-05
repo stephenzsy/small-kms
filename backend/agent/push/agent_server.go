@@ -164,7 +164,7 @@ func (s *agentServer) GetAgentDockerSystemInformation(ec echo.Context, _, _ stri
 var _ ServerInterface = (*agentServer)(nil)
 var _ agentendpoint.ServerInterface = (*agentServer)(nil)
 
-func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvService, radiusConfigManager *radius.RadiusConfigManager, dockerClient dockerclient.APIClient) (*agentServer, error) {
+func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvService, dockerClient dockerclient.APIClient) (*agentServer, error) {
 	var acrLoginServer string
 	var tenantID string
 	var acrImageRepo string
@@ -184,13 +184,12 @@ func NewServer(buildID string, mode agentcommon.AgentSlot, envSvc common.EnvServ
 	}
 
 	s := &agentServer{
-		BaseServer:          base.NewBaseServer(config),
-		dockerClient:        dockerClient,
-		acrAuthProvider:     acr.NewDockerRegistryAuthProvider(acrLoginServer, config.ServiceIdentity().TokenCredential(), tenantID),
-		acrImageRepo:        acrImageRepo,
-		mode:                mode,
-		radiusConfigManager: radiusConfigManager,
-		launchedBy:          envSvc.Default("AGENT_LAUNCHED_BY", ""),
+		BaseServer:      base.NewBaseServer(config),
+		dockerClient:    dockerClient,
+		acrAuthProvider: acr.NewDockerRegistryAuthProvider(acrLoginServer, config.ServiceIdentity().TokenCredential(), tenantID),
+		acrImageRepo:    acrImageRepo,
+		mode:            mode,
+		launchedBy:      envSvc.Default("AGENT_LAUNCHED_BY", ""),
 	}
 
 	return s, err

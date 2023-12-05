@@ -18,12 +18,10 @@ import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
   AdminApi,
-  AgentConfigName,
   AgentConfigRadiusFields,
   AgentConfigRadiusToJSON,
   AgentContainerConfiguration,
   AgentInstance,
-  AzureRoleAssignment,
   NamespaceKind,
   RadiusClientConfig,
   RadiusEapTls,
@@ -40,39 +38,6 @@ import {
 } from "./contexts/RadiusConfigPatchContext";
 import { RadiusConfigContainerForm } from "./forms/RadiusConfigContainerForm";
 import { RadiusConfigServersForm } from "./forms/RadiusConfigServersForm";
-
-const wellKnownRoleDefinitionIds: Record<string, string> = {
-  "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
-  "21090545-7ca7-4776-b22c-e363652d74d2": "Key Vault Reader",
-  "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
-};
-
-function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
-  return useMemo(() => {
-    return [
-      {
-        title: "Name",
-        key: "name",
-        render: (r: AzureRoleAssignment) => (
-          <span className="font-mono">{r.name}</span>
-        ),
-      },
-      {
-        title: "Role definition id",
-        key: "name",
-        render: (r: AzureRoleAssignment) => {
-          const parts = r.roleDefinitionId?.split("/");
-          const defId = parts?.[parts.length - 1];
-          return defId && wellKnownRoleDefinitionIds[defId] ? (
-            wellKnownRoleDefinitionIds[defId]
-          ) : (
-            <span className="font-mono">{defId}</span>
-          );
-        },
-      },
-    ];
-  }, []);
-}
 
 export type AgentServerConfigFormState = AgentContainerConfiguration;
 
@@ -354,22 +319,6 @@ export default function RadiusConfigPage({
   );
   const { data: radiusConfig } = patchSvc;
 
-  const { data: keysData } = useRequest(
-    () => {
-      return api.listAgentAzureRoleAssignments({
-        namespaceId,
-        namespaceKind,
-        configName: AgentConfigName.AgentConfigNameRadius,
-      });
-    },
-    {
-      ready: !!namespaceId && !!namespaceKind,
-      refreshDeps: [namespaceId, namespaceKind],
-    }
-  );
-
-  const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();
-
   return (
     <>
       <Typography.Title>
@@ -388,17 +337,6 @@ export default function RadiusConfigPage({
           <Card title="RADIUS configuration">
             <Collapse items={collapseItems} />
           </Card>
-          {!isGlobalConfig && (
-            <Card title="Azure role assignments">
-              <JsonDataDisplay data={keysData} />
-              <Table<AzureRoleAssignment>
-                columns={roleAssignmentTableColumns}
-                dataSource={keysData}
-                rowKey={(r) => r.id ?? ""}
-              />
-            </Card>
-          )}
-
           {!isGlobalConfig && (
             <Card title="Instances">
               <AgentInstancesList />

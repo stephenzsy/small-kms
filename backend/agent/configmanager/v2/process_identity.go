@@ -40,7 +40,8 @@ func (p *identityProcessor) processIdentity(c context.Context, ref *agentmodels.
 	}
 
 	// create config file
-	cert, certFile, err := enrollCert(c, p.cm, identityConfig.KeyCredentialCertificatePolicyId)
+	cert, certFile, err := enrollCert(c, p.cm.cryptoProvider,
+		p.cm, identityConfig.KeyCredentialCertificatePolicyId)
 	if err != nil {
 		return err
 	}

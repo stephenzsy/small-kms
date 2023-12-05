@@ -8,7 +8,6 @@ import (
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
@@ -77,7 +76,14 @@ func (*ServicePrincipalBootstraper) Bootstrap(c context.Context, certPolicyID st
 		return err
 	}
 
-	_, _, err = agentutils.EnrollCertificate(c, client, certPolicyID,
+	cryptoProvider, err := cryptoprovider.NewCryptoProvider()
+	if err != nil {
+		return err
+	}
+
+	_, _, err = agentcommon.EnrollCertificate(c,
+		cryptoProvider,
+		client, certPolicyID,
 		func(_ *certmodels.Certificate) (*os.File, error) {
 			return os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0400)
 		}, true)

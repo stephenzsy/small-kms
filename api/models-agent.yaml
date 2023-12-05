@@ -46,11 +46,15 @@ components:
       properties:
         tlsCertificateId:
           type: string
+        tlsCertificateSignedByPublicCa:
+          type: boolean
+          x-go-name: TLSCertificateSignedByPublicCA
         jwtVerifyKeyId:
           type: string
       required:
         - tlsCertificateId
         - jwtVerifyKeyId
+        - tlsCertificateSignedByPublicCa
     AgentInstanceParameters:
       allOf:
         - $ref: "#/components/schemas/AgentInstanceRefFields"
@@ -144,9 +148,10 @@ components:
       properties:
         tlsCertificatePolicyId:
           type: string
-        tlsCertificatePublicCaSigned:
-          type: boolean
-          x-go-name: TLSCertificatePublicCASigned
+        tlsCertificateId:
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-go-name: TLSCertificateID
         tlsCertificateAutoEnroll:
           type: boolean
           x-go-name: TLSCertificateAutoEnroll

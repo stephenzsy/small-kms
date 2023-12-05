@@ -205,23 +205,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResult"
-  /v1/{namespaceKind}/{namespaceId}/agent-config/{configName}/role-assignments:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - in: path
-        name: configName
-        required: true
-        schema:
-          $ref: "#/components/schemas/AgentConfigName"
-    get:
-      tags:
-        - admin
-      summary: List Azure role assignments
-      operationId: ListAgentAzureRoleAssignments
-      responses:
-        200:
-          $ref: "oapi-base.yaml#/components/responses/ListAzureRoleAssignmentsResponse"
 security:
   - BearerAuth: []
 components:

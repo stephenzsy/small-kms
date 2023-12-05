@@ -3,6 +3,7 @@ import { Result } from "ahooks/lib/useRequest/src/types";
 import {
   Button,
   Card,
+  Checkbox,
   Form,
   TableColumnType,
   Tabs,
@@ -166,6 +167,13 @@ function AgentEndpointForm({
           data={keyPolicies.data}
           loading={keyPolicies.loading}
         />
+      </Form.Item>
+      <Form.Item<AgentConfigEndpointFields>
+        name="tlsCertificateAutoEnroll"
+        valuePropName="checked"
+        getValueFromEvent={(e) => e.target.checked}
+      >
+        <Checkbox>Auto enroll TLS certificate</Checkbox>
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit">

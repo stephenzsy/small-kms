@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/stephenzsy/small-kms/backend/base"
 	cloudkey "github.com/stephenzsy/small-kms/backend/cloud/key"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
@@ -343,4 +344,33 @@ func (d *CertPolicyDoc) getExternalIssuer(c ctx.RequestContext) (*CertIssuerDoc,
 		return nil, fmt.Errorf("%w: issuer policy is not external ca", base.ErrResponseStatusBadRequest)
 	}
 	return getExternalCertificateIssuerInternal(c, d.IssuerPolicy.NamespaceID, d.IssuerPolicy.ID)
+}
+
+func (d *CertPolicyDoc) GetLatestIssuedCertificateID(c ctx.RequestContext) (string, error) {
+	qb := resdoc.NewDefaultCosmoQueryBuilder().
+		WithExtraColumns("c.status", "c.iat", "c.exp").
+		WithWhereClauses("c.status = 'issued'").
+		WithWhereClauses("c.policy = @policy").
+		WithWhereClauses("c.exp > (GetCurrentTimestamp() / 1000)").
+		WithOrderBy("c.iat DESC").
+		WithOffsetLimit(0, 1)
+
+	qb.Parameters = append(qb.Parameters, azcosmos.QueryParameter{Name: "@policy", Value: d.Identifier().String()})
+
+	pager := resdoc.NewQueryDocPager[*CertQueryDoc](c, qb, resdoc.PartitionKey{
+		NamespaceProvider: d.PartitionKey.NamespaceProvider,
+		NamespaceID:       d.PartitionKey.NamespaceID,
+		ResourceProvider:  models.ResourceProviderCert,
+	})
+
+	s, err := utils.PagerToSlice(utils.NewMappedItemsPager(pager, func(doc *CertQueryDoc) string {
+		return doc.ID
+	}))
+	if err != nil {
+		return "", err
+	}
+	if len(s) == 0 {
+		return "", nil
+	}
+	return s[0], nil
 }

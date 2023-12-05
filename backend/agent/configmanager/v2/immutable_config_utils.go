@@ -8,22 +8,42 @@ import (
 	"os"
 
 	agentclient "github.com/stephenzsy/small-kms/backend/agent/client/v2"
-	agentutils "github.com/stephenzsy/small-kms/backend/agent/utils"
+	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
+	"github.com/stephenzsy/small-kms/backend/internal/cryptoprovider"
 	"github.com/stephenzsy/small-kms/backend/models"
 	certmodels "github.com/stephenzsy/small-kms/backend/models/cert"
 	keymodels "github.com/stephenzsy/small-kms/backend/models/key"
 	"github.com/stephenzsy/small-kms/backend/utils"
 )
 
-func enrollCert(c context.Context, cm ConfigManager, certPolicyID string) (*certmodels.Certificate, string, error) {
+func enrollCert(c context.Context,
+	cryptoProvider cryptoprovider.CryptoProvider,
+	cm ConfigManager, certPolicyID string) (*certmodels.Certificate, string, error) {
 
 	var enrolledFileName string
-	cert, _, err := agentutils.EnrollCertificate(c, cm.Client(), certPolicyID,
+	cert, _, err := agentcommon.EnrollCertificate(c,
+		cryptoProvider,
+		cm.Client(), certPolicyID,
 		func(cert *certmodels.Certificate) (*os.File, error) {
 			enrolledFileName = cm.ConfigDir().Certs().File(fmt.Sprintf("%s.pem", cert.ID))
-			return cm.ConfigDir().Certs().OpenFile(fmt.Sprintf("%s.pem", cert.ID), os.O_CREATE|os.O_WRONLY, 0400)
+			return os.OpenFile(enrolledFileName, os.O_CREATE|os.O_WRONLY, 0400)
 		}, false)
 	return cert, enrolledFileName, err
+}
+
+func writeCert(c context.Context,
+	cm ConfigManager, certID string, pemContent []byte) (string, error) {
+
+	fileName := cm.ConfigDir().Certs().File(fmt.Sprintf("%s.pem", certID))
+	certFile, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0400)
+	if err != nil {
+		return fileName, err
+	}
+	defer certFile.Close()
+	if _, err := certFile.Write(pemContent); err != nil {
+		return fileName, err
+	}
+	return fileName, nil
 }
 
 func pullPublicJWK(c context.Context, cm ConfigManager, keyID string) (*keymodels.Key, error) {

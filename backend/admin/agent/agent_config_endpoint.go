@@ -18,11 +18,11 @@ import (
 
 type agentConfigDocEndpoint struct {
 	AgentConfigDoc
-	TLSCertificatePolicyID       string   `json:"tlsCertificatePolicyId"`
-	TLSCertificatePublicCASigned bool     `json:"tlsCertificatePublicCaSigned"`
-	TLSCertificateAutoEnroll     bool     `json:"tlsCertificateAutoEnroll"`
-	JWTVerifyKeyPolicyID         string   `json:"jwtVerifyKeyPolicyId"`
-	JWTVerifyKeyIDs              []string `json:"jwtVerifyKeyIds"`
+	TLSCertificatePolicyID   string   `json:"tlsCertificatePolicyId"`
+	TLSCertificateAutoEnroll bool     `json:"tlsCertificateAutoEnroll"`
+	TLSCertificateID         string   `json:"tlsCertificateId,omitempty"`
+	JWTVerifyKeyPolicyID     string   `json:"jwtVerifyKeyPolicyId"`
+	JWTVerifyKeyIDs          []string `json:"jwtVerifyKeyIds"`
 }
 
 func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
@@ -33,7 +33,7 @@ func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
 	m.JwtVerifyKeyPolicyId = d.JWTVerifyKeyPolicyID
 	m.JwtVerifyKeyIds = d.JWTVerifyKeyIDs
 	m.TLSCertificateAutoEnroll = d.TLSCertificateAutoEnroll
-	m.TLSCertificatePublicCASigned = d.TLSCertificatePublicCASigned
+	m.TLSCertificateID = d.TLSCertificateID
 	return m
 }
 
@@ -55,10 +55,9 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 				ID: string(agentmodels.AgentConfigNameEndpoint),
 			},
 		},
-		TLSCertificatePolicyID:       req.TlsCertificatePolicyId,
-		JWTVerifyKeyPolicyID:         req.JwtVerifyKeyPolicyId,
-		TLSCertificatePublicCASigned: req.TLSCertificatePublicCASigned,
-		TLSCertificateAutoEnroll:     req.TLSCertificateAutoEnroll,
+		TLSCertificatePolicyID:   req.TlsCertificatePolicyId,
+		JWTVerifyKeyPolicyID:     req.JwtVerifyKeyPolicyId,
+		TLSCertificateAutoEnroll: req.TLSCertificateAutoEnroll,
 	}
 
 	versiond := md5.New()
@@ -69,6 +68,14 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 	}
 	versiond.Write([]byte(doc.TLSCertificatePolicyID))
 	versiond.Write(certPolicy.Version)
+
+	if !doc.TLSCertificateAutoEnroll {
+		doc.TLSCertificateID, err = certPolicy.GetLatestIssuedCertificateID(c)
+		if err != nil {
+			return err
+		}
+		versiond.Write([]byte(doc.TLSCertificateID))
+	}
 
 	keyPolicy, err := key.GetKeyPolicyInternal(c, models.NamespaceProviderServicePrincipal, namespaceId, req.JwtVerifyKeyPolicyId)
 	if err != nil {

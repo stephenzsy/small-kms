@@ -13,18 +13,14 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
-	"github.com/stephenzsy/small-kms/backend/agent/configmanager"
 	agentconfigmanager "github.com/stephenzsy/small-kms/backend/agent/configmanager/v2"
 	agentendpoint "github.com/stephenzsy/small-kms/backend/agent/endpoint"
 
-	"github.com/stephenzsy/small-kms/backend/agent/keeper"
 	agentpush "github.com/stephenzsy/small-kms/backend/agent/push"
-	"github.com/stephenzsy/small-kms/backend/agent/radius"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/common"
 	"github.com/stephenzsy/small-kms/backend/internal/auth"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
-	"github.com/stephenzsy/small-kms/backend/managedapp"
 	"github.com/stephenzsy/small-kms/backend/taskmanager"
 )
 
@@ -89,29 +85,29 @@ func main() {
 			}
 			cm2Poller := agentconfigmanager.NewConfigManagerPollTaskExecutor(cm2)
 
-			configManager, err := keeper.NewConfigManager(envSvc, slot)
-			if err != nil {
-				logger.Fatal().Err(err).Msg("Failed to create config manager")
-			}
+			// configManager, err := keeper.NewConfigManager(envSvc, slot)
+			// if err != nil {
+			// 	logger.Fatal().Err(err).Msg("Failed to create config manager")
+			// }
 			dockerClient, err := agentcommon.GetDockerClient()
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create docker client")
 			}
 
-			radiusConfigProcessor := radius.NewRadiusConfigProcessHandler(configManager.EnvConfig, configmanager.NewConfigDir(string(managedapp.AgentConfigNameRadius), configManager.ConfigDir))
-			configHandlerChain := &configmanager.ChainedContextConfigHandler{
-				ContextConfigHandler: radiusConfigProcessor,
-			}
-			radiusLauncher, err := radius.NewRadiusContainerLauncher(dockerClient, envSvc)
-			if err != nil {
-				logger.Fatal().Err(err).Msg("failed to create radius container launcher")
-			}
-			configHandlerChain.SetNext(&configmanager.ChainedContextConfigHandler{
-				ContextConfigHandler: radiusLauncher,
-			})
-			radiusConfigManager := radius.NewRadiusConfigManager(configHandlerChain, configManager.EnvConfig, configManager.ConfigDir)
+			// radiusConfigProcessor := radius.NewRadiusConfigProcessHandler(configManager.EnvConfig, configmanager.NewConfigDir(string(managedapp.AgentConfigNameRadius), configManager.ConfigDir))
+			// configHandlerChain := &configmanager.ChainedContextConfigHandler{
+			// 	ContextConfigHandler: radiusConfigProcessor,
+			// }
+			// radiusLauncher, err := radius.NewRadiusContainerLauncher(dockerClient, envSvc)
+			// if err != nil {
+			// 	logger.Fatal().Err(err).Msg("failed to create radius container launcher")
+			// }
+			// configHandlerChain.SetNext(&configmanager.ChainedContextConfigHandler{
+			// 	ContextConfigHandler: radiusLauncher,
+			// })
+			// radiusConfigManager := radius.NewRadiusConfigManager(configHandlerChain, configManager.EnvConfig, configManager.ConfigDir)
 
-			agentPushServer, err := agentpush.NewServer(BuildID, slot, envSvc, radiusConfigManager, dockerClient)
+			agentPushServer, err := agentpush.NewServer(BuildID, slot, envSvc, dockerClient)
 			if err != nil {
 				logger.Fatal().Err(err).Msg("failed to create agent push server")
 			}
@@ -137,8 +133,7 @@ func main() {
 
 			tm := taskmanager.NewChainedTaskManager().
 				WithTask(taskmanager.IntervalExecutorTask(cm2Poller, 0)).
-				WithTask(echoTask).
-				WithTask(radiusConfigManager)
+				WithTask(echoTask)
 			logger.Fatal().Err(taskmanager.StartWithGracefulShutdown(c, tm)).Msg("task manager exited")
 			return
 		}

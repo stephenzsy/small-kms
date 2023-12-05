@@ -1,4 +1,4 @@
-package agentutils
+package agentcommon
 
 import (
 	"context"
@@ -19,6 +19,7 @@ import (
 )
 
 func EnrollCertificate(c context.Context,
+	cryptoProvider cryptoprovider.CryptoProvider,
 	client agentclient.ClientWithResponsesInterface,
 	certPolicyID string,
 	openFile func(*certmodels.Certificate) (*os.File, error),

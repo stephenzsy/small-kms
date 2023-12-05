@@ -1,18 +1,16 @@
 import { useContext, useEffect, useMemo } from "react";
 
 import { useMemoizedFn, useRequest } from "ahooks";
-import { Button, Card, Divider, Form, Input, Table, Typography } from "antd";
+import { Button, Card, Form, Input, Table, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { ColumnsType } from "antd/es/table";
 import { JsonDataDisplay } from "../components/JsonDataDisplay";
 import { Link } from "../components/Link";
 import {
   AdminApi,
-  AgentConfigName,
   AgentConfigServerFields,
   AgentConfigServerToJSON,
   AgentInstance,
-  AzureRoleAssignment,
   NamespaceKind,
 } from "../generated";
 import { useAuthedClient } from "../utils/useCertsApi";
@@ -32,39 +30,6 @@ import {
 //     name: "Agent Active Host Server",
 //   },
 // ];
-
-const wellKnownRoleDefinitionIds: Record<string, string> = {
-  "7f951dda-4ed3-4680-a7ca-43fe172d538d": "AcrPull",
-  "21090545-7ca7-4776-b22c-e363652d74d2": "Key Vault Reader",
-  "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User",
-};
-
-function useAzureRoleAssignmentsColumns(): ColumnsType<AzureRoleAssignment> {
-  return useMemo(() => {
-    return [
-      {
-        title: "Name",
-        key: "name",
-        render: (r: AzureRoleAssignment) => (
-          <span className="font-mono">{r.name}</span>
-        ),
-      },
-      {
-        title: "Role definition id",
-        key: "name",
-        render: (r: AzureRoleAssignment) => {
-          const parts = r.roleDefinitionId?.split("/");
-          const defId = parts?.[parts.length - 1];
-          return defId && wellKnownRoleDefinitionIds[defId] ? (
-            wellKnownRoleDefinitionIds[defId]
-          ) : (
-            <span className="font-mono">{defId}</span>
-          );
-        },
-      },
-    ];
-  }, []);
-}
 
 type AgentServerConfigFormState = Partial<AgentConfigServerFields>;
 
@@ -97,21 +62,6 @@ function AgentConfigServerFormCard({
       ready: !!namespaceIdentifier && !!namespaceKind,
     }
   );
-  const jwtKeyCertPolicyId = agentServerConfig?.jwtKeyCertPolicyId;
-
-  const { data: keysData } = useRequest(
-    () => {
-      return api.listAgentAzureRoleAssignments({
-        namespaceId: namespaceIdentifier,
-        namespaceKind,
-        configName: AgentConfigName.AgentConfigNameServer,
-      });
-    },
-    {
-      ready: !!namespaceIdentifier && !!jwtKeyCertPolicyId,
-      refreshDeps: [namespaceIdentifier, jwtKeyCertPolicyId],
-    }
-  );
 
   useEffect(() => {
     if (agentServerConfig) {
@@ -128,7 +78,6 @@ function AgentConfigServerFormCard({
     // form.setFieldValue("azureAcrImageRef", `${currentPrfix}:${tag}`);
   });
 
-  const roleAssignmentTableColumns = useAzureRoleAssignmentsColumns();
   return (
     <Card title="Agent server configuration">
       <div className="mb-6">
@@ -176,13 +125,6 @@ function AgentConfigServerFormCard({
           </Button>
         </Form.Item>
       </Form>
-      <Divider />
-      <JsonDataDisplay data={keysData} />
-      <Table<AzureRoleAssignment>
-        columns={roleAssignmentTableColumns}
-        dataSource={keysData}
-        rowKey={(r) => r.id ?? ""}
-      />
     </Card>
   );
 }

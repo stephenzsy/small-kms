@@ -27,6 +27,12 @@ export interface AgentInstanceFields {
     tlsCertificateId: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof AgentInstanceFields
+     */
+    tlsCertificateSignedByPublicCa: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof AgentInstanceFields
      */
@@ -39,6 +45,7 @@ export interface AgentInstanceFields {
 export function instanceOfAgentInstanceFields(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "tlsCertificateId" in value;
+    isInstance = isInstance && "tlsCertificateSignedByPublicCa" in value;
     isInstance = isInstance && "jwtVerifyKeyId" in value;
 
     return isInstance;
@@ -55,6 +62,7 @@ export function AgentInstanceFieldsFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'tlsCertificateId': json['tlsCertificateId'],
+        'tlsCertificateSignedByPublicCa': json['tlsCertificateSignedByPublicCa'],
         'jwtVerifyKeyId': json['jwtVerifyKeyId'],
     };
 }
@@ -69,6 +77,7 @@ export function AgentInstanceFieldsToJSON(value?: AgentInstanceFields | null): a
     return {
         
         'tlsCertificateId': value.tlsCertificateId,
+        'tlsCertificateSignedByPublicCa': value.tlsCertificateSignedByPublicCa,
         'jwtVerifyKeyId': value.jwtVerifyKeyId,
     };
 }
