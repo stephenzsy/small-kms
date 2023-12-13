@@ -724,6 +724,25 @@ paths:
       responses:
         "200":
           $ref: "models-shared.yaml#/components/responses/RequestDiagnosticsResponse"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/containers:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    get:
+      tags:
+        - agent
+        - admin
+      description: List docker containers
+      operationId: AgentDockerContainerList
+      responses:
+        200:
+          description: Container list result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "models-agent.yaml#/components/schemas/DockerContainer"
   /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/images:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"
@@ -761,7 +780,7 @@ paths:
       responses:
         204:
           description: agent pull image resposne
-          content: {}                  
+          content: {}
   /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

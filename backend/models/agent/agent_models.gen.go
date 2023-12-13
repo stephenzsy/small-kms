@@ -127,6 +127,9 @@ type CreateAgentRequest struct {
 	DisplayName string `json:"displayName,omitempty"`
 }
 
+// DockerContainer defines model for DockerContainer.
+type DockerContainer = types.Container
+
 // DockerImageSummary defines model for DockerImageSummary.
 type DockerImageSummary = types.ImageSummary
 

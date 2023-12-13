@@ -130,6 +130,11 @@ export interface AddMsEntraKeyCredentialRequest {
     id: string;
 }
 
+export interface AgentDockerContainerListRequest {
+    namespaceId: string;
+    id: string;
+}
+
 export interface AgentDockerImageListRequest {
     namespaceId: string;
     id: string;
@@ -436,6 +441,48 @@ export class AdminApi extends runtime.BaseAPI {
      */
     async addMsEntraKeyCredential(requestParameters: AddMsEntraKeyCredentialRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.addMsEntraKeyCredentialRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * List docker containers
+     */
+    async agentDockerContainerListRaw(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<object>>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentDockerContainerList.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling agentDockerContainerList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}/docker/containers`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * List docker containers
+     */
+    async agentDockerContainerList(requestParameters: AgentDockerContainerListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<object>> {
+        const response = await this.agentDockerContainerListRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**

@@ -121,7 +121,7 @@ func (s *agentServer) AgentDockerContainerInspect(ec echo.Context, _ base.Namesp
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentDockerContainerListParams) error {
+func (s *agentServer) AgentDockerContainerList(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)
 
 	containers, err := s.dockerClient.ContainerList(c, types.ContainerListOptions{

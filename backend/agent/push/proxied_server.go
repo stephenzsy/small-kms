@@ -96,15 +96,6 @@ func (s *proxiedServer) AgentDockerContainerInspect(ec echo.Context, namespaceKi
 	})
 }
 
-// AgentDockerContainerList implements ServerInterface.
-func (s *proxiedServer) AgentDockerContainerList(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
-	rID base.ID,
-	params AgentDockerContainerListParams) error {
-	return s.delegateRequest(ec, namespaceKind, namespaceIdentifier, rID, params.XCryptocatProxyAuthorization, func(c ctx.RequestContext, client ClientWithResponsesInterface) (ProxiedResponse, error) {
-		return client.AgentDockerContainerListWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil)
-	})
-}
-
 func NewProxiedServer(apiServer api.APIServer) ServerInterface {
 	return &proxiedServer{
 		APIServer:       apiServer,

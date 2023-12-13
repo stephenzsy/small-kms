@@ -111,6 +111,9 @@ type ClientInterface interface {
 	// GetAgentDiagnostics request
 	GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AgentDockerContainerList request
+	AgentDockerContainerList(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AgentDockerImagePullWithBody request with any body
 	AgentDockerImagePullWithBody(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -128,6 +131,18 @@ type ClientInterface interface {
 
 func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAgentDiagnosticsRequest(c.Server, namespaceId, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentDockerContainerList(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerContainerListRequest(c.Server, namespaceId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +237,47 @@ func NewGetAgentDiagnosticsRequest(server string, namespaceId NamespaceIdParamet
 	}
 
 	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-instances/%s/diagnostics", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAgentDockerContainerListRequest generates requests for AgentDockerContainerList
+func NewAgentDockerContainerListRequest(server string, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-instances/%s/docker/containers", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -462,6 +518,9 @@ type ClientWithResponsesInterface interface {
 	// GetAgentDiagnosticsWithResponse request
 	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
 
+	// AgentDockerContainerListWithResponse request
+	AgentDockerContainerListWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error)
+
 	// AgentDockerImagePullWithBodyWithResponse request with any body
 	AgentDockerImagePullWithBodyWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error)
 
@@ -493,6 +552,28 @@ func (r GetAgentDiagnosticsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAgentDiagnosticsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AgentDockerContainerListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef1.DockerContainer
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentDockerContainerListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentDockerContainerListResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -595,6 +676,15 @@ func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Contex
 	return ParseGetAgentDiagnosticsResponse(rsp)
 }
 
+// AgentDockerContainerListWithResponse request returning *AgentDockerContainerListResponse
+func (c *ClientWithResponses) AgentDockerContainerListWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AgentDockerContainerListResponse, error) {
+	rsp, err := c.AgentDockerContainerList(ctx, namespaceId, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerContainerListResponse(rsp)
+}
+
 // AgentDockerImagePullWithBodyWithResponse request with arbitrary body returning *AgentDockerImagePullResponse
 func (c *ClientWithResponses) AgentDockerImagePullWithBodyWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error) {
 	rsp, err := c.AgentDockerImagePullWithBody(ctx, namespaceId, id, contentType, body, reqEditors...)
@@ -655,6 +745,32 @@ func ParseGetAgentDiagnosticsResponse(rsp *http.Response) (*GetAgentDiagnosticsR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest externalRef0.RequestDiagnosticsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAgentDockerContainerListResponse parses an HTTP response from a AgentDockerContainerListWithResponse call
+func ParseAgentDockerContainerListResponse(rsp *http.Response) (*AgentDockerContainerListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentDockerContainerListResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef1.DockerContainer
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -765,6 +881,9 @@ type ServerInterface interface {
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics)
 	GetAgentDiagnostics(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 
+	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/containers)
+	AgentDockerContainerList(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+
 	// (POST /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/image-pull)
 	AgentDockerImagePull(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 
@@ -806,6 +925,32 @@ func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAgentDiagnostics(ctx, namespaceId, id)
+	return err
+}
+
+// AgentDockerContainerList converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentDockerContainerList(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AgentDockerContainerList(ctx, namespaceId, id)
 	return err
 }
 
@@ -942,6 +1087,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/containers", wrapper.AgentDockerContainerList)
 	router.POST(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/image-pull", wrapper.AgentDockerImagePull)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.AgentDockerImageList)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/info", wrapper.GetAgentDockerSystemInformation)

@@ -15,6 +15,24 @@ type AgentPushProxiedServer struct {
 	clientPool *ProxyClientPool
 }
 
+// AgentDockerContainerList implements agentendpoint.ServerInterface.
+func (s *AgentPushProxiedServer) AgentDockerContainerList(ec echo.Context, namespaceId string, id string) error {
+	c := ec.(ctx.RequestContext)
+	if !authz.AuthorizeAdminOnly(c) {
+		return base.ErrResponseStatusForbidden
+	}
+
+	client, err := s.clientPool.GetClient(c, namespaceId, id)
+	if err != nil {
+		return err
+	}
+	resp, err := client.AgentDockerContainerListWithResponse(c, "me", "me")
+	if err != nil {
+		return err
+	}
+	return c.Blob(resp.StatusCode(), "application/json", resp.Body)
+}
+
 // AgentDockerImagePull implements agentendpoint.ServerInterface.
 func (s *AgentPushProxiedServer) AgentDockerImagePull(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)

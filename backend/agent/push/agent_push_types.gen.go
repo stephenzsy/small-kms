@@ -13,9 +13,6 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
-// DockerContainer defines model for DockerContainer.
-type DockerContainer = types.Container
-
 // DockerContainerJSON defines model for DockerContainerJSON.
 type DockerContainerJSON = types.ContainerJSON
 
@@ -42,11 +39,6 @@ type DockerContianerCreateResponse = container.CreateResponse
 
 // PushAgentConfigRadiusParams defines parameters for PushAgentConfigRadius.
 type PushAgentConfigRadiusParams struct {
-	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
-}
-
-// AgentDockerContainerListParams defines parameters for AgentDockerContainerList.
-type AgentDockerContainerListParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 

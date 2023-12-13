@@ -5,10 +5,6 @@ type ProxiedResponse interface {
 	GetBody() []byte
 }
 
-func (r *AgentDockerContainerListResponse) GetBody() []byte {
-	return r.Body
-}
-
 func (r *AgentDockerContainerInspectResponse) GetBody() []byte {
 	return r.Body
 }

@@ -189,6 +189,11 @@ components:
       required:
         - imageRepo
         - imageTag
+    DockerContainer:
+      type: object
+      x-go-type: types.Container
+      x-go-type-import:
+        path: "github.com/docker/docker/api/types"        
     DockerImageSummary:
       type: object
       x-go-type: types.ImageSummary

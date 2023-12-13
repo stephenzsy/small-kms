@@ -6,27 +6,6 @@ servers:
   - url: https://example.com
     description: Local server
 paths:
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
-    get:
-      tags:
-        - agent
-        - admin
-      description: List docker containers
-      operationId: AgentDockerContainerList
-      responses:
-        200:
-          description: Container list result
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DockerContainer"
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/docker/containers/{containerId}:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

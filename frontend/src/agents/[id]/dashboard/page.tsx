@@ -1,5 +1,5 @@
 import { useRequest } from "ahooks";
-import { Button, Card, Form, Input, Tag, Typography } from "antd";
+import { Button, Card, Form, Input, Table, Tag, Typography } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
@@ -16,6 +16,8 @@ import {
 } from "../../../generated/apiv2";
 import { useAdminApi } from "../../../utils/useCertsApi";
 import Select, { DefaultOptionType } from "antd/es/select";
+import { ColumnType } from "antd/es/table";
+import { StopIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 function DockerPullImageForm({
   instanceId,
@@ -351,229 +353,226 @@ function DockerPullImageForm({
 //   );
 // }
 
-// type DockerContainer = {
-//   Id: string;
-//   Image: string;
-//   Command: string;
-//   Created: number;
-//   Status: string;
-//   State: string;
-//   Ports: {
-//     IP: string;
-//     PrivatePort: number;
-//     PublicPort: number;
-//     Type: string;
-//   }[];
-//   Names: string[];
-// };
+type DockerContainer = {
+  Id: string;
+  Image: string;
+  Command: string;
+  Created: number;
+  Status: string;
+  State: string;
+  Ports: {
+    IP: string;
+    PrivatePort: number;
+    PublicPort: number;
+    Type: string;
+  }[];
+  Names: string[];
+};
 
-// function useDockerContainerColumns(
-//   onInspect: (id: string) => void,
-//   onStop: (id: string) => void,
-//   onRemove: (id: string) => void
-// ): ColumnType<DockerContainer>[] {
-//   return useMemo(
-//     () => [
-//       {
-//         title: "ID",
-//         dataIndex: "Id",
-//         key: "Id",
-//         render: (id: DockerContainer["Id"]) => {
-//           return <span className="font-mono">{id.substring(0, 12)}</span>;
-//         },
-//       },
-//       {
-//         title: "Image",
-//         dataIndex: "Image",
-//         key: "Image",
-//         className: "max-w-[200px]",
-//       },
-//       {
-//         title: "Command",
-//         dataIndex: "Command",
-//         key: "Command",
-//         className: "font-mono",
-//       },
-//       {
-//         title: "Created",
-//         dataIndex: "Created",
-//         key: "Created",
-//         render: (created: DockerContainer["Created"]) => {
-//           const d = new Date(created * 1000);
-//           return (
-//             <time dateTime={d.toISOString()} className="font-mono">
-//               {d.toISOString()}
-//             </time>
-//           );
-//         },
-//       },
-//       {
-//         title: "Status",
-//         dataIndex: "Status",
-//         key: "Status",
-//       },
-//       {
-//         title: "Ports",
-//         dataIndex: "Ports",
-//         key: "Ports",
-//         render: (ports: DockerContainer["Ports"]) => {
-//           return ports.map((port) => (
-//             <div key={port.PrivatePort}>
-//               {port.IP}:{port.PrivatePort}
-//               {" -> "}
-//               {port.PublicPort}
-//             </div>
-//           ));
-//         },
-//       },
-//       {
-//         title: "Names",
-//         dataIndex: "Names",
-//         key: "Names",
-//         render: (names: DockerContainer["Names"]) => {
-//           return names.map((name) => <div key={name}>{name}</div>);
-//         },
-//       },
-//       {
-//         title: "Actions",
-//         key: "actions",
-//         render: (c: DockerContainer) => {
-//           return (
-//             <div className="flex gap-2">
-//               <Button
-//                 size="small"
-//                 onClick={() => {
-//                   onInspect(c.Id);
-//                 }}
-//               >
-//                 Inspect
-//               </Button>
-//               {c.State == "running" ? (
-//                 <Button
-//                   size="small"
-//                   className="flex items-center"
-//                   danger
-//                   onClick={() => {
-//                     onStop(c.Id);
-//                   }}
-//                   icon={<StopIcon className="h-em w-em" />}
-//                 >
-//                   Stop
-//                 </Button>
-//               ) : (
-//                 <Button
-//                   size="small"
-//                   className="flex items-center"
-//                   danger
-//                   onClick={() => {
-//                     onRemove(c.Id);
-//                   }}
-//                   icon={<TrashIcon className="h-4 w-4" />}
-//                 >
-//                   Remove
-//                 </Button>
-//               )}
-//             </div>
-//           );
-//         },
-//       },
-//     ],
-//     [onInspect, onStop, onRemove]
-//   );
-// }
+function useDockerContainerColumns(
+  onInspect: (id: string) => void,
+  onStop: (id: string) => void,
+  onRemove: (id: string) => void
+): ColumnType<DockerContainer>[] {
+  return useMemo(
+    () => [
+      {
+        title: "ID",
+        dataIndex: "Id",
+        key: "Id",
+        render: (id: DockerContainer["Id"]) => {
+          return <span className="font-mono">{id.substring(0, 12)}</span>;
+        },
+      },
+      {
+        title: "Image",
+        dataIndex: "Image",
+        key: "Image",
+        className: "max-w-[200px]",
+      },
+      {
+        title: "Command",
+        dataIndex: "Command",
+        key: "Command",
+        className: "font-mono",
+      },
+      {
+        title: "Created",
+        dataIndex: "Created",
+        key: "Created",
+        render: (created: DockerContainer["Created"]) => {
+          const d = new Date(created * 1000);
+          return (
+            <time dateTime={d.toISOString()} className="font-mono">
+              {d.toISOString()}
+            </time>
+          );
+        },
+      },
+      {
+        title: "Status",
+        dataIndex: "Status",
+        key: "Status",
+      },
+      {
+        title: "Ports",
+        dataIndex: "Ports",
+        key: "Ports",
+        render: (ports: DockerContainer["Ports"]) => {
+          return ports.map((port) => (
+            <div key={port.PrivatePort}>
+              {port.IP}:{port.PrivatePort}
+              {" -> "}
+              {port.PublicPort}
+            </div>
+          ));
+        },
+      },
+      {
+        title: "Names",
+        dataIndex: "Names",
+        key: "Names",
+        render: (names: DockerContainer["Names"]) => {
+          return names.map((name) => <div key={name}>{name}</div>);
+        },
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        render: (c: DockerContainer) => {
+          return (
+            <div className="flex gap-2">
+              <Button
+                size="small"
+                onClick={() => {
+                  onInspect(c.Id);
+                }}
+              >
+                Inspect
+              </Button>
+              {c.State == "running" ? (
+                <Button
+                  size="small"
+                  className="flex items-center"
+                  danger
+                  onClick={() => {
+                    onStop(c.Id);
+                  }}
+                  icon={<StopIcon className="h-em w-em" />}
+                >
+                  Stop
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  className="flex items-center"
+                  danger
+                  onClick={() => {
+                    onRemove(c.Id);
+                  }}
+                  icon={<TrashIcon className="h-4 w-4" />}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    [onInspect, onStop, onRemove]
+  );
+}
 
-// function ContainersTableCard({ api }: { api: AdminApi }) {
-//   const { namespaceId: namespaceIdentifier, namespaceKind } =
-//     useContext(NamespaceContext);
-//   const { instanceId, hasToken, getAccessToken } = useContext(
-//     ProxyAuthTokenContext
-//   );
-//   // const { openDrawer } = useContext(DrawerContext);
-//   // const { data: containers, run: listContainers } = useRequest(
-//   //   async (): Promise<DockerContainer[] | undefined> => {
-//   //     return (await api.agentDockerContainerList({
-//   //       namespaceId: namespaceIdentifier,
-//   //       namespaceKind,
-//   //       resourceId: instanceId,
-//   //       xCryptocatProxyAuthorization: getAccessToken(),
-//   //     })) as DockerContainer[];
-//   //   },
-//   //   { manual: true }
-//   // );
+function ContainersTableCard({ instanceId }: { instanceId: string }) {
+  const { openDrawer } = useContext(DrawerContext);
+  const { namespaceId } = useNamespace();
+  const api = useAdminApi();
+  const { data: containers, refresh: refreshContainersList } = useRequest(
+    async (): Promise<DockerContainer[] | undefined> => {
+      return (await api?.agentDockerContainerList({
+        namespaceId,
+        id: instanceId,
+      })) as DockerContainer[];
+    },
+    { refreshDeps: [namespaceId, instanceId] }
+  );
 
-//   // const onInspect = useMemoizedFn((id: string) => {
-//   //   openDrawer({
-//   //     title: `Inspect ${id}`,
-//   //     onGetData: async () => {
-//   //       return await api.agentDockerContainerInspect({
-//   //         namespaceId: namespaceIdentifier,
-//   //         namespaceKind,
-//   //         resourceId: instanceId,
-//   //         xCryptocatProxyAuthorization: getAccessToken(),
-//   //         containerId: id,
-//   //       });
-//   //     },
-//   //   });
-//   // });
+  // const onInspect = useMemoizedFn((id: string) => {
+  //   openDrawer({
+  //     title: `Inspect ${id}`,
+  //     onGetData: async () => {
+  //       return await api.agentDockerContainerInspect({
+  //         namespaceId: namespaceIdentifier,
+  //         namespaceKind,
+  //         resourceId: instanceId,
+  //         xCryptocatProxyAuthorization: getAccessToken(),
+  //         containerId: id,
+  //       });
+  //     },
+  //   });
+  // });
 
-//   // const { run: onStop } = useRequest(
-//   //   async (containerId: string): Promise<void> => {
-//   //     return await api.agentDockerContainerStop({
-//   //       namespaceId: namespaceIdentifier,
-//   //       namespaceKind,
-//   //       resourceId: instanceId,
-//   //       containerId,
-//   //       xCryptocatProxyAuthorization: getAccessToken(),
-//   //     });
-//   //   },
-//   //   { manual: true }
-//   // );
+  // const { run: onStop } = useRequest(
+  //   async (containerId: string): Promise<void> => {
+  //     return await api.agentDockerContainerStop({
+  //       namespaceId: namespaceIdentifier,
+  //       namespaceKind,
+  //       resourceId: instanceId,
+  //       containerId,
+  //       xCryptocatProxyAuthorization: getAccessToken(),
+  //     });
+  //   },
+  //   { manual: true }
+  // );
 
-//   // const { run: onRemove } = useRequest(
-//   //   async (containerId: string): Promise<void> => {
-//   //     return await api.agentDockerContainerRemove({
-//   //       namespaceId: namespaceIdentifier,
-//   //       namespaceKind,
-//   //       resourceId: instanceId,
-//   //       containerId,
-//   //       xCryptocatProxyAuthorization: getAccessToken(),
-//   //     });
-//   //   },
-//   //   { manual: true }
-//   // );
+  // const { run: onRemove } = useRequest(
+  //   async (containerId: string): Promise<void> => {
+  //     return await api.agentDockerContainerRemove({
+  //       namespaceId: namespaceIdentifier,
+  //       namespaceKind,
+  //       resourceId: instanceId,
+  //       containerId,
+  //       xCryptocatProxyAuthorization: getAccessToken(),
+  //     });
+  //   },
+  //   { manual: true }
+  // );
 
-//   // const columns = useDockerContainerColumns(onInspect, onStop, onRemove);
-//   return (
-//     <Card
-//       title="Containers"
-//       // extra={
-//       //   <Button type="link" onClick={listContainers} disabled={!hasToken}>
-//       //     List containers
-//       //   </Button>
-//       // }
-//     >
-//       {/* <Table<DockerContainer>
-//         columns={columns}
-//         dataSource={containers}
-//         rowKey={(c) => c.Id}
-//       /> */}
-//       {/* <div>
-//         <Button
-//           type="link"
-//           size="small"
-//           onClick={() =>
-//             openDrawer({
-//               // data: containers,
-//               // title: "Containers",
-//             })
-//           }
-//         >
-//           View JSON
-//         </Button>
-//       </div> */}
-//     </Card>
-//   );
-// }
+  const columns = useDockerContainerColumns(
+    () => {},
+    () => {},
+    () => {}
+  );
+  return (
+    <Card
+      title="Containers"
+      extra={
+        <div className="flex flex-row gap-4 items-center">
+          <Button type="link" onClick={refreshContainersList}>
+            Refresh
+          </Button>
+          <Button
+            type="link"
+            onClick={() =>
+              openDrawer(<JsonDataDisplay data={containers} />, {
+                title: "Containers",
+              })
+            }
+          >
+            View JSON
+          </Button>
+        </div>
+      }
+    >
+      <Table<DockerContainer>
+        columns={columns}
+        dataSource={containers}
+        rowKey={(c) => c.Id}
+      />
+    </Card>
+  );
+}
 
 // function RadiusConfigurationCard({ api }: { api: AdminApi }) {
 //   const { namespaceId: namespaceIdentifier, namespaceKind } =
@@ -793,7 +792,7 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
           </Button>
         </div>
       </Card>
-      {/* <ContainersTableCard api={api} /> */}
+      <ContainersTableCard instanceId={instanceId} />
       <Card title="View">
         <div className="flex flex-col gap-4 items-start">
           <Button
@@ -902,7 +901,7 @@ export default function AgentDashboardPage() {
           namespaceKind: NamespaceProvider.NamespaceProviderServicePrincipal,
         }}
       >
-        {instanceId && <AgentDashboard instanceId={instanceId} />}
+        {instanceId && agent?.servicePrincipalId && <AgentDashboard instanceId={instanceId} />}
       </NamespaceContext.Provider>
     </>
   );

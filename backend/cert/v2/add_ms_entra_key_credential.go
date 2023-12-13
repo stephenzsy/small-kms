@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	msgraphsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
@@ -97,7 +98,11 @@ func updateApplicationWithCert(c ctx.RequestContext, profile *profile.ProfileDoc
 			return c.NoContent(http.StatusNoContent)
 		}
 		installedKey.SetKey(nil)
-		nextKeyCredentials = append(nextKeyCredentials, installedKey)
+		installedKeyEnd := installedKey.GetEndDateTime()
+		if installedKeyEnd == nil || installedKeyEnd.After(time.Now()) {
+			// only add non-expired keys
+			nextKeyCredentials = append(nextKeyCredentials, installedKey)
+		}
 	}
 
 	toAdd := gmodels.NewKeyCredential()
