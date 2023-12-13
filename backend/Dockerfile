@@ -1,4 +1,4 @@
-FROM golang:1.21.4-alpine as builder
+FROM golang:1.21.5-alpine as builder
 
 RUN apk add --no-cache gcc g++
 
@@ -19,7 +19,7 @@ ARG BUILD_ID=dev
 RUN CGO_ENABLED=0 GOOS=linux go build -o server -ldflags="-X 'main.BuildID=${BUILD_ID}'" .
 RUN CGO_ENABLED=0 GOOS=linux go build -o agent-server -ldflags="-X 'main.BuildID=${BUILD_ID}'" ./agent
 
-FROM alpine:3.18
+FROM alpine:3.19.0
 
 RUN apk add --no-cache ca-certificates openssl
 
