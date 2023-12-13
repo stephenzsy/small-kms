@@ -733,7 +733,7 @@ paths:
         - agent
         - admin
       description: List docker images
-      operationId: ListAgentDockerImages
+      operationId: AgentDockerImageList
       responses:
         200:
           description: ImageList
@@ -743,6 +743,25 @@ paths:
                 type: array
                 items:
                   $ref: "models-agent.yaml#/components/schemas/DockerImageSummary"
+  /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/image-pull:
+    parameters:
+      - $ref: "#/components/parameters/NamespaceIdParameter"
+      - $ref: "#/components/parameters/IdParameter"
+    post:
+      tags:
+        - agent
+        - admin
+      description: Agent pull image
+      operationId: AgentDockerImagePull
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "models-agent.yaml#/components/schemas/PullImageRequest"
+      responses:
+        204:
+          description: agent pull image resposne
+          content: {}                  
   /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

@@ -60,6 +60,7 @@ models/OneTimeKey.ts
 models/Profile.ts
 models/ProfileFields.ts
 models/ProfileParameters.ts
+models/PullImageRequest.ts
 models/Ref.ts
 models/RequestDiagnostics.ts
 models/RequestHeaderEntry.ts

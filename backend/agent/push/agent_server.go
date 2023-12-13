@@ -4,27 +4,80 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 
 	"github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
 	echo "github.com/labstack/echo/v4"
 	agentcommon "github.com/stephenzsy/small-kms/backend/agent/common"
+	agentconfigmanager "github.com/stephenzsy/small-kms/backend/agent/configmanager/v2"
 	agentendpoint "github.com/stephenzsy/small-kms/backend/agent/endpoint"
 	"github.com/stephenzsy/small-kms/backend/agent/radius"
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/cloud/containerregistry/acr"
 	"github.com/stephenzsy/small-kms/backend/common"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
 type agentServer struct {
 	*base.BaseServer
+
 	dockerClient        dockerclient.APIClient
 	acrAuthProvider     *acr.DockerRegistryAuthProvider
 	acrImageRepo        string
 	mode                agentcommon.AgentSlot
 	radiusConfigManager *radius.RadiusConfigManager
 	launchedBy          string
+	endpointConfig      *agentconfigmanager.AgentEndpointConfiguration
+}
+
+// AgentDockerImagePull implements agentendpoint.ServerInterface.
+func (s *agentServer) AgentDockerImagePull(ec echo.Context, namespaceId string, id string) error {
+	c := ec.(ctx.RequestContext)
+	req := agentmodels.PullImageRequest{}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	regAuth, err := s.acrAuthProvider.GetRegistryAuth(c)
+	if err != nil {
+		return err
+	}
+	if req.ImageTag == "" {
+		return fmt.Errorf("%w: missing image tag", base.ErrResponseStatusBadRequest)
+	}
+	if !slices.Contains(s.endpointConfig.AllowedImageRepos, req.ImageRepo) {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": fmt.Sprintf("image repo %s is not allowed", req.ImageRepo),
+		})
+	}
+
+	loginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
+	if err != nil {
+		return err
+	}
+	reqLoginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
+	if err != nil {
+		return err
+	}
+	if loginServer != reqLoginServer {
+		return fmt.Errorf("%w: image repo must be in the same as configured", base.ErrResponseStatusBadRequest)
+	}
+
+	imageRef := fmt.Sprintf("%s:%s", req.ImageRepo, req.ImageTag)
+	out, err := s.dockerClient.ImagePull(c, imageRef, types.ImagePullOptions{
+		RegistryAuth: regAuth,
+	})
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	io.Copy(io.Discard, out)
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (s *agentServer) SetEndpointConfig(config *agentconfigmanager.AgentEndpointConfiguration) {
+	s.endpointConfig = config
 }
 
 // AgentContainerRemove implements ServerInterface.
@@ -81,7 +134,7 @@ func (s *agentServer) AgentDockerContainerList(ec echo.Context, _ base.Namespace
 }
 
 // AgentDockerImageList implements ServerInterface.
-func (s *agentServer) ListAgentDockerImages(ec echo.Context, namespaceId string, id string) error {
+func (s *agentServer) AgentDockerImageList(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)
 
 	images, err := s.dockerClient.ImageList(c, types.ImageListOptions{
@@ -91,48 +144,6 @@ func (s *agentServer) ListAgentDockerImages(ec echo.Context, namespaceId string,
 		return err
 	}
 	return c.JSON(http.StatusOK, images)
-}
-
-// AgentPullImage implements ServerInterface.
-func (s *agentServer) AgentPullImage(ec echo.Context, _ base.NamespaceKind, _, _ base.ID, _ AgentPullImageParams) error {
-	c := ec.(ctx.RequestContext)
-	req := PullImageRequest{}
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-	regAuth, err := s.acrAuthProvider.GetRegistryAuth(c)
-	if err != nil {
-		return err
-	}
-	if req.ImageTag == "" {
-		return fmt.Errorf("%w: missing image tag", base.ErrResponseStatusBadRequest)
-	}
-	imageRepo := s.acrImageRepo
-	if req.ImageRepo != "" {
-		loginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
-		if err != nil {
-			return err
-		}
-		reqLoginServer, err := acr.ExtractACRLoginServer(req.ImageRepo)
-		if err != nil {
-			return err
-		}
-		if loginServer != reqLoginServer {
-			return fmt.Errorf("%w: image repo must be in the same as configured", base.ErrResponseStatusBadRequest)
-		}
-		imageRepo = req.ImageRepo
-	}
-
-	imageRef := fmt.Sprintf("%s:%s", imageRepo, req.ImageTag)
-	out, err := s.dockerClient.ImagePull(c, imageRef, types.ImagePullOptions{
-		RegistryAuth: regAuth,
-	})
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	io.Copy(io.Discard, out)
-	return c.NoContent(http.StatusNoContent)
 }
 
 func (s *agentServer) ListAgentDockerNetowks(ec echo.Context, namespaceId string, id string) error {

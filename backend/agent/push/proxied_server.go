@@ -105,36 +105,6 @@ func (s *proxiedServer) AgentDockerContainerList(ec echo.Context, namespaceKind 
 	})
 }
 
-// AgentPullImage implements ServerInterface.
-func (s *proxiedServer) AgentPullImage(ec echo.Context, namespaceKind base.NamespaceKind, namespaceIdentifier base.ID,
-	rID base.ID,
-	params AgentPullImageParams) error {
-	c := ec.(ctx.RequestContext)
-
-	if params.XCryptocatProxyAuthorization == nil || *params.XCryptocatProxyAuthorization == "" {
-		return fmt.Errorf("%w: missing delegated access token", base.ErrResposneStatusUnauthorized)
-	}
-	req := PullImageRequest{}
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if !auth.AuthorizeAdminOnly(c) {
-		return s.RespondRequireAdmin(c)
-	}
-	c = ns.WithNSContext(c, namespaceKind, namespaceIdentifier)
-	// proxiedClient
-	client, err := s.getProxiedClient(c, rID, *params.XCryptocatProxyAuthorization)
-	if err != nil {
-		return err
-	}
-	resp, err := client.AgentPullImageWithResponse(c, namespaceKind, namespaceIdentifier, rID, nil, req)
-	if err != nil {
-		return err
-	}
-	return c.JSONBlob(resp.StatusCode(), resp.Body)
-}
-
 func NewProxiedServer(apiServer api.APIServer) ServerInterface {
 	return &proxiedServer{
 		APIServer:       apiServer,

@@ -1,72 +1,80 @@
 import { useRequest } from "ahooks";
-import { Button, Card, Typography } from "antd";
-import { useContext } from "react";
+import { Button, Card, Form, Input, Tag, Typography } from "antd";
+import { useForm } from "antd/es/form/Form";
+import { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { AgentContext } from "../../../admin/contexts/AgentContext";
 import { DrawerContext } from "../../../admin/contexts/DrawerContext";
 import { NamespaceContext } from "../../../admin/contexts/NamespaceContext";
 import { useNamespace } from "../../../admin/contexts/useNamespace";
 import { JsonDataDisplay } from "../../../components/JsonDataDisplay";
-import { NamespaceProvider } from "../../../generated/apiv2";
+import {
+  AgentConfigEndpoint,
+  AgentConfigName,
+  NamespaceProvider,
+  PullImageRequest,
+} from "../../../generated/apiv2";
 import { useAdminApi } from "../../../utils/useCertsApi";
+import Select, { DefaultOptionType } from "antd/es/select";
 
-// type DockerPullImageFormState = {
-//   imageTag: string;
-//   imageRepo?: string;
-// };
+function DockerPullImageForm({
+  instanceId,
+  endpointConfig,
+}: {
+  instanceId: string;
+  endpointConfig: AgentConfigEndpoint;
+}) {
+  const [form] = useForm<PullImageRequest>();
+  const { namespaceId } = useNamespace();
+  const api = useAdminApi();
 
-// function DockerPullImageForm() {
-//   const { instanceId, getAccessToken } = useContext(ProxyAuthTokenContext);
-//   const [form] = useForm<DockerPullImageFormState>();
-//   const { namespaceId: namespaceIdentifier, namespaceKind } =
-//     useContext(NamespaceContext);
-//   const api = useAuthedClient(AdminApi);
+  const { run: pullImage, loading } = useRequest(
+    async (req: PullImageRequest) => {
+      await api?.agentDockerImagePull({
+        namespaceId: namespaceId,
+        id: instanceId,
+        pullImageRequest: req,
+      });
+    },
+    { manual: true }
+  );
 
-//   const { run: pullImage, loading } = useRequest(
-//     async (req: PullImageRequest) => {
-//       await api.agentPullImage({
-//         namespaceId: namespaceIdentifier,
-//         namespaceKind,
-//         resourceId: instanceId,
-//         pullImageRequest: req,
-//         xCryptocatProxyAuthorization: getAccessToken(),
-//       });
-//     },
-//     { manual: true }
-//   );
+  const selectItems = useMemo(
+    () =>
+      endpointConfig?.allowedImageRepos?.map(
+        (r): DefaultOptionType => ({
+          label: r,
+          value: r,
+        })
+      ),
+    [endpointConfig]
+  );
 
-//   return (
-//     <Form
-//       form={form}
-//       layout="vertical"
-//       onFinish={(s) => {
-//         pullImage({
-//           imageRepo: s.imageRepo,
-//           imageTag: s.imageTag,
-//         });
-//       }}
-//     >
-//       <Form.Item<DockerPullImageFormState>
-//         name="imageRepo"
-//         label="Image repository"
-//       >
-//         <Input />
-//       </Form.Item>
-//       <Form.Item<DockerPullImageFormState>
-//         name="imageTag"
-//         label="Image tag"
-//         required
-//       >
-//         <Input placeholder="latest" />
-//       </Form.Item>
-//       <Form.Item>
-//         <Button type="primary" htmlType="submit" loading={loading}>
-//           Submit
-//         </Button>
-//       </Form.Item>
-//     </Form>
-//   );
-// }
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={(s) => {
+        pullImage({
+          imageRepo: s.imageRepo,
+          imageTag: s.imageTag,
+        });
+      }}
+    >
+      <Form.Item<PullImageRequest> name="imageRepo" label="Image repository">
+        <Select options={selectItems} />
+      </Form.Item>
+      <Form.Item<PullImageRequest> name="imageTag" label="Image tag" required>
+        <Input placeholder="latest" />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+}
 
 // type LaunchContainerFormState = {
 //   containerName: string;
@@ -625,7 +633,7 @@ function DockerImagesList({ namespaceId, instanceId }: InstanceProps) {
   const api = useAdminApi();
   const { data } = useRequest(
     async () => {
-      return await api?.listAgentDockerImages({
+      return await api?.agentDockerImageList({
         namespaceId,
         id: instanceId,
       });
@@ -667,6 +675,18 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
           id: instanceId,
         });
       }
+    },
+    {
+      refreshDeps: [instanceId, namespaceId],
+    }
+  );
+
+  const { data: endpointConfig } = useRequest(
+    async () => {
+      return (await api?.getAgentConfig({
+        configName: AgentConfigName.AgentConfigNameEndpoint,
+        namespaceId: namespaceId,
+      })) as AgentConfigEndpoint;
     },
     {
       refreshDeps: [instanceId, namespaceId],
@@ -734,32 +754,6 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
   //     xCryptocatProxyAuthorization: getAccessToken(),
   //   });
   // });
-  // const getDockerInfo = useMemoizedFn(async () => {
-  //   return await api.agentDockerInfo({
-  //     namespaceId: namespaceIdentifier,
-  //     namespaceKind,
-  //     resourceId: instanceId,
-  //     xCryptocatProxyAuthorization: getAccessToken(),
-  //   });
-  // });
-
-  // const getDockerImages = useMemoizedFn(async () => {
-  //   return await api.agentDockerImageList({
-  //     namespaceId: namespaceIdentifier,
-  //     namespaceKind,
-  //     resourceId: instanceId,
-  //     xCryptocatProxyAuthorization: getAccessToken(),
-  //   });
-  // });
-
-  // const listDockerNetworks = useMemoizedFn(async () => {
-  //   return await api.agentDockerNetworkList({
-  //     namespaceId: namespaceIdentifier,
-  //     namespaceKind,
-  //     resourceId: instanceId,
-  //     xCryptocatProxyAuthorization: getAccessToken(),
-  //   });
-  // });
 
   return (
     <>
@@ -775,7 +769,13 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
           </div>
           <div>
             <dt>Config version</dt>
-            <dd className="font-mono">{instance?.configVersion}</dd>
+            <dd className="font-mono">
+              {instance?.configVersion}{" "}
+              {instance?.configVersion &&
+                instance.configVersion === endpointConfig?.version && (
+                  <Tag color="success">Up to date</Tag>
+                )}
+            </dd>
           </div>
           <div>
             <dt>State</dt>
@@ -860,6 +860,14 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
             Agent request diagnostics
           </Button> */}
         </div>
+      </Card>
+      <Card title="Pull Image">
+        {endpointConfig && (
+          <DockerPullImageForm
+            instanceId={instanceId}
+            endpointConfig={endpointConfig}
+          />
+        )}
       </Card>
 
       {/* {hasToken && (

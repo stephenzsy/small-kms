@@ -18,15 +18,11 @@ import (
 )
 
 type AgentEndpointConfiguration struct {
-	VerifyJWKs       []cloudkey.JsonWebKey `json:"verifyJwks"`
-	VerifyJwkID      string                `json:"verifyJwkId"`
-	Version          string                `json:"version"`
-	TLSCertificateID string                `json:"tlsCertificateId"`
-	cm               ConfigManager
-}
-
-func (c *AgentEndpointConfiguration) TLSCertificateBundleFile() string {
-	return string(c.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert))
+	VerifyJWKs        []cloudkey.JsonWebKey `json:"verifyJwks"`
+	VerifyJwkID       string                `json:"verifyJwkId"`
+	Version           string                `json:"version"`
+	TLSCertificateID  string                `json:"tlsCertificateId"`
+	AllowedImageRepos []string              `json:"allowedImageRepos"`
 }
 
 type endpointProcessor struct {
@@ -36,7 +32,6 @@ type endpointProcessor struct {
 
 func (p *endpointProcessor) init(c context.Context) error {
 	logger := log.Ctx(c)
-	p.config.cm = p.cm
 	f := p.cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileEndpoint)
 	if exists, err := f.Exists(); err != nil {
 		logger.Error().Err(err).Msg("failed to check if endpoint config exists")
@@ -144,6 +139,7 @@ func (p *endpointProcessor) processEndpoint(c context.Context, ref *agentmodels.
 
 		p.config.VerifyJWKs = verifyJwks
 		p.config.VerifyJwkID = verifyJwkID
+		p.config.AllowedImageRepos = endpointConfig.AllowedImageRepos
 		p.config.Version = ref.Version
 		hasChange = true
 	}

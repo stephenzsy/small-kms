@@ -42,7 +42,6 @@ export * from './ManagedAppRefFields';
 export * from './NamespaceKind';
 export * from './ProfileRef';
 export * from './ProfileRefFields';
-export * from './PullImageRequest';
 export * from './RadiusClientConfig';
 export * from './RadiusEapTls';
 export * from './RadiusServerConfig';

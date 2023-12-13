@@ -4,6 +4,7 @@
 package agentendpoint
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -30,6 +31,9 @@ type NamespaceIdParameter = string
 
 // NamespaceProviderParameter defines model for NamespaceProviderParameter.
 type NamespaceProviderParameter = externalRef0.NamespaceProvider
+
+// AgentDockerImagePullJSONRequestBody defines body for AgentDockerImagePull for application/json ContentType.
+type AgentDockerImagePullJSONRequestBody = externalRef1.PullImageRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -107,8 +111,13 @@ type ClientInterface interface {
 	// GetAgentDiagnostics request
 	GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListAgentDockerImages request
-	ListAgentDockerImages(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// AgentDockerImagePullWithBody request with any body
+	AgentDockerImagePullWithBody(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AgentDockerImagePull(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, body AgentDockerImagePullJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AgentDockerImageList request
+	AgentDockerImageList(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAgentDockerSystemInformation request
 	GetAgentDockerSystemInformation(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -129,8 +138,32 @@ func (c *Client) GetAgentDiagnostics(ctx context.Context, namespaceId NamespaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAgentDockerImages(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAgentDockerImagesRequest(c.Server, namespaceId, id)
+func (c *Client) AgentDockerImagePullWithBody(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerImagePullRequestWithBody(c.Server, namespaceId, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentDockerImagePull(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, body AgentDockerImagePullJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerImagePullRequest(c.Server, namespaceId, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentDockerImageList(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentDockerImageListRequest(c.Server, namespaceId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -206,8 +239,62 @@ func NewGetAgentDiagnosticsRequest(server string, namespaceId NamespaceIdParamet
 	return req, nil
 }
 
-// NewListAgentDockerImagesRequest generates requests for ListAgentDockerImages
-func NewListAgentDockerImagesRequest(server string, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
+// NewAgentDockerImagePullRequest calls the generic AgentDockerImagePull builder with application/json body
+func NewAgentDockerImagePullRequest(server string, namespaceId NamespaceIdParameter, id IdParameter, body AgentDockerImagePullJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAgentDockerImagePullRequestWithBody(server, namespaceId, id, "application/json", bodyReader)
+}
+
+// NewAgentDockerImagePullRequestWithBody generates requests for AgentDockerImagePull with any type of body
+func NewAgentDockerImagePullRequestWithBody(server string, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/service-principal/%s/agent-instances/%s/docker/image-pull", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAgentDockerImageListRequest generates requests for AgentDockerImageList
+func NewAgentDockerImageListRequest(server string, namespaceId NamespaceIdParameter, id IdParameter) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -375,8 +462,13 @@ type ClientWithResponsesInterface interface {
 	// GetAgentDiagnosticsWithResponse request
 	GetAgentDiagnosticsWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDiagnosticsResponse, error)
 
-	// ListAgentDockerImagesWithResponse request
-	ListAgentDockerImagesWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*ListAgentDockerImagesResponse, error)
+	// AgentDockerImagePullWithBodyWithResponse request with any body
+	AgentDockerImagePullWithBodyWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error)
+
+	AgentDockerImagePullWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, body AgentDockerImagePullJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error)
+
+	// AgentDockerImageListWithResponse request
+	AgentDockerImageListWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error)
 
 	// GetAgentDockerSystemInformationWithResponse request
 	GetAgentDockerSystemInformationWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*GetAgentDockerSystemInformationResponse, error)
@@ -407,14 +499,13 @@ func (r GetAgentDiagnosticsResponse) StatusCode() int {
 	return 0
 }
 
-type ListAgentDockerImagesResponse struct {
+type AgentDockerImagePullResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef1.DockerImageSummary
 }
 
 // Status returns HTTPResponse.Status
-func (r ListAgentDockerImagesResponse) Status() string {
+func (r AgentDockerImagePullResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -422,7 +513,29 @@ func (r ListAgentDockerImagesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListAgentDockerImagesResponse) StatusCode() int {
+func (r AgentDockerImagePullResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AgentDockerImageListResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef1.DockerImageSummary
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentDockerImageListResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentDockerImageListResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -482,13 +595,30 @@ func (c *ClientWithResponses) GetAgentDiagnosticsWithResponse(ctx context.Contex
 	return ParseGetAgentDiagnosticsResponse(rsp)
 }
 
-// ListAgentDockerImagesWithResponse request returning *ListAgentDockerImagesResponse
-func (c *ClientWithResponses) ListAgentDockerImagesWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*ListAgentDockerImagesResponse, error) {
-	rsp, err := c.ListAgentDockerImages(ctx, namespaceId, id, reqEditors...)
+// AgentDockerImagePullWithBodyWithResponse request with arbitrary body returning *AgentDockerImagePullResponse
+func (c *ClientWithResponses) AgentDockerImagePullWithBodyWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error) {
+	rsp, err := c.AgentDockerImagePullWithBody(ctx, namespaceId, id, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListAgentDockerImagesResponse(rsp)
+	return ParseAgentDockerImagePullResponse(rsp)
+}
+
+func (c *ClientWithResponses) AgentDockerImagePullWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, body AgentDockerImagePullJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentDockerImagePullResponse, error) {
+	rsp, err := c.AgentDockerImagePull(ctx, namespaceId, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerImagePullResponse(rsp)
+}
+
+// AgentDockerImageListWithResponse request returning *AgentDockerImageListResponse
+func (c *ClientWithResponses) AgentDockerImageListWithResponse(ctx context.Context, namespaceId NamespaceIdParameter, id IdParameter, reqEditors ...RequestEditorFn) (*AgentDockerImageListResponse, error) {
+	rsp, err := c.AgentDockerImageList(ctx, namespaceId, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentDockerImageListResponse(rsp)
 }
 
 // GetAgentDockerSystemInformationWithResponse request returning *GetAgentDockerSystemInformationResponse
@@ -535,15 +665,31 @@ func ParseGetAgentDiagnosticsResponse(rsp *http.Response) (*GetAgentDiagnosticsR
 	return response, nil
 }
 
-// ParseListAgentDockerImagesResponse parses an HTTP response from a ListAgentDockerImagesWithResponse call
-func ParseListAgentDockerImagesResponse(rsp *http.Response) (*ListAgentDockerImagesResponse, error) {
+// ParseAgentDockerImagePullResponse parses an HTTP response from a AgentDockerImagePullWithResponse call
+func ParseAgentDockerImagePullResponse(rsp *http.Response) (*AgentDockerImagePullResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListAgentDockerImagesResponse{
+	response := &AgentDockerImagePullResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAgentDockerImageListResponse parses an HTTP response from a AgentDockerImageListWithResponse call
+func ParseAgentDockerImageListResponse(rsp *http.Response) (*AgentDockerImageListResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentDockerImageListResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -619,8 +765,11 @@ type ServerInterface interface {
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics)
 	GetAgentDiagnostics(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 
+	// (POST /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/image-pull)
+	AgentDockerImagePull(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/images)
-	ListAgentDockerImages(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
+	AgentDockerImageList(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
 	// Get agent docker system information
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id}/docker/info)
 	GetAgentDockerSystemInformation(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -660,8 +809,8 @@ func (w *ServerInterfaceWrapper) GetAgentDiagnostics(ctx echo.Context) error {
 	return err
 }
 
-// ListAgentDockerImages converts echo context to params.
-func (w *ServerInterfaceWrapper) ListAgentDockerImages(ctx echo.Context) error {
+// AgentDockerImagePull converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentDockerImagePull(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "namespaceId" -------------
 	var namespaceId NamespaceIdParameter
@@ -682,7 +831,33 @@ func (w *ServerInterfaceWrapper) ListAgentDockerImages(ctx echo.Context) error {
 	ctx.Set(BearerAuthScopes, []string{})
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListAgentDockerImages(ctx, namespaceId, id)
+	err = w.Handler.AgentDockerImagePull(ctx, namespaceId, id)
+	return err
+}
+
+// AgentDockerImageList converts echo context to params.
+func (w *ServerInterfaceWrapper) AgentDockerImageList(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AgentDockerImageList(ctx, namespaceId, id)
 	return err
 }
 
@@ -767,7 +942,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
-	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.ListAgentDockerImages)
+	router.POST(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/image-pull", wrapper.AgentDockerImagePull)
+	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.AgentDockerImageList)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/info", wrapper.GetAgentDockerSystemInformation)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/networks", wrapper.ListAgentDockerNetowks)
 

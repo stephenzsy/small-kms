@@ -109,11 +109,6 @@ type ClientInterface interface {
 	AgentLaunchAgentWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AgentPullImageWithBody request with any body
-	AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) PushAgentConfigRadius(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -190,30 +185,6 @@ func (c *Client) AgentLaunchAgentWithBody(ctx context.Context, namespaceKind ext
 
 func (c *Client) AgentLaunchAgent(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAgentLaunchAgentRequest(c.Server, namespaceKind, namespaceId, resourceId, params, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AgentPullImageWithBody(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentPullImageRequestWithBody(c.Server, namespaceKind, namespaceId, resourceId, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AgentPullImage(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAgentPullImageRequest(c.Server, namespaceKind, namespaceId, resourceId, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -636,82 +607,6 @@ func NewAgentLaunchAgentRequestWithBody(server string, namespaceKind externalRef
 	return req, nil
 }
 
-// NewAgentPullImageRequest calls the generic AgentPullImage builder with application/json body
-func NewAgentPullImageRequest(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewAgentPullImageRequestWithBody(server, namespaceKind, namespaceId, resourceId, params, "application/json", bodyReader)
-}
-
-// NewAgentPullImageRequestWithBody generates requests for AgentPullImage with any type of body
-func NewAgentPullImageRequestWithBody(server string, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, namespaceKind)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, namespaceId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, resourceId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1/%s/%s/agent/instance/%s/pull-image", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	if params != nil {
-
-		if params.XCryptocatProxyAuthorization != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, *params.XCryptocatProxyAuthorization)
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("X-Cryptocat-Proxy-Authorization", headerParam0)
-		}
-
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -774,11 +669,6 @@ type ClientWithResponsesInterface interface {
 	AgentLaunchAgentWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
 
 	AgentLaunchAgentWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentLaunchAgentParams, body AgentLaunchAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentLaunchAgentResponse, error)
-
-	// AgentPullImageWithBodyWithResponse request with any body
-	AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
-
-	AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error)
 }
 
 type PushAgentConfigRadiusResponse struct {
@@ -910,27 +800,6 @@ func (r AgentLaunchAgentResponse) StatusCode() int {
 	return 0
 }
 
-type AgentPullImageResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r AgentPullImageResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AgentPullImageResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // PushAgentConfigRadiusWithResponse request returning *PushAgentConfigRadiusResponse
 func (c *ClientWithResponses) PushAgentConfigRadiusWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *PushAgentConfigRadiusParams, reqEditors ...RequestEditorFn) (*PushAgentConfigRadiusResponse, error) {
 	rsp, err := c.PushAgentConfigRadius(ctx, namespaceKind, namespaceId, resourceId, params, reqEditors...)
@@ -991,23 +860,6 @@ func (c *ClientWithResponses) AgentLaunchAgentWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseAgentLaunchAgentResponse(rsp)
-}
-
-// AgentPullImageWithBodyWithResponse request with arbitrary body returning *AgentPullImageResponse
-func (c *ClientWithResponses) AgentPullImageWithBodyWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
-	rsp, err := c.AgentPullImageWithBody(ctx, namespaceKind, namespaceId, resourceId, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAgentPullImageResponse(rsp)
-}
-
-func (c *ClientWithResponses) AgentPullImageWithResponse(ctx context.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params *AgentPullImageParams, body AgentPullImageJSONRequestBody, reqEditors ...RequestEditorFn) (*AgentPullImageResponse, error) {
-	rsp, err := c.AgentPullImage(ctx, namespaceKind, namespaceId, resourceId, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAgentPullImageResponse(rsp)
 }
 
 // ParsePushAgentConfigRadiusResponse parses an HTTP response from a PushAgentConfigRadiusWithResponse call
@@ -1131,22 +983,6 @@ func ParseAgentLaunchAgentResponse(rsp *http.Response) (*AgentLaunchAgentRespons
 		}
 		response.JSON201 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseAgentPullImageResponse parses an HTTP response from a AgentPullImageWithResponse call
-func ParseAgentPullImageResponse(rsp *http.Response) (*AgentPullImageResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AgentPullImageResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil

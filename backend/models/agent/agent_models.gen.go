@@ -52,6 +52,7 @@ type AgentConfigEndpoint = agentConfigEndpointComposed
 
 // AgentConfigEndpointFields defines model for AgentConfigEndpointFields.
 type AgentConfigEndpointFields struct {
+	AllowedImageRepos        []string `json:"allowedImageRepos"`
 	JwtVerifyKeyIds          []string `json:"jwtVerifyKeyIds,omitempty"`
 	JwtVerifyKeyPolicyId     string   `json:"jwtVerifyKeyPolicyId"`
 	TLSCertificateAutoEnroll bool     `json:"tlsCertificateAutoEnroll"`
@@ -134,6 +135,12 @@ type DockerInfo = types.Info
 
 // DockerNetworkResource defines model for DockerNetworkResource.
 type DockerNetworkResource = types.NetworkResource
+
+// PullImageRequest defines model for PullImageRequest.
+type PullImageRequest struct {
+	ImageRepo string `json:"imageRepo"`
+	ImageTag  string `json:"imageTag"`
+}
 
 // AgentConfigResponse defines model for AgentConfigResponse.
 type AgentConfigResponse = AgentConfig

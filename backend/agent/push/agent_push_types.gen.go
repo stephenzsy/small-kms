@@ -34,13 +34,6 @@ type LaunchAgentRequest struct {
 	Secrets                       []externalRef1.SecretMount `json:"secrets"`
 }
 
-// PullImageRequest defines model for PullImageRequest.
-type PullImageRequest struct {
-	ImageRepo        string `json:"imageRepo,omitempty"`
-	ImageTag         string `json:"imageTag"`
-	IncludeLatestTag *bool  `json:"includeLatestTag,omitempty"`
-}
-
 // DelegatedAuthorizationHeaderParameter defines model for DelegatedAuthorizationHeaderParameter.
 type DelegatedAuthorizationHeaderParameter = string
 
@@ -77,13 +70,5 @@ type AgentLaunchAgentParams struct {
 	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
 }
 
-// AgentPullImageParams defines parameters for AgentPullImage.
-type AgentPullImageParams struct {
-	XCryptocatProxyAuthorization *DelegatedAuthorizationHeaderParameter `json:"X-Cryptocat-Proxy-Authorization,omitempty"`
-}
-
 // AgentLaunchAgentJSONRequestBody defines body for AgentLaunchAgent for application/json ContentType.
 type AgentLaunchAgentJSONRequestBody = LaunchAgentRequest
-
-// AgentPullImageJSONRequestBody defines body for AgentPullImage for application/json ContentType.
-type AgentPullImageJSONRequestBody = PullImageRequest

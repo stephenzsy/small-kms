@@ -84,27 +84,6 @@ paths:
         204:
           description: Container stop result
           content: {}
-  /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image:
-    parameters:
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/NamespaceIdParameter"
-      - $ref: "oapi-base.yaml#/components/parameters/ResourceIdParameter"
-      - $ref: "#/components/parameters/DelegatedAuthorizationHeaderParameter"
-    post:
-      tags:
-        - agent
-        - admin
-      description: Agent pull image
-      operationId: AgentPullImage
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PullImageRequest"
-      responses:
-        204:
-          description: agent pull image resposne
-          content: {}
   /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent:
     parameters:
       - $ref: "oapi-base.yaml#/components/parameters/NamespaceKindParameter"

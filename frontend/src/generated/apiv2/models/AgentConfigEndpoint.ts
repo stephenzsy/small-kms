@@ -74,6 +74,12 @@ export interface AgentConfigEndpoint {
      * @memberof AgentConfigEndpoint
      */
     jwtVerifyKeyIds?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AgentConfigEndpoint
+     */
+    allowedImageRepos: Array<string>;
 }
 
 /**
@@ -87,6 +93,7 @@ export function instanceOfAgentConfigEndpoint(value: object): boolean {
     isInstance = isInstance && "tlsCertificatePolicyId" in value;
     isInstance = isInstance && "tlsCertificateAutoEnroll" in value;
     isInstance = isInstance && "jwtVerifyKeyPolicyId" in value;
+    isInstance = isInstance && "allowedImageRepos" in value;
 
     return isInstance;
 }
@@ -109,6 +116,7 @@ export function AgentConfigEndpointFromJSONTyped(json: any, ignoreDiscriminator:
         'tlsCertificateAutoEnroll': json['tlsCertificateAutoEnroll'],
         'jwtVerifyKeyPolicyId': json['jwtVerifyKeyPolicyId'],
         'jwtVerifyKeyIds': !exists(json, 'jwtVerifyKeyIds') ? undefined : json['jwtVerifyKeyIds'],
+        'allowedImageRepos': json['allowedImageRepos'],
     };
 }
 
@@ -129,6 +137,7 @@ export function AgentConfigEndpointToJSON(value?: AgentConfigEndpoint | null): a
         'tlsCertificateAutoEnroll': value.tlsCertificateAutoEnroll,
         'jwtVerifyKeyPolicyId': value.jwtVerifyKeyPolicyId,
         'jwtVerifyKeyIds': value.jwtVerifyKeyIds,
+        'allowedImageRepos': value.allowedImageRepos,
     };
 }
 

@@ -23,6 +23,7 @@ type agentConfigDocEndpoint struct {
 	TLSCertificateID         string   `json:"tlsCertificateId,omitempty"`
 	JWTVerifyKeyPolicyID     string   `json:"jwtVerifyKeyPolicyId"`
 	JWTVerifyKeyIDs          []string `json:"jwtVerifyKeyIds"`
+	AllowedImageRepos        []string `json:"allowedImageRepos"`
 }
 
 func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
@@ -34,6 +35,7 @@ func (d *agentConfigDocEndpoint) ToModel() (m agentmodels.AgentConfigEndpoint) {
 	m.JwtVerifyKeyIds = d.JWTVerifyKeyIDs
 	m.TLSCertificateAutoEnroll = d.TLSCertificateAutoEnroll
 	m.TLSCertificateID = d.TLSCertificateID
+	m.AllowedImageRepos = d.AllowedImageRepos
 	return m
 }
 
@@ -58,6 +60,7 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 		TLSCertificatePolicyID:   req.TlsCertificatePolicyId,
 		JWTVerifyKeyPolicyID:     req.JwtVerifyKeyPolicyId,
 		TLSCertificateAutoEnroll: req.TLSCertificateAutoEnroll,
+		AllowedImageRepos:        req.AllowedImageRepos,
 	}
 
 	versiond := md5.New()
@@ -91,6 +94,9 @@ func putAgentConfigEndpoint(c ctx.RequestContext, namespaceId string, param *age
 	}
 	for _, keyId := range doc.JWTVerifyKeyIDs {
 		versiond.Write([]byte(keyId))
+	}
+	for _, repo := range doc.AllowedImageRepos {
+		versiond.Write([]byte(repo))
 	}
 
 	doc.Version = versiond.Sum(nil)

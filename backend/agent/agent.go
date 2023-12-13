@@ -121,9 +121,10 @@ func main() {
 				e.Use(base.HandleResponseError)
 				agentpush.RegisterHandlers(e, agentPushServer)
 				agentendpoint.RegisterHandlers(e, agentPushServer)
+				agentPushServer.SetEndpointConfig(config)
 
 				e.TLSServer.Addr = args[1]
-				e.TLSServer.TLSConfig, err = agentconfigmanager.GetTLSDefaultConfig(config)
+				e.TLSServer.TLSConfig, err = agentconfigmanager.GetTLSDefaultConfig(cm2)
 				if err != nil {
 					return nil, err
 				}

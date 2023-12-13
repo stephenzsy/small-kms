@@ -32,7 +32,6 @@ import type {
   ManagedAppParameters,
   ManagedAppRef,
   NamespaceKind,
-  PullImageRequest,
   Secret,
   SecretPolicy,
   SecretPolicyParameters,
@@ -74,8 +73,6 @@ import {
     ManagedAppRefToJSON,
     NamespaceKindFromJSON,
     NamespaceKindToJSON,
-    PullImageRequestFromJSON,
-    PullImageRequestToJSON,
     SecretFromJSON,
     SecretToJSON,
     SecretPolicyFromJSON,
@@ -125,14 +122,6 @@ export interface AgentLaunchAgentRequest {
     resourceId: string;
     xCryptocatProxyAuthorization?: string;
     launchAgentRequest?: LaunchAgentRequest;
-}
-
-export interface AgentPullImageRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    xCryptocatProxyAuthorization?: string;
-    pullImageRequest?: PullImageRequest;
 }
 
 export interface CreateManagedAppRequest {
@@ -530,58 +519,6 @@ export class AdminApi extends runtime.BaseAPI {
     async agentLaunchAgent(requestParameters: AgentLaunchAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
         const response = await this.agentLaunchAgentRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     * Agent pull image
-     */
-    async agentPullImageRaw(requestParameters: AgentPullImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling agentPullImage.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling agentPullImage.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling agentPullImage.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (requestParameters.xCryptocatProxyAuthorization !== undefined && requestParameters.xCryptocatProxyAuthorization !== null) {
-            headerParameters['X-Cryptocat-Proxy-Authorization'] = String(requestParameters.xCryptocatProxyAuthorization);
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: PullImageRequestToJSON(requestParameters.pullImageRequest),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Agent pull image
-     */
-    async agentPullImage(requestParameters: AgentPullImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.agentPullImageRaw(requestParameters, initOverrides);
     }
 
     /**

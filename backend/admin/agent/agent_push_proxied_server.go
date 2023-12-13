@@ -7,11 +7,35 @@ import (
 	"github.com/stephenzsy/small-kms/backend/base"
 	"github.com/stephenzsy/small-kms/backend/internal/authz"
 	ctx "github.com/stephenzsy/small-kms/backend/internal/context"
+	agentmodels "github.com/stephenzsy/small-kms/backend/models/agent"
 )
 
 type AgentPushProxiedServer struct {
 	api.APIServer
 	clientPool *ProxyClientPool
+}
+
+// AgentDockerImagePull implements agentendpoint.ServerInterface.
+func (s *AgentPushProxiedServer) AgentDockerImagePull(ec echo.Context, namespaceId string, id string) error {
+	c := ec.(ctx.RequestContext)
+	if !authz.AuthorizeAdminOnly(c) {
+		return base.ErrResponseStatusForbidden
+	}
+
+	req := new(agentmodels.PullImageRequest)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	client, err := s.clientPool.GetClient(c, namespaceId, id)
+	if err != nil {
+		return err
+	}
+	resp, err := client.AgentDockerImagePullWithResponse(c, "me", "me", *req)
+	if err != nil {
+		return err
+	}
+	return c.NoContent(resp.StatusCode())
 }
 
 // ListAgentDockerNetowks implements agentendpoint.ServerInterface.
@@ -69,7 +93,7 @@ func (s *AgentPushProxiedServer) GetAgentDockerSystemInformation(ec echo.Context
 }
 
 // ListAgentDockerImages implements agentendpoint.ServerInterface.
-func (s *AgentPushProxiedServer) ListAgentDockerImages(ec echo.Context, namespaceId string, id string) error {
+func (s *AgentPushProxiedServer) AgentDockerImageList(ec echo.Context, namespaceId string, id string) error {
 	c := ec.(ctx.RequestContext)
 	if !authz.AuthorizeAdminOnly(c) {
 		return base.ErrResponseStatusForbidden
@@ -79,7 +103,7 @@ func (s *AgentPushProxiedServer) ListAgentDockerImages(ec echo.Context, namespac
 	if err != nil {
 		return err
 	}
-	resp, err := client.ListAgentDockerImagesWithResponse(c, "me", "me")
+	resp, err := client.AgentDockerImageListWithResponse(c, "me", "me")
 	if err != nil {
 		return err
 	}

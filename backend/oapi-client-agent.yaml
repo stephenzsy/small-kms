@@ -10,8 +10,6 @@ security:
 paths:
   /v1/{namespaceKind}/{namespaceId}/certificates/{resourceId}:
     $ref: "oapi-cert.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1certificates~1{resourceId}"
-  /v1/{namespaceKind}/{namespaceId}/keys/{resourceId}:
-    $ref: "oapi-key.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1keys~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/secrets/{resourceId}:
     $ref: "oapi-secret.yaml#/paths/~1v1~1{namespaceKind}~1{namespaceId}~1secrets~1{resourceId}"
   /v1/{namespaceKind}/{namespaceId}/agent-config/server:

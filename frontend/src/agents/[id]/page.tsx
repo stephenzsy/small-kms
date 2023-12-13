@@ -5,6 +5,7 @@ import {
   Card,
   Checkbox,
   Form,
+  Input,
   TableColumnType,
   Tabs,
   TabsProps,
@@ -30,6 +31,7 @@ import {
   Ref as ResourceRef,
 } from "../../generated/apiv2";
 import { useAdminApi } from "../../utils/useCertsApi";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 export default function AgentPage() {
   const { agent } = useContext(AgentContext);
@@ -153,6 +155,7 @@ function AgentEndpointForm({
       <Form.Item<AgentConfigEndpointFields>
         name="tlsCertificatePolicyId"
         label="Select TLS Certificate Policy"
+        required
       >
         <ResourceRefsSelect
           data={certificatePolicies.data}
@@ -162,6 +165,7 @@ function AgentEndpointForm({
       <Form.Item<AgentConfigEndpointFields>
         name="jwtVerifyKeyPolicyId"
         label="Select JWT Verification Key Policy"
+        required
       >
         <ResourceRefsSelect
           data={keyPolicies.data}
@@ -174,6 +178,38 @@ function AgentEndpointForm({
         getValueFromEvent={(e) => e.target.checked}
       >
         <Checkbox>Auto enroll TLS certificate</Checkbox>
+      </Form.Item>
+      <Form.Item label="Allowed Azure Container Repositories" required>
+        <Form.List name="allowedImageRepos">
+          {(subFields, subOpt) => {
+            return (
+              <div className="flex flex-col gap-4">
+                {subFields.map((subField) => (
+                  <div key={subField.key} className="flex items-center gap-4">
+                    <Form.Item
+                      noStyle
+                      name={subField.name}
+                      className="flex-auto"
+                    >
+                      <Input placeholder="repo.azurecr.io/repo" />
+                    </Form.Item>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        subOpt.remove(subField.name);
+                      }}
+                    >
+                      <XMarkIcon className="h-em w-em" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="dashed" onClick={() => subOpt.add()} block>
+                  Add Azure Container Repository
+                </Button>
+              </div>
+            );
+          }}
+        </Form.List>
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit">

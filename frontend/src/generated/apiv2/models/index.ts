@@ -59,6 +59,7 @@ export * from './OneTimeKey';
 export * from './Profile';
 export * from './ProfileFields';
 export * from './ProfileParameters';
+export * from './PullImageRequest';
 export * from './Ref';
 export * from './RequestDiagnostics';
 export * from './RequestHeaderEntry';

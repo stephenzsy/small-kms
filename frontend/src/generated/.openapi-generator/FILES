@@ -43,7 +43,6 @@ models/ManagedAppRefFields.ts
 models/NamespaceKind.ts
 models/ProfileRef.ts
 models/ProfileRefFields.ts
-models/PullImageRequest.ts
 models/RadiusClientConfig.ts
 models/RadiusEapTls.ts
 models/RadiusServerConfig.ts

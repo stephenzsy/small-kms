@@ -25,8 +25,13 @@ func (*echoTask) Name() string {
 	return "Echo"
 }
 
-func GetTLSDefaultConfig(config *AgentEndpointConfiguration) (*tls.Config, error) {
-	tlsCert, err := tls.LoadX509KeyPair(config.TLSCertificateBundleFile(), config.TLSCertificateBundleFile())
+func getActiveTLSCertificateBundleFile(cm ConfigManager) string {
+	return string(cm.ConfigDir().Active(agentmodels.AgentConfigNameEndpoint).ConfigFile(configFileServerCert))
+}
+
+func GetTLSDefaultConfig(configManager ConfigManager) (*tls.Config, error) {
+	certBundle := getActiveTLSCertificateBundleFile(configManager)
+	tlsCert, err := tls.LoadX509KeyPair(certBundle, certBundle)
 	if err != nil {
 		return nil, err
 	}

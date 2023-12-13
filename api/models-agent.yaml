@@ -169,11 +169,26 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
+        allowedImageRepos:
+          type: array
+          items:
+            type: string
       required:
         - tlsCertificatePolicyId
         - tlsCertificatePublicCaSigned
         - tlsCertificateAutoEnroll
         - jwtVerifyKeyPolicyId
+        - allowedImageRepos
+    PullImageRequest:
+      type: object
+      properties:
+        imageRepo:
+          type: string
+        imageTag:
+          type: string
+      required:
+        - imageRepo
+        - imageTag
     DockerImageSummary:
       type: object
       x-go-type: types.ImageSummary

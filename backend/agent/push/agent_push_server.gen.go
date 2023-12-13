@@ -32,9 +32,6 @@ type ServerInterface interface {
 
 	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/launch-agent)
 	AgentLaunchAgent(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentLaunchAgentParams) error
-
-	// (POST /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}/pull-image)
-	AgentPullImage(ctx echo.Context, namespaceKind externalRef0.NamespaceKindParameter, namespaceId externalRef0.NamespaceIdParameter, resourceId externalRef0.ResourceIdParameter, params AgentPullImageParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -390,60 +387,6 @@ func (w *ServerInterfaceWrapper) AgentLaunchAgent(ctx echo.Context) error {
 	return err
 }
 
-// AgentPullImage converts echo context to params.
-func (w *ServerInterfaceWrapper) AgentPullImage(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef0.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef0.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef0.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AgentPullImageParams
-
-	headers := ctx.Request().Header
-	// ------------- Optional header parameter "X-Cryptocat-Proxy-Authorization" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Cryptocat-Proxy-Authorization")]; found {
-		var XCryptocatProxyAuthorization DelegatedAuthorizationHeaderParameter
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Cryptocat-Proxy-Authorization, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Cryptocat-Proxy-Authorization", runtime.ParamLocationHeader, valueList[0], &XCryptocatProxyAuthorization)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Cryptocat-Proxy-Authorization: %s", err))
-		}
-
-		params.XCryptocatProxyAuthorization = &XCryptocatProxyAuthorization
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.AgentPullImage(ctx, namespaceKind, namespaceId, resourceId, params)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -478,6 +421,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId", wrapper.AgentDockerContainerInspect)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/docker/containers/:containerId/stop", wrapper.AgentDockerContainerStop)
 	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/launch-agent", wrapper.AgentLaunchAgent)
-	router.POST(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId/pull-image", wrapper.AgentPullImage)
 
 }

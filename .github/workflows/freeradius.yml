@@ -5,8 +5,8 @@ on:
       - "main"
     paths:
       - ".github/workflows/freeradius.yml"
-      - "radius/Dockerfile"
-      - "radius/docker-entrypoint.sh"
+      - "freeradius/Dockerfile"
+      - "freeradius/docker-entrypoint.sh"
   workflow_dispatch:
 
 permissions:
