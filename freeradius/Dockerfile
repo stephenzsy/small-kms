@@ -1,5 +1,5 @@
 # Refer to https://github.com/FreeRADIUS/freeradius-server/blob/v3.2.x/scripts/docker/alpine/Dockerfile
-ARG from=alpine:3.18.4
+ARG from=alpine:3.19.0
 FROM ${from} as build
 
 RUN apk update
