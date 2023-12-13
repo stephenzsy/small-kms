@@ -694,6 +694,23 @@ paths:
           $ref: "models-agent.yaml#/components/responses/AgentInstanceResponse"
         404:
           $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - admin
+      operationId: DeleteAgentInstance
+      summary: Delete agent instance
+      parameters:
+        - in: query
+          name: force
+          description: Force delete
+          required: false
+          schema:
+            type: boolean
+      responses:
+        204:
+          $ref: "#/components/responses/NoContentResponse"
+        400:
+          $ref: "#/components/responses/ErrorResponse"
   /v2/service-principal/{namespaceId}/agent-instances/{id}/diagnostics:
     parameters:
       - $ref: "#/components/parameters/NamespaceIdParameter"

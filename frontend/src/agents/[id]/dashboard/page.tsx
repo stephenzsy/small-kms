@@ -672,7 +672,20 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
       refreshDeps: [instanceId, namespaceId],
     }
   );
-  // const { namespaceId: namespaceIdentifier, namespaceKind } =
+
+  const { run: deleteInstance } = useRequest(
+    async (instanceId: string) => {
+      if (namespaceId) {
+        return api?.deleteAgentInstance({
+          namespaceId: namespaceId,
+          id: instanceId,
+        });
+      }
+    },
+    {
+      manual: true,
+    }
+  ); // const { namespaceId: namespaceIdentifier, namespaceKind } =
   //   useContext(NamespaceContext);
   // const { instanceId, hasToken, getAccessToken, setAccessToken } = useContext(
   //   ProxyAuthTokenContext
@@ -769,6 +782,16 @@ function AgentDashboard({ instanceId }: { instanceId: string }) {
             <dd className="capitalize">{instance?.state}</dd>
           </div>
         </dl>
+        <div>
+          <Button
+            danger
+            onClick={() => {
+              deleteInstance(instanceId);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
       </Card>
       {/* <ContainersTableCard api={api} /> */}
       <Card title="View">

@@ -137,9 +137,6 @@ type PatchAgentConfigRadiusJSONRequestBody = AgentConfigRadiusFields
 // PutAgentConfigServerJSONRequestBody defines body for PutAgentConfigServer for application/json ContentType.
 type PutAgentConfigServerJSONRequestBody = AgentConfigServerFields
 
-// PutAgentInstanceJSONRequestBody defines body for PutAgentInstance for application/json ContentType.
-type PutAgentInstanceJSONRequestBody = AgentInstanceFields
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List managed apps
@@ -172,9 +169,6 @@ type ServerInterface interface {
 	// Get agent config server instance
 	// (GET /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId})
 	GetAgentInstance(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
-	// Put agent config server instance
-	// (PUT /v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId})
-	PutAgentInstance(ctx echo.Context, namespaceKind externalRef1.NamespaceKindParameter, namespaceId externalRef1.NamespaceIdParameter, resourceId externalRef1.ResourceIdParameter) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -404,40 +398,6 @@ func (w *ServerInterfaceWrapper) GetAgentInstance(ctx echo.Context) error {
 	return err
 }
 
-// PutAgentInstance converts echo context to params.
-func (w *ServerInterfaceWrapper) PutAgentInstance(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "namespaceKind" -------------
-	var namespaceKind externalRef1.NamespaceKindParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceKind", runtime.ParamLocationPath, ctx.Param("namespaceKind"), &namespaceKind)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceKind: %s", err))
-	}
-
-	// ------------- Path parameter "namespaceId" -------------
-	var namespaceId externalRef1.NamespaceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
-	}
-
-	// ------------- Path parameter "resourceId" -------------
-	var resourceId externalRef1.ResourceIdParameter
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "resourceId", runtime.ParamLocationPath, ctx.Param("resourceId"), &resourceId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter resourceId: %s", err))
-	}
-
-	ctx.Set(BearerAuthScopes, []string{})
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutAgentInstance(ctx, namespaceKind, namespaceId, resourceId)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -476,6 +436,5 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent-config/server", wrapper.PutAgentConfigServer)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance", wrapper.ListAgentInstances)
 	router.GET(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.GetAgentInstance)
-	router.PUT(baseURL+"/v1/:namespaceKind/:namespaceId/agent/instance/:resourceId", wrapper.PutAgentInstance)
 
 }

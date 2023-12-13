@@ -36,6 +36,12 @@ type NamespaceProviderParameter = externalRef0.NamespaceProvider
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse = ErrorResult
 
+// DeleteAgentInstanceParams defines parameters for DeleteAgentInstance.
+type DeleteAgentInstanceParams struct {
+	// Force Force delete
+	Force *bool `form:"force,omitempty" json:"force,omitempty"`
+}
+
 // EnrollCertificateParams defines parameters for EnrollCertificate.
 type EnrollCertificateParams struct {
 	// OnBehalfOfApplication Enroll on behalf of application, must have a bearer token with "azp" cliam
@@ -161,6 +167,9 @@ type ServerInterface interface {
 	// Update agent instance
 	// (POST /v2/service-principal/{namespaceId}/agent-instances)
 	UpdateAgentInstance(ctx echo.Context, namespaceId NamespaceIdParameter) error
+	// Delete agent instance
+	// (DELETE /v2/service-principal/{namespaceId}/agent-instances/{id})
+	DeleteAgentInstance(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter, params DeleteAgentInstanceParams) error
 	// Get agent instance
 	// (GET /v2/service-principal/{namespaceId}/agent-instances/{id})
 	GetAgentInstance(ctx echo.Context, namespaceId NamespaceIdParameter, id IdParameter) error
@@ -616,6 +625,41 @@ func (w *ServerInterfaceWrapper) UpdateAgentInstance(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.UpdateAgentInstance(ctx, namespaceId)
+	return err
+}
+
+// DeleteAgentInstance converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteAgentInstance(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "namespaceId" -------------
+	var namespaceId NamespaceIdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "namespaceId", runtime.ParamLocationPath, ctx.Param("namespaceId"), &namespaceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespaceId: %s", err))
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id IdParameter
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteAgentInstanceParams
+	// ------------- Optional query parameter "force" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "force", ctx.QueryParams(), &params.Force)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter force: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteAgentInstance(ctx, namespaceId, id, params)
 	return err
 }
 
@@ -1605,6 +1649,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/v2/service-principal/:namespaceId/agent-config/:configName", wrapper.PutAgentConfig)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances", wrapper.ListAgentInstances)
 	router.POST(baseURL+"/v2/service-principal/:namespaceId/agent-instances", wrapper.UpdateAgentInstance)
+	router.DELETE(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id", wrapper.DeleteAgentInstance)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id", wrapper.GetAgentInstance)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/diagnostics", wrapper.GetAgentDiagnostics)
 	router.GET(baseURL+"/v2/service-principal/:namespaceId/agent-instances/:id/docker/images", wrapper.ListAgentDockerImages)

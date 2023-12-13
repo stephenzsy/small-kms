@@ -39,23 +39,6 @@ func (s *server) ListAgentInstances(ec echo.Context, namespaceKind base.Namespac
 	return apiListAgentInstances(c)
 }
 
-// PutAgentConfigServerInstance implements ServerInterface.
-func (s *server) PutAgentInstance(ec echo.Context, namespaceKind base.NamespaceKind, nsID base.ID, instanceId base.ID) error {
-	c := ec.(ctx.RequestContext)
-	nsUUID := auth.ResolveSelfNamespace(c, string(nsID))
-	if !auth.AuthorizeSelfOrAdmin(c, nsUUID) {
-		s.RespondRequireAdmin(c)
-	} else if !utils.IsUUIDNil(nsUUID) {
-		nsID = base.IDFromUUID(nsUUID)
-	}
-	c = ns.WithNSContext(c, namespaceKind, nsID)
-	fields := AgentInstanceFields{}
-	if err := c.Bind(&fields); err != nil {
-		return err
-	}
-	return apiPutAgentInstance(c, instanceId, fields)
-}
-
 // GetAgentConfigServer implements ServerInterface.
 func (s *server) GetAgentConfigServer(ec echo.Context, namespaceKind base.NamespaceKind, nsID base.ID) error {
 	c := ec.(ctx.RequestContext)

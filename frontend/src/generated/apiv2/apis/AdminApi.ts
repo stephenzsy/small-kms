@@ -136,6 +136,12 @@ export interface CreateOneTimeKeyRequest {
     namespaceId: string;
 }
 
+export interface DeleteAgentInstanceRequest {
+    namespaceId: string;
+    id: string;
+    force?: boolean;
+}
+
 export interface DeleteCertificateRequest {
     namespaceProvider: NamespaceProvider;
     namespaceId: string;
@@ -500,6 +506,51 @@ export class AdminApi extends runtime.BaseAPI {
     async createOneTimeKey(requestParameters: CreateOneTimeKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OneTimeKey> {
         const response = await this.createOneTimeKeyRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Delete agent instance
+     */
+    async deleteAgentInstanceRaw(requestParameters: DeleteAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
+            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling deleteAgentInstance.');
+        }
+
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteAgentInstance.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.force !== undefined) {
+            queryParameters['force'] = requestParameters.force;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/v2/service-principal/{namespaceId}/agent-instances/{id}`.replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Delete agent instance
+     */
+    async deleteAgentInstance(requestParameters: DeleteAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteAgentInstanceRaw(requestParameters, initOverrides);
     }
 
     /**

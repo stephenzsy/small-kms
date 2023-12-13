@@ -20,7 +20,6 @@ import type {
   AgentConfigServer,
   AgentConfigServerFields,
   AgentInstance,
-  AgentInstanceFields,
   AzureKeyvaultResourceCategory,
   AzureRoleAssignment,
   CertPolicy,
@@ -51,8 +50,6 @@ import {
     AgentConfigServerFieldsToJSON,
     AgentInstanceFromJSON,
     AgentInstanceToJSON,
-    AgentInstanceFieldsFromJSON,
-    AgentInstanceFieldsToJSON,
     AzureKeyvaultResourceCategoryFromJSON,
     AzureKeyvaultResourceCategoryToJSON,
     AzureRoleAssignmentFromJSON,
@@ -254,13 +251,6 @@ export interface PutAgentConfigServerRequest {
     namespaceKind: NamespaceKind;
     namespaceId: string;
     agentConfigServerFields: AgentConfigServerFields;
-}
-
-export interface PutAgentInstanceRequest {
-    namespaceKind: NamespaceKind;
-    namespaceId: string;
-    resourceId: string;
-    agentInstanceFields: AgentInstanceFields;
 }
 
 export interface PutSecretPolicyRequest {
@@ -1568,58 +1558,6 @@ export class AdminApi extends runtime.BaseAPI {
     async putAgentConfigServer(requestParameters: PutAgentConfigServerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentConfigServer> {
         const response = await this.putAgentConfigServerRaw(requestParameters, initOverrides);
         return await response.value();
-    }
-
-    /**
-     * Put agent config server instance
-     */
-    async putAgentInstanceRaw(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.namespaceKind === null || requestParameters.namespaceKind === undefined) {
-            throw new runtime.RequiredError('namespaceKind','Required parameter requestParameters.namespaceKind was null or undefined when calling putAgentInstance.');
-        }
-
-        if (requestParameters.namespaceId === null || requestParameters.namespaceId === undefined) {
-            throw new runtime.RequiredError('namespaceId','Required parameter requestParameters.namespaceId was null or undefined when calling putAgentInstance.');
-        }
-
-        if (requestParameters.resourceId === null || requestParameters.resourceId === undefined) {
-            throw new runtime.RequiredError('resourceId','Required parameter requestParameters.resourceId was null or undefined when calling putAgentInstance.');
-        }
-
-        if (requestParameters.agentInstanceFields === null || requestParameters.agentInstanceFields === undefined) {
-            throw new runtime.RequiredError('agentInstanceFields','Required parameter requestParameters.agentInstanceFields was null or undefined when calling putAgentInstance.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("BearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/v1/{namespaceKind}/{namespaceId}/agent/instance/{resourceId}`.replace(`{${"namespaceKind"}}`, encodeURIComponent(String(requestParameters.namespaceKind))).replace(`{${"namespaceId"}}`, encodeURIComponent(String(requestParameters.namespaceId))).replace(`{${"resourceId"}}`, encodeURIComponent(String(requestParameters.resourceId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: AgentInstanceFieldsToJSON(requestParameters.agentInstanceFields),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Put agent config server instance
-     */
-    async putAgentInstance(requestParameters: PutAgentInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.putAgentInstanceRaw(requestParameters, initOverrides);
     }
 
     /**

@@ -30,19 +30,6 @@ func (d *AgentInstanceDoc) PopulateModel(r *AgentInstance) {
 	r.AgentInstanceFields = d.AgentInstanceFields
 }
 
-func apiPutAgentInstance(c ctx.RequestContext, instanceID base.ID, req AgentInstanceFields) error {
-	nsCtx := ns.GetNSContext(c)
-	doc := &AgentInstanceDoc{}
-	doc.init(nsCtx.Kind(), nsCtx.ID(), instanceID, req)
-
-	docSvc := base.GetAzCosmosCRUDService(c)
-	if err := docSvc.Upsert(c, doc, nil); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusCreated)
-}
-
 type AgentInstanceQueryDoc struct {
 	base.QueryBaseDoc
 	AgentInstanceFields
